@@ -30,9 +30,6 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
   public final LinearLayout appbarLayout;
 
   @NonNull
-  public final ImageView borra;
-
-  @NonNull
   public final TextView categoria;
 
   @NonNull
@@ -72,7 +69,7 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
   public final TextView txtNoResultados;
 
   private ActivityVistaCategoriasTBinding(@NonNull RelativeLayout rootView,
-      @NonNull LinearLayout appbarLayout, @NonNull ImageView borra, @NonNull TextView categoria,
+      @NonNull LinearLayout appbarLayout, @NonNull TextView categoria,
       @NonNull EditText editexFilter, @NonNull RecyclerView filtradocategoria,
       @NonNull TextInputLayout inputnombre, @NonNull LinearLayout linelaFiltrado,
       @NonNull LinearLayoutCompat loading, @NonNull RelativeLayout main,
@@ -81,7 +78,6 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
       @NonNull TextView totalUser, @NonNull TextView txtNoResultados) {
     this.rootView = rootView;
     this.appbarLayout = appbarLayout;
-    this.borra = borra;
     this.categoria = categoria;
     this.editexFilter = editexFilter;
     this.filtradocategoria = filtradocategoria;
@@ -127,12 +123,6 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
       id = R.id.appbarLayout;
       LinearLayout appbarLayout = ViewBindings.findChildViewById(rootView, id);
       if (appbarLayout == null) {
-        break missingId;
-      }
-
-      id = R.id.borra;
-      ImageView borra = ViewBindings.findChildViewById(rootView, id);
-      if (borra == null) {
         break missingId;
       }
 
@@ -210,10 +200,9 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityVistaCategoriasTBinding((RelativeLayout) rootView, appbarLayout, borra,
-          categoria, editexFilter, filtradocategoria, inputnombre, linelaFiltrado, loading, main,
-          noResultados, recicleCategoria, relativeNoEncontrado, shimmerFrameLayout, totalUser,
-          txtNoResultados);
+      return new ActivityVistaCategoriasTBinding((RelativeLayout) rootView, appbarLayout, categoria,
+          editexFilter, filtradocategoria, inputnombre, linelaFiltrado, loading, main, noResultados,
+          recicleCategoria, relativeNoEncontrado, shimmerFrameLayout, totalUser, txtNoResultados);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -18,6 +18,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import de.hdodenhof.circleimageview.CircleImageView;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -133,6 +134,9 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
   public final ImageButton popup;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  @NonNull
   public final SwipeRefreshLayout swipe;
 
   @NonNull
@@ -160,8 +164,9 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
       @NonNull LinearLayoutCompat loading, @NonNull TextView localidad,
       @NonNull TextView nacionnalidadUser, @NonNull TextView nombreUser, @NonNull TextView numero,
       @NonNull View overlay, @NonNull TextView plan, @NonNull ImageButton popup,
-      @NonNull SwipeRefreshLayout swipe, @NonNull TextView tipoCuenta,
-      @NonNull TextView tipoTrabajores, @NonNull TextView verificado) {
+      @NonNull CircularProgressIndicator progressCargaImagen, @NonNull SwipeRefreshLayout swipe,
+      @NonNull TextView tipoCuenta, @NonNull TextView tipoTrabajores,
+      @NonNull TextView verificado) {
     this.rootView = rootView;
     this.CorreoUsuario = CorreoUsuario;
     this.RelativeGeneral = RelativeGeneral;
@@ -198,6 +203,7 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
     this.overlay = overlay;
     this.plan = plan;
     this.popup = popup;
+    this.progressCargaImagen = progressCargaImagen;
     this.swipe = swipe;
     this.tipoCuenta = tipoCuenta;
     this.tipoTrabajores = tipoTrabajores;
@@ -441,6 +447,12 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
       id = R.id.swipe;
       SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
       if (swipe == null) {
@@ -471,7 +483,8 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
           estado, fechaNaciminetoUSer, fotoPortada, genero, horarioReloj, horarioUser,
           iconVerificado, imagenPerfil, linealCategoriaT, linealDescripcion, linealHorario,
           linealPlan, linealTipoTrabajo, linealVerificado, loading, localidad, nacionnalidadUser,
-          nombreUser, numero, overlay, plan, popup, swipe, tipoCuenta, tipoTrabajores, verificado);
+          nombreUser, numero, overlay, plan, popup, progressCargaImagen, swipe, tipoCuenta,
+          tipoTrabajores, verificado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

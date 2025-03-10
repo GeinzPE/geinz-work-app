@@ -57,7 +57,7 @@ class publicaciones_ralizadas(
                 null,
                 binding.imgProducto,
                 "portada", placeholderperfil
-            )
+            ){}
 
             binding.linealPublicacionesEditDelete.isVisible = true
             binding.borrarItem.setOnClickListener {

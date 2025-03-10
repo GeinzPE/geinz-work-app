@@ -94,6 +94,9 @@ public final class ActivityVistasAnunciosGeneralBinding implements ViewBinding {
   public final TextView titulo;
 
   @NonNull
+  public final ImageView ubicacion;
+
+  @NonNull
   public final TextView verMasPromociones;
 
   private ActivityVistasAnunciosGeneralBinding(@NonNull LinearLayout rootView,
@@ -108,7 +111,7 @@ public final class ActivityVistasAnunciosGeneralBinding implements ViewBinding {
       @NonNull RelativeLayout realtive, @NonNull ImageButton redes,
       @NonNull MaterialButton reservar, @NonNull ImageButton retroceder,
       @NonNull NestedScrollView scrollContainer, @NonNull TextView texto, @NonNull TextView titulo,
-      @NonNull TextView verMasPromociones) {
+      @NonNull ImageView ubicacion, @NonNull TextView verMasPromociones) {
     this.rootView = rootView;
     this.TiendaPropietaria = TiendaPropietaria;
     this.adquirir = adquirir;
@@ -132,6 +135,7 @@ public final class ActivityVistasAnunciosGeneralBinding implements ViewBinding {
     this.scrollContainer = scrollContainer;
     this.texto = texto;
     this.titulo = titulo;
+    this.ubicacion = ubicacion;
     this.verMasPromociones = verMasPromociones;
   }
 
@@ -291,6 +295,12 @@ public final class ActivityVistasAnunciosGeneralBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.ubicacion;
+      ImageView ubicacion = ViewBindings.findChildViewById(rootView, id);
+      if (ubicacion == null) {
+        break missingId;
+      }
+
       id = R.id.ver_mas_promociones;
       TextView verMasPromociones = ViewBindings.findChildViewById(rootView, id);
       if (verMasPromociones == null) {
@@ -301,7 +311,7 @@ public final class ActivityVistasAnunciosGeneralBinding implements ViewBinding {
           adquirir, adquirirWeb, btnPLanes, carrusel, compartir, containerBasicoGeinz,
           descripcionPublicidad, horarioAtencion, imgAnuncio, binding_includeLinealPrecios, loading,
           main, masPromocionesGeinz, popup, realtive, redes, reservar, retroceder, scrollContainer,
-          texto, titulo, verMasPromociones);
+          texto, titulo, ubicacion, verMasPromociones);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

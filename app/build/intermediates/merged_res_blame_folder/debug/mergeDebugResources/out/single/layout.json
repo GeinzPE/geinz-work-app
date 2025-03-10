@@ -40,6 +40,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_no_tiene_revire.xml"
     },
     {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_mostrar_todos_trabajos.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_mostrar_todos_trabajos.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_vista_productos_general_tiendas.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_vista_productos_general_tiendas.xml"
     },
@@ -60,12 +64,12 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_vista_tienda.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_noticias_yofertas_filtrado.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_noticias_yofertas_filtrado.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_inicio_info.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_inicio_info.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_noticias_yofertas_filtrado.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_noticias_yofertas_filtrado.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_seleccion_de_trabajo.xml",
@@ -220,6 +224,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_direccion_entrega_lat_log.xml"
     },
     {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_mostar_trabajos_recientes.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_mostar_trabajos_recientes.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_vistas_anuncios_general.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_vistas_anuncios_general.xml"
     },
@@ -308,10 +316,6 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\carga_publicidad_geinz.xml"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/activity_main.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_main.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_reservasfr.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_reservasfr.xml"
     },
@@ -384,12 +388,12 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_generar_qr_trabajador.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_fragmento_publicaciones.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_fragmento_publicaciones.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_main.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_fragmento_publicaciones.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_fragmento_publicaciones.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_reportes.xml",
@@ -492,6 +496,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\cargar_qr_loading.xml"
     },
     {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_trabajos_reallizados_trabajadores.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_trabajos_reallizados_trabajadores.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\include_tienda_socia.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\include_tienda_socia.xml"
     },
@@ -534,10 +542,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_cambiar_imagenes_publicidad_noticias_servicios.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_cambiar_imagenes_publicidad_noticias_servicios.xml"
-    },
-    {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_editar_publicaciones.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_editar_publicaciones.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\carga_categorias.xml",
@@ -592,6 +596,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_historial_compras.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/bottom_sheet_mostar_trabajos_recientes.xml",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/bottom_sheet_mostar_trabajos_recientes.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_inicio_servicios_fragment.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_inicio_servicios_fragment.xml"
     },
@@ -640,12 +648,12 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_quinta.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_quinta.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_promociones_encontradas.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_promociones_encontradas.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_quinta.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_quinta.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_categorias_info.xml",
@@ -728,16 +736,16 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_filtrado_promociones.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_editar_publicacion.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_editar_publicacion.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_reportes_users.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_reportes_users.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_recicle_productos.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_recicle_productos.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_editar_publicacion.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_editar_publicacion.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\include_anuncios_frame_inciofragment.xml",

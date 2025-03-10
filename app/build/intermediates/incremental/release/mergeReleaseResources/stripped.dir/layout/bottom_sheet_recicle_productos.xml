@@ -44,8 +44,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/usuario_regsitrado_name"
                 android:layout_marginTop="5dp"
-                android:textSize="12sp"
-                android:text="Filtrado por Localidad : " />
+                android:text="Filtrado por Localidad : "
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/filtradoUsuairo"
@@ -55,9 +55,9 @@
                 android:layout_below="@+id/usuario_regsitrado_name"
                 android:layout_marginLeft="3dp"
                 android:layout_marginTop="5dp"
-                android:textSize="12sp"
                 android:layout_toRightOf="@+id/filtradotext"
-                android:text="General" />
+                android:text="General"
+                android:textSize="12sp" />
 
 
         </LinearLayout>
@@ -77,8 +77,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/usuario_regsitrado_name"
                 android:layout_marginTop="5dp"
-                android:textSize="12sp"
-                android:text="Filtrado por categoria : " />
+                android:text="Filtrado por categoria : "
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/filtradoCateogoriaPromo"
@@ -87,9 +87,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="3dp"
                 android:layout_marginTop="5dp"
-                android:textSize="12sp"
                 android:layout_toRightOf="@+id/filtradotext"
-                android:text="General" />
+                android:text="General"
+                android:textSize="12sp" />
 
 
         </LinearLayout>
@@ -132,69 +132,72 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:orientation="horizontal">
+            android:scrollbars="none">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnApply"
-                style="@style/RoundedButton"
+            <LinearLayout
+                android:id="@+id/lineal_filtrado_btn"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:text="Buscar"
-                android:textSize="14sp"
-                app:icon="@drawable/buscar_icon"
-                app:iconGravity="textEnd" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:gravity="center"
+                android:orientation="horizontal"
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancel"
-                style="@style/RoundedButton"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:text="Cancelar"
-                android:textSize="14sp"
-                app:iconGravity="textEnd" />
-        </LinearLayout>
+                android:visibility="gone">
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnApply"
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
 
-        <LinearLayout
-            android:id="@+id/lineal_filtrado_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
+                    android:layout_height="60dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:text="Buscar"
+                    android:textSize="14sp"
+                    app:icon="@drawable/buscar_icon"
+                    app:iconGravity="textEnd" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/general"
-                style="@style/RoundedButton"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:text="General"
-                android:textSize="14sp"
-                app:icon="@drawable/general_blanco_icon"
-                app:iconGravity="textEnd" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/general"
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/geinz"
-                style="@style/RoundedButton"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:text="De Geinz"
-                android:textSize="14sp"
-                app:icon="@drawable/g_blanco_icon"
-                app:iconGravity="textEnd" />
-        </LinearLayout>
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:text="General"
+                    android:textSize="14sp"
+                    app:icon="@drawable/general_blanco_icon"
+                    app:iconGravity="textEnd" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/geinz"
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_weight="1"
+                    android:text="De Geinz"
+                    android:textSize="14sp"
+                    app:icon="@drawable/g_blanco_icon"
+                    app:iconGravity="textEnd" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancel"
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_weight="1"
+                    android:text="Cancelar"
+                    android:textSize="14sp"
+                    app:iconGravity="textEnd" />
+            </LinearLayout>
+
+        </HorizontalScrollView>
 
 
     </LinearLayout>

@@ -333,7 +333,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                 imagen,
                 null,
                 "perfil", placeholderperfil
-            )
+            ){}
         } else {
             var encontrado = false
             val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -412,7 +412,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                             null,
                             "perfil",
                             placeholderperfil
-                        )
+                        ){}
                     } else {
                         constatnes_carga_imagenes_general.changer_img(
                             progressbar,
@@ -422,7 +422,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                             null,
                             "perfil",
                             placeholderperfil // Usa el placeholder también en el else
-                        )
+                        ){}
                     }
                 }
             }

@@ -21,7 +21,8 @@ object constatnes_carga_imagenes_general {
         circle_img: CircleImageView? = null,
         shapeableImageView: ShapeableImageView? = null,
         type: String,
-        placeholder: Drawable? = null // Drawable opcional como placeholder
+        placeholder: Drawable? = null, // Drawable opcional como placeholder
+        onImageLoaded: (Boolean) -> Unit // Callback para notificar cuando la imagen está cargada o falla
     ) {
         try {
             progressBar.visibility = View.VISIBLE
@@ -41,9 +42,9 @@ object constatnes_carga_imagenes_general {
                     isFirstResource: Boolean
                 ): Boolean {
                     progressBar.visibility = View.GONE
+                    onImageLoaded(true) // Notifica que la imagen se cargó correctamente
                     return false
                 }
-
 
                 override fun onLoadFailed(
                     e: GlideException?,
@@ -52,6 +53,7 @@ object constatnes_carga_imagenes_general {
                     isFirstResource: Boolean
                 ): Boolean {
                     progressBar.visibility = View.GONE
+                    onImageLoaded(false) // Notifica que la carga de la imagen falló
                     return false
                 }
             })
@@ -62,7 +64,9 @@ object constatnes_carga_imagenes_general {
                     }
                 }
         } catch (e: Exception) {
-            println("problema al setear la img $e")
+            println("Problema al setear la imagen: $e")
+            onImageLoaded(false) // En caso de error, notifica que la imagen no se cargó
         }
     }
+
 }

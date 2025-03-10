@@ -4,7 +4,6 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -13,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -25,7 +26,10 @@ public final class ItemTrabajosMostradosBinding implements ViewBinding {
   public final LinearLayout LinealVermas;
 
   @NonNull
-  public final ImageView imgTrabajo;
+  public final ShapeableImageView imgTrabajo;
+
+  @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
 
   @NonNull
   public final TextView tiposT;
@@ -34,11 +38,13 @@ public final class ItemTrabajosMostradosBinding implements ViewBinding {
   public final TextView titulo;
 
   private ItemTrabajosMostradosBinding(@NonNull RelativeLayout rootView,
-      @NonNull LinearLayout LinealVermas, @NonNull ImageView imgTrabajo, @NonNull TextView tiposT,
+      @NonNull LinearLayout LinealVermas, @NonNull ShapeableImageView imgTrabajo,
+      @NonNull CircularProgressIndicator progressCargaImagen, @NonNull TextView tiposT,
       @NonNull TextView titulo) {
     this.rootView = rootView;
     this.LinealVermas = LinealVermas;
     this.imgTrabajo = imgTrabajo;
+    this.progressCargaImagen = progressCargaImagen;
     this.tiposT = tiposT;
     this.titulo = titulo;
   }
@@ -77,8 +83,14 @@ public final class ItemTrabajosMostradosBinding implements ViewBinding {
       }
 
       id = R.id.img_trabajo;
-      ImageView imgTrabajo = ViewBindings.findChildViewById(rootView, id);
+      ShapeableImageView imgTrabajo = ViewBindings.findChildViewById(rootView, id);
       if (imgTrabajo == null) {
+        break missingId;
+      }
+
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
         break missingId;
       }
 
@@ -95,7 +107,7 @@ public final class ItemTrabajosMostradosBinding implements ViewBinding {
       }
 
       return new ItemTrabajosMostradosBinding((RelativeLayout) rootView, LinealVermas, imgTrabajo,
-          tiposT, titulo);
+          progressCargaImagen, tiposT, titulo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

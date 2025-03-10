@@ -4,6 +4,7 @@
     tools:ignore="MissingLeanbackLauncher">
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -35,6 +36,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
+        <activity
+            android:name="com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos"
+            android:exported="false" />
         <activity
             android:name="com.example.geinzwork.crea_tu_noticia"
             android:exported="false" />
@@ -80,7 +84,7 @@
         <activity
             android:name=".servicios_geinz.serviciosGeinz"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan" >
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="SERVICIOS" />
 
@@ -349,10 +353,9 @@
             </intent-filter>
         </service>
 
-            <meta-data
-                android:name="com.google.firebase.messaging.default_notification_icon"
-                android:resource="@drawable/notification_ic" />
-
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/notification_ic" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/violetaQR" />

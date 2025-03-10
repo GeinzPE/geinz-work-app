@@ -4,10 +4,10 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +24,7 @@ public final class ActivityVerPublicacionesBinding implements ViewBinding {
   private final CoordinatorLayout rootView;
 
   @NonNull
-  public final Button CreaPublicacion;
+  public final AppCompatButton CreaPublicacion;
 
   @NonNull
   public final LinearLayout linealNoCuenta;
@@ -42,7 +42,7 @@ public final class ActivityVerPublicacionesBinding implements ViewBinding {
   public final RecyclerView recicleViewTrabajos;
 
   private ActivityVerPublicacionesBinding(@NonNull CoordinatorLayout rootView,
-      @NonNull Button CreaPublicacion, @NonNull LinearLayout linealNoCuenta,
+      @NonNull AppCompatButton CreaPublicacion, @NonNull LinearLayout linealNoCuenta,
       @NonNull AppBarLayout linealappLayout, @NonNull LinearLayoutCompat loading,
       @NonNull CoordinatorLayout main, @NonNull RecyclerView recicleViewTrabajos) {
     this.rootView = rootView;
@@ -82,7 +82,7 @@ public final class ActivityVerPublicacionesBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.Crea_publicacion;
-      Button CreaPublicacion = ViewBindings.findChildViewById(rootView, id);
+      AppCompatButton CreaPublicacion = ViewBindings.findChildViewById(rootView, id);
       if (CreaPublicacion == null) {
         break missingId;
       }

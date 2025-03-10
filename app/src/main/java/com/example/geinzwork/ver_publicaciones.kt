@@ -91,7 +91,7 @@ class ver_publicaciones : AppCompatActivity() {
             null,
             bindingBottomShet.imagenTrabajo,
             "portada", placeholderperfil
-        )
+        ){}
         bindingBottomShet.tituloPublicacionED.setText(item.titulo)
         bindingBottomShet.descripcionServiciosED.setText(item.contenido)
 

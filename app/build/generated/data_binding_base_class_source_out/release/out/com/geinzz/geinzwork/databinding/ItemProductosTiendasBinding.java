@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -25,10 +27,19 @@ public final class ItemProductosTiendasBinding implements ViewBinding {
   public final LinearLayout Editar;
 
   @NonNull
+  public final ImageButton borrarItem;
+
+  @NonNull
   public final TextView descripcionProducto;
 
   @NonNull
+  public final ImageButton editar;
+
+  @NonNull
   public final ShapeableImageView imgProducto;
+
+  @NonNull
+  public final LinearLayout linealPublicacionesEditDelete;
 
   @NonNull
   public final TextView pen;
@@ -37,18 +48,27 @@ public final class ItemProductosTiendasBinding implements ViewBinding {
   public final TextView precioProducto;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  @NonNull
   public final TextView tituloProducto;
 
   private ItemProductosTiendasBinding(@NonNull ConstraintLayout rootView,
-      @NonNull LinearLayout Editar, @NonNull TextView descripcionProducto,
-      @NonNull ShapeableImageView imgProducto, @NonNull TextView pen,
-      @NonNull TextView precioProducto, @NonNull TextView tituloProducto) {
+      @NonNull LinearLayout Editar, @NonNull ImageButton borrarItem,
+      @NonNull TextView descripcionProducto, @NonNull ImageButton editar,
+      @NonNull ShapeableImageView imgProducto, @NonNull LinearLayout linealPublicacionesEditDelete,
+      @NonNull TextView pen, @NonNull TextView precioProducto,
+      @NonNull CircularProgressIndicator progressCargaImagen, @NonNull TextView tituloProducto) {
     this.rootView = rootView;
     this.Editar = Editar;
+    this.borrarItem = borrarItem;
     this.descripcionProducto = descripcionProducto;
+    this.editar = editar;
     this.imgProducto = imgProducto;
+    this.linealPublicacionesEditDelete = linealPublicacionesEditDelete;
     this.pen = pen;
     this.precioProducto = precioProducto;
+    this.progressCargaImagen = progressCargaImagen;
     this.tituloProducto = tituloProducto;
   }
 
@@ -85,15 +105,33 @@ public final class ItemProductosTiendasBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.borrarItem;
+      ImageButton borrarItem = ViewBindings.findChildViewById(rootView, id);
+      if (borrarItem == null) {
+        break missingId;
+      }
+
       id = R.id.descripcionProducto;
       TextView descripcionProducto = ViewBindings.findChildViewById(rootView, id);
       if (descripcionProducto == null) {
         break missingId;
       }
 
+      id = R.id.editar;
+      ImageButton editar = ViewBindings.findChildViewById(rootView, id);
+      if (editar == null) {
+        break missingId;
+      }
+
       id = R.id.imgProducto;
       ShapeableImageView imgProducto = ViewBindings.findChildViewById(rootView, id);
       if (imgProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.linealPublicaciones_edit_delete;
+      LinearLayout linealPublicacionesEditDelete = ViewBindings.findChildViewById(rootView, id);
+      if (linealPublicacionesEditDelete == null) {
         break missingId;
       }
 
@@ -109,14 +147,21 @@ public final class ItemProductosTiendasBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
       id = R.id.tituloProducto;
       TextView tituloProducto = ViewBindings.findChildViewById(rootView, id);
       if (tituloProducto == null) {
         break missingId;
       }
 
-      return new ItemProductosTiendasBinding((ConstraintLayout) rootView, Editar,
-          descripcionProducto, imgProducto, pen, precioProducto, tituloProducto);
+      return new ItemProductosTiendasBinding((ConstraintLayout) rootView, Editar, borrarItem,
+          descripcionProducto, editar, imgProducto, linealPublicacionesEditDelete, pen,
+          precioProducto, progressCargaImagen, tituloProducto);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

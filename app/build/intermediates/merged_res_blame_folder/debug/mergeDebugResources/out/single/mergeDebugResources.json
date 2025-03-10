@@ -308,6 +308,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\start_one.png"
     },
     {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_mostrar_todos_trabajos.xml.flat",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_mostrar_todos_trabajos.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_tienda_pedido_icon.webp.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\tienda_pedido_icon.webp"
     },
@@ -514,10 +518,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_start_two.png.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\start_two.png"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_activity_main.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_main.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_roun_custom_publicidad_prinicipal.xml.flat",
@@ -928,6 +928,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable-hdpi\\notification_ic.png"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_bottom_sheet_mostar_trabajos_recientes.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/bottom_sheet_mostar_trabajos_recientes.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_trabajos_realizados.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_trabajos_realizados.xml"
     },
@@ -1030,10 +1034,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_segundaria.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_segundaria.xml"
-    },
-    {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_editar_publicaciones.xml.flat",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_editar_publicaciones.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_editar_icon.xml.flat",
@@ -1242,6 +1242,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_confundir_icon.webp.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\confundir_icon.webp"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_item_trabajos_reallizados_trabajadores.xml.flat",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_trabajos_reallizados_trabajadores.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_informacion_icon.webp.flat",
@@ -1458,6 +1462,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_mascara_ofert_principal.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\mascara_ofert_principal.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_bottom_sheet_mostar_trabajos_recientes.xml.flat",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_mostar_trabajos_recientes.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_vista_trabajador.xml.flat",

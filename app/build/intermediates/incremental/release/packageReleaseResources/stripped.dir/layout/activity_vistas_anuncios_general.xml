@@ -160,6 +160,7 @@
                         android:scaleType="fitCenter"
                         android:text="Click Me" />
 
+
                     <ImageView
                         android:id="@+id/compartir"
                         android:layout_width="20dp"
@@ -171,6 +172,19 @@
                         android:maxHeight="20dp"
                         android:padding="10dp"
                         android:text="Click Me"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/ubicacion"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginRight="15dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/localidad_icon_general"
+                        android:maxWidth="25dp"
+                        android:maxHeight="25dp"
+                        android:padding="10dp"
                         android:visibility="gone" />
 
                 </LinearLayout>
@@ -213,8 +227,7 @@
 
                 <include
                     android:id="@+id/include_lineal_precios"
-                    layout="@layout/include_item_descuento_noticias_promociones"
-                    />
+                    layout="@layout/include_item_descuento_noticias_promociones" />
 
 
                 <LinearLayout

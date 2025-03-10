@@ -12,6 +12,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -36,6 +37,9 @@ public final class ItemTrabajosRalizadosBinding implements ViewBinding {
   public final LinearLayout lineal;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  @NonNull
   public final TextView titulo;
 
   @NonNull
@@ -46,7 +50,8 @@ public final class ItemTrabajosRalizadosBinding implements ViewBinding {
 
   private ItemTrabajosRalizadosBinding(@NonNull LinearLayout rootView, @NonNull TextView contenido,
       @NonNull TextView fecha, @NonNull TextView hora, @NonNull ShapeableImageView imagenTrabajo,
-      @NonNull LinearLayout lineal, @NonNull TextView titulo, @NonNull TextView tvReadMoreContenido,
+      @NonNull LinearLayout lineal, @NonNull CircularProgressIndicator progressCargaImagen,
+      @NonNull TextView titulo, @NonNull TextView tvReadMoreContenido,
       @NonNull TextView tvReadMoreTitulo) {
     this.rootView = rootView;
     this.contenido = contenido;
@@ -54,6 +59,7 @@ public final class ItemTrabajosRalizadosBinding implements ViewBinding {
     this.hora = hora;
     this.imagenTrabajo = imagenTrabajo;
     this.lineal = lineal;
+    this.progressCargaImagen = progressCargaImagen;
     this.titulo = titulo;
     this.tvReadMoreContenido = tvReadMoreContenido;
     this.tvReadMoreTitulo = tvReadMoreTitulo;
@@ -116,6 +122,12 @@ public final class ItemTrabajosRalizadosBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
       id = R.id.titulo;
       TextView titulo = ViewBindings.findChildViewById(rootView, id);
       if (titulo == null) {
@@ -135,7 +147,8 @@ public final class ItemTrabajosRalizadosBinding implements ViewBinding {
       }
 
       return new ItemTrabajosRalizadosBinding((LinearLayout) rootView, contenido, fecha, hora,
-          imagenTrabajo, lineal, titulo, tvReadMoreContenido, tvReadMoreTitulo);
+          imagenTrabajo, lineal, progressCargaImagen, titulo, tvReadMoreContenido,
+          tvReadMoreTitulo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

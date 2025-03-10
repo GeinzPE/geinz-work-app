@@ -12,6 +12,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -32,14 +33,19 @@ public final class ItemPromocionesEncontradasBinding implements ViewBinding {
   @NonNull
   public final TextView nombeTienda;
 
+  @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
   private ItemPromocionesEncontradasBinding(@NonNull RelativeLayout rootView,
       @NonNull TextView descuentoPorcentaje, @NonNull TextView fechaVencimineto,
-      @NonNull ShapeableImageView imgTrabajo, @NonNull TextView nombeTienda) {
+      @NonNull ShapeableImageView imgTrabajo, @NonNull TextView nombeTienda,
+      @NonNull CircularProgressIndicator progressCargaImagen) {
     this.rootView = rootView;
     this.descuentoPorcentaje = descuentoPorcentaje;
     this.fechaVencimineto = fechaVencimineto;
     this.imgTrabajo = imgTrabajo;
     this.nombeTienda = nombeTienda;
+    this.progressCargaImagen = progressCargaImagen;
   }
 
   @Override
@@ -93,8 +99,14 @@ public final class ItemPromocionesEncontradasBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
       return new ItemPromocionesEncontradasBinding((RelativeLayout) rootView, descuentoPorcentaje,
-          fechaVencimineto, imgTrabajo, nombeTienda);
+          fechaVencimineto, imgTrabajo, nombeTienda, progressCargaImagen);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

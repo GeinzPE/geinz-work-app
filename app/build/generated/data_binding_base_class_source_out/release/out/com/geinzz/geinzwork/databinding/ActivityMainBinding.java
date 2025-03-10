@@ -4,12 +4,12 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import androidx.viewpager2.widget.ViewPager2;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -28,19 +28,19 @@ public final class ActivityMainBinding implements ViewBinding {
   public final BottomNavigationView buttonNavigation;
 
   @NonNull
-  public final FrameLayout fracmentoLayaout;
+  public final RelativeLayout main;
 
   @NonNull
-  public final RelativeLayout main;
+  public final ViewPager2 viewPager;
 
   private ActivityMainBinding(@NonNull RelativeLayout rootView,
       @NonNull FloatingActionButton VistaTiendas, @NonNull BottomNavigationView buttonNavigation,
-      @NonNull FrameLayout fracmentoLayaout, @NonNull RelativeLayout main) {
+      @NonNull RelativeLayout main, @NonNull ViewPager2 viewPager) {
     this.rootView = rootView;
     this.VistaTiendas = VistaTiendas;
     this.buttonNavigation = buttonNavigation;
-    this.fracmentoLayaout = fracmentoLayaout;
     this.main = main;
+    this.viewPager = viewPager;
   }
 
   @Override
@@ -82,16 +82,16 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.fracmentoLayaout;
-      FrameLayout fracmentoLayaout = ViewBindings.findChildViewById(rootView, id);
-      if (fracmentoLayaout == null) {
+      RelativeLayout main = (RelativeLayout) rootView;
+
+      id = R.id.viewPager;
+      ViewPager2 viewPager = ViewBindings.findChildViewById(rootView, id);
+      if (viewPager == null) {
         break missingId;
       }
 
-      RelativeLayout main = (RelativeLayout) rootView;
-
       return new ActivityMainBinding((RelativeLayout) rootView, VistaTiendas, buttonNavigation,
-          fracmentoLayaout, main);
+          main, viewPager);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -30,6 +30,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="200dp">
 
+
+
                         <ImageView
                             android:id="@+id/fotoPortada"
                             android:layout_width="match_parent"
@@ -42,6 +44,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="200dp"
                             android:background="#4D000000" />
+
 
                         <ImageButton
                             android:id="@+id/popup"
@@ -95,15 +98,30 @@
                     </FrameLayout>
 
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/imagenPerfil"
+                    <RelativeLayout
                         android:layout_width="150dp"
-                        android:layout_height="150dp"
                         android:layout_alignParentBottom="true"
                         android:layout_centerInParent="true"
-                        android:src="@drawable/img_perfil"
-                        app:civ_border_color="#FF000000"
-                        app:civ_border_width="2dp" />
+                        android:layout_height="150dp">
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/imagenPerfil"
+                            android:layout_width="150dp"
+                            android:layout_height="150dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_centerInParent="true"
+                            android:src="@drawable/img_perfil"
+                            app:civ_border_color="#FF000000"
+                            app:civ_border_width="2dp" />
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progress_carga_imagen"
+                            android:layout_width="150dp"
+                            android:layout_height="150dp"
+                            android:layout_centerInParent="true"
+                            android:indeterminate="true"
+                            android:visibility="gone" />
+
+                    </RelativeLayout>
+
 
                 </RelativeLayout>
 

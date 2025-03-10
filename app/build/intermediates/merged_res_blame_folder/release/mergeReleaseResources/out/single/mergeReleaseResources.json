@@ -372,6 +372,10 @@
         "source": "com.geinzz.geinzwork.app-main-57:/layout/item_inicio_fragment_users.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-release-56:/layout_bottom_sheet_editar_publicacion.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-57:/layout/bottom_sheet_editar_publicacion.xml"
+    },
+    {
         "merged": "com.geinzz.geinzwork.app-release-56:/layout_item_custom_publicidad_principal.xml.flat",
         "source": "com.geinzz.geinzwork.app-main-57:/layout/item_custom_publicidad_principal.xml"
     },
@@ -950,10 +954,6 @@
     {
         "merged": "com.geinzz.geinzwork.app-release-56:/drawable_masculono_drawable.xml.flat",
         "source": "com.geinzz.geinzwork.app-main-57:/drawable/masculono_drawable.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-release-56:/layout_activity_editar_publicaciones.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-57:/layout/activity_editar_publicaciones.xml"
     },
     {
         "merged": "com.geinzz.geinzwork.app-release-56:/layout_activity_crear_cuenta_tienda.xml.flat",

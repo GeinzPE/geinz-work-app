@@ -23,6 +23,15 @@
             android:layout_height="200dp"
             android:background="@drawable/mascara_servicios_ofertas_etc" />
 
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_carga_imagen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+
     </RelativeLayout>
 
     <LinearLayout

@@ -1,57 +1,57 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
 3    package="com.geinzz.geinzwork"
-4    android:versionCode="23"
-5    android:versionName="1.10.0" >
+4    android:versionCode="24"
+5    android:versionName="1.12.0" >
 6
 7    <uses-sdk
-7-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:6:5-73
+7-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:6:5-73
 8        android:minSdkVersion="24"
 9        android:targetSdkVersion="34" />
 10
 11    <uses-permission android:name="android.permission.INTERNET" />
-11-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:7:5-67
-11-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:7:22-64
+11-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:7:5-67
+11-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:7:22-64
 12    <uses-permission android:name="android.permission.CALL_PHONE" />
-12-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:8:5-69
-12-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:8:22-66
+12-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:8:5-69
+12-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:8:22-66
 13    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-13-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:9:5-77
-13-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:9:22-74
+13-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:9:5-77
+13-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:9:22-74
 14    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-14-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:10:5-81
-14-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:10:22-78
+14-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:10:5-81
+14-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:10:22-78
 15    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-15-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:11:5-80
-15-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:11:22-77
+15-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:11:5-80
+15-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:11:22-77
 16    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-16-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:12:5-79
-16-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:12:22-76
+16-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:12:5-79
+16-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:12:22-76
 17    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-17-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:13:5-15:45
-17-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:14:9-63
+17-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:13:5-15:45
+17-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:14:9-63
 18    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-18-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:16:5-81
-18-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:16:22-78
+18-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:16:5-81
+18-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:16:22-78
 19
 20    <uses-feature
-20-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:18:5-20:36
+20-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:18:5-20:36
 21        android:name="android.hardware.touchscreen"
-21-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:19:9-52
+21-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:19:9-52
 22        android:required="false" />
-22-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:20:9-33
+22-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:20:9-33
 23    <uses-feature
-23-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:21:5-23:36
+23-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:21:5-23:36
 24        android:name="android.software.leanback"
-24-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:22:9-49
+24-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:22:9-49
 25        android:required="false" />
-25-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:23:9-33
+25-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:23:9-33
 26    <uses-feature
-26-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:24:5-26:36
+26-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:24:5-26:36
 27        android:name="android.hardware.telephony"
-27-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:25:9-50
+27-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:25:9-50
 28        android:required="false" />
-28-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:26:9-33
+28-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:26:9-33
 29
 30    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Required by older versions of Google Play services to create IID tokens -->
 30-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a76b6f3c1debf82cb15b215e9e608476\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:24:5-68
@@ -127,606 +127,606 @@
 62-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\626ea38f2d3af64b5ae9ad6a6d1a99fa\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:44:9-33
 63
 64    <application
-64-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:28:5-362:19
+64-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:28:5-362:19
 65        android:allowBackup="true"
-65-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:29:9-35
+65-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:29:9-35
 66        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 66-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\a0f6fad56a17c78b09b08c234cd77a34\transformed\core-1.13.0\AndroidManifest.xml:28:18-86
 67        android:dataExtractionRules="@xml/data_extraction_rules"
-67-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:30:9-65
+67-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:30:9-65
 68        android:extractNativeLibs="false"
 69        android:fullBackupContent="@xml/backup_rules"
-69-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:31:9-54
+69-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:31:9-54
 70        android:icon="@mipmap/ic_launcher"
-70-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:32:9-43
+70-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:32:9-43
 71        android:label="@string/app_name"
-71-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:33:9-41
+71-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:33:9-41
 72        android:roundIcon="@mipmap/ic_launcher_round"
-72-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:34:9-54
+72-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:34:9-54
 73        android:supportsRtl="true"
-73-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:35:9-35
+73-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:35:9-35
 74        android:theme="@style/Theme.GeinzWork" >
-74-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:36:9-47
+74-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:36:9-47
 75        <activity
-75-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:38:9-40:40
+75-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:38:9-40:40
 76            android:name="com.example.geinzwork.crea_tu_noticia"
-76-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:39:13-65
+76-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:39:13-65
 77            android:exported="false" />
-77-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:40:13-37
+77-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:40:13-37
 78        <activity
-78-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:41:9-43:40
+78-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:41:9-43:40
 79            android:name="com.example.geinzwork.vistaTrabajador.ver_promociones"
-79-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:42:13-81
+79-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:42:13-81
 80            android:exported="false" />
-80-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:43:13-37
+80-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:43:13-37
 81        <activity
-81-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:44:9-46:40
+81-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:44:9-46:40
 82            android:name="com.geinzz.geinzwork.servicios_geinz.publicidad_servicios_geinz_activity"
-82-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:45:13-80
+82-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:45:13-80
 83            android:exported="false" />
-83-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:46:13-37
+83-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:46:13-37
 84        <activity
-84-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:47:9-49:40
+84-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:47:9-49:40
 85            android:name="com.geinzz.geinzwork.servicios_geinz.noticias_servicios_geinz_activity"
-85-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:48:13-78
+85-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:48:13-78
 86            android:exported="false" />
-86-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:49:13-37
+86-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:49:13-37
 87        <activity
-87-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:50:9-52:40
+87-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:50:9-52:40
 88            android:name="com.example.geinzwork.oferta_principales_geinz"
-88-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:51:13-74
+88-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:51:13-74
 89            android:exported="false" />
-89-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:52:13-37
+89-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:52:13-37
 90        <activity
-90-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:53:9-55:40
+90-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:53:9-55:40
 91            android:name="com.example.geinzwork.vistaTiendas.agregarPagoComprareservaTiendas"
-91-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:54:13-94
+91-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:54:13-94
 92            android:exported="false" />
-92-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:55:13-37
+92-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:55:13-37
 93        <activity
-93-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:56:9-58:40
+93-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:56:9-58:40
 94            android:name="com.geinzz.geinzwork.vistaTiendas.direccion_entrega_lat_log"
-94-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:57:13-67
+94-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:57:13-67
 95            android:exported="false" />
-95-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:58:13-37
+95-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:58:13-37
 96        <activity
-96-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:59:9-67:20
+96-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:59:9-67:20
 97            android:name="com.geinzz.geinzwork.vistaTrabajador.promocionesvista"
-97-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:60:13-61
+97-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:60:13-61
 98            android:exported="true" >
-98-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:61:13-36
+98-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:61:13-36
 99            <intent-filter>
-99-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:62:13-66:29
+99-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:62:13-66:29
 100                <action android:name="PROMO_SUGERIDAS" />
-100-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:63:17-58
-100-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:63:25-55
+100-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:63:17-58
+100-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:63:25-55
 101
 102                <category android:name="android.intent.category.DEFAULT" />
-102-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-102-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+102-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+102-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 103            </intent-filter>
 104        </activity>
 105        <activity
-105-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:68:9-70:40
+105-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:68:9-70:40
 106            android:name="com.geinzz.geinzwork.vistaTiendas.tienda_no_lanzada_spasl"
-106-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:69:13-65
+106-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:69:13-65
 107            android:exported="false" />
-107-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:70:13-37
+107-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:70:13-37
 108        <activity
-108-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:71:9-73:40
+108-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:71:9-73:40
 109            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.politicas_creacion_cuenta"
-109-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:72:13-82
+109-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:72:13-82
 110            android:exported="false" />
-110-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:73:13-37
+110-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:73:13-37
 111        <activity
-111-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:74:9-76:40
+111-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:74:9-76:40
 112            android:name="com.geinzz.geinzwork.servicios_geinz.planes_noticias_servicios_geinz"
-112-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:75:13-76
+112-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:75:13-76
 113            android:exported="false" />
-113-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:76:13-37
+113-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:76:13-37
 114        <activity
-114-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:77:9-79:40
+114-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:77:9-79:40
 115            android:name="com.geinzz.geinzwork.servicios_geinz.cambiar_imagenes_publicidad_noticias_servicios"
-115-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:78:13-91
+115-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:78:13-91
 116            android:exported="false" />
-116-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:79:13-37
+116-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:79:13-37
 117        <activity
-117-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:80:9-89:20
+117-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:80:9-89:20
 118            android:name="com.geinzz.geinzwork.servicios_geinz.serviciosGeinz"
-118-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:81:13-59
+118-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:81:13-59
 119            android:exported="true"
-119-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:82:13-36
+119-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:82:13-36
 120            android:windowSoftInputMode="adjustPan" >
-120-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:83:13-52
+120-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:83:13-52
 121            <intent-filter>
-121-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:84:13-88:29
+121-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:84:13-88:29
 122                <action android:name="SERVICIOS" />
-122-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:85:17-52
-122-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:85:25-49
+122-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:85:17-52
+122-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:85:25-49
 123
 124                <category android:name="android.intent.category.DEFAULT" />
-124-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-124-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+124-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+124-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 125            </intent-filter>
 126        </activity>
 127        <activity
-127-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:90:9-98:20
+127-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:90:9-98:20
 128            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.reportes_users"
-128-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:91:13-71
+128-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:91:13-71
 129            android:exported="true" >
-129-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:92:13-36
+129-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:92:13-36
 130            <intent-filter>
-130-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:93:13-97:29
+130-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:93:13-97:29
 131                <action android:name="REPORTE" />
-131-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:94:17-50
-131-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:94:25-47
+131-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:94:17-50
+131-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:94:25-47
 132
 133                <category android:name="android.intent.category.DEFAULT" />
-133-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-133-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+133-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+133-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 134            </intent-filter>
 135        </activity>
 136        <activity
-136-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:99:9-101:40
+136-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:99:9-101:40
 137            android:name="com.geinzz.geinzwork.GenerarQR_trabajador"
-137-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:100:13-49
+137-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:100:13-49
 138            android:exported="false" />
-138-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:101:13-37
+138-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:101:13-37
 139        <activity
-139-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:102:9-104:40
+139-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:102:9-104:40
 140            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.agregar_redes"
-140-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:103:13-69
+140-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:103:13-69
 141            android:exported="false" />
-141-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:104:13-37
+141-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:104:13-37
 142        <activity
-142-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:105:9-107:40
+142-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:105:9-107:40
 143            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.voleta_estado_verificacion"
-143-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:106:13-82
+143-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:106:13-82
 144            android:exported="false" />
-144-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:107:13-37
+144-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:107:13-37
 145        <activity
-145-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:108:9-110:40
+145-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:108:9-110:40
 146            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.editar_publicaciones"
-146-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:109:13-76
+146-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:109:13-76
 147            android:exported="false" />
-147-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:110:13-37
+147-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:110:13-37
 148        <activity
-148-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:111:9-113:40
+148-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:9-113:40
 149            android:name="com.geinzz.geinzwork.ver_publicaciones"
-149-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:112:13-46
+149-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:112:13-46
 150            android:exported="false" />
-150-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:113:13-37
+150-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:113:13-37
 151        <activity
-151-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:114:9-116:55
+151-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:114:9-116:55
 152            android:name="com.geinzz.geinzwork.crear_trabajos_realizados"
-152-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:115:13-54
+152-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:115:13-54
 153            android:windowSoftInputMode="adjustPan" />
-153-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:116:13-52
+153-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:116:13-52
 154        <activity
-154-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:117:9-119:40
+154-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:117:9-119:40
 155            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.new_trabajo"
-155-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:118:13-68
+155-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:118:13-68
 156            android:exported="false" />
-156-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:119:13-37
+156-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:119:13-37
 157        <activity
-157-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:120:9-122:40
+157-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:120:9-122:40
 158            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.veneficios_verificados"
-158-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:121:13-79
+158-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:121:13-79
 159            android:exported="false" />
-159-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:122:13-37
+159-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:122:13-37
 160        <activity
-160-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:123:9-125:40
+160-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:123:9-125:40
 161            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.politicas_verificacion"
-161-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:124:13-79
+161-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:124:13-79
 162            android:exported="false" />
-162-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:125:13-37
+162-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:125:13-37
 163        <activity
-163-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:126:9-128:40
+163-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:126:9-128:40
 164            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.verificacion_cuenta_trabajador"
-164-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:127:13-87
+164-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:127:13-87
 165            android:exported="false" />
-165-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:128:13-37
+165-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:128:13-37
 166        <activity
-166-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:129:9-131:40
+166-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:129:9-131:40
 167            android:name="com.geinzz.geinzwork.quinta"
-167-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:130:13-35
+167-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:130:13-35
 168            android:exported="false" />
-168-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:131:13-37
+168-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:131:13-37
 169        <activity
-169-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:132:9-134:40
+169-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:132:9-134:40
 170            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.politicas_geinz"
-170-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:133:13-72
+170-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:133:13-72
 171            android:exported="false" />
-171-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:134:13-37
+171-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:134:13-37
 172        <activity
-172-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:135:9-138:55
+172-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:135:9-138:55
 173            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario"
-173-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:136:13-85
+173-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:136:13-85
 174            android:exported="false"
-174-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:137:13-37
+174-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:137:13-37
 175            android:windowSoftInputMode="adjustPan" />
-175-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:138:13-52
+175-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:138:13-52
 176        <activity
-176-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:139:9-141:40
+176-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:139:9-141:40
 177            android:name="com.geinzz.geinzwork.cuarto"
-177-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:140:13-35
+177-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:140:13-35
 178            android:exported="false" />
-178-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:141:13-37
+178-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:141:13-37
 179        <activity
-179-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:142:9-144:40
+179-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:142:9-144:40
 180            android:name="com.geinzz.geinzwork.tercero"
-180-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:143:13-36
+180-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:143:13-36
 181            android:exported="false" />
-181-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:144:13-37
+181-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:144:13-37
 182        <activity
-182-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:145:9-147:40
+182-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:145:9-147:40
 183            android:name="com.geinzz.geinzwork.vistaTiendas.ver_mas_servicios"
-183-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:146:13-59
+183-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:146:13-59
 184            android:exported="false" />
-184-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:147:13-37
+184-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:147:13-37
 185        <activity
-185-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:148:9-150:40
+185-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:148:9-150:40
 186            android:name="com.geinzz.geinzwork.recuperarContra"
-186-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:149:13-44
+186-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:149:13-44
 187            android:exported="false" />
-187-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:150:13-37
+187-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:150:13-37
 188        <activity
-188-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:151:9-159:20
+188-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:151:9-159:20
 189            android:name="com.geinzz.geinzwork.vistaTiendas.verServicios"
-189-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:152:13-54
+189-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:152:13-54
 190            android:exported="true" >
-190-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:153:13-36
+190-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:153:13-36
 191            <intent-filter>
-191-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:154:13-158:29
+191-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:154:13-158:29
 192                <action android:name="SERVICIOS_TIENDAS" />
-192-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:155:17-60
-192-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:155:25-57
+192-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:155:17-60
+192-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:155:25-57
 193
 194                <category android:name="android.intent.category.DEFAULT" />
-194-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-194-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+194-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+194-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 195            </intent-filter>
 196        </activity>
 197        <activity
-197-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:160:9-162:40
+197-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:160:9-162:40
 198            android:name="com.geinzz.geinzwork.vistaTiendas.generarQRPedidoArticulos"
-198-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:161:13-66
+198-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:161:13-66
 199            android:exported="false" />
-199-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:162:13-37
+199-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:162:13-37
 200        <activity
-200-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:163:9-165:40
+200-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:163:9-165:40
 201            android:name="com.geinzz.geinzwork.vistaTiendas.historialCompras"
-201-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:164:13-58
+201-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:164:13-58
 202            android:exported="false" />
-202-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:165:13-37
+202-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:165:13-37
 203        <activity
-203-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:166:9-168:40
+203-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:166:9-168:40
 204            android:name="com.geinzz.geinzwork.vistaTiendas.carrito_compras"
-204-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:167:13-57
+204-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:167:13-57
 205            android:exported="false" />
-205-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:168:13-37
+205-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:168:13-37
 206        <activity
-206-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:169:9-171:40
+206-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:169:9-171:40
 207            android:name="com.geinzz.geinzwork.vistaTiendas.NoticiasYofertasFiltrado"
-207-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:170:13-66
+207-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:170:13-66
 208            android:exported="false" />
-208-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:171:13-37
+208-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:171:13-37
 209        <activity
-209-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:172:9-174:40
+209-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:172:9-174:40
 210            android:name="com.geinzz.geinzwork.confirmacionCompraTienda.confirmacion_de_compra_tienda"
-210-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:173:13-83
+210-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:173:13-83
 211            android:exported="false" />
-211-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:174:13-37
+211-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:174:13-37
 212        <activity
-212-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:175:9-177:40
+212-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:175:9-177:40
 213            android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.crear_cuenta_Tienda"
-213-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:176:13-71
+213-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:176:13-71
 214            android:exported="false" />
-214-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:177:13-37
+214-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:177:13-37
 215        <activity
-215-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:178:9-180:40
+215-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:178:9-180:40
 216            android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.noticiasGeinzpb"
-216-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:179:13-67
+216-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:179:13-67
 217            android:exported="false" />
-217-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:180:13-37
+217-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:180:13-37
 218        <activity
-218-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:181:9-183:40
+218-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:181:9-183:40
 219            android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.PromocionaTuMarca"
-219-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:182:13-69
+219-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:182:13-69
 220            android:exported="false" />
-220-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:183:13-37
+220-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:183:13-37
 221        <activity
-221-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:184:9-186:40
+221-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:184:9-186:40
 222            android:name="com.geinzz.geinzwork.vistaTiendas.TodasPromocionesSugeridasFiltrado"
-222-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:185:13-75
+222-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:185:13-75
 223            android:exported="false" />
-223-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:186:13-37
+223-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:186:13-37
 224        <activity
-224-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:187:9-189:40
+224-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:187:9-189:40
 225            android:name="com.geinzz.geinzwork.vistaTiendas.vistaRecicleProductos"
-225-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:188:13-63
+225-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:188:13-63
 226            android:exported="false" />
-226-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:189:13-37
+226-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:189:13-37
 227
 228        <provider
 229            android:name="androidx.core.content.FileProvider"
-229-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:192:13-62
+229-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:192:13-62
 230            android:authorities="com.geinzz.geinzwork.fileprovider"
-230-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:193:13-64
+230-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:193:13-64
 231            android:exported="false"
-231-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:194:13-37
+231-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:194:13-37
 232            android:grantUriPermissions="true" >
-232-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:195:13-47
+232-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:195:13-47
 233            <meta-data
-233-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:196:13-198:54
+233-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:196:13-198:54
 234                android:name="android.support.FILE_PROVIDER_PATHS"
-234-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:197:17-67
+234-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:197:17-67
 235                android:resource="@xml/file_paths" />
-235-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:198:17-51
+235-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:198:17-51
 236        </provider>
 237
 238        <activity
-238-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:201:9-209:20
+238-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:201:9-209:20
 239            android:name="com.geinzz.geinzwork.vistaTiendas.vistaProductosGeneralTiendas"
-239-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:202:13-70
+239-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:202:13-70
 240            android:exported="true" >
-240-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:203:13-36
+240-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:203:13-36
 241            <intent-filter>
-241-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:204:13-208:29
+241-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:204:13-208:29
 242                <action android:name="PRODUCTOS_PRINCIPALES" />
-242-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:205:17-64
-242-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:205:25-61
+242-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:205:17-64
+242-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:205:25-61
 243
 244                <category android:name="android.intent.category.DEFAULT" />
-244-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-244-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+244-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+244-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 245            </intent-filter>
 246        </activity>
 247        <activity
-247-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:210:9-212:40
+247-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:210:9-212:40
 248            android:name="com.geinzz.geinzwork.vistaTiendas.Vista_mostrarTodos_Tiendas"
-248-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:211:13-68
+248-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:211:13-68
 249            android:exported="false" />
-249-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:212:13-37
+249-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:212:13-37
 250        <activity
-250-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:213:9-215:40
+250-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:213:9-215:40
 251            android:name="com.geinzz.geinzwork.vistaTiendas.TiendasGenerales"
-251-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:214:13-58
+251-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:214:13-58
 252            android:exported="false" />
-252-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:215:13-37
+252-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:215:13-37
 253        <activity
-253-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:216:9-218:40
+253-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:216:9-218:40
 254            android:name="com.geinzz.geinzwork.vistaTiendas.Ver_mas_anuncios_tiendas"
-254-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:217:13-66
+254-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:217:13-66
 255            android:exported="false" />
-255-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:218:13-37
+255-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:218:13-37
 256        <activity
-256-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:219:9-221:40
+256-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:219:9-221:40
 257            android:name="com.geinzz.geinzwork.vistaTiendas.Agregar_Ver_Review"
-257-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:220:13-60
+257-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:220:13-60
 258            android:exported="false" />
-258-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:221:13-37
+258-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:221:13-37
 259        <activity
-259-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:222:9-230:20
+259-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:222:9-230:20
 260            android:name="com.geinzz.geinzwork.vistaTiendas.VistaTienda"
-260-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:223:13-53
+260-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:223:13-53
 261            android:exported="true" >
-261-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:224:13-36
+261-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:224:13-36
 262            <intent-filter>
-262-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:225:13-229:29
+262-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:225:13-229:29
 263                <action android:name="VISTA_TIENDA" />
-263-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:226:17-55
-263-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:226:25-52
+263-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:226:17-55
+263-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:226:25-52
 264
 265                <category android:name="android.intent.category.DEFAULT" />
-265-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-265-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+265-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+265-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 266            </intent-filter>
 267        </activity>
 268        <activity
-268-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:231:9-233:40
+268-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:231:9-233:40
 269            android:name="com.geinzz.geinzwork.noticias_y_review"
-269-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:232:13-46
+269-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:232:13-46
 270            android:exported="false" />
-270-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:233:13-37
+270-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:233:13-37
 271        <activity
-271-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:234:9-242:20
+271-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:234:9-242:20
 272            android:name="com.geinzz.geinzwork.vistaTrabajador.ver_detalles_Promociones"
-272-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:235:13-69
+272-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:235:13-69
 273            android:exported="true" >
-273-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:236:13-36
+273-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:236:13-36
 274            <intent-filter>
-274-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:237:13-241:29
+274-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:237:13-241:29
 275                <action android:name="SUBIDA_NOTICIAS" />
-275-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:238:17-58
-275-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:238:25-55
+275-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:238:17-58
+275-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:238:25-55
 276
 277                <category android:name="android.intent.category.DEFAULT" />
-277-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-277-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+277-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+277-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 278            </intent-filter>
 279        </activity>
 280        <activity
-280-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:243:9-245:40
+280-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:243:9-245:40
 281            android:name="com.geinzz.geinzwork.EditarReview"
-281-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:244:13-41
+281-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:244:13-41
 282            android:exported="false" />
-282-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:245:13-37
+282-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:245:13-37
 283        <activity
-283-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:246:9-248:40
+283-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:246:9-248:40
 284            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Cuenta_Info"
-284-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:247:13-59
+284-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:247:13-59
 285            android:exported="false" />
-285-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:248:13-37
+285-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:248:13-37
 286        <activity
-286-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:249:9-251:40
+286-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:249:9-251:40
 287            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Categorias_info"
-287-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:250:13-63
+287-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:250:13-63
 288            android:exported="false" />
-288-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:251:13-37
+288-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:251:13-37
 289        <activity
-289-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:252:9-254:40
+289-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:252:9-254:40
 290            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Noticias_Info"
-290-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:253:13-61
+290-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:253:13-61
 291            android:exported="false" />
-291-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:254:13-37
+291-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:254:13-37
 292        <activity
-292-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:255:9-257:40
+292-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:255:9-257:40
 293            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Inicio_info"
-293-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:256:13-59
+293-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:256:13-59
 294            android:exported="false" />
-294-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:257:13-37
+294-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:257:13-37
 295        <activity
-295-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:258:9-260:40
+295-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:258:9-260:40
 296            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar"
-296-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:259:13-56
+296-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:259:13-56
 297            android:exported="false" />
-297-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:260:13-37
+297-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:260:13-37
 298        <activity
-298-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:261:9-263:40
+298-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:261:9-263:40
 299            android:name="com.geinzz.geinzwork.planes"
-299-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:262:13-35
+299-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:262:13-35
 300            android:exported="false" />
-300-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:263:13-37
+300-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:263:13-37
 301        <activity
-301-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:264:9-266:40
+301-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:264:9-266:40
 302            android:name="com.geinzz.geinzwork.Crea_tu_publicidad"
-302-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:265:13-47
+302-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:265:13-47
 303            android:exported="false" />
-303-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:266:13-37
+303-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:266:13-37
 304        <activity
-304-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:267:9-269:40
+304-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:267:9-269:40
 305            android:name="com.geinzz.geinzwork.Nosotros"
-305-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:268:13-37
+305-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:268:13-37
 306            android:exported="false" />
-306-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:269:13-37
+306-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:269:13-37
 307        <activity
-307-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:270:9-272:40
+307-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:270:9-272:40
 308            android:name="com.geinzz.geinzwork.vistas_anuncios_general"
-308-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:271:13-52
+308-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:271:13-52
 309            android:exported="false" />
-309-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:272:13-37
+309-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:272:13-37
 310        <activity
-310-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:273:9-275:40
+310-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:273:9-275:40
 311            android:name="com.geinzz.geinzwork.EditarInfo"
-311-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:274:13-39
+311-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:274:13-39
 312            android:exported="false" />
-312-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:275:13-37
+312-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:275:13-37
 313        <activity
-313-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:276:9-278:40
+313-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:276:9-278:40
 314            android:name="com.geinzz.geinzwork.agregarImagen"
-314-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:277:13-42
+314-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:277:13-42
 315            android:exported="false" />
-315-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:278:13-37
+315-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:278:13-37
 316        <activity android:name="com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT" />
-316-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:279:9-71
-316-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:279:19-68
+316-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:279:9-71
+316-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:279:19-68
 317        <activity
-317-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:280:9-282:40
+317-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:280:9-282:40
 318            android:name="com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador"
-318-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:281:13-60
+318-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:281:13-60
 319            android:exported="false" />
-319-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:282:13-37
+319-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:282:13-37
 320        <activity
-320-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:283:9-286:58
+320-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:283:9-286:58
 321            android:name="com.geinzz.geinzwork.caracteristicaTrabajo"
-321-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:284:13-50
+321-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:284:13-50
 322            android:exported="false"
-322-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:285:13-37
+322-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:285:13-37
 323            android:windowSoftInputMode="adjustResize" />
-323-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:286:13-55
+323-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:286:13-55
 324        <activity
-324-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:287:9-289:40
+324-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:287:9-289:40
 325            android:name="com.geinzz.geinzwork.passwordYuser"
-325-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:288:13-42
+325-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:288:13-42
 326            android:exported="false" />
-326-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:289:13-37
+326-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:289:13-37
 327        <activity
-327-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:290:9-292:40
+327-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:290:9-292:40
 328            android:name="com.geinzz.geinzwork.Seleccion_de_Trabajo"
-328-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:291:13-49
+328-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:291:13-49
 329            android:exported="false" />
-329-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:292:13-37
+329-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:292:13-37
 330        <activity
-330-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:293:9-295:40
+330-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:293:9-295:40
 331            android:name="com.geinzz.geinzwork.GraciasRegistro"
-331-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:294:13-44
+331-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:294:13-44
 332            android:exported="false" />
-332-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:295:13-37
+332-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:295:13-37
 333        <activity
-333-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:296:9-298:40
+333-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:296:9-298:40
 334            android:name="com.geinzz.geinzwork.veirificacionDatos"
-334-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:297:13-47
+334-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:297:13-47
 335            android:exported="false" />
-335-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:298:13-37
+335-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:298:13-37
 336        <activity
-336-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:299:9-302:58
+336-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:299:9-302:58
 337            android:name="com.geinzz.geinzwork.CuentaFreelancer"
-337-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:300:13-45
+337-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:300:13-45
 338            android:exported="false"
-338-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:301:13-37
+338-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:301:13-37
 339            android:windowSoftInputMode="adjustResize" />
-339-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:302:13-55
+339-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:302:13-55
 340        <activity
-340-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:303:9-305:40
+340-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:303:9-305:40
 341            android:name="com.geinzz.geinzwork.CuentaUser"
-341-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:304:13-39
+341-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:304:13-39
 342            android:exported="false" />
-342-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:305:13-37
+342-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:305:13-37
 343        <activity
-343-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:306:9-308:40
+343-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:306:9-308:40
 344            android:name="com.geinzz.geinzwork.Login"
-344-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:307:13-34
+344-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:307:13-34
 345            android:exported="false" />
-345-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:308:13-37
+345-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:308:13-37
 346        <activity
-346-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:309:9-311:40
+346-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:309:9-311:40
 347            android:name="com.geinzz.geinzwork.segundaria"
-347-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:310:13-39
+347-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:310:13-39
 348            android:exported="false" />
-348-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:311:13-37
+348-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:311:13-37
 349        <activity
-349-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:312:9-328:20
+349-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:312:9-328:20
 350            android:name="com.geinzz.geinzwork.MainActivity"
-350-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:313:13-41
+350-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:313:13-41
 351            android:exported="true" >
-351-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:314:13-36
+351-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:314:13-36
 352            <intent-filter android:autoVerify="true" >
-352-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:315:13-327:29
-352-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:315:28-53
+352-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:315:13-327:29
+352-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:315:28-53
 353                <action android:name="android.intent.action.VIEW" />
-353-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:316:17-69
-353-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:316:25-66
+353-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:17-69
+353-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:25-66
 354
 355                <category android:name="android.intent.category.DEFAULT" />
-355-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-355-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+355-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+355-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 356                <category android:name="android.intent.category.BROWSABLE" />
-356-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:319:17-78
-356-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:319:27-75
+356-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:17-78
+356-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:27-75
 357
 358                <data
-358-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
+358-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
 359                    android:host="geinzapp.page.link"
-359-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
+359-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
 360                    android:scheme="https" />
-360-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
+360-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
 361                <data
-361-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
+361-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
 362                    android:host="geinzapp.page.link"
-362-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
+362-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
 363                    android:scheme="http" />
-363-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
+363-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
 364            </intent-filter>
 365        </activity>
 366        <activity
-366-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:329:9-332:49
+366-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:329:9-332:49
 367            android:name="com.journeyapps.barcodescanner.CaptureActivity"
-367-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:330:13-74
+367-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:330:13-74
 368            android:clearTaskOnLaunch="true"
 368-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\626ea38f2d3af64b5ae9ad6a6d1a99fa\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:49:13-45
 369            android:screenOrientation="fullSensor"
-369-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:331:13-51
+369-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:331:13-51
 370            android:stateNotNeeded="true"
 370-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\626ea38f2d3af64b5ae9ad6a6d1a99fa\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:51:13-42
 371            android:theme="@style/zxing_CaptureTheme"
@@ -734,57 +734,57 @@
 372            android:windowSoftInputMode="stateAlwaysHidden" />
 372-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\626ea38f2d3af64b5ae9ad6a6d1a99fa\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:53:13-60
 373        <activity
-373-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:333:9-342:20
+373-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:333:9-342:20
 374            android:name="com.geinzz.geinzwork.Primario"
-374-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:334:13-37
+374-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:334:13-37
 375            android:exported="true"
-375-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:335:13-36
+375-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:335:13-36
 376            android:theme="@style/Theme.ApiSclasScrenn" >
-376-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:336:13-56
+376-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:336:13-56
 377            <intent-filter>
-377-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:337:13-341:29
+377-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:337:13-341:29
 378                <action android:name="android.intent.action.MAIN" />
-378-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:338:17-69
-378-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:338:25-66
+378-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:17-69
+378-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:25-66
 379
 380                <category android:name="android.intent.category.LAUNCHER" />
-380-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:340:17-77
-380-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:340:27-74
+380-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:17-77
+380-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:27-74
 381            </intent-filter>
 382        </activity>
 383
 384        <service
-384-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:344:9-350:19
+384-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:344:9-350:19
 385            android:name="com.geinzz.geinzwork.MyFirebaseMessagingService"
-385-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:345:13-55
+385-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:345:13-55
 386            android:exported="true" >
-386-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:346:13-36
+386-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:346:13-36
 387            <intent-filter>
-387-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:347:13-349:29
+387-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:347:13-349:29
 388                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-388-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:348:17-78
-388-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:348:25-75
+388-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:348:17-78
+388-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:348:25-75
 389            </intent-filter>
 390        </service>
 391
 392        <meta-data
-392-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:352:13-354:64
+392-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:352:13-354:64
 393            android:name="com.google.firebase.messaging.default_notification_icon"
-393-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:353:17-87
+393-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:353:17-87
 394            android:resource="@drawable/notification_ic" />
-394-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:354:17-61
+394-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:354:17-61
 395        <meta-data
-395-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:356:9-358:51
+395-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:356:9-358:51
 396            android:name="com.google.firebase.messaging.default_notification_color"
-396-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:357:13-84
+396-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:357:13-84
 397            android:resource="@color/violetaQR" />
-397-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:358:13-48
+397-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:358:13-48
 398        <meta-data
-398-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:359:9-361:69
+398-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:359:9-361:69
 399            android:name="com.google.firebase.messaging.default_notification_channel_id"
-399-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:360:13-89
+399-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:360:13-89
 400            android:value="@string/notificacion_chanel_id_defaul" />
-400-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:361:13-66
+400-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:361:13-66
 401
 402        <service
 402-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\232cf48258ab85f31dba22a514a13f34\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:9:9-15:19
@@ -982,23 +982,23 @@
 500            <intent-filter>
 500-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\556e39887aaa5e8885ad434da07c10cf\transformed\firebase-auth-22.3.1\AndroidManifest.xml:35:13-45:29
 501                <action android:name="android.intent.action.VIEW" />
-501-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:316:17-69
-501-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:316:25-66
+501-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:17-69
+501-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:25-66
 502
 503                <category android:name="android.intent.category.DEFAULT" />
-503-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-503-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+503-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+503-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 504                <category android:name="android.intent.category.BROWSABLE" />
-504-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:319:17-78
-504-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:319:27-75
+504-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:17-78
+504-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:27-75
 505
 506                <data
-506-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
+506-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
 507                    android:host="firebase.auth"
-507-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
+507-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
 508                    android:path="/"
 509                    android:scheme="genericidp" />
-509-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
+509-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
 510            </intent-filter>
 511        </activity>
 512        <activity
@@ -1016,23 +1016,23 @@
 518            <intent-filter>
 518-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\556e39887aaa5e8885ad434da07c10cf\transformed\firebase-auth-22.3.1\AndroidManifest.xml:53:13-63:29
 519                <action android:name="android.intent.action.VIEW" />
-519-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:316:17-69
-519-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:316:25-66
+519-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:17-69
+519-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:25-66
 520
 521                <category android:name="android.intent.category.DEFAULT" />
-521-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
-521-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
+521-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:17-76
+521-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:27-73
 522                <category android:name="android.intent.category.BROWSABLE" />
-522-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:319:17-78
-522-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:319:27-75
+522-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:17-78
+522-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:27-75
 523
 524                <data
-524-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
+524-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:321:17-323:46
 525                    android:host="firebase.auth"
-525-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
+525-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:322:21-54
 526                    android:path="/"
 527                    android:scheme="recaptcha" />
-527-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
+527-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:323:21-43
 528            </intent-filter>
 529        </activity>
 530
@@ -1071,10 +1071,10 @@
 550            android:exported="false" >
 550-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a76b6f3c1debf82cb15b215e9e608476\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:49:13-37
 551            <intent-filter android:priority="-500" >
-551-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:347:13-349:29
+551-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:347:13-349:29
 552                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-552-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:348:17-78
-552-->C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\AndroidManifest.xml:348:25-75
+552-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:348:17-78
+552-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:348:25-75
 553            </intent-filter>
 554        </service>
 555

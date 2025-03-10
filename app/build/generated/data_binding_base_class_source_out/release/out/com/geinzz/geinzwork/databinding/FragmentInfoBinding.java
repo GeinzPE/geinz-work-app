@@ -18,6 +18,8 @@ import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import de.hdodenhof.circleimageview.CircleImageView;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -71,7 +73,7 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final CircleImageView imgPerfilUser;
 
   @NonNull
-  public final ImageView imgPortada;
+  public final ShapeableImageView imgPortada;
 
   @NonNull
   public final LinearLayout innerRelativeLayout;
@@ -110,6 +112,12 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final ImageView popup;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  @NonNull
+  public final CircularProgressIndicator progressCargaImagenFondo;
+
+  @NonNull
   public final ImageView qrTrabajador;
 
   @NonNull
@@ -142,13 +150,15 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull TextView categoriaTipoTrabajo, @NonNull FrameLayout circle,
       @NonNull TextView descripcionTrabajador, @NonNull TextView edadUser, @NonNull View estado,
       @NonNull ImageView fb, @NonNull TextView genero, @NonNull TextView horario,
-      @NonNull ImageView ig, @NonNull CircleImageView imgPerfilUser, @NonNull ImageView imgPortada,
-      @NonNull LinearLayout innerRelativeLayout, @NonNull LinearLayout linealLayaout,
-      @NonNull LinearLayout linealNoCuenta, @NonNull LinearLayout linealRedes,
-      @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
-      @NonNull LinearLayoutCompat loading, @NonNull TextView localidad,
-      @NonNull TextView nacionalida, @NonNull TextView nombre, @NonNull View overlay,
-      @NonNull ImageView popup, @NonNull ImageView qrTrabajador,
+      @NonNull ImageView ig, @NonNull CircleImageView imgPerfilUser,
+      @NonNull ShapeableImageView imgPortada, @NonNull LinearLayout innerRelativeLayout,
+      @NonNull LinearLayout linealLayaout, @NonNull LinearLayout linealNoCuenta,
+      @NonNull LinearLayout linealRedes, @NonNull LinearLayout linealTrabajosRealziados,
+      @NonNull AppBarLayout linealappLayout, @NonNull LinearLayoutCompat loading,
+      @NonNull TextView localidad, @NonNull TextView nacionalida, @NonNull TextView nombre,
+      @NonNull View overlay, @NonNull ImageView popup,
+      @NonNull CircularProgressIndicator progressCargaImagen,
+      @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
       @NonNull TextView telefono, @NonNull ImageView tk,
       @NonNull RecyclerView trabajadoresSimilares, @NonNull TextView tvReadMore,
@@ -181,6 +191,8 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.nombre = nombre;
     this.overlay = overlay;
     this.popup = popup;
+    this.progressCargaImagen = progressCargaImagen;
+    this.progressCargaImagenFondo = progressCargaImagenFondo;
     this.qrTrabajador = qrTrabajador;
     this.relativeLayout = relativeLayout;
     this.scroll = scroll;
@@ -304,7 +316,7 @@ public final class FragmentInfoBinding implements ViewBinding {
       }
 
       id = R.id.imgPortada;
-      ImageView imgPortada = ViewBindings.findChildViewById(rootView, id);
+      ShapeableImageView imgPortada = ViewBindings.findChildViewById(rootView, id);
       if (imgPortada == null) {
         break missingId;
       }
@@ -381,6 +393,18 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
+      id = R.id.progress_carga_imagen_fondo;
+      CircularProgressIndicator progressCargaImagenFondo = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagenFondo == null) {
+        break missingId;
+      }
+
       id = R.id.qrTrabajador;
       ImageView qrTrabajador = ViewBindings.findChildViewById(rootView, id);
       if (qrTrabajador == null) {
@@ -440,8 +464,9 @@ public final class FragmentInfoBinding implements ViewBinding {
           descripcionTrabajador, edadUser, estado, fb, genero, horario, ig, imgPerfilUser,
           imgPortada, innerRelativeLayout, linealLayaout, linealNoCuenta, linealRedes,
           linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida, nombre,
-          overlay, popup, qrTrabajador, relativeLayout, scroll, telefono, tk, trabajadoresSimilares,
-          tvReadMore, verMasTrabajadores, verificado);
+          overlay, popup, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
+          relativeLayout, scroll, telefono, tk, trabajadoresSimilares, tvReadMore,
+          verMasTrabajadores, verificado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

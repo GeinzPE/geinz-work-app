@@ -4846,6 +4846,7 @@ id cargaLike
 id cargaServicios
 id cargaimg
 id cargando_lat_log
+id cargarConteindo
 id carracteristicasUser
 id carritoCompras
 id carrito_compras
@@ -4957,6 +4958,7 @@ id contenedor_sin_qr
 id contenido
 id contenidoED
 id contenidoItem
+id contenidoRelative
 id contenidoReseview
 id contenidoTienda
 id contenido_corto
@@ -5519,6 +5521,7 @@ id linealListener
 id linealListner
 id linealMetodoEntrega
 id linealMontoDel_servicio
+id linealMostrarTrabajos
 id linealNoticias
 id linealPadre
 id linealPlin
@@ -5618,6 +5621,7 @@ id masEstrellas
 id masPromociones_geinz
 id masSeguidores
 id mas_informacion
+id mas_trabajos_realiados
 id masculino
 id masked
 id match_constraint
@@ -6010,6 +6014,7 @@ id rlClickConsumer
 id rl_query_holder
 id rl_title
 id rounded
+id rounderMenu
 id row_content
 id row_header
 id row_header_description
@@ -6022,6 +6027,7 @@ id save_overlay_view
 id sawtooth
 id scale
 id scale_frame
+id scollView
 id screen
 id scroll
 id scrollContainer
@@ -6163,9 +6169,11 @@ id textoNoEncontrado
 id textoOculto
 id textoPoliticas
 id textoPreview
+id texto_Trabajo
 id texto_adicional
 id texto_pincipal
 id texto_promo
+id texto_trabajos_realzados
 id thumbs_row
 id tienda
 id tiendaCancelar
@@ -6196,7 +6204,9 @@ id title_template
 id title_text
 id titulo
 id tituloItem
+id tituloNombreTrabajador
 id tituloProducto
+id titulo_Trabajo
 id titulo_contenido
 id titulo_de_la_noticia
 id titulo_lineal
@@ -6205,6 +6215,7 @@ id titulo_publicacionED
 id titulo_publicaciontext
 id titulo_publicidad
 id titulo_servico
+id titulo_trabajos_realizados
 id titulos
 id tk
 id tkED
@@ -6226,6 +6237,7 @@ id total_user
 id touch_outside
 id trabajadores
 id trabajadores_similares
+id trabajosRealizados
 id transitionPosition
 id transitionToEnd
 id transitionToStart
@@ -6279,6 +6291,7 @@ id verPlanes
 id verProductos
 id verTecnicos
 id verTiendas
+id verTodosTrabajos
 id verTrabajohogar
 id ver_mas
 id ver_mas_promociones
@@ -6523,6 +6536,7 @@ layout activity_historial_compras
 layout activity_inicio_info
 layout activity_login
 layout activity_main
+layout activity_mostrar_todos_trabajos
 layout activity_nosotros
 layout activity_noticias_info
 layout activity_noticias_servicios_geinz
@@ -6582,6 +6596,7 @@ layout bottom_sheet_filtrado_compras_carrito
 layout bottom_sheet_filtrar_resultados_promo
 layout bottom_sheet_info_publicidad
 layout bottom_sheet_informacion_publicidad_noticias_servicios_geinz
+layout bottom_sheet_mostar_trabajos_recientes
 layout bottom_sheet_mostrar_productos
 layout bottom_sheet_recicle_productos
 layout bottom_sheet_redes
@@ -6701,6 +6716,7 @@ layout item_servicios_activos_geinz
 layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
+layout item_trabajos_reallizados_trabajadores
 layout layout_code_picker
 layout layout_full_width_code_picker
 layout layout_picker_dialog

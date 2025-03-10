@@ -107,7 +107,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                                 binding.imageView,
                                 "portada",
                                 null
-                            )
+                            ){}
 
                             println("la img del ql es $img")
 
@@ -158,7 +158,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                                         binding.imageView,
                                         "portada",
                                         null
-                                    )
+                                    ){}
 
 
                                 binding.textoOculto.isVisible = false

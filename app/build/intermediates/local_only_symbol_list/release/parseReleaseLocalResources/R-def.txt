@@ -422,7 +422,6 @@ id benefit7
 id benefit8
 id benefitsText
 id bodegasfilter
-id borra
 id borrarItem
 id botom_shet_publicacion
 id btnApply
@@ -677,7 +676,6 @@ id finaliza
 id fotoPortada
 id foto_portada
 id fracmentoID
-id fracmentoLayaout
 id frameInfo
 id frameSinReview
 id freelancer
@@ -904,6 +902,7 @@ id linealPrecio
 id linealPrecioDelivery
 id linealPrecioTexview
 id linealPrincipal
+id linealPublicaciones_edit_delete
 id linealRedes
 id linealReferencia
 id linealSakeBAr
@@ -1125,6 +1124,8 @@ id progresVar3Estrellas
 id progressBar
 id progressBarContainer
 id progress_5_stars
+id progress_carga_imagen
+id progress_carga_imagen_fondo
 id progressvar
 id progresvar1Estrellas
 id progrsBar
@@ -1398,7 +1399,6 @@ layout activity_cuenta_info
 layout activity_cuenta_user
 layout activity_direccion_entrega_lat_log
 layout activity_editar_info
-layout activity_editar_publicaciones
 layout activity_editar_review
 layout activity_generar_qr_trabajador
 layout activity_generar_qrpedido_articulos
@@ -1461,6 +1461,7 @@ layout bottom_sheet_config_cuenta
 layout bottom_sheet_contacta_trabajador
 layout bottom_sheet_creacion_cuenta
 layout bottom_sheet_crear_cuenta_tienda
+layout bottom_sheet_editar_publicacion
 layout bottom_sheet_filtrado_compras_carrito
 layout bottom_sheet_filtrar_resultados_promo
 layout bottom_sheet_info_publicidad

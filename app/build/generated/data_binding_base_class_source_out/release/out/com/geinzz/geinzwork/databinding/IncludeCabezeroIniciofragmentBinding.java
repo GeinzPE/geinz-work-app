@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import de.hdodenhof.circleimageview.CircleImageView;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -39,6 +40,9 @@ public final class IncludeCabezeroIniciofragmentBinding implements ViewBinding {
   public final CircleImageView imgPerfilUser;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  @NonNull
   public final RelativeLayout relativeClick;
 
   @NonNull
@@ -56,7 +60,8 @@ public final class IncludeCabezeroIniciofragmentBinding implements ViewBinding {
   private IncludeCabezeroIniciofragmentBinding(@NonNull LinearLayout rootView,
       @NonNull TextView BienvenidoGeinz, @NonNull ImageView anuncioNoticia,
       @NonNull TextView filtradoUsuairo, @NonNull FrameLayout frameInfo,
-      @NonNull CircleImageView imgPerfilUser, @NonNull RelativeLayout relativeClick,
+      @NonNull CircleImageView imgPerfilUser,
+      @NonNull CircularProgressIndicator progressCargaImagen, @NonNull RelativeLayout relativeClick,
       @NonNull RelativeLayout relativenotifica, @NonNull TextView usuarioRegsitradoName,
       @NonNull TextView usuariosRegistrados, @NonNull RelativeLayout verPreview) {
     this.rootView = rootView;
@@ -65,6 +70,7 @@ public final class IncludeCabezeroIniciofragmentBinding implements ViewBinding {
     this.filtradoUsuairo = filtradoUsuairo;
     this.frameInfo = frameInfo;
     this.imgPerfilUser = imgPerfilUser;
+    this.progressCargaImagen = progressCargaImagen;
     this.relativeClick = relativeClick;
     this.relativenotifica = relativenotifica;
     this.usuarioRegsitradoName = usuarioRegsitradoName;
@@ -129,6 +135,12 @@ public final class IncludeCabezeroIniciofragmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
       id = R.id.relativeClick;
       RelativeLayout relativeClick = ViewBindings.findChildViewById(rootView, id);
       if (relativeClick == null) {
@@ -160,8 +172,8 @@ public final class IncludeCabezeroIniciofragmentBinding implements ViewBinding {
       }
 
       return new IncludeCabezeroIniciofragmentBinding((LinearLayout) rootView, BienvenidoGeinz,
-          anuncioNoticia, filtradoUsuairo, frameInfo, imgPerfilUser, relativeClick,
-          relativenotifica, usuarioRegsitradoName, usuariosRegistrados, verPreview);
+          anuncioNoticia, filtradoUsuairo, frameInfo, imgPerfilUser, progressCargaImagen,
+          relativeClick, relativenotifica, usuarioRegsitradoName, usuariosRegistrados, verPreview);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

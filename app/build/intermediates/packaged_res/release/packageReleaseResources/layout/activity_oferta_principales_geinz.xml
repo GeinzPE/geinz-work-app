@@ -165,6 +165,7 @@
                     app:autoPlayDelay="4000"
                     app:carouselType="SHOWCASE"
                     app:imageScaleType="centerInside"
+                    android:adjustViewBounds="true"
                     app:showBottomShadow="false"
                     app:showCaption="false"
                     app:showIndicator="false"

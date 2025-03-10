@@ -19,16 +19,17 @@
         <ImageView
             android:id="@+id/imganeAnuncio"
             android:layout_width="match_parent"
-            android:layout_height="500dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
             android:src="@drawable/cargando_img_geinz_500"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/like_animation"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true" />
 
         <TextView

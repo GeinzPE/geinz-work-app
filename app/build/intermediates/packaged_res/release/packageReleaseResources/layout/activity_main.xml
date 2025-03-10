@@ -7,8 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
-        android:id="@+id/fracmentoLayaout"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/buttonNavigation" />
@@ -38,6 +38,5 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="40dp"
         android:src="@drawable/compras_icon"/>
-
 
 </RelativeLayout>

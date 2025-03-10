@@ -48,12 +48,12 @@ com.geinzz.geinzwork.app-glide-4.16.0-46 C:\Users\Benjamin\.gradle\caches\transf
 com.geinzz.geinzwork.app-core-splashscreen-1.0.1-47 C:\Users\Benjamin\.gradle\caches\transforms-4\ea5d242080a5ab6615279829aaa20fa9\transformed\core-splashscreen-1.0.1\res
 com.geinzz.geinzwork.app-coordinatorlayout-1.1.0-48 C:\Users\Benjamin\.gradle\caches\transforms-4\ed152cb37447062b06e494a8db37c191\transformed\coordinatorlayout-1.1.0\res
 com.geinzz.geinzwork.app-core-runtime-2.2.0-49 C:\Users\Benjamin\.gradle\caches\transforms-4\f4792244420c2e215ff9d5efec8769e3\transformed\core-runtime-2.2.0\res
-com.geinzz.geinzwork.app-res-50 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\generated\crashlytics\res\release
-com.geinzz.geinzwork.app-pngs-51 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\generated\res\pngs\release
-com.geinzz.geinzwork.app-res-52 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\generated\res\processReleaseGoogleServices
-com.geinzz.geinzwork.app-resValues-53 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\generated\res\resValues\release
-com.geinzz.geinzwork.app-packageReleaseResources-54 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
-com.geinzz.geinzwork.app-packageReleaseResources-55 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
-com.geinzz.geinzwork.app-release-56 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\build\intermediates\merged_res\release\mergeReleaseResources
-com.geinzz.geinzwork.app-main-57 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\main\res
-com.geinzz.geinzwork.app-release-58 C:\Users\Benjamin\Desktop\Nueva carpeta (13)\geinz-work-app\app\src\release\res
+com.geinzz.geinzwork.app-res-50 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\generated\crashlytics\res\release
+com.geinzz.geinzwork.app-pngs-51 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\generated\res\pngs\release
+com.geinzz.geinzwork.app-res-52 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\generated\res\processReleaseGoogleServices
+com.geinzz.geinzwork.app-resValues-53 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\generated\res\resValues\release
+com.geinzz.geinzwork.app-packageReleaseResources-54 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+com.geinzz.geinzwork.app-packageReleaseResources-55 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+com.geinzz.geinzwork.app-release-56 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\build\intermediates\merged_res\release\mergeReleaseResources
+com.geinzz.geinzwork.app-main-57 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\res
+com.geinzz.geinzwork.app-release-58 C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\release\res

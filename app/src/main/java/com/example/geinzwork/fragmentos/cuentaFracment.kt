@@ -291,7 +291,7 @@ class cuentaFracment : Fragment() {
                         binding.imagenPerfil,
                         null,
                         "perfil", placeholderperfil
-                    )
+                    ){}
 
                 }
             }
@@ -389,7 +389,7 @@ class cuentaFracment : Fragment() {
                         binding.imagenPerfil,
                         null,
                         "perfil", placeholderperfil
-                    )
+                    ){}
                 }
             }
         val refStorage =

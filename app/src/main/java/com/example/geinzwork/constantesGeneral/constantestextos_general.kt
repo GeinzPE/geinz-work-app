@@ -69,7 +69,7 @@ object constantestextos_general {
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 descripcion.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                if (descripcion.lineCount > 2) {
+                if (descripcion.lineCount >= 2) {
                     tvReadMore.isVisible = true
                     println("el texo es lagor")
                 }

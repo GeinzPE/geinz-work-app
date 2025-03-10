@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.DiffUtilClass.difiultilsFiltrado
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclasEncontrados
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad.agregarCantidadClickAnuncios
 import com.geinzz.geinzwork.databinding.ItemPromocionesEncontradasBinding
@@ -43,9 +44,7 @@ class adapterPRmociones(private var lista: List<dataclasEncontrados>) :
     class vieHolderPromociones(private val binding: ItemPromocionesEncontradasBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun render(item: dataclasEncontrados) {
-            Glide.with(itemView.context)
-                .load(item.img)
-                .into(binding.imgTrabajo)
+
 
             binding.nombeTienda.text = item.nombreTienda
             binding.fechaVencimineto.text = "Finaliza: ${item.FechaVencimineto}"
@@ -56,7 +55,15 @@ class adapterPRmociones(private var lista: List<dataclasEncontrados>) :
             } else {
                 binding.descuentoPorcentaje.isVisible = false
             }
-
+            constatnes_carga_imagenes_general.changer_img(
+                binding.progressCargaImagen,
+                itemView.context,
+                item.img.toString(),
+                null,
+                binding.imgTrabajo,
+                "portada",
+                null
+            ){}
             binding.imgTrabajo.setOnClickListener {
                 val db = FirebaseFirestore.getInstance().collection(Variables.anuncios)
                     .document(item.documento.toString())

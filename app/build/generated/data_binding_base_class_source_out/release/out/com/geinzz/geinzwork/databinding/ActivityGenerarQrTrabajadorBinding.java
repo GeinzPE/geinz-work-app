@@ -18,6 +18,7 @@ import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -60,6 +61,9 @@ public final class ActivityGenerarQrTrabajadorBinding implements ViewBinding {
   public final TextView nombreTrabajador;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  @NonNull
   public final LinearLayout textoGeinz;
 
   @NonNull
@@ -71,8 +75,8 @@ public final class ActivityGenerarQrTrabajadorBinding implements ViewBinding {
       @NonNull ImageView imageQr, @NonNull ShapeableImageView imageView,
       @NonNull RelativeLayout linealCompartirDescargar, @NonNull RelativeLayout linealImgQr,
       @NonNull LinearLayoutCompat loading, @NonNull ConstraintLayout main,
-      @NonNull TextView nombreTrabajador, @NonNull LinearLayout textoGeinz,
-      @NonNull LinearLayout textoOculto) {
+      @NonNull TextView nombreTrabajador, @NonNull CircularProgressIndicator progressCargaImagen,
+      @NonNull LinearLayout textoGeinz, @NonNull LinearLayout textoOculto) {
     this.rootView = rootView;
     this.compartir = compartir;
     this.contenedorSinQr = contenedorSinQr;
@@ -85,6 +89,7 @@ public final class ActivityGenerarQrTrabajadorBinding implements ViewBinding {
     this.loading = loading;
     this.main = main;
     this.nombreTrabajador = nombreTrabajador;
+    this.progressCargaImagen = progressCargaImagen;
     this.textoGeinz = textoGeinz;
     this.textoOculto = textoOculto;
   }
@@ -178,6 +183,12 @@ public final class ActivityGenerarQrTrabajadorBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
       id = R.id.textoGeinz;
       LinearLayout textoGeinz = ViewBindings.findChildViewById(rootView, id);
       if (textoGeinz == null) {
@@ -192,7 +203,8 @@ public final class ActivityGenerarQrTrabajadorBinding implements ViewBinding {
 
       return new ActivityGenerarQrTrabajadorBinding((ConstraintLayout) rootView, compartir,
           contenedorSinQr, descargarQR, generarQR, imageQr, imageView, linealCompartirDescargar,
-          linealImgQr, loading, main, nombreTrabajador, textoGeinz, textoOculto);
+          linealImgQr, loading, main, nombreTrabajador, progressCargaImagen, textoGeinz,
+          textoOculto);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -92,6 +92,10 @@
         "source": "com.geinzz.geinzwork.app-main-57:/layout/fragment_add_review.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-mergeReleaseResources-55:/layout/bottom_sheet_editar_publicacion.xml",
+        "source": "com.geinzz.geinzwork.app-main-57:/layout/bottom_sheet_editar_publicacion.xml"
+    },
+    {
         "merged": "com.geinzz.geinzwork.app-mergeReleaseResources-55:/layout/fragment_reservasfr.xml",
         "source": "com.geinzz.geinzwork.app-main-57:/layout/fragment_reservasfr.xml"
     },
@@ -430,10 +434,6 @@
     {
         "merged": "com.geinzz.geinzwork.app-mergeReleaseResources-55:/layout/activity_categorias_info.xml",
         "source": "com.geinzz.geinzwork.app-main-57:/layout/activity_categorias_info.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-mergeReleaseResources-55:/layout/activity_editar_publicaciones.xml",
-        "source": "com.geinzz.geinzwork.app-main-57:/layout/activity_editar_publicaciones.xml"
     },
     {
         "merged": "com.geinzz.geinzwork.app-mergeReleaseResources-55:/layout/item_filtrado_tiendas.xml",

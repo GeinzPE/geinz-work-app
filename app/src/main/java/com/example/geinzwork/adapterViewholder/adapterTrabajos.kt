@@ -52,7 +52,7 @@ class adapterTrabajos(
                 img,
                 "portada",
                 null // Usa el placeholder también en el else
-            )
+            ){}
             nombre.text = dataClassTrabajosMostrados.categorias
         }
     }

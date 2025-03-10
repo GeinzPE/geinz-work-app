@@ -76,7 +76,7 @@ class adapterTrabajo_realizados(private val listaTrabajos_realizados: MutableLis
                 null,
                 img,
                 "portada"
-            )
+            ){}
             titulo.text = item.titulo
             contenido.text = item.contenido
             fecha.text = item.fecha
