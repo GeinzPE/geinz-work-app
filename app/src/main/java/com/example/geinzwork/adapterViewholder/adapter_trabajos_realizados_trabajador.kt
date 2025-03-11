@@ -48,6 +48,9 @@ class adapter_trabajos_realizados_trabajador(
             binding.tituloTrabajo.text = item.titulo_promo
             binding.textoTrabajo.text = item.texto_promo
 
+            binding.fechaPublicada.text = item.fecha
+            binding.horaPublicadad.text = item.hora
+
             binding.imgTrabajo.setOnClickListener {
                 listener(item)
             }

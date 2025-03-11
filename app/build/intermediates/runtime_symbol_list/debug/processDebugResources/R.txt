@@ -5264,6 +5264,7 @@ int id honorRequest 0x7f0a0354
 int id hora 0x7f0a0355
 int id horaActual 0x7f0a0356
 int id horaPago 0x7f0a0357
+int id horaPublicadad 0x7f0a079c
 int id hora_llegada 0x7f0a0358
 int id horaaproximanda 0x7f0a0359
 int id horaint 0x7f0a035a

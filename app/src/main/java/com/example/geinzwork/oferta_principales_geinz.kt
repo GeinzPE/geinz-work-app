@@ -374,8 +374,10 @@ class oferta_principales_geinz : AppCompatActivity() {
                 val titulo = data?.get(Variables.titulo) as? String ?: ""
                 val texto = data?.get(Variables.descripcion) as? String ?: ""
                 val id = data.get(Variables.id) as? String ?: ""
+                val fecha = data?.get("fecha_rec") as? String ?: ""
+                val hora = data?.get("hora_rec") as? String ?: ""
                 if (idAnuncio != id) {
-                    val dataClass = dataclass_adapter_promociones(img, titulo, texto, id)
+                    val dataClass = dataclass_adapter_promociones(img, titulo, texto, id,fecha,hora)
                     listaMas_promo.add(dataClass)
                 }
             }

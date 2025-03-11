@@ -71,7 +71,9 @@ object constantestextos_general {
                 descripcion.viewTreeObserver.removeOnGlobalLayoutListener(this)
                 if (descripcion.lineCount >= 2) {
                     tvReadMore.isVisible = true
-                    println("el texo es lagor")
+                    println("el texo es lagor $descripcion")
+                }else{
+                    tvReadMore.isVisible = false
                 }
             }
         })

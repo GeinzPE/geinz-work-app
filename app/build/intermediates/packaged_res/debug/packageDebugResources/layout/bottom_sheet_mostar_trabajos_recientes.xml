@@ -95,13 +95,14 @@
                 android:textSize="12sp" />
 
             <TextView
-                android:layout_margin="10dp"
+             android:layout_marginRight="10dp"
                 android:id="@+id/tvReadMore"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Leer más"
                 android:textColor="#027EB5"
                 android:textSize="12sp"
+                android:layout_marginBottom="10dp"
                 android:textStyle="normal"
                 android:visibility="gone" />
 

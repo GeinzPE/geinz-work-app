@@ -25,6 +25,12 @@ public final class ItemTrabajosReallizadosTrabajadoresBinding implements ViewBin
   public final RelativeLayout contenidoRelative;
 
   @NonNull
+  public final TextView fechaPublicada;
+
+  @NonNull
+  public final TextView horaPublicadad;
+
+  @NonNull
   public final ShapeableImageView imgTrabajo;
 
   @NonNull
@@ -37,11 +43,14 @@ public final class ItemTrabajosReallizadosTrabajadoresBinding implements ViewBin
   public final TextView tituloTrabajo;
 
   private ItemTrabajosReallizadosTrabajadoresBinding(@NonNull RelativeLayout rootView,
-      @NonNull RelativeLayout contenidoRelative, @NonNull ShapeableImageView imgTrabajo,
+      @NonNull RelativeLayout contenidoRelative, @NonNull TextView fechaPublicada,
+      @NonNull TextView horaPublicadad, @NonNull ShapeableImageView imgTrabajo,
       @NonNull CircularProgressIndicator progressCargaImagen, @NonNull TextView textoTrabajo,
       @NonNull TextView tituloTrabajo) {
     this.rootView = rootView;
     this.contenidoRelative = contenidoRelative;
+    this.fechaPublicada = fechaPublicada;
+    this.horaPublicadad = horaPublicadad;
     this.imgTrabajo = imgTrabajo;
     this.progressCargaImagen = progressCargaImagen;
     this.textoTrabajo = textoTrabajo;
@@ -82,6 +91,18 @@ public final class ItemTrabajosReallizadosTrabajadoresBinding implements ViewBin
         break missingId;
       }
 
+      id = R.id.fechaPublicada;
+      TextView fechaPublicada = ViewBindings.findChildViewById(rootView, id);
+      if (fechaPublicada == null) {
+        break missingId;
+      }
+
+      id = R.id.horaPublicadad;
+      TextView horaPublicadad = ViewBindings.findChildViewById(rootView, id);
+      if (horaPublicadad == null) {
+        break missingId;
+      }
+
       id = R.id.img_trabajo;
       ShapeableImageView imgTrabajo = ViewBindings.findChildViewById(rootView, id);
       if (imgTrabajo == null) {
@@ -107,7 +128,8 @@ public final class ItemTrabajosReallizadosTrabajadoresBinding implements ViewBin
       }
 
       return new ItemTrabajosReallizadosTrabajadoresBinding((RelativeLayout) rootView,
-          contenidoRelative, imgTrabajo, progressCargaImagen, textoTrabajo, tituloTrabajo);
+          contenidoRelative, fechaPublicada, horaPublicadad, imgTrabajo, progressCargaImagen,
+          textoTrabajo, tituloTrabajo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

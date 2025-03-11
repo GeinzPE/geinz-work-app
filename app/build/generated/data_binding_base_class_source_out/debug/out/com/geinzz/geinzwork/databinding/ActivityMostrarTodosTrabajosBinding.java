@@ -20,14 +20,19 @@ public final class ActivityMostrarTodosTrabajosBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
+  public final RecyclerView categroiasFiltrado;
+
+  @NonNull
   public final LinearLayout main;
 
   @NonNull
   public final RecyclerView trabajosRealizados;
 
   private ActivityMostrarTodosTrabajosBinding(@NonNull LinearLayout rootView,
-      @NonNull LinearLayout main, @NonNull RecyclerView trabajosRealizados) {
+      @NonNull RecyclerView categroiasFiltrado, @NonNull LinearLayout main,
+      @NonNull RecyclerView trabajosRealizados) {
     this.rootView = rootView;
+    this.categroiasFiltrado = categroiasFiltrado;
     this.main = main;
     this.trabajosRealizados = trabajosRealizados;
   }
@@ -59,6 +64,12 @@ public final class ActivityMostrarTodosTrabajosBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.categroiasFiltrado;
+      RecyclerView categroiasFiltrado = ViewBindings.findChildViewById(rootView, id);
+      if (categroiasFiltrado == null) {
+        break missingId;
+      }
+
       LinearLayout main = (LinearLayout) rootView;
 
       id = R.id.trabajosRealizados;
@@ -67,8 +78,8 @@ public final class ActivityMostrarTodosTrabajosBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMostrarTodosTrabajosBinding((LinearLayout) rootView, main,
-          trabajosRealizados);
+      return new ActivityMostrarTodosTrabajosBinding((LinearLayout) rootView, categroiasFiltrado,
+          main, trabajosRealizados);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

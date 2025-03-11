@@ -713,6 +713,7 @@ id hVecimineto
 id hora
 id horaActual
 id horaPago
+id horaPublicadad
 id hora_llegada
 id horaaproximanda
 id horaint

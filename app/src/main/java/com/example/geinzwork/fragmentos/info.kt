@@ -372,8 +372,11 @@ class info : Fragment() {
         val hora_rec = trabajo["contenido"]
 
         bindingMostrar.verTodosTrabajos.setOnClickListener {
-            val intent=Intent(mContex,mostrarTodosTrabajos::class.java).apply {
-                putExtra("idTrabajador",idTrabajador)
+            val intent = Intent(mContex, mostrarTodosTrabajos::class.java).apply {
+                putExtra("idTrabajador", idTrabajador)
+                putExtra("fecha_rec", fecha_rec)
+                putExtra("hora_rec", hora_rec)
+
             }
             startActivity(intent)
         }
@@ -406,10 +409,13 @@ class info : Fragment() {
                 val titulo = data?.get("titulo") as? String ?: ""
                 val contenido = data?.get("contenido") as? String ?: ""
                 val id = data?.get("id") as? String ?: ""
+                val fecha = data?.get("fecha_rec") as? String ?: ""
+                val hora = data?.get("hora_rec") as? String ?: ""
+
 
                 // Filtrar para que no se agregue el idSeleccionado
                 if (id != idSelecionado) {
-                    val dataClass = dataclass_adapter_promociones(img_url, titulo, contenido, id)
+                    val dataClass = dataclass_adapter_promociones(img_url, titulo, contenido, id,fecha,hora)
                     listaMas_promo.add(dataClass)
                 }
             }
@@ -429,19 +435,20 @@ class info : Fragment() {
     private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
         val recicle = bindingMostrarTRabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
-        recicle.adapter = adapter_trabajos_realizados_trabajador(false,
+        recicle.adapter = adapter_trabajos_realizados_trabajador(
+            false,
             listaMas_promo
         ) { item ->
             cagrarDatosNuevamente(item, bindingMostrarTRabajos)
         }
     }
 
-     fun cagrarDatosNuevamente(
+    fun cagrarDatosNuevamente(
         item: dataclass_adapter_promociones,
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding
     ) {
         bindingMostrarTRabajos.cargarConteindo.isVisible = true // Mostrar el ProgressBar
-//        bindingMostrarTRabajos.scollView.isVisible = false
+        bindingMostrarTRabajos.scollView.isVisible = false
 
         constantestextos_general.extender_acortar_texto(
             bindingMostrarTRabajos.textoTrabajosRealzados,
@@ -459,7 +466,8 @@ class info : Fragment() {
 
         // Inicializar RecyclerView con la lista actualizada
         bindingMostrarTRabajos.masTrabajosRealiados.adapter =
-            adapter_trabajos_realizados_trabajador(false,
+            adapter_trabajos_realizados_trabajador(
+                false,
                 nuevaLista
             ) { nuevoItem ->
                 cagrarDatosNuevamente(nuevoItem, bindingMostrarTRabajos)
@@ -472,7 +480,11 @@ class info : Fragment() {
             if (cargado) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     bindingMostrarTRabajos.cargarConteindo.isVisible = false
-//                    bindingMostrarTRabajos.scollView.isVisible = true
+                    bindingMostrarTRabajos.scollView.isVisible = true
+                    constantestextos_general.extender_acortar_texto(
+                        bindingMostrarTRabajos.textoTrabajosRealzados,
+                        bindingMostrarTRabajos.tvReadMore
+                    )
                 }, 2000) // 2000ms = 2 segundos
             }
         }
