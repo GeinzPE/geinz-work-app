@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import androidx.viewpager2.widget.ViewPager2;
@@ -19,7 +20,7 @@ import java.lang.String;
 
 public final class ActivityMainBinding implements ViewBinding {
   @NonNull
-  private final RelativeLayout rootView;
+  private final ConstraintLayout rootView;
 
   @NonNull
   public final FloatingActionButton VistaTiendas;
@@ -28,24 +29,29 @@ public final class ActivityMainBinding implements ViewBinding {
   public final BottomNavigationView buttonNavigation;
 
   @NonNull
-  public final RelativeLayout main;
+  public final ConstraintLayout main;
+
+  @NonNull
+  public final RelativeLayout rounderMenu;
 
   @NonNull
   public final ViewPager2 viewPager;
 
-  private ActivityMainBinding(@NonNull RelativeLayout rootView,
+  private ActivityMainBinding(@NonNull ConstraintLayout rootView,
       @NonNull FloatingActionButton VistaTiendas, @NonNull BottomNavigationView buttonNavigation,
-      @NonNull RelativeLayout main, @NonNull ViewPager2 viewPager) {
+      @NonNull ConstraintLayout main, @NonNull RelativeLayout rounderMenu,
+      @NonNull ViewPager2 viewPager) {
     this.rootView = rootView;
     this.VistaTiendas = VistaTiendas;
     this.buttonNavigation = buttonNavigation;
     this.main = main;
+    this.rounderMenu = rounderMenu;
     this.viewPager = viewPager;
   }
 
   @Override
   @NonNull
-  public RelativeLayout getRoot() {
+  public ConstraintLayout getRoot() {
     return rootView;
   }
 
@@ -82,7 +88,13 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      RelativeLayout main = (RelativeLayout) rootView;
+      ConstraintLayout main = (ConstraintLayout) rootView;
+
+      id = R.id.rounderMenu;
+      RelativeLayout rounderMenu = ViewBindings.findChildViewById(rootView, id);
+      if (rounderMenu == null) {
+        break missingId;
+      }
 
       id = R.id.viewPager;
       ViewPager2 viewPager = ViewBindings.findChildViewById(rootView, id);
@@ -90,8 +102,8 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((RelativeLayout) rootView, VistaTiendas, buttonNavigation,
-          main, viewPager);
+      return new ActivityMainBinding((ConstraintLayout) rootView, VistaTiendas, buttonNavigation,
+          main, rounderMenu, viewPager);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

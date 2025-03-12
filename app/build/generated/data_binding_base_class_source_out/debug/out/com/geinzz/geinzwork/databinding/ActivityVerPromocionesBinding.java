@@ -31,6 +31,9 @@ public final class ActivityVerPromocionesBinding implements ViewBinding {
   public final RecyclerView categroiasFiltrado;
 
   @NonNull
+  public final LinearLayout containerCargnadoCat;
+
+  @NonNull
   public final ImageButton filtradoCategorias;
 
   @NonNull
@@ -53,13 +56,14 @@ public final class ActivityVerPromocionesBinding implements ViewBinding {
 
   private ActivityVerPromocionesBinding(@NonNull LinearLayout rootView,
       @NonNull TextView categoriaSelcionada, @NonNull RecyclerView categroiasFiltrado,
-      @NonNull ImageButton filtradoCategorias, @NonNull TextInputLayout inputnombre,
-      @NonNull LinearLayout main, @NonNull ProgressBar prograsvar,
-      @NonNull RecyclerView recicleView, @NonNull EditText search,
+      @NonNull LinearLayout containerCargnadoCat, @NonNull ImageButton filtradoCategorias,
+      @NonNull TextInputLayout inputnombre, @NonNull LinearLayout main,
+      @NonNull ProgressBar prograsvar, @NonNull RecyclerView recicleView, @NonNull EditText search,
       @NonNull TextView textoNoEncontrado) {
     this.rootView = rootView;
     this.categoriaSelcionada = categoriaSelcionada;
     this.categroiasFiltrado = categroiasFiltrado;
+    this.containerCargnadoCat = containerCargnadoCat;
     this.filtradoCategorias = filtradoCategorias;
     this.inputnombre = inputnombre;
     this.main = main;
@@ -108,6 +112,12 @@ public final class ActivityVerPromocionesBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.containerCargnadoCat;
+      LinearLayout containerCargnadoCat = ViewBindings.findChildViewById(rootView, id);
+      if (containerCargnadoCat == null) {
+        break missingId;
+      }
+
       id = R.id.filtradoCategorias;
       ImageButton filtradoCategorias = ViewBindings.findChildViewById(rootView, id);
       if (filtradoCategorias == null) {
@@ -147,8 +157,8 @@ public final class ActivityVerPromocionesBinding implements ViewBinding {
       }
 
       return new ActivityVerPromocionesBinding((LinearLayout) rootView, categoriaSelcionada,
-          categroiasFiltrado, filtradoCategorias, inputnombre, main, prograsvar, recicleView,
-          search, textoNoEncontrado);
+          categroiasFiltrado, containerCargnadoCat, filtradoCategorias, inputnombre, main,
+          prograsvar, recicleView, search, textoNoEncontrado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

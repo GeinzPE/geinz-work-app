@@ -162,7 +162,6 @@ class ver_promociones : AppCompatActivity() {
     private fun obtenerSucategoriasFiltrado() {
         val db = FirebaseFirestore.getInstance().collection(Variables.subcategoriasPublicidad)
 
-
         listaCategorias.clear()
         listaCategorias.add(dataclasCaterogirasFiltrado("Todos"))
 
@@ -171,12 +170,17 @@ class ver_promociones : AppCompatActivity() {
                 val documentName = document.id
                 println("Nombre del documento: $documentName")
 
+                binding.containerCargnadoCat.isVisible=false
+                binding.categroiasFiltrado.isVisible=true
+
 
                 val item = dataclasCaterogirasFiltrado(documentName)
                 listaCategorias.add(item)
             }
             inicializarCategoriaS()
         }.addOnFailureListener { exception ->
+            binding.containerCargnadoCat.isVisible=true
+            binding.categroiasFiltrado.isVisible=false
             println("Error al obtener documentos: ${exception.message}")
         }
     }

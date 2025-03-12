@@ -526,6 +526,7 @@ id confirmar
 id contador
 id contadorLike
 id container
+id containerCargnadoCat
 id containerDatos
 id containerDriver
 id containerFB
@@ -1019,6 +1020,7 @@ id noEncontradoGenero
 id noEncontradoLocalidades
 id noEncontradocat
 id noEnctrado
+id noSeEncontro
 id no_internet_text
 id no_resultados
 id nombeTienda
@@ -1125,6 +1127,7 @@ id productos
 id productosLineal
 id prograsvar
 id progresCargaCat
+id progresCargandoContenido
 id progresVar3Estrellas
 id progressBar
 id progressBarContainer

@@ -4925,6 +4925,7 @@ id constraint
 id contador
 id contadorLike
 id container
+id containerCargnadoCat
 id containerDatos
 id containerDriver
 id containerFB
@@ -5738,6 +5739,7 @@ id noEncontradoLocalidades
 id noEncontradocat
 id noEnctrado
 id noScroll
+id noSeEncontro
 id noState
 id no_internet_text
 id no_resultados
@@ -5898,6 +5900,7 @@ id productos
 id productosLineal
 id prograsvar
 id progresCargaCat
+id progresCargandoContenido
 id progresVar3Estrellas
 id progressBar
 id progressBarContainer

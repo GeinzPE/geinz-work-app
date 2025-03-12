@@ -250,7 +250,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginRight="15dp"
-                                android:maxLines="3"
+                                android:maxLines="4"
                                 android:text=".****"
                                 android:textSize="12sp" />
                             <!-- Botón "Leer más" -->
@@ -473,7 +473,7 @@
                         app:autoWidthFixing="false"
                         app:carouselGravity="START"
                         app:carouselType="SHOWCASE"
-                        app:imageScaleType="centerCrop"
+                        app:imageScaleType="center"
                         app:infiniteCarousel="false"
                         app:scaleOnScroll="false"
                         app:showBottomShadow="false"

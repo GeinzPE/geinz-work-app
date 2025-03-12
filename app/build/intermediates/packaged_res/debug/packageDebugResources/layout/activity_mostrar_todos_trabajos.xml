@@ -1,28 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:orientation="vertical"
     tools:context="com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos">
 
-    <TextView
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mira todo los trabajos realizados" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/categroiasFiltrado"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="10dp"
+                tools:listitem="@layout/categorias_filtrado" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/trabajosRealizados"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+    <LinearLayout
+        android:id="@+id/progresCargandoContenido"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mira todo los trabajos realizados" />
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/categroiasFiltrado"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginBottom="10dp"
-        tools:listitem="@layout/categorias_filtrado" />
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/trabajosRealizados"
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="5dp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Buscando publicaciones.."
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:id="@+id/noSeEncontro"
+        style="@style/TextoModoOScuroColor"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="No se encontro resultados"
+        android:textSize="15sp"
+        android:textStyle="bold" />
 
-</LinearLayout>
+
+</RelativeLayout>

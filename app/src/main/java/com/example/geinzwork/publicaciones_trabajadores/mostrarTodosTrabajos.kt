@@ -1,6 +1,8 @@
 package com.example.geinzwork.publicaciones_trabajadores
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.activity.enableEdgeToEdge
@@ -52,6 +54,8 @@ class mostrarTodosTrabajos : AppCompatActivity() {
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
 
+        binding.progresCargandoContenido.isVisible = true // Mostrar el ProgressBar
+
         db.get().addOnSuccessListener { res ->
             listaMas_promo.clear() // Limpiar la lista para evitar duplicados
 
@@ -64,23 +68,34 @@ class mostrarTodosTrabajos : AppCompatActivity() {
                 val hora = data?.get("hora_rec") as? String ?: ""
                 val id = data?.get("id") as? String ?: ""
 
-                // Agregar a la lista
                 val dataClass =
                     dataclass_adapter_promociones(img_url, titulo, contenido, id, fecha, hora)
                 listaMas_promo.add(dataClass)
-
             }
 
-            if (listaMas_promo.isNotEmpty()) {
-                listaMas_promo.shuffle() // Mezclar aleatoriamente los elementos
-                inicializarTrabajosRealizadosVertical(idTrabajador)
-            } else {
-                Log.d("error obtenerDAtos", "No hay datos para mostrar")
-            }
+            // Usamos Handler para agregar un pequeño retraso antes de ocultar el ProgressBar
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (listaMas_promo.isNotEmpty()) {
+                    listaMas_promo.shuffle() // Mezclar aleatoriamente los elementos
+                    binding.trabajosRealizados.isVisible = true
+                    binding.noSeEncontro.isVisible = false
+                    inicializarTrabajosRealizadosVertical(idTrabajador)
+                } else {
+                    binding.trabajosRealizados.isVisible = false
+                    binding.noSeEncontro.isVisible = true
+                    Log.d("error obtenerDAtos", "No hay datos para mostrar")
+                }
+                binding.progresCargandoContenido.isVisible = false // Ocultar el ProgressBar
+            }, 2000) // 🔹 Retraso de 1 segundo antes de ocultarlo
+
         }.addOnFailureListener { e ->
+            binding.progresCargandoContenido.isVisible = false
+            binding.trabajosRealizados.isVisible = false
+            binding.noSeEncontro.isVisible = true
             println("error al encontrar $e")
         }
     }
+
 
 
     private fun showBottomShetDialogAnuncios(
@@ -134,6 +149,7 @@ class mostrarTodosTrabajos : AppCompatActivity() {
         listaCategorias.clear()
 
         // Agregar categorías estáticas
+        listaCategorias.add(dataclasCaterogirasFiltrado("Todos"))
         listaCategorias.add(dataclasCaterogirasFiltrado("Hoy"))
         listaCategorias.add(dataclasCaterogirasFiltrado("Ultimamamente"))
         listaCategorias.add(dataclasCaterogirasFiltrado("Última semana"))
@@ -144,65 +160,92 @@ class mostrarTodosTrabajos : AppCompatActivity() {
         adapterCategorias = adapterCategoriasPromocionesFiltrado(listaCategorias.toList()) { item ->
             val listaFiltrada = when (item.nombreCategoria) {
                 "Hoy" -> listaMas_promo.filter {
-                    val fechaTrabajo = convertirFecha(it.hora.toString())
-                    println("mandamos la fecha de ${it.hora.toString()}")
-                    fechaTrabajo != null && fechaTrabajo >= obtenerFechaLimite(0) // Filtrar trabajos de hoy
+                    val fechaTrabajo = convertirFecha(it.fecha.toString())
+                    val fechaLimite = convertirFecha(obtenerFechaLimite(0))
+                    println("mandamos la fecha de ${it.fecha} y la fecha límite es $fechaLimite")
+                    fechaTrabajo != null && fechaLimite != null && fechaTrabajo >= fechaLimite
                 }
+
                 "Ultimamamente" -> listaMas_promo.filter {
-                    val fechaTrabajo = convertirFecha(it.hora.toString())
-                    println("mandamos la fecha de ${it.hora.toString()}")
-                    fechaTrabajo != null && fechaTrabajo >= obtenerFechaLimite(5) // Filtrar últimos 5 días
+                    val fechaTrabajo = convertirFecha(it.fecha.toString())
+                    val fechaLimite = convertirFecha(obtenerFechaLimite(5))
+                    println("mandamos la fecha de ${it.fecha} y la fecha límite es $fechaLimite")
+                    fechaTrabajo != null && fechaLimite != null && fechaTrabajo >= fechaLimite
                 }
+
                 "Última semana" -> listaMas_promo.filter {
-                    val fechaTrabajo = convertirFecha(it.hora.toString())
-                    println("mandamos la fecha de ${it.hora.toString()}")
-                    fechaTrabajo != null && fechaTrabajo >= obtenerFechaLimite(7) // Filtrar última semana
+                    val fechaTrabajo = convertirFecha(it.fecha.toString())
+                    val fechaLimite = convertirFecha(obtenerFechaLimite(7))
+                    println("mandamos la fecha de ${it.fecha} y la fecha límite es $fechaLimite")
+                    fechaTrabajo != null && fechaLimite != null && fechaTrabajo >= fechaLimite
                 }
+
                 "Último mes" -> listaMas_promo.filter {
-                    val fechaTrabajo = convertirFecha(it.hora.toString())
-                    println("mandamos la fecha de ${it.hora.toString()}")
-                    fechaTrabajo != null && fechaTrabajo >= obtenerFechaLimite(30) // Filtrar último mes
+                    val fechaTrabajo = convertirFecha(it.fecha.toString())
+                    val fechaLimite = convertirFecha(obtenerFechaLimite(30))
+                    println("mandamos la fecha de ${it.fecha} y la fecha límite es $fechaLimite")
+                    fechaTrabajo != null && fechaLimite != null && fechaTrabajo >= fechaLimite
                 }
+
                 else -> listaMas_promo // Si no coincide con ninguna, devolver toda la lista
             }
 
+            // Verificar si se encontraron elementos
+            if (listaFiltrada.isNotEmpty()) {
+                binding.trabajosRealizados.isVisible = true
+                binding.noSeEncontro.isVisible = false
+                binding.progresCargandoContenido.isVisible = false
+                println("Se encontraron ${listaFiltrada.size} elementos para la categoría ${item.nombreCategoria}")
+            } else {
+                binding.trabajosRealizados.isVisible = false
+                binding.progresCargandoContenido.isVisible = false
+                binding.noSeEncontro.isVisible = true
+                println("No se encontraron elementos para la categoría ${item.nombreCategoria}")
+            }
+
             // Actualizar el RecyclerView con la lista filtrada
-            inicializarTrabajosFiltrados(idTrabajador,listaFiltrada)
+            inicializarTrabajosFiltrados(idTrabajador, listaFiltrada)
         }
 
 
         // Inicializar el RecyclerView
         inicializarRecicleCategorias()
     }
+
     private fun inicializarTrabajosFiltrados(
         idTrabajador: String,
         listaFiltrada: List<dataclass_adapter_promociones>
     ) {
         val recicle = binding.trabajosRealizados
         recicle.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        recicle.adapter = adapter_trabajos_realizados_trabajador(true, listaFiltrada.toMutableList()) { item ->
-            dialog = BottomSheetDialog(this)
-            showBottomShetDialogAnuncios(idTrabajador,item)
-            dialog.show()
-        }
+        recicle.adapter =
+            adapter_trabajos_realizados_trabajador(true, listaFiltrada.toMutableList()) { item ->
+                dialog = BottomSheetDialog(this)
+                showBottomShetDialogAnuncios(idTrabajador, item)
+                dialog.show()
+            }
 
 
     }
+
     fun convertirFecha(fecha: String): Date? {
         return try {
-            val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) // Asegúrate que el formato sea correcto
+            val formato = SimpleDateFormat(
+                "dd/MM/yyyy",
+                Locale.getDefault()
+            ) // Asegúrate que el formato sea correcto
             formato.parse(fecha)
         } catch (e: Exception) {
             null
         }
     }
-    fun obtenerFechaLimite(diasAtras: Int): Date {
+
+    fun obtenerFechaLimite(diasAtras: Int): String {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -diasAtras)
-        return calendar.time
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        return formato.format(calendar.time)
     }
-
-
 
 
 }

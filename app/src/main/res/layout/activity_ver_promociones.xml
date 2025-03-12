@@ -11,7 +11,7 @@
     tools:context="com.example.geinzwork.vistaTrabajador.ver_promociones">
 
     <androidx.core.widget.NestedScrollView
-style="@style/fondo"
+        style="@style/fondo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -51,11 +51,11 @@ style="@style/fondo"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="10dp"
                     android:layout_weight="1"
-                    app:endIconMode="clear_text"
                     app:boxCornerRadiusBottomEnd="26dp"
                     app:boxCornerRadiusBottomStart="26dp"
                     app:boxCornerRadiusTopEnd="26dp"
-                    app:boxCornerRadiusTopStart="26dp">
+                    app:boxCornerRadiusTopStart="26dp"
+                    app:endIconMode="clear_text">
 
                     <EditText
                         android:id="@+id/search"
@@ -78,12 +78,39 @@ style="@style/fondo"
                     android:layout_marginRight="20dp"
                     android:visibility="gone" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/categroiasFiltrado"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_marginBottom="10dp"
-                    tools:listitem="@layout/categorias_filtrado" />
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:id="@+id/containerCargnadoCat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="Cargando categorias ...  " />
+
+                        <ProgressBar
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/categroiasFiltrado"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginBottom="10dp"
+                        android:visibility="gone"
+                        tools:listitem="@layout/categorias_filtrado" />
+
+                </RelativeLayout>
             </LinearLayout>
 
 
@@ -95,13 +122,15 @@ style="@style/fondo"
                 tools:ignore="MissingConstraints"
                 tools:listitem="@layout/item_promociones_encontradas" />
 
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
     <RelativeLayout
-        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
+
         <ProgressBar
             android:id="@+id/prograsvar"
             android:layout_width="match_parent"
@@ -110,16 +139,16 @@ style="@style/fondo"
 
 
         <TextView
-            android:visibility="gone"
             android:id="@+id/textoNoEncontrado"
+            style="@style/TextoModoOScuroColor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            style="@style/TextoModoOScuroColor"
             android:text="No se encontraron resultados"
             android:textAlignment="center"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/filtradoCategorias"

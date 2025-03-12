@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,29 +19,38 @@ import java.lang.String;
 
 public final class ActivityMostrarTodosTrabajosBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
   public final RecyclerView categroiasFiltrado;
 
   @NonNull
-  public final LinearLayout main;
+  public final RelativeLayout main;
+
+  @NonNull
+  public final TextView noSeEncontro;
+
+  @NonNull
+  public final LinearLayout progresCargandoContenido;
 
   @NonNull
   public final RecyclerView trabajosRealizados;
 
-  private ActivityMostrarTodosTrabajosBinding(@NonNull LinearLayout rootView,
-      @NonNull RecyclerView categroiasFiltrado, @NonNull LinearLayout main,
+  private ActivityMostrarTodosTrabajosBinding(@NonNull RelativeLayout rootView,
+      @NonNull RecyclerView categroiasFiltrado, @NonNull RelativeLayout main,
+      @NonNull TextView noSeEncontro, @NonNull LinearLayout progresCargandoContenido,
       @NonNull RecyclerView trabajosRealizados) {
     this.rootView = rootView;
     this.categroiasFiltrado = categroiasFiltrado;
     this.main = main;
+    this.noSeEncontro = noSeEncontro;
+    this.progresCargandoContenido = progresCargandoContenido;
     this.trabajosRealizados = trabajosRealizados;
   }
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -70,7 +81,19 @@ public final class ActivityMostrarTodosTrabajosBinding implements ViewBinding {
         break missingId;
       }
 
-      LinearLayout main = (LinearLayout) rootView;
+      RelativeLayout main = (RelativeLayout) rootView;
+
+      id = R.id.noSeEncontro;
+      TextView noSeEncontro = ViewBindings.findChildViewById(rootView, id);
+      if (noSeEncontro == null) {
+        break missingId;
+      }
+
+      id = R.id.progresCargandoContenido;
+      LinearLayout progresCargandoContenido = ViewBindings.findChildViewById(rootView, id);
+      if (progresCargandoContenido == null) {
+        break missingId;
+      }
 
       id = R.id.trabajosRealizados;
       RecyclerView trabajosRealizados = ViewBindings.findChildViewById(rootView, id);
@@ -78,8 +101,8 @@ public final class ActivityMostrarTodosTrabajosBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMostrarTodosTrabajosBinding((LinearLayout) rootView, categroiasFiltrado,
-          main, trabajosRealizados);
+      return new ActivityMostrarTodosTrabajosBinding((RelativeLayout) rootView, categroiasFiltrado,
+          main, noSeEncontro, progresCargandoContenido, trabajosRealizados);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
