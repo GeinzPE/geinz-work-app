@@ -4854,6 +4854,7 @@ int id carrucelImgContainer 0x7f0a01ba
 int id carrucel_tiendas 0x7f0a01bb
 int id carruse2 0x7f0a01bc
 int id carrusel 0x7f0a01bd
+int id carrusel_img_trabajos 0x7f0a07a0
 int id carrusel_pimario_inicio 0x7f0a01be
 int id carrusel_publicidad_baner 0x7f0a01bf
 int id carryVelocity 0x7f0a01c0

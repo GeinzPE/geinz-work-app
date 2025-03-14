@@ -4855,6 +4855,7 @@ id carrucelImgContainer
 id carrucel_tiendas
 id carruse2
 id carrusel
+id carrusel_img_trabajos
 id carrusel_pimario_inicio
 id carrusel_publicidad_baner
 id carryVelocity

@@ -20,9 +20,13 @@
             android:orientation="vertical">
 
             <TextView
+                style="@style/TextoTitulos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mira todo los trabajos realizados" />
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:text="Mira todo los trabajos realizados"
+                android:textSize="20sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/categroiasFiltrado"
@@ -63,15 +67,15 @@
     </LinearLayout>
 
     <TextView
-        android:visibility="gone"
-        android:layout_centerInParent="true"
         android:id="@+id/noSeEncontro"
         style="@style/TextoModoOScuroColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:text="No se encontro resultados"
         android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:visibility="gone" />
 
 
 </RelativeLayout>

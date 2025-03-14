@@ -16,11 +16,10 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView;
-import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
+import org.imaginativeworld.whynotimagecarousel.ImageCarousel;
 
 public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBinding {
   @NonNull
@@ -30,19 +29,16 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   public final ProgressBar cargarConteindo;
 
   @NonNull
-  public final BottomSheetDragHandleView cerrar;
+  public final ImageCarousel carruselImgTrabajos;
 
   @NonNull
-  public final ShapeableImageView imgTrabajo;
+  public final BottomSheetDragHandleView cerrar;
 
   @NonNull
   public final LinearLayout linealMostrarTrabajos;
 
   @NonNull
   public final RecyclerView masTrabajosRealiados;
-
-  @NonNull
-  public final CircularProgressIndicator progressCargaImagen;
 
   @NonNull
   public final NestedScrollView scollView;
@@ -63,20 +59,18 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   public final TextView verTodosTrabajos;
 
   private BottomSheetMostarTrabajosRecientesBinding(@NonNull RelativeLayout rootView,
-      @NonNull ProgressBar cargarConteindo, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull ShapeableImageView imgTrabajo, @NonNull LinearLayout linealMostrarTrabajos,
-      @NonNull RecyclerView masTrabajosRealiados,
-      @NonNull CircularProgressIndicator progressCargaImagen, @NonNull NestedScrollView scollView,
+      @NonNull ProgressBar cargarConteindo, @NonNull ImageCarousel carruselImgTrabajos,
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout linealMostrarTrabajos,
+      @NonNull RecyclerView masTrabajosRealiados, @NonNull NestedScrollView scollView,
       @NonNull TextView textoTrabajosRealzados, @NonNull TextView tituloNombreTrabajador,
       @NonNull TextView tituloTrabajosRealizados, @NonNull TextView tvReadMore,
       @NonNull TextView verTodosTrabajos) {
     this.rootView = rootView;
     this.cargarConteindo = cargarConteindo;
+    this.carruselImgTrabajos = carruselImgTrabajos;
     this.cerrar = cerrar;
-    this.imgTrabajo = imgTrabajo;
     this.linealMostrarTrabajos = linealMostrarTrabajos;
     this.masTrabajosRealiados = masTrabajosRealiados;
-    this.progressCargaImagen = progressCargaImagen;
     this.scollView = scollView;
     this.textoTrabajosRealzados = textoTrabajosRealzados;
     this.tituloNombreTrabajador = tituloNombreTrabajador;
@@ -119,15 +113,15 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
         break missingId;
       }
 
-      id = R.id.cerrar;
-      BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
-      if (cerrar == null) {
+      id = R.id.carrusel_img_trabajos;
+      ImageCarousel carruselImgTrabajos = ViewBindings.findChildViewById(rootView, id);
+      if (carruselImgTrabajos == null) {
         break missingId;
       }
 
-      id = R.id.img_trabajo;
-      ShapeableImageView imgTrabajo = ViewBindings.findChildViewById(rootView, id);
-      if (imgTrabajo == null) {
+      id = R.id.cerrar;
+      BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
+      if (cerrar == null) {
         break missingId;
       }
 
@@ -140,12 +134,6 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       id = R.id.mas_trabajos_realiados;
       RecyclerView masTrabajosRealiados = ViewBindings.findChildViewById(rootView, id);
       if (masTrabajosRealiados == null) {
-        break missingId;
-      }
-
-      id = R.id.progress_carga_imagen;
-      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
-      if (progressCargaImagen == null) {
         break missingId;
       }
 
@@ -186,9 +174,9 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       }
 
       return new BottomSheetMostarTrabajosRecientesBinding((RelativeLayout) rootView,
-          cargarConteindo, cerrar, imgTrabajo, linealMostrarTrabajos, masTrabajosRealiados,
-          progressCargaImagen, scollView, textoTrabajosRealzados, tituloNombreTrabajador,
-          tituloTrabajosRealizados, tvReadMore, verTodosTrabajos);
+          cargarConteindo, carruselImgTrabajos, cerrar, linealMostrarTrabajos, masTrabajosRealiados,
+          scollView, textoTrabajosRealzados, tituloNombreTrabajador, tituloTrabajosRealizados,
+          tvReadMore, verTodosTrabajos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

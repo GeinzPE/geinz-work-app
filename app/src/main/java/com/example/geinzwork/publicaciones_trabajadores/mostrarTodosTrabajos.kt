@@ -62,6 +62,9 @@ class mostrarTodosTrabajos : AppCompatActivity() {
             for (datos in res) {
                 val data = datos.data
                 val img_url = data?.get("img_url") as? String ?: ""
+                val img2 = data?.get("img_url2") as? String ?: ""
+                val img3 = data?.get("img_url3") as? String ?: ""
+                val img4 = data?.get("img_url4") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
                 val contenido = data?.get("contenido") as? String ?: ""
                 val fecha = data?.get("fecha_rec") as? String ?: ""
@@ -69,7 +72,17 @@ class mostrarTodosTrabajos : AppCompatActivity() {
                 val id = data?.get("id") as? String ?: ""
 
                 val dataClass =
-                    dataclass_adapter_promociones(img_url, titulo, contenido, id, fecha, hora)
+                    dataclass_adapter_promociones(
+                        img_url,
+                        img2,
+                        img3,
+                        img4,
+                        titulo,
+                        contenido,
+                        id,
+                        fecha,
+                        hora
+                    )
                 listaMas_promo.add(dataClass)
             }
 
@@ -97,7 +110,6 @@ class mostrarTodosTrabajos : AppCompatActivity() {
     }
 
 
-
     private fun showBottomShetDialogAnuncios(
         idTrabajador: String,
         item: dataclass_adapter_promociones,
@@ -110,10 +122,10 @@ class mostrarTodosTrabajos : AppCompatActivity() {
         cerrar.setOnClickListener {
             dialog.dismiss()
         }
-        constatnes_carga_imagenes_general.changer_img(
-            bindingMostrar.progressCargaImagen,
-            this, item.img.toString(), null, bindingMostrar.imgTrabajo, "portada", null
-        ) {}
+//        constatnes_carga_imagenes_general.changer_img(
+//            bindingMostrar.progressCargaImagen,
+//            this, item.img.toString(), null, bindingMostrar.imgTrabajo, "portada", null
+//        ) {}
 
         bindingMostrar.linealMostrarTrabajos.isVisible = false
         bindingMostrar.textoTrabajosRealzados.text = item.texto_promo
