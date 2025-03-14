@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/fondo"
+    tools:context=".crear_trabajos_realizados">
+
+    <FrameLayout
+        android:id="@+id/progressBarContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:visibility="gone">
+
+        <!-- Fondo oscuro -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000" />
+
+
+        <!-- ProgressBar centrado -->
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/progressBar"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:fontFamily="@font/roboto_medium"
+                android:text="Creando Publicacion..."
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+        </RelativeLayout>
+
+    </FrameLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="5dp"
+        android:scrollbars="none"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/anton_regular"
+                    android:text="Crea tus publicaciones"
+                    android:textAllCaps="true"
+                    android:textSize="20sp" />
+
+                <ImageView
+                    android:id="@+id/popup"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginLeft="10dp"
+                    android:src="@drawable/baseline_more_vert_24"
+                    tools:ignore="InvalidId" />
+            </RelativeLayout>
+
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="¡Crea tus publicaciones y muestra a todos tus trabajos recientes! Comparte las tareas que has realizado últimamente a través de Geinz."
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Plan : "
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/plan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="***"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total de publicaciones:"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/TotalPublicaciones"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Publicaciones realizadas:"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/Publicaciones_realizadas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Publicaciones disponibles:"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/Publicaciones_disponibles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/descripcionColor"
+                    android:id="@+id/hora"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="****"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    style="@style/descripcionColor"
+                    android:id="@+id/fecha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="****"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imagen_trabajo"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_margin="10dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/sin_foto_portada_con_marca"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/titulo_publicaciontext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
+
+                <EditText
+                    style="@style/TextoModoOScuroColor"
+                    android:id="@+id/titulo_publicacionED"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Título de la publicación"
+                    android:inputType="textMultiLine"
+                    android:paddingLeft="10dp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/descripcionServicios"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
+
+                <EditText
+                    style="@style/TextoModoOScuroColor"
+                    android:id="@+id/descripcionServiciosED"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:gravity="top|start"
+                    android:hint="Escribe una descripción de la publicacion"
+                    android:inputType="textMultiLine"
+                    android:maxLines="5"
+                    android:minLines="5"
+                    android:padding="10dp"
+                    android:scrollbars="vertical" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:text="Nota: En tu perfil puedes compartir ofertas especiales, descuentos y trabajos realizados. Las publicaciones deben estar relacionadas exclusivamente con estos temas. Cualquier contenido fuera de este ámbito podría resultar en la retirada de la verificación por parte de Geinz."
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/Acepto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="Acepto"
+                style="@style/TextoModoOScuroColor"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:background="@drawable/rounder_btn_vtrajador"
+                    android:id="@+id/publicar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Publicar"
+                    android:textColor="@color/white"
+                    android:layout_marginHorizontal="10dp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</RelativeLayout>

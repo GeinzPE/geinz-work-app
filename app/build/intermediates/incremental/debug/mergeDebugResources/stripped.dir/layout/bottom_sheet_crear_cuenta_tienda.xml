@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/fondo"
+    android:orientation="vertical">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/cerrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="8dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="Crea tu cuenta Tienda"
+                    android:textSize="25sp"
+                    style="@style/TextoTitulos"/>
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="Campos del usuario"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    style="@style/TextoTitulos"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/nombre"
+                    android:layout_width="300dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/nombreED"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Nombres completos"
+                        android:inputType="text"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/dni"
+                    android:layout_width="300dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/dniED"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="DNI"
+                        android:inputType="number"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/int_correo"
+                    android:layout_width="300dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/correo_electronico"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="@string/correo_electronicoFree"
+                        android:inputType="textEmailAddress"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/telefono"
+                    android:layout_width="300dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/telefonoed"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Telefono"
+                        android:inputType="number"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="Campos del Negocio o Tienda"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    style="@style/TextoTitulos"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/nombreTienda"
+                    android:layout_width="300dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/nombreTiendaED"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Nombre de la Tienda"
+                        android:inputType="text"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <RadioGroup
+                    android:id="@+id/grupoVirtualFisica"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/TiendaFisica"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:text="Tienda fisica" />
+
+                    <RadioButton
+                        android:id="@+id/TeindaVirtual"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tienda Virtual" />
+                </RadioGroup>
+
+                <TextView
+                    style="@style/TextoTitulos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Seleccione la localidad de su tienda"
+                    android:textStyle="bold" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <RadioGroup
+                        android:id="@+id/grupoLocalida"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/Barranca"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="Barranca" />
+
+                        <RadioButton
+                            android:id="@+id/Supe"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="Supe" />
+
+                        <RadioButton
+                            android:id="@+id/Paramonga"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="Paramonga" />
+
+                        <RadioButton
+                            android:id="@+id/Pativilca"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="Pativilca" />
+                    </RadioGroup>
+
+                </HorizontalScrollView>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/TelefonoTienda"
+                    android:layout_width="300dp"
+                    android:layout_height="60dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/TelefonoTiendaED"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="10dp"
+                        android:hint="Telefono de la tienda"
+                        android:inputType="number"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Selecciona la categoria de su Negocio o Tienda">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/categoria"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Selecciona la subcategoria de su Negocio o Tienda">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/subcategoria"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:layout_marginTop="10dp"
+                        android:id="@+id/btnApply"
+                        style="@style/RoundedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginRight="5dp"
+                        android:text="Enviar"
+                        android:textSize="15sp"
+                        app:icon="@drawable/enviar_icon_blanco"
+                        app:iconGravity="textEnd"
+                        android:layout_weight="1"/>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+
+
+    </RelativeLayout>
+
+
+</LinearLayout>

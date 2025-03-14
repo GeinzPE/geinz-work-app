@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/listener"
+        android:layout_width="200dp"
+        android:layout_height="170dp"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginVertical="10dp"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="170dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/img_trabajo"
+                android:layout_width="match_parent"
+                android:layout_height="170dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/no_cuenta_img"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="170dp"
+                android:background="@drawable/mascara_servicios_ofertas_etc" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_above="@+id/linealPrecio"
+             >
+
+                <TextView
+                    android:id="@+id/nombreServicio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="nombreServicio"
+                    android:textAllCaps="true"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:layout_weight="1"/>
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/corazon"
+                    android:layout_width="17dp"
+                    android:layout_height="17dp"
+                    android:layout_marginRight="15dp"
+                    android:src="@drawable/icon_corazon"
+                    android:scaleType="fitXY"
+                    app:lottie_renderMode="hardware"
+                    app:lottie_autoPlay="false"
+                    app:lottie_loop="false"
+                    android:layout_gravity="center"/>
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/linealPrecio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:text="precio : pen"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"/>
+
+                <TextView
+                    android:id="@+id/precio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="5dp"
+                    android:text="100"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

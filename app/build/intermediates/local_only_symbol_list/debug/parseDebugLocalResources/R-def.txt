@@ -1125,6 +1125,7 @@ id privacy_policy_user_rights
 id privacy_policy_worker_guidelines
 id problemas
 id productos
+id productosDestacados
 id productosLineal
 id prograsvar
 id progresCargaCat
@@ -1570,6 +1571,7 @@ layout item_noticias_guardadas
 layout item_planes_geinz_noticias_publicidad
 layout item_preview_art_comprar_carrito
 layout item_productos_tiendas
+layout item_productos_usuarios_verificados
 layout item_promociones_encontradas
 layout item_promociones_geinz
 layout item_recuadros

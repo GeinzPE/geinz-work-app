@@ -5,12 +5,14 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.adapterViewholder.adapterCategoriasPromocionesFiltrado
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
@@ -20,8 +22,12 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityMostrarTodosTrabajosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBinding
+import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.firestore.FirebaseFirestore
+import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
+import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
+import org.imaginativeworld.whynotimagecarousel.utils.setImage
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -126,6 +132,41 @@ class mostrarTodosTrabajos : AppCompatActivity() {
 //            bindingMostrar.progressCargaImagen,
 //            this, item.img.toString(), null, bindingMostrar.imgTrabajo, "portada", null
 //        ) {}
+        val listaImg =
+            listOf(item.img, item.img2, item.img3, item.img4)
+        if (listaImg.isNotEmpty()) {
+            val carouselItems = listaImg.map { CarouselItem(it) }
+            bindingMostrar.carruselImgTrabajos.registerLifecycle(lifecycle)
+            bindingMostrar.carruselImgTrabajos.carouselListener = object : CarouselListener {
+                override fun onCreateViewHolder(
+                    layoutInflater: LayoutInflater,
+                    parent: ViewGroup,
+                ): ViewBinding? {
+                    return ItemCustomFixedSizeLayout2Binding.inflate(
+                        layoutInflater,
+                        parent,
+                        false
+                    )
+                }
+
+                override fun onBindViewHolder(
+                    binding: ViewBinding,
+                    item: CarouselItem,
+                    position: Int,
+                ) {
+                    val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
+                    currentBinding.imageView.apply {
+                        setImage(item, R.drawable.ic_wb_cloudy_with_padding)
+                        minimumScale = 1f
+                        maximumScale = 10f
+                        mediumScale = 5f
+                    }
+                }
+
+            }
+            bindingMostrar.carruselImgTrabajos.setData(carouselItems)
+
+        }
 
         bindingMostrar.linealMostrarTrabajos.isVisible = false
         bindingMostrar.textoTrabajosRealzados.text = item.texto_promo

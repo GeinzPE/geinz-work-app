@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorBTNFiltrado">#804D3187</color>
+    <color name="colorFondo">#121212</color>
+    <color name="color_blanco_negro">#202020</color>
+    <color name="f1">#1A1A1A</color>
+    <color name="heartOutlineColor">#FFFFFF</color>
+    <color name="roundcustom">#303030</color>
+    <color name="roundcustomItemsCompra">#202020</color>
+    <color name="textoColorBTNFiltrado">#171F26</color>
+    <color name="white">#FFFFFFFF</color>
+    <style name="Base.Theme.GeinzWork" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        
+    </style>
+    <style name="Base.Theme.SplashScreen.DayNight" parent="Base.Theme.SplashScreen"/>
+    <style name="BottomCutShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeBottomRight">20dp</item>
+        <item name="cornerSizeBottomLeft">20dp</item>
+        <item name="cornerSizeTopRight">0dp</item>
+        <item name="cornerSizeTopLeft">0dp</item>
+    </style>
+    <style name="CustomTextAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/roboto_medium</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+    <style name="CustomTextLargo">
+        <item name="android:fontFamily">@font/montserrat_light</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+    <style name="RoundItemCarrito">
+        <item name="android:background">@drawable/round_item_selecionado</item>
+    </style>
+    <style name="RoundTrabajadoresBG">
+        <item name="android:background">@drawable/card_trabajos_black</item>
+    </style>
+    <style name="RoundedButton" parent="Widget.MaterialComponents.Button">
+        <item name="shapeAppearance">@style/RoundedButtonShape</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:backgroundTint">@color/violeta</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    <style name="RoundedButtonFiltradoHistorial" parent="Widget.MaterialComponents.Button">
+        <item name="shapeAppearance">@style/roundBtnFiltradoHistorial</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">#D7D1E4</item>
+        <item name="android:backgroundTint">#171F26</item>
+    </style>
+    <style name="RoundedButtonFiltradoHistorialCLikado" parent="Widget.MaterialComponents.Button">
+        <item name="shapeAppearance">@style/roundBtnFiltradoHistorial</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">#D7D1E4</item>
+        <item name="android:backgroundTint">#804D3187</item>
+    </style>
+    <style name="RoundedButtonShape" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">9dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+    <style name="RoundedDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:background">@drawable/roun_zoom_img</item>
+    </style>
+    <style name="RoundedImageViewCorners">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeBottomRight">120dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeTopLeft">0dp</item>
+        <item name="cornerSizeTopRight">0dp</item>
+    </style>
+    <style name="RoundedImageViewStyle">
+        <item name="shapeAppearanceOverlay">@style/RoundedImageViewCorners</item>
+    </style>
+    <style name="ShapeAppearance.MaterialComponents.MediumComponents" parent="">
+        <item name="cornerSizeTopRight">20dp</item>
+        <item name="cornerSizeBottomRight">20dp</item>
+        <item name="cornerSizeTopLeft">20dp</item>
+        <item name="cornerSizeBottomLeft">20dp</item>
+    </style>
+    <style name="TextoModoOScuroColor">
+        <item name="android:textColor">@color/white</item>
+    </style>
+    <style name="TextoTitulos">
+        <item name="android:fontFamily">@font/uni_sans</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+    <style name="Theme.ApiSclasScrenn" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/violetaQR</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/qr_geinz_sin_fondo</item>
+        <item name="postSplashScreenTheme">@style/Base.Theme.GeinzWork</item>
+    </style>
+    <style name="Theme.AppCompat.DayNight" parent="Theme.AppCompat"/>
+    <style name="Theme.AppCompat.DayNight.DarkActionBar" parent="Theme.AppCompat"/>
+    <style name="Theme.AppCompat.DayNight.Dialog" parent="Theme.AppCompat.Dialog"/>
+    <style name="Theme.AppCompat.DayNight.Dialog.Alert" parent="Theme.AppCompat.Dialog.Alert"/>
+    <style name="Theme.AppCompat.DayNight.Dialog.MinWidth" parent="Theme.AppCompat.Dialog.MinWidth"/>
+    <style name="Theme.AppCompat.DayNight.DialogWhenLarge" parent="Theme.AppCompat.DialogWhenLarge"/>
+    <style name="Theme.AppCompat.DayNight.NoActionBar" parent="Theme.AppCompat.NoActionBar"/>
+    <style name="Theme.Material3.DayNight" parent="Theme.Material3.Dark"/>
+    <style name="Theme.Material3.DayNight.BottomSheetDialog" parent="Theme.Material3.Dark.BottomSheetDialog"/>
+    <style name="Theme.Material3.DayNight.Dialog" parent="Theme.Material3.Dark.Dialog"/>
+    <style name="Theme.Material3.DayNight.Dialog.Alert" parent="Theme.Material3.Dark.Dialog.Alert"/>
+    <style name="Theme.Material3.DayNight.Dialog.MinWidth" parent="Theme.Material3.Dark.Dialog.MinWidth"/>
+    <style name="Theme.Material3.DayNight.DialogWhenLarge" parent="Theme.Material3.Dark.DialogWhenLarge"/>
+    <style name="Theme.Material3.DayNight.NoActionBar" parent="Theme.Material3.Dark.NoActionBar"/>
+    <style name="Theme.Material3.DayNight.SideSheetDialog" parent="Theme.Material3.Dark.SideSheetDialog"/>
+    <style name="Theme.Material3.DynamicColors.DayNight" parent="Theme.Material3.DynamicColors.Dark"/>
+    <style name="Theme.MaterialComponents.DayNight" parent="Theme.MaterialComponents"/>
+    <style name="Theme.MaterialComponents.DayNight.BottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog"/>
+    <style name="Theme.MaterialComponents.DayNight.Bridge" parent="Theme.MaterialComponents.Bridge"/>
+    <style name="Theme.MaterialComponents.DayNight.DarkActionBar" parent="Theme.MaterialComponents"/>
+    <style name="Theme.MaterialComponents.DayNight.DarkActionBar.Bridge" parent="Theme.MaterialComponents.Bridge"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog" parent="Theme.MaterialComponents.Dialog"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.Alert" parent="Theme.MaterialComponents.Dialog.Alert"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.Alert.Bridge" parent="Theme.MaterialComponents.Dialog.Alert.Bridge"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.Bridge" parent="Theme.MaterialComponents.Dialog.Bridge"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.FixedSize" parent="Theme.MaterialComponents.Dialog.FixedSize"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.FixedSize.Bridge" parent="Theme.MaterialComponents.Dialog.FixedSize.Bridge"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.MinWidth" parent="Theme.MaterialComponents.Dialog.MinWidth"/>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.MinWidth.Bridge" parent="Theme.MaterialComponents.Dialog.MinWidth.Bridge"/>
+    <style name="Theme.MaterialComponents.DayNight.DialogWhenLarge" parent="Theme.MaterialComponents.DialogWhenLarge"/>
+    <style name="Theme.MaterialComponents.DayNight.NoActionBar" parent="Theme.MaterialComponents.NoActionBar"/>
+    <style name="Theme.MaterialComponents.DayNight.NoActionBar.Bridge" parent="Theme.MaterialComponents.NoActionBar.Bridge"/>
+    <style name="ThemeOverlay.AppCompat.DayNight" parent="ThemeOverlay.AppCompat.Dark"/>
+    <style name="ThemeOverlay.Material3.DynamicColors.DayNight" parent="ThemeOverlay.Material3.DynamicColors.Dark"/>
+    <style name="VioletaColor">
+        <item name="android:textColor">#8900F6</item>
+    </style>
+    <style name="Widget.MaterialComponents.ActionBar.PrimarySurface" parent="Widget.MaterialComponents.ActionBar.Surface"/>
+    <style name="Widget.MaterialComponents.AppBarLayout.PrimarySurface" parent="Widget.MaterialComponents.AppBarLayout.Surface"/>
+    <style name="Widget.MaterialComponents.BottomAppBar.PrimarySurface" parent="Widget.MaterialComponents.BottomAppBar"/>
+    <style name="Widget.MaterialComponents.BottomNavigationView.PrimarySurface" parent="Widget.MaterialComponents.BottomNavigationView"/>
+    <style name="Widget.MaterialComponents.NavigationRailView.PrimarySurface" parent="Widget.MaterialComponents.NavigationRailView"/>
+    <style name="Widget.MaterialComponents.TabLayout.PrimarySurface" parent="Widget.MaterialComponents.TabLayout"/>
+    <style name="Widget.MaterialComponents.Toolbar.PrimarySurface" parent="Widget.MaterialComponents.Toolbar.Surface"/>
+    <style name="backgroundProductosTienda">
+        <item name="android:background">@drawable/roun_zoom_img</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">1</item>
+    </style>
+    <style name="circleColorBG">
+        <item name="android:background">@drawable/circle_mode_black</item>
+    </style>
+    <style name="customShapeAppearance" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">20dp</item>
+        <item name="cornerSizeTopLeft">20dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+    </style>
+    <style name="custom_card_view" parent="">
+        <item name="shapeAppearanceOverlay">@style/customShapeAppearance</item>
+    </style>
+    <style name="descripcionColor">
+        <item name="android:color">#757575</item>
+    </style>
+    <style name="fondo">
+        <item name="android:background">#1A1A1A</item>
+    </style>
+    <style name="roundBtnFiltradoHistorial" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">30dp</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+</resources>

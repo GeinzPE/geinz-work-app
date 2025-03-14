@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.geinzwork.vistaTiendas.direccion_entrega_lat_log">
+
+    <RelativeLayout
+        android:id="@+id/containerSinUBI"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/imgLocalizacion"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/localizacion_icon" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imgLocalizacion"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="15dp"
+            android:text="Agrega tu primera ubicacion¡"
+            android:textSize="15sp" />
+    </RelativeLayout>
+
+    <androidx.core.widget.NestedScrollView
+        style="@style/fondo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/idReferencia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="0dp" />
+
+            <TextView
+                android:id="@+id/collectionEcontrado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:visibility="gone" />
+
+            <TextView
+                style="@style/TextoTitulos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:text="Agrega tu direccion de envios"
+                android:textSize="20sp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="Agrega tu dirección de envío para que, al realizar compras a través de Geinz Work, los conductores sepan exactamente dónde entregarte el pedido. Puedes agregar y guardar tus direcciones recientes según tu ubicación actual."
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:id="@+id/lineal_form"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/nombreColeccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="1"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
+
+                        <EditText
+                            android:id="@+id/nombreColeccionED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="Nombre coleccion "
+                            android:inputType="text"
+                            android:paddingLeft="10dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <ImageButton
+                        android:id="@+id/nombreColecciones"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_gravity="center"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@color/colorFondo"
+                        android:maxWidth="20dp"
+                        android:maxHeight="20dp"
+                        android:padding="5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/informacion_icon_org" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealubiActual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/numeropersonasint"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="1"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
+
+                        <EditText
+                            android:id="@+id/direccion"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:focusable="false"
+                            android:hint="Direccion"
+                            android:inputType="number"
+                            android:paddingLeft="10dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:id="@+id/latitudUSer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="1dp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/longituduser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="1dp"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:layout_width="60dp"
+                        android:layout_height="70dp">
+
+                        <ImageButton
+                            android:id="@+id/obtenerLocalizacion"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true"
+                            android:layout_marginHorizontal="10dp"
+                            android:layout_marginTop="5dp"
+                            android:background="@drawable/round_gris"
+                            android:maxWidth="20dp"
+                            android:maxHeight="20dp"
+                            android:padding="5dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/localidad_icon_general"
+                           />
+
+                        <ProgressBar
+                            android:id="@+id/cargando_lat_log"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true"
+                            android:layout_gravity="center"
+                            android:visibility="gone" />
+                    </RelativeLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/direccion_casa"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="1"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
+
+                        <EditText
+                            android:id="@+id/direccion_casaED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="Referencia principal"
+                            android:inputType="textMultiLine"
+                            android:paddingLeft="10dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <ImageButton
+                        android:id="@+id/infoCasa"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_gravity="center"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@color/colorFondo"
+                        android:maxWidth="20dp"
+                        android:maxHeight="20dp"
+                        android:padding="5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/informacion_icon_org" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/referencia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="1"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
+
+                        <EditText
+                            android:id="@+id/referenciaED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="Referencia segundaria"
+                            android:inputType="textMultiLine"
+                            android:paddingLeft="10dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <ImageButton
+                        android:id="@+id/infoRef"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_gravity="center"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@color/colorFondo"
+                        android:maxWidth="20dp"
+                        android:maxHeight="20dp"
+                        android:padding="5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/informacion_icon_org" />
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linealBtnELiminarEditar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/editar"
+                    style="@style/RoundedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1"
+                    android:text="Guardar cambios"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    app:iconGravity="textEnd" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/eliminar"
+                    style="@style/RoundedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1"
+                    android:text="Eliminar Referencia"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    app:iconGravity="textEnd" />
+            </LinearLayout>
+
+
+            <ListView
+                android:id="@+id/lista_Ubicaciones"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:paddingTop="10dp"
+                android:visibility="gone" />
+
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/crear"
+        style="@style/RoundedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:layout_weight="1"
+        android:text="Crear nuevo"
+        android:textSize="14sp"
+        app:iconGravity="textEnd" />
+
+</RelativeLayout>
