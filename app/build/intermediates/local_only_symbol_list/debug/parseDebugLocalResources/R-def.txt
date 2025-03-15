@@ -1929,7 +1929,6 @@ string watch_trailer_2
 string whatsapp
 style Base.Theme.GeinzWork
 style BottomCutShape
-style BottomNavigationViewText
 style CustomTextAppearance
 style CustomTextLargo
 style RoundCustom_publicidad

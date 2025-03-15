@@ -112,6 +112,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final ImageView popup;
 
   @NonNull
+  public final RecyclerView productosDestacados;
+
+  @NonNull
   public final CircularProgressIndicator progressCargaImagen;
 
   @NonNull
@@ -156,7 +159,7 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull LinearLayout linealRedes, @NonNull LinearLayout linealTrabajosRealziados,
       @NonNull AppBarLayout linealappLayout, @NonNull LinearLayoutCompat loading,
       @NonNull TextView localidad, @NonNull TextView nacionalida, @NonNull TextView nombre,
-      @NonNull View overlay, @NonNull ImageView popup,
+      @NonNull View overlay, @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
@@ -191,6 +194,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.nombre = nombre;
     this.overlay = overlay;
     this.popup = popup;
+    this.productosDestacados = productosDestacados;
     this.progressCargaImagen = progressCargaImagen;
     this.progressCargaImagenFondo = progressCargaImagenFondo;
     this.qrTrabajador = qrTrabajador;
@@ -393,6 +397,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.productosDestacados;
+      RecyclerView productosDestacados = ViewBindings.findChildViewById(rootView, id);
+      if (productosDestacados == null) {
+        break missingId;
+      }
+
       id = R.id.progress_carga_imagen;
       CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
       if (progressCargaImagen == null) {
@@ -464,8 +474,8 @@ public final class FragmentInfoBinding implements ViewBinding {
           descripcionTrabajador, edadUser, estado, fb, genero, horario, ig, imgPerfilUser,
           imgPortada, innerRelativeLayout, linealLayaout, linealNoCuenta, linealRedes,
           linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida, nombre,
-          overlay, popup, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
-          relativeLayout, scroll, telefono, tk, trabajadoresSimilares, tvReadMore,
+          overlay, popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo,
+          qrTrabajador, relativeLayout, scroll, telefono, tk, trabajadoresSimilares, tvReadMore,
           verMasTrabajadores, verificado);
     }
     String missingId = rootView.getResources().getResourceName(id);

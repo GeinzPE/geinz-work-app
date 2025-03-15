@@ -529,6 +529,27 @@
                             android:nestedScrollingEnabled="false" />
 
 
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_marginLeft="10dp"
+                                style="@style/TextoTitulos"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Productos"
+                                android:textSize="20sp" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/productosDestacados"
+                                android:layout_width="wrap_content"
+                                tools:listitem="@layout/item_productos_usuarios_verificados"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+
                     </LinearLayout>
 
                     <LinearLayout

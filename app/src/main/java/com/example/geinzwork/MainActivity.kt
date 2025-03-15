@@ -71,13 +71,15 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.buttonNavigation) { view, insets ->
+            val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(0, 0, 0, navigationBars.bottom)
             insets
         }
+
         remoteConfig = FirebaseRemoteConfig.getInstance()
         firebaseAuth = FirebaseAuth.getInstance()
+
         binding.VistaTiendas.setOnClickListener {
             startActivity(Intent(this, TiendasGenerales::class.java))
         }
@@ -105,6 +107,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                             idPublicidadPrimaria,
                             idAnuncio
                         )
+
                         idTrabajadorGeinz != null -> openVistaTrabajador(idTrabajadorGeinz)
                         anunciosPrimarios != null -> openAnunciosPrimarios(anunciosPrimarios)
                         storeId != null -> openPublicidad(storeId)
@@ -112,6 +115,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                         ArticiculoClikado != null && idTiendaSeleccionada != null -> openArticuloTienda(
                             ArticiculoClikado, idTiendaSeleccionada
                         )
+
                         else -> println("No se encontraron parámetros válidos en el enlace")
                     }
                 }
@@ -166,6 +170,9 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             }
             true
         }
+
+
+
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
@@ -181,7 +188,8 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         })
     }
 
-    private inner class ViewPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
+    private inner class ViewPagerAdapter(activity: AppCompatActivity) :
+        FragmentStateAdapter(activity) {
 
         override fun getItemCount(): Int {
             // Devuelve el número total de fragmentos
@@ -199,6 +207,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             }
         }
     }
+
     private fun openVistaTrabajador(idTrabajadorGeinz: String) {
         val userCollections =
             FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")

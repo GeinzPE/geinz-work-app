@@ -4855,6 +4855,7 @@ id carrucelImgContainer
 id carrucel_tiendas
 id carruse2
 id carrusel
+id carrusel_img_trabajos
 id carrusel_pimario_inicio
 id carrusel_publicidad_baner
 id carryVelocity
@@ -4925,6 +4926,7 @@ id constraint
 id contador
 id contadorLike
 id container
+id containerCargnadoCat
 id containerDatos
 id containerDriver
 id containerFB
@@ -5738,6 +5740,7 @@ id noEncontradoLocalidades
 id noEncontradocat
 id noEnctrado
 id noScroll
+id noSeEncontro
 id noState
 id no_internet_text
 id no_resultados
@@ -5895,9 +5898,11 @@ id privacy_policy_user_rights
 id privacy_policy_worker_guidelines
 id problemas
 id productos
+id productosDestacados
 id productosLineal
 id prograsvar
 id progresCargaCat
+id progresCargandoContenido
 id progresVar3Estrellas
 id progressBar
 id progressBarContainer
@@ -6705,6 +6710,7 @@ layout item_noticias_guardadas
 layout item_planes_geinz_noticias_publicidad
 layout item_preview_art_comprar_carrito
 layout item_productos_tiendas
+layout item_productos_usuarios_verificados
 layout item_promociones_encontradas
 layout item_promociones_geinz
 layout item_recuadros
