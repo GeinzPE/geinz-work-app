@@ -73,7 +73,9 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.buttonNavigation) { view, insets ->
             val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(0, 0, 0, navigationBars.bottom)
+            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars()) // Obtener insets de la barra de estado
+
+            view.setPadding(0, statusBars.top, 0, navigationBars.bottom) // Ajustar padding superior e inferior
             insets
         }
 

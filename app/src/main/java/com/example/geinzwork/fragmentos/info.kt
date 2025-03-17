@@ -35,6 +35,8 @@ import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_traba
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.dataclass.adapter_mostra_articulos_trabajadores
+import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
@@ -53,7 +55,6 @@ import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -76,6 +77,8 @@ class info : Fragment() {
     private lateinit var binding: FragmentInfoBinding
     private lateinit var mContex: Context
     private var listAdapter = mutableListOf<dataclas_trabajos_ralizados>()
+    private val listaAdapterProductosTRabajdores =
+        mutableListOf<dataclas_item_preview_art_comprar>()
     private var listaTrabajo = mutableListOf<dataClassTrabajosd>()
     private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
@@ -175,6 +178,38 @@ class info : Fragment() {
         obtenerPerfil(idTrabajador, img)
 
 
+    }
+
+    private fun obtenerARticulosComprasVerificado(idTrabajador: String) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("productos_venta")
+        db.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val data = datos.data
+                val imgProducto = data?.get("img_principal") as? String ?: ""
+                val descuentoActivo = data?.get("descuento") as? Boolean ?: false
+                val cantidadDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+
+                val lista = dataclas_item_preview_art_comprar(
+                    imgProducto, "", null, null, descuentoActivo, cantidadDescuento
+                )
+                listaAdapterProductosTRabajdores.add(lista)
+                if (listaAdapterProductosTRabajdores.isNotEmpty()) {
+                    inicializarRecicleProductosVentasTrabajdores(listaAdapterProductosTRabajdores)
+                }
+            }
+        }.addOnFailureListener { e ->
+            println("no se encontraron datos ")
+        }
+    }
+
+    private fun inicializarRecicleProductosVentasTrabajdores(listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>) {
+        val recicle = binding.productosDestacados
+        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.adapter = adapter_mostra_articulos_trabajadores(
+            listaAdapterProductosTRabajdores
+        )
     }
 
     private fun mostrarDatos() {
@@ -549,11 +584,11 @@ class info : Fragment() {
                     setData(carouselItems)
                 }
                 bindingMostrarTRabajos.cargarConteindo.isVisible = false
-                    bindingMostrarTRabajos.scollView.isVisible = true
-                    constantestextos_general.extender_acortar_texto(
-                        bindingMostrarTRabajos.textoTrabajosRealzados,
-                        bindingMostrarTRabajos.tvReadMore
-                    )
+                bindingMostrarTRabajos.scollView.isVisible = true
+                constantestextos_general.extender_acortar_texto(
+                    bindingMostrarTRabajos.textoTrabajosRealzados,
+                    bindingMostrarTRabajos.tvReadMore
+                )
             }, 2000)
 
         }
@@ -938,6 +973,7 @@ class info : Fragment() {
                 val plan = data?.get(Variables.plan) as? String? ?: ""
                 if (estado) {
                     verificado.isVisible = true
+                    obtenerARticulosComprasVerificado(id)
                     banerPublicacionesRecientes.isVisible = true
                     val adapter = adapterTrabajo_realizados(listAdapter)
                     constantes_publicaciones_general_user_tiendas.obtenerPublicaciones(
@@ -953,8 +989,7 @@ class info : Fragment() {
                     )
 
 
-                    linealRedes.isVisible =
-                        ig.isNotEmpty() || fb.isNotEmpty() || tk.isNotEmpty()
+                    linealRedes.isVisible = ig.isNotEmpty() || fb.isNotEmpty() || tk.isNotEmpty()
                     igView.isVisible = ig.isNotEmpty()
                     fbView.isVisible = fb.isNotEmpty()
                     tkView.isVisible = tk.isNotEmpty()

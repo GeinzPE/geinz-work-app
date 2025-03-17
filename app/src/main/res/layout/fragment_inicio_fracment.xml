@@ -10,6 +10,7 @@
     tools:context=".fragmentos.inicioFracment">
 
     <FrameLayout
+
         android:id="@+id/containerGeneral"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

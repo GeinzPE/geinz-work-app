@@ -604,10 +604,6 @@
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_veneficios_verificados.xml"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_activity_main.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_main.xml"
-    },
-    {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_inicio_fracment.xml.flat",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_inicio_fracment.xml"
     },
@@ -802,6 +798,10 @@
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_ic_launcher_background.xml.flat",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_fragment_inicio_fracment.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_inicio_fracment.xml"
     },
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\font_cbrion_light.ttf.flat",
