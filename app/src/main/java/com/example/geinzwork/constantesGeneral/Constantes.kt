@@ -100,6 +100,7 @@ object constantes {
         Handler(Looper.getMainLooper()).postDelayed({
             mostrarDatos()
         }, timpo)
+
     }
 
     fun obtenerFotoPerfil(

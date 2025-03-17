@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -102,6 +103,9 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
   public final RecyclerView recicleTiendas1;
 
   @NonNull
+  public final SwipeRefreshLayout swipe;
+
+  @NonNull
   public final TextView verTecnicos;
 
   @NonNull
@@ -138,9 +142,10 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       @NonNull RelativeLayout linealCaption, @NonNull LinearLayoutCompat loading,
       @NonNull TextView mejoresTrabajadeores, @NonNull TextView noEncontradocat,
       @NonNull ProgressBar progresCargaCat, @NonNull RecyclerView recicleTiendas1,
-      @NonNull TextView verTecnicos, @NonNull TextView verTiendas,
-      @NonNull TextView verTrabajohogar, @NonNull TextView verdesarrollo,
-      @NonNull TextView vermecanica, @NonNull TextView vertrasnporte) {
+      @NonNull SwipeRefreshLayout swipe, @NonNull TextView verTecnicos,
+      @NonNull TextView verTiendas, @NonNull TextView verTrabajohogar,
+      @NonNull TextView verdesarrollo, @NonNull TextView vermecanica,
+      @NonNull TextView vertrasnporte) {
     this.rootView = rootView;
     this.IncludeAnunciosCuarto = IncludeAnunciosCuarto;
     this.IncludeAnunciosQuinto = IncludeAnunciosQuinto;
@@ -167,6 +172,7 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
     this.noEncontradocat = noEncontradocat;
     this.progresCargaCat = progresCargaCat;
     this.recicleTiendas1 = recicleTiendas1;
+    this.swipe = swipe;
     this.verTecnicos = verTecnicos;
     this.verTiendas = verTiendas;
     this.verTrabajohogar = verTrabajohogar;
@@ -359,6 +365,12 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.swipe;
+      SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
+      if (swipe == null) {
+        break missingId;
+      }
+
       id = R.id.verTecnicos;
       TextView verTecnicos = ViewBindings.findChildViewById(rootView, id);
       if (verTecnicos == null) {
@@ -403,7 +415,7 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
           binding_includeRecicleViewddelivery, binding_includeRecicleViewsalud,
           binding_includeReciclehogar, binding_includeReciclemecanico,
           binding_includeTrabajadoresTop, linealCaption, loading, mejoresTrabajadeores,
-          noEncontradocat, progresCargaCat, recicleTiendas1, verTecnicos, verTiendas,
+          noEncontradocat, progresCargaCat, recicleTiendas1, swipe, verTecnicos, verTiendas,
           verTrabajohogar, verdesarrollo, vermecanica, vertrasnporte);
     }
     String missingId = rootView.getResources().getResourceName(id);

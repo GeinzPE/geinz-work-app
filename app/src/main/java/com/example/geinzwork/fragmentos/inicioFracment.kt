@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.text.Editable
 import android.text.TextWatcher
@@ -22,6 +24,7 @@ import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajosMostrados
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
@@ -85,8 +88,6 @@ class inicioFracment : Fragment() {
         binding.Tiendas.setOnClickListener {
             mContex.startActivity(Intent(mContex, ver_promociones::class.java))
         }
-
-
         if (firebaseAuth.currentUser == null && storedValue.isNullOrEmpty() || storedValue.equals("Default Value")) {
             constantesTrabajadoresTiendasInicioFragmet.obtenerLocalida(Variables.General)
             binding.includeCabezero.filtradoUsuairo.text = Variables.General
@@ -179,6 +180,7 @@ class inicioFracment : Fragment() {
             vista.putExtra(Variables.filtradoPasado, filtrado)
             startActivity(vista)
         }
+        confSwipe(storedValue!!)
     }
 
     private fun initScanner() {
@@ -254,8 +256,24 @@ class inicioFracment : Fragment() {
     }
 
 
+    private fun confSwipe(storedValue: String) {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+                SetAnuncios()
+                obtenerTrabajosCat()
+                obtnerFiltrado(binding.includeCabezero.filtradoUsuairo.text.toString())
+                println("obtenisom lo valores $storedValue")
+            }, 2000)
+            binding.swipe.isVisible=true
+        }
+    }
+
     private fun mostrarDatos(storedValue: String) {
         obtnerFiltrado(storedValue)
+        binding.swipe.isVisible=true
+
     }
 
 
@@ -264,7 +282,6 @@ class inicioFracment : Fragment() {
         editor?.putString(KEY, valor)
         editor?.apply()
     }
-
 
     private fun obtnerFiltrado(filtrado: String) {
         //Mejores trabajadores

@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -130,6 +131,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final NestedScrollView scroll;
 
   @NonNull
+  public final SwipeRefreshLayout swipe;
+
+  @NonNull
   public final TextView telefono;
 
   @NonNull
@@ -163,7 +167,7 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
-      @NonNull TextView telefono, @NonNull ImageView tk,
+      @NonNull SwipeRefreshLayout swipe, @NonNull TextView telefono, @NonNull ImageView tk,
       @NonNull RecyclerView trabajadoresSimilares, @NonNull TextView tvReadMore,
       @NonNull TextView verMasTrabajadores, @NonNull ImageView verificado) {
     this.rootView = rootView;
@@ -200,6 +204,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.qrTrabajador = qrTrabajador;
     this.relativeLayout = relativeLayout;
     this.scroll = scroll;
+    this.swipe = swipe;
     this.telefono = telefono;
     this.tk = tk;
     this.trabajadoresSimilares = trabajadoresSimilares;
@@ -433,6 +438,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.swipe;
+      SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
+      if (swipe == null) {
+        break missingId;
+      }
+
       id = R.id.telefono;
       TextView telefono = ViewBindings.findChildViewById(rootView, id);
       if (telefono == null) {
@@ -475,8 +486,8 @@ public final class FragmentInfoBinding implements ViewBinding {
           imgPortada, innerRelativeLayout, linealLayaout, linealNoCuenta, linealRedes,
           linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida, nombre,
           overlay, popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo,
-          qrTrabajador, relativeLayout, scroll, telefono, tk, trabajadoresSimilares, tvReadMore,
-          verMasTrabajadores, verificado);
+          qrTrabajador, relativeLayout, scroll, swipe, telefono, tk, trabajadoresSimilares,
+          tvReadMore, verMasTrabajadores, verificado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

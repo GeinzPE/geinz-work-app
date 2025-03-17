@@ -127,6 +127,7 @@ class info : Fragment() {
     }
 
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -164,8 +165,6 @@ class info : Fragment() {
             }
         }
 
-
-
         binding.ig.setOnClickListener {
             obtenerRedes(mContex, Variables.ig, idTrabajador)
         }
@@ -177,8 +176,22 @@ class info : Fragment() {
         }
         obtenerPerfil(idTrabajador, img)
 
-
+        confSwipe(idTrabajador, img)
     }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun confSwipe(idTrabajador: String,img: String) {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+                obtenerPerfil(idTrabajador, img)
+                obtenertrabajosRecientes(idTrabajador)
+            }, 2000)
+        }
+    }
+
 
     private fun obtenerARticulosComprasVerificado(idTrabajador: String) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -215,6 +228,7 @@ class info : Fragment() {
     private fun mostrarDatos() {
         binding.loading.isVisible = false
         binding.linealappLayout.isVisible = true
+        binding.swipe.isVisible = true
 
     }
 
