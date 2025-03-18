@@ -127,7 +127,6 @@ class info : Fragment() {
     }
 
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -181,13 +180,14 @@ class info : Fragment() {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun confSwipe(idTrabajador: String,img: String) {
+    private fun confSwipe(idTrabajador: String, img: String) {
         binding.swipe.setOnRefreshListener {
             binding.swipe.setColorSchemeResources(R.color.violeta)
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.swipe.isRefreshing = false
                 obtenerPerfil(idTrabajador, img)
                 obtenertrabajosRecientes(idTrabajador)
+                obtenerDatosTrabajador (idTrabajador){}
             }, 2000)
         }
     }
@@ -989,7 +989,7 @@ class info : Fragment() {
                     verificado.isVisible = true
                     obtenerARticulosComprasVerificado(id)
                     banerPublicacionesRecientes.isVisible = true
-                    val adapter = adapterTrabajo_realizados(listAdapter)
+                    val adapter = adapterTrabajo_realizados(listAdapter,)
                     constantes_publicaciones_general_user_tiendas.obtenerPublicaciones(
                         plan,
                         id,

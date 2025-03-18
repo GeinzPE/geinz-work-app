@@ -23,48 +23,56 @@ object constantes_publicaciones_general_user_tiendas {
         context: Context,
         adapter: RecyclerView.Adapter<*>,
         linealappLayout: AppBarLayout,
-        lineal_no_cuenta: LinearLayout, linealTrabajosTralizados: LinearLayout
-
+        lineal_no_cuenta: LinearLayout,
+        linealTrabajosTralizados: LinearLayout
     ) {
-        if (plan ==  Variables.plaA) {
+        if (plan == Variables.plaA) {
             lineal_no_cuenta.isVisible = false
-        } else if (plan == Variables.planB || plan == Variables.PlanC) {
+            return
+        }
+
+        if (plan == Variables.planB || plan == Variables.PlanC) {
             val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(id)
                 .collection(Variables.trabajos_realizados)
 
             lineal_no_cuenta.isVisible = false
             lista.clear()
+
             db.get().addOnSuccessListener { res ->
+                val listaTemporal = mutableListOf<dataclas_trabajos_ralizados>()
                 for (datos in res) {
                     val data = datos.data
-                    val titulo = data?.get(Variables.titulo) as? String?:""
-                    val imageUrl = data?.get(Variables.imageUrl) as? String?:""
-                    val id = data?.get(Variables.id) as? String?:""
-                    val hora = data?.get(Variables.hora) as? String?:""
-                    val fecha = data?.get(Variables.fecha) as? String?:""
-                    val descripcion = data?.get(Variables.descripcion) as? String?:""
-                    val trabajoRealizado =
-                        dataclas_trabajos_ralizados(imageUrl, titulo, descripcion, fecha, hora, id)
-                    lista.add(trabajoRealizado)
-                    lineal_no_cuenta.isVisible = false
-                    linealTrabajosTralizados.isVisible = true
-
+                    val trabajoRealizado = dataclas_trabajos_ralizados(
+                        data?.get(Variables.imageUrl) as? String ?: "",
+                        data?.get(Variables.titulo) as? String ?: "",
+                        data?.get(Variables.descripcion) as? String ?: "",
+                        data?.get(Variables.fecha) as? String ?: "",
+                        data?.get(Variables.hora) as? String ?: "",
+                        data?.get(Variables.id) as? String ?: ""
+                    )
+                    listaTemporal.add(trabajoRealizado)
                 }
+
+                // Mezclar los elementos de la lista de manera aleatoria
+                listaTemporal.shuffle()
+                // Tomar hasta 5 elementos aleatorios
+                lista.addAll(listaTemporal.take(5))
+
                 if (lista.isEmpty()) {
                     lineal_no_cuenta.isVisible = true
                     linealTrabajosTralizados.isVisible = false
-
                 } else {
-                    linealTrabajosTralizados.isVisible = true
                     lineal_no_cuenta.isVisible = false
+                    linealTrabajosTralizados.isVisible = true
                     inicializarRecicle(recicleTrabajosRealizados, adapter, context)
+                    adapter.notifyDataSetChanged() // Notificar cambios en la lista
                 }
-
             }
         }
-
     }
+
 
     private fun inicializarRecicle(
         recycle: RecyclerView,

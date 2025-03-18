@@ -48,7 +48,7 @@ class Trabajos_realizados : Fragment() {
         firebaseAuth = FirebaseAuth.getInstance()
         super.onViewCreated(view, savedInstanceState)
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR)
-        val adapter = adapterTrabajo_realizados(listAdapter)
+//        val adapter = adapterTrabajo_realizados(listAdapter)
 //        constantes_publicaciones_general_user_tiendas.obtenerPublicaciones(
 //            idTrabajador.toString(),
 //            listAdapter,

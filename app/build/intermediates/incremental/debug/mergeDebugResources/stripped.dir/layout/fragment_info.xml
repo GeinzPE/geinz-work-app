@@ -546,15 +546,15 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginLeft="10dp"
-                                    android:text="Productos"
                                     android:layout_marginBottom="10dp"
+                                    android:text="Productos"
                                     android:textSize="20sp" />
 
                                 <androidx.recyclerview.widget.RecyclerView
-                                    android:layout_marginHorizontal="10dp"
                                     android:id="@+id/productosDestacados"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_marginHorizontal="10dp"
                                     tools:listitem="@layout/item_productos_usuarios_verificados" />
                             </LinearLayout>
 
