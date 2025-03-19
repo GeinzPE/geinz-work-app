@@ -22,11 +22,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajosMostrados
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantesSubcategoriaszonasTiendas
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
@@ -96,7 +98,7 @@ class inicioFracment : Fragment() {
             constantesTrabajadoresTiendasInicioFragmet.obtenerLocalida(storedValue!!)
         }
 
-        if ( binding.includeCabezero.filtradoUsuairo.text.toString() == Variables.General) {
+        if (binding.includeCabezero.filtradoUsuairo.text.toString() == Variables.General) {
             obtnerFiltrado(Variables.General)
         } else {
             constantes.carga(5000, { mostrarDatos(storedValue!!) })
@@ -176,7 +178,7 @@ class inicioFracment : Fragment() {
         )
         binding.verTiendas.setOnClickListener {
             val vista = Intent(mContex, TiendasGenerales::class.java)
-            val filtrado =  binding.includeCabezero.filtradoUsuairo.text.toString()
+            val filtrado = binding.includeCabezero.filtradoUsuairo.text.toString()
             vista.putExtra(Variables.filtradoPasado, filtrado)
             startActivity(vista)
         }
@@ -218,7 +220,7 @@ class inicioFracment : Fragment() {
                             val categoria = data?.get(Variables.categoriaTrabajo) as? String ?: ""
                             val img = data?.get(Variables.imagenPerfil) as? String ?: ""
                             val intent =
-                                Intent(requireContext(),vistaTrabajador::class.java).apply {
+                                Intent(requireContext(), vistaTrabajador::class.java).apply {
 
                                     putExtra(Variables.id, result.contents)
                                     putExtra(Variables.nombreUSer, nombreUser)
@@ -266,13 +268,13 @@ class inicioFracment : Fragment() {
                 obtnerFiltrado(binding.includeCabezero.filtradoUsuairo.text.toString())
                 println("obtenisom lo valores $storedValue")
             }, 2000)
-            binding.swipe.isVisible=true
+            binding.swipe.isVisible = true
         }
     }
 
     private fun mostrarDatos(storedValue: String) {
         obtnerFiltrado(storedValue)
-        binding.swipe.isVisible=true
+        binding.swipe.isVisible = true
 
     }
 
@@ -285,15 +287,24 @@ class inicioFracment : Fragment() {
 
     private fun obtnerFiltrado(filtrado: String) {
         //Mejores trabajadores
-        constantesTrabajadoresTiendasInicioFragmet.obtenerMejoresTrabajadores(listaTrabajo, filtrado, mContex, binding)
+        constantesTrabajadoresTiendasInicioFragmet.obtenerMejoresTrabajadores(
+            listaTrabajo,
+            filtrado,
+            mContex,
+            binding
+        )
         // Trabajadores generales por categoría
-        constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria(binding, filtrado, mContex)
+        constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria(
+            binding,
+            filtrado,
+            mContex
+        )
 
     }
 
     private fun obtenerTrabajosCat() {
-        binding.progresCargaCat.isVisible=true
-        binding.RecicleCategoria.isVisible=false
+        binding.progresCargaCat.isVisible = true
+        binding.RecicleCategoria.isVisible = false
         val trabajos = mutableListOf<dataClassCategoriasInicio>()
         val db = FirebaseFirestore.getInstance()
         val collection = db.collection(Variables.categoriasDB).document(Variables.categoriasTrabajo)
@@ -312,8 +323,8 @@ class inicioFracment : Fragment() {
                                         categoria,
                                         urlImg ?: "",
                                     )
-                                    binding.progresCargaCat.isVisible=false
-                                    binding.RecicleCategoria.isVisible=true
+                                    binding.progresCargaCat.isVisible = false
+                                    binding.RecicleCategoria.isVisible = true
                                     trabajos.add(data)
                                     inicalizarREciocle(
                                         binding.RecicleCategoria,
@@ -322,9 +333,9 @@ class inicioFracment : Fragment() {
 
                                 },
                                 onFailure = { error ->
-                                    binding.progresCargaCat.isVisible=false
-                                    binding.noEncontradocat.isVisible=true
-                                    binding.RecicleCategoria.isVisible=false
+                                    binding.progresCargaCat.isVisible = false
+                                    binding.noEncontradocat.isVisible = true
+                                    binding.RecicleCategoria.isVisible = false
                                     println("Error al obtener las imágenes para $categoria: ${error.message}")
                                     inicalizarREciocle(
                                         binding.RecicleCategoria,
@@ -382,19 +393,34 @@ class inicioFracment : Fragment() {
             )
         }
         binding.mejoresTrabajadeores.setOnClickListener {
-            iniciarVistaCategoriasT( binding.includeCabezero.filtradoUsuairo.text.toString(), Variables.Mejores_Trabajadores)
+            iniciarVistaCategoriasT(
+                binding.includeCabezero.filtradoUsuairo.text.toString(),
+                Variables.Mejores_Trabajadores
+            )
         }
         binding.vermecanica.setOnClickListener {
-            iniciarVistaCategoriasT( binding.includeCabezero.filtradoUsuairo.text.toString(), Variables.Servicios_de_Salud)
+            iniciarVistaCategoriasT(
+                binding.includeCabezero.filtradoUsuairo.text.toString(),
+                Variables.Servicios_de_Salud
+            )
         }
         binding.verTrabajohogar.setOnClickListener {
-            iniciarVistaCategoriasT( binding.includeCabezero.filtradoUsuairo.text.toString(), Variables.Construcción_y_hogar)
+            iniciarVistaCategoriasT(
+                binding.includeCabezero.filtradoUsuairo.text.toString(),
+                Variables.Construcción_y_hogar
+            )
         }
         binding.vertrasnporte.setOnClickListener {
-            iniciarVistaCategoriasT( binding.includeCabezero.filtradoUsuairo.text.toString(), Variables.Mecánicos)
+            iniciarVistaCategoriasT(
+                binding.includeCabezero.filtradoUsuairo.text.toString(),
+                Variables.Mecánicos
+            )
         }
         binding.verTecnicos.setOnClickListener {
-            iniciarVistaCategoriasT( binding.includeCabezero.filtradoUsuairo.text.toString(), Variables.Tecnicos)
+            iniciarVistaCategoriasT(
+                binding.includeCabezero.filtradoUsuairo.text.toString(),
+                Variables.Tecnicos
+            )
         }
     }
 
@@ -461,15 +487,24 @@ class inicioFracment : Fragment() {
                     val currentItem = lista[position]
                     val currentData = res.documents[position].data
                     val currentTitulo = currentData?.get(Variables.titulo) as? String ?: ""
-                    val currentDescripcion = currentData?.get(Variables.descripcion) as? String ?: ""
+                    val currentDescripcion =
+                        currentData?.get(Variables.descripcion) as? String ?: ""
                     val currentURLimg = currentData?.get(Variables.URLimg) as? String ?: ""
                     val currentId = currentData?.get(Variables.id) as? String ?: ""
 
                     currentBinding.titulos.text = currentTitulo
                     currentBinding.descripcion.text = currentDescripcion
-                    Glide.with(mContex)
-                        .load(currentURLimg)
-                        .into(currentBinding.imgPublicidad)
+
+                    constatnes_carga_imagenes_general.changer_img(
+                        currentBinding.progressCargaImagenFondo,
+                        mContex,
+                        currentURLimg,
+                        null,
+                        currentBinding.imgPublicidad,
+                        "portada",
+                        null
+                    ) {}
+
                     currentBinding.realtiveClikc.setOnClickListener {
 
                         val vista = Intent(mContex, oferta_principales_geinz::class.java).apply {

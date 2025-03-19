@@ -12,6 +12,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -33,17 +34,21 @@ public final class ItemMasArtPromoServiciosBinding implements ViewBinding {
   public final TextView precioDisponible;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagenFondo;
+
+  @NonNull
   public final TextView titulo;
 
   private ItemMasArtPromoServiciosBinding(@NonNull LinearLayout rootView,
       @NonNull TextView descripcion, @NonNull ShapeableImageView imgTrabajo,
       @NonNull LinearLayout layoutListener, @NonNull TextView precioDisponible,
-      @NonNull TextView titulo) {
+      @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull TextView titulo) {
     this.rootView = rootView;
     this.descripcion = descripcion;
     this.imgTrabajo = imgTrabajo;
     this.layoutListener = layoutListener;
     this.precioDisponible = precioDisponible;
+    this.progressCargaImagenFondo = progressCargaImagenFondo;
     this.titulo = titulo;
   }
 
@@ -98,6 +103,12 @@ public final class ItemMasArtPromoServiciosBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen_fondo;
+      CircularProgressIndicator progressCargaImagenFondo = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagenFondo == null) {
+        break missingId;
+      }
+
       id = R.id.titulo;
       TextView titulo = ViewBindings.findChildViewById(rootView, id);
       if (titulo == null) {
@@ -105,7 +116,7 @@ public final class ItemMasArtPromoServiciosBinding implements ViewBinding {
       }
 
       return new ItemMasArtPromoServiciosBinding((LinearLayout) rootView, descripcion, imgTrabajo,
-          layoutListener, precioDisponible, titulo);
+          layoutListener, precioDisponible, progressCargaImagenFondo, titulo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

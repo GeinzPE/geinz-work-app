@@ -14,6 +14,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -32,6 +33,9 @@ public final class ItemCustomPublicidadPrincipalBinding implements ViewBinding {
   public final ShapeableImageView imgPublicidad;
 
   @NonNull
+  public final CircularProgressIndicator progressCargaImagenFondo;
+
+  @NonNull
   public final RelativeLayout realtiveClikc;
 
   @NonNull
@@ -39,12 +43,14 @@ public final class ItemCustomPublicidadPrincipalBinding implements ViewBinding {
 
   private ItemCustomPublicidadPrincipalBinding(@NonNull ConstraintLayout rootView,
       @NonNull TextView descripcion, @NonNull Guideline guidelineEnd,
-      @NonNull ShapeableImageView imgPublicidad, @NonNull RelativeLayout realtiveClikc,
-      @NonNull TextView titulos) {
+      @NonNull ShapeableImageView imgPublicidad,
+      @NonNull CircularProgressIndicator progressCargaImagenFondo,
+      @NonNull RelativeLayout realtiveClikc, @NonNull TextView titulos) {
     this.rootView = rootView;
     this.descripcion = descripcion;
     this.guidelineEnd = guidelineEnd;
     this.imgPublicidad = imgPublicidad;
+    this.progressCargaImagenFondo = progressCargaImagenFondo;
     this.realtiveClikc = realtiveClikc;
     this.titulos = titulos;
   }
@@ -94,6 +100,12 @@ public final class ItemCustomPublicidadPrincipalBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progress_carga_imagen_fondo;
+      CircularProgressIndicator progressCargaImagenFondo = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagenFondo == null) {
+        break missingId;
+      }
+
       id = R.id.realtive_clikc;
       RelativeLayout realtiveClikc = ViewBindings.findChildViewById(rootView, id);
       if (realtiveClikc == null) {
@@ -107,7 +119,7 @@ public final class ItemCustomPublicidadPrincipalBinding implements ViewBinding {
       }
 
       return new ItemCustomPublicidadPrincipalBinding((ConstraintLayout) rootView, descripcion,
-          guidelineEnd, imgPublicidad, realtiveClikc, titulos);
+          guidelineEnd, imgPublicidad, progressCargaImagenFondo, realtiveClikc, titulos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

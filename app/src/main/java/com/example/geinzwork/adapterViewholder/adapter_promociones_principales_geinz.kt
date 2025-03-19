@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.oferta_principales_geinz
 import com.geinzz.geinzwork.databinding.ItemPromocionesGeinzBinding
@@ -39,13 +40,15 @@ class adapter_promociones_principales_geinz(private val lista_item: MutableList<
             titulo.text = item.titulo_promo
             texto.text = item.texto_promo
 
-            try {
-                Glide.with(itemView.context)
-                    .load(item.img)
-                    .into(img)
-            } catch (e: Exception) {
-                println("error al setear la img")
-            }
+            constatnes_carga_imagenes_general.changer_img(
+                binding.progressCargaImagenFondo,
+                itemView.context,
+                item.img.toString(),
+                null,
+                img,
+                "portada",
+                null
+            ) {}
             img.setOnClickListener { listaner(item.id.toString(), itemView.context) }
         }
 

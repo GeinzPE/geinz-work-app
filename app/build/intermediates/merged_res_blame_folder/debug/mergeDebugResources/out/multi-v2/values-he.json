@@ -4,7 +4,7 @@
             "outputFile": "com.geinzz.geinzwork.app-mergeDebugResources-54:/values-he/values-he.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Benjamin\\.gradle\\caches\\transforms-4\\626ea38f2d3af64b5ae9ad6a6d1a99fa\\transformed\\zxing-android-embedded-4.3.0\\res\\values-he\\values-he.xml",
+                    "source": "C:\\Users\\user\\.gradle\\caches\\transforms-4\\626ea38f2d3af64b5ae9ad6a6d1a99fa\\transformed\\zxing-android-embedded-4.3.0\\res\\values-he\\values-he.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",

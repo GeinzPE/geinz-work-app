@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.dataclass.dataclass_mas_art_promo_servicio
 import com.geinzz.geinzwork.databinding.ItemMasArtPromoServiciosBinding
@@ -49,16 +50,23 @@ class adapter_item_mas_promo_servicios_art(
             dataclassMasArtPromoServicio: dataclass_mas_art_promo_servicio,
             categoria: String,
         ) {
-            try {
-                Glide.with(itemView.context)
-                    .load(dataclassMasArtPromoServicio.imgPrincipal)
-                    .into(imagen)
-            } catch (e: Exception) {
-                println("error al setear la img")
-            }
+            constatnes_carga_imagenes_general.changer_img(
+                binding.progressCargaImagenFondo,
+                itemView.context,
+                dataclassMasArtPromoServicio.imgPrincipal.toString(),
+                null,
+                imagen,
+                "portada",
+                null
+            ){}
             titulo.text = dataclassMasArtPromoServicio.titulo
             descripcion.text = dataclassMasArtPromoServicio.descripcion
-            precio.text = dataclassMasArtPromoServicio.precio
+            val precioTexto = dataclassMasArtPromoServicio.precio
+            precio.text = if (precioTexto.equals("GRATIS", ignoreCase = true)) {
+                "GRATIS"
+            } else {
+                "S/$precioTexto.00"
+            }
             listener.setOnClickListener {
                 Toast.makeText(
                     itemView.context,
