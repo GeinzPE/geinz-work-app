@@ -12,23 +12,25 @@ import android.text.TextWatcher
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import com.bumptech.glide.Glide
+
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
+import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajosMostrados
 import com.geinzz.geinzwork.constantesGeneral.constantes
-import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantesSubcategoriaszonasTiendas
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
@@ -45,6 +47,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.integration.android.IntentIntegrator
+import org.imaginativeworld.whynotimagecarousel.ImageCarousel
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 
@@ -183,7 +186,116 @@ class inicioFracment : Fragment() {
             startActivity(vista)
         }
         confSwipe(storedValue!!)
+
+
+        val activity = requireActivity() as? MainActivity
+        setupImageCarouselTouchListener( binding.carruselPimarioInicio,activity!!)
+        setupImageCarouselTouchListener( binding.carrusel,activity!!)
+        setupImageCarouselTouchListener( binding.carruse2,activity!!)
+        setupImageCarouselTouchListener( binding.IncludeAnunciosTercero.carrucel,activity!!)
+        setupImageCarouselTouchListener( binding.IncludeAnunciosCuarto.carrucel,activity!!)
+        setupImageCarouselTouchListener( binding.IncludeAnunciosQuinto.carrucel,activity!!)
+        setupImageCarouselTouchListener( binding.IncludeAnunciosSexto.carrucel,activity!!)
+        setupRecyclerViewTouchListener(binding.includeTrabajadoresTop.trabajadores,activity!!)
+        setupRecyclerViewTouchListener(binding.includeRecicleViewddelivery.trabajadores,activity!!)
+        setupRecyclerViewTouchListener(binding.includeRecicleViewsalud.trabajadores,activity!!)
+        setupRecyclerViewTouchListener(binding.RecicleCategoria,activity!!)
+        setupRecyclerViewTouchListener(binding.includeReciclehogar.trabajadores,activity!!)
+        setupRecyclerViewTouchListener(binding.includeReciclemecanico.trabajadores,activity!!)
+        setupRecyclerViewTouchListener(binding.includeRecicleTecnicos.trabajadores,activity!!)
+
     }
+    val permisoNotificaion =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { esConcedido -> }
+
+
+    fun setupRecyclerViewTouchListener(recyclerView: RecyclerView, activity: MainActivity) {
+        recyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            private var initialX = 0f
+            private var initialY = 0f
+
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        initialX = e.x
+                        initialY = e.y
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val diffX = Math.abs(e.x - initialX)
+                        val diffY = Math.abs(e.y - initialY)
+
+                        // Solo bloquear si el movimiento es principalmente horizontal
+                        if (diffX > diffY) {
+                            activity.setViewPagerSwipeEnabled(false)
+                            rv.parent?.requestDisallowInterceptTouchEvent(true)
+//                            Toast.makeText(recyclerView.context, "RecyclerView en uso", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        activity.setViewPagerSwipeEnabled(true)
+                        rv.parent?.requestDisallowInterceptTouchEvent(false)
+//                        Toast.makeText(recyclerView.context, "RecyclerView liberado", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                return false
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
+    }
+
+
+    fun setupImageCarouselTouchListener(carousel: ImageCarousel, activity: MainActivity) {
+        carousel.viewTreeObserver.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                carousel.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+                val recyclerView = carousel.findViewById<RecyclerView>(org.imaginativeworld.whynotimagecarousel.R.id.recyclerView)
+
+                if (recyclerView != null) {
+                    recyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+                        private var initialX = 0f
+                        private var initialY = 0f
+
+                        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                            when (e.action) {
+                                MotionEvent.ACTION_DOWN -> {
+                                    initialX = e.x
+                                    initialY = e.y
+                                    carousel.autoPlay = false // 🔹 Pausa el auto-play mientras el usuario toca
+                                }
+                                MotionEvent.ACTION_MOVE -> {
+                                    val diffX = Math.abs(e.x - initialX)
+                                    val diffY = Math.abs(e.y - initialY)
+
+                                    if (diffX > diffY) {
+                                        activity.setViewPagerSwipeEnabled(false)
+                                        rv.parent?.requestDisallowInterceptTouchEvent(true)
+                                    }
+                                }
+                                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                    activity.setViewPagerSwipeEnabled(true)
+                                    rv.parent?.requestDisallowInterceptTouchEvent(false)
+                                    carousel.autoPlay = true // 🔹 Reactiva el auto-play cuando el usuario suelta
+                                }
+                            }
+                            return false
+                        }
+
+                        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+
+                        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+                    })
+                } else {
+                    Log.e("ImageCarousel", "No se pudo obtener el RecyclerView")
+                }
+            }
+        })
+    }
+
 
     private fun initScanner() {
         val integrator = IntentIntegrator.forSupportFragment(this)
@@ -447,9 +559,6 @@ class inicioFracment : Fragment() {
             mandarvistaTrabajos(dataClassCategoriasInicio)
         }
     }
-
-    val permisoNotificaion =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { esConcedido -> }
 
     private fun obtenerImagenesFirestorage() {
         val db = FirebaseFirestore.getInstance().collection(Variables.anuncios)

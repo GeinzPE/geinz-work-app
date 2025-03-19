@@ -6306,6 +6306,7 @@ id ver_preview
 id verdesarrollo
 id verificacion
 id verificado
+id verificadoTXT
 id verificados
 id verificar
 id verificationText

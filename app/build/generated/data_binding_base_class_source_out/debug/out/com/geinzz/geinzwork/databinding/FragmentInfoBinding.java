@@ -151,6 +151,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   @NonNull
   public final ImageView verificado;
 
+  @NonNull
+  public final TextView verificadoTXT;
+
   private FragmentInfoBinding(@NonNull FrameLayout rootView,
       @NonNull RecyclerView TrabajosRealizados, @NonNull LinearLayout banerPublicacionesRecientes,
       @NonNull TextView caracteristica1, @NonNull ImageCarousel carrusel,
@@ -169,7 +172,8 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
       @NonNull SwipeRefreshLayout swipe, @NonNull TextView telefono, @NonNull ImageView tk,
       @NonNull RecyclerView trabajadoresSimilares, @NonNull TextView tvReadMore,
-      @NonNull TextView verMasTrabajadores, @NonNull ImageView verificado) {
+      @NonNull TextView verMasTrabajadores, @NonNull ImageView verificado,
+      @NonNull TextView verificadoTXT) {
     this.rootView = rootView;
     this.TrabajosRealizados = TrabajosRealizados;
     this.banerPublicacionesRecientes = banerPublicacionesRecientes;
@@ -211,6 +215,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.tvReadMore = tvReadMore;
     this.verMasTrabajadores = verMasTrabajadores;
     this.verificado = verificado;
+    this.verificadoTXT = verificadoTXT;
   }
 
   @Override
@@ -480,6 +485,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.verificadoTXT;
+      TextView verificadoTXT = ViewBindings.findChildViewById(rootView, id);
+      if (verificadoTXT == null) {
+        break missingId;
+      }
+
       return new FragmentInfoBinding((FrameLayout) rootView, TrabajosRealizados,
           banerPublicacionesRecientes, caracteristica1, carrusel, categoriaTipoTrabajo, circle,
           descripcionTrabajador, edadUser, estado, fb, genero, horario, ig, imgPerfilUser,
@@ -487,7 +498,7 @@ public final class FragmentInfoBinding implements ViewBinding {
           linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida, nombre,
           overlay, popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo,
           qrTrabajador, relativeLayout, scroll, swipe, telefono, tk, trabajadoresSimilares,
-          tvReadMore, verMasTrabajadores, verificado);
+          tvReadMore, verMasTrabajadores, verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

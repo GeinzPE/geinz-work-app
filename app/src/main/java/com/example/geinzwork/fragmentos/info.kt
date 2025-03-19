@@ -241,7 +241,13 @@ class info : Fragment() {
             val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
                 .document(Variables.verificacionesDB).collection(Variables.activos)
                 .document(idTrabajador)
-            constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.contactadoWhatsapp)
+            if (binding.verificadoTXT.text.toString().equals("verificado", ignoreCase = true)) {
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.contactadoWhatsapp)
+            } else if (binding.verificadoTXT.text.toString().equals("noverificado", ignoreCase = true)) {
+                // Otra acción si es "noverificado"
+            }
+
+
             val mensaje =
                 "Hola, estoy interesado en obtener más información sobre el trabajo que vi en Geinz. Gracias."
 
@@ -268,7 +274,12 @@ class info : Fragment() {
             val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
                 .document(Variables.verificacionesDB).collection(Variables.activos)
                 .document(idTrabajador)
-            constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.llamadas)
+            if (binding.verificadoTXT.text.toString().equals("verificado", ignoreCase = true)) {
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.llamadas)
+
+            } else if (binding.verificadoTXT.text.toString().equals("noverificado", ignoreCase = true)) {
+                // Otra acción si es "noverificado"
+            }
             showPermissionDialog(mContex, numero)
             dialog.dismiss()
         }
@@ -757,12 +768,18 @@ class info : Fragment() {
                     dialog.show()
                 }
             } else if (itemID == 2) {
+                createAndShareDynamicLink(idTrabajador)
                 val db =
                     FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
                         .document(Variables.verificacionesDB).collection(Variables.activos)
                         .document(idTrabajador)
-                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.compartidas)
-                createAndShareDynamicLink(idTrabajador)
+                if (binding.verificadoTXT.text.toString().equals("verificado", ignoreCase = true)) {
+                    constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.compartidas)
+
+                } else if (binding.verificadoTXT.text.toString().equals("noverificado", ignoreCase = true)) {
+                    // Otra acción si es "noverificado"
+                }
+
             } else if (itemID == 3) {
                 if (firebaseAuth.uid.toString() == idTrabajador) {
                     Toast.makeText(
@@ -988,6 +1005,7 @@ class info : Fragment() {
                 if (estado) {
                     verificado.isVisible = true
                     obtenerARticulosComprasVerificado(id)
+                    binding.verificadoTXT.text="verificado"
                     banerPublicacionesRecientes.isVisible = true
                     val adapter = adapterTrabajo_realizados(listAdapter,)
                     constantes_publicaciones_general_user_tiendas.obtenerPublicaciones(
@@ -1012,9 +1030,11 @@ class info : Fragment() {
                     verificado.isVisible = false
                     banerPublicacionesRecientes.isVisible = false
                     trabajosRealizados.isVisible = false
+                    binding.verificadoTXT.text="noverificado"
                 }
             } else {
                 verificado.isVisible = false
+                binding.verificadoTXT.text="noverificado"
                 banerPublicacionesRecientes.isVisible = false
                 trabajosRealizados.isVisible = false
             }

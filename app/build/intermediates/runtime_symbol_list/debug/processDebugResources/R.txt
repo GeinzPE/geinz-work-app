@@ -6305,6 +6305,7 @@ int id ver_preview 0x7f0a0765
 int id verdesarrollo 0x7f0a0766
 int id verificacion 0x7f0a0767
 int id verificado 0x7f0a0768
+int id verificadoTXT 0x7f0a07a2
 int id verificados 0x7f0a0769
 int id verificar 0x7f0a076a
 int id verificationText 0x7f0a076b

@@ -79,6 +79,8 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             insets
         }
 
+        viewPager = findViewById(R.id.viewPager)
+
         remoteConfig = FirebaseRemoteConfig.getInstance()
         firebaseAuth = FirebaseAuth.getInstance()
 
@@ -188,6 +190,9 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                 bottomNav.selectedItemId = menuItemId
             }
         })
+    }
+    fun setViewPagerSwipeEnabled(enabled: Boolean) {
+        viewPager.isUserInputEnabled = enabled
     }
 
     private inner class ViewPagerAdapter(activity: AppCompatActivity) :
@@ -392,52 +397,6 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
 //        loadMainContent()
     }
 
-//    private fun loadMainContent() {
-//        verinicio()
-//
-//        binding.buttonNavigation.setOnItemSelectedListener { item ->
-//            if (isUpdatingBottomNavigation) return@setOnItemSelectedListener true // Evita cambios mientras se actualiza
-//            when (item.itemId) {
-//                R.id.inicio -> {
-//                    if (currentFragmentTag != "FragmentInicio") {
-//                        verinicio()
-//                    }
-//                    true
-//                }
-//
-//                R.id.Contacto -> {
-//                    if (currentFragmentTag != "FragmentContacto") {
-//                        vercontacto()
-//                    }
-//                    true
-//                }
-//
-//                R.id.Categorias -> {
-//                    if (currentFragmentTag != "FragmentCategorias") {
-//                        vercategoria()
-//                    }
-//                    true
-//                }
-//
-//                R.id.Cuenta -> {
-//                    if (currentFragmentTag != "FragmentCuenta") {
-//                        vercuenta()
-//                    }
-//                    true
-//                }
-//
-//
-//                else -> false
-//            }
-//        }
-//    }
-
-//    private fun replaceFragment(fragment: Fragment, tag: String) {
-//        currentFragmentTag = tag
-//        supportFragmentManager.beginTransaction()
-//            .replace(R.id.fracmentoLayaout, fragment, tag)
-//            .commit()
-//    }
 
     override fun onBackPressed() {
         if (viewPager.currentItem == 0) { // Verifica si el fragmento actual es el primero (inicio)
@@ -485,61 +444,6 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         fragmentTransaction.replace(binding.viewPager.id, fragmentBinding, "sin_internet")
         fragmentTransaction.commit()
     }
-//
-//    private fun verinicio() {
-//        var fracmentBinding = inicioFracment()
-//        fracmentBinding.arguments = bundle
-//        val fracmentTrasition = supportFragmentManager.beginTransaction()
-//        fracmentTrasition.replace(binding.fracmentoLayaout.id, fracmentBinding, "FracmentInicio")
-//        replaceFragment(inicioFracment(), "FracmentInicio")
-//        fracmentTrasition.commit()
-//        updateBottomNavigation(R.id.inicio)
-//
-//    }
-//
-//    private fun vercontacto() {
-//        var fracmentBinding = contactoFracment()
-//        val fracmentTrasition = supportFragmentManager.beginTransaction()
-//        fracmentTrasition.replace(binding.fracmentoLayaout.id, fracmentBinding, "contactoFracment")
-//        replaceFragment(contactoFracment(), "FragmentContacto")
-//        fracmentTrasition.commit()
-//        updateBottomNavigation(R.id.Contacto)
-//    }
-//
-//    private fun vercategoria() {
-//        var fracmentBinding = categoriasFracment()
-//        val fracmentTrasition = supportFragmentManager.beginTransaction()
-//        fracmentTrasition.replace(
-//            binding.fracmentoLayaout.id,
-//            fracmentBinding,
-//            "categoriasFracment"
-//        )
-//        replaceFragment(categoriasFracment(), "FragmentCategorias")
-//        fracmentTrasition.commit()
-//        updateBottomNavigation(R.id.Categorias)
-//
-//    }
-//
-//    private fun vercuenta() {
-//        if (firebaseAuth.currentUser == null) {
-//            var fracmentBinding = sinRegistroFracment()
-//            val transition = supportFragmentManager.beginTransaction()
-//            transition.replace(binding.fracmentoLayaout.id, fracmentBinding, "sin registro")
-//            replaceFragment(sinRegistroFracment(), "FragmentCuenta")
-//            transition.commit()
-//        } else {
-//            var fracmentBinding = cuentaFracment()
-//            val fracmentTrasition = supportFragmentManager.beginTransaction()
-//            fracmentTrasition.replace(
-//                binding.fracmentoLayaout.id,
-//                fracmentBinding,
-//                "cuentaFracment"
-//            )
-//            replaceFragment(cuentaFracment(), "cuentaFracment")
-//            fracmentTrasition.commit()
-//        }
-//        updateBottomNavigation(R.id.Cuenta)
-//    }
 
     override fun onApplyWindowInsets(v: View, insets: WindowInsets): WindowInsets {
         TODO("Not yet implemented")
