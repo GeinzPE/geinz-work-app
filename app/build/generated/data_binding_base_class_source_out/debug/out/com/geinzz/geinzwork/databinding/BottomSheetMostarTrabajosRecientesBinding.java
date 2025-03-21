@@ -26,6 +26,9 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   private final RelativeLayout rootView;
 
   @NonNull
+  public final TextView cambiarTextoTrabajosRealziadosTrabajosRecientes;
+
+  @NonNull
   public final ProgressBar cargarConteindo;
 
   @NonNull
@@ -59,6 +62,7 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   public final TextView verTodosTrabajos;
 
   private BottomSheetMostarTrabajosRecientesBinding(@NonNull RelativeLayout rootView,
+      @NonNull TextView cambiarTextoTrabajosRealziadosTrabajosRecientes,
       @NonNull ProgressBar cargarConteindo, @NonNull ImageCarousel carruselImgTrabajos,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout linealMostrarTrabajos,
       @NonNull RecyclerView masTrabajosRealiados, @NonNull NestedScrollView scollView,
@@ -66,6 +70,7 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       @NonNull TextView tituloTrabajosRealizados, @NonNull TextView tvReadMore,
       @NonNull TextView verTodosTrabajos) {
     this.rootView = rootView;
+    this.cambiarTextoTrabajosRealziadosTrabajosRecientes = cambiarTextoTrabajosRealziadosTrabajosRecientes;
     this.cargarConteindo = cargarConteindo;
     this.carruselImgTrabajos = carruselImgTrabajos;
     this.cerrar = cerrar;
@@ -107,6 +112,12 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.cambiarTexto_trabajos_realziados_trabajos_recientes;
+      TextView cambiarTextoTrabajosRealziadosTrabajosRecientes = ViewBindings.findChildViewById(rootView, id);
+      if (cambiarTextoTrabajosRealziadosTrabajosRecientes == null) {
+        break missingId;
+      }
+
       id = R.id.cargarConteindo;
       ProgressBar cargarConteindo = ViewBindings.findChildViewById(rootView, id);
       if (cargarConteindo == null) {
@@ -174,9 +185,9 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       }
 
       return new BottomSheetMostarTrabajosRecientesBinding((RelativeLayout) rootView,
-          cargarConteindo, carruselImgTrabajos, cerrar, linealMostrarTrabajos, masTrabajosRealiados,
-          scollView, textoTrabajosRealzados, tituloNombreTrabajador, tituloTrabajosRealizados,
-          tvReadMore, verTodosTrabajos);
+          cambiarTextoTrabajosRealziadosTrabajosRecientes, cargarConteindo, carruselImgTrabajos,
+          cerrar, linealMostrarTrabajos, masTrabajosRealiados, scollView, textoTrabajosRealzados,
+          tituloNombreTrabajador, tituloTrabajosRealizados, tvReadMore, verTodosTrabajos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

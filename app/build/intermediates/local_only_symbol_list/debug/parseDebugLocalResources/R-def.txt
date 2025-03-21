@@ -442,6 +442,7 @@ id buttonSetMax
 id buttonYes
 id cabezero
 id calificacionTienda
+id cambiarTexto_trabajos_realziados_trabajos_recientes
 id camino
 id campo_compra_pagos_etc
 id campo_contacto

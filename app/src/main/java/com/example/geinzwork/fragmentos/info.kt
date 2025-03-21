@@ -187,7 +187,7 @@ class info : Fragment() {
                 binding.swipe.isRefreshing = false
                 obtenerPerfil(idTrabajador, img)
                 obtenertrabajosRecientes(idTrabajador)
-                obtenerDatosTrabajador (idTrabajador){}
+                obtenerDatosTrabajador(idTrabajador) {}
             }, 2000)
         }
     }
@@ -242,8 +242,14 @@ class info : Fragment() {
                 .document(Variables.verificacionesDB).collection(Variables.activos)
                 .document(idTrabajador)
             if (binding.verificadoTXT.text.toString().equals("verificado", ignoreCase = true)) {
-                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.contactadoWhatsapp)
-            } else if (binding.verificadoTXT.text.toString().equals("noverificado", ignoreCase = true)) {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    Variables.contactadoWhatsapp
+                )
+            } else if (binding.verificadoTXT.text.toString()
+                    .equals("noverificado", ignoreCase = true)
+            ) {
                 // Otra acción si es "noverificado"
             }
 
@@ -277,7 +283,9 @@ class info : Fragment() {
             if (binding.verificadoTXT.text.toString().equals("verificado", ignoreCase = true)) {
                 constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.llamadas)
 
-            } else if (binding.verificadoTXT.text.toString().equals("noverificado", ignoreCase = true)) {
+            } else if (binding.verificadoTXT.text.toString()
+                    .equals("noverificado", ignoreCase = true)
+            ) {
                 // Otra acción si es "noverificado"
             }
             showPermissionDialog(mContex, numero)
@@ -411,7 +419,7 @@ class info : Fragment() {
                                 idTrabajador,
                                 trabajo,
                                 listaImg
-                            ) // Pasamos la listaImg
+                            )
                             dialog.show()
                         }
                     }
@@ -443,7 +451,8 @@ class info : Fragment() {
         val idSelecionado = trabajo["id"] as? String ?: ""
         val fecha_rec = trabajo["fecha_rec"] as? String ?: ""
         val hora_rec = trabajo["hora_rec"] as? String ?: ""
-
+        bindingMostrar.tituloNombreTrabajador.text =
+            "Trabajos realizados por ${binding.nombre.text}"
         // Configurar botón para ver todos los trabajos
         bindingMostrar.verTodosTrabajos.setOnClickListener {
             val intent = Intent(mContex, mostrarTodosTrabajos::class.java).apply {
@@ -503,6 +512,105 @@ class info : Fragment() {
     }
 
 
+    private fun showBottomShetDialogPublicacionesMasRecientes(
+        idTrabajador: String,
+        idTrajoReciente: String
+    ) {
+        val bindingMostrar =
+            BottomSheetMostarTrabajosRecientesBinding.inflate(LayoutInflater.from(mContex))
+        dialog.setContentView(bindingMostrar.root)
+
+        bindingMostrar.cerrar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador)
+            .collection("trabajos_realizados").document(idTrajoReciente)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val titulo = data?.get("titulo") as? String ?: "Sin título"
+                val contenido = data?.get("descripcion") as? String ?: "Sin contenido"
+                val fecha_rec = data?.get("fecha_rec") as? String ?: ""
+                val hora_rec = data?.get("hora_rec") as? String ?: ""
+
+                val img_url = data?.get("imageUrl") as? String ?: ""
+                val img_url2 = data?.get("img_url2") as? String ?: ""
+                val img_url3 = data?.get("img_url3") as? String ?: ""
+                val img_url4 = data?.get("img_url4") as? String ?: ""
+
+                bindingMostrar.tituloNombreTrabajador.text =
+                    "Trabajos realizados por ${binding.nombre.text}"
+
+                bindingMostrar.verTodosTrabajos.setOnClickListener {
+                    val intent = Intent(mContex, mostrarTodosTrabajos::class.java).apply {
+                        putExtra("idTrabajador", idTrabajador)
+                        putExtra("fecha_rec", fecha_rec)
+                        putExtra("hora_rec", hora_rec)
+                    }
+                    startActivity(intent)
+                }
+
+                // Convertir la lista a ArrayList para compatibilidad con algunos adaptadores
+                val listaImg = arrayListOf(img_url, img_url2, img_url3, img_url4)
+                    .filter { it.isNotEmpty() }
+                    .let { ArrayList(it) } // Convertir a ArrayList
+
+                println("obtenemos las referencias de las img $listaImg")
+
+                // Configurar el texto expandible
+                constantestextos_general.extender_acortar_texto(
+                    bindingMostrar.textoTrabajosRealzados,
+                    bindingMostrar.tvReadMore
+                )
+
+                bindingMostrar.textoTrabajosRealzados.text = contenido
+                bindingMostrar.tituloTrabajosRealizados.text = titulo
+
+                // Configurar el carrusel de imágenes si hay imágenes disponibles
+                if (listaImg.isNotEmpty()) {
+                    val carouselItems = listaImg.map { CarouselItem(it) }
+                    bindingMostrar.carruselImgTrabajos.registerLifecycle(lifecycle)
+                    bindingMostrar.carruselImgTrabajos.carouselListener =
+                        object : CarouselListener {
+                            override fun onCreateViewHolder(
+                                layoutInflater: LayoutInflater,
+                                parent: ViewGroup,
+                            ): ViewBinding? {
+                                return ItemCustomFixedSizeLayout2Binding.inflate(
+                                    layoutInflater,
+                                    parent,
+                                    false
+                                )
+                            }
+
+                            override fun onBindViewHolder(
+                                binding: ViewBinding,
+                                item: CarouselItem,
+                                position: Int,
+                            ) {
+                                val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
+                                currentBinding.imageView.apply {
+                                    setImage(item, R.drawable.ic_wb_cloudy_with_padding)
+                                    minimumScale = 1f
+                                    maximumScale = 10f
+                                    mediumScale = 5f
+                                }
+                            }
+                        }
+                    bindingMostrar.carruselImgTrabajos.setData(ArrayList(carouselItems))
+                }
+                obtnerMasTrabajosRealziadosTrabajosReicntes(idTrabajador, bindingMostrar, idTrajoReciente)
+            }
+        }.addOnFailureListener {
+            println("Error al obtener los datos: ${it.message}")
+        }
+    }
+
+
     private fun obtenerMasTrabajosRealiazdos(
         idTrabajador: String,
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
@@ -556,6 +664,63 @@ class info : Fragment() {
             println("error al encontrar $e")
         }
     }
+
+
+    private fun obtnerMasTrabajosRealziadosTrabajosReicntes(
+        idTrabajador: String,
+        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
+        idSelecionado: String
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador).collection("trabajos_realizados")
+
+        db.get().addOnSuccessListener { res ->
+            listaMas_promo.clear()
+
+            for (datos in res) {
+                val data = datos.data
+                val img_url = data?.get("imageUrl") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                val contenido = data?.get("descripcion") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val fecha = data?.get("fecha") as? String ?: ""
+                val hora = data?.get("hora") as? String ?: ""
+                val img_url2 = data?.get("img_url2") as? String ?: ""
+                val img_url3 = data?.get("img_url3") as? String ?: ""
+                val img_url4 = data?.get("img_url4") as? String ?: ""
+
+
+                // Filtrar para que no se agregue el idSeleccionado
+                if (id != idSelecionado) {
+                    val dataClass =
+                        dataclass_adapter_promociones(
+                            img_url,
+                            img_url2,
+                            img_url3,
+                            img_url4,
+                            titulo,
+                            contenido,
+                            id,
+                            fecha,
+                            hora
+                        )
+                    listaMas_promo.add(dataClass)
+                }
+            }
+
+            if (listaMas_promo.isNotEmpty()) {
+                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
+                inicializarTrabajosRealizados(bindingMostrarTRabajos)
+            } else {
+                Log.d("error obtenerDAtos", "No hay datos para mostrar")
+            }
+        }.addOnFailureListener { e ->
+            println("error al encontrar $e")
+        }
+    }
+
+
 
 
     private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
@@ -636,109 +801,6 @@ class info : Fragment() {
     }
 
 
-//    private fun obtenerImagenesFirestorage(idT: String) {
-//        val id = idT
-//        val referenciaStorage =
-//            FirebaseStorage.getInstance().getReference(Variables.usuarios_db).child(id)
-//
-//        val lista = mutableListOf<CarouselItem>()
-//
-//        if (referenciaStorage != null) {
-//            val nombreImagen1 = Variables.imgane1
-//            val nombreImagen2 = Variables.imagen2
-//            val nombreImagen3 = Variables.imagen3
-//            val referenciaImagen1 = referenciaStorage.child(nombreImagen1)
-//            val referenciaImagen2 = referenciaStorage.child(nombreImagen2)
-//            val referenciaImagen3 = referenciaStorage.child(nombreImagen3)
-//
-//            referenciaImagen1.downloadUrl.addOnSuccessListener { url1 ->
-//                val urlImagen1 = url1.toString()
-//                val carouselItem1 = CarouselItem(urlImagen1)
-//                println("obtenemos url 1 ${urlImagen1}")
-//                lista.add(carouselItem1)
-//
-//                referenciaImagen2.downloadUrl.addOnSuccessListener { url2 ->
-//                    val urlImagen2 = url2.toString()
-//                    val carouselItem2 = CarouselItem(urlImagen2)
-//                    println("obtenemos url 2 ${urlImagen2}")
-//                    lista.add(carouselItem2)
-//
-//                    referenciaImagen3.downloadUrl.addOnSuccessListener { url3 ->
-//                        val urlImagen3 = url3.toString()
-//                        val carouselItem3 = CarouselItem(urlImagen3)
-//                        println("obtenemos url 3 ${urlImagen3}")
-//                        lista.add(carouselItem3)
-//
-//                        binding.carrusel.registerLifecycle(lifecycle)
-//                        binding.carrusel.carouselListener = object : CarouselListener {
-//                            override fun onCreateViewHolder(
-//                                layoutInflater: LayoutInflater,
-//                                parent: ViewGroup,
-//                            ): ViewBinding? {
-//                                return ItemCustomFixedSizeLayout2Binding.inflate(
-//                                    layoutInflater,
-//                                    parent,
-//                                    false
-//                                )
-//                            }
-//
-//                            override fun onBindViewHolder(
-//                                binding: ViewBinding,
-//                                item: CarouselItem,
-//                                position: Int,
-//                            ) {
-//                                val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
-//                                currentBinding.imageView.apply {
-//                                    setImage(item, R.drawable.ic_wb_cloudy_with_padding)
-//                                    minimumScale = 1f
-//                                    maximumScale = 10f
-//                                    mediumScale = 5f
-//                                    setOnClickListener {
-//                                        when (position) {
-//                                            0 -> {
-//                                                Toast.makeText(mContex, "la 1", Toast.LENGTH_SHORT)
-//                                                    .show()
-//                                            }
-//
-//                                            1 -> {
-//                                                Toast.makeText(mContex, "la 2", Toast.LENGTH_SHORT)
-//                                                    .show()
-//
-//                                            }
-//
-//                                            2 -> {
-//                                                Toast.makeText(mContex, "la 3", Toast.LENGTH_SHORT)
-//                                                    .show()
-//
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//
-//                        }
-//                        binding.carrusel.setData(lista)
-//                    }.addOnFailureListener { e3 ->
-//                        println("Error al obtener la URL de la imagen 3: $e3")
-//                    }
-//                }.addOnFailureListener { e2 ->
-//                    println("Error al obtener la URL de la imagen 2: $e2")
-//                }
-//            }.addOnFailureListener { e1 ->
-//                println("Error al obtener la URL de la imagen 1: $e1")
-//                val drawableId = R.drawable.no_cuenta_img
-//                val carouselItem1 = CarouselItem(drawableId)
-//                val carouselItem2 = CarouselItem(drawableId)
-//                val carouselItem3 = CarouselItem(drawableId)
-//                lista.add(carouselItem1)
-//                lista.add(carouselItem2)
-//                lista.add(carouselItem3)
-//                binding.carrusel.setData(lista)
-//
-//            }
-//        }
-//    }
-
     private fun popup(
         idTrabajador: String,
         nombre: String,
@@ -776,7 +838,9 @@ class info : Fragment() {
                 if (binding.verificadoTXT.text.toString().equals("verificado", ignoreCase = true)) {
                     constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.compartidas)
 
-                } else if (binding.verificadoTXT.text.toString().equals("noverificado", ignoreCase = true)) {
+                } else if (binding.verificadoTXT.text.toString()
+                        .equals("noverificado", ignoreCase = true)
+                ) {
                     // Otra acción si es "noverificado"
                 }
 
@@ -1005,9 +1069,21 @@ class info : Fragment() {
                 if (estado) {
                     verificado.isVisible = true
                     obtenerARticulosComprasVerificado(id)
-                    binding.verificadoTXT.text="verificado"
+                    binding.verificadoTXT.text = "verificado"
                     banerPublicacionesRecientes.isVisible = true
-                    val adapter = adapterTrabajo_realizados(listAdapter,)
+                    val adapter = adapterTrabajo_realizados(listAdapter) { item ->
+                        dialog = BottomSheetDialog(mContex)
+                        showBottomShetDialogPublicacionesMasRecientes(
+                            id,
+                            item.id_publicacion.toString(),
+                        )
+                        dialog.show()
+                        Toast.makeText(
+                            mContex,
+                            "realziando clik en ${item.id_publicacion}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     constantes_publicaciones_general_user_tiendas.obtenerPublicaciones(
                         plan,
                         id,
@@ -1030,11 +1106,11 @@ class info : Fragment() {
                     verificado.isVisible = false
                     banerPublicacionesRecientes.isVisible = false
                     trabajosRealizados.isVisible = false
-                    binding.verificadoTXT.text="noverificado"
+                    binding.verificadoTXT.text = "noverificado"
                 }
             } else {
                 verificado.isVisible = false
-                binding.verificadoTXT.text="noverificado"
+                binding.verificadoTXT.text = "noverificado"
                 banerPublicacionesRecientes.isVisible = false
                 trabajosRealizados.isVisible = false
             }
