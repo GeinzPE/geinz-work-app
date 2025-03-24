@@ -49,6 +49,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomSheetContactaTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBinding
+import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
@@ -202,14 +203,18 @@ class info : Fragment() {
                 val data = datos.data
                 val imgProducto = data?.get("img_principal") as? String ?: ""
                 val descuentoActivo = data?.get("descuento") as? Boolean ?: false
+                val id = data?.get("id") as? String ?: ""
                 val cantidadDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
 
                 val lista = dataclas_item_preview_art_comprar(
-                    imgProducto, "", null, null, descuentoActivo, cantidadDescuento
+                    id, imgProducto, "", null, null, descuentoActivo, cantidadDescuento
                 )
                 listaAdapterProductosTRabajdores.add(lista)
                 if (listaAdapterProductosTRabajdores.isNotEmpty()) {
-                    inicializarRecicleProductosVentasTrabajdores(listaAdapterProductosTRabajdores)
+                    inicializarRecicleProductosVentasTrabajdores(
+                        listaAdapterProductosTRabajdores,
+                        idTrabajador
+                    )
                 }
             }
         }.addOnFailureListener { e ->
@@ -217,12 +222,22 @@ class info : Fragment() {
         }
     }
 
-    private fun inicializarRecicleProductosVentasTrabajdores(listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>) {
+    private fun inicializarRecicleProductosVentasTrabajdores(
+        listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>,
+        idTrabajador: String
+    ) {
         val recicle = binding.productosDestacados
         recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.adapter = adapter_mostra_articulos_trabajadores(
             listaAdapterProductosTRabajdores
-        )
+        ) { item ->
+            dialog = BottomSheetDialog(mContex)
+            ShowBottomSheetDialogProductosTrabajadores(
+                idTrabajador,
+                item.id.toString(),
+            )
+            dialog.show()
+        }
     }
 
     private fun mostrarDatos() {
@@ -603,11 +618,88 @@ class info : Fragment() {
                         }
                     bindingMostrar.carruselImgTrabajos.setData(ArrayList(carouselItems))
                 }
-                obtnerMasTrabajosRealziadosTrabajosReicntes(idTrabajador, bindingMostrar, idTrajoReciente)
+                obtnerMasTrabajosRealziadosTrabajosReicntes(
+                    idTrabajador,
+                    bindingMostrar,
+                    idTrajoReciente
+                )
             }
         }.addOnFailureListener {
             println("Error al obtener los datos: ${it.message}")
         }
+    }
+
+
+    private fun ShowBottomSheetDialogProductosTrabajadores(
+        idTrabajador: String,
+        productoClikado: String
+    ) {
+        val bindingProductosTrabajadores =
+            BottomsheetProductosVendidosUserVerifiBinding.inflate(LayoutInflater.from(mContex))
+        dialog.setContentView(bindingProductosTrabajadores.root)
+        bindingProductosTrabajadores.cerrar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("productos_venta").document(productoClikado)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data ?: emptyMap()
+                setearDatosdialogProductos(data, bindingProductosTrabajadores)
+
+
+            }else{
+                println("no se encontraron datos del producto")
+            }
+        }.addOnFailureListener { e->
+            println("no se encontro ningun dato de producto $e")
+        }
+
+    }
+
+    private fun setearDatosdialogProductos(
+        data: Map<String, Any>,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+    ) {
+        val cantidadPorcentajeDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+        val precio = data?.get("precio") as? Number ?: 0
+        val precioDescuento = data?.get("precio_descuento") as? Number ?: 0
+        val totalProducto = data?.get("total_producto") as? Number ?: 0
+        constantestextos_general.extender_acortar_texto(
+            bindingProductosTrabajadores.descripcion,
+            bindingProductosTrabajadores.tvReadMore
+        )
+        val categoria = data?.get("categoria") as? String ?: ""
+        val condicionProducto = data?.get("condicion_producto") as? String ?: ""
+        val descripcion = data?.get("descripcion") as? String ?: ""
+        val modelo = data?.get("modelo") as? String ?: ""
+        val descuento = data?.get("descuento") as? Boolean ?: false
+        val efectivo = data?.get("efectivo") as? Boolean ?: false
+        val garantia = data?.get("garantia") as? String ?: ""
+        val id = data?.get("id") as? String ?: ""
+        val imgPrincipal = data?.get("img_principal") as? String ?: ""
+        val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
+        val marca = data?.get("marca") as? String ?: ""
+        val nombre = data?.get("nombre") as? String ?: ""
+        val plin = data?.get("plin") as? Boolean ?: false
+        val stok = data?.get("stok") as? String ?: ""
+        val yape = data?.get("yape") as? Boolean ?: false
+
+
+        bindingProductosTrabajadores.categoriaProducto.text = categoria
+        bindingProductosTrabajadores.nombreProducto.text=nombre
+        bindingProductosTrabajadores.marca.text = marca
+        bindingProductosTrabajadores.modelo.text = condicionProducto
+        bindingProductosTrabajadores.stok.text = stok
+        bindingProductosTrabajadores.garantia.text = garantia
+        bindingProductosTrabajadores.modelo.text=modelo
+        bindingProductosTrabajadores.Condicion.text = condicionProducto
+        bindingProductosTrabajadores.descripcion.text = descripcion
+        bindingProductosTrabajadores.precioProducto.text = precio.toString()
+        bindingProductosTrabajadores.fechaPublicado.text = "Fecha aquí" // Asegúrate de tener la fecha
     }
 
 
@@ -719,8 +811,6 @@ class info : Fragment() {
             println("error al encontrar $e")
         }
     }
-
-
 
 
     private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {

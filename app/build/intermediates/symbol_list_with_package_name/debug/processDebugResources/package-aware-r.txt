@@ -4433,6 +4433,7 @@ id CalificaionStart
 id Categorias
 id CerradoEstado
 id Compartir
+id Condicion
 id ConocerVerificados
 id Contacto
 id ContadorTiendasLocalidad
@@ -4504,6 +4505,7 @@ id LOCALE_SIM
 id LOCALE_SIM_NETWORK
 id LinealCantidad
 id LinealContainer
+id LinealModeloProducto
 id LinealPagado
 id LinealStok
 id LinealVermas
@@ -4864,6 +4866,7 @@ id cat
 id categoria
 id categoriaED
 id categoriaEmpresa
+id categoriaProducto
 id categoriaSelcionada
 id categoriaT
 id categoriaTienda
@@ -4984,6 +4987,7 @@ id controls_container
 id controls_dock
 id coordinator
 id corazon
+id cordinarVendedor
 id correo_electronico
 id correo_electronicoFree
 id cos
@@ -5117,6 +5121,7 @@ id end_padder
 id enterAlways
 id enterAlwaysCollapsed
 id entragado
+id entregaDomicilio
 id entregaMetodo
 id enviado_exitosamente
 id enviar
@@ -5148,6 +5153,7 @@ id fechaNac_fre
 id fechaNaciminetoUSer
 id fechaPago
 id fechaPublicada
+id fechaPublicado
 id fechaVencimineto
 id fecha_llegada
 id fecha_publicada
@@ -5194,6 +5200,7 @@ id frameSinReview
 id freelancer
 id frost
 id fullscreen_header
+id garantia
 id geinz
 id general
 id generalGeinz
@@ -5510,19 +5517,26 @@ id linealCaracteristicas
 id linealCaracteristicasLayout
 id linealCargandoHorario
 id linealCargandoImg
+id linealCategoriaProducto
 id linealCategoriaT
 id linealCompartir_descargar
+id linealCondicionProducto
 id linealDescripcion
+id linealDescripcionProducto
 id linealDescuento
 id linealDiasRestantess
 id linealDireccion
+id linealEntregaDomicilio
 id linealFecha
+id linealFechaPublicada
+id linealGarantiaDisponible
 id linealHoraLLegada
 id linealHorario
 id linealL_cuentafinal
 id linealLayaout
 id linealListener
 id linealListner
+id linealMarcaProducto
 id linealMetodoEntrega
 id linealMontoDel_servicio
 id linealMostrarTrabajos
@@ -5531,6 +5545,7 @@ id linealPadre
 id linealPlin
 id linealPrecio
 id linealPrecioDelivery
+id linealPrecioProducto
 id linealPrecioTexview
 id linealPrincipal
 id linealPublicaciones_edit_delete
@@ -5539,6 +5554,7 @@ id linealReferencia
 id linealSakeBAr
 id linealServicios
 id linealSinReportes
+id linealStokDisponible
 id linealSubir
 id linealTiendaProp
 id linealTipoTrabajo
@@ -5619,9 +5635,11 @@ id main_icon
 id main_image
 id mandarSolicitud
 id mapa
+id marca
 id marquee
 id mas
 id masEstrellas
+id masProductosPOublicados
 id masPromociones_geinz
 id masSeguidores
 id mas_informacion
@@ -5676,6 +5694,7 @@ id metodopago
 id middle
 id mini
 id modalida_negocio
+id modelo
 id month_grid
 id month_navigation_bar
 id month_navigation_fragment_toggle
@@ -5756,6 +5775,7 @@ id nombreED
 id nombreEd
 id nombreEmpresa
 id nombreInput
+id nombreProducto
 id nombreServicio
 id nombreSevicio
 id nombreTienda
@@ -6113,6 +6133,7 @@ id startVertical
 id staticLayout
 id staticPostLayout
 id status_bar_latest_event_content
+id stok
 id stop
 id stretch
 id subcategoriED
@@ -6613,6 +6634,7 @@ layout bottom_sheet_reserva_productos
 layout bottom_sheet_reservas
 layout bottom_sheet_vista_categoria
 layout bottom_shett_cambios_realizados
+layout bottomsheet_productos_vendidos_user_verifi
 layout bottomshetet_detalles_servicios
 layout browser_actions_context_menu_page
 layout browser_actions_context_menu_row
@@ -6699,6 +6721,7 @@ layout item_custom_cricle_noticias_tienda
 layout item_custom_fixed_size_layout_2
 layout item_custom_fixed_size_layout_3
 layout item_custom_publicidad_principal
+layout item_custom_trabajadores_productos
 layout item_filtrado_promociones
 layout item_filtrado_tiendas
 layout item_general_tienda

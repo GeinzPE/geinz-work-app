@@ -264,6 +264,7 @@ id CalificaionStart
 id Categorias
 id CerradoEstado
 id Compartir
+id Condicion
 id ConocerVerificados
 id Contacto
 id ContadorTiendasLocalidad
@@ -305,6 +306,7 @@ id IncudeProgrs
 id InfoTienda
 id LinealCantidad
 id LinealContainer
+id LinealModeloProducto
 id LinealPagado
 id LinealStok
 id LinealVermas
@@ -487,6 +489,7 @@ id cat
 id categoria
 id categoriaED
 id categoriaEmpresa
+id categoriaProducto
 id categoriaSelcionada
 id categoriaT
 id categoriaTienda
@@ -570,6 +573,7 @@ id continuarPrincipal
 id contraseña
 id contraseña_olv
 id corazon
+id cordinarVendedor
 id correo_electronico
 id correo_electronicoFree
 id crea_direccion
@@ -633,6 +637,7 @@ id elcion_de_cateogoria
 id eliminar
 id encontrados
 id entragado
+id entregaDomicilio
 id entregaMetodo
 id enviado_exitosamente
 id enviar
@@ -655,6 +660,7 @@ id fechaNac_fre
 id fechaNaciminetoUSer
 id fechaPago
 id fechaPublicada
+id fechaPublicado
 id fechaVencimineto
 id fecha_llegada
 id fecha_publicada
@@ -684,6 +690,7 @@ id fracmentoID
 id frameInfo
 id frameSinReview
 id freelancer
+id garantia
 id geinz
 id general
 id generalGeinz
@@ -886,19 +893,26 @@ id linealCaracteristicas
 id linealCaracteristicasLayout
 id linealCargandoHorario
 id linealCargandoImg
+id linealCategoriaProducto
 id linealCategoriaT
 id linealCompartir_descargar
+id linealCondicionProducto
 id linealDescripcion
+id linealDescripcionProducto
 id linealDescuento
 id linealDiasRestantess
 id linealDireccion
+id linealEntregaDomicilio
 id linealFecha
+id linealFechaPublicada
+id linealGarantiaDisponible
 id linealHoraLLegada
 id linealHorario
 id linealL_cuentafinal
 id linealLayaout
 id linealListener
 id linealListner
+id linealMarcaProducto
 id linealMetodoEntrega
 id linealMontoDel_servicio
 id linealMostrarTrabajos
@@ -907,6 +921,7 @@ id linealPadre
 id linealPlin
 id linealPrecio
 id linealPrecioDelivery
+id linealPrecioProducto
 id linealPrecioTexview
 id linealPrincipal
 id linealPublicaciones_edit_delete
@@ -915,6 +930,7 @@ id linealReferencia
 id linealSakeBAr
 id linealServicios
 id linealSinReportes
+id linealStokDisponible
 id linealSubir
 id linealTiendaProp
 id linealTipoTrabajo
@@ -984,8 +1000,10 @@ id lottie_animation
 id main
 id mandarSolicitud
 id mapa
+id marca
 id mas
 id masEstrellas
+id masProductosPOublicados
 id masPromociones_geinz
 id masSeguidores
 id mas_informacion
@@ -1002,6 +1020,7 @@ id metodo_entrega
 id metodo_pagos
 id metodopago
 id modalida_negocio
+id modelo
 id montoTotal
 id monto_cancelar
 id mostrarOcular_contacto
@@ -1036,6 +1055,7 @@ id nombreED
 id nombreEd
 id nombreEmpresa
 id nombreInput
+id nombreProducto
 id nombreServicio
 id nombreSevicio
 id nombreTienda
@@ -1253,6 +1273,7 @@ id shimmerFrameLayout
 id siguiente
 id slogan
 id sloganTienda
+id stok
 id subcategoriED
 id subcategoria
 id supe
@@ -1497,6 +1518,7 @@ layout bottom_sheet_reserva_productos
 layout bottom_sheet_reservas
 layout bottom_sheet_vista_categoria
 layout bottom_shett_cambios_realizados
+layout bottomsheet_productos_vendidos_user_verifi
 layout bottomshetet_detalles_servicios
 layout carga_carrito_compras
 layout carga_categorias
@@ -1560,6 +1582,7 @@ layout item_custom_cricle_noticias_tienda
 layout item_custom_fixed_size_layout_2
 layout item_custom_fixed_size_layout_3
 layout item_custom_publicidad_principal
+layout item_custom_trabajadores_productos
 layout item_filtrado_promociones
 layout item_filtrado_tiendas
 layout item_general_tienda

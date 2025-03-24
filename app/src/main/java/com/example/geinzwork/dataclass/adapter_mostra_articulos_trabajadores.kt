@@ -1,7 +1,6 @@
 package com.example.geinzwork.dataclass
 
 
-
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -10,7 +9,10 @@ import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.geinzz.geinzwork.databinding.ItemProductosUsuariosVerificadosBinding
 
-class adapter_mostra_articulos_trabajadores(private val lista: MutableList<dataclas_item_preview_art_comprar>) :
+class adapter_mostra_articulos_trabajadores(
+    private val lista: MutableList<dataclas_item_preview_art_comprar>,
+    private val listener: (dataclas_item_preview_art_comprar) -> Unit
+) :
     RecyclerView.Adapter<adapter_mostra_articulos_trabajadores.viewholderMostrarArticulos>() {
 
 
@@ -38,6 +40,7 @@ class adapter_mostra_articulos_trabajadores(private val lista: MutableList<datac
         val progressVar = binding.progressCargaImagen
         val descuentoPorcentaje = binding.descuentoPorcentaje
         fun render(item: dataclas_item_preview_art_comprar) {
+            imgARticulo.setOnClickListener { listener(item) }
             constatnes_carga_imagenes_general.changer_img(
                 progressVar,
                 itemView.context,
