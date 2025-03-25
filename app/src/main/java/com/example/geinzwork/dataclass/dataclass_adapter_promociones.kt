@@ -9,5 +9,5 @@ data class dataclass_adapter_promociones(
     var texto_promo: String?,
     var id:String?,
     var fecha:String?,
-    var hora:String?
+    var hora:String?=null
 )

@@ -4854,6 +4854,7 @@ int id carritoCompras 0x7f0a01ba
 int id carrito_compras 0x7f0a01bb
 int id carrucel 0x7f0a01bc
 int id carrucelImgContainer 0x7f0a01bd
+int id carrucelMasProductosPublicados 0x7f0a07b9
 int id carrucel_tiendas 0x7f0a01be
 int id carruse2 0x7f0a01bf
 int id carrusel 0x7f0a01c0
@@ -5638,7 +5639,6 @@ int id marca 0x7f0a04ca
 int id marquee 0x7f0a04cb
 int id mas 0x7f0a04cc
 int id masEstrellas 0x7f0a04cd
-int id masProductosPOublicados 0x7f0a04ce
 int id masPromociones_geinz 0x7f0a04cf
 int id masSeguidores 0x7f0a04d0
 int id mas_informacion 0x7f0a04d1

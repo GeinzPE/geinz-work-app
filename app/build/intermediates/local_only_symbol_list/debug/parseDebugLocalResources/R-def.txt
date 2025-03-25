@@ -479,6 +479,7 @@ id carritoCompras
 id carrito_compras
 id carrucel
 id carrucelImgContainer
+id carrucelMasProductosPublicados
 id carrucel_tiendas
 id carruse2
 id carrusel
@@ -1003,7 +1004,6 @@ id mapa
 id marca
 id mas
 id masEstrellas
-id masProductosPOublicados
 id masPromociones_geinz
 id masSeguidores
 id mas_informacion

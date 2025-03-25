@@ -366,10 +366,24 @@
                 android:text="Mas productos publicados"
                 android:textSize="20sp" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/masProductosPOublicados"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                android:id="@+id/carrucelMasProductosPublicados"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginVertical="10dp"
+                android:layout_marginTop="16dp"
+                app:autoWidthFixing="false"
+                app:carouselGravity="START"
+                app:carouselType="SHOWCASE"
+                app:imageScaleType="center"
+                app:infiniteCarousel="false"
+                app:scaleOnScroll="false"
+                app:showBottomShadow="false"
+                app:showCaption="false"
+                app:showIndicator="false"
+                app:showNavigationButtons="false"
+                app:showTopShadow="false" />
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

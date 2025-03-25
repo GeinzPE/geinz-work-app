@@ -52,6 +52,7 @@ import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBindin
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
+import com.geinzz.geinzwork.databinding.ItemCustomTrabajadoresProductosBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario
@@ -649,12 +650,16 @@ class info : Fragment() {
             if (res.exists()) {
                 val data = res.data ?: emptyMap()
                 setearDatosdialogProductos(data, bindingProductosTrabajadores)
+                obtenerMasTrabajosrealizados(
+                    idTrabajador,
+                    productoClikado,
+                    bindingProductosTrabajadores
+                )
 
-
-            }else{
+            } else {
                 println("no se encontraron datos del producto")
             }
-        }.addOnFailureListener { e->
+        }.addOnFailureListener { e ->
             println("no se encontro ningun dato de producto $e")
         }
 
@@ -690,16 +695,122 @@ class info : Fragment() {
 
 
         bindingProductosTrabajadores.categoriaProducto.text = categoria
-        bindingProductosTrabajadores.nombreProducto.text=nombre
+        bindingProductosTrabajadores.nombreProducto.text = nombre
         bindingProductosTrabajadores.marca.text = marca
         bindingProductosTrabajadores.modelo.text = condicionProducto
         bindingProductosTrabajadores.stok.text = stok
         bindingProductosTrabajadores.garantia.text = garantia
-        bindingProductosTrabajadores.modelo.text=modelo
+        bindingProductosTrabajadores.modelo.text = modelo
         bindingProductosTrabajadores.Condicion.text = condicionProducto
         bindingProductosTrabajadores.descripcion.text = descripcion
         bindingProductosTrabajadores.precioProducto.text = precio.toString()
-        bindingProductosTrabajadores.fechaPublicado.text = "Fecha aquí" // Asegúrate de tener la fecha
+        bindingProductosTrabajadores.fechaPublicado.text =
+            "Fecha aquí" // Asegúrate de tener la fecha
+
+    }
+
+    private fun obtenerMasTrabajosrealizados(
+        idTrabajador: String,
+        idProducto: String,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador).collection("productos_venta")
+        db.get().addOnSuccessListener { res ->
+            listaMas_promo.clear()
+            for (datos in res) {
+                val data = datos.data
+                val id = data?.get("id") as? String ?: ""
+                val imgpricipal = data?.get("img_principal") as? String ?: ""
+                val fecha = data?.get("") as? String ?: ""
+                val titulo = data?.get("") as? String ?: ""
+                val descripcion = data?.get("") as? String ?: ""
+                if (id != idProducto) {
+                    val dataClass =
+                        dataclass_adapter_promociones(
+                            imgpricipal,
+                            null,
+                            null,
+                            null,
+                            titulo,
+                            descripcion,
+                            id,
+                            fecha,
+                            null
+                        )
+                    listaMas_promo.add(dataClass)
+                }
+            }
+            if (listaMas_promo.isNotEmpty()) {
+                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
+                val listaFinal: List<CarouselItem> = listaMas_promo.map { promo ->
+                    CarouselItem(
+                        imageUrl = promo.img,
+                        // Asegúrate de que los nombres de los atributos coincidan
+                    )
+                }
+
+                inizializarCarruceBindig(listaMas_promo, listaFinal, bindingProductosTrabajadores)
+            } else {
+                Log.d("error obtenerDAtos", "No hay datos para mostrar")
+            }
+
+
+        }.addOnFailureListener { e ->
+            println("no se econtro productos publicados $e")
+        }
+
+    }
+
+    private fun inizializarCarruceBindig(
+        listaMas_promo: MutableList<dataclass_adapter_promociones>,
+        lista: List<CarouselItem>,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+    ) {
+        bindingProductosTrabajadores.carrucelMasProductosPublicados.registerLifecycle(lifecycle)
+        bindingProductosTrabajadores.carrucelMasProductosPublicados.carouselListener =
+            object : CarouselListener {
+                override fun onCreateViewHolder(
+                    layoutInflater: LayoutInflater,
+                    parent: ViewGroup,
+                ): ViewBinding? {
+                    return ItemCustomTrabajadoresProductosBinding.inflate(
+                        layoutInflater,
+                        parent,
+                        false
+                    )
+                }
+
+                override fun onBindViewHolder(
+                    binding: ViewBinding,
+                    item: CarouselItem,
+                    position: Int,
+                ) {
+                    val currentBinding = binding as ItemCustomTrabajadoresProductosBinding
+                    currentBinding.imageView.apply {
+                        setImage(item, R.drawable.ic_wb_cloudy_with_padding)
+                        minimumScale = 1f
+                        maximumScale = 10f
+                        mediumScale = 5f
+                        setOnClickListener {
+                            val trabajo = listaTrabajo[position]
+//                            dialog = BottomSheetDialog(mContex)
+                            Toast.makeText(
+                                mContex,
+                                "selecionaste el ${trabajo.id}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+//                            ShowBottomSheetDialogProductosTrabajadores(
+//                                trabajo.id.toString(),
+//                                trabajo.id.toString()
+//                            )
+//                            dialog.show()
+                        }
+                    }
+                }
+            }
+        bindingProductosTrabajadores.carrucelMasProductosPublicados.setData(lista)
     }
 
 
