@@ -5747,6 +5747,7 @@ id navigation_bar_item_large_label_view
 id navigation_bar_item_small_label_view
 id navigation_header_container
 id navigator_container
+id netScrollView
 id never
 id neverCompleteToEnd
 id neverCompleteToStart
@@ -5927,6 +5928,7 @@ id progresCargandoContenido
 id progresVar3Estrellas
 id progressBar
 id progressBarContainer
+id progressCarga
 id progress_5_stars
 id progress_carga_imagen
 id progress_carga_imagen_fondo

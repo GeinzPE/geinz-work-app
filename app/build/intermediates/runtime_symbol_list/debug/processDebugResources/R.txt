@@ -5746,6 +5746,7 @@ int id navigation_bar_item_large_label_view 0x7f0a0536
 int id navigation_bar_item_small_label_view 0x7f0a0537
 int id navigation_header_container 0x7f0a0538
 int id navigator_container 0x7f0a0539
+int id netScrollView 0x7f0a07ba
 int id never 0x7f0a053a
 int id neverCompleteToEnd 0x7f0a053b
 int id neverCompleteToStart 0x7f0a053c
@@ -5926,6 +5927,7 @@ int id progresCargandoContenido 0x7f0a05ea
 int id progresVar3Estrellas 0x7f0a05eb
 int id progressBar 0x7f0a05ec
 int id progressBarContainer 0x7f0a05ed
+int id progressCarga 0x7f0a07bb
 int id progress_5_stars 0x7f0a05ee
 int id progress_carga_imagen 0x7f0a05ef
 int id progress_carga_imagen_fondo 0x7f0a05f0

@@ -763,6 +763,14 @@ class info : Fragment() {
 
     }
 
+    private fun cargarDatosNuevaMente(
+        idClikeado: String,
+        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
+    ) {
+        bindingProductosVencidodos.progressCarga.isVisible = true
+        bindingProductosVencidodos.netScrollView.isVisible = false
+    }
+
     private fun inizializarCarruceBindig(
         listaMas_promo: MutableList<dataclass_adapter_promociones>,
         lista: List<CarouselItem>,
@@ -785,7 +793,7 @@ class info : Fragment() {
                 override fun onBindViewHolder(
                     binding: ViewBinding,
                     item: CarouselItem,
-                    position: Int,
+                    position: Int
                 ) {
                     val currentBinding = binding as ItemCustomTrabajadoresProductosBinding
                     currentBinding.imageView.apply {
@@ -793,22 +801,29 @@ class info : Fragment() {
                         minimumScale = 1f
                         maximumScale = 10f
                         mediumScale = 5f
+
                         setOnClickListener {
-                            val trabajo = listaTrabajo[position]
-//                            dialog = BottomSheetDialog(mContex)
-                            Toast.makeText(
-                                mContex,
-                                "selecionaste el ${trabajo.id}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-//                            ShowBottomSheetDialogProductosTrabajadores(
-//                                trabajo.id.toString(),
-//                                trabajo.id.toString()
-//                            )
-//                            dialog.show()
+                            if (position < listaMas_promo.size) {  // Verifica que el índice sea válido
+                                val trabajo = listaMas_promo[position]
+                                Toast.makeText(
+                                    mContex,
+                                    "Seleccionaste el ${trabajo.id}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                cargarDatosNuevaMente(
+                                    trabajo.id.toString(),
+                                    bindingProductosTrabajadores
+                                )
+                            } else {
+                                Log.e(
+                                    "CarouselError",
+                                    "Intento de acceder a posición $position, pero listaMas_promo tiene ${listaMas_promo.size} elementos"
+                                )
+                            }
                         }
                     }
                 }
+
             }
         bindingProductosTrabajadores.carrucelMasProductosPublicados.setData(lista)
     }

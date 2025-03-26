@@ -5,9 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -92,10 +94,16 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final TextView modelo;
 
   @NonNull
+  public final NestedScrollView netScrollView;
+
+  @NonNull
   public final TextView nombreProducto;
 
   @NonNull
   public final TextView precioProducto;
+
+  @NonNull
+  public final ProgressBar progressCarga;
 
   @NonNull
   public final TextView stok;
@@ -115,7 +123,8 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull LinearLayout linealFechaPublicada, @NonNull LinearLayout linealGarantiaDisponible,
       @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
       @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
-      @NonNull TextView nombreProducto, @NonNull TextView precioProducto, @NonNull TextView stok,
+      @NonNull NestedScrollView netScrollView, @NonNull TextView nombreProducto,
+      @NonNull TextView precioProducto, @NonNull ProgressBar progressCarga, @NonNull TextView stok,
       @NonNull TextView tvReadMore) {
     this.rootView = rootView;
     this.Condicion = Condicion;
@@ -141,8 +150,10 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.linealStokDisponible = linealStokDisponible;
     this.marca = marca;
     this.modelo = modelo;
+    this.netScrollView = netScrollView;
     this.nombreProducto = nombreProducto;
     this.precioProducto = precioProducto;
+    this.progressCarga = progressCarga;
     this.stok = stok;
     this.tvReadMore = tvReadMore;
   }
@@ -313,6 +324,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.netScrollView;
+      NestedScrollView netScrollView = ViewBindings.findChildViewById(rootView, id);
+      if (netScrollView == null) {
+        break missingId;
+      }
+
       id = R.id.nombreProducto;
       TextView nombreProducto = ViewBindings.findChildViewById(rootView, id);
       if (nombreProducto == null) {
@@ -322,6 +339,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       id = R.id.precioProducto;
       TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
       if (precioProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.progressCarga;
+      ProgressBar progressCarga = ViewBindings.findChildViewById(rootView, id);
+      if (progressCarga == null) {
         break missingId;
       }
 
@@ -343,7 +366,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
           linealCategoriaProducto, linealCondicionProducto, linealDescripcionProducto,
           linealEntregaDomicilio, linealFechaPublicada, linealGarantiaDisponible,
           linealMarcaProducto, linealPrecioProducto, linealStokDisponible, marca, modelo,
-          nombreProducto, precioProducto, stok, tvReadMore);
+          netScrollView, nombreProducto, precioProducto, progressCarga, stok, tvReadMore);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
