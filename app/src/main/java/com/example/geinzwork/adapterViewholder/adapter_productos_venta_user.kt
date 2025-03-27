@@ -1,5 +1,6 @@
 package com.example.geinzwork.adapterViewholder
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -25,8 +26,9 @@ class adapter_productos_venta_user(
     }
 
     override fun getItemCount(): Int {
-        return if (lista.size >= 4) 4 else lista.size
+        return lista.size.coerceAtMost(6) // Muestra máximo 6 elementos
     }
+
 
     override fun onBindViewHolder(holder: viewHolderVentaProductos, position: Int) {
         val item = lista[position]
@@ -36,7 +38,28 @@ class adapter_productos_venta_user(
 
     inner class viewHolderVentaProductos(private val binding: ItemCustomTrabajadoresProductosBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
         fun render(item: dataclassPorductosVerntaUser) {
+            Log.d("RenderDebug", "Producto: ${item.id}, Descuento: ${item.descuento}, Descuento Número: ${item.descuentoNumero}")
+
+            if (item.descuento == true) {
+                binding.descuentoPorcentaje.text = "-${item.descuentoNumero.toString()}%"
+                binding.descuentoPorcentaje.isVisible = true
+            } else {
+                binding.descuentoPorcentaje.isVisible = false
+            }
+
+            binding.imageView.setOnClickListener {
+                listener(item)
+                Log.d("RenderDebug", "Click en: ${item.id}, Descuento: ${item.descuento}, Descuento Número: ${item.descuentoNumero}")
+
+                if (item.descuento == true) {
+                    binding.descuentoPorcentaje.text = "-${item.descuentoNumero.toString()}%"
+                    binding.descuentoPorcentaje.isVisible = true
+                } else {
+                    binding.descuentoPorcentaje.isVisible = false
+                }
+            }
 
             constatnes_carga_imagenes_general.changer_img(
                 binding.progressCargaImagen,
@@ -46,17 +69,7 @@ class adapter_productos_venta_user(
                 binding.imageView,
                 "portada",
                 null
-            ) { complet ->
-                if (complet) {
-                    if(item.descuento==true){
-                        binding.descuentoPorcentaje.text=""
-                        binding.descuentoPorcentaje.isVisible=True
-                    }
-                }else{
-
-                }
-            }
-
+            ) { complet -> }
         }
 
     }

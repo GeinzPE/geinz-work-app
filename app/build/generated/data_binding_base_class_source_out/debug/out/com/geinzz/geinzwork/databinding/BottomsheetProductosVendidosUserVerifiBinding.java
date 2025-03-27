@@ -19,7 +19,6 @@ import com.google.android.material.button.MaterialButton;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
-import org.imaginativeworld.whynotimagecarousel.ImageCarousel;
 
 public final class BottomsheetProductosVendidosUserVerifiBinding implements ViewBinding {
   @NonNull
@@ -32,10 +31,10 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout LinealModeloProducto;
 
   @NonNull
-  public final RecyclerView carrucelMasProductosPublicados;
+  public final RecyclerView carrucelImgProductosVentaUser;
 
   @NonNull
-  public final ImageCarousel carrusel;
+  public final RecyclerView carrucelMasProductosPublicados;
 
   @NonNull
   public final TextView categoriaProducto;
@@ -51,6 +50,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
 
   @NonNull
   public final TextView descripcion;
+
+  @NonNull
+  public final TextView descuentoPorcentaje;
 
   @NonNull
   public final TextView entregaDomicilio;
@@ -101,6 +103,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final TextView nombreProducto;
 
   @NonNull
+  public final TextView precioAntiguo;
+
+  @NonNull
   public final TextView precioProducto;
 
   @NonNull
@@ -112,12 +117,16 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   @NonNull
   public final TextView tvReadMore;
 
+  @NonNull
+  public final TextView verTodosTrabajos;
+
   private BottomsheetProductosVendidosUserVerifiBinding(@NonNull LinearLayout rootView,
       @NonNull TextView Condicion, @NonNull LinearLayout LinealModeloProducto,
-      @NonNull RecyclerView carrucelMasProductosPublicados, @NonNull ImageCarousel carrusel,
-      @NonNull TextView categoriaProducto, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull MaterialButton comprar, @NonNull MaterialButton cordinarVendedor,
-      @NonNull TextView descripcion, @NonNull TextView entregaDomicilio,
+      @NonNull RecyclerView carrucelImgProductosVentaUser,
+      @NonNull RecyclerView carrucelMasProductosPublicados, @NonNull TextView categoriaProducto,
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull MaterialButton comprar,
+      @NonNull MaterialButton cordinarVendedor, @NonNull TextView descripcion,
+      @NonNull TextView descuentoPorcentaje, @NonNull TextView entregaDomicilio,
       @NonNull TextView fechaPublicado, @NonNull TextView garantia,
       @NonNull LinearLayout linealCategoriaProducto, @NonNull LinearLayout linealCondicionProducto,
       @NonNull LinearLayout linealDescripcionProducto, @NonNull LinearLayout linealEntregaDomicilio,
@@ -125,18 +134,20 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
       @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
       @NonNull NestedScrollView netScrollView, @NonNull TextView nombreProducto,
-      @NonNull TextView precioProducto, @NonNull ProgressBar progressCarga, @NonNull TextView stok,
-      @NonNull TextView tvReadMore) {
+      @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
+      @NonNull ProgressBar progressCarga, @NonNull TextView stok, @NonNull TextView tvReadMore,
+      @NonNull TextView verTodosTrabajos) {
     this.rootView = rootView;
     this.Condicion = Condicion;
     this.LinealModeloProducto = LinealModeloProducto;
+    this.carrucelImgProductosVentaUser = carrucelImgProductosVentaUser;
     this.carrucelMasProductosPublicados = carrucelMasProductosPublicados;
-    this.carrusel = carrusel;
     this.categoriaProducto = categoriaProducto;
     this.cerrar = cerrar;
     this.comprar = comprar;
     this.cordinarVendedor = cordinarVendedor;
     this.descripcion = descripcion;
+    this.descuentoPorcentaje = descuentoPorcentaje;
     this.entregaDomicilio = entregaDomicilio;
     this.fechaPublicado = fechaPublicado;
     this.garantia = garantia;
@@ -153,10 +164,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.modelo = modelo;
     this.netScrollView = netScrollView;
     this.nombreProducto = nombreProducto;
+    this.precioAntiguo = precioAntiguo;
     this.precioProducto = precioProducto;
     this.progressCarga = progressCarga;
     this.stok = stok;
     this.tvReadMore = tvReadMore;
+    this.verTodosTrabajos = verTodosTrabajos;
   }
 
   @Override
@@ -199,15 +212,15 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      id = R.id.carrucelMasProductosPublicados;
-      RecyclerView carrucelMasProductosPublicados = ViewBindings.findChildViewById(rootView, id);
-      if (carrucelMasProductosPublicados == null) {
+      id = R.id.carrucelImgProductosVentaUser;
+      RecyclerView carrucelImgProductosVentaUser = ViewBindings.findChildViewById(rootView, id);
+      if (carrucelImgProductosVentaUser == null) {
         break missingId;
       }
 
-      id = R.id.carrusel;
-      ImageCarousel carrusel = ViewBindings.findChildViewById(rootView, id);
-      if (carrusel == null) {
+      id = R.id.carrucelMasProductosPublicados;
+      RecyclerView carrucelMasProductosPublicados = ViewBindings.findChildViewById(rootView, id);
+      if (carrucelMasProductosPublicados == null) {
         break missingId;
       }
 
@@ -238,6 +251,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       id = R.id.descripcion;
       TextView descripcion = ViewBindings.findChildViewById(rootView, id);
       if (descripcion == null) {
+        break missingId;
+      }
+
+      id = R.id.descuentoPorcentaje;
+      TextView descuentoPorcentaje = ViewBindings.findChildViewById(rootView, id);
+      if (descuentoPorcentaje == null) {
         break missingId;
       }
 
@@ -337,6 +356,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.precioAntiguo;
+      TextView precioAntiguo = ViewBindings.findChildViewById(rootView, id);
+      if (precioAntiguo == null) {
+        break missingId;
+      }
+
       id = R.id.precioProducto;
       TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
       if (precioProducto == null) {
@@ -361,13 +386,20 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.verTodosTrabajos;
+      TextView verTodosTrabajos = ViewBindings.findChildViewById(rootView, id);
+      if (verTodosTrabajos == null) {
+        break missingId;
+      }
+
       return new BottomsheetProductosVendidosUserVerifiBinding((LinearLayout) rootView, Condicion,
-          LinealModeloProducto, carrucelMasProductosPublicados, carrusel, categoriaProducto, cerrar,
-          comprar, cordinarVendedor, descripcion, entregaDomicilio, fechaPublicado, garantia,
-          linealCategoriaProducto, linealCondicionProducto, linealDescripcionProducto,
-          linealEntregaDomicilio, linealFechaPublicada, linealGarantiaDisponible,
-          linealMarcaProducto, linealPrecioProducto, linealStokDisponible, marca, modelo,
-          netScrollView, nombreProducto, precioProducto, progressCarga, stok, tvReadMore);
+          LinealModeloProducto, carrucelImgProductosVentaUser, carrucelMasProductosPublicados,
+          categoriaProducto, cerrar, comprar, cordinarVendedor, descripcion, descuentoPorcentaje,
+          entregaDomicilio, fechaPublicado, garantia, linealCategoriaProducto,
+          linealCondicionProducto, linealDescripcionProducto, linealEntregaDomicilio,
+          linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
+          linealStokDisponible, marca, modelo, netScrollView, nombreProducto, precioAntiguo,
+          precioProducto, progressCarga, stok, tvReadMore, verTodosTrabajos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

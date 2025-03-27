@@ -479,6 +479,7 @@ id carritoCompras
 id carrito_compras
 id carrucel
 id carrucelImgContainer
+id carrucelImgProductosVentaUser
 id carrucelMasProductosPublicados
 id carrucel_tiendas
 id carruse2
@@ -1123,6 +1124,7 @@ id porcentaje2Estrellas
 id porcentaje4Estrellas
 id porcentaje5Estrellas
 id precio
+id precioAntiguo
 id precioDelivery
 id precioDisponible
 id precioDriver

@@ -1,4 +1,4 @@
-package com.example.geinzwork.dataclass
+package com.example.geinzwork.adapterViewholder
 
 
 import android.view.LayoutInflater

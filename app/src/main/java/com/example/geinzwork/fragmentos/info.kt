@@ -8,6 +8,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
@@ -30,14 +31,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import com.example.geinzwork.adapterViewholder.adapterInicializarRecycleimgProductosTrabajadores
+import com.example.geinzwork.adapterViewholder.adapter_productos_venta_user
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
-import com.example.geinzwork.dataclass.adapter_mostra_articulos_trabajadores
+import com.example.geinzwork.adapterViewholder.adapter_mostra_articulos_trabajadores
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
@@ -55,9 +57,9 @@ import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBindin
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
-import com.geinzz.geinzwork.databinding.ItemCustomTrabajadoresProductosBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
+import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
 import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -81,7 +83,7 @@ class info : Fragment() {
     private val listaMas_promo = mutableListOf<dataclass_adapter_promociones>()
 
     private val listaProductosUSer = mutableListOf<dataclassPorductosVerntaUser>()
-
+    val listaImg = mutableListOf<dataclassMostarImgProductosVendedor>()
     private lateinit var binding: FragmentInfoBinding
     private lateinit var mContex: Context
     private var listAdapter = mutableListOf<dataclas_trabajos_ralizados>()
@@ -153,6 +155,8 @@ class info : Fragment() {
 
 
 
+
+
         binding.qrTrabajador.setOnClickListener {
             var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
                 putExtra(Variables.info, Variables.info)
@@ -209,29 +213,40 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta")
+
         db.get().addOnSuccessListener { res ->
+            val listaTemporal = mutableListOf<dataclas_item_preview_art_comprar>()
+
             for (datos in res) {
                 val data = datos.data
-                val imgProducto = data?.get("img_principal") as? String ?: ""
-                val descuentoActivo = data?.get("descuento") as? Boolean ?: false
-                val id = data?.get("id") as? String ?: ""
-                val cantidadDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val imgProducto = data["img_principal"] as? String ?: ""
+                val descuentoActivo = data["descuento"] as? Boolean ?: false
+                val id = data["id"] as? String ?: ""
+                val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
 
-                val lista = dataclas_item_preview_art_comprar(
+                val item = dataclas_item_preview_art_comprar(
                     id, imgProducto, "", null, null, descuentoActivo, cantidadDescuento
                 )
-                listaAdapterProductosTRabajdores.add(lista)
-                if (listaAdapterProductosTRabajdores.isNotEmpty()) {
-                    inicializarRecicleProductosVentasTrabajdores(
-                        listaAdapterProductosTRabajdores,
-                        idTrabajador
-                    )
-                }
+                listaTemporal.add(item)
+            }
+
+            listaTemporal.shuffle()
+
+            listaAdapterProductosTRabajdores.clear()
+            listaAdapterProductosTRabajdores.addAll(listaTemporal)
+
+            // Inicializar RecyclerView una sola vez
+            if (listaAdapterProductosTRabajdores.isNotEmpty()) {
+                inicializarRecicleProductosVentasTrabajdores(
+                    listaAdapterProductosTRabajdores,
+                    idTrabajador
+                )
             }
         }.addOnFailureListener { e ->
-            println("no se encontraron datos ")
+            println("No se encontraron datos: ${e.message}")
         }
     }
+
 
     private fun inicializarRecicleProductosVentasTrabajdores(
         listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>,
@@ -651,6 +666,9 @@ class info : Fragment() {
         bindingProductosTrabajadores.cerrar.setOnClickListener {
             dialog.dismiss()
         }
+        val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
+        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.layoutManager = customLayoutManager
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
@@ -695,18 +713,43 @@ class info : Fragment() {
             val categoria = data["categoria"] as? String ?: ""
             val condicionProducto = data["condicion_producto"] as? String ?: ""
             val descripcion = data["descripcion"] as? String ?: ""
+
+
             val modelo = data["modelo"] as? String ?: ""
             val descuento = data["descuento"] as? Boolean ?: false
             val efectivo = data["efectivo"] as? Boolean ?: false
+            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: true
+
             val garantia = data["garantia"] as? String ?: ""
             val id = data["id"] as? String ?: ""
-            val imgPrincipal = data["img_principal"] as? String ?: ""
+            val fechaPublicada = data["fechaPublicada"] as? String ?: ""
+
             val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
             val marca = data["marca"] as? String ?: ""
             val nombre = data["nombre"] as? String ?: ""
             val plin = data["plin"] as? Boolean ?: false
             val stok = data["stok"] as? String ?: ""
             val yape = data["yape"] as? Boolean ?: false
+            val cantidad_porcentaje_descuento =
+                data["cantidad_porcentaje_descuento"] as? Number ?: 0
+
+            if (entrega_domicilio) {
+                bindingProductosTrabajadores.entregaDomicilio.text = "si"
+            } else {
+                bindingProductosTrabajadores.entregaDomicilio.text = "no"
+            }
+            if (descuento) {
+                bindingProductosTrabajadores.precioAntiguo.text = "S/ ${precio}.00"
+                bindingProductosTrabajadores.precioProducto.text = "S/ ${precioDescuento}.00"
+                bindingProductosTrabajadores.descuentoPorcentaje.text =
+                    "-${cantidad_porcentaje_descuento}%"
+                bindingProductosTrabajadores.precioAntiguo.isVisible = true
+                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = true
+            } else {
+                bindingProductosTrabajadores.precioAntiguo.isVisible = false
+                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = false
+                bindingProductosTrabajadores.precioProducto.text = "S/ ${precio}.00"
+            }
 
             bindingProductosTrabajadores.categoriaProducto.text = categoria
             bindingProductosTrabajadores.nombreProducto.text = nombre
@@ -716,15 +759,52 @@ class info : Fragment() {
             bindingProductosTrabajadores.garantia.text = garantia
             bindingProductosTrabajadores.Condicion.text = condicionProducto
             bindingProductosTrabajadores.descripcion.text = descripcion
-            bindingProductosTrabajadores.precioProducto.text = precio.toString()
-            bindingProductosTrabajadores.fechaPublicado.text =
-                "Fecha aquí" // Asegúrate de tener la fecha
+            bindingProductosTrabajadores.fechaPublicado.text = fechaPublicada
+            inizializarImgProductos(listaImg, bindingProductosTrabajadores, data)
+            val textViewPriceBefore = bindingProductosTrabajadores.precioAntiguo
+            textViewPriceBefore.paintFlags =
+                textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            textViewPriceBefore.textSize = 12f
 
-            // Llamar a la lambda indicando éxito
             onComplete(true)
         } catch (e: Exception) {
-            // En caso de error, llamar a la lambda indicando fallo
             onComplete(false)
+        }
+    }
+
+    private fun inizializarImgProductos(
+        listaImg: MutableList<dataclassMostarImgProductosVendedor>,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
+        data: Map<String, Any>
+    ) {
+        // Limpiar la lista para evitar duplicados
+        listaImg.clear()
+
+        // Obtener las imágenes del mapa `data`
+        val imgPrincipal = data["img_principal"] as? String ?: ""
+        val img_url2 = data["img_url2"] as? String ?: ""
+        val img_url3 = data["img_url3"] as? String ?: ""
+        val img_url4 = data["img_url4"] as? String ?: ""
+
+        // Agregar las imágenes a la lista si no están vacías
+        if (imgPrincipal.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(imgPrincipal))
+        if (img_url2.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url2))
+        if (img_url3.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url3))
+        if (img_url4.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url4))
+
+        Log.d(
+            "IMG_DEBUG",
+            "Contenido de listaImg después de limpiar: ${listaImg.joinToString { it.imgProducto.toString() }}"
+        )
+
+        // Configurar RecyclerView solo una vez
+        val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
+        if (recicle.adapter == null) {
+            recicle.layoutManager =
+                LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+            recicle.adapter = adapterInicializarRecycleimgProductosTrabajadores(listaImg)
+        } else {
+            recicle.adapter?.notifyDataSetChanged()
         }
     }
 
@@ -732,33 +812,34 @@ class info : Fragment() {
     private fun obtenerMasProductosVenta(
         idTrabajador: String,
         idProducto: String,
-        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
     ) {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("productos_venta")
         db.get().addOnSuccessListener { res ->
-            listaMas_promo.clear()
+            listaProductosUSer.clear()
             for (datos in res) {
                 val data = datos.data
                 val id = data?.get("id") as? String ?: ""
                 val imgpricipal = data?.get("img_principal") as? String ?: ""
-                val descuento = data?.get("") as? Number ?: 0
-                val porcentajeDescuentoBool = data?.get("") as? Boolean ?: false
+                val descuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val porcentajeDescuentoBool = data?.get("descuento") as? Boolean ?: false
                 val descripcion = data?.get("") as? String ?: ""
                 if (id != idProducto) {
-                    val dataClass =
-                        dataclassPorductosVerntaUser(
-                            id, imgpricipal, descuento, porcentajeDescuentoBool
-                        )
+                    val dataClass = dataclassPorductosVerntaUser(
+                        id, imgpricipal, descuento, porcentajeDescuentoBool
+                    )
                     listaProductosUSer.add(dataClass)
                 }
             }
             if (listaProductosUSer.isNotEmpty()) {
-                listaProductosUSer.shuffle() // Mezclar los datos antes de mostrarlos
-
-
-//                inizializarCarruceBindig(idTrabajador,listaMas_promo, listaFinal, bindingProductosTrabajadores)
+                listaProductosUSer.shuffle()
+                inizializarCarruceBindig(
+                    idTrabajador,
+                    listaProductosUSer,
+                    bindingProductosVencidodos
+                )
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
             }
@@ -780,7 +861,7 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta").document(productoClikado)
-
+        listaProductosUSer.clear()
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data ?: emptyMap()
@@ -801,8 +882,11 @@ class info : Fragment() {
                     productoClikado,
                     bindingProductosVencidodos
                 )
+            } else {
+
             }
         }.addOnFailureListener { e ->
+
             println("no se econtro datos del producto")
         }
 
@@ -811,10 +895,16 @@ class info : Fragment() {
 
     private fun inizializarCarruceBindig(
         idTrabajador: String,
-        listaMas_promo: MutableList<dataclass_adapter_promociones>,
-        lista: List<CarouselItem>,
+        lista_productosVentaUSer: MutableList<dataclassPorductosVerntaUser>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
     ) {
+        val recicle = bindingProductosTrabajadores.carrucelMasProductosPublicados
+        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+
+        val adapter = adapter_productos_venta_user(lista_productosVentaUSer) { item ->
+            cargarDatosNuevaMente(idTrabajador, item.id.toString(), bindingProductosTrabajadores)
+        }
+        recicle.adapter = adapter
 
     }
 
@@ -938,6 +1028,7 @@ class info : Fragment() {
         ) { item ->
             cagrarDatosNuevamente(item, bindingMostrarTRabajos)
         }
+
     }
 
     fun cagrarDatosNuevamente(
@@ -989,21 +1080,6 @@ class info : Fragment() {
 
         }
 
-//        constatnes_carga_imagenes_general.changer_img(
-//            bindingMostrarTRabajos.progressCargaImagen,
-//            mContex, item.img.toString(), null, bindingMostrarTRabajos.imgTrabajo, "portada"
-//        ) { cargado ->
-//            if (cargado) {
-//                Handler(Looper.getMainLooper()).postDelayed({
-//                    bindingMostrarTRabajos.cargarConteindo.isVisible = false
-//                    bindingMostrarTRabajos.scollView.isVisible = true
-//                    constantestextos_general.extender_acortar_texto(
-//                        bindingMostrarTRabajos.textoTrabajosRealzados,
-//                        bindingMostrarTRabajos.tvReadMore
-//                    )
-//                }, 2000) // 2000ms = 2 segundos
-//            }
-//        }
     }
 
 
