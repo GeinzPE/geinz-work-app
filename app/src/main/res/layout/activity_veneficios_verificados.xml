@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    style="@style/fondo"
     tools:context=".problemas_soporte_politicas.veneficios_verificados">
 
     <ScrollView
@@ -27,7 +27,6 @@
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="16dp"
                 android:fontFamily="@font/roboto_medium"
                 android:text="Beneficios de Trabajadores Verificados"

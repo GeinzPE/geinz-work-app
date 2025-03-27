@@ -6,10 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
@@ -22,7 +22,7 @@ import java.lang.String;
 
 public final class BottomsheetProductosVendidosUserVerifiBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
   public final TextView Condicion;
@@ -97,7 +97,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final TextView modelo;
 
   @NonNull
-  public final NestedScrollView netScrollView;
+  public final LinearLayout netScrollView;
 
   @NonNull
   public final TextView nombreProducto;
@@ -120,7 +120,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   @NonNull
   public final TextView verTodosTrabajos;
 
-  private BottomsheetProductosVendidosUserVerifiBinding(@NonNull LinearLayout rootView,
+  private BottomsheetProductosVendidosUserVerifiBinding(@NonNull RelativeLayout rootView,
       @NonNull TextView Condicion, @NonNull LinearLayout LinealModeloProducto,
       @NonNull RecyclerView carrucelImgProductosVentaUser,
       @NonNull RecyclerView carrucelMasProductosPublicados, @NonNull TextView categoriaProducto,
@@ -133,7 +133,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull LinearLayout linealFechaPublicada, @NonNull LinearLayout linealGarantiaDisponible,
       @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
       @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
-      @NonNull NestedScrollView netScrollView, @NonNull TextView nombreProducto,
+      @NonNull LinearLayout netScrollView, @NonNull TextView nombreProducto,
       @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
       @NonNull ProgressBar progressCarga, @NonNull TextView stok, @NonNull TextView tvReadMore,
       @NonNull TextView verTodosTrabajos) {
@@ -174,7 +174,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -345,7 +345,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       }
 
       id = R.id.netScrollView;
-      NestedScrollView netScrollView = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout netScrollView = ViewBindings.findChildViewById(rootView, id);
       if (netScrollView == null) {
         break missingId;
       }
@@ -392,7 +392,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      return new BottomsheetProductosVendidosUserVerifiBinding((LinearLayout) rootView, Condicion,
+      return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView, Condicion,
           LinealModeloProducto, carrucelImgProductosVentaUser, carrucelMasProductosPublicados,
           categoriaProducto, cerrar, comprar, cordinarVendedor, descripcion, descuentoPorcentaje,
           entregaDomicilio, fechaPublicado, garantia, linealCategoriaProducto,

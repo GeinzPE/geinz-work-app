@@ -10,7 +10,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
@@ -44,7 +43,7 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   public final RecyclerView masTrabajosRealiados;
 
   @NonNull
-  public final NestedScrollView scollView;
+  public final LinearLayout scollView;
 
   @NonNull
   public final TextView textoTrabajosRealzados;
@@ -65,7 +64,7 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       @NonNull TextView cambiarTextoTrabajosRealziadosTrabajosRecientes,
       @NonNull ProgressBar cargarConteindo, @NonNull ImageCarousel carruselImgTrabajos,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout linealMostrarTrabajos,
-      @NonNull RecyclerView masTrabajosRealiados, @NonNull NestedScrollView scollView,
+      @NonNull RecyclerView masTrabajosRealiados, @NonNull LinearLayout scollView,
       @NonNull TextView textoTrabajosRealzados, @NonNull TextView tituloNombreTrabajador,
       @NonNull TextView tituloTrabajosRealizados, @NonNull TextView tvReadMore,
       @NonNull TextView verTodosTrabajos) {
@@ -149,7 +148,7 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       }
 
       id = R.id.scollView;
-      NestedScrollView scollView = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout scollView = ViewBindings.findChildViewById(rootView, id);
       if (scollView == null) {
         break missingId;
       }

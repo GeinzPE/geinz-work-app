@@ -93,6 +93,7 @@ class info : Fragment() {
     private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
     private var phoneNumberToCall: String? = null
+    private val REQUEST_CALL_PHONE = 1
 
     companion object {
         private const val ARG_ID_TRABAJADOR = "id_trabajador"
@@ -1253,9 +1254,6 @@ class info : Fragment() {
                 println("error al obtner los datos $e")
             }
     }
-
-
-    private val REQUEST_CALL_PHONE = 1
 
     private fun showPermissionDialog(context: Context, phoneNumber: String) {
         if (ContextCompat.checkSelfPermission(
