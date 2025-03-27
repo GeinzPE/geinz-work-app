@@ -3,6 +3,7 @@ package com.example.geinzwork.constantesGeneral
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.View
+import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -19,10 +20,10 @@ object constatnes_carga_imagenes_general {
         context: Context,
         url: String,
         circle_img: CircleImageView? = null,
-        shapeableImageView: ShapeableImageView? = null,
+        imageView: ImageView? = null, // 🔹 Ahora acepta ShapeableImageView y PhotoView
         type: String,
-        placeholder: Drawable? = null, // Drawable opcional como placeholder
-        onImageLoaded: (Boolean) -> Unit // Callback para notificar cuando la imagen está cargada o falla
+        placeholder: Drawable? = null, // Placeholder opcional
+        onImageLoaded: (Boolean) -> Unit // Callback de éxito o fallo
     ) {
         try {
             progressBar.visibility = View.VISIBLE
@@ -53,14 +54,14 @@ object constatnes_carga_imagenes_general {
                     isFirstResource: Boolean
                 ): Boolean {
                     progressBar.visibility = View.GONE
-                    onImageLoaded(false) // Notifica que la carga de la imagen falló
+                    onImageLoaded(false) // Notifica que la imagen falló
                     return false
                 }
             })
                 .apply {
                     when (type) {
                         "perfil" -> circle_img?.let { into(it) }
-                        "portada" -> shapeableImageView?.let { into(it) }
+                        "portada", "zoom" -> imageView?.let { into(it) } // 🔹 Puede ser ShapeableImageView o PhotoView
                     }
                 }
         } catch (e: Exception) {
@@ -68,5 +69,6 @@ object constatnes_carga_imagenes_general {
             onImageLoaded(false) // En caso de error, notifica que la imagen no se cargó
         }
     }
+
 
 }

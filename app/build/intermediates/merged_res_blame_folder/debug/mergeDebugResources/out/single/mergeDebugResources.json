@@ -140,12 +140,16 @@
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_cambiar_estado_user.xml"
     },
     {
+        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_trabaja_con_nosotros_tienda.xml.flat",
+        "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_trabaja_con_nosotros_tienda.xml"
+    },
+    {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_round_btn_carrito_cantidad.xml.flat",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\round_btn_carrito_cantidad.xml"
     },
     {
-        "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_trabaja_con_nosotros_tienda.xml.flat",
-        "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_trabaja_con_nosotros_tienda.xml"
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_item_custom_trabajadores_productos.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_custom_trabajadores_productos.xml"
     },
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_noticia_crea_geinz.webp.flat",

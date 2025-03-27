@@ -30,13 +30,16 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
+import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.adapter_mostra_articulos_trabajadores
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
+import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
@@ -76,6 +79,9 @@ import java.net.URLEncoder
 
 class info : Fragment() {
     private val listaMas_promo = mutableListOf<dataclass_adapter_promociones>()
+
+    private val listaProductosUSer = mutableListOf<dataclassPorductosVerntaUser>()
+
     private lateinit var binding: FragmentInfoBinding
     private lateinit var mContex: Context
     private var listAdapter = mutableListOf<dataclas_trabajos_ralizados>()
@@ -140,6 +146,10 @@ class info : Fragment() {
         val categoria = arguments?.getString(CATEGORIA).toString()
         obtenertrabajosRecientes(idTrabajador)
         constantes.carga(3000, { mostrarDatos() })
+
+        val recicle = binding.productosDestacados
+        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.layoutManager = customLayoutManager
 
 
 
@@ -649,8 +659,9 @@ class info : Fragment() {
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data ?: emptyMap()
-                setearDatosdialogProductos(data, bindingProductosTrabajadores)
-                obtenerMasTrabajosrealizados(
+                setearDatosdialogProductos(data, bindingProductosTrabajadores) { cargado ->
+                }
+                obtenerMasProductosVenta(
                     idTrabajador,
                     productoClikado,
                     bindingProductosTrabajadores
@@ -667,49 +678,58 @@ class info : Fragment() {
 
     private fun setearDatosdialogProductos(
         data: Map<String, Any>,
-        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
+        onComplete: (Boolean) -> Unit
     ) {
-        val cantidadPorcentajeDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
-        val precio = data?.get("precio") as? Number ?: 0
-        val precioDescuento = data?.get("precio_descuento") as? Number ?: 0
-        val totalProducto = data?.get("total_producto") as? Number ?: 0
-        constantestextos_general.extender_acortar_texto(
-            bindingProductosTrabajadores.descripcion,
-            bindingProductosTrabajadores.tvReadMore
-        )
-        val categoria = data?.get("categoria") as? String ?: ""
-        val condicionProducto = data?.get("condicion_producto") as? String ?: ""
-        val descripcion = data?.get("descripcion") as? String ?: ""
-        val modelo = data?.get("modelo") as? String ?: ""
-        val descuento = data?.get("descuento") as? Boolean ?: false
-        val efectivo = data?.get("efectivo") as? Boolean ?: false
-        val garantia = data?.get("garantia") as? String ?: ""
-        val id = data?.get("id") as? String ?: ""
-        val imgPrincipal = data?.get("img_principal") as? String ?: ""
-        val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
-        val marca = data?.get("marca") as? String ?: ""
-        val nombre = data?.get("nombre") as? String ?: ""
-        val plin = data?.get("plin") as? Boolean ?: false
-        val stok = data?.get("stok") as? String ?: ""
-        val yape = data?.get("yape") as? Boolean ?: false
+        try {
+            val cantidadPorcentajeDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
+            val precio = data["precio"] as? Number ?: 0
+            val precioDescuento = data["precio_descuento"] as? Number ?: 0
+            val totalProducto = data["total_producto"] as? Number ?: 0
 
+            constantestextos_general.extender_acortar_texto(
+                bindingProductosTrabajadores.descripcion,
+                bindingProductosTrabajadores.tvReadMore
+            )
 
-        bindingProductosTrabajadores.categoriaProducto.text = categoria
-        bindingProductosTrabajadores.nombreProducto.text = nombre
-        bindingProductosTrabajadores.marca.text = marca
-        bindingProductosTrabajadores.modelo.text = condicionProducto
-        bindingProductosTrabajadores.stok.text = stok
-        bindingProductosTrabajadores.garantia.text = garantia
-        bindingProductosTrabajadores.modelo.text = modelo
-        bindingProductosTrabajadores.Condicion.text = condicionProducto
-        bindingProductosTrabajadores.descripcion.text = descripcion
-        bindingProductosTrabajadores.precioProducto.text = precio.toString()
-        bindingProductosTrabajadores.fechaPublicado.text =
-            "Fecha aquí" // Asegúrate de tener la fecha
+            val categoria = data["categoria"] as? String ?: ""
+            val condicionProducto = data["condicion_producto"] as? String ?: ""
+            val descripcion = data["descripcion"] as? String ?: ""
+            val modelo = data["modelo"] as? String ?: ""
+            val descuento = data["descuento"] as? Boolean ?: false
+            val efectivo = data["efectivo"] as? Boolean ?: false
+            val garantia = data["garantia"] as? String ?: ""
+            val id = data["id"] as? String ?: ""
+            val imgPrincipal = data["img_principal"] as? String ?: ""
+            val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
+            val marca = data["marca"] as? String ?: ""
+            val nombre = data["nombre"] as? String ?: ""
+            val plin = data["plin"] as? Boolean ?: false
+            val stok = data["stok"] as? String ?: ""
+            val yape = data["yape"] as? Boolean ?: false
 
+            bindingProductosTrabajadores.categoriaProducto.text = categoria
+            bindingProductosTrabajadores.nombreProducto.text = nombre
+            bindingProductosTrabajadores.marca.text = marca
+            bindingProductosTrabajadores.modelo.text = modelo
+            bindingProductosTrabajadores.stok.text = stok
+            bindingProductosTrabajadores.garantia.text = garantia
+            bindingProductosTrabajadores.Condicion.text = condicionProducto
+            bindingProductosTrabajadores.descripcion.text = descripcion
+            bindingProductosTrabajadores.precioProducto.text = precio.toString()
+            bindingProductosTrabajadores.fechaPublicado.text =
+                "Fecha aquí" // Asegúrate de tener la fecha
+
+            // Llamar a la lambda indicando éxito
+            onComplete(true)
+        } catch (e: Exception) {
+            // En caso de error, llamar a la lambda indicando fallo
+            onComplete(false)
+        }
     }
 
-    private fun obtenerMasTrabajosrealizados(
+
+    private fun obtenerMasProductosVenta(
         idTrabajador: String,
         idProducto: String,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
@@ -723,35 +743,22 @@ class info : Fragment() {
                 val data = datos.data
                 val id = data?.get("id") as? String ?: ""
                 val imgpricipal = data?.get("img_principal") as? String ?: ""
-                val fecha = data?.get("") as? String ?: ""
-                val titulo = data?.get("") as? String ?: ""
+                val descuento = data?.get("") as? Number ?: 0
+                val porcentajeDescuentoBool = data?.get("") as? Boolean ?: false
                 val descripcion = data?.get("") as? String ?: ""
                 if (id != idProducto) {
                     val dataClass =
-                        dataclass_adapter_promociones(
-                            imgpricipal,
-                            null,
-                            null,
-                            null,
-                            titulo,
-                            descripcion,
-                            id,
-                            fecha,
-                            null
+                        dataclassPorductosVerntaUser(
+                            id, imgpricipal, descuento, porcentajeDescuentoBool
                         )
-                    listaMas_promo.add(dataClass)
+                    listaProductosUSer.add(dataClass)
                 }
             }
-            if (listaMas_promo.isNotEmpty()) {
-                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
-                val listaFinal: List<CarouselItem> = listaMas_promo.map { promo ->
-                    CarouselItem(
-                        imageUrl = promo.img,
-                        // Asegúrate de que los nombres de los atributos coincidan
-                    )
-                }
+            if (listaProductosUSer.isNotEmpty()) {
+                listaProductosUSer.shuffle() // Mezclar los datos antes de mostrarlos
 
-                inizializarCarruceBindig(listaMas_promo, listaFinal, bindingProductosTrabajadores)
+
+//                inizializarCarruceBindig(idTrabajador,listaMas_promo, listaFinal, bindingProductosTrabajadores)
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
             }
@@ -764,68 +771,51 @@ class info : Fragment() {
     }
 
     private fun cargarDatosNuevaMente(
-        idClikeado: String,
+        idTrabajador: String,
+        productoClikado: String,
         bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
     ) {
         bindingProductosVencidodos.progressCarga.isVisible = true
         bindingProductosVencidodos.netScrollView.isVisible = false
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("productos_venta").document(productoClikado)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data ?: emptyMap()
+                bindingProductosVencidodos.progressCarga.isVisible = true
+                bindingProductosVencidodos.netScrollView.isVisible = false
+                setearDatosdialogProductos(data, bindingProductosVencidodos) { completado ->
+                    if (completado) {
+                        bindingProductosVencidodos.progressCarga.isVisible = false
+                        bindingProductosVencidodos.netScrollView.isVisible = true
+                    } else {
+                        bindingProductosVencidodos.progressCarga.isVisible = true
+                        bindingProductosVencidodos.netScrollView.isVisible = false
+                    }
+
+                }
+                obtenerMasProductosVenta(
+                    idTrabajador,
+                    productoClikado,
+                    bindingProductosVencidodos
+                )
+            }
+        }.addOnFailureListener { e ->
+            println("no se econtro datos del producto")
+        }
+
     }
 
+
     private fun inizializarCarruceBindig(
+        idTrabajador: String,
         listaMas_promo: MutableList<dataclass_adapter_promociones>,
         lista: List<CarouselItem>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
     ) {
-        bindingProductosTrabajadores.carrucelMasProductosPublicados.registerLifecycle(lifecycle)
-        bindingProductosTrabajadores.carrucelMasProductosPublicados.carouselListener =
-            object : CarouselListener {
-                override fun onCreateViewHolder(
-                    layoutInflater: LayoutInflater,
-                    parent: ViewGroup,
-                ): ViewBinding? {
-                    return ItemCustomTrabajadoresProductosBinding.inflate(
-                        layoutInflater,
-                        parent,
-                        false
-                    )
-                }
 
-                override fun onBindViewHolder(
-                    binding: ViewBinding,
-                    item: CarouselItem,
-                    position: Int
-                ) {
-                    val currentBinding = binding as ItemCustomTrabajadoresProductosBinding
-                    currentBinding.imageView.apply {
-                        setImage(item, R.drawable.ic_wb_cloudy_with_padding)
-                        minimumScale = 1f
-                        maximumScale = 10f
-                        mediumScale = 5f
-
-                        setOnClickListener {
-                            if (position < listaMas_promo.size) {  // Verifica que el índice sea válido
-                                val trabajo = listaMas_promo[position]
-                                Toast.makeText(
-                                    mContex,
-                                    "Seleccionaste el ${trabajo.id}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                cargarDatosNuevaMente(
-                                    trabajo.id.toString(),
-                                    bindingProductosTrabajadores
-                                )
-                            } else {
-                                Log.e(
-                                    "CarouselError",
-                                    "Intento de acceder a posición $position, pero listaMas_promo tiene ${listaMas_promo.size} elementos"
-                                )
-                            }
-                        }
-                    }
-                }
-
-            }
-        bindingProductosTrabajadores.carrucelMasProductosPublicados.setData(lista)
     }
 
 

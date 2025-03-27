@@ -4,6 +4,10 @@
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_agregar_ver_review.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/item_custom_trabajadores_productos.xml",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_custom_trabajadores_productos.xml"
+    },
+    {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_cuenta_fracment.xml",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_cuenta_fracment.xml"
     },

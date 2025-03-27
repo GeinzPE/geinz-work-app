@@ -1,25 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="200dp"
+    android:layout_height="200dp">
 
-    <androidx.cardview.widget.CardView
+
+    <RelativeLayout
         android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_margin="10dp"
-        app:cardCornerRadius="8dp"> <!-- Ajusta el radio de las esquinas según sea necesario -->
+        android:layout_height="200dp">
 
-        <io.getstream.photoview.PhotoView
-            android:id="@+id/image_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/cargando_img_geinz_500" />
-    </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_margin="10dp"
+            app:cardCornerRadius="8dp"> <!-- Ajusta el radio de las esquinas según sea necesario -->
+
+            <io.getstream.photoview.PhotoView
+                android:id="@+id/image_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"/>
+        </androidx.cardview.widget.CardView>
 
 
+    </RelativeLayout>
 
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progress_carga_imagen"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_centerInParent="true"
+        android:indeterminate="true"
+        android:visibility="gone" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/descuentoPorcentaje"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="center"
+        android:layout_margin="15dp"
+        android:background="@drawable/roun_off_descuento"
+        android:padding="5dp"
+        android:text="@string/cat"
+        android:textColor="@color/black"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</RelativeLayout>

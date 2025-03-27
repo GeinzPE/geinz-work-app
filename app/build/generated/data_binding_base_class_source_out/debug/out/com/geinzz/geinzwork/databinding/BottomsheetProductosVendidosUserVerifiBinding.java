@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.widget.NestedScrollView;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -31,7 +32,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout LinealModeloProducto;
 
   @NonNull
-  public final ImageCarousel carrucelMasProductosPublicados;
+  public final RecyclerView carrucelMasProductosPublicados;
 
   @NonNull
   public final ImageCarousel carrusel;
@@ -113,7 +114,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
 
   private BottomsheetProductosVendidosUserVerifiBinding(@NonNull LinearLayout rootView,
       @NonNull TextView Condicion, @NonNull LinearLayout LinealModeloProducto,
-      @NonNull ImageCarousel carrucelMasProductosPublicados, @NonNull ImageCarousel carrusel,
+      @NonNull RecyclerView carrucelMasProductosPublicados, @NonNull ImageCarousel carrusel,
       @NonNull TextView categoriaProducto, @NonNull BottomSheetDragHandleView cerrar,
       @NonNull MaterialButton comprar, @NonNull MaterialButton cordinarVendedor,
       @NonNull TextView descripcion, @NonNull TextView entregaDomicilio,
@@ -199,7 +200,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       }
 
       id = R.id.carrucelMasProductosPublicados;
-      ImageCarousel carrucelMasProductosPublicados = ViewBindings.findChildViewById(rootView, id);
+      RecyclerView carrucelMasProductosPublicados = ViewBindings.findChildViewById(rootView, id);
       if (carrucelMasProductosPublicados == null) {
         break missingId;
       }
