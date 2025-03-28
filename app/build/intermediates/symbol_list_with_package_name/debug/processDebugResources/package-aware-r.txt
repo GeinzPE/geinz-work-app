@@ -4561,6 +4561,7 @@ id RecicleVeiculos
 id RecicleViewNoticiasTiendas
 id RecicleViewTrabajos
 id Recicle_Categoria
+id Recicle_Categoria_descuento
 id Registrarme
 id RelativeGeneral
 id Repetir_contra
@@ -6337,6 +6338,7 @@ id verificados
 id verificar
 id verificationText
 id verificationTitle
+id vermasProductos
 id vermasServicios
 id vermecanica
 id versionActual
@@ -6601,6 +6603,7 @@ layout activity_veirificacion_datos
 layout activity_veneficios_verificados
 layout activity_ver_detalles_promociones
 layout activity_ver_mas_anuncios_tiendas
+layout activity_ver_mas_productos_publicados_trabajadores
 layout activity_ver_mas_servicios
 layout activity_ver_promociones
 layout activity_ver_publicaciones
@@ -6739,6 +6742,7 @@ layout item_noticias_guardadas
 layout item_planes_geinz_noticias_publicidad
 layout item_preview_art_comprar_carrito
 layout item_productos_tiendas
+layout item_productos_trabajador_recycleview
 layout item_productos_usuarios_verificados
 layout item_promociones_encontradas
 layout item_promociones_geinz

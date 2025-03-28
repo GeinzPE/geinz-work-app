@@ -14,7 +14,6 @@
             android:id="@+id/trabajadores"
             android:layout_width="match_parent"
             android:clickable="true"
-
             android:layout_height="280dp" />
         <TextView
             android:visibility="gone"

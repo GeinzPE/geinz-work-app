@@ -118,7 +118,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final TextView tvReadMore;
 
   @NonNull
-  public final TextView verTodosTrabajos;
+  public final TextView vermasProductos;
 
   private BottomsheetProductosVendidosUserVerifiBinding(@NonNull RelativeLayout rootView,
       @NonNull TextView Condicion, @NonNull LinearLayout LinealModeloProducto,
@@ -136,7 +136,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull LinearLayout netScrollView, @NonNull TextView nombreProducto,
       @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
       @NonNull ProgressBar progressCarga, @NonNull TextView stok, @NonNull TextView tvReadMore,
-      @NonNull TextView verTodosTrabajos) {
+      @NonNull TextView vermasProductos) {
     this.rootView = rootView;
     this.Condicion = Condicion;
     this.LinealModeloProducto = LinealModeloProducto;
@@ -169,7 +169,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.progressCarga = progressCarga;
     this.stok = stok;
     this.tvReadMore = tvReadMore;
-    this.verTodosTrabajos = verTodosTrabajos;
+    this.vermasProductos = vermasProductos;
   }
 
   @Override
@@ -386,9 +386,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      id = R.id.verTodosTrabajos;
-      TextView verTodosTrabajos = ViewBindings.findChildViewById(rootView, id);
-      if (verTodosTrabajos == null) {
+      id = R.id.vermasProductos;
+      TextView vermasProductos = ViewBindings.findChildViewById(rootView, id);
+      if (vermasProductos == null) {
         break missingId;
       }
 
@@ -399,7 +399,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
           linealCondicionProducto, linealDescripcionProducto, linealEntregaDomicilio,
           linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
           linealStokDisponible, marca, modelo, netScrollView, nombreProducto, precioAntiguo,
-          precioProducto, progressCarga, stok, tvReadMore, verTodosTrabajos);
+          precioProducto, progressCarga, stok, tvReadMore, vermasProductos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

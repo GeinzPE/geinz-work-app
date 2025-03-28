@@ -43,6 +43,7 @@ import com.example.geinzwork.adapterViewholder.adapter_mostra_articulos_trabajad
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
+import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.R
@@ -210,63 +211,6 @@ class info : Fragment() {
     }
 
 
-    private fun obtenerARticulosComprasVerificado(idTrabajador: String) {
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
-
-        db.get().addOnSuccessListener { res ->
-            val listaTemporal = mutableListOf<dataclas_item_preview_art_comprar>()
-
-            for (datos in res) {
-                val data = datos.data
-                val imgProducto = data["img_principal"] as? String ?: ""
-                val descuentoActivo = data["descuento"] as? Boolean ?: false
-                val id = data["id"] as? String ?: ""
-                val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
-
-                val item = dataclas_item_preview_art_comprar(
-                    id, imgProducto, "", null, null, descuentoActivo, cantidadDescuento
-                )
-                listaTemporal.add(item)
-            }
-
-            listaTemporal.shuffle()
-
-            listaAdapterProductosTRabajdores.clear()
-            listaAdapterProductosTRabajdores.addAll(listaTemporal)
-
-            // Inicializar RecyclerView una sola vez
-            if (listaAdapterProductosTRabajdores.isNotEmpty()) {
-                inicializarRecicleProductosVentasTrabajdores(
-                    listaAdapterProductosTRabajdores,
-                    idTrabajador
-                )
-            }
-        }.addOnFailureListener { e ->
-            println("No se encontraron datos: ${e.message}")
-        }
-    }
-
-
-    private fun inicializarRecicleProductosVentasTrabajdores(
-        listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>,
-        idTrabajador: String
-    ) {
-        val recicle = binding.productosDestacados
-        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
-        recicle.adapter = adapter_mostra_articulos_trabajadores(
-            listaAdapterProductosTRabajdores
-        ) { item ->
-            dialog = BottomSheetDialog(mContex)
-            ShowBottomSheetDialogProductosTrabajadores(
-                idTrabajador,
-                item.id.toString(),
-            )
-            dialog.show()
-        }
-    }
-
     private fun mostrarDatos() {
         binding.loading.isVisible = false
         binding.linealappLayout.isVisible = true
@@ -373,8 +317,6 @@ class info : Fragment() {
 
 
     }
-
-
     private fun obtenertrabajosRecientes(idTrabajador: String) {
         val lista = mutableListOf<CarouselItem>()
         val datosTrabajos = mutableListOf<Map<String, Any>>() // Cambiar a Any para incluir listas
@@ -474,9 +416,10 @@ class info : Fragment() {
     }
 
 
+
     private fun showBottomShetDialogAnuncios(
         idTrabajador: String,
-        trabajo: Map<String, Any>, // Cambiar a Any
+        trabajo: Map<String, Any>,
         listaImg: List<String>
     ) {
         val bindingMostrar =
@@ -657,122 +600,6 @@ class info : Fragment() {
     }
 
 
-    private fun ShowBottomSheetDialogProductosTrabajadores(
-        idTrabajador: String,
-        productoClikado: String
-    ) {
-        val bindingProductosTrabajadores =
-            BottomsheetProductosVendidosUserVerifiBinding.inflate(LayoutInflater.from(mContex))
-        dialog.setContentView(bindingProductosTrabajadores.root)
-        bindingProductosTrabajadores.cerrar.setOnClickListener {
-            dialog.dismiss()
-        }
-        val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
-        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
-        recicle.layoutManager = customLayoutManager
-
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(productoClikado)
-
-        db.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data ?: emptyMap()
-                setearDatosdialogProductos(data, bindingProductosTrabajadores) { cargado ->
-                }
-                obtenerMasProductosVenta(
-                    idTrabajador,
-                    productoClikado,
-                    bindingProductosTrabajadores
-                )
-
-            } else {
-                println("no se encontraron datos del producto")
-            }
-        }.addOnFailureListener { e ->
-            println("no se encontro ningun dato de producto $e")
-        }
-
-    }
-
-    private fun setearDatosdialogProductos(
-        data: Map<String, Any>,
-        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
-        onComplete: (Boolean) -> Unit
-    ) {
-        try {
-            val cantidadPorcentajeDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
-            val precio = data["precio"] as? Number ?: 0
-            val precioDescuento = data["precio_descuento"] as? Number ?: 0
-            val totalProducto = data["total_producto"] as? Number ?: 0
-
-            constantestextos_general.extender_acortar_texto(
-                bindingProductosTrabajadores.descripcion,
-                bindingProductosTrabajadores.tvReadMore
-            )
-
-            val categoria = data["categoria"] as? String ?: ""
-            val condicionProducto = data["condicion_producto"] as? String ?: ""
-            val descripcion = data["descripcion"] as? String ?: ""
-
-
-            val modelo = data["modelo"] as? String ?: ""
-            val descuento = data["descuento"] as? Boolean ?: false
-            val efectivo = data["efectivo"] as? Boolean ?: false
-            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: true
-
-            val garantia = data["garantia"] as? String ?: ""
-            val id = data["id"] as? String ?: ""
-            val fechaPublicada = data["fechaPublicada"] as? String ?: ""
-
-            val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
-            val marca = data["marca"] as? String ?: ""
-            val nombre = data["nombre"] as? String ?: ""
-            val plin = data["plin"] as? Boolean ?: false
-            val stok = data["stok"] as? String ?: ""
-            val yape = data["yape"] as? Boolean ?: false
-            val cantidad_porcentaje_descuento =
-                data["cantidad_porcentaje_descuento"] as? Number ?: 0
-
-            if (entrega_domicilio) {
-                bindingProductosTrabajadores.entregaDomicilio.text = "si"
-            } else {
-                bindingProductosTrabajadores.entregaDomicilio.text = "no"
-            }
-            if (descuento) {
-                bindingProductosTrabajadores.precioAntiguo.text = "S/ ${precio}.00"
-                bindingProductosTrabajadores.precioProducto.text = "S/ ${precioDescuento}.00"
-                bindingProductosTrabajadores.descuentoPorcentaje.text =
-                    "-${cantidad_porcentaje_descuento}%"
-                bindingProductosTrabajadores.precioAntiguo.isVisible = true
-                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = true
-            } else {
-                bindingProductosTrabajadores.precioAntiguo.isVisible = false
-                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = false
-                bindingProductosTrabajadores.precioProducto.text = "S/ ${precio}.00"
-            }
-
-            bindingProductosTrabajadores.categoriaProducto.text = categoria
-            bindingProductosTrabajadores.nombreProducto.text = nombre
-            bindingProductosTrabajadores.marca.text = marca
-            bindingProductosTrabajadores.modelo.text = modelo
-            bindingProductosTrabajadores.stok.text = stok
-            bindingProductosTrabajadores.garantia.text = garantia
-            bindingProductosTrabajadores.Condicion.text = condicionProducto
-            bindingProductosTrabajadores.descripcion.text = descripcion
-            bindingProductosTrabajadores.fechaPublicado.text = fechaPublicada
-            inizializarImgProductos(listaImg, bindingProductosTrabajadores, data)
-            val textViewPriceBefore = bindingProductosTrabajadores.precioAntiguo
-            textViewPriceBefore.paintFlags =
-                textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            textViewPriceBefore.textSize = 12f
-
-            onComplete(true)
-        } catch (e: Exception) {
-            onComplete(false)
-        }
-    }
-
     private fun inizializarImgProductos(
         listaImg: MutableList<dataclassMostarImgProductosVendedor>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
@@ -909,128 +736,6 @@ class info : Fragment() {
 
     }
 
-
-    private fun obtenerMasTrabajosRealiazdos(
-        idTrabajador: String,
-        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
-        idSelecionado: String
-    ) {
-        val db = FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
-            .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
-
-        db.get().addOnSuccessListener { res ->
-            listaMas_promo.clear()
-
-            for (datos in res) {
-                val data = datos.data
-                val img_url = data?.get("img_url") as? String ?: ""
-                val titulo = data?.get("titulo") as? String ?: ""
-                val contenido = data?.get("contenido") as? String ?: ""
-                val id = data?.get("id") as? String ?: ""
-                val fecha = data?.get("fecha_rec") as? String ?: ""
-                val hora = data?.get("hora_rec") as? String ?: ""
-                val img_url2 = data?.get("img_url2") as? String ?: ""
-                val img_url3 = data?.get("img_url3") as? String ?: ""
-                val img_url4 = data?.get("img_url4") as? String ?: ""
-
-
-                // Filtrar para que no se agregue el idSeleccionado
-                if (id != idSelecionado) {
-                    val dataClass =
-                        dataclass_adapter_promociones(
-                            img_url,
-                            img_url2,
-                            img_url3,
-                            img_url4,
-                            titulo,
-                            contenido,
-                            id,
-                            fecha,
-                            hora
-                        )
-                    listaMas_promo.add(dataClass)
-                }
-            }
-
-            if (listaMas_promo.isNotEmpty()) {
-                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
-                inicializarTrabajosRealizados(bindingMostrarTRabajos)
-            } else {
-                Log.d("error obtenerDAtos", "No hay datos para mostrar")
-            }
-        }.addOnFailureListener { e ->
-            println("error al encontrar $e")
-        }
-    }
-
-
-    private fun obtnerMasTrabajosRealziadosTrabajosReicntes(
-        idTrabajador: String,
-        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
-        idSelecionado: String
-    ) {
-        val db = FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
-            .collection("trabajadores").document(idTrabajador).collection("trabajos_realizados")
-
-        db.get().addOnSuccessListener { res ->
-            listaMas_promo.clear()
-
-            for (datos in res) {
-                val data = datos.data
-                val img_url = data?.get("imageUrl") as? String ?: ""
-                val titulo = data?.get("titulo") as? String ?: ""
-                val contenido = data?.get("descripcion") as? String ?: ""
-                val id = data?.get("id") as? String ?: ""
-                val fecha = data?.get("fecha") as? String ?: ""
-                val hora = data?.get("hora") as? String ?: ""
-                val img_url2 = data?.get("img_url2") as? String ?: ""
-                val img_url3 = data?.get("img_url3") as? String ?: ""
-                val img_url4 = data?.get("img_url4") as? String ?: ""
-
-
-                // Filtrar para que no se agregue el idSeleccionado
-                if (id != idSelecionado) {
-                    val dataClass =
-                        dataclass_adapter_promociones(
-                            img_url,
-                            img_url2,
-                            img_url3,
-                            img_url4,
-                            titulo,
-                            contenido,
-                            id,
-                            fecha,
-                            hora
-                        )
-                    listaMas_promo.add(dataClass)
-                }
-            }
-
-            if (listaMas_promo.isNotEmpty()) {
-                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
-                inicializarTrabajosRealizados(bindingMostrarTRabajos)
-            } else {
-                Log.d("error obtenerDAtos", "No hay datos para mostrar")
-            }
-        }.addOnFailureListener { e ->
-            println("error al encontrar $e")
-        }
-    }
-
-
-    private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
-        val recicle = bindingMostrarTRabajos.masTrabajosRealiados
-        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
-        recicle.adapter = adapter_trabajos_realizados_trabajador(
-            false,
-            listaMas_promo
-        ) { item ->
-            cagrarDatosNuevamente(item, bindingMostrarTRabajos)
-        }
-
-    }
 
     fun cagrarDatosNuevamente(
         item: dataclass_adapter_promociones,
@@ -1255,76 +960,6 @@ class info : Fragment() {
             }
     }
 
-    private fun showPermissionDialog(context: Context, phoneNumber: String) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CALL_PHONE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            AlertDialog.Builder(context)
-                .setTitle("Permiso necesario")
-                .setMessage("Esta aplicación necesita permiso para realizar llamadas. Por favor, activa el permiso.")
-                .setPositiveButton("Aceptar") { dialog, which ->
-                    requestCallPermission(context, phoneNumber)
-                }
-                .setNegativeButton("Cancelar") { dialog, which ->
-                    Toast.makeText(context, "Permiso de llamada denegado", Toast.LENGTH_SHORT)
-                        .show()
-                }
-                .show()
-        } else {
-
-            makePhoneCall(context, phoneNumber)
-        }
-    }
-
-    private fun requestCallPermission(context: Context, phoneNumber: String) {
-        phoneNumberToCall = phoneNumber
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CALL_PHONE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                mContex as Activity,
-                arrayOf(Manifest.permission.CALL_PHONE),
-                REQUEST_CALL_PHONE
-            )
-        } else {
-            makePhoneCall(context, phoneNumber)
-        }
-    }
-
-    private fun makePhoneCall(context: Context, phoneNumber: String) {
-        val callIntent = Intent(Intent.ACTION_CALL)
-        callIntent.data = Uri.parse("tel:$phoneNumber")
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CALL_PHONE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            context.startActivity(callIntent)
-        } else {
-            requestCallPermission(context, phoneNumber)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CALL_PHONE) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Permiso concedido, realiza la llamada
-                phoneNumberToCall?.let { makePhoneCall(mContex, it) }
-            } else {
-                Toast.makeText(mContex, "Permiso de llamada denegado", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
-    }
 
     private fun verificarEstado_verificacion(fb: String, ig: String, tk: String, id: String) {
         val verificado = binding.verificado
@@ -1399,6 +1034,9 @@ class info : Fragment() {
         }
     }
 
+
+
+
     @SuppressLint("StringFormatInvalid")
     private fun createAndShareDynamicLink(
         idTrabajador: String,
@@ -1463,6 +1101,385 @@ class info : Fragment() {
         }.addOnFailureListener { exception ->
             println("Error al obtener el anuncio: ${exception.message}")
         }
+    }
+
+    private fun showPermissionDialog(context: Context, phoneNumber: String) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CALL_PHONE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            AlertDialog.Builder(context)
+                .setTitle("Permiso necesario")
+                .setMessage("Esta aplicación necesita permiso para realizar llamadas. Por favor, activa el permiso.")
+                .setPositiveButton("Aceptar") { dialog, which ->
+                    requestCallPermission(context, phoneNumber)
+                }
+                .setNegativeButton("Cancelar") { dialog, which ->
+                    Toast.makeText(context, "Permiso de llamada denegado", Toast.LENGTH_SHORT)
+                        .show()
+                }
+                .show()
+        } else {
+
+            makePhoneCall(context, phoneNumber)
+        }
+    }
+
+    private fun requestCallPermission(context: Context, phoneNumber: String) {
+        phoneNumberToCall = phoneNumber
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CALL_PHONE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                mContex as Activity,
+                arrayOf(Manifest.permission.CALL_PHONE),
+                REQUEST_CALL_PHONE
+            )
+        } else {
+            makePhoneCall(context, phoneNumber)
+        }
+    }
+
+    private fun makePhoneCall(context: Context, phoneNumber: String) {
+        val callIntent = Intent(Intent.ACTION_CALL)
+        callIntent.data = Uri.parse("tel:$phoneNumber")
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            context.startActivity(callIntent)
+        } else {
+            requestCallPermission(context, phoneNumber)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CALL_PHONE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                // Permiso concedido, realiza la llamada
+                phoneNumberToCall?.let { makePhoneCall(mContex, it) }
+            } else {
+                Toast.makeText(mContex, "Permiso de llamada denegado", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+    }
+
+
+
+
+
+    private fun ShowBottomSheetDialogProductosTrabajadores(
+        idTrabajador: String,
+        productoClikado: String
+    ) {
+        val bindingProductosTrabajadores =
+            BottomsheetProductosVendidosUserVerifiBinding.inflate(LayoutInflater.from(mContex))
+        dialog.setContentView(bindingProductosTrabajadores.root)
+        bindingProductosTrabajadores.cerrar.setOnClickListener {
+            dialog.dismiss()
+        }
+        bindingProductosTrabajadores.vermasProductos.setOnClickListener {
+            val intent=Intent(mContex,ver_mas_productos_publicados_trabajadores::class.java).apply {
+                putExtra("idTrabajador",idTrabajador)
+            }
+            startActivity(intent)
+        }
+        val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
+        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.layoutManager = customLayoutManager
+
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("productos_venta").document(productoClikado)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data ?: emptyMap()
+                setearDatosdialogProductos(data, bindingProductosTrabajadores) { cargado ->
+                }
+                obtenerMasProductosVenta(
+                    idTrabajador,
+                    productoClikado,
+                    bindingProductosTrabajadores
+                )
+
+            } else {
+                println("no se encontraron datos del producto")
+            }
+        }.addOnFailureListener { e ->
+            println("no se encontro ningun dato de producto $e")
+        }
+
+    }
+
+    private fun obtenerARticulosComprasVerificado(idTrabajador: String) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("productos_venta")
+
+        db.get().addOnSuccessListener { res ->
+            val listaTemporal = mutableListOf<dataclas_item_preview_art_comprar>()
+
+            for (datos in res) {
+                val data = datos.data
+                val imgProducto = data["img_principal"] as? String ?: ""
+                val descuentoActivo = data["descuento"] as? Boolean ?: false
+                val id = data["id"] as? String ?: ""
+                val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
+
+                val item = dataclas_item_preview_art_comprar(
+                    id, imgProducto, "", null, null, descuentoActivo, cantidadDescuento
+                )
+                listaTemporal.add(item)
+            }
+
+            listaTemporal.shuffle()
+
+            listaAdapterProductosTRabajdores.clear()
+            listaAdapterProductosTRabajdores.addAll(listaTemporal)
+
+            // Inicializar RecyclerView una sola vez
+            if (listaAdapterProductosTRabajdores.isNotEmpty()) {
+                inicializarRecicleProductosVentasTrabajdores(
+                    listaAdapterProductosTRabajdores,
+                    idTrabajador
+                )
+            }
+        }.addOnFailureListener { e ->
+            println("No se encontraron datos: ${e.message}")
+        }
+    }
+
+    private fun inicializarRecicleProductosVentasTrabajdores(
+        listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>,
+        idTrabajador: String
+    ) {
+        val recicle = binding.productosDestacados
+        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.adapter = adapter_mostra_articulos_trabajadores(
+            listaAdapterProductosTRabajdores
+        ) { item ->
+            dialog = BottomSheetDialog(mContex)
+            ShowBottomSheetDialogProductosTrabajadores(
+                idTrabajador,
+                item.id.toString(),
+            )
+            dialog.show()
+        }
+    }
+
+    private fun setearDatosdialogProductos(
+        data: Map<String, Any>,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
+        onComplete: (Boolean) -> Unit
+    ) {
+        try {
+            val cantidadPorcentajeDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
+            val precio = data["precio"] as? Number ?: 0
+            val precioDescuento = data["precio_descuento"] as? Number ?: 0
+            val totalProducto = data["total_producto"] as? Number ?: 0
+
+            constantestextos_general.extender_acortar_texto(
+                bindingProductosTrabajadores.descripcion,
+                bindingProductosTrabajadores.tvReadMore
+            )
+
+            val categoria = data["categoria"] as? String ?: ""
+            val condicionProducto = data["condicion_producto"] as? String ?: ""
+            val descripcion = data["descripcion"] as? String ?: ""
+
+
+            val modelo = data["modelo"] as? String ?: ""
+            val descuento = data["descuento"] as? Boolean ?: false
+            val efectivo = data["efectivo"] as? Boolean ?: false
+            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: true
+
+            val garantia = data["garantia"] as? String ?: ""
+            val id = data["id"] as? String ?: ""
+            val fechaPublicada = data["fechaPublicada"] as? String ?: ""
+
+            val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
+            val marca = data["marca"] as? String ?: ""
+            val nombre = data["nombre"] as? String ?: ""
+            val plin = data["plin"] as? Boolean ?: false
+            val stok = data["stok"] as? String ?: ""
+            val yape = data["yape"] as? Boolean ?: false
+            val cantidad_porcentaje_descuento =
+                data["cantidad_porcentaje_descuento"] as? Number ?: 0
+
+            if (entrega_domicilio) {
+                bindingProductosTrabajadores.entregaDomicilio.text = "si"
+            } else {
+                bindingProductosTrabajadores.entregaDomicilio.text = "no"
+            }
+            if (descuento) {
+                bindingProductosTrabajadores.precioAntiguo.text = "S/ ${precio}.00"
+                bindingProductosTrabajadores.precioProducto.text = "S/ ${precioDescuento}.00"
+                bindingProductosTrabajadores.descuentoPorcentaje.text =
+                    "-${cantidad_porcentaje_descuento}%"
+                bindingProductosTrabajadores.precioAntiguo.isVisible = true
+                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = true
+            } else {
+                bindingProductosTrabajadores.precioAntiguo.isVisible = false
+                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = false
+                bindingProductosTrabajadores.precioProducto.text = "S/ ${precio}.00"
+            }
+
+            bindingProductosTrabajadores.categoriaProducto.text = categoria
+            bindingProductosTrabajadores.nombreProducto.text = nombre
+            bindingProductosTrabajadores.marca.text = marca
+            bindingProductosTrabajadores.modelo.text = modelo
+            bindingProductosTrabajadores.stok.text = stok
+            bindingProductosTrabajadores.garantia.text = garantia
+            bindingProductosTrabajadores.Condicion.text = condicionProducto
+            bindingProductosTrabajadores.descripcion.text = descripcion
+            bindingProductosTrabajadores.fechaPublicado.text = fechaPublicada
+            inizializarImgProductos(listaImg, bindingProductosTrabajadores, data)
+            val textViewPriceBefore = bindingProductosTrabajadores.precioAntiguo
+            textViewPriceBefore.paintFlags =
+                textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            textViewPriceBefore.textSize = 12f
+
+            onComplete(true)
+        } catch (e: Exception) {
+            onComplete(false)
+        }
+    }
+
+
+
+
+
+    private fun obtenerMasTrabajosRealiazdos(
+        idTrabajador: String,
+        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
+        idSelecionado: String
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
+
+        db.get().addOnSuccessListener { res ->
+            listaMas_promo.clear()
+
+            for (datos in res) {
+                val data = datos.data
+                val img_url = data?.get("img_url") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                val contenido = data?.get("contenido") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val fecha = data?.get("fecha_rec") as? String ?: ""
+                val hora = data?.get("hora_rec") as? String ?: ""
+                val img_url2 = data?.get("img_url2") as? String ?: ""
+                val img_url3 = data?.get("img_url3") as? String ?: ""
+                val img_url4 = data?.get("img_url4") as? String ?: ""
+
+
+                // Filtrar para que no se agregue el idSeleccionado
+                if (id != idSelecionado) {
+                    val dataClass =
+                        dataclass_adapter_promociones(
+                            img_url,
+                            img_url2,
+                            img_url3,
+                            img_url4,
+                            titulo,
+                            contenido,
+                            id,
+                            fecha,
+                            hora
+                        )
+                    listaMas_promo.add(dataClass)
+                }
+            }
+
+            if (listaMas_promo.isNotEmpty()) {
+                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
+                inicializarTrabajosRealizados(bindingMostrarTRabajos)
+            } else {
+                Log.d("error obtenerDAtos", "No hay datos para mostrar")
+            }
+        }.addOnFailureListener { e ->
+            println("error al encontrar $e")
+        }
+    }
+
+
+    private fun obtnerMasTrabajosRealziadosTrabajosReicntes(
+        idTrabajador: String,
+        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
+        idSelecionado: String
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador).collection("trabajos_realizados")
+
+        db.get().addOnSuccessListener { res ->
+            listaMas_promo.clear()
+
+            for (datos in res) {
+                val data = datos.data
+                val img_url = data?.get("imageUrl") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                val contenido = data?.get("descripcion") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val fecha = data?.get("fecha") as? String ?: ""
+                val hora = data?.get("hora") as? String ?: ""
+                val img_url2 = data?.get("img_url2") as? String ?: ""
+                val img_url3 = data?.get("img_url3") as? String ?: ""
+                val img_url4 = data?.get("img_url4") as? String ?: ""
+
+
+                // Filtrar para que no se agregue el idSeleccionado
+                if (id != idSelecionado) {
+                    val dataClass =
+                        dataclass_adapter_promociones(
+                            img_url,
+                            img_url2,
+                            img_url3,
+                            img_url4,
+                            titulo,
+                            contenido,
+                            id,
+                            fecha,
+                            hora
+                        )
+                    listaMas_promo.add(dataClass)
+                }
+            }
+
+            if (listaMas_promo.isNotEmpty()) {
+                listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
+                inicializarTrabajosRealizados(bindingMostrarTRabajos)
+            } else {
+                Log.d("error obtenerDAtos", "No hay datos para mostrar")
+            }
+        }.addOnFailureListener { e ->
+            println("error al encontrar $e")
+        }
+    }
+
+
+    private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
+        val recicle = bindingMostrarTRabajos.masTrabajosRealiados
+        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.adapter = adapter_trabajos_realizados_trabajador(
+            false,
+            listaMas_promo
+        ) { item ->
+            cagrarDatosNuevamente(item, bindingMostrarTRabajos)
+        }
+
     }
 
 }
