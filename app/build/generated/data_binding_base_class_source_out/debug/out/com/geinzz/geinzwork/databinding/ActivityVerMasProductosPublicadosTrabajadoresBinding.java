@@ -4,7 +4,10 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,15 +29,37 @@ public final class ActivityVerMasProductosPublicadosTrabajadoresBinding implemen
   public final RecyclerView RecicleCategoriaDescuento;
 
   @NonNull
+  public final ImageButton filtradoCategorias;
+
+  @NonNull
+  public final LinearLayout lineaCategoriasDescuento;
+
+  @NonNull
   public final LinearLayout main;
+
+  @NonNull
+  public final ProgressBar prograsvar;
+
+  @NonNull
+  public final RecyclerView recycleViewProductosFiltrados;
+
+  @NonNull
+  public final TextView textoNoEncontrado;
 
   private ActivityVerMasProductosPublicadosTrabajadoresBinding(@NonNull LinearLayout rootView,
       @NonNull RecyclerView RecicleCategoria, @NonNull RecyclerView RecicleCategoriaDescuento,
-      @NonNull LinearLayout main) {
+      @NonNull ImageButton filtradoCategorias, @NonNull LinearLayout lineaCategoriasDescuento,
+      @NonNull LinearLayout main, @NonNull ProgressBar prograsvar,
+      @NonNull RecyclerView recycleViewProductosFiltrados, @NonNull TextView textoNoEncontrado) {
     this.rootView = rootView;
     this.RecicleCategoria = RecicleCategoria;
     this.RecicleCategoriaDescuento = RecicleCategoriaDescuento;
+    this.filtradoCategorias = filtradoCategorias;
+    this.lineaCategoriasDescuento = lineaCategoriasDescuento;
     this.main = main;
+    this.prograsvar = prograsvar;
+    this.recycleViewProductosFiltrados = recycleViewProductosFiltrados;
+    this.textoNoEncontrado = textoNoEncontrado;
   }
 
   @Override
@@ -77,10 +102,41 @@ public final class ActivityVerMasProductosPublicadosTrabajadoresBinding implemen
         break missingId;
       }
 
+      id = R.id.filtradoCategorias;
+      ImageButton filtradoCategorias = ViewBindings.findChildViewById(rootView, id);
+      if (filtradoCategorias == null) {
+        break missingId;
+      }
+
+      id = R.id.lineaCategoriasDescuento;
+      LinearLayout lineaCategoriasDescuento = ViewBindings.findChildViewById(rootView, id);
+      if (lineaCategoriasDescuento == null) {
+        break missingId;
+      }
+
       LinearLayout main = (LinearLayout) rootView;
 
+      id = R.id.prograsvar;
+      ProgressBar prograsvar = ViewBindings.findChildViewById(rootView, id);
+      if (prograsvar == null) {
+        break missingId;
+      }
+
+      id = R.id.recycleViewProductosFiltrados;
+      RecyclerView recycleViewProductosFiltrados = ViewBindings.findChildViewById(rootView, id);
+      if (recycleViewProductosFiltrados == null) {
+        break missingId;
+      }
+
+      id = R.id.textoNoEncontrado;
+      TextView textoNoEncontrado = ViewBindings.findChildViewById(rootView, id);
+      if (textoNoEncontrado == null) {
+        break missingId;
+      }
+
       return new ActivityVerMasProductosPublicadosTrabajadoresBinding((LinearLayout) rootView,
-          RecicleCategoria, RecicleCategoriaDescuento, main);
+          RecicleCategoria, RecicleCategoriaDescuento, filtradoCategorias, lineaCategoriasDescuento,
+          main, prograsvar, recycleViewProductosFiltrados, textoNoEncontrado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

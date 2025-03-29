@@ -91,6 +91,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout linealStokDisponible;
 
   @NonNull
+  public final LinearLayout linealTXTmasProductos;
+
+  @NonNull
   public final TextView marca;
 
   @NonNull
@@ -132,11 +135,11 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull LinearLayout linealDescripcionProducto, @NonNull LinearLayout linealEntregaDomicilio,
       @NonNull LinearLayout linealFechaPublicada, @NonNull LinearLayout linealGarantiaDisponible,
       @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
-      @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
-      @NonNull LinearLayout netScrollView, @NonNull TextView nombreProducto,
-      @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
-      @NonNull ProgressBar progressCarga, @NonNull TextView stok, @NonNull TextView tvReadMore,
-      @NonNull TextView vermasProductos) {
+      @NonNull LinearLayout linealStokDisponible, @NonNull LinearLayout linealTXTmasProductos,
+      @NonNull TextView marca, @NonNull TextView modelo, @NonNull LinearLayout netScrollView,
+      @NonNull TextView nombreProducto, @NonNull TextView precioAntiguo,
+      @NonNull TextView precioProducto, @NonNull ProgressBar progressCarga, @NonNull TextView stok,
+      @NonNull TextView tvReadMore, @NonNull TextView vermasProductos) {
     this.rootView = rootView;
     this.Condicion = Condicion;
     this.LinealModeloProducto = LinealModeloProducto;
@@ -160,6 +163,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.linealMarcaProducto = linealMarcaProducto;
     this.linealPrecioProducto = linealPrecioProducto;
     this.linealStokDisponible = linealStokDisponible;
+    this.linealTXTmasProductos = linealTXTmasProductos;
     this.marca = marca;
     this.modelo = modelo;
     this.netScrollView = netScrollView;
@@ -332,6 +336,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.linealTXTmas_productos;
+      LinearLayout linealTXTmasProductos = ViewBindings.findChildViewById(rootView, id);
+      if (linealTXTmasProductos == null) {
+        break missingId;
+      }
+
       id = R.id.marca;
       TextView marca = ViewBindings.findChildViewById(rootView, id);
       if (marca == null) {
@@ -398,8 +408,8 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
           entregaDomicilio, fechaPublicado, garantia, linealCategoriaProducto,
           linealCondicionProducto, linealDescripcionProducto, linealEntregaDomicilio,
           linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
-          linealStokDisponible, marca, modelo, netScrollView, nombreProducto, precioAntiguo,
-          precioProducto, progressCarga, stok, tvReadMore, vermasProductos);
+          linealStokDisponible, linealTXTmasProductos, marca, modelo, netScrollView, nombreProducto,
+          precioAntiguo, precioProducto, progressCarga, stok, tvReadMore, vermasProductos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

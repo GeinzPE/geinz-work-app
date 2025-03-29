@@ -43,6 +43,7 @@ import com.example.geinzwork.adapterViewholder.adapter_mostra_articulos_trabajad
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
+import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
@@ -600,7 +601,8 @@ class info : Fragment() {
     }
 
 
-    private fun inizializarImgProductos(
+    fun inizializarImgProductos(
+        context: Context,
         listaImg: MutableList<dataclassMostarImgProductosVendedor>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
         data: Map<String, Any>
@@ -629,7 +631,7 @@ class info : Fragment() {
         val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
         if (recicle.adapter == null) {
             recicle.layoutManager =
-                LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             recicle.adapter = adapterInicializarRecycleimgProductosTrabajadores(listaImg)
         } else {
             recicle.adapter?.notifyDataSetChanged()
@@ -637,7 +639,8 @@ class info : Fragment() {
     }
 
 
-    private fun obtenerMasProductosVenta(
+    fun obtenerMasProductosVenta(
+        context: Context,
         idTrabajador: String,
         idProducto: String,
         bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
@@ -664,6 +667,7 @@ class info : Fragment() {
             if (listaProductosUSer.isNotEmpty()) {
                 listaProductosUSer.shuffle()
                 inizializarCarruceBindig(
+                    context,
                     idTrabajador,
                     listaProductosUSer,
                     bindingProductosVencidodos
@@ -680,6 +684,7 @@ class info : Fragment() {
     }
 
     private fun cargarDatosNuevaMente(
+        context: Context,
         idTrabajador: String,
         productoClikado: String,
         bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
@@ -705,7 +710,7 @@ class info : Fragment() {
                     }
 
                 }
-                obtenerMasProductosVenta(
+                obtenerMasProductosVenta(context,
                     idTrabajador,
                     productoClikado,
                     bindingProductosVencidodos
@@ -722,15 +727,16 @@ class info : Fragment() {
 
 
     private fun inizializarCarruceBindig(
+        context: Context,
         idTrabajador: String,
         lista_productosVentaUSer: MutableList<dataclassPorductosVerntaUser>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
     ) {
         val recicle = bindingProductosTrabajadores.carrucelMasProductosPublicados
-        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
         val adapter = adapter_productos_venta_user(lista_productosVentaUSer) { item ->
-            cargarDatosNuevaMente(idTrabajador, item.id.toString(), bindingProductosTrabajadores)
+            cargarDatosNuevaMente(context,idTrabajador, item.id.toString(), bindingProductosTrabajadores)
         }
         recicle.adapter = adapter
 
@@ -1179,6 +1185,7 @@ class info : Fragment() {
 
 
     private fun ShowBottomSheetDialogProductosTrabajadores(
+        context: Context,
         idTrabajador: String,
         productoClikado: String
     ) {
@@ -1193,6 +1200,15 @@ class info : Fragment() {
                 putExtra("idTrabajador",idTrabajador)
             }
             startActivity(intent)
+            dialog.dismiss()
+        }
+        bindingProductosTrabajadores.comprar.setOnClickListener {
+            val intent=Intent(mContex,compras_productos_vendedor::class.java).apply {
+                putExtra("idProducto",productoClikado)
+                putExtra("idTrabajador",idTrabajador)
+            }
+            startActivity(intent)
+            dialog.dismiss()
         }
         val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
         val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
@@ -1207,7 +1223,7 @@ class info : Fragment() {
                 val data = res.data ?: emptyMap()
                 setearDatosdialogProductos(data, bindingProductosTrabajadores) { cargado ->
                 }
-                obtenerMasProductosVenta(
+                obtenerMasProductosVenta(context,
                     idTrabajador,
                     productoClikado,
                     bindingProductosTrabajadores
@@ -1271,6 +1287,7 @@ class info : Fragment() {
         ) { item ->
             dialog = BottomSheetDialog(mContex)
             ShowBottomSheetDialogProductosTrabajadores(
+                mContex,
                 idTrabajador,
                 item.id.toString(),
             )
@@ -1278,7 +1295,8 @@ class info : Fragment() {
         }
     }
 
-    private fun setearDatosdialogProductos(
+    fun setearDatosdialogProductos(
+
         data: Map<String, Any>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
         onComplete: (Boolean) -> Unit
@@ -1344,7 +1362,7 @@ class info : Fragment() {
             bindingProductosTrabajadores.Condicion.text = condicionProducto
             bindingProductosTrabajadores.descripcion.text = descripcion
             bindingProductosTrabajadores.fechaPublicado.text = fechaPublicada
-            inizializarImgProductos(listaImg, bindingProductosTrabajadores, data)
+            inizializarImgProductos(mContex,listaImg, bindingProductosTrabajadores, data)
             val textViewPriceBefore = bindingProductosTrabajadores.precioAntiguo
             textViewPriceBefore.paintFlags =
                 textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG

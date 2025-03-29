@@ -28,9 +28,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="150dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/cargando_img"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/progress_carga_imagen"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_centerInParent="true"
+                    android:indeterminate="true"
+                    android:visibility="gone" />
             </RelativeLayout>
 
 
@@ -44,7 +49,7 @@
             android:paddingHorizontal="5dp">
 
             <TextView
-                android:id="@+id/UserName"
+                android:id="@+id/descripcionProducto"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -52,17 +57,17 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginBottom="10dp"
                 android:ellipsize="end"
-                android:maxLines="2"
+                android:maxLines="3"
                 android:text="@string/geinz"
 
                 android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/descuentoProducto"
-                style="@style/TextoModoOScuroColor"
+                style="@style/descripcionColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:text="@string/cat"
                 android:textSize="15sp" />
 
@@ -76,10 +81,9 @@
                     android:id="@+id/precioProducto"
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
-
                     android:layout_height="wrap_content"
                     android:text="@string/cat"
-                    android:textSize="15sp" />
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/descuentoPorcentaje"
@@ -97,6 +101,7 @@
 
 
             <TextView
+                android:textColor="@color/verdedelivery_gratis"
                 android:id="@+id/envioGratis"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"

@@ -24,6 +24,7 @@ color search_opaque
 color selected_background
 color textoColorBTNFiltrado
 color verde
+color verdedelivery_gratis
 color violeta
 color violetaQR
 color white
@@ -315,11 +316,14 @@ id Lineal_sin_servicios
 id LlamadaDriver
 id Localidad
 id LocaludaUser
+id MetodoEntregaProducto
 id NombreTienda
 id NombreTiendaRelative
 id NoticiasOfertasLineal
 id NumeroCelular
 id NumeroTelf
+id Numero_de_contacto
+id Numero_de_contactoED
 id Paramonga
 id Pativilca
 id PlanB
@@ -346,6 +350,8 @@ id RecicleViewNoticiasTiendas
 id RecicleViewTrabajos
 id Recicle_Categoria
 id Recicle_Categoria_descuento
+id ReferenciaEntrega
+id ReferenciaEntregaED
 id Registrarme
 id RelativeGeneral
 id Repetir_contra
@@ -356,11 +362,13 @@ id ServiciosLineal
 id Sguiente_cuenta
 id Siguiente
 id Stok
+id StokDiponible
 id SubiendoImg
 id Supe
 id TeindaVirtual
 id TelefonoTienda
 id TelefonoTiendaED
+id TexviewIDRefDire
 id Tienda
 id TiendaED
 id TiendaFisica
@@ -493,6 +501,7 @@ id categoria
 id categoriaED
 id categoriaEmpresa
 id categoriaProducto
+id categoriaProductos
 id categoriaSelcionada
 id categoriaT
 id categoriaTienda
@@ -529,6 +538,7 @@ id comprar
 id comprar_web
 id comprovante
 id comprovante_pago
+id condicionProducto
 id confirmacion_datos_title
 id confirmar
 id contador
@@ -604,6 +614,7 @@ id descripcionus
 id descuento
 id descuentoED
 id descuentoPorcentaje
+id descuentoProducto
 id descuento_no
 id descuento_si
 id detallesBoleta
@@ -614,6 +625,8 @@ id dialog_title
 id diasRestantes
 id direccion
 id direccionED
+id direccionEntrega
+id direccionEntregaED
 id direccionEnvios
 id direccion_casa
 id direccion_casaED
@@ -644,6 +657,7 @@ id entregaDomicilio
 id entregaMetodo
 id enviado_exitosamente
 id enviar
+id envioGratis
 id estado
 id estadoTienda
 id estadosLineal
@@ -694,6 +708,7 @@ id frameInfo
 id frameSinReview
 id freelancer
 id garantia
+id garantiaProducto
 id geinz
 id general
 id generalGeinz
@@ -862,6 +877,7 @@ id int_nacionalidad
 id int_repetirContrafree
 id item_preview_productos
 id itemnAnuncios
+id lat
 id latitudUSer
 id layoutDescripcion
 id layoutDireccion
@@ -879,6 +895,7 @@ id limpiarIG
 id limpiarTK
 id linalFechas
 id linea1Estrellas
+id lineaCategoriasDescuento
 id lineaLayout
 id lineaLocalida
 id lineaPadreListener
@@ -935,6 +952,7 @@ id linealServicios
 id linealSinReportes
 id linealStokDisponible
 id linealSubir
+id linealTXTmas_productos
 id linealTiendaProp
 id linealTipoTrabajo
 id linealTitulo
@@ -996,6 +1014,7 @@ id localidadUser
 id localidad_disponible
 id localidaduser
 id localizacion
+id log
 id longituduser
 id lotteSend
 id lottieAnimationView
@@ -1004,6 +1023,7 @@ id main
 id mandarSolicitud
 id mapa
 id marca
+id marcaProducto
 id mas
 id masEstrellas
 id masPromociones_geinz
@@ -1016,13 +1036,17 @@ id menos
 id mensajeED
 id mensajewhatsappInfo
 id mensajewhtsapp
+id metodoEfectivo
 id metodoEntrega
 id metodoPago
+id metodoPlin
+id metodoYape
 id metodo_entrega
 id metodo_pagos
 id metodopago
 id modalida_negocio
 id modelo
+id modeloProducto
 id montoTotal
 id monto_cancelar
 id mostrarOcular_contacto
@@ -1068,6 +1092,8 @@ id nombreTrabajador
 id nombreTrabajaror
 id nombreUser
 id nombreint
+id nombresCompletos
+id nombresCompletosED
 id nombress
 id nombreuser
 id noticia
@@ -1138,6 +1164,7 @@ id precio_no
 id precio_si
 id preciodeliveryTextInputLayout
 id preciofiltrado
+id precioproducto
 id preview
 id privacy_policy_changes
 id privacy_policy_contact
@@ -1184,6 +1211,7 @@ id qrYape
 id qr_plin
 id qr_trabajador
 id qr_yape
+id radioGrupMetodosPago
 id realtive
 id realtive_clikc
 id reccileRadioBtn
@@ -1213,6 +1241,7 @@ id recielAnuncios
 id recieleCategorias
 id recieleCompras
 id recojoEnTienda
+id recycleViewProductosFiltrados
 id redes
 id referencia
 id referenciaED
@@ -1300,6 +1329,8 @@ id textoImg2
 id textoImg3
 id textoMetodo_pago
 id textoNoEncontrado
+id textoNumero1
+id textoNumero2
 id textoOculto
 id textoPoliticas
 id textoPreview
@@ -1356,6 +1387,7 @@ id totalPagar
 id totalProducto
 id totalProductos
 id total_user
+id totalcancelar
 id trabajadores
 id trabajadores_similares
 id trabajosRealizados
@@ -1398,6 +1430,7 @@ id verTecnicos
 id verTiendas
 id verTodosTrabajos
 id verTrabajohogar
+id ver_lugares_entrega
 id ver_mas
 id ver_mas_promociones
 id ver_mas_trabajadores
@@ -1436,6 +1469,7 @@ layout activity_caracteristica_trabajo
 layout activity_carrito_compras
 layout activity_categorias_info
 layout activity_como_usar
+layout activity_compras_productos_vendedor
 layout activity_confirmacion_de_compra_tienda
 layout activity_crea_tu_noticia
 layout activity_crea_tu_publicidad
@@ -1579,6 +1613,7 @@ layout include_item_preview_producto
 layout include_metodos_entrega
 layout include_metodos_pago
 layout include_rreview_user_progress
+layout include_texto_horizontal_general
 layout include_tienda_socia
 layout include_total_pagar
 layout info_tienda

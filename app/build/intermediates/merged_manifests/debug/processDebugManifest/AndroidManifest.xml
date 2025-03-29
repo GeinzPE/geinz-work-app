@@ -75,6 +75,9 @@
         android:testOnly="true"
         android:theme="@style/Theme.GeinzWork" >
         <activity
+            android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor"
+            android:exported="false" />
+        <activity
             android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores"
             android:exported="false" />
         <activity

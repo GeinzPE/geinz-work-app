@@ -5,47 +5,66 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
 
 public final class ItemProductosTrabajadorRecycleviewBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
-  public final TextView noEncontrado;
+  public final LinearLayout btnVermas;
 
   @NonNull
-  public final RecyclerView productos;
+  public final TextView descripcionProducto;
 
   @NonNull
-  public final ProgressBar progressvar;
+  public final TextView descuentoPorcentaje;
 
   @NonNull
-  public final TextView verdesarrollo;
+  public final TextView descuentoProducto;
 
-  private ItemProductosTrabajadorRecycleviewBinding(@NonNull LinearLayout rootView,
-      @NonNull TextView noEncontrado, @NonNull RecyclerView productos,
-      @NonNull ProgressBar progressvar, @NonNull TextView verdesarrollo) {
+  @NonNull
+  public final TextView envioGratis;
+
+  @NonNull
+  public final ShapeableImageView imgTrabajo;
+
+  @NonNull
+  public final TextView precioProducto;
+
+  @NonNull
+  public final CircularProgressIndicator progressCargaImagen;
+
+  private ItemProductosTrabajadorRecycleviewBinding(@NonNull RelativeLayout rootView,
+      @NonNull LinearLayout btnVermas, @NonNull TextView descripcionProducto,
+      @NonNull TextView descuentoPorcentaje, @NonNull TextView descuentoProducto,
+      @NonNull TextView envioGratis, @NonNull ShapeableImageView imgTrabajo,
+      @NonNull TextView precioProducto, @NonNull CircularProgressIndicator progressCargaImagen) {
     this.rootView = rootView;
-    this.noEncontrado = noEncontrado;
-    this.productos = productos;
-    this.progressvar = progressvar;
-    this.verdesarrollo = verdesarrollo;
+    this.btnVermas = btnVermas;
+    this.descripcionProducto = descripcionProducto;
+    this.descuentoPorcentaje = descuentoPorcentaje;
+    this.descuentoProducto = descuentoProducto;
+    this.envioGratis = envioGratis;
+    this.imgTrabajo = imgTrabajo;
+    this.precioProducto = precioProducto;
+    this.progressCargaImagen = progressCargaImagen;
   }
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -71,32 +90,57 @@ public final class ItemProductosTrabajadorRecycleviewBinding implements ViewBind
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.noEncontrado;
-      TextView noEncontrado = ViewBindings.findChildViewById(rootView, id);
-      if (noEncontrado == null) {
+      id = R.id.btn_vermas;
+      LinearLayout btnVermas = ViewBindings.findChildViewById(rootView, id);
+      if (btnVermas == null) {
         break missingId;
       }
 
-      id = R.id.productos;
-      RecyclerView productos = ViewBindings.findChildViewById(rootView, id);
-      if (productos == null) {
+      id = R.id.descripcionProducto;
+      TextView descripcionProducto = ViewBindings.findChildViewById(rootView, id);
+      if (descripcionProducto == null) {
         break missingId;
       }
 
-      id = R.id.progressvar;
-      ProgressBar progressvar = ViewBindings.findChildViewById(rootView, id);
-      if (progressvar == null) {
+      id = R.id.descuentoPorcentaje;
+      TextView descuentoPorcentaje = ViewBindings.findChildViewById(rootView, id);
+      if (descuentoPorcentaje == null) {
         break missingId;
       }
 
-      id = R.id.verdesarrollo;
-      TextView verdesarrollo = ViewBindings.findChildViewById(rootView, id);
-      if (verdesarrollo == null) {
+      id = R.id.descuentoProducto;
+      TextView descuentoProducto = ViewBindings.findChildViewById(rootView, id);
+      if (descuentoProducto == null) {
         break missingId;
       }
 
-      return new ItemProductosTrabajadorRecycleviewBinding((LinearLayout) rootView, noEncontrado,
-          productos, progressvar, verdesarrollo);
+      id = R.id.envioGratis;
+      TextView envioGratis = ViewBindings.findChildViewById(rootView, id);
+      if (envioGratis == null) {
+        break missingId;
+      }
+
+      id = R.id.img_trabajo;
+      ShapeableImageView imgTrabajo = ViewBindings.findChildViewById(rootView, id);
+      if (imgTrabajo == null) {
+        break missingId;
+      }
+
+      id = R.id.precioProducto;
+      TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
+      if (precioProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.progress_carga_imagen;
+      CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
+      if (progressCargaImagen == null) {
+        break missingId;
+      }
+
+      return new ItemProductosTrabajadorRecycleviewBinding((RelativeLayout) rootView, btnVermas,
+          descripcionProducto, descuentoPorcentaje, descuentoProducto, envioGratis, imgTrabajo,
+          precioProducto, progressCargaImagen);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

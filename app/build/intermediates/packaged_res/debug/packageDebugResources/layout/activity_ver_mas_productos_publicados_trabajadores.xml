@@ -1,66 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:layout_margin="10dp"
+    style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:orientation="vertical"
     tools:context="com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores">
 
     <androidx.core.widget.NestedScrollView
+        style="@style/fondo"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_marginBottom="5dp"
-                style="@style/TextoModoOScuroColor"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Mas productos publicados" />
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_marginBottom="5dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Explora todos los productos publicados por Benjamin López. Disfruta de una experiencia de compra desde casa con delivery rápido y seguro de Geinz Work." />
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Mas productos publicados"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Explora todos los productos publicados por Benjamin López. Disfruta de una experiencia de compra desde casa con delivery rápido y seguro de Geinz Work." />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/Recicle_Categoria"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp" />
+
+                <LinearLayout
+                    android:id="@+id/lineaCategoriasDescuento"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
+                        android:text="Categorias en descuento"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/Recicle_Categoria_descuento"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp" />
+                </LinearLayout>
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/Recicle_Categoria"
+                android:id="@+id/recycleViewProductosFiltrados"
                 android:layout_width="match_parent"
-                android:layout_height="50dp" />
-
-            <TextView
-                android:layout_marginBottom="5dp"
-                style="@style/TextoModoOScuroColor"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Categorias en descuento" />
+                android:visibility="gone" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/Recicle_Categoria_descuento"
-                android:layout_width="match_parent"
-                android:layout_height="50dp" />
 
-            <include layout="@layout/item_productos_trabajador_recycleview" />
-
-            <include layout="@layout/item_productos_trabajador_recycleview" />
-
-            <include layout="@layout/item_productos_trabajador_recycleview" />
-
-            <include layout="@layout/item_productos_trabajador_recycleview" />
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
+
+        <ProgressBar
+            android:id="@+id/prograsvar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+
+
+        <TextView
+            android:id="@+id/textoNoEncontrado"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="No se encontraron resultados"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/filtradoCategorias"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="16dp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/rounder_btn_vtrajador"
+            android:maxWidth="20dp"
+            android:maxHeight="20dp"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/filtrar_icon"
+            android:visibility="gone" />
+    </RelativeLayout>
 
 
 </LinearLayout>

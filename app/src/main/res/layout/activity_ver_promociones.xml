@@ -16,7 +16,6 @@
         android:layout_height="wrap_content">
 
         <LinearLayout
-
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -113,15 +112,13 @@
                 </RelativeLayout>
             </LinearLayout>
 
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recicleView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
                 tools:ignore="MissingConstraints"
-                tools:listitem="@layout/item_promociones_encontradas" />
-
+                />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
