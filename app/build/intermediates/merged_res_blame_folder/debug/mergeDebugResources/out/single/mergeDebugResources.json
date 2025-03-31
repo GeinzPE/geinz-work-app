@@ -456,6 +456,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_categorias_tiendas_fr.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_bottomsheet_productos_vendidos_user_verifi.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/bottomsheet_productos_vendidos_user_verifi.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_voleta_estado_verificacion.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_voleta_estado_verificacion.xml"
     },
@@ -1418,10 +1422,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_vista_categorias_t.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_vista_categorias_t.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_activity_compras_productos_vendedor.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_compras_productos_vendedor.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_inicio_tiendas_fr.xml.flat",

@@ -4416,6 +4416,7 @@ id ARABIC
 id AbiertoEstado
 id Acepto
 id ActulizarReview
+id AntiguoPrecio
 id BASQUE
 id BELARUSIAN
 id BENGALI
@@ -5774,6 +5775,7 @@ id navigation_bar_item_small_label_view
 id navigation_header_container
 id navigator_container
 id netScrollView
+id nettScrollView
 id never
 id neverCompleteToEnd
 id neverCompleteToStart

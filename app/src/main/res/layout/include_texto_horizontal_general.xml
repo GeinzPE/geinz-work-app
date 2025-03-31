@@ -9,6 +9,7 @@
         android:orientation="horizontal">
         <TextView
             android:id="@+id/textoNumero1"
+            android:layout_marginRight="5dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cat"/>
@@ -16,6 +17,14 @@
             android:id="@+id/textoNumero2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="@string/cat" />
+
+        <TextView
+            android:id="@+id/AntiguoPrecio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginLeft="10dp"
             android:text="@string/cat" />
 
         <TextView

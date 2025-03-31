@@ -21,8 +21,8 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_marginBottom="10dp"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -100,8 +100,8 @@ primaria y secundaria proporcionada en el formulario de envío."
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/ver_lugares_entrega"
                     android:layout_width="match_parent"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/crea_direccion"
@@ -114,7 +114,6 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:textSize="14sp"
                     app:iconGravity="textEnd" />
             </LinearLayout>
-
 
 
             <com.google.android.material.textfield.TextInputLayout
@@ -141,9 +140,9 @@ primaria y secundaria proporcionada en el formulario de envío."
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="10dp"
+                android:layout_marginBottom="5dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
-                android:layout_marginBottom="5dp"
                 app:boxCornerRadiusTopEnd="8dp"
                 app:boxCornerRadiusTopStart="8dp">
 
@@ -157,20 +156,22 @@ primaria y secundaria proporcionada en el formulario de envío."
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
-                android:visibility="gone"
+                android:id="@+id/lat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/lat"/>
+                android:visibility="gone" />
+
             <TextView
-                android:visibility="gone"
+                android:id="@+id/log"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/log"/>
+                android:visibility="gone" />
+
             <TextView
-                android:visibility="gone"
+                android:id="@+id/TexviewIDRefDire"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/TexviewIDRefDire"/>
+                android:visibility="gone" />
 
             <LinearLayout
 
@@ -192,6 +193,8 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:id="@+id/descripcionProducto"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="3"
                     android:text="@string/cat" />
 
                 <TextView
@@ -277,8 +280,8 @@ primaria y secundaria proporcionada en el formulario de envío."
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
                 android:layout_marginBottom="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
                 app:boxCornerRadiusTopStart="8dp">
@@ -320,20 +323,23 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
-                    android:text="yape" />
+                    android:text="yape"
+                    android:visibility="gone" />
 
                 <RadioButton
                     android:id="@+id/metodoPlin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
-                    android:text="plin" />
+                    android:text="plin"
+                    android:visibility="gone" />
 
                 <RadioButton
                     android:id="@+id/metodoEfectivo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="efectivo" />
+                    android:text="efectivo"
+                    android:visibility="gone" />
 
             </RadioGroup>
         </LinearLayout>

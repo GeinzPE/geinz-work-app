@@ -20,6 +20,9 @@ public final class IncludeTextoHorizontalGeneralBinding implements ViewBinding {
   private final RelativeLayout rootView;
 
   @NonNull
+  public final TextView AntiguoPrecio;
+
+  @NonNull
   public final TextView descuentoPorcentaje;
 
   @NonNull
@@ -29,9 +32,10 @@ public final class IncludeTextoHorizontalGeneralBinding implements ViewBinding {
   public final TextView textoNumero2;
 
   private IncludeTextoHorizontalGeneralBinding(@NonNull RelativeLayout rootView,
-      @NonNull TextView descuentoPorcentaje, @NonNull TextView textoNumero1,
-      @NonNull TextView textoNumero2) {
+      @NonNull TextView AntiguoPrecio, @NonNull TextView descuentoPorcentaje,
+      @NonNull TextView textoNumero1, @NonNull TextView textoNumero2) {
     this.rootView = rootView;
+    this.AntiguoPrecio = AntiguoPrecio;
     this.descuentoPorcentaje = descuentoPorcentaje;
     this.textoNumero1 = textoNumero1;
     this.textoNumero2 = textoNumero2;
@@ -64,6 +68,12 @@ public final class IncludeTextoHorizontalGeneralBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.AntiguoPrecio;
+      TextView AntiguoPrecio = ViewBindings.findChildViewById(rootView, id);
+      if (AntiguoPrecio == null) {
+        break missingId;
+      }
+
       id = R.id.descuentoPorcentaje;
       TextView descuentoPorcentaje = ViewBindings.findChildViewById(rootView, id);
       if (descuentoPorcentaje == null) {
@@ -82,7 +92,7 @@ public final class IncludeTextoHorizontalGeneralBinding implements ViewBinding {
         break missingId;
       }
 
-      return new IncludeTextoHorizontalGeneralBinding((RelativeLayout) rootView,
+      return new IncludeTextoHorizontalGeneralBinding((RelativeLayout) rootView, AntiguoPrecio,
           descuentoPorcentaje, textoNumero1, textoNumero2);
     }
     String missingId = rootView.getResources().getResourceName(id);

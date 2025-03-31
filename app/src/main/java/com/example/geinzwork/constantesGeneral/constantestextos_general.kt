@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.constantesGeneral
 
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
@@ -72,7 +73,7 @@ object constantestextos_general {
                 if (descripcion.lineCount >= 2) {
                     tvReadMore.isVisible = true
                     println("el texo es lagor $descripcion")
-                }else{
+                } else {
                     tvReadMore.isVisible = false
                 }
             }
@@ -88,4 +89,60 @@ object constantestextos_general {
             }
         }
     }
+
+    fun marcarDescuentoTxt(
+        textViewPriceBefore: TextView,
+
+        ) {
+        textViewPriceBefore.paintFlags =
+            textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        textViewPriceBefore.textSize = 12f
+
+
+    }
+
+    fun setearPrecioDescuentoPrecioAntiguo(
+        precio: Number? = null,
+        precioTXT: TextView? = null,
+        antiguo_precio: Number? = null,
+        antiguo_precioTXT: TextView? = null,
+        descuentoPocentaje: Number? = null,
+        descuentoPocentajeTXT: TextView? = null,
+    ) {
+
+        println("$precio,$antiguo_precio,$descuentoPocentaje")
+        // Formatear y asignar precio actual con "S/"
+        precio?.let {
+            val precioFormateado = if (it.toDouble() % 1.0 == 0.0) {
+                "S/ %.2f".format(it.toDouble())
+            } else {
+                "S/ $it"
+            }
+            precioTXT?.text = precioFormateado
+        }
+
+        // Formatear y asignar precio antiguo con "S/"
+        antiguo_precio?.let {
+            val antiguoPrecioFormateado = if (it.toDouble() % 1.0 == 0.0) {
+                "S/ %.2f".format(it.toDouble())
+            } else {
+                "S/ $it"
+            }
+            antiguo_precioTXT?.text = antiguoPrecioFormateado
+        }
+        descuentoPocentaje?.let {
+            val descuentoFormateado = if (it.toDouble() % 1.0 == 0.0) {
+                "${it.toInt()}%"  // Si es entero, muestra sin decimales
+            } else {
+                "$it%"  // Si tiene decimales, lo muestra tal cual
+            }
+            descuentoPocentajeTXT?.text = descuentoFormateado
+        }
+
+
+    }
+
+
+
+
 }

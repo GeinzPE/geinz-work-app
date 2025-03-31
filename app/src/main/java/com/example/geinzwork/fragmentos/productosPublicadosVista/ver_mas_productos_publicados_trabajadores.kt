@@ -307,8 +307,12 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
+                bindingProductosTrabajadores.progressCarga.isVisible=true
+                bindingProductosTrabajadores.nettScrollView.isVisible=false
                 val data = res.data ?: emptyMap()
                 vistaInfo.setearDatosdialogProductos(data, bindingProductosTrabajadores) { completado ->
+                    bindingProductosTrabajadores.progressCarga.isVisible=false
+                    bindingProductosTrabajadores.nettScrollView.isVisible=true
                 }
                 vistaInfo.inizializarImgProductos(this,listaImg,bindingProductosTrabajadores,data)
             } else {

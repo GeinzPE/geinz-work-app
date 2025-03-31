@@ -318,6 +318,7 @@ class info : Fragment() {
 
 
     }
+
     private fun obtenertrabajosRecientes(idTrabajador: String) {
         val lista = mutableListOf<CarouselItem>()
         val datosTrabajos = mutableListOf<Map<String, Any>>() // Cambiar a Any para incluir listas
@@ -415,7 +416,6 @@ class info : Fragment() {
             println("No se pudo encontrar los datos: $e")
         }
     }
-
 
 
     private fun showBottomShetDialogAnuncios(
@@ -710,7 +710,8 @@ class info : Fragment() {
                     }
 
                 }
-                obtenerMasProductosVenta(context,
+                obtenerMasProductosVenta(
+                    context,
                     idTrabajador,
                     productoClikado,
                     bindingProductosVencidodos
@@ -736,7 +737,12 @@ class info : Fragment() {
         recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
         val adapter = adapter_productos_venta_user(lista_productosVentaUSer) { item ->
-            cargarDatosNuevaMente(context,idTrabajador, item.id.toString(), bindingProductosTrabajadores)
+            cargarDatosNuevaMente(
+                context,
+                idTrabajador,
+                item.id.toString(),
+                bindingProductosTrabajadores
+            )
         }
         recicle.adapter = adapter
 
@@ -1041,8 +1047,6 @@ class info : Fragment() {
     }
 
 
-
-
     @SuppressLint("StringFormatInvalid")
     private fun createAndShareDynamicLink(
         idTrabajador: String,
@@ -1181,9 +1185,6 @@ class info : Fragment() {
     }
 
 
-
-
-
     private fun ShowBottomSheetDialogProductosTrabajadores(
         context: Context,
         idTrabajador: String,
@@ -1196,16 +1197,17 @@ class info : Fragment() {
             dialog.dismiss()
         }
         bindingProductosTrabajadores.vermasProductos.setOnClickListener {
-            val intent=Intent(mContex,ver_mas_productos_publicados_trabajadores::class.java).apply {
-                putExtra("idTrabajador",idTrabajador)
-            }
+            val intent =
+                Intent(mContex, ver_mas_productos_publicados_trabajadores::class.java).apply {
+                    putExtra("idTrabajador", idTrabajador)
+                }
             startActivity(intent)
             dialog.dismiss()
         }
         bindingProductosTrabajadores.comprar.setOnClickListener {
-            val intent=Intent(mContex,compras_productos_vendedor::class.java).apply {
-                putExtra("idProducto",productoClikado)
-                putExtra("idTrabajador",idTrabajador)
+            val intent = Intent(mContex, compras_productos_vendedor::class.java).apply {
+                putExtra("idProducto", productoClikado)
+                putExtra("idTrabajador", idTrabajador)
             }
             startActivity(intent)
             dialog.dismiss()
@@ -1221,9 +1223,14 @@ class info : Fragment() {
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data ?: emptyMap()
+                bindingProductosTrabajadores.progressCarga.isVisible = true
+                bindingProductosTrabajadores.nettScrollView.isVisible = false
                 setearDatosdialogProductos(data, bindingProductosTrabajadores) { cargado ->
+                    bindingProductosTrabajadores.progressCarga.isVisible = false
+                    bindingProductosTrabajadores.nettScrollView.isVisible = true
                 }
-                obtenerMasProductosVenta(context,
+                obtenerMasProductosVenta(
+                    context,
                     idTrabajador,
                     productoClikado,
                     bindingProductosTrabajadores
@@ -1341,16 +1348,28 @@ class info : Fragment() {
                 bindingProductosTrabajadores.entregaDomicilio.text = "no"
             }
             if (descuento) {
-                bindingProductosTrabajadores.precioAntiguo.text = "S/ ${precio}.00"
-                bindingProductosTrabajadores.precioProducto.text = "S/ ${precioDescuento}.00"
-                bindingProductosTrabajadores.descuentoPorcentaje.text =
-                    "-${cantidad_porcentaje_descuento}%"
+                constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.precioAntiguo)
+
+
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    precioDescuento,
+                    bindingProductosTrabajadores.precioProducto,
+                    precio,
+                    bindingProductosTrabajadores.precioAntiguo,
+                    cantidad_porcentaje_descuento,
+                    bindingProductosTrabajadores.descuentoPorcentaje
+                )
+
                 bindingProductosTrabajadores.precioAntiguo.isVisible = true
                 bindingProductosTrabajadores.descuentoPorcentaje.isVisible = true
             } else {
                 bindingProductosTrabajadores.precioAntiguo.isVisible = false
                 bindingProductosTrabajadores.descuentoPorcentaje.isVisible = false
-                bindingProductosTrabajadores.precioProducto.text = "S/ ${precio}.00"
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    precio,
+                    bindingProductosTrabajadores.precioProducto
+                )
+
             }
 
             bindingProductosTrabajadores.categoriaProducto.text = categoria
@@ -1362,20 +1381,15 @@ class info : Fragment() {
             bindingProductosTrabajadores.Condicion.text = condicionProducto
             bindingProductosTrabajadores.descripcion.text = descripcion
             bindingProductosTrabajadores.fechaPublicado.text = fechaPublicada
-            inizializarImgProductos(mContex,listaImg, bindingProductosTrabajadores, data)
-            val textViewPriceBefore = bindingProductosTrabajadores.precioAntiguo
-            textViewPriceBefore.paintFlags =
-                textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            textViewPriceBefore.textSize = 12f
+            inizializarImgProductos(mContex, listaImg, bindingProductosTrabajadores, data)
+            constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.precioAntiguo)
+
 
             onComplete(true)
         } catch (e: Exception) {
             onComplete(false)
         }
     }
-
-
-
 
 
     private fun obtenerMasTrabajosRealiazdos(

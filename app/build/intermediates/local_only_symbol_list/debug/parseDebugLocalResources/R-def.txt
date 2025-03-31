@@ -258,6 +258,7 @@ font uni_sans
 id AbiertoEstado
 id Acepto
 id ActulizarReview
+id AntiguoPrecio
 id Barranca
 id Bienvenido_Geinz
 id BtnIngresar
@@ -1060,6 +1061,7 @@ id nacionalidadT
 id nacionalidad_driver
 id nacionnalidadUser
 id netScrollView
+id nettScrollView
 id noEcnotradoEstadisitcasNoticias
 id noEncontrado
 id noEncontradoClikcCompartidas
