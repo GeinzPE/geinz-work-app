@@ -14,13 +14,22 @@
         android:visibility="gone">
 
         <TextView
-            style="@style/TextoModoOScuroColor"
+            style="@style/TextoTitulos"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:text="Selecione la direcion de entrega"
-            android:textSize="20sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Geinz se encargará de la entrega del producto utilizando la referencia
+primaria y secundaria proporcionada en el formulario de envío."
+            android:textSize="14sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -118,6 +127,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+android:visibility="gone"
             android:hint="Selecciona tu precio del delivery">
 
             <AutoCompleteTextView

@@ -44,6 +44,7 @@ class compras_productos_vendedor : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         val idTrabajdor = intent.getStringExtra("idTrabajador").toString()
         val idProducto = intent.getStringExtra("idProducto").toString()
+        println("datos eobnieods del trabajODR  $idProducto,$idTrabajdor")
         binding.categoriaProductos.textoNumero1.text = "Categoria del producto : "
         binding.marcaProducto.textoNumero1.text = "Marca :"
         binding.modeloProducto.textoNumero1.text = "Modelo :"
@@ -257,17 +258,31 @@ class compras_productos_vendedor : AppCompatActivity() {
                 // Manejo del precio de delivery
                 if (envio_gratis) {
                     binding.precioDelivery.textoNumero2.text = "Envio Gratis"
+                    val precioFinal = if (descuento) precioDescuento else precio
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precioFinal,
+                        binding.totalcancelar.textoNumero2
+                    )
                 } else {
+                    val precioBase = if (descuento) precioDescuento else precio
+                    val precioFinalDelivery = precioBase.toDouble() + precioDelivery.toDouble()
+
                     constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                         precioDelivery,
                         binding.precioDelivery.textoNumero2
                     )
+
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precioFinalDelivery,
+                        binding.totalcancelar.textoNumero2
+                    )
+                }
+                if (metodoEntrega == "delivery") {
+                    binding.linealMetodoEntrega.isVisible = true
+                } else {
+                    binding.linealMetodoEntrega.isVisible = false
                 }
 
-// Manejo del precio total (considerando si hay descuento o no)
-                val precioFinal = if (descuento) precioDescuento else precio
-
-// Configuración de precios en la UI
                 if (descuento) {
                     binding.precioproducto.AntiguoPrecio.isVisible = true
                     binding.precioproducto.descuentoPorcentaje.isVisible = true
@@ -287,10 +302,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                     )
                 }
 
-                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-                    precioFinal,
-                    binding.totalcancelar.textoNumero2,
-                )
+
 
                 binding.categoriaProductos.textoNumero2.text = categoria
                 binding.marcaProducto.textoNumero2.text = marca

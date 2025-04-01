@@ -83,6 +83,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
   public final TextView lat;
 
   @NonNull
+  public final LinearLayout linealMetodoEntrega;
+
+  @NonNull
   public final TextView log;
 
   @NonNull
@@ -140,7 +143,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       @NonNull TextInputLayout direccionEntrega, @NonNull EditText direccionEntregaED,
       @NonNull TextInputLayout dni, @NonNull EditText dniED,
       @NonNull IncludeTextoHorizontalGeneralBinding garantiaProducto, @NonNull TextView lat,
-      @NonNull TextView log, @NonNull LinearLayout main,
+      @NonNull LinearLayout linealMetodoEntrega, @NonNull TextView log, @NonNull LinearLayout main,
       @NonNull IncludeTextoHorizontalGeneralBinding marcaProducto,
       @NonNull RadioButton metodoEfectivo, @NonNull RadioButton metodoPlin,
       @NonNull RadioButton metodoYape, @NonNull IncludeTextoHorizontalGeneralBinding modeloProducto,
@@ -170,6 +173,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.dniED = dniED;
     this.garantiaProducto = garantiaProducto;
     this.lat = lat;
+    this.linealMetodoEntrega = linealMetodoEntrega;
     this.log = log;
     this.main = main;
     this.marcaProducto = marcaProducto;
@@ -333,6 +337,12 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
 
+      id = R.id.linealMetodoEntrega;
+      LinearLayout linealMetodoEntrega = ViewBindings.findChildViewById(rootView, id);
+      if (linealMetodoEntrega == null) {
+        break missingId;
+      }
+
       id = R.id.log;
       TextView log = ViewBindings.findChildViewById(rootView, id);
       if (log == null) {
@@ -429,9 +439,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
           ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, cancelarCompra,
           binding_categoriaProductos, comfirmarCompra, binding_condicionProducto, creaDireccion,
           descripcionProducto, direccionEntrega, direccionEntregaED, dni, dniED,
-          binding_garantiaProducto, lat, log, main, binding_marcaProducto, metodoEfectivo,
-          metodoPlin, metodoYape, binding_modeloProducto, nombresCompletos, nombresCompletosED,
-          binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
+          binding_garantiaProducto, lat, linealMetodoEntrega, log, main, binding_marcaProducto,
+          metodoEfectivo, metodoPlin, metodoYape, binding_modeloProducto, nombresCompletos,
+          nombresCompletosED, binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
           binding_totalcancelar, tvReadMore, verLugaresEntrega);
     }
     String missingId = rootView.getResources().getResourceName(id);
