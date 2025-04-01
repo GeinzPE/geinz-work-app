@@ -56,6 +56,7 @@ class compras_productos_vendedor : AppCompatActivity() {
         binding.precioDelivery.textoNumero1.text = "Precio del delivery :"
         binding.totalcancelar.textoNumero1.text = "Total a cancelar :"
         binding.MetodoEntregaProducto.textoNumero1.text = "Metodo de entrega :"
+        binding.codigoGeneradoCompra.text=constantesCarrito.generarCodigoPedido()
         obtnerDireciones(
             firebaseAuth.uid.toString(),
             listaLugaresEntrega,
@@ -217,38 +218,37 @@ class compras_productos_vendedor : AppCompatActivity() {
                 )  // 🔍 Ver qué trae la base de datos
 
                 val data = res.data ?: return@addOnSuccessListener
-                val cantidadPorcentajeDescuento =
-                    data["cantidad_porcentaje_descuento"] as? Number ?: 0
-                val precio = data["precio"] as? Number ?: 0
-                val precioDescuento = data["precio_descuento"] as? Number ?: 0
-                val totalProducto = data["total_producto"] as? Number ?: 0
+                val cantidadPorcentajeDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val precio = data?.get("precio") as? Number ?: 0
+                val precioDescuento = data?.get("precio_descuento") as? Number ?: 0
+                val totalProducto = data?.get("total_producto") as? Number ?: 0
 
-                val categoria = data["categoria"] as? String ?: ""
-                val condicionProducto = data["condicion_producto"] as? String ?: ""
-                val descripcion = data["descripcion"] as? String ?: ""
-
-
-                val modelo = data["modelo"] as? String ?: ""
-                val descuento = data["descuento"] as? Boolean ?: false
-                val efectivo = data["efectivo"] as? Boolean ?: false
-                val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: true
-
-                val garantia = data["garantia"] as? String ?: ""
-                val id = data["id"] as? String ?: ""
-                val fechaPublicada = data["fechaPublicada"] as? String ?: ""
-                val metodoEntrega = data["metodoEntrega"] as? String ?: ""
+                val categoria = data?.get("categoria") as? String ?: ""
+                val condicionProducto = data?.get("condicion_producto") as? String ?: ""
+                val descripcion = data?.get("descripcion") as? String ?: ""
 
 
-                val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
-                val marca = data["marca"] as? String ?: ""
-                val nombre = data["nombre"] as? String ?: ""
-                val plin = data["plin"] as? Boolean ?: false
-                val stok = data["stok"] as? String ?: ""
-                val yape = data["yape"] as? Boolean ?: false
-                val envio_gratis = data["envio_gratis"] as? Boolean ?: false
-                val precioDelivery = data["precioDelivery"] as? Number ?: 0
+                val modelo = data?.get("modelo") as? String ?: ""
+                val descuento = data?.get("descuento") as? Boolean ?: false
+                val efectivo = data?.get("efectivo") as? Boolean ?: false
+                val entrega_domicilio = data?.get("entrega_domicilio") as? Boolean ?: true
+
+                val garantia = data?.get("garantia") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val fechaPublicada = data?.get("fechaPublicada") as? String ?: ""
+                val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
+
+
+                val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
+                val marca = data?.get("marca") as? String ?: ""
+                val nombre = data?.get("nombre") as? String ?: ""
+                val plin = data?.get("plin") as? Boolean ?: false
+                val stok = data?.get("stok") as? String ?: ""
+                val yape = data?.get("yape") as? Boolean ?: false
+                val envio_gratis = data?.get("envio_gratis") as? Boolean ?: false
+                val precioDelivery = data?.get("precioDelivery") as? Number ?: 0
                 val cantidad_porcentaje_descuento =
-                    data["cantidad_porcentaje_descuento"] as? Number ?: 0
+                    data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 Log.d(
                     "DatosProducto",
                     "Categoría: $categoria, Marca: $marca, Modelo: $modelo, Stock: $stok, Garantía: $garantia"

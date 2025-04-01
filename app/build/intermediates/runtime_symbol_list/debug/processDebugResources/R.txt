@@ -4914,6 +4914,7 @@ int id clip_vertical 0x7f0a01f4
 int id clockwise 0x7f0a01f5
 int id closest 0x7f0a01f6
 int id cod_comprovante 0x7f0a01f7
+int id codigoGeneradoCompra 0x7f0a07e4
 int id codigoPedido 0x7f0a01f8
 int id codigoReserva 0x7f0a01f9
 int id collapseActionView 0x7f0a01fa

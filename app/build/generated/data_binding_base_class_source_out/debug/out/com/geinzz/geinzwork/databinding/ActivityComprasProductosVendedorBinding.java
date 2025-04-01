@@ -53,6 +53,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
   public final IncludeTextoHorizontalGeneralBinding categoriaProductos;
 
   @NonNull
+  public final TextView codigoGeneradoCompra;
+
+  @NonNull
   public final MaterialButton comfirmarCompra;
 
   @NonNull
@@ -137,7 +140,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       @NonNull IncludeTextoHorizontalGeneralBinding StokDiponible,
       @NonNull TextView TexviewIDRefDire, @NonNull MaterialButton cancelarCompra,
       @NonNull IncludeTextoHorizontalGeneralBinding categoriaProductos,
-      @NonNull MaterialButton comfirmarCompra,
+      @NonNull TextView codigoGeneradoCompra, @NonNull MaterialButton comfirmarCompra,
       @NonNull IncludeTextoHorizontalGeneralBinding condicionProducto,
       @NonNull MaterialButton creaDireccion, @NonNull TextView descripcionProducto,
       @NonNull TextInputLayout direccionEntrega, @NonNull EditText direccionEntregaED,
@@ -163,6 +166,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.TexviewIDRefDire = TexviewIDRefDire;
     this.cancelarCompra = cancelarCompra;
     this.categoriaProductos = categoriaProductos;
+    this.codigoGeneradoCompra = codigoGeneradoCompra;
     this.comfirmarCompra = comfirmarCompra;
     this.condicionProducto = condicionProducto;
     this.creaDireccion = creaDireccion;
@@ -274,6 +278,12 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
       IncludeTextoHorizontalGeneralBinding binding_categoriaProductos = IncludeTextoHorizontalGeneralBinding.bind(categoriaProductos);
+
+      id = R.id.codigoGeneradoCompra;
+      TextView codigoGeneradoCompra = ViewBindings.findChildViewById(rootView, id);
+      if (codigoGeneradoCompra == null) {
+        break missingId;
+      }
 
       id = R.id.comfirmar_compra;
       MaterialButton comfirmarCompra = ViewBindings.findChildViewById(rootView, id);
@@ -437,12 +447,13 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       return new ActivityComprasProductosVendedorBinding((LinearLayout) rootView,
           binding_MetodoEntregaProducto, NumeroDeContacto, NumeroDeContactoED, ReferenciaEntrega,
           ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, cancelarCompra,
-          binding_categoriaProductos, comfirmarCompra, binding_condicionProducto, creaDireccion,
-          descripcionProducto, direccionEntrega, direccionEntregaED, dni, dniED,
-          binding_garantiaProducto, lat, linealMetodoEntrega, log, main, binding_marcaProducto,
-          metodoEfectivo, metodoPlin, metodoYape, binding_modeloProducto, nombresCompletos,
-          nombresCompletosED, binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
-          binding_totalcancelar, tvReadMore, verLugaresEntrega);
+          binding_categoriaProductos, codigoGeneradoCompra, comfirmarCompra,
+          binding_condicionProducto, creaDireccion, descripcionProducto, direccionEntrega,
+          direccionEntregaED, dni, dniED, binding_garantiaProducto, lat, linealMetodoEntrega, log,
+          main, binding_marcaProducto, metodoEfectivo, metodoPlin, metodoYape,
+          binding_modeloProducto, nombresCompletos, nombresCompletosED, binding_precioDelivery,
+          binding_precioproducto, radioGrupMetodosPago, binding_totalcancelar, tvReadMore,
+          verLugaresEntrega);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

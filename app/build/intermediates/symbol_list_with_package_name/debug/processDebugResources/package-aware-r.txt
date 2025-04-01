@@ -4915,6 +4915,7 @@ id clip_vertical
 id clockwise
 id closest
 id cod_comprovante
+id codigoGeneradoCompra
 id codigoPedido
 id codigoReserva
 id collapseActionView

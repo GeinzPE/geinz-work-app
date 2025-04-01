@@ -521,6 +521,7 @@ id clicsNoticias
 id clikeable_no
 id clikeable_si
 id cod_comprovante
+id codigoGeneradoCompra
 id codigoPedido
 id codigoReserva
 id collectionEcontrado
