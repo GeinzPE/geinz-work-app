@@ -132,9 +132,9 @@ object constantestextos_general {
         }
         descuentoPocentaje?.let {
             val descuentoFormateado = if (it.toDouble() % 1.0 == 0.0) {
-                "${it.toInt()}%"  // Si es entero, muestra sin decimales
+                "-${it.toInt()}%"  // Si es entero, muestra sin decimales
             } else {
-                "$it%"  // Si tiene decimales, lo muestra tal cual
+                "-i$it%"  // Si tiene decimales, lo muestra tal cual
             }
             descuentoPocentajeTXT?.text = descuentoFormateado
         }

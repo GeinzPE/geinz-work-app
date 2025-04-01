@@ -1152,7 +1152,7 @@ object constantesCarrito {
                                 callback(nombre, numero, localidad, apellido)
                             } else {
                                 // Si no se encuentra en ninguna de las colecciones
-                                callback("", "", "", "")
+                                callback(null, null, null, null)
                             }
                         }
                         .addOnFailureListener { exception ->
@@ -1161,7 +1161,7 @@ object constantesCarrito {
                                 "Error al obtener documentos de usuarios",
                                 exception
                             )
-                            callback("", "", "", "")
+                            callback(null, null, null, null)
                         }
                 }
             }

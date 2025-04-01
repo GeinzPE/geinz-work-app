@@ -469,6 +469,7 @@ id campos_pagos
 id campos_principales
 id campos_redes
 id cancelar
+id cancelar_compra
 id cantidad
 id cantidadDisponible
 id cantidadEstrellas
@@ -526,6 +527,7 @@ id collectionEcontrado
 id comentarioADI
 id comentarioADIED
 id comentarioAdicional
+id comfirmar_compra
 id comidaFilter
 id como_usarGeinz
 id compartidas

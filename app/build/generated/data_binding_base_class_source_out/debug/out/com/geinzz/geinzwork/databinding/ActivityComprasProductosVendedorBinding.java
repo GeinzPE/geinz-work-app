@@ -47,7 +47,13 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
   public final TextView TexviewIDRefDire;
 
   @NonNull
+  public final MaterialButton cancelarCompra;
+
+  @NonNull
   public final IncludeTextoHorizontalGeneralBinding categoriaProductos;
+
+  @NonNull
+  public final MaterialButton comfirmarCompra;
 
   @NonNull
   public final IncludeTextoHorizontalGeneralBinding condicionProducto;
@@ -126,8 +132,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       @NonNull TextInputLayout NumeroDeContacto, @NonNull EditText NumeroDeContactoED,
       @NonNull TextInputLayout ReferenciaEntrega, @NonNull EditText ReferenciaEntregaED,
       @NonNull IncludeTextoHorizontalGeneralBinding StokDiponible,
-      @NonNull TextView TexviewIDRefDire,
+      @NonNull TextView TexviewIDRefDire, @NonNull MaterialButton cancelarCompra,
       @NonNull IncludeTextoHorizontalGeneralBinding categoriaProductos,
+      @NonNull MaterialButton comfirmarCompra,
       @NonNull IncludeTextoHorizontalGeneralBinding condicionProducto,
       @NonNull MaterialButton creaDireccion, @NonNull TextView descripcionProducto,
       @NonNull TextInputLayout direccionEntrega, @NonNull EditText direccionEntregaED,
@@ -151,7 +158,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.ReferenciaEntregaED = ReferenciaEntregaED;
     this.StokDiponible = StokDiponible;
     this.TexviewIDRefDire = TexviewIDRefDire;
+    this.cancelarCompra = cancelarCompra;
     this.categoriaProductos = categoriaProductos;
+    this.comfirmarCompra = comfirmarCompra;
     this.condicionProducto = condicionProducto;
     this.creaDireccion = creaDireccion;
     this.descripcionProducto = descripcionProducto;
@@ -249,12 +258,24 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
 
+      id = R.id.cancelar_compra;
+      MaterialButton cancelarCompra = ViewBindings.findChildViewById(rootView, id);
+      if (cancelarCompra == null) {
+        break missingId;
+      }
+
       id = R.id.categoriaProductos;
       View categoriaProductos = ViewBindings.findChildViewById(rootView, id);
       if (categoriaProductos == null) {
         break missingId;
       }
       IncludeTextoHorizontalGeneralBinding binding_categoriaProductos = IncludeTextoHorizontalGeneralBinding.bind(categoriaProductos);
+
+      id = R.id.comfirmar_compra;
+      MaterialButton comfirmarCompra = ViewBindings.findChildViewById(rootView, id);
+      if (comfirmarCompra == null) {
+        break missingId;
+      }
 
       id = R.id.condicionProducto;
       View condicionProducto = ViewBindings.findChildViewById(rootView, id);
@@ -405,12 +426,13 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
 
       return new ActivityComprasProductosVendedorBinding((LinearLayout) rootView,
           binding_MetodoEntregaProducto, NumeroDeContacto, NumeroDeContactoED, ReferenciaEntrega,
-          ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, binding_categoriaProductos,
-          binding_condicionProducto, creaDireccion, descripcionProducto, direccionEntrega,
-          direccionEntregaED, dni, dniED, binding_garantiaProducto, lat, log, main,
-          binding_marcaProducto, metodoEfectivo, metodoPlin, metodoYape, binding_modeloProducto,
-          nombresCompletos, nombresCompletosED, binding_precioDelivery, binding_precioproducto,
-          radioGrupMetodosPago, binding_totalcancelar, tvReadMore, verLugaresEntrega);
+          ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, cancelarCompra,
+          binding_categoriaProductos, comfirmarCompra, binding_condicionProducto, creaDireccion,
+          descripcionProducto, direccionEntrega, direccionEntregaED, dni, dniED,
+          binding_garantiaProducto, lat, log, main, binding_marcaProducto, metodoEfectivo,
+          metodoPlin, metodoYape, binding_modeloProducto, nombresCompletos, nombresCompletosED,
+          binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
+          binding_totalcancelar, tvReadMore, verLugaresEntrega);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

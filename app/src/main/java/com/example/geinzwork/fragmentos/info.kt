@@ -1205,9 +1205,9 @@ class info : Fragment() {
             dialog.dismiss()
         }
         bindingProductosTrabajadores.comprar.setOnClickListener {
-            val intent = Intent(mContex, compras_productos_vendedor::class.java).apply {
-                putExtra("idProducto", productoClikado)
-                putExtra("idTrabajador", idTrabajador)
+            val intent=Intent(mContex,compras_productos_vendedor::class.java).apply {
+                putExtra("idProducto",productoClikado)
+                putExtra("idTrabajador",idTrabajador)
             }
             startActivity(intent)
             dialog.dismiss()

@@ -342,6 +342,32 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:visibility="gone" />
 
             </RadioGroup>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/comfirmar_compra"
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:text="confirmar compra"
+                    android:textSize="14sp"
+                    app:iconGravity="textEnd" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cancelar_compra"
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:text="cancelar compra"
+                    android:textSize="14sp"
+                    app:iconGravity="textEnd" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

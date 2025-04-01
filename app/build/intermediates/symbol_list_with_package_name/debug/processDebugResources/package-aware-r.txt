@@ -4844,6 +4844,7 @@ id campos_redes
 id cancel_action
 id cancel_button
 id cancelar
+id cancelar_compra
 id cantidad
 id cantidadDisponible
 id cantidadEstrellas
@@ -4922,6 +4923,7 @@ id column
 id comentarioADI
 id comentarioADIED
 id comentarioAdicional
+id comfirmar_compra
 id comidaFilter
 id como_usarGeinz
 id compartidas

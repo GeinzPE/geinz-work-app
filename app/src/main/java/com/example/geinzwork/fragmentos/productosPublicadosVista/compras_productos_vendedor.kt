@@ -1,11 +1,13 @@
 package com.example.geinzwork.fragmentos.productosPublicadosVista
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,15 +17,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter_radioButton_envios
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityComprasProductosVendedorBinding
 import com.geinzz.geinzwork.dataclass.dataclassradiobtn
+import com.geinzz.geinzwork.vistaTiendas.direccion_entrega_lat_log
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class compras_productos_vendedor : AppCompatActivity() {
     private lateinit var binding: ActivityComprasProductosVendedorBinding
     private val listaLugaresEntrega = mutableListOf<dataclassradiobtn>()
+    private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +62,63 @@ class compras_productos_vendedor : AppCompatActivity() {
         )
         println("el idtrabajodr $idTrabajdor y el $idProducto")
         obtnerDatosProducto(idProducto, idTrabajdor)
+        verificarRegistroUSer(firebaseAuth)
+    }
+
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmación")
+            .setMessage("¿Desea abandonar la compra o seguir comprando?")
+            .setPositiveButton("Sí, abandonar") { _, _ ->
+                super.onBackPressed() // Cierra la actividad
+            }
+            .setNegativeButton("Seguir comprando") { dialog, _ ->
+                dialog.dismiss() // Solo cierra el diálogo
+            }
+            .show()
+    }
+
+
+    private fun verificarRegistroUSer(firebaseAuth: FirebaseAuth) {
+        binding.creaDireccion.setOnClickListener {
+            if (firebaseAuth.currentUser == null) {
+                dialog = BottomSheetDialog(this)
+                constantesPublicidad.CreacionCuentaBottom_shett(
+                    this,
+                    dialog
+                )
+                dialog.show()
+
+            } else {
+                startActivity(Intent(this, direccion_entrega_lat_log::class.java))
+            }
+        }
+        binding.comfirmarCompra.setOnClickListener {
+            if (firebaseAuth.currentUser == null) {
+                dialog = BottomSheetDialog(this)
+                constantesPublicidad.CreacionCuentaBottom_shett(
+                    this,
+                    dialog
+                )
+                dialog.show()
+
+            } else {
+                //  confimar compra
+            }
+        }
+        binding.cancelarCompra.setOnClickListener {
+            AlertDialog.Builder(it.context)
+                .setTitle("Confirmación")
+                .setMessage("¿Desea abandonar la compra o seguir comprando?")
+                .setPositiveButton("Sí, abandonar") { _, _ ->
+                    this.finish() // Para cerrar la actividad actual
+                }
+                .setNegativeButton("Seguir comprando") { dialog, _ ->
+                    dialog.dismiss() // Solo cierra el diálogo
+                }
+                .show()
+        }
+
 
     }
 
@@ -181,6 +244,8 @@ class compras_productos_vendedor : AppCompatActivity() {
                 val plin = data["plin"] as? Boolean ?: false
                 val stok = data["stok"] as? String ?: ""
                 val yape = data["yape"] as? Boolean ?: false
+                val envio_gratis = data["envio_gratis"] as? Boolean ?: false
+                val precioDelivery = data["precioDelivery"] as? Number ?: 0
                 val cantidad_porcentaje_descuento =
                     data["cantidad_porcentaje_descuento"] as? Number ?: 0
                 Log.d(
@@ -188,14 +253,45 @@ class compras_productos_vendedor : AppCompatActivity() {
                     "Categoría: $categoria, Marca: $marca, Modelo: $modelo, Stock: $stok, Garantía: $garantia"
                 )
 
-                if (descuento) {
-                    binding.precioproducto.AntiguoPrecio.isVisible=true
-                    binding.precioproducto.descuentoPorcentaje.isVisible=true
-                    constantestextos_general.marcarDescuentoTxt(binding.precioproducto.AntiguoPrecio)
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(precioDescuento, binding.precioproducto.textoNumero2,precio,binding.precioproducto.AntiguoPrecio,cantidad_porcentaje_descuento,binding.precioproducto.descuentoPorcentaje)
+                binding.precioDelivery.textoNumero2.text
+                // Manejo del precio de delivery
+                if (envio_gratis) {
+                    binding.precioDelivery.textoNumero2.text = "Envio Gratis"
                 } else {
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(precio,binding.precioproducto.textoNumero2)
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precioDelivery,
+                        binding.precioDelivery.textoNumero2
+                    )
                 }
+
+// Manejo del precio total (considerando si hay descuento o no)
+                val precioFinal = if (descuento) precioDescuento else precio
+
+// Configuración de precios en la UI
+                if (descuento) {
+                    binding.precioproducto.AntiguoPrecio.isVisible = true
+                    binding.precioproducto.descuentoPorcentaje.isVisible = true
+                    constantestextos_general.marcarDescuentoTxt(binding.precioproducto.AntiguoPrecio)
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precioDescuento,
+                        binding.precioproducto.textoNumero2,
+                        precio,
+                        binding.precioproducto.AntiguoPrecio,
+                        cantidad_porcentaje_descuento,
+                        binding.precioproducto.descuentoPorcentaje
+                    )
+                } else {
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precio,
+                        binding.precioproducto.textoNumero2
+                    )
+                }
+
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    precioFinal,
+                    binding.totalcancelar.textoNumero2,
+                )
+
                 binding.categoriaProductos.textoNumero2.text = categoria
                 binding.marcaProducto.textoNumero2.text = marca
                 binding.modeloProducto.textoNumero2.text = modelo
@@ -209,9 +305,11 @@ class compras_productos_vendedor : AppCompatActivity() {
                     binding.tvReadMore
                 )
                 constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
-                    binding.nombresCompletosED.setText("$nombre $apellido")
-                    binding.NumeroDeContactoED.setText(numero)
+                    val nombreCompleto = "${nombre ?: ""} ${apellido ?: ""}".trim()
+                    binding.nombresCompletosED.setText(nombreCompleto)
+                    binding.NumeroDeContactoED.setText(numero ?: "")
                 }
+
 
                 val cantidadTrue = listOf(yape, plin, efectivo).count { it }
 

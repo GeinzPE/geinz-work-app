@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_ver_mas_productos_trabajador
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ItemProductosTrabajadorRecycleviewBinding
 
 class adapter_ver_mas_productos_publicados(
@@ -52,15 +53,27 @@ class adapter_ver_mas_productos_publicados(
 
             if (item.descuentoProducto == true) {
                 binding.descuentoPorcentaje.isVisible = true
-                binding.descuentoProducto.apply {
-                    paintFlags = paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                    textSize = 12f
-                    text = "S/${item.precioPRD}.00"
-                }
-                binding.precioProducto.text = "S/${item.precioDescuento}.00"
-                binding.descuentoPorcentaje.text = "-${item.descuentoTotalNumber}%"
+//                binding.descuentoProducto.apply {
+//                    paintFlags = paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+//                    textSize = 12f
+//                    text = "S/${item.precioPRD}.00"
+//                }
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    item.precioPRD,
+                    binding.precioProducto,
+                    item.precioDescuento,
+                    binding.descuentoProducto,
+                    item.descuentoTotalNumber,
+                    binding.descuentoPorcentaje
+                )
+                constantestextos_general.marcarDescuentoTxt(binding.descuentoProducto)
+//                binding.precioProducto.text = "S/${item.precioDescuento}.00"
+//                binding.descuentoPorcentaje.text = "-${item.descuentoTotalNumber}%"
             } else {
-                binding.precioProducto.text = "S/${item.precioPRD}.00"
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    item.precioPRD,
+                    binding.precioProducto
+                )
                 binding.descuentoPorcentaje.isVisible = false
             }
 
