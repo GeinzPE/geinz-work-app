@@ -6,11 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
@@ -23,7 +26,7 @@ import java.lang.String;
 
 public final class ActivityComprasProductosVendedorBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
   public final IncludeTextoHorizontalGeneralBinding MetodoEntregaProducto;
@@ -48,6 +51,15 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
 
   @NonNull
   public final MaterialButton cancelarCompra;
+
+  @NonNull
+  public final ProgressBar cargandoContenido;
+
+  @NonNull
+  public final ProgressBar cargandoRef;
+
+  @NonNull
+  public final TextView cargandoText;
 
   @NonNull
   public final IncludeTextoHorizontalGeneralBinding categoriaProductos;
@@ -86,13 +98,22 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
   public final TextView lat;
 
   @NonNull
+  public final LinearLayout linealCarga;
+
+  @NonNull
+  public final LinearLayout linealCargandoRef;
+
+  @NonNull
   public final LinearLayout linealMetodoEntrega;
+
+  @NonNull
+  public final RelativeLayout linealRecicleCargandoRerf;
 
   @NonNull
   public final TextView log;
 
   @NonNull
-  public final LinearLayout main;
+  public final RelativeLayout main;
 
   @NonNull
   public final IncludeTextoHorizontalGeneralBinding marcaProducto;
@@ -108,6 +129,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
 
   @NonNull
   public final IncludeTextoHorizontalGeneralBinding modeloProducto;
+
+  @NonNull
+  public final NestedScrollView netScroolView;
 
   @NonNull
   public final TextInputLayout nombresCompletos;
@@ -133,12 +157,14 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
   @NonNull
   public final RecyclerView verLugaresEntrega;
 
-  private ActivityComprasProductosVendedorBinding(@NonNull LinearLayout rootView,
+  private ActivityComprasProductosVendedorBinding(@NonNull RelativeLayout rootView,
       @NonNull IncludeTextoHorizontalGeneralBinding MetodoEntregaProducto,
       @NonNull TextInputLayout NumeroDeContacto, @NonNull EditText NumeroDeContactoED,
       @NonNull TextInputLayout ReferenciaEntrega, @NonNull EditText ReferenciaEntregaED,
       @NonNull IncludeTextoHorizontalGeneralBinding StokDiponible,
       @NonNull TextView TexviewIDRefDire, @NonNull MaterialButton cancelarCompra,
+      @NonNull ProgressBar cargandoContenido, @NonNull ProgressBar cargandoRef,
+      @NonNull TextView cargandoText,
       @NonNull IncludeTextoHorizontalGeneralBinding categoriaProductos,
       @NonNull TextView codigoGeneradoCompra, @NonNull MaterialButton comfirmarCompra,
       @NonNull IncludeTextoHorizontalGeneralBinding condicionProducto,
@@ -146,11 +172,14 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       @NonNull TextInputLayout direccionEntrega, @NonNull EditText direccionEntregaED,
       @NonNull TextInputLayout dni, @NonNull EditText dniED,
       @NonNull IncludeTextoHorizontalGeneralBinding garantiaProducto, @NonNull TextView lat,
-      @NonNull LinearLayout linealMetodoEntrega, @NonNull TextView log, @NonNull LinearLayout main,
+      @NonNull LinearLayout linealCarga, @NonNull LinearLayout linealCargandoRef,
+      @NonNull LinearLayout linealMetodoEntrega, @NonNull RelativeLayout linealRecicleCargandoRerf,
+      @NonNull TextView log, @NonNull RelativeLayout main,
       @NonNull IncludeTextoHorizontalGeneralBinding marcaProducto,
       @NonNull RadioButton metodoEfectivo, @NonNull RadioButton metodoPlin,
       @NonNull RadioButton metodoYape, @NonNull IncludeTextoHorizontalGeneralBinding modeloProducto,
-      @NonNull TextInputLayout nombresCompletos, @NonNull EditText nombresCompletosED,
+      @NonNull NestedScrollView netScroolView, @NonNull TextInputLayout nombresCompletos,
+      @NonNull EditText nombresCompletosED,
       @NonNull IncludeTextoHorizontalGeneralBinding precioDelivery,
       @NonNull IncludeTextoHorizontalGeneralBinding precioproducto,
       @NonNull RadioGroup radioGrupMetodosPago,
@@ -165,6 +194,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.StokDiponible = StokDiponible;
     this.TexviewIDRefDire = TexviewIDRefDire;
     this.cancelarCompra = cancelarCompra;
+    this.cargandoContenido = cargandoContenido;
+    this.cargandoRef = cargandoRef;
+    this.cargandoText = cargandoText;
     this.categoriaProductos = categoriaProductos;
     this.codigoGeneradoCompra = codigoGeneradoCompra;
     this.comfirmarCompra = comfirmarCompra;
@@ -177,7 +209,10 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.dniED = dniED;
     this.garantiaProducto = garantiaProducto;
     this.lat = lat;
+    this.linealCarga = linealCarga;
+    this.linealCargandoRef = linealCargandoRef;
     this.linealMetodoEntrega = linealMetodoEntrega;
+    this.linealRecicleCargandoRerf = linealRecicleCargandoRerf;
     this.log = log;
     this.main = main;
     this.marcaProducto = marcaProducto;
@@ -185,6 +220,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.metodoPlin = metodoPlin;
     this.metodoYape = metodoYape;
     this.modeloProducto = modeloProducto;
+    this.netScroolView = netScroolView;
     this.nombresCompletos = nombresCompletos;
     this.nombresCompletosED = nombresCompletosED;
     this.precioDelivery = precioDelivery;
@@ -197,7 +233,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -269,6 +305,24 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       id = R.id.cancelar_compra;
       MaterialButton cancelarCompra = ViewBindings.findChildViewById(rootView, id);
       if (cancelarCompra == null) {
+        break missingId;
+      }
+
+      id = R.id.cargandoContenido;
+      ProgressBar cargandoContenido = ViewBindings.findChildViewById(rootView, id);
+      if (cargandoContenido == null) {
+        break missingId;
+      }
+
+      id = R.id.cargandoRef;
+      ProgressBar cargandoRef = ViewBindings.findChildViewById(rootView, id);
+      if (cargandoRef == null) {
+        break missingId;
+      }
+
+      id = R.id.cargandoText;
+      TextView cargandoText = ViewBindings.findChildViewById(rootView, id);
+      if (cargandoText == null) {
         break missingId;
       }
 
@@ -347,9 +401,27 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
 
+      id = R.id.linealCarga;
+      LinearLayout linealCarga = ViewBindings.findChildViewById(rootView, id);
+      if (linealCarga == null) {
+        break missingId;
+      }
+
+      id = R.id.linealCargandoRef;
+      LinearLayout linealCargandoRef = ViewBindings.findChildViewById(rootView, id);
+      if (linealCargandoRef == null) {
+        break missingId;
+      }
+
       id = R.id.linealMetodoEntrega;
       LinearLayout linealMetodoEntrega = ViewBindings.findChildViewById(rootView, id);
       if (linealMetodoEntrega == null) {
+        break missingId;
+      }
+
+      id = R.id.linealRecicleCargandoRerf;
+      RelativeLayout linealRecicleCargandoRerf = ViewBindings.findChildViewById(rootView, id);
+      if (linealRecicleCargandoRerf == null) {
         break missingId;
       }
 
@@ -359,7 +431,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
 
-      LinearLayout main = (LinearLayout) rootView;
+      RelativeLayout main = (RelativeLayout) rootView;
 
       id = R.id.marcaProducto;
       View marcaProducto = ViewBindings.findChildViewById(rootView, id);
@@ -392,6 +464,12 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
       IncludeTextoHorizontalGeneralBinding binding_modeloProducto = IncludeTextoHorizontalGeneralBinding.bind(modeloProducto);
+
+      id = R.id.netScroolView;
+      NestedScrollView netScroolView = ViewBindings.findChildViewById(rootView, id);
+      if (netScroolView == null) {
+        break missingId;
+      }
 
       id = R.id.nombresCompletos;
       TextInputLayout nombresCompletos = ViewBindings.findChildViewById(rootView, id);
@@ -444,16 +522,17 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
         break missingId;
       }
 
-      return new ActivityComprasProductosVendedorBinding((LinearLayout) rootView,
+      return new ActivityComprasProductosVendedorBinding((RelativeLayout) rootView,
           binding_MetodoEntregaProducto, NumeroDeContacto, NumeroDeContactoED, ReferenciaEntrega,
           ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, cancelarCompra,
-          binding_categoriaProductos, codigoGeneradoCompra, comfirmarCompra,
-          binding_condicionProducto, creaDireccion, descripcionProducto, direccionEntrega,
-          direccionEntregaED, dni, dniED, binding_garantiaProducto, lat, linealMetodoEntrega, log,
-          main, binding_marcaProducto, metodoEfectivo, metodoPlin, metodoYape,
-          binding_modeloProducto, nombresCompletos, nombresCompletosED, binding_precioDelivery,
-          binding_precioproducto, radioGrupMetodosPago, binding_totalcancelar, tvReadMore,
-          verLugaresEntrega);
+          cargandoContenido, cargandoRef, cargandoText, binding_categoriaProductos,
+          codigoGeneradoCompra, comfirmarCompra, binding_condicionProducto, creaDireccion,
+          descripcionProducto, direccionEntrega, direccionEntregaED, dni, dniED,
+          binding_garantiaProducto, lat, linealCarga, linealCargandoRef, linealMetodoEntrega,
+          linealRecicleCargandoRerf, log, main, binding_marcaProducto, metodoEfectivo, metodoPlin,
+          metodoYape, binding_modeloProducto, netScroolView, nombresCompletos, nombresCompletosED,
+          binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
+          binding_totalcancelar, tvReadMore, verLugaresEntrega);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

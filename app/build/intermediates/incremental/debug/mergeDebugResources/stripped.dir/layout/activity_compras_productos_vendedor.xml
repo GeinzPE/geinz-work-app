@@ -1,18 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
-    android:orientation="vertical"
+    style="@style/fondo"
     tools:context="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor">
 
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
+        android:id="@+id/linealCarga"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp">
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:id="@+id/cargandoContenido"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:text="Espere un momento mientras cargamos sus datos...."
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/netScroolView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -34,9 +59,9 @@
 
                 <TextView
                     android:id="@+id/codigoGeneradoCompra"
+                    style="@style/TextoTitulos"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/TextoTitulos"
                     android:layout_marginLeft="10dp"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -81,6 +106,7 @@
                 android:id="@+id/linealMetodoEntrega"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginVertical="10dp"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -88,6 +114,7 @@
                     style="@style/TextoTitulos"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
                     android:text="Metodo Entrega"
                     android:textSize="16sp" />
 
@@ -105,11 +132,44 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/ver_lugares_entrega"
+                    <RelativeLayout
+                        android:id="@+id/linealRecicleCargandoRerf"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1" />
+                        android:layout_weight="1">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:visibility="gone"
+                            android:id="@+id/ver_lugares_entrega"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                        <LinearLayout
+                            android:id="@+id/linealCargandoRef"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <ProgressBar
+                                android:id="@+id/cargandoRef"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                               android:layout_gravity="center" />
+
+                            <TextView
+                                android:id="@+id/cargandoText"
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginTop="10dp"
+                                android:text="Cargando referencias.."
+                                android:textSize="15sp" />
+
+                        </LinearLayout>
+
+                    </RelativeLayout>
+
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/crea_direccion"
@@ -129,15 +189,21 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
                     android:layout_marginTop="10dp"
+                    android:clickable="false"
+                    android:focusable="false"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp">
 
                     <EditText
+                        android:textColor="@color/color_blanco_negro"
+                        android:textColorHint="@color/color_blanco_negro"
                         android:id="@+id/direccionEntregaED"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:focusable="false"
+
                         android:hint="Direccion de entrega "
                         android:inputType="text"
                         android:paddingLeft="10dp" />
@@ -149,6 +215,8 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:layout_height="60dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="5dp"
+                    android:clickable="false"
+                    android:focusable="false"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
@@ -158,7 +226,10 @@ primaria y secundaria proporcionada en el formulario de envío."
                         android:id="@+id/ReferenciaEntregaED"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:focusable="false"
                         android:hint="Referencia de entrega "
+                        android:textColor="@color/color_blanco_negro"
+                        android:textColorHint="@color/color_blanco_negro"
                         android:inputType="text"
                         android:paddingLeft="10dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -202,6 +273,7 @@ primaria y secundaria proporcionada en el formulario de envío."
 
                 <TextView
                     android:id="@+id/descripcionProducto"
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
@@ -245,7 +317,7 @@ primaria y secundaria proporcionada en el formulario de envío."
                 style="@style/TextoTitulos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:text="Datos del usuario"
                 android:textSize="16sp" />
 
@@ -260,6 +332,8 @@ primaria y secundaria proporcionada en el formulario de envío."
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
+                    android:textColor="@color/color_blanco_negro"
+                    android:textColorHint="@color/color_blanco_negro"
                     android:id="@+id/nombresCompletosED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -279,11 +353,13 @@ primaria y secundaria proporcionada en el formulario de envío."
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
+                    android:textColor="@color/color_blanco_negro"
+                    android:textColorHint="@color/color_blanco_negro"
                     android:id="@+id/dniED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="DNI"
-                    android:inputType="text"
+                    android:inputType="number"
                     android:paddingLeft="10dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -299,11 +375,13 @@ primaria y secundaria proporcionada en el formulario de envío."
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
+                    android:textColor="@color/color_blanco_negro"
+                    android:textColorHint="@color/color_blanco_negro"
                     android:id="@+id/Numero_de_contactoED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Numero de contacto"
-                    android:inputType="text"
+                    android:inputType="number"
                     android:paddingLeft="10dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -386,4 +464,4 @@ primaria y secundaria proporcionada en el formulario de envío."
     </androidx.core.widget.NestedScrollView>
 
 
-</LinearLayout>
+</RelativeLayout>

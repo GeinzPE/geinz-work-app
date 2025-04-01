@@ -4859,6 +4859,9 @@ id cardViewRoot
 id cargaLike
 id cargaServicios
 id cargaimg
+id cargandoContenido
+id cargandoRef
+id cargandoText
 id cargando_lat_log
 id cargarConteindo
 id carracteristicasUser
@@ -5539,8 +5542,10 @@ id linealCaption
 id linealCaracteristica
 id linealCaracteristicas
 id linealCaracteristicasLayout
+id linealCarga
 id linealCargandoHorario
 id linealCargandoImg
+id linealCargandoRef
 id linealCategoriaProducto
 id linealCategoriaT
 id linealCompartir_descargar
@@ -5573,6 +5578,7 @@ id linealPrecioProducto
 id linealPrecioTexview
 id linealPrincipal
 id linealPublicaciones_edit_delete
+id linealRecicleCargandoRerf
 id linealRedes
 id linealReferencia
 id linealSakeBAr
@@ -5778,6 +5784,7 @@ id navigation_bar_item_small_label_view
 id navigation_header_container
 id navigator_container
 id netScrollView
+id netScroolView
 id nettScrollView
 id never
 id neverCompleteToEnd

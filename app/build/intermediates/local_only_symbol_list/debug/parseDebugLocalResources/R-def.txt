@@ -483,6 +483,9 @@ id caracteristicasTrabajosED
 id cargaLike
 id cargaServicios
 id cargaimg
+id cargandoContenido
+id cargandoRef
+id cargandoText
 id cargando_lat_log
 id cargarConteindo
 id carracteristicasUser
@@ -915,8 +918,10 @@ id linealCaption
 id linealCaracteristica
 id linealCaracteristicas
 id linealCaracteristicasLayout
+id linealCarga
 id linealCargandoHorario
 id linealCargandoImg
+id linealCargandoRef
 id linealCategoriaProducto
 id linealCategoriaT
 id linealCompartir_descargar
@@ -949,6 +954,7 @@ id linealPrecioProducto
 id linealPrecioTexview
 id linealPrincipal
 id linealPublicaciones_edit_delete
+id linealRecicleCargandoRerf
 id linealRedes
 id linealReferencia
 id linealSakeBAr
@@ -1064,6 +1070,7 @@ id nacionalidadT
 id nacionalidad_driver
 id nacionnalidadUser
 id netScrollView
+id netScroolView
 id nettScrollView
 id noEcnotradoEstadisitcasNoticias
 id noEncontrado

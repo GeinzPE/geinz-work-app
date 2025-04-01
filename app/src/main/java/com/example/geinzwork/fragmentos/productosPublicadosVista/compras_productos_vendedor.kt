@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -56,14 +57,32 @@ class compras_productos_vendedor : AppCompatActivity() {
         binding.precioDelivery.textoNumero1.text = "Precio del delivery :"
         binding.totalcancelar.textoNumero1.text = "Total a cancelar :"
         binding.MetodoEntregaProducto.textoNumero1.text = "Metodo de entrega :"
-        binding.codigoGeneradoCompra.text=constantesCarrito.generarCodigoPedido()
+        binding.codigoGeneradoCompra.text = constantesCarrito.generarCodigoPedido()
         obtnerDireciones(
             firebaseAuth.uid.toString(),
             listaLugaresEntrega,
             binding.verLugaresEntrega, binding.creaDireccion, this
-        )
+        ) { cargado ->
+//            if (cargado) {
+//                binding.linealCargandoRef.isVisible = false
+//                binding.verLugaresEntrega.isVisible = true
+//            } else {
+//                binding.linealCargandoRef.isVisible = true
+//                binding.verLugaresEntrega.isVisible = false
+//            }
+        }
+
+
+        obtnerDatosProducto(idProducto, idTrabajdor) { cargado ->
+            if (cargado) {
+                binding.linealCarga.isVisible = false
+                binding.netScroolView.isVisible = true
+            } else {
+                binding.linealCarga.isVisible = true
+                binding.netScroolView.isVisible = false
+            }
+        }
         println("el idtrabajodr $idTrabajdor y el $idProducto")
-        obtnerDatosProducto(idProducto, idTrabajdor)
         verificarRegistroUSer(firebaseAuth)
     }
 
@@ -82,47 +101,97 @@ class compras_productos_vendedor : AppCompatActivity() {
 
 
     private fun verificarRegistroUSer(firebaseAuth: FirebaseAuth) {
+        binding.linealRecicleCargandoRerf.isVisible = firebaseAuth.currentUser != null
+
+        // Método para mostrar el BottomSheetDialog si no está autenticado
+        val mostrarDialogCreacionCuenta: () -> Unit = {
+            if (firebaseAuth.currentUser == null) {
+                dialog = BottomSheetDialog(this)
+                constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
+                dialog.show()
+            }
+        }
+
         binding.creaDireccion.setOnClickListener {
-            if (firebaseAuth.currentUser == null) {
-                dialog = BottomSheetDialog(this)
-                constantesPublicidad.CreacionCuentaBottom_shett(
-                    this,
-                    dialog
-                )
-                dialog.show()
-
-            } else {
+            mostrarDialogCreacionCuenta()
+            if (firebaseAuth.currentUser != null) {
                 startActivity(Intent(this, direccion_entrega_lat_log::class.java))
+                finish()
             }
         }
-        binding.comfirmarCompra.setOnClickListener {
-            if (firebaseAuth.currentUser == null) {
-                dialog = BottomSheetDialog(this)
-                constantesPublicidad.CreacionCuentaBottom_shett(
-                    this,
-                    dialog
-                )
-                dialog.show()
 
-            } else {
-                //  confimar compra
+        binding.comfirmarCompra.setOnClickListener {
+            mostrarDialogCreacionCuenta()
+            if (firebaseAuth.currentUser != null) {
+                verificarCamposCompletos()
             }
         }
+
         binding.cancelarCompra.setOnClickListener {
             AlertDialog.Builder(it.context)
                 .setTitle("Confirmación")
                 .setMessage("¿Desea abandonar la compra o seguir comprando?")
-                .setPositiveButton("Sí, abandonar") { _, _ ->
-                    this.finish() // Para cerrar la actividad actual
-                }
-                .setNegativeButton("Seguir comprando") { dialog, _ ->
-                    dialog.dismiss() // Solo cierra el diálogo
-                }
+                .setPositiveButton("Sí, abandonar") { _, _ -> finish() }
+                .setNegativeButton("Seguir comprando") { dialog, _ -> dialog.dismiss() }
                 .show()
         }
-
-
     }
+
+    private fun verificarCamposCompletos() {
+        var camposValidos = true // Variable para verificar si todo está correcto
+
+        val nombreCompletoVacio = binding.nombresCompletosED.text.toString().trim().isEmpty()
+        val dniVacio = binding.dniED.text.toString().trim()
+            .isEmpty() // Corregí el error de repetir nombresCompletosED
+        val numeroContactoVacio = binding.NumeroDeContactoED.text.toString().trim().isEmpty()
+
+        if (nombreCompletoVacio) {
+            binding.nombresCompletosED.error = "Ingrese su nombre y apellido"
+            camposValidos = false
+        }
+        if (dniVacio) {
+            binding.dniED.error = "Ingrese su DNI"
+            camposValidos = false
+        }
+        if (numeroContactoVacio) {
+            binding.NumeroDeContactoED.error = "Ingrese su número de contacto"
+            camposValidos = false
+        }
+
+        if (binding.MetodoEntregaProducto.textoNumero2.text.toString()
+                .equals("delivery", ignoreCase = true)
+        ) {
+            val direccionVacia = binding.direccionEntregaED.text.toString().trim().isEmpty()
+            val referenciaVacia = binding.ReferenciaEntregaED.text.toString().trim().isEmpty()
+
+            if (direccionVacia) {
+                binding.direccionEntregaED.error = "Seleccione una dirección o cree una nueva"
+                camposValidos = false
+            }
+
+            if (referenciaVacia) {
+                binding.ReferenciaEntregaED.error = "Ingrese una referencia válida"
+                camposValidos = false
+            }
+        }
+
+        // Verificación del método de pago
+        if (!binding.metodoYape.isChecked && !binding.metodoPlin.isChecked && !binding.metodoEfectivo.isChecked) {
+            Toast.makeText(binding.root.context, "Seleccione un método de pago", Toast.LENGTH_SHORT)
+                .show()
+            camposValidos = false
+        }
+
+        // Si todos los campos están correctos, mostrar mensaje de confirmación
+        if (camposValidos) {
+            Toast.makeText(
+                binding.root.context,
+                "¡Todo correcto! Continúe con su proceso",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
 
     fun obtnerDireciones(
         idUSer: String,
@@ -130,7 +199,10 @@ class compras_productos_vendedor : AppCompatActivity() {
         RecyclerView: RecyclerView,
         btnCrearDirecion: Button,
         context: Context,
+        cargado: (Boolean) -> Unit
     ) {
+        binding.linealCargandoRef.isVisible = true
+        binding.verLugaresEntrega.isVisible = false
         val dbTrabajadores =
             FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
                 .document("trabajadores").collection("trabajadores").document(idUSer)
@@ -168,28 +240,44 @@ class compras_productos_vendedor : AppCompatActivity() {
                         lista.add(dataclass)
                         inicializarRecycle(lista)
                     }
+                    binding.verLugaresEntrega.isVisible = true
+                    binding.linealCargandoRef.isVisible=false
                     if (lista.isEmpty()) {
                         RecyclerView.isVisible = false
                         btnCrearDirecion.isVisible = true
+                        binding.verLugaresEntrega.isVisible = false
+                        binding.linealCargandoRef.isVisible=false
+                        cargado(false)
+
                     } else {
                         RecyclerView.isVisible = true
+                        binding.verLugaresEntrega.isVisible = true
+                        binding.linealCargandoRef.isVisible=false
                         btnCrearDirecion.isVisible = false
-
+                        cargado(true)
                     }
                 }.addOnFailureListener { e ->
                     Toast.makeText(
                         context, "Error al buscar en usuarios: ${e.message}", Toast.LENGTH_SHORT
                     ).show()
+                    cargado(false)
+                    binding.verLugaresEntrega.isVisible = false
+                    binding.linealCargandoRef.isVisible=false
                 }
             } else {
                 RecyclerView.isVisible = true
                 btnCrearDirecion.isVisible = false
-
+                binding.verLugaresEntrega.isVisible = false
+                binding.linealCargandoRef.isVisible=false
+                cargado(true)
             }
         }.addOnFailureListener { e ->
             Toast.makeText(
                 context, "Error al buscar en trabajadores: ${e.message}", Toast.LENGTH_SHORT
             ).show()
+            cargado(false)
+            binding.verLugaresEntrega.isVisible = false
+            binding.linealCargandoRef.isVisible=false
         }
     }
 
@@ -206,7 +294,11 @@ class compras_productos_vendedor : AppCompatActivity() {
         binding.verLugaresEntrega.adapter = adapter
     }
 
-    private fun obtnerDatosProducto(idProducto: String, idTrabajador: String) {
+    private fun obtnerDatosProducto(
+        idProducto: String,
+        idTrabajador: String,
+        cargado: (Boolean) -> Unit
+    ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta").document(idProducto)
@@ -218,7 +310,8 @@ class compras_productos_vendedor : AppCompatActivity() {
                 )  // 🔍 Ver qué trae la base de datos
 
                 val data = res.data ?: return@addOnSuccessListener
-                val cantidadPorcentajeDescuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val cantidadPorcentajeDescuento =
+                    data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 val precio = data?.get("precio") as? Number ?: 0
                 val precioDescuento = data?.get("precio_descuento") as? Number ?: 0
                 val totalProducto = data?.get("total_producto") as? Number ?: 0
@@ -257,7 +350,13 @@ class compras_productos_vendedor : AppCompatActivity() {
                 binding.precioDelivery.textoNumero2.text
                 // Manejo del precio de delivery
                 if (envio_gratis) {
-                    binding.precioDelivery.textoNumero2.text = "Envio Gratis"
+                    binding.precioDelivery.textoNumero2.text = "Envío Gratis"
+                    binding.precioDelivery.textoNumero2.setTextColor(
+                        ContextCompat.getColor(
+                            this,
+                            R.color.verde
+                        )
+                    )
                     val precioFinal = if (descuento) precioDescuento else precio
                     constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                         precioFinal,
@@ -307,7 +406,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                 binding.categoriaProductos.textoNumero2.text = categoria
                 binding.marcaProducto.textoNumero2.text = marca
                 binding.modeloProducto.textoNumero2.text = modelo
-                binding.StokDiponible.textoNumero2.text = stok
+                binding.StokDiponible.textoNumero2.text = "$stok UND"
                 binding.garantiaProducto.textoNumero2.text = garantia
                 binding.condicionProducto.textoNumero2.text = condicionProducto
                 binding.MetodoEntregaProducto.textoNumero2.text = metodoEntrega
@@ -369,11 +468,14 @@ class compras_productos_vendedor : AppCompatActivity() {
 
                     0 -> println("Ningún método de pago está activo")
                 }
+                cargado(true)
             } else {
+                cargado(false)
                 Log.e("FirestoreResponse", "Documento no encontrado")
             }
         }.addOnFailureListener { e ->
             Log.e("FirestoreError", "Error obteniendo datos: ", e)
+            cargado(false)
         }
 
     }
