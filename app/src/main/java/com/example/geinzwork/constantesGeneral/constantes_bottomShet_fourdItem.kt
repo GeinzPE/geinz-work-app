@@ -1003,18 +1003,25 @@ object constantes_bottomShet_fourdItem {
         totalPAgar: TextView,
     ) {
 
-        val adapter = adapter_radioButton_envios(items) { ubicacionSeleccionada ->
-            direccion.setText(ubicacionSeleccionada.direccion)
-            refererencia.setText(ubicacionSeleccionada.referencia)
-            latUSser.text = ubicacionSeleccionada.lat
-            logUSer.text = ubicacionSeleccionada.log
-            TexviewIDRefDire.text = ubicacionSeleccionada.id
-            precioDElivery.setText("")
-            constantes_cotizacion_driver.setearDelivery(precioDElivery, context)
-            pagoDriver.text = "***"
-            totalPAgar.text = "***"
+        val adapter = adapter_radioButton_envios(
+            items,
+            onItemClick = { ubicacionSeleccionada ->
+                direccion.setText(ubicacionSeleccionada.direccion)
+                refererencia.setText(ubicacionSeleccionada.referencia)
+                latUSser.text = ubicacionSeleccionada.lat
+                logUSer.text = ubicacionSeleccionada.log
+                TexviewIDRefDire.text = ubicacionSeleccionada.id
+                precioDElivery.setText("")
+                constantes_cotizacion_driver.setearDelivery(precioDElivery, context)
+                pagoDriver.text = "***"
+                totalPAgar.text = "***"
+            },
+            onCrearDireccionClick = {
+                // Acción cuando se presiona el botón "Crear dirección"
+                println("Se hizo clic en 'Crear dirección'")
+            }
+        )
 
-        }
 
         recycle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         recycle.adapter = adapter

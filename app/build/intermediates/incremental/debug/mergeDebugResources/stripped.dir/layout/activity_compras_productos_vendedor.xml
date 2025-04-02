@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    style="@style/fondo"
     tools:context="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor">
 
     <LinearLayout
@@ -139,10 +139,10 @@ primaria y secundaria proporcionada en el formulario de envío."
                         android:layout_weight="1">
 
                         <androidx.recyclerview.widget.RecyclerView
-                            android:visibility="gone"
                             android:id="@+id/ver_lugares_entrega"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
 
                         <LinearLayout
                             android:id="@+id/linealCargandoRef"
@@ -154,7 +154,7 @@ primaria y secundaria proporcionada en el formulario de envío."
                                 android:id="@+id/cargandoRef"
                                 android:layout_width="50dp"
                                 android:layout_height="50dp"
-                               android:layout_gravity="center" />
+                                android:layout_gravity="center" />
 
                             <TextView
                                 android:id="@+id/cargandoText"
@@ -197,13 +197,10 @@ primaria y secundaria proporcionada en el formulario de envío."
                     app:boxCornerRadiusTopStart="8dp">
 
                     <EditText
-                        android:textColor="@color/color_blanco_negro"
-                        android:textColorHint="@color/color_blanco_negro"
                         android:id="@+id/direccionEntregaED"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:focusable="false"
-
                         android:hint="Direccion de entrega "
                         android:inputType="text"
                         android:paddingLeft="10dp" />
@@ -228,8 +225,6 @@ primaria y secundaria proporcionada en el formulario de envío."
                         android:layout_height="match_parent"
                         android:focusable="false"
                         android:hint="Referencia de entrega "
-                        android:textColor="@color/color_blanco_negro"
-                        android:textColorHint="@color/color_blanco_negro"
                         android:inputType="text"
                         android:paddingLeft="10dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -332,8 +327,7 @@ primaria y secundaria proporcionada en el formulario de envío."
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
-                    android:textColor="@color/color_blanco_negro"
-                    android:textColorHint="@color/color_blanco_negro"
+
                     android:id="@+id/nombresCompletosED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -353,8 +347,7 @@ primaria y secundaria proporcionada en el formulario de envío."
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
-                    android:textColor="@color/color_blanco_negro"
-                    android:textColorHint="@color/color_blanco_negro"
+
                     android:id="@+id/dniED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -375,8 +368,6 @@ primaria y secundaria proporcionada en el formulario de envío."
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
-                    android:textColor="@color/color_blanco_negro"
-                    android:textColorHint="@color/color_blanco_negro"
                     android:id="@+id/Numero_de_contactoED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

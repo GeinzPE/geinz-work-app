@@ -7,4 +7,5 @@ data class dataclassradiobtn(
     val referencia: String?,
     val direccion: String?,
     val nombreRef:String?,
+    val isCreateButton: Boolean = false
 )

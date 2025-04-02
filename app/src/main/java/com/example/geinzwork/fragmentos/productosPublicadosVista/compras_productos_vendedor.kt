@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter_radioButton_envios
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityComprasProductosVendedorBinding
@@ -240,18 +241,14 @@ class compras_productos_vendedor : AppCompatActivity() {
                         lista.add(dataclass)
                         inicializarRecycle(lista)
                     }
-                    binding.verLugaresEntrega.isVisible = true
-                    binding.linealCargandoRef.isVisible=false
                     if (lista.isEmpty()) {
                         RecyclerView.isVisible = false
                         btnCrearDirecion.isVisible = true
-                        binding.verLugaresEntrega.isVisible = false
                         binding.linealCargandoRef.isVisible=false
                         cargado(false)
 
                     } else {
                         RecyclerView.isVisible = true
-                        binding.verLugaresEntrega.isVisible = true
                         binding.linealCargandoRef.isVisible=false
                         btnCrearDirecion.isVisible = false
                         cargado(true)
@@ -261,13 +258,11 @@ class compras_productos_vendedor : AppCompatActivity() {
                         context, "Error al buscar en usuarios: ${e.message}", Toast.LENGTH_SHORT
                     ).show()
                     cargado(false)
-                    binding.verLugaresEntrega.isVisible = false
                     binding.linealCargandoRef.isVisible=false
                 }
             } else {
                 RecyclerView.isVisible = true
                 btnCrearDirecion.isVisible = false
-                binding.verLugaresEntrega.isVisible = false
                 binding.linealCargandoRef.isVisible=false
                 cargado(true)
             }
@@ -276,19 +271,34 @@ class compras_productos_vendedor : AppCompatActivity() {
                 context, "Error al buscar en trabajadores: ${e.message}", Toast.LENGTH_SHORT
             ).show()
             cargado(false)
-            binding.verLugaresEntrega.isVisible = false
             binding.linealCargandoRef.isVisible=false
         }
     }
 
     private fun inicializarRecycle(items: MutableList<dataclassradiobtn>) {
-        val adapter = adapter_radioButton_envios(items) { ubicacionSeleccionada ->
-            binding.direccionEntregaED.setText(ubicacionSeleccionada.direccion)
-            binding.ReferenciaEntregaED.setText(ubicacionSeleccionada.referencia)
-            binding.lat.text = ubicacionSeleccionada.lat
-            binding.log.text = ubicacionSeleccionada.log
-            binding.TexviewIDRefDire.text = ubicacionSeleccionada.id
-        }
+        val adapter = adapter_radioButton_envios(
+            items,
+            onItemClick = { ubicacionSeleccionada ->
+                binding.direccionEntregaED.setText(ubicacionSeleccionada.direccion)
+                binding.ReferenciaEntregaED.setText(ubicacionSeleccionada.referencia)
+                binding.lat.text = ubicacionSeleccionada.lat
+                binding.log.text = ubicacionSeleccionada.log
+                binding.TexviewIDRefDire.text = ubicacionSeleccionada.id
+            },
+            onCrearDireccionClick = {
+                    if (firebaseAuth.currentUser == null) {
+                        dialog = BottomSheetDialog(this)
+                        constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
+                        dialog.show()
+                    }else{
+                        startActivity(Intent(this, direccion_entrega_lat_log::class.java))
+                        finish()
+                    }
+
+                println("Se hizo clic en 'Crear dirección'")
+            }
+        )
+
         binding.verLugaresEntrega.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.verLugaresEntrega.adapter = adapter
