@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
@@ -51,6 +52,9 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
 
   @NonNull
   public final MaterialButton cancelarCompra;
+
+  @NonNull
+  public final TextView cantidad;
 
   @NonNull
   public final ProgressBar cargandoContenido;
@@ -119,6 +123,12 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
   public final IncludeTextoHorizontalGeneralBinding marcaProducto;
 
   @NonNull
+  public final ImageButton mas;
+
+  @NonNull
+  public final ImageButton menos;
+
+  @NonNull
   public final RadioButton metodoEfectivo;
 
   @NonNull
@@ -163,8 +173,8 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       @NonNull TextInputLayout ReferenciaEntrega, @NonNull EditText ReferenciaEntregaED,
       @NonNull IncludeTextoHorizontalGeneralBinding StokDiponible,
       @NonNull TextView TexviewIDRefDire, @NonNull MaterialButton cancelarCompra,
-      @NonNull ProgressBar cargandoContenido, @NonNull ProgressBar cargandoRef,
-      @NonNull TextView cargandoText,
+      @NonNull TextView cantidad, @NonNull ProgressBar cargandoContenido,
+      @NonNull ProgressBar cargandoRef, @NonNull TextView cargandoText,
       @NonNull IncludeTextoHorizontalGeneralBinding categoriaProductos,
       @NonNull TextView codigoGeneradoCompra, @NonNull MaterialButton comfirmarCompra,
       @NonNull IncludeTextoHorizontalGeneralBinding condicionProducto,
@@ -175,9 +185,10 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       @NonNull LinearLayout linealCarga, @NonNull LinearLayout linealCargandoRef,
       @NonNull LinearLayout linealMetodoEntrega, @NonNull RelativeLayout linealRecicleCargandoRerf,
       @NonNull TextView log, @NonNull RelativeLayout main,
-      @NonNull IncludeTextoHorizontalGeneralBinding marcaProducto,
-      @NonNull RadioButton metodoEfectivo, @NonNull RadioButton metodoPlin,
-      @NonNull RadioButton metodoYape, @NonNull IncludeTextoHorizontalGeneralBinding modeloProducto,
+      @NonNull IncludeTextoHorizontalGeneralBinding marcaProducto, @NonNull ImageButton mas,
+      @NonNull ImageButton menos, @NonNull RadioButton metodoEfectivo,
+      @NonNull RadioButton metodoPlin, @NonNull RadioButton metodoYape,
+      @NonNull IncludeTextoHorizontalGeneralBinding modeloProducto,
       @NonNull NestedScrollView netScroolView, @NonNull TextInputLayout nombresCompletos,
       @NonNull EditText nombresCompletosED,
       @NonNull IncludeTextoHorizontalGeneralBinding precioDelivery,
@@ -194,6 +205,7 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.StokDiponible = StokDiponible;
     this.TexviewIDRefDire = TexviewIDRefDire;
     this.cancelarCompra = cancelarCompra;
+    this.cantidad = cantidad;
     this.cargandoContenido = cargandoContenido;
     this.cargandoRef = cargandoRef;
     this.cargandoText = cargandoText;
@@ -216,6 +228,8 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
     this.log = log;
     this.main = main;
     this.marcaProducto = marcaProducto;
+    this.mas = mas;
+    this.menos = menos;
     this.metodoEfectivo = metodoEfectivo;
     this.metodoPlin = metodoPlin;
     this.metodoYape = metodoYape;
@@ -305,6 +319,12 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       id = R.id.cancelar_compra;
       MaterialButton cancelarCompra = ViewBindings.findChildViewById(rootView, id);
       if (cancelarCompra == null) {
+        break missingId;
+      }
+
+      id = R.id.cantidad;
+      TextView cantidad = ViewBindings.findChildViewById(rootView, id);
+      if (cantidad == null) {
         break missingId;
       }
 
@@ -440,6 +460,18 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
       }
       IncludeTextoHorizontalGeneralBinding binding_marcaProducto = IncludeTextoHorizontalGeneralBinding.bind(marcaProducto);
 
+      id = R.id.mas;
+      ImageButton mas = ViewBindings.findChildViewById(rootView, id);
+      if (mas == null) {
+        break missingId;
+      }
+
+      id = R.id.menos;
+      ImageButton menos = ViewBindings.findChildViewById(rootView, id);
+      if (menos == null) {
+        break missingId;
+      }
+
       id = R.id.metodoEfectivo;
       RadioButton metodoEfectivo = ViewBindings.findChildViewById(rootView, id);
       if (metodoEfectivo == null) {
@@ -524,14 +556,14 @@ public final class ActivityComprasProductosVendedorBinding implements ViewBindin
 
       return new ActivityComprasProductosVendedorBinding((RelativeLayout) rootView,
           binding_MetodoEntregaProducto, NumeroDeContacto, NumeroDeContactoED, ReferenciaEntrega,
-          ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, cancelarCompra,
+          ReferenciaEntregaED, binding_StokDiponible, TexviewIDRefDire, cancelarCompra, cantidad,
           cargandoContenido, cargandoRef, cargandoText, binding_categoriaProductos,
           codigoGeneradoCompra, comfirmarCompra, binding_condicionProducto, creaDireccion,
           descripcionProducto, direccionEntrega, direccionEntregaED, dni, dniED,
           binding_garantiaProducto, lat, linealCarga, linealCargandoRef, linealMetodoEntrega,
-          linealRecicleCargandoRerf, log, main, binding_marcaProducto, metodoEfectivo, metodoPlin,
-          metodoYape, binding_modeloProducto, netScroolView, nombresCompletos, nombresCompletosED,
-          binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
+          linealRecicleCargandoRerf, log, main, binding_marcaProducto, mas, menos, metodoEfectivo,
+          metodoPlin, metodoYape, binding_modeloProducto, netScroolView, nombresCompletos,
+          nombresCompletosED, binding_precioDelivery, binding_precioproducto, radioGrupMetodosPago,
           binding_totalcancelar, tvReadMore, verLugaresEntrega);
     }
     String missingId = rootView.getResources().getResourceName(id);
