@@ -5,56 +5,67 @@
     style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     tools:context=".fragmentos.categoriasFracment">
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:id="@+id/linealPrincipal"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true">
+
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:animateLayoutChanges="true"
+            android:layout_height="wrap_content">
 
             <LinearLayout
+                android:animateLayoutChanges="true"
+                android:id="@+id/linealPrincipal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_scrollFlags="scroll|enterAlways">
+                android:visibility="gone">
 
-                <TextView
-                    style="@style/TextoTitulos"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginRight="15dp"
-                    android:layout_marginBottom="10dp"
-                    android:text="Ecuentra Trabajadores "
-                    android:textSize="30sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical"
+                    app:layout_scrollFlags="scroll|enterAlways">
 
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        style="@style/TextoTitulos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginRight="15dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Ecuentra Trabajadores "
+                        android:textSize="30sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Encuentra los mejores profesionales en tu área. ¡Explora las categorías y conecta con el trabajador ideal para ti!"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/RecicleViewTrabajos"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:text="Encuentra los mejores profesionales en tu área. ¡Explora las categorías y conecta con el trabajador ideal para ti!"
-                    android:textSize="12sp" />
+                    android:visibility="gone" />
+
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/RecicleViewTrabajos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
     <com.facebook.shimmer.ShimmerFrameLayout

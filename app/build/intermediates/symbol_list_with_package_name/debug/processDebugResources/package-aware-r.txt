@@ -5049,6 +5049,8 @@ id descripcionServiciosED
 id descripcionTrabajador
 id descripcion_contenido
 id descripcion_promos
+id descripcion_publicacion
+id descripcion_publicacionED
 id descripcionus
 id description
 id description_dock
@@ -5179,6 +5181,7 @@ id fechaNaciminetoUSer
 id fechaPago
 id fechaPublicada
 id fechaPublicado
+id fechaRealizado
 id fechaVencimineto
 id fecha_llegada
 id fecha_publicada
@@ -5303,6 +5306,7 @@ id hora
 id horaActual
 id horaPago
 id horaPublicadad
+id horaRealizado
 id hora_llegada
 id horaaproximanda
 id horaint
@@ -5992,6 +5996,7 @@ id promocionesLineal
 id propietario
 id propietarioED
 id publicar
+id publicar_trabajo
 id publicidadCuarta
 id publicidadPrimaria
 id publicidadSegundaria
@@ -6286,6 +6291,8 @@ id titulo
 id tituloItem
 id tituloNombreTrabajador
 id tituloProducto
+id tituloPublicacion
+id tituloPublicacionED
 id titulo_Trabajo
 id titulo_contenido
 id titulo_de_la_noticia
@@ -6343,6 +6350,8 @@ id txtpassword
 id ubi_no
 id ubi_si
 id ubicacion
+id ubicacionDondeRealizoTrabajo
+id ubicacionDondeRealizoTrabajoED
 id ubicacionTienda
 id ubicacionTiendaImageview
 id ubicacion_tienda
@@ -6594,6 +6603,7 @@ layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_agregar_imagen
 layout activity_agregar_pago_comprareserva_tiendas
+layout activity_agregar_publicaciones_recientes_trabajadores_verificados
 layout activity_agregar_redes
 layout activity_agregar_ver_review
 layout activity_cambiar_imagenes_publicidad_noticias_servicios

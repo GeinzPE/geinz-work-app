@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -30,13 +31,17 @@ public final class FragmentCategoriasFracmentBinding implements ViewBinding {
   @NonNull
   public final LinearLayoutCompat loading;
 
+  @NonNull
+  public final SwipeRefreshLayout swipe;
+
   private FragmentCategoriasFracmentBinding(@NonNull RelativeLayout rootView,
       @NonNull RecyclerView RecicleViewTrabajos, @NonNull LinearLayout linealPrincipal,
-      @NonNull LinearLayoutCompat loading) {
+      @NonNull LinearLayoutCompat loading, @NonNull SwipeRefreshLayout swipe) {
     this.rootView = rootView;
     this.RecicleViewTrabajos = RecicleViewTrabajos;
     this.linealPrincipal = linealPrincipal;
     this.loading = loading;
+    this.swipe = swipe;
   }
 
   @Override
@@ -84,8 +89,14 @@ public final class FragmentCategoriasFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.swipe;
+      SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
+      if (swipe == null) {
+        break missingId;
+      }
+
       return new FragmentCategoriasFracmentBinding((RelativeLayout) rootView, RecicleViewTrabajos,
-          linealPrincipal, loading);
+          linealPrincipal, loading, swipe);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
