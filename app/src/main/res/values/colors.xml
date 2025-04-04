@@ -25,6 +25,8 @@
     <color name="roundcustomItemsCompra">#D4D4DE</color>
 
     <color name="colorFondo">#F9F8FF</color>
+    <color name="colorFondoPantallaACtividades">#F9F8FF</color>
+
 
     <color name="colorBTNFiltrado">#C9EBF9</color>
     <color name="textoColorBTNFiltrado">#F6F4F2</color>

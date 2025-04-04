@@ -226,10 +226,10 @@
                                     android:visibility="gone" />
 
                                 <TextView
-                                    android:visibility="gone"
+                                    android:id="@+id/verificadoTXT"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:id="@+id/verificadoTXT"/>
+                                    android:visibility="gone" />
                             </RelativeLayout>
 
                             <TextView
@@ -476,24 +476,39 @@
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
-
-                        <org.imaginativeworld.whynotimagecarousel.ImageCarousel
-                            android:id="@+id/carrusel"
+                        <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="220dp"
-                            android:layout_marginVertical="10dp"
-                            android:layout_marginTop="16dp"
-                            app:autoWidthFixing="false"
-                            app:carouselGravity="START"
-                            app:carouselType="SHOWCASE"
-                            app:imageScaleType="center"
-                            app:infiniteCarousel="false"
-                            app:scaleOnScroll="false"
-                            app:showBottomShadow="false"
-                            app:showCaption="false"
-                            app:showIndicator="false"
-                            app:showNavigationButtons="false"
-                            app:showTopShadow="false" />
+                            android:layout_height="220dp">
+
+                            <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                                android:id="@+id/carrusel"
+                                android:layout_width="match_parent"
+                                android:layout_height="220dp"
+                                android:layout_marginVertical="10dp"
+                                android:layout_marginTop="16dp"
+                                app:autoWidthFixing="false"
+                                app:carouselGravity="START"
+                                app:carouselType="SHOWCASE"
+                                app:imageScaleType="center"
+                                app:infiniteCarousel="false"
+                                app:scaleOnScroll="false"
+                                app:showBottomShadow="false"
+                                app:showCaption="false"
+                                app:showIndicator="false"
+                                app:showNavigationButtons="false"
+                                app:showTopShadow="false" />
+
+                            <TextView
+                                android:id="@+id/no_se_encontraron_trabajos"
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerInParent="true"
+                                android:text="No se econtraron trabajos realizados"
+                                android:textSize="17sp"
+                                android:textStyle="bold"
+                                android:visibility="gone" />
+                        </RelativeLayout>
 
                     </LinearLayout>
 
@@ -620,12 +635,34 @@
                             android:text="ver todos" />
                     </LinearLayout>
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/trabajadores_similares"
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:nestedScrollingEnabled="false" />
+                        android:layout_marginVertical="10dp">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/trabajadores_similares"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false" />
+
+                        <RelativeLayout
+                            android:id="@+id/no_se_encontraron_trabajadores"
+                            android:layout_width="match_parent"
+                            android:layout_height="220dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerInParent="true"
+                                android:text="No se econtraron trabajadores"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                    </RelativeLayout>
 
 
                 </LinearLayout>

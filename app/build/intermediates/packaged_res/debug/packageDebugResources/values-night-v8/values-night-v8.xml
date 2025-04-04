@@ -2,6 +2,7 @@
 <resources>
     <color name="colorBTNFiltrado">#804D3187</color>
     <color name="colorFondo">#121212</color>
+    <color name="colorFondoPantallaACtividades">#1A1A1A</color>
     <color name="color_blanco_negro">#202020</color>
     <color name="f1">#1A1A1A</color>
     <color name="heartOutlineColor">#FFFFFF</color>

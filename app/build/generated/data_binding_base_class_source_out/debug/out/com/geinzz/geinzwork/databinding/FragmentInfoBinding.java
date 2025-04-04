@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -104,6 +105,12 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final TextView nacionalida;
 
   @NonNull
+  public final RelativeLayout noSeEncontraronTrabajadores;
+
+  @NonNull
+  public final TextView noSeEncontraronTrabajos;
+
+  @NonNull
   public final TextView nombre;
 
   @NonNull
@@ -165,8 +172,10 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull LinearLayout linealLayaout, @NonNull LinearLayout linealNoCuenta,
       @NonNull LinearLayout linealRedes, @NonNull LinearLayout linealTrabajosRealziados,
       @NonNull AppBarLayout linealappLayout, @NonNull LinearLayoutCompat loading,
-      @NonNull TextView localidad, @NonNull TextView nacionalida, @NonNull TextView nombre,
-      @NonNull View overlay, @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
+      @NonNull TextView localidad, @NonNull TextView nacionalida,
+      @NonNull RelativeLayout noSeEncontraronTrabajadores,
+      @NonNull TextView noSeEncontraronTrabajos, @NonNull TextView nombre, @NonNull View overlay,
+      @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
@@ -199,6 +208,8 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.loading = loading;
     this.localidad = localidad;
     this.nacionalida = nacionalida;
+    this.noSeEncontraronTrabajadores = noSeEncontraronTrabajadores;
+    this.noSeEncontraronTrabajos = noSeEncontraronTrabajos;
     this.nombre = nombre;
     this.overlay = overlay;
     this.popup = popup;
@@ -389,6 +400,18 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.no_se_encontraron_trabajadores;
+      RelativeLayout noSeEncontraronTrabajadores = ViewBindings.findChildViewById(rootView, id);
+      if (noSeEncontraronTrabajadores == null) {
+        break missingId;
+      }
+
+      id = R.id.no_se_encontraron_trabajos;
+      TextView noSeEncontraronTrabajos = ViewBindings.findChildViewById(rootView, id);
+      if (noSeEncontraronTrabajos == null) {
+        break missingId;
+      }
+
       id = R.id.nombre;
       TextView nombre = ViewBindings.findChildViewById(rootView, id);
       if (nombre == null) {
@@ -495,10 +518,11 @@ public final class FragmentInfoBinding implements ViewBinding {
           banerPublicacionesRecientes, caracteristica1, carrusel, categoriaTipoTrabajo, circle,
           descripcionTrabajador, edadUser, estado, fb, genero, horario, ig, imgPerfilUser,
           imgPortada, innerRelativeLayout, linealLayaout, linealNoCuenta, linealRedes,
-          linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida, nombre,
-          overlay, popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo,
-          qrTrabajador, relativeLayout, scroll, swipe, telefono, tk, trabajadoresSimilares,
-          tvReadMore, verMasTrabajadores, verificado, verificadoTXT);
+          linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida,
+          noSeEncontraronTrabajadores, noSeEncontraronTrabajos, nombre, overlay, popup,
+          productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
+          relativeLayout, scroll, swipe, telefono, tk, trabajadoresSimilares, tvReadMore,
+          verMasTrabajadores, verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.text.Editable
 import android.text.TextWatcher
@@ -16,9 +18,11 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
+import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.databinding.FragmentContactoFracmentBinding
 import com.geinzz.geinzwork.constantesGeneral.constantesNoticias
@@ -74,6 +78,7 @@ class contactoFracment : Fragment() {
         val zoomout = AnimationUtils.loadAnimation(mcontex, com.geinzz.geinzwork.R.anim.zoom_uot)
         showBottomSheetButton = binding.filtrado
         dialog = BottomSheetDialog(mcontex)
+        binding.swipe.isVisible = true
         showBottomSheetButton.setOnClickListener {
             constantesNoticias.filtrado_bottom(binding.encontrados, binding.recielAnuncios,
                 binding.loading,
@@ -184,8 +189,54 @@ class contactoFracment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+        confSwipe(keyLocalidad,keyCategoria,zoonIn,zoomout)
 
+    }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun confSwipe(
+        keyLocalidad: String,
+        keyCategoria: String,
+        zoonIn: Animation,
+        zoomout: Animation
+    ) {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+
+                if (firebaseAuth.currentUser == null) {
+                    binding.filtradoCateogoriaPromo.text = Variables.General
+                } else if (keyLocalidad.isNullOrEmpty() || keyLocalidad.equals("Default Value")) {
+                    filtradoLocalidadElementos.obtenerLocalidadUser { localida ->
+                        binding.filtradoUsuairo.text = localida
+                    }
+                    constantes.carga(
+                        3000,
+                        { obtenerNoticiasGeneral(zoomout, zoonIn) })
+
+                } else {
+                    binding.filtradoUsuairo.text = keyLocalidad
+                    constantes.carga(
+                        3000,
+                        { obtenerFitlradoNoticias(keyCategoria, keyLocalidad, zoomout, zoonIn) })
+                }
+
+                if (keyCategoria.isNullOrEmpty() || keyCategoria.equals("Default Value")) {
+                    binding.filtradoCateogoriaPromo.text = Variables.General
+                    constantes.carga(
+                        3000,
+                        { obtenerNoticiasGeneral(zoomout, zoonIn) })
+                } else {
+                    binding.filtradoCateogoriaPromo.text = keyCategoria
+                    constantes.carga(
+                        3000,
+                        { obtenerFitlradoNoticias(keyCategoria, keyLocalidad, zoomout, zoonIn) })
+                }
+
+            }, 2000)
+            binding.swipe.isVisible = true
+        }
     }
     
     @RequiresApi(Build.VERSION_CODES.O)

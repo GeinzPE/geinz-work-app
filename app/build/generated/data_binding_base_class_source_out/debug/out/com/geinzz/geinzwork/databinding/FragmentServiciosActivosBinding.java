@@ -4,7 +4,6 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
@@ -35,9 +34,6 @@ public final class FragmentServiciosActivosBinding implements ViewBinding {
   public final ProgressBar cargaServicios;
 
   @NonNull
-  public final ImageView imgLogo;
-
-  @NonNull
   public final ItemServiciosActivosGeinzBinding noticia;
 
   @NonNull
@@ -49,14 +45,13 @@ public final class FragmentServiciosActivosBinding implements ViewBinding {
   private FragmentServiciosActivosBinding(@NonNull RelativeLayout rootView,
       @NonNull RelativeLayout LinealSinServicios, @NonNull NestedScrollView ScrollView,
       @NonNull ItemServiciosActivosGeinzBinding baner, @NonNull ProgressBar cargaServicios,
-      @NonNull ImageView imgLogo, @NonNull ItemServiciosActivosGeinzBinding noticia,
-      @NonNull SwipeRefreshLayout swipe, @NonNull ItemServiciosActivosGeinzBinding verificacion) {
+      @NonNull ItemServiciosActivosGeinzBinding noticia, @NonNull SwipeRefreshLayout swipe,
+      @NonNull ItemServiciosActivosGeinzBinding verificacion) {
     this.rootView = rootView;
     this.LinealSinServicios = LinealSinServicios;
     this.ScrollView = ScrollView;
     this.baner = baner;
     this.cargaServicios = cargaServicios;
-    this.imgLogo = imgLogo;
     this.noticia = noticia;
     this.swipe = swipe;
     this.verificacion = verificacion;
@@ -114,12 +109,6 @@ public final class FragmentServiciosActivosBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.img_logo;
-      ImageView imgLogo = ViewBindings.findChildViewById(rootView, id);
-      if (imgLogo == null) {
-        break missingId;
-      }
-
       id = R.id.noticia;
       View noticia = ViewBindings.findChildViewById(rootView, id);
       if (noticia == null) {
@@ -141,8 +130,7 @@ public final class FragmentServiciosActivosBinding implements ViewBinding {
       ItemServiciosActivosGeinzBinding binding_verificacion = ItemServiciosActivosGeinzBinding.bind(verificacion);
 
       return new FragmentServiciosActivosBinding((RelativeLayout) rootView, LinealSinServicios,
-          ScrollView, binding_baner, cargaServicios, imgLogo, binding_noticia, swipe,
-          binding_verificacion);
+          ScrollView, binding_baner, cargaServicios, binding_noticia, swipe, binding_verificacion);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

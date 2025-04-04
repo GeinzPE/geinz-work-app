@@ -51,6 +51,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajo_realizados
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
+import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
@@ -170,11 +171,20 @@ class info : Fragment() {
         binding.popup.setOnClickListener { popup(idTrabajador, nombre, nacionalidad, categoria) }
         obtenerDatosTrabajador(idTrabajador) { categoria ->
             constantes_trabajadores_info.obtenerMejoresTrabajadores(
+                idTrabajador,
                 categoria,
                 listaTrabajo,
                 binding.trabajadoresSimilares,
                 mContex, true
-            )
+            ) { trabajadoresEncontrados ->
+                if (trabajadoresEncontrados) {
+                    binding.trabajadoresSimilares.isVisible = true
+                    binding.noSeEncontraronTrabajadores.isVisible = false
+                } else {
+                    binding.trabajadoresSimilares.isVisible = false
+                    binding.noSeEncontraronTrabajadores.isVisible = true
+                }
+            }
             binding.verMasTrabajadores.setOnClickListener {
                 var intent = Intent(mContex, vista_CategoriasT::class.java)
                 intent.putExtra(Variables.valor, categoria)
@@ -361,17 +371,25 @@ class info : Fragment() {
                 trabajos.add(trabajoData)
             }
 
-            // Mezclar los trabajos aleatoriamente y tomar solo 5
-            trabajos.shuffle()
-            val trabajosSeleccionados = trabajos.take(5)
+            if (trabajos.isEmpty()) {
+                binding.noSeEncontraronTrabajos.isVisible = true
+                binding.carrusel.isVisible = false
+            } else {
+                binding.noSeEncontraronTrabajos.isVisible = false
+                binding.carrusel.isVisible = true
+                // Mezclar los trabajos aleatoriamente y tomar solo 5
+                trabajos.shuffle()
+                val trabajosSeleccionados = trabajos.take(5)
 
-            // Agregar los trabajos seleccionados al carrusel
-            for (trabajo in trabajosSeleccionados) {
-                val img_url = trabajo["img_url"] as? String ?: ""
-                val carouselItem1 = CarouselItem(img_url)
-                lista.add(carouselItem1)
-                datosTrabajos.add(trabajo)
+                // Agregar los trabajos seleccionados al carrusel
+                for (trabajo in trabajosSeleccionados) {
+                    val img_url = trabajo["img_url"] as? String ?: ""
+                    val carouselItem1 = CarouselItem(img_url)
+                    lista.add(carouselItem1)
+                    datosTrabajos.add(trabajo)
+                }
             }
+
 
             binding.carrusel.registerLifecycle(lifecycle)
             binding.carrusel.carouselListener = object : CarouselListener {
@@ -447,6 +465,7 @@ class info : Fragment() {
                 putExtra("hora_rec", hora_rec)
             }
             startActivity(intent)
+            dialog.dismiss()
         }
 
         // Configurar el texto expandible
@@ -538,6 +557,7 @@ class info : Fragment() {
                         putExtra("hora_rec", hora_rec)
                     }
                     startActivity(intent)
+                    dialog.dismiss()
                 }
 
                 // Convertir la lista a ArrayList para compatibilidad con algunos adaptadores
@@ -930,6 +950,7 @@ class info : Fragment() {
                 val numero = data?.get(Variables.numero) as? String ?: ""
                 val tipoTrabajo = data?.get(Variables.tipoTrabajo) as? String ?: ""
                 val EdadActual = data?.get(Variables.EdadActual) as? String ?: ""
+                val FechaNacimiento = data?.get(Variables.fechaNac) as? String ?: ""
                 val ig = data?.get(Variables.IG) as? String ?: ""
                 val fb = data?.get(Variables.FB) as? String ?: ""
                 val tk = data?.get(Variables.TK) as? String ?: ""
@@ -964,7 +985,16 @@ class info : Fragment() {
                 binding.localidad.text = localidad
                 binding.horario.text = "${horario1} am : ${horario2} pm"
                 binding.telefono.text = "+${codigo_pais} ${numero}"
-                binding.edadUser.text = "${EdadActual} años"
+                constantes_cuenta_user.calcularEdadTrabajador(FechaNacimiento) { edad ->
+                    if (edad.isNullOrEmpty()) {
+                        binding.edadUser.text = "No se calculo los años"
+
+                    } else {
+                        binding.edadUser.text = "${edad} años"
+                    }
+
+                }
+
             }
         }
             .addOnFailureListener { e ->
@@ -1205,9 +1235,9 @@ class info : Fragment() {
             dialog.dismiss()
         }
         bindingProductosTrabajadores.comprar.setOnClickListener {
-            val intent=Intent(mContex,compras_productos_vendedor::class.java).apply {
-                putExtra("idProducto",productoClikado)
-                putExtra("idTrabajador",idTrabajador)
+            val intent = Intent(mContex, compras_productos_vendedor::class.java).apply {
+                putExtra("idProducto", productoClikado)
+                putExtra("idTrabajador", idTrabajador)
             }
             startActivity(intent)
             dialog.dismiss()

@@ -27,6 +27,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 object constantes_cuenta_user {
     private lateinit var bottomSheet: BottomSheetDragHandleView
@@ -297,6 +300,28 @@ object constantes_cuenta_user {
             }.addOnFailureListener {
                 Toast.makeText(context, "Error al obtener los datos", Toast.LENGTH_SHORT).show()
             }
+    }
+
+
+    fun calcularEdadTrabajador(fechaTrabajador: String, edadUsuario: (String) -> Unit) {
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+        try {
+            val fechaNacimiento = formato.parse(fechaTrabajador)
+            val calendarioNacimiento = Calendar.getInstance().apply { time = fechaNacimiento }
+            val calendarioActual = Calendar.getInstance()
+
+            var edad = calendarioActual.get(Calendar.YEAR) - calendarioNacimiento.get(Calendar.YEAR)
+
+
+            if (calendarioActual.get(Calendar.DAY_OF_YEAR) < calendarioNacimiento.get(Calendar.DAY_OF_YEAR)) {
+                edad--
+            }
+
+            edadUsuario(edad.toString())
+        } catch (e: Exception) {
+            edadUsuario("Error en la fecha")
+        }
     }
 
 }

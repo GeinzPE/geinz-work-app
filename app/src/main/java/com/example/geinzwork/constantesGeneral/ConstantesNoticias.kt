@@ -107,6 +107,7 @@ object constantesNoticias {
                     )
 
                     listaAnunciosGeneral.add(anuncio)
+                    listaAnunciosGeneral.shuffle() // <-- mezcla aleatoriamente la lista
                     econtrado.text = listaAnunciosGeneral.size.toString()
                 }
             }
@@ -288,6 +289,7 @@ object constantesNoticias {
                         (categoriaString == "General" && localidadPasada == "General")
                     ) {
                         lista.add(anuncio)
+                        lista.shuffle() // <-- Mezcla la lista después de agregar
                         encontrados.text = lista.size.toString()
                     }
                 }

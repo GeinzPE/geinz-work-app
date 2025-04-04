@@ -10,11 +10,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 object constantes_trabajadores_info {
 
     fun obtenerMejoresTrabajadores(
+        idTrabajadorActual: String,
         tipot_trabajador: String,
         listaTrabajo: MutableList<dataClassTrabajosd>,
         recicle: RecyclerView,
         contexto: Context,
-        OnBackPresser: Boolean
+        OnBackPresser: Boolean,
+        trabajdoresDisponibles: (Boolean) -> Unit
     ) {
         val userCollections = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
@@ -52,15 +54,29 @@ object constantes_trabajadores_info {
                             edadActual = userData?.get("EdadActual") as? String,
                             verificados = userData?.get("verificado") as? Boolean
                         )
-                        listaTrabajo.add(usuario)
-                    } else {
-                        Log.e("error", "error al obtener los trabajadores")
+                        if (idTrabajadorActual != usuario.id.toString()) {
+                            listaTrabajo.add(usuario)
+                        }
                     }
                 }
-                inicializarRecicleMejoresTrabajadores(OnBackPresser, listaTrabajo, recicle, contexto)
+
+                // ✅ Solo llamar a trabajdoresDisponibles(true) si hay trabajadores en la lista
+                if (listaTrabajo.isNotEmpty()) {
+                    trabajdoresDisponibles(true)
+                } else {
+                    trabajdoresDisponibles(false)
+                }
+
+                inicializarRecicleMejoresTrabajadores(
+                    OnBackPresser,
+                    listaTrabajo,
+                    recicle,
+                    contexto
+                )
             }
             .addOnFailureListener {
-                Log.e("error", "error al obtener los trabajadores")
+                trabajdoresDisponibles(false) // Si falla la consulta, también se debe indicar que no hay trabajadores
+                Log.e("error", "Error al obtener los trabajadores", it)
             }
     }
 

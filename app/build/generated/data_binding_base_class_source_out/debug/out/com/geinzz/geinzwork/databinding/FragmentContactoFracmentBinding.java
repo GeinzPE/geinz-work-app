@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -58,6 +59,9 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
   public final RelativeLayout relativeNoEncontrado;
 
   @NonNull
+  public final SwipeRefreshLayout swipe;
+
+  @NonNull
   public final TextView textoPincipal;
 
   @NonNull
@@ -69,8 +73,8 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
       @NonNull TextView filtradoUsuairo, @NonNull TextView filtradotext,
       @NonNull NestedScrollView linealappLayout, @NonNull LinearLayoutCompat loading,
       @NonNull ImageView noResultados, @NonNull RecyclerView recielAnuncios,
-      @NonNull RelativeLayout relativeNoEncontrado, @NonNull TextView textoPincipal,
-      @NonNull TextView txtNoResultados) {
+      @NonNull RelativeLayout relativeNoEncontrado, @NonNull SwipeRefreshLayout swipe,
+      @NonNull TextView textoPincipal, @NonNull TextView txtNoResultados) {
     this.rootView = rootView;
     this.carrucelTiendas = carrucelTiendas;
     this.encontrados = encontrados;
@@ -83,6 +87,7 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
     this.noResultados = noResultados;
     this.recielAnuncios = recielAnuncios;
     this.relativeNoEncontrado = relativeNoEncontrado;
+    this.swipe = swipe;
     this.textoPincipal = textoPincipal;
     this.txtNoResultados = txtNoResultados;
   }
@@ -180,6 +185,12 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.swipe;
+      SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
+      if (swipe == null) {
+        break missingId;
+      }
+
       id = R.id.texto_pincipal;
       TextView textoPincipal = ViewBindings.findChildViewById(rootView, id);
       if (textoPincipal == null) {
@@ -194,7 +205,7 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
 
       return new FragmentContactoFracmentBinding((RelativeLayout) rootView, carrucelTiendas,
           encontrados, filtrado, filtradoCateogoriaPromo, filtradoUsuairo, filtradotext,
-          linealappLayout, loading, noResultados, recielAnuncios, relativeNoEncontrado,
+          linealappLayout, loading, noResultados, recielAnuncios, relativeNoEncontrado, swipe,
           textoPincipal, txtNoResultados);
     }
     String missingId = rootView.getResources().getResourceName(id);

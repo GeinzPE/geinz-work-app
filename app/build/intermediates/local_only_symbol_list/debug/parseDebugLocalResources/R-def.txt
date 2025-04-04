@@ -9,6 +9,7 @@ color black
 color blue
 color colorBTNFiltrado
 color colorFondo
+color colorFondoPantallaACtividades
 color color_blanco_negro
 color default_background
 color f1
@@ -1083,6 +1084,8 @@ id noEnctrado
 id noSeEncontro
 id no_internet_text
 id no_resultados
+id no_se_encontraron_trabajadores
+id no_se_encontraron_trabajos
 id nombeTienda
 id nombre
 id nombreCategoria

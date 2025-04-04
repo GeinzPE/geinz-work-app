@@ -1349,24 +1349,41 @@ class servicios_activos : Fragment() {
         }
 
         verificarActivo(dbNoticias, "noticia") { activo ->
+            estados["noticia"] = activo
             noticiaActiva(activo)
-            actualizarVista(servicioActivo)
+            actualizarVista()
+            Log.d("servicios_activos","el noticia $activo")
         }
 
         verificarActivo(dbBaner, "baner") { activo ->
+            estados["baner"] = activo
             banerActiva(activo)
-            actualizarVista(servicioActivo)
+            actualizarVista()
+            Log.d("servicios_activos","el baner $activo")
+
         }
 
-        verificarActivo(dbVerificado, "verificaion") { activo ->
+        verificarActivo(dbVerificado, "verificacion") { activo ->
+            estados["verificacion"] = activo
             Verificado(activo)
-            actualizarVista(servicioActivo)
+            actualizarVista()
+            Log.d("servicios_activos","el verificado $activo")
+
         }
     }
 
-    private fun actualizarVista(servicioActivo: Boolean) {
+    val estados = mutableMapOf(
+        "noticia" to false,
+        "baner" to false,
+        "verificacion" to false
+    )
+
+    fun actualizarVista() {
+        val servicioActivo = estados.values.any { it } // Si al menos uno es true
         binding.cargaServicios.isVisible = false
-        binding.LinealSinServicios.isVisible = !servicioActivo
+        binding.LinealSinServicios.isVisible = !servicioActivo // Se muestra si ninguno es true
+        Log.d("EstadosServicios", "Estado actual: $estados")
+        Log.d("EstadosServiciosCarga","la carga de servicios es :$servicioActivo")
     }
 
 

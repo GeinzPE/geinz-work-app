@@ -1770,6 +1770,7 @@ int color cardview_shadow_end_color 0x7f050036
 int color cardview_shadow_start_color 0x7f050037
 int color colorBTNFiltrado 0x7f050038
 int color colorFondo 0x7f050039
+int color colorFondoPantallaACtividades 0x7f05036f
 int color color_blanco_negro 0x7f05003a
 int color common_google_signin_btn_text_dark 0x7f05003b
 int color common_google_signin_btn_text_dark_default 0x7f05003c
@@ -5802,6 +5803,8 @@ int id noSeEncontro 0x7f0a056d
 int id noState 0x7f0a056e
 int id no_internet_text 0x7f0a056f
 int id no_resultados 0x7f0a0570
+int id no_se_encontraron_trabajadores 0x7f0a07ec
+int id no_se_encontraron_trabajos 0x7f0a07eb
 int id nombeTienda 0x7f0a0571
 int id nombre 0x7f0a0572
 int id nombreCategoria 0x7f0a0573
