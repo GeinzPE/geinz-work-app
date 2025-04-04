@@ -9,15 +9,15 @@
     tools:context=".vistasPubliciadesGeinz.noticiasGeinzpb">
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/linealappLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone">
+        android:layout_height="wrap_content">
 
         <LinearLayout
+            android:id="@+id/linealappLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:visibility="gone"
             app:layout_scrollFlags="scroll|enterAlways">
 
             <LinearLayout
@@ -47,25 +47,25 @@
                     android:layout_gravity="center"
                     android:layout_marginRight="10dp"
                     android:padding="5dp"
-                    android:src="@drawable/buscar_icon"/>
+                    android:src="@drawable/buscar_icon" />
             </LinearLayout>
 
             <TextView
+                style="@style/descripcionColor"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_marginHorizontal="10dp"
                 android:text="Descubre las mejores ofertas y noticias de tu localidad en Geinz work ¡Encuentra todo lo que necesitas en Geinz Wokr!"
-                android:textSize="11sp"
-                style="@style/descripcionColor"
-                android:layout_marginHorizontal="10dp"/>
+                android:textSize="11sp" />
 
 
             <LinearLayout
-                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginBottom="12dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
                 <TextView
                     style="@style/TextoModoOScuroColor"

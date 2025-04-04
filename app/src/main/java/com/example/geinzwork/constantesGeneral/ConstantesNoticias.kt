@@ -61,7 +61,7 @@ object constantesNoticias {
         econtrado: TextView,
         recielAnuncios: RecyclerView,
         loading: LinearLayoutCompat,
-        lineal: NestedScrollView,
+        lineal: LinearLayout,
         btnFiltrado: ImageView,
         zoomout: Animation?,
         zoomouts: Animation?,
@@ -149,7 +149,7 @@ object constantesNoticias {
         econtrado: TextView,
         recielAnuncios: RecyclerView,
         loading: LinearLayoutCompat,
-        lineal: NestedScrollView,
+        lineal: LinearLayout,
         btnFiltrado: ImageView,
         zoomout: Animation?,
         zoomouts: Animation?,
@@ -236,7 +236,7 @@ object constantesNoticias {
         context: Context,
         localidadPasada: String,
         loading: LinearLayoutCompat,
-        lineal: NestedScrollView,
+        lineal: LinearLayout,
         btnFiltrado: ImageView,
         encontrados: TextView,
         no_resultados: RelativeLayout,
@@ -327,7 +327,7 @@ object constantesNoticias {
     private fun actualizarVisibilidad(
         hayArticulos: Boolean,
         loading: LinearLayoutCompat,
-        lineal: NestedScrollView,
+        lineal: LinearLayout,
         btnFiltrado: ImageView,
         recielAnuncios: RecyclerView,
         no_resultados: RelativeLayout,
@@ -450,7 +450,7 @@ object constantesNoticias {
         econtrado: TextView,
         recielAnuncios: RecyclerView,
         loading: LinearLayoutCompat,
-        lineal: NestedScrollView,
+        lineal: LinearLayout,
         btnFiltrado: ImageView,
         zoomout: Animation?,
         zoomouts: Animation?,
@@ -459,7 +459,12 @@ object constantesNoticias {
         KeyCategoria: String,
         context: Context,
         dialog: BottomSheetDialog,
-        callback: (String?) -> Unit,
+        textoGeneral: TextView? = null,
+        localidadTexview: TextView? = null,
+        categoriaTexview: TextView? = null,
+        callback: (
+            String?
+        ) -> Unit,
         callback2: (String?) -> Unit,
     ) {
         val view = LayoutInflater.from(context)
@@ -533,6 +538,8 @@ object constantesNoticias {
                 no_resultados
             )
             dialog.dismiss()
+
+
         }
         if (keyLocalida != "" && KeyCategoria != "") {
             localidad.setText(keyLocalida)

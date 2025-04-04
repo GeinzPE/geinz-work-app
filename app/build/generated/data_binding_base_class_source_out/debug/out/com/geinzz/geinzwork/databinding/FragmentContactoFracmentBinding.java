@@ -4,13 +4,14 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
@@ -29,6 +30,9 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
   public final ImageCarousel carrucelTiendas;
 
   @NonNull
+  public final FrameLayout containerGeneral;
+
+  @NonNull
   public final TextView encontrados;
 
   @NonNull
@@ -38,13 +42,16 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
   public final TextView filtradoCateogoriaPromo;
 
   @NonNull
+  public final TextView filtradoGeneral;
+
+  @NonNull
   public final TextView filtradoUsuairo;
 
   @NonNull
   public final TextView filtradotext;
 
   @NonNull
-  public final NestedScrollView linealappLayout;
+  public final LinearLayout linealappLayout;
 
   @NonNull
   public final LinearLayoutCompat loading;
@@ -68,18 +75,21 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
   public final TextView txtNoResultados;
 
   private FragmentContactoFracmentBinding(@NonNull RelativeLayout rootView,
-      @NonNull ImageCarousel carrucelTiendas, @NonNull TextView encontrados,
-      @NonNull ImageView filtrado, @NonNull TextView filtradoCateogoriaPromo,
+      @NonNull ImageCarousel carrucelTiendas, @NonNull FrameLayout containerGeneral,
+      @NonNull TextView encontrados, @NonNull ImageView filtrado,
+      @NonNull TextView filtradoCateogoriaPromo, @NonNull TextView filtradoGeneral,
       @NonNull TextView filtradoUsuairo, @NonNull TextView filtradotext,
-      @NonNull NestedScrollView linealappLayout, @NonNull LinearLayoutCompat loading,
+      @NonNull LinearLayout linealappLayout, @NonNull LinearLayoutCompat loading,
       @NonNull ImageView noResultados, @NonNull RecyclerView recielAnuncios,
       @NonNull RelativeLayout relativeNoEncontrado, @NonNull SwipeRefreshLayout swipe,
       @NonNull TextView textoPincipal, @NonNull TextView txtNoResultados) {
     this.rootView = rootView;
     this.carrucelTiendas = carrucelTiendas;
+    this.containerGeneral = containerGeneral;
     this.encontrados = encontrados;
     this.filtrado = filtrado;
     this.filtradoCateogoriaPromo = filtradoCateogoriaPromo;
+    this.filtradoGeneral = filtradoGeneral;
     this.filtradoUsuairo = filtradoUsuairo;
     this.filtradotext = filtradotext;
     this.linealappLayout = linealappLayout;
@@ -125,6 +135,12 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.containerGeneral;
+      FrameLayout containerGeneral = ViewBindings.findChildViewById(rootView, id);
+      if (containerGeneral == null) {
+        break missingId;
+      }
+
       id = R.id.encontrados;
       TextView encontrados = ViewBindings.findChildViewById(rootView, id);
       if (encontrados == null) {
@@ -143,6 +159,12 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.filtradoGeneral;
+      TextView filtradoGeneral = ViewBindings.findChildViewById(rootView, id);
+      if (filtradoGeneral == null) {
+        break missingId;
+      }
+
       id = R.id.filtradoUsuairo;
       TextView filtradoUsuairo = ViewBindings.findChildViewById(rootView, id);
       if (filtradoUsuairo == null) {
@@ -156,7 +178,7 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
       }
 
       id = R.id.linealappLayout;
-      NestedScrollView linealappLayout = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout linealappLayout = ViewBindings.findChildViewById(rootView, id);
       if (linealappLayout == null) {
         break missingId;
       }
@@ -204,9 +226,9 @@ public final class FragmentContactoFracmentBinding implements ViewBinding {
       }
 
       return new FragmentContactoFracmentBinding((RelativeLayout) rootView, carrucelTiendas,
-          encontrados, filtrado, filtradoCateogoriaPromo, filtradoUsuairo, filtradotext,
-          linealappLayout, loading, noResultados, recielAnuncios, relativeNoEncontrado, swipe,
-          textoPincipal, txtNoResultados);
+          containerGeneral, encontrados, filtrado, filtradoCateogoriaPromo, filtradoGeneral,
+          filtradoUsuairo, filtradotext, linealappLayout, loading, noResultados, recielAnuncios,
+          relativeNoEncontrado, swipe, textoPincipal, txtNoResultados);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

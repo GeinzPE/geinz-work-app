@@ -804,6 +804,10 @@
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\ic_launcher_background.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_fragment_inicio_fracment.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_inicio_fracment.xml"
+    },
+    {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\font_cbrion_light.ttf.flat",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\font\\cbrion_light.ttf"
     },
@@ -1514,10 +1518,6 @@
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\mipmap-xhdpi_ic_launcher.webp.flat",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\mipmap-xhdpi\\ic_launcher.webp"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_fragment_contacto_fracment.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_contacto_fracment.xml"
     },
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_noticias_yofertas_filtrado.xml.flat",

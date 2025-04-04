@@ -162,7 +162,6 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/general"
-
                     style="@style/RoundedButton"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"

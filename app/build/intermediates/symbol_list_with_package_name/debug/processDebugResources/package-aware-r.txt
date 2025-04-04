@@ -5198,6 +5198,7 @@ id filtradoCategorias
 id filtradoCateogoriaPromo
 id filtradoEstado
 id filtradoFecha
+id filtradoGeneral
 id filtradoUsuairo
 id filtradobtn
 id filtradocategoria

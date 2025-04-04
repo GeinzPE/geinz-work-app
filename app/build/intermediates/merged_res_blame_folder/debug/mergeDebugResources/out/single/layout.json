@@ -396,10 +396,6 @@
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\include_cabezero_iniciofragment.xml"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/fragment_contacto_fracment.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_contacto_fracment.xml"
-    },
-    {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_veneficios_verificados.xml",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_veneficios_verificados.xml"
     },
@@ -674,6 +670,10 @@
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_redes.xml",
         "source": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_redes.xml"
+    },
+    {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/fragment_inicio_fracment.xml",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_inicio_fracment.xml"
     },
     {
         "merged": "C:\\Users\\user\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\include_descripcion_promo_art.xml",

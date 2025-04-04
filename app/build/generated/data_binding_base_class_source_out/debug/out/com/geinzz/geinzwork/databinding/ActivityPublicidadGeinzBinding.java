@@ -5,12 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
@@ -39,7 +39,7 @@ public final class ActivityPublicidadGeinzBinding implements ViewBinding {
   public final TextView filtradotext;
 
   @NonNull
-  public final NestedScrollView linealappLayout;
+  public final LinearLayout linealappLayout;
 
   @NonNull
   public final LinearLayoutCompat loading;
@@ -65,7 +65,7 @@ public final class ActivityPublicidadGeinzBinding implements ViewBinding {
   private ActivityPublicidadGeinzBinding(@NonNull RelativeLayout rootView,
       @NonNull TextView encontrados, @NonNull ImageView filtrado,
       @NonNull TextView filtradoCateogoriaPromo, @NonNull TextView filtradoUsuairo,
-      @NonNull TextView filtradotext, @NonNull NestedScrollView linealappLayout,
+      @NonNull TextView filtradotext, @NonNull LinearLayout linealappLayout,
       @NonNull LinearLayoutCompat loading, @NonNull RelativeLayout main,
       @NonNull ImageView noResultados, @NonNull RecyclerView recielAnuncios,
       @NonNull RelativeLayout relativeNoEncontrado, @NonNull TextView textoPincipal,
@@ -144,7 +144,7 @@ public final class ActivityPublicidadGeinzBinding implements ViewBinding {
       }
 
       id = R.id.linealappLayout;
-      NestedScrollView linealappLayout = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout linealappLayout = ViewBindings.findChildViewById(rootView, id);
       if (linealappLayout == null) {
         break missingId;
       }

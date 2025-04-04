@@ -80,7 +80,8 @@ class contactoFracment : Fragment() {
         dialog = BottomSheetDialog(mcontex)
         binding.swipe.isVisible = true
         showBottomSheetButton.setOnClickListener {
-            constantesNoticias.filtrado_bottom(binding.encontrados, binding.recielAnuncios,
+            constantesNoticias.filtrado_bottom(binding.encontrados,
+                binding.recielAnuncios,
                 binding.loading,
                 binding.linealappLayout,
                 binding.filtrado,
@@ -91,6 +92,9 @@ class contactoFracment : Fragment() {
                 binding.filtradoCateogoriaPromo.text.toString(),
                 mcontex,
                 dialog,
+                binding.filtradoGeneral,
+                binding.filtradoUsuairo,
+                binding.filtradoCateogoriaPromo,
                 { localidad ->
                     binding.filtradoUsuairo.text = localidad
                 },
@@ -103,7 +107,8 @@ class contactoFracment : Fragment() {
         }
 
         binding.noResultados.setOnClickListener {
-            constantesNoticias.filtrado_bottom(binding.encontrados, binding.recielAnuncios,
+            constantesNoticias.filtrado_bottom(binding.encontrados,
+                binding.recielAnuncios,
                 binding.loading,
                 binding.linealappLayout,
                 binding.filtrado,
@@ -114,6 +119,9 @@ class contactoFracment : Fragment() {
                 binding.filtradoCateogoriaPromo.text.toString(),
                 mcontex,
                 dialog,
+                binding.filtradoGeneral,
+                binding.filtradoUsuairo,
+                binding.filtradoCateogoriaPromo,
                 { localidad ->
                     binding.filtradoUsuairo.text = localidad
                 },
@@ -172,7 +180,7 @@ class contactoFracment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
-        
+
         binding.filtradoCateogoriaPromo.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -189,7 +197,7 @@ class contactoFracment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
-        confSwipe(keyLocalidad,keyCategoria,zoonIn,zoomout)
+        confSwipe(keyLocalidad, keyCategoria, zoonIn, zoomout)
 
     }
 
@@ -202,43 +210,35 @@ class contactoFracment : Fragment() {
     ) {
         binding.swipe.setOnRefreshListener {
             binding.swipe.setColorSchemeResources(R.color.violeta)
-            Handler(Looper.getMainLooper()).postDelayed({
-                binding.swipe.isRefreshing = false
-
-                if (firebaseAuth.currentUser == null) {
-                    binding.filtradoCateogoriaPromo.text = Variables.General
-                } else if (keyLocalidad.isNullOrEmpty() || keyLocalidad.equals("Default Value")) {
-                    filtradoLocalidadElementos.obtenerLocalidadUser { localida ->
-                        binding.filtradoUsuairo.text = localida
-                    }
-                    constantes.carga(
-                        3000,
-                        { obtenerNoticiasGeneral(zoomout, zoonIn) })
-
-                } else {
-                    binding.filtradoUsuairo.text = keyLocalidad
-                    constantes.carga(
-                        3000,
-                        { obtenerFitlradoNoticias(keyCategoria, keyLocalidad, zoomout, zoonIn) })
-                }
-
-                if (keyCategoria.isNullOrEmpty() || keyCategoria.equals("Default Value")) {
-                    binding.filtradoCateogoriaPromo.text = Variables.General
-                    constantes.carga(
-                        3000,
-                        { obtenerNoticiasGeneral(zoomout, zoonIn) })
-                } else {
-                    binding.filtradoCateogoriaPromo.text = keyCategoria
-                    constantes.carga(
-                        3000,
-                        { obtenerFitlradoNoticias(keyCategoria, keyLocalidad, zoomout, zoonIn) })
-                }
-
-            }, 2000)
             binding.swipe.isVisible = true
+
+            val esUsuarioAutenticado = firebaseAuth.currentUser != null
+            val esLocalidadValida = !keyLocalidad.isNullOrEmpty() && keyLocalidad != "Default Value"
+            val esCategoriaValida = !keyCategoria.isNullOrEmpty() && keyCategoria != "Default Value"
+
+            if (!esUsuarioAutenticado) {
+                // 🔹 No hay usuario autenticado → Cargar noticias generales
+                constantes.carga(1000) {
+                    obtenerNoticiasGeneral(zoomout, zoonIn)
+                    binding.swipe.isRefreshing = false // Detener swipe después de cargar
+                }
+            } else if (esLocalidadValida && esCategoriaValida) {
+                // 🔹 Si hay usuario autenticado y localidad/categoría válidas → Cargar noticias filtradas
+                constantes.carga(1000) {
+                    obtenerFitlradoNoticias(keyCategoria, keyLocalidad, zoomout, zoonIn)
+                    binding.swipe.isRefreshing = false // Detener swipe después de cargar
+                }
+            } else {
+                // 🔹 Si hay usuario autenticado pero no localidad/categoría → Mostrar noticias generales
+                constantes.carga(1000) {
+                    obtenerNoticiasGeneral(zoomout, zoonIn)
+                    binding.swipe.isRefreshing = false // Detener swipe después de cargar
+                }
+            }
         }
     }
-    
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun llamarObtnerFiltradoSiLocalidadEsReconocida(
         localidad: String,
@@ -337,8 +337,8 @@ class contactoFracment : Fragment() {
                         .load(imgPerfilTienda)
                         .into(currentBinding.img)
                     currentBinding.listener.setOnClickListener {
-                        val vista=Intent(mcontex,NoticiasYofertasFiltrado::class.java).apply {
-                            putExtra(Variables.idTienda,id)
+                        val vista = Intent(mcontex, NoticiasYofertasFiltrado::class.java).apply {
+                            putExtra(Variables.idTienda, id)
                         }
                         startActivity(vista)
                     }

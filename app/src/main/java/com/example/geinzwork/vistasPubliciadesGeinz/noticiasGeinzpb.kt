@@ -66,7 +66,7 @@ class noticiasGeinzpb : AppCompatActivity() {
                 binding.filtradoUsuairo.text.toString(),
                 binding.filtradoCateogoriaPromo.text.toString(),
                 this,
-                dialog,
+                dialog,null,null,null,
                 { localidad ->
                     binding.filtradoUsuairo.text = localidad
                 },
@@ -89,7 +89,7 @@ class noticiasGeinzpb : AppCompatActivity() {
                 binding.filtradoUsuairo.text.toString(),
                 binding.filtradoCateogoriaPromo.text.toString(),
                 this,
-                dialog,
+                dialog,null,null,null,
                 { localidad ->
                     binding.filtradoUsuairo.text = localidad
                 },
