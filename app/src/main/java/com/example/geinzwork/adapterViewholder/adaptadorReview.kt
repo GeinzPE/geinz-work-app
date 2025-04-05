@@ -51,9 +51,14 @@ class adaptadorReview(
             hora.text = daclassReview.hora
 
             setearStarts(daclassReview)
-            constantesCarrito.setearDatosUsuarioImgNombre(idUSer = daclassReview.idUsuarioReview.toString()) { nombre, img, apellido ->
-                binding.nombre.text = "$nombre $apellido"
+            constantesCarrito.setearDatosUsuarioImgNombre(
+                idUSer = daclassReview.idUsuarioReview.toString()
+            ) { nombre, img, apellido ->
+
+                val nombreCompleto = "$nombre $apellido"
+                binding.nombre.text = nombreCompleto
                 println("id del user ${daclassReview.idUsuarioReview.toString()}")
+
                 try {
                     Glide.with(itemView.context)
                         .load(img)
@@ -61,7 +66,24 @@ class adaptadorReview(
                 } catch (e: Exception) {
                     println("error al setear la img")
                 }
+
+                // Verificación después de setear
+                val nombreYaCargado = binding.nombre.text.toString() == nombreCompleto
+                val nombreValido =
+                    nombre.toString().isNotBlank() && apellido.toString().isNotBlank()
+                val imagenValida = !img.isNullOrBlank() // o validar que no sea un placeholder
+
+                if (nombreYaCargado && nombreValido && imagenValida) {
+                    println("✅ Todo está cargado correctamente")
+                    binding.cargaIMGtexto.isVisible = false
+                    binding.linealIMgTexto.isVisible=true
+                } else {
+                    binding.cargaIMGtexto.isVisible = false
+                    binding.linealIMgTexto.isVisible=false
+                    println("⚠️ Aún falta cargar algún dato")
+                }
             }
+
 
             constantestextos_general.textoPrimarioBold(daclassReview, binding.review)
 

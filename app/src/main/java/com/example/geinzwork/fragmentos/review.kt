@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesReviewComplet
 import com.geinzz.geinzwork.databinding.FragmentReviewBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
@@ -52,18 +53,33 @@ class review : Fragment() {
         return binding.root
     }
 
+    private fun confSwipe(idTrabajador: String) {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+                verificarSihayReviews(idTrabajador.toString())
+                obtenerPorcentajeEstrellasUser(idTrabajador.toString())
+                promedioEstrellas(idTrabajador.toString())
+
+            }, 2000)
+
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR)
         verificarSihayReviews(idTrabajador.toString())
         obtenerPorcentajeEstrellasUser(idTrabajador.toString())
         promedioEstrellas(idTrabajador.toString())
-
+        confSwipe(idTrabajador.toString())
     }
 
     private fun mostrarDatos() {
         binding.loading.isVisible = false
         binding.relativeReview.isVisible = true
+        binding.swipe.isVisible=true
     }
 
     private fun obtnerReview(idTrabajador: String) {
@@ -120,7 +136,8 @@ class review : Fragment() {
 
                     // Iterar sobre las reseñas y sumar las cantidades
                     for (reviewDocument in snapshot.documents) {
-                        val estrellas = reviewDocument.getString(Variables.cantidad)?.toIntOrNull() ?: continue
+                        val estrellas =
+                            reviewDocument.getString(Variables.cantidad)?.toIntOrNull() ?: continue
                         if (estrellas in 1..5) {
                             starCounts[estrellas] = starCounts[estrellas]?.plus(1) ?: 1
                             totalReviews++
@@ -148,7 +165,6 @@ class review : Fragment() {
                 Log.e("obtenerPorcentajeEstrellas", "Error al obtener las reseñas: ", exception)
             }
     }
-
 
 
     private fun actualizarProgresoEstrellas(
@@ -193,7 +209,8 @@ class review : Fragment() {
 
     fun promedioEstrellas(idUSer: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(idUSer)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+            .document(idUSer)
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data

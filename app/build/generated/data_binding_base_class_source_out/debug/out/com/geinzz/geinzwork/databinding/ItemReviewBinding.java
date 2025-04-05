@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -26,6 +27,9 @@ public final class ItemReviewBinding implements ViewBinding {
   public final ImageView cantidadStart;
 
   @NonNull
+  public final ProgressBar cargaIMGtexto;
+
+  @NonNull
   public final TextView editado;
 
   @NonNull
@@ -41,6 +45,9 @@ public final class ItemReviewBinding implements ViewBinding {
   public final CircleImageView imgPerfilUser;
 
   @NonNull
+  public final LinearLayout linealIMgTexto;
+
+  @NonNull
   public final TextView nombre;
 
   @NonNull
@@ -50,16 +57,19 @@ public final class ItemReviewBinding implements ViewBinding {
   public final TextView tipoTrabajo;
 
   private ItemReviewBinding(@NonNull RelativeLayout rootView, @NonNull ImageView cantidadStart,
-      @NonNull TextView editado, @NonNull TextView fecha, @NonNull LinearLayout general,
-      @NonNull TextView hora, @NonNull CircleImageView imgPerfilUser, @NonNull TextView nombre,
-      @NonNull TextView review, @NonNull TextView tipoTrabajo) {
+      @NonNull ProgressBar cargaIMGtexto, @NonNull TextView editado, @NonNull TextView fecha,
+      @NonNull LinearLayout general, @NonNull TextView hora, @NonNull CircleImageView imgPerfilUser,
+      @NonNull LinearLayout linealIMgTexto, @NonNull TextView nombre, @NonNull TextView review,
+      @NonNull TextView tipoTrabajo) {
     this.rootView = rootView;
     this.cantidadStart = cantidadStart;
+    this.cargaIMGtexto = cargaIMGtexto;
     this.editado = editado;
     this.fecha = fecha;
     this.general = general;
     this.hora = hora;
     this.imgPerfilUser = imgPerfilUser;
+    this.linealIMgTexto = linealIMgTexto;
     this.nombre = nombre;
     this.review = review;
     this.tipoTrabajo = tipoTrabajo;
@@ -98,6 +108,12 @@ public final class ItemReviewBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.cargaIMGtexto;
+      ProgressBar cargaIMGtexto = ViewBindings.findChildViewById(rootView, id);
+      if (cargaIMGtexto == null) {
+        break missingId;
+      }
+
       id = R.id.editado;
       TextView editado = ViewBindings.findChildViewById(rootView, id);
       if (editado == null) {
@@ -128,6 +144,12 @@ public final class ItemReviewBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.linealIMgTexto;
+      LinearLayout linealIMgTexto = ViewBindings.findChildViewById(rootView, id);
+      if (linealIMgTexto == null) {
+        break missingId;
+      }
+
       id = R.id.nombre;
       TextView nombre = ViewBindings.findChildViewById(rootView, id);
       if (nombre == null) {
@@ -146,8 +168,8 @@ public final class ItemReviewBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemReviewBinding((RelativeLayout) rootView, cantidadStart, editado, fecha,
-          general, hora, imgPerfilUser, nombre, review, tipoTrabajo);
+      return new ItemReviewBinding((RelativeLayout) rootView, cantidadStart, cargaIMGtexto, editado,
+          fecha, general, hora, imgPerfilUser, linealIMgTexto, nombre, review, tipoTrabajo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

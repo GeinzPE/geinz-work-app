@@ -4,7 +4,17 @@
             "outputFile": "com.geinzz.geinzwork.app-mergeDebugResources-54:/values-v22/values-v22.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Benjamin\\.gradle\\caches\\transforms-4\\4deb2c595ebe65dd624d572f65c38d5c\\transformed\\appcompat-1.7.0\\res\\values-v22\\values-v22.xml",
+                    "source": "C:\\Users\\user\\.gradle\\caches\\transforms-4\\0d711fba1ec6bd13b250aa850b5bf659\\transformed\\leanback-1.0.0\\res\\values-v22\\values-v22.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,107",
+                        "endColumns": "51,53",
+                        "endOffsets": "102,156"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\user\\.gradle\\caches\\transforms-4\\4deb2c595ebe65dd624d572f65c38d5c\\transformed\\appcompat-1.7.0\\res\\values-v22\\values-v22.xml",
                     "from": {
                         "startLines": "2,3,4,9",
                         "startColumns": "4,4,4,4",
@@ -20,16 +30,6 @@
                         "endLines": "4,5,10,15",
                         "endColumns": "74,86,12,12",
                         "endOffsets": "231,318,588,870"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Benjamin\\.gradle\\caches\\transforms-4\\0d711fba1ec6bd13b250aa850b5bf659\\transformed\\leanback-1.0.0\\res\\values-v22\\values-v22.xml",
-                    "from": {
-                        "startLines": "2,3",
-                        "startColumns": "4,4",
-                        "startOffsets": "55,107",
-                        "endColumns": "51,53",
-                        "endOffsets": "102,156"
                     }
                 }
             ]

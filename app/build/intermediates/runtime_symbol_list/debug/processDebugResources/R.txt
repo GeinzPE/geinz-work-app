@@ -4856,6 +4856,9 @@ int id caracteristica1 0x7f0a01ba
 int id caracteristicasTrabajos 0x7f0a01bb
 int id caracteristicasTrabajosED 0x7f0a01bc
 int id cardViewRoot 0x7f0a01bd
+int id carga 0x7f0a07f7
+int id cargaIMG_text 0x7f0a07fb
+int id cargaIMGtexto 0x7f0a07f8
 int id cargaLike 0x7f0a01be
 int id cargaServicios 0x7f0a01bf
 int id cargaimg 0x7f0a01c0
@@ -5548,6 +5551,7 @@ int id linealCaracteristica 0x7f0a046e
 int id linealCaracteristicas 0x7f0a046f
 int id linealCaracteristicasLayout 0x7f0a0470
 int id linealCarga 0x7f0a0471
+int id linealCargaTexto_img 0x7f0a07fa
 int id linealCargandoHorario 0x7f0a0472
 int id linealCargandoImg 0x7f0a0473
 int id linealCargandoRef 0x7f0a0474
@@ -5566,6 +5570,7 @@ int id linealFechaPublicada 0x7f0a0480
 int id linealGarantiaDisponible 0x7f0a0481
 int id linealHoraLLegada 0x7f0a0482
 int id linealHorario 0x7f0a0483
+int id linealIMgTexto 0x7f0a07f9
 int id linealL_cuentafinal 0x7f0a0484
 int id linealLayaout 0x7f0a0485
 int id linealListener 0x7f0a0486
@@ -5574,6 +5579,7 @@ int id linealMarcaProducto 0x7f0a0488
 int id linealMetodoEntrega 0x7f0a0489
 int id linealMontoDel_servicio 0x7f0a048a
 int id linealMostrarTrabajos 0x7f0a048b
+int id linealNo_seEncontraron 0x7f0a07fc
 int id linealNoticias 0x7f0a048c
 int id linealPadre 0x7f0a048d
 int id linealPlin 0x7f0a048e

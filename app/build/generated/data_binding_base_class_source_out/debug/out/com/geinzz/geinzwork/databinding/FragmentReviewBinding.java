@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -36,16 +37,20 @@ public final class FragmentReviewBinding implements ViewBinding {
   @NonNull
   public final RecyclerView reyclerviewReview;
 
+  @NonNull
+  public final SwipeRefreshLayout swipe;
+
   private FragmentReviewBinding(@NonNull RelativeLayout rootView,
       @NonNull IncludeRreviewUserProgressBinding IncudeProgrs, @NonNull LinearLayout frameSinReview,
       @NonNull LinearLayoutCompat loading, @NonNull LinearLayout relativeReview,
-      @NonNull RecyclerView reyclerviewReview) {
+      @NonNull RecyclerView reyclerviewReview, @NonNull SwipeRefreshLayout swipe) {
     this.rootView = rootView;
     this.IncudeProgrs = IncudeProgrs;
     this.frameSinReview = frameSinReview;
     this.loading = loading;
     this.relativeReview = relativeReview;
     this.reyclerviewReview = reyclerviewReview;
+    this.swipe = swipe;
   }
 
   @Override
@@ -106,8 +111,14 @@ public final class FragmentReviewBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.swipe;
+      SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
+      if (swipe == null) {
+        break missingId;
+      }
+
       return new FragmentReviewBinding((RelativeLayout) rootView, binding_IncudeProgrs,
-          frameSinReview, loading, relativeReview, reyclerviewReview);
+          frameSinReview, loading, relativeReview, reyclerviewReview, swipe);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -556,57 +556,53 @@
                                 android:layout_marginBottom="20dp"
                                 android:nestedScrollingEnabled="false" />
 
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    style="@style/TextoTitulos"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="10dp"
-                                    android:layout_marginBottom="10dp"
-                                    android:text="Productos"
-                                    android:textSize="20sp" />
-
-                                <androidx.recyclerview.widget.RecyclerView
-                                    android:id="@+id/productosDestacados"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginHorizontal="10dp"
-                                    tools:listitem="@layout/item_productos_usuarios_verificados" />
-                            </LinearLayout>
-
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/lineal_no_cuenta"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_alignParentBottom="true"
-                            android:orientation="vertical"
-                            android:visibility="gone">
-
-                            <ImageView
+                            <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="170dp"
-                                android:layout_marginLeft="10dp"
-                                android:src="@drawable/sin_resultados_icon" />
+                                android:layout_height="wrap_content">
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
 
-                            <TextView
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:layout_marginTop="10dp"
-                                android:layout_marginBottom="10dp"
-                                android:text="No se econtro trabajos publicados"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
+                                    <TextView
+                                        style="@style/TextoTitulos"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_marginBottom="10dp"
+                                        android:text="Productos"
+                                        android:textSize="20sp" />
+
+                                    <androidx.recyclerview.widget.RecyclerView
+                                        android:id="@+id/productosDestacados"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginHorizontal="10dp"
+                                        tools:listitem="@layout/item_productos_usuarios_verificados" />
+
+                                </LinearLayout>
+                                <RelativeLayout
+                                    android:id="@+id/linealNo_seEncontraron"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="220dp"
+                                    android:visibility="gone">
+
+                                    <TextView
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerInParent="true"
+                                        android:text="No se econtro productos publicados"
+                                        android:textSize="19sp"
+                                        android:textStyle="bold" />
+                                </RelativeLayout>
+                            </RelativeLayout>
+
+
+
+
                         </LinearLayout>
+
                     </RelativeLayout>
 
 

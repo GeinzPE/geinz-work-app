@@ -481,6 +481,9 @@ id cantidadStarts
 id caracteristica1
 id caracteristicasTrabajos
 id caracteristicasTrabajosED
+id carga
+id cargaIMG_text
+id cargaIMGtexto
 id cargaLike
 id cargaServicios
 id cargaimg
@@ -925,6 +928,7 @@ id linealCaracteristica
 id linealCaracteristicas
 id linealCaracteristicasLayout
 id linealCarga
+id linealCargaTexto_img
 id linealCargandoHorario
 id linealCargandoImg
 id linealCargandoRef
@@ -943,6 +947,7 @@ id linealFechaPublicada
 id linealGarantiaDisponible
 id linealHoraLLegada
 id linealHorario
+id linealIMgTexto
 id linealL_cuentafinal
 id linealLayaout
 id linealListener
@@ -951,6 +956,7 @@ id linealMarcaProducto
 id linealMetodoEntrega
 id linealMontoDel_servicio
 id linealMostrarTrabajos
+id linealNo_seEncontraron
 id linealNoticias
 id linealPadre
 id linealPlin

@@ -40,6 +40,9 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   public final LinearLayout linealMostrarTrabajos;
 
   @NonNull
+  public final RelativeLayout linealNoSeEncontraron;
+
+  @NonNull
   public final RecyclerView masTrabajosRealiados;
 
   @NonNull
@@ -64,16 +67,17 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       @NonNull TextView cambiarTextoTrabajosRealziadosTrabajosRecientes,
       @NonNull ProgressBar cargarConteindo, @NonNull ImageCarousel carruselImgTrabajos,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout linealMostrarTrabajos,
-      @NonNull RecyclerView masTrabajosRealiados, @NonNull LinearLayout scollView,
-      @NonNull TextView textoTrabajosRealzados, @NonNull TextView tituloNombreTrabajador,
-      @NonNull TextView tituloTrabajosRealizados, @NonNull TextView tvReadMore,
-      @NonNull TextView verTodosTrabajos) {
+      @NonNull RelativeLayout linealNoSeEncontraron, @NonNull RecyclerView masTrabajosRealiados,
+      @NonNull LinearLayout scollView, @NonNull TextView textoTrabajosRealzados,
+      @NonNull TextView tituloNombreTrabajador, @NonNull TextView tituloTrabajosRealizados,
+      @NonNull TextView tvReadMore, @NonNull TextView verTodosTrabajos) {
     this.rootView = rootView;
     this.cambiarTextoTrabajosRealziadosTrabajosRecientes = cambiarTextoTrabajosRealziadosTrabajosRecientes;
     this.cargarConteindo = cargarConteindo;
     this.carruselImgTrabajos = carruselImgTrabajos;
     this.cerrar = cerrar;
     this.linealMostrarTrabajos = linealMostrarTrabajos;
+    this.linealNoSeEncontraron = linealNoSeEncontraron;
     this.masTrabajosRealiados = masTrabajosRealiados;
     this.scollView = scollView;
     this.textoTrabajosRealzados = textoTrabajosRealzados;
@@ -141,6 +145,12 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
         break missingId;
       }
 
+      id = R.id.linealNo_seEncontraron;
+      RelativeLayout linealNoSeEncontraron = ViewBindings.findChildViewById(rootView, id);
+      if (linealNoSeEncontraron == null) {
+        break missingId;
+      }
+
       id = R.id.mas_trabajos_realiados;
       RecyclerView masTrabajosRealiados = ViewBindings.findChildViewById(rootView, id);
       if (masTrabajosRealiados == null) {
@@ -185,8 +195,9 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
 
       return new BottomSheetMostarTrabajosRecientesBinding((RelativeLayout) rootView,
           cambiarTextoTrabajosRealziadosTrabajosRecientes, cargarConteindo, carruselImgTrabajos,
-          cerrar, linealMostrarTrabajos, masTrabajosRealiados, scollView, textoTrabajosRealzados,
-          tituloNombreTrabajador, tituloTrabajosRealizados, tvReadMore, verTodosTrabajos);
+          cerrar, linealMostrarTrabajos, linealNoSeEncontraron, masTrabajosRealiados, scollView,
+          textoTrabajosRealzados, tituloNombreTrabajador, tituloTrabajosRealizados, tvReadMore,
+          verTodosTrabajos);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

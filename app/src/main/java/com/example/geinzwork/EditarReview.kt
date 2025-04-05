@@ -7,8 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.databinding.ActivityEditarReviewBinding
@@ -71,16 +73,39 @@ class EditarReview : AppCompatActivity() {
         val nombre = intent.getStringExtra(Variables.nombre).toString()
         val review = intent.getStringExtra(Variables.review).toString()
 
-        constantesCarrito.setearDatosUsuarioImgNombre(idUSer = idUser ){nombre,img,apellido->
-           binding.nombre.text="$nombre $apellido"
-            try {
-                Glide.with(this)
-                    .load(img)
-                    .into(binding.imgPerfilUser)
-            }catch (e:Exception){
-                println("error al setear la img")
+        constantesCarrito.setearDatosUsuarioImgNombre(idUSer = idUser) { nombre, img, apellido ->
+
+            val nombreCompleto = "$nombre $apellido"
+            binding.nombre.text = nombreCompleto
+
+            // Asumimos que changer_img tiene un callback con cargado = true cuando la imagen está lista
+            constatnes_carga_imagenes_general.changer_img(
+                binding.carga,
+                this,
+                img.toString(),
+                binding.imgPerfilUser,
+                null,
+                "perfil",
+                null
+            ) { cargado ->
+                // Validamos que nombre y apellido no estén vacíos
+                val nombreValido = nombre.toString().isNotBlank() && apellido.toString().isNotBlank()
+                val nombreCorrecto = binding.nombre.text.toString() == nombreCompleto
+
+                if (nombreValido && nombreCorrecto && cargado) {
+                    binding.linealCargaTextoImg.isVisible=true
+                    binding.cargaIMGText.isVisible=false
+
+                    // Aquí puedes ejecutar cualquier lógica que dependa de que todo esté listo
+                } else {
+                    binding.linealCargaTextoImg.isVisible=false
+                    binding.cargaIMGText.isVisible=true
+
+                    println("⚠️ Aún falta cargar algún dato")
+                }
             }
         }
+
         binding.nombre.text = nombre
         binding.review.text = review
         try {
@@ -189,7 +214,11 @@ class EditarReview : AppCompatActivity() {
                 .addOnSuccessListener {
                     Log.d("ActualizarReview", "Reseña actualizada exitosamente en dbReview.")
                 }.addOnFailureListener { exception ->
-                    Log.e("ActualizarReview", "Error al actualizar la reseña: ${exception.message}", exception)
+                    Log.e(
+                        "ActualizarReview",
+                        "Error al actualizar la reseña: ${exception.message}",
+                        exception
+                    )
                 }
 
             // Actualizar la colección principal
@@ -200,17 +229,27 @@ class EditarReview : AppCompatActivity() {
                         "Estrellas actualizadas correctamente",
                         Toast.LENGTH_SHORT
                     ).show()
-                    Log.d("ActualizarReview", "Estrellas actualizadas exitosamente en firestoreDocument.")
+                    Log.d(
+                        "ActualizarReview",
+                        "Estrellas actualizadas exitosamente en firestoreDocument."
+                    )
                     finish()
                 }.addOnFailureListener { exception ->
-                    Log.e("ActualizarReview", "Error al actualizar las estrellas: ${exception.message}", exception)
+                    Log.e(
+                        "ActualizarReview",
+                        "Error al actualizar las estrellas: ${exception.message}",
+                        exception
+                    )
                 }
 
         }.addOnFailureListener { exception ->
-            Log.e("ActualizarReview", "Error al obtener el documento: ${exception.message}", exception)
+            Log.e(
+                "ActualizarReview",
+                "Error al obtener el documento: ${exception.message}",
+                exception
+            )
         }
     }
-
 
 
     // Método para mostrar errores como Toast o de otra manera

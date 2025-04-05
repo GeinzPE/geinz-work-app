@@ -4,10 +4,10 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +15,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
 import de.hdodenhof.circleimageview.CircleImageView;
 import java.lang.NullPointerException;
@@ -26,13 +28,19 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final Button ActulizarReview;
+  public final MaterialButton ActulizarReview;
 
   @NonNull
   public final EditText EntradaCantidadStart;
 
   @NonNull
   public final ImageView cantidadStart;
+
+  @NonNull
+  public final CircularProgressIndicator carga;
+
+  @NonNull
+  public final ProgressBar cargaIMGText;
 
   @NonNull
   public final LinearLayout general;
@@ -45,6 +53,9 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
 
   @NonNull
   public final TextInputLayout inputNewReview;
+
+  @NonNull
+  public final LinearLayout linealCargaTextoImg;
 
   @NonNull
   public final ConstraintLayout main;
@@ -62,20 +73,24 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
   public final TextView review;
 
   private ActivityEditarReviewBinding(@NonNull ConstraintLayout rootView,
-      @NonNull Button ActulizarReview, @NonNull EditText EntradaCantidadStart,
-      @NonNull ImageView cantidadStart, @NonNull LinearLayout general,
+      @NonNull MaterialButton ActulizarReview, @NonNull EditText EntradaCantidadStart,
+      @NonNull ImageView cantidadStart, @NonNull CircularProgressIndicator carga,
+      @NonNull ProgressBar cargaIMGText, @NonNull LinearLayout general,
       @NonNull CircleImageView imgPerfilUser, @NonNull TextInputLayout inputCantidadStart,
-      @NonNull TextInputLayout inputNewReview, @NonNull ConstraintLayout main,
-      @NonNull TextView nombre, @NonNull EditText nuevaReview, @NonNull TextView reseAtxt,
-      @NonNull TextView review) {
+      @NonNull TextInputLayout inputNewReview, @NonNull LinearLayout linealCargaTextoImg,
+      @NonNull ConstraintLayout main, @NonNull TextView nombre, @NonNull EditText nuevaReview,
+      @NonNull TextView reseAtxt, @NonNull TextView review) {
     this.rootView = rootView;
     this.ActulizarReview = ActulizarReview;
     this.EntradaCantidadStart = EntradaCantidadStart;
     this.cantidadStart = cantidadStart;
+    this.carga = carga;
+    this.cargaIMGText = cargaIMGText;
     this.general = general;
     this.imgPerfilUser = imgPerfilUser;
     this.inputCantidadStart = inputCantidadStart;
     this.inputNewReview = inputNewReview;
+    this.linealCargaTextoImg = linealCargaTextoImg;
     this.main = main;
     this.nombre = nombre;
     this.nuevaReview = nuevaReview;
@@ -111,7 +126,7 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.ActulizarReview;
-      Button ActulizarReview = ViewBindings.findChildViewById(rootView, id);
+      MaterialButton ActulizarReview = ViewBindings.findChildViewById(rootView, id);
       if (ActulizarReview == null) {
         break missingId;
       }
@@ -125,6 +140,18 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
       id = R.id.cantidadStart;
       ImageView cantidadStart = ViewBindings.findChildViewById(rootView, id);
       if (cantidadStart == null) {
+        break missingId;
+      }
+
+      id = R.id.carga;
+      CircularProgressIndicator carga = ViewBindings.findChildViewById(rootView, id);
+      if (carga == null) {
+        break missingId;
+      }
+
+      id = R.id.cargaIMG_text;
+      ProgressBar cargaIMGText = ViewBindings.findChildViewById(rootView, id);
+      if (cargaIMGText == null) {
         break missingId;
       }
 
@@ -149,6 +176,12 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
       id = R.id.inputNewReview;
       TextInputLayout inputNewReview = ViewBindings.findChildViewById(rootView, id);
       if (inputNewReview == null) {
+        break missingId;
+      }
+
+      id = R.id.linealCargaTexto_img;
+      LinearLayout linealCargaTextoImg = ViewBindings.findChildViewById(rootView, id);
+      if (linealCargaTextoImg == null) {
         break missingId;
       }
 
@@ -179,8 +212,9 @@ public final class ActivityEditarReviewBinding implements ViewBinding {
       }
 
       return new ActivityEditarReviewBinding((ConstraintLayout) rootView, ActulizarReview,
-          EntradaCantidadStart, cantidadStart, general, imgPerfilUser, inputCantidadStart,
-          inputNewReview, main, nombre, nuevaReview, reseAtxt, review);
+          EntradaCantidadStart, cantidadStart, carga, cargaIMGText, general, imgPerfilUser,
+          inputCantidadStart, inputNewReview, linealCargaTextoImg, main, nombre, nuevaReview,
+          reseAtxt, review);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

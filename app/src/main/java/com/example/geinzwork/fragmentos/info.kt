@@ -608,6 +608,9 @@ class info : Fragment() {
                             }
                         }
                     bindingMostrar.carruselImgTrabajos.setData(ArrayList(carouselItems))
+                } else {
+                    bindingMostrar.linealNoSeEncontraron.isVisible = true
+                    bindingMostrar.masTrabajosRealiados.isVisible = false
                 }
                 obtnerMasTrabajosRealziadosTrabajosReicntes(
                     idTrabajador,
@@ -816,6 +819,9 @@ class info : Fragment() {
                 )
             }, 2000)
 
+        } else {
+            bindingMostrarTRabajos.linealNoSeEncontraron.isVisible = true
+            bindingMostrarTRabajos.masTrabajosRealiados.isVisible = false
         }
 
     }
@@ -1012,7 +1018,7 @@ class info : Fragment() {
         val fbView = binding.fb
         val tkView = binding.tk
         val linealappLayout = binding.linealappLayout
-        val linealNoCuenta = binding.linealNoCuenta
+//        val linealNoCuenta = binding.linno
         val linealTrabajosRealizados = binding.linealTrabajosRealziados
 
         val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
@@ -1307,6 +1313,8 @@ class info : Fragment() {
                     listaAdapterProductosTRabajdores,
                     idTrabajador
                 )
+            } else {
+          //no hay publicaciones recientes
             }
         }.addOnFailureListener { e ->
             println("No se encontraron datos: ${e.message}")

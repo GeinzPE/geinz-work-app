@@ -50,6 +50,7 @@ class addReview : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR)
+
         firebaseAuth = FirebaseAuth.getInstance()
         super.onViewCreated(view, savedInstanceState)
         if (firebaseAuth.uid.toString() == idTrabajador) {
