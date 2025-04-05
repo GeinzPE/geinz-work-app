@@ -75,7 +75,7 @@ class compras_productos_vendedor : AppCompatActivity() {
 
         obtnerDatosProducto(idProducto, idTrabajdor) { cargado ->
             if (cargado) {
-                incrementarCantidad()
+
                 binding.linealCarga.isVisible = false
                 binding.netScroolView.isVisible = true
             } else {
@@ -356,6 +356,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                     "DatosProducto",
                     "Categoría: $categoria, Marca: $marca, Modelo: $modelo, Stock: $stok, Garantía: $garantia"
                 )
+
                 binding.precioDelivery.textoNumero2.text
                 // Manejo del precio de delivery
                 if (envio_gratis) {
@@ -371,6 +372,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                         precioFinal,
                         binding.totalcancelar.textoNumero2
                     )
+                    incrementarCantidad(precioFinal,stok.toInt())
                 } else {
                     val precioBase = if (descuento) precioDescuento else precio
                     val precioFinalDelivery = precioBase.toDouble() + precioDelivery.toDouble()
@@ -384,10 +386,13 @@ class compras_productos_vendedor : AppCompatActivity() {
                         precioFinalDelivery,
                         binding.totalcancelar.textoNumero2
                     )
+                    incrementarCantidad(precioFinalDelivery,stok.toInt())
                 }
                 if (metodoEntrega == "delivery") {
                     binding.linealMetodoEntrega.isVisible = true
+
                 } else {
+                    binding.precioDelivery.textoNumero2.text="S/ 0.00"
                     binding.linealMetodoEntrega.isVisible = false
                 }
 
@@ -489,26 +494,20 @@ class compras_productos_vendedor : AppCompatActivity() {
 
     }
 
-    private fun incrementarCantidad() {
+    private fun incrementarCantidad(TotalCancelar:Number,cantidadStok:Int) {
         var numeroCantidad = binding.cantidad.text.toString().toInt()
         val mas = binding.mas
         val menos = binding.menos
 
-        val totalPAga = binding.totalcancelar.textoNumero2.text.toString()
-            .replace("S/", "", ignoreCase = true)
-            .trim()
-            .toDouble()
+        val totalPAga = TotalCancelar
 
-        val intCantidadStok = binding.StokDiponible.textoNumero2.text.toString()
-            .replace("UND", "", ignoreCase = true)
-            .trim()
-            .toInt()
+        val intCantidadStok = cantidadStok
 
         mas.setOnClickListener {
             if (numeroCantidad < intCantidadStok) {
                 numeroCantidad++
                 binding.cantidad.text = numeroCantidad.toString()
-                val totalPAgarPorCantidad = numeroCantidad * totalPAga
+                val totalPAgarPorCantidad = numeroCantidad * totalPAga.toDouble()
                 binding.totalcancelar.textoNumero2.text = "S/ %.2f".format(totalPAgarPorCantidad)
             } else {
                 Toast.makeText(binding.root.context, "No puede exceder el stock disponible", Toast.LENGTH_SHORT).show()
@@ -519,7 +518,7 @@ class compras_productos_vendedor : AppCompatActivity() {
             if (numeroCantidad > 1) {
                 numeroCantidad--
                 binding.cantidad.text = numeroCantidad.toString()
-                val totalPAgarPorCantidad = numeroCantidad * totalPAga
+                val totalPAgarPorCantidad = numeroCantidad * totalPAga.toDouble()
                 binding.totalcancelar.textoNumero2.text = "S/ %.2f".format(totalPAgarPorCantidad)
             }
         }

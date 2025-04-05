@@ -265,6 +265,7 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:textSize="16sp" />
 
                 <TextView
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Indique la cantidad que desea adquirir. Tenga en cuenta que no debe superar el stock disponible" />
