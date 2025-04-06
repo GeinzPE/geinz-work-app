@@ -18,6 +18,7 @@ import com.example.geinzwork.dataclass.dataclasCaterogirasFiltrado
 import com.example.geinzwork.dataclass.dataclass_ver_mas_productos_trabajador
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.databinding.ActivityVerMasProductosPublicadosTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
@@ -310,11 +311,11 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 bindingProductosTrabajadores.progressCarga.isVisible=true
                 bindingProductosTrabajadores.nettScrollView.isVisible=false
                 val data = res.data ?: emptyMap()
-                vistaInfo.setearDatosdialogProductos(data, bindingProductosTrabajadores) { completado ->
+                constantes_publicaciones_general_user_tiendas.setearDatosdialogProductos(this,data, bindingProductosTrabajadores) { completado ->
                     bindingProductosTrabajadores.progressCarga.isVisible=false
                     bindingProductosTrabajadores.nettScrollView.isVisible=true
                 }
-                vistaInfo.inizializarImgProductos(this,listaImg,bindingProductosTrabajadores,data)
+                constantes_publicaciones_general_user_tiendas.inizializarImgProductos(this,listaImg,bindingProductosTrabajadores,data)
             } else {
                 println("no se encontraron datos del producto")
             }

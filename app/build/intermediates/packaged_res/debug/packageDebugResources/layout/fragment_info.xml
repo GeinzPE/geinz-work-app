@@ -520,8 +520,7 @@
                             android:id="@+id/linealTrabajosRealziados"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="gone">
+                            android:orientation="vertical">
 
                             <LinearLayout
                                 android:id="@+id/baner_publicaciones_recientes"
@@ -549,40 +548,19 @@
                                     android:textSize="12sp" />
                             </LinearLayout>
 
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/Trabajos_realizados"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="20dp"
-                                android:nestedScrollingEnabled="false" />
-
                             <RelativeLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content">
-                                <LinearLayout
-                                    android:layout_width="wrap_content"
+
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/Trabajos_realizados"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="vertical">
+                                    android:layout_marginBottom="20dp"
+                                    android:nestedScrollingEnabled="false" />
 
-                                    <TextView
-                                        style="@style/TextoTitulos"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginLeft="10dp"
-                                        android:layout_marginBottom="10dp"
-                                        android:text="Productos"
-                                        android:textSize="20sp" />
-
-                                    <androidx.recyclerview.widget.RecyclerView
-                                        android:id="@+id/productosDestacados"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginHorizontal="10dp"
-                                        tools:listitem="@layout/item_productos_usuarios_verificados" />
-
-                                </LinearLayout>
                                 <RelativeLayout
-                                    android:id="@+id/linealNo_seEncontraron"
+                                    android:id="@+id/no_se_encontro_publicaciones"
                                     android:layout_width="match_parent"
                                     android:layout_height="220dp"
                                     android:visibility="gone">
@@ -592,42 +570,60 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_centerInParent="true"
-                                        android:text="No se econtro productos publicados"
-                                        android:textSize="19sp"
+                                        android:text="No se econtraron publicaciones realizados"
+                                        android:textSize="17sp"
                                         android:textStyle="bold" />
                                 </RelativeLayout>
+
                             </RelativeLayout>
-
-
-
 
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:id="@+id/lineal_no_cuenta"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_alignParentBottom="true"
-                            android:orientation="vertical"
-                            android:visibility="gone">
+                    </RelativeLayout>
 
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="170dp"
+
+                    <RelativeLayout
+                        android:id="@+id/lineal_productos_publicados"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoTitulos"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_marginLeft="10dp"
-                                android:src="@drawable/sin_resultados_icon" />
+                                android:layout_marginBottom="10dp"
+                                android:text="Productos"
+                                android:textSize="20sp" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/productosDestacados"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginHorizontal="10dp" />
+
+                        </LinearLayout>
+
+                        <RelativeLayout
+                            android:id="@+id/linealNo_seEncontraron"
+                            android:layout_width="match_parent"
+                            android:layout_height="220dp"
+                            android:visibility="gone">
 
                             <TextView
                                 style="@style/TextoModoOScuroColor"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:layout_marginTop="10dp"
-                                android:layout_marginBottom="10dp"
-                                android:text="No se econtro trabajos publicados"
-                                android:textSize="15sp"
+                                android:layout_centerInParent="true"
+                                android:text="No se encontro productos publicados"
+                                android:textSize="17sp"
                                 android:textStyle="bold" />
-                        </LinearLayout>
+                        </RelativeLayout>
                     </RelativeLayout>
 
 
@@ -694,18 +690,18 @@
     </com.google.android.material.appbar.AppBarLayout>
 
 
-    <com.facebook.shimmer.ShimmerFrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:shimmer_auto_start="true">
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/loading"
+        <com.facebook.shimmer.ShimmerFrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:shimmer_auto_start="true">
 
-            <include layout="@layout/carga_tiendas" />
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </com.facebook.shimmer.ShimmerFrameLayout>
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/loading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-</FrameLayout>
+                <include layout="@layout/carga_tiendas" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+    </FrameLayout>

@@ -84,10 +84,10 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final LinearLayout linealLayaout;
 
   @NonNull
-  public final LinearLayout linealNoCuenta;
+  public final RelativeLayout linealNoSeEncontraron;
 
   @NonNull
-  public final RelativeLayout linealNoSeEncontraron;
+  public final RelativeLayout linealProductosPublicados;
 
   @NonNull
   public final LinearLayout linealRedes;
@@ -112,6 +112,9 @@ public final class FragmentInfoBinding implements ViewBinding {
 
   @NonNull
   public final TextView noSeEncontraronTrabajos;
+
+  @NonNull
+  public final RelativeLayout noSeEncontroPublicaciones;
 
   @NonNull
   public final TextView nombre;
@@ -172,13 +175,14 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull ImageView fb, @NonNull TextView genero, @NonNull TextView horario,
       @NonNull ImageView ig, @NonNull CircleImageView imgPerfilUser,
       @NonNull ShapeableImageView imgPortada, @NonNull LinearLayout innerRelativeLayout,
-      @NonNull LinearLayout linealLayaout, @NonNull LinearLayout linealNoCuenta,
-      @NonNull RelativeLayout linealNoSeEncontraron, @NonNull LinearLayout linealRedes,
+      @NonNull LinearLayout linealLayaout, @NonNull RelativeLayout linealNoSeEncontraron,
+      @NonNull RelativeLayout linealProductosPublicados, @NonNull LinearLayout linealRedes,
       @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
       @NonNull LinearLayoutCompat loading, @NonNull TextView localidad,
       @NonNull TextView nacionalida, @NonNull RelativeLayout noSeEncontraronTrabajadores,
-      @NonNull TextView noSeEncontraronTrabajos, @NonNull TextView nombre, @NonNull View overlay,
-      @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
+      @NonNull TextView noSeEncontraronTrabajos, @NonNull RelativeLayout noSeEncontroPublicaciones,
+      @NonNull TextView nombre, @NonNull View overlay, @NonNull ImageView popup,
+      @NonNull RecyclerView productosDestacados,
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
@@ -204,8 +208,8 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.imgPortada = imgPortada;
     this.innerRelativeLayout = innerRelativeLayout;
     this.linealLayaout = linealLayaout;
-    this.linealNoCuenta = linealNoCuenta;
     this.linealNoSeEncontraron = linealNoSeEncontraron;
+    this.linealProductosPublicados = linealProductosPublicados;
     this.linealRedes = linealRedes;
     this.linealTrabajosRealziados = linealTrabajosRealziados;
     this.linealappLayout = linealappLayout;
@@ -214,6 +218,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.nacionalida = nacionalida;
     this.noSeEncontraronTrabajadores = noSeEncontraronTrabajadores;
     this.noSeEncontraronTrabajos = noSeEncontraronTrabajos;
+    this.noSeEncontroPublicaciones = noSeEncontroPublicaciones;
     this.nombre = nombre;
     this.overlay = overlay;
     this.popup = popup;
@@ -362,15 +367,15 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.lineal_no_cuenta;
-      LinearLayout linealNoCuenta = ViewBindings.findChildViewById(rootView, id);
-      if (linealNoCuenta == null) {
-        break missingId;
-      }
-
       id = R.id.linealNo_seEncontraron;
       RelativeLayout linealNoSeEncontraron = ViewBindings.findChildViewById(rootView, id);
       if (linealNoSeEncontraron == null) {
+        break missingId;
+      }
+
+      id = R.id.lineal_productos_publicados;
+      RelativeLayout linealProductosPublicados = ViewBindings.findChildViewById(rootView, id);
+      if (linealProductosPublicados == null) {
         break missingId;
       }
 
@@ -419,6 +424,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.no_se_encontraron_trabajos;
       TextView noSeEncontraronTrabajos = ViewBindings.findChildViewById(rootView, id);
       if (noSeEncontraronTrabajos == null) {
+        break missingId;
+      }
+
+      id = R.id.no_se_encontro_publicaciones;
+      RelativeLayout noSeEncontroPublicaciones = ViewBindings.findChildViewById(rootView, id);
+      if (noSeEncontroPublicaciones == null) {
         break missingId;
       }
 
@@ -527,12 +538,13 @@ public final class FragmentInfoBinding implements ViewBinding {
       return new FragmentInfoBinding((FrameLayout) rootView, TrabajosRealizados,
           banerPublicacionesRecientes, caracteristica1, carrusel, categoriaTipoTrabajo, circle,
           descripcionTrabajador, edadUser, estado, fb, genero, horario, ig, imgPerfilUser,
-          imgPortada, innerRelativeLayout, linealLayaout, linealNoCuenta, linealNoSeEncontraron,
-          linealRedes, linealTrabajosRealziados, linealappLayout, loading, localidad, nacionalida,
-          noSeEncontraronTrabajadores, noSeEncontraronTrabajos, nombre, overlay, popup,
-          productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
-          relativeLayout, scroll, swipe, telefono, tk, trabajadoresSimilares, tvReadMore,
-          verMasTrabajadores, verificado, verificadoTXT);
+          imgPortada, innerRelativeLayout, linealLayaout, linealNoSeEncontraron,
+          linealProductosPublicados, linealRedes, linealTrabajosRealziados, linealappLayout,
+          loading, localidad, nacionalida, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
+          noSeEncontroPublicaciones, nombre, overlay, popup, productosDestacados,
+          progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
+          swipe, telefono, tk, trabajadoresSimilares, tvReadMore, verMasTrabajadores, verificado,
+          verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

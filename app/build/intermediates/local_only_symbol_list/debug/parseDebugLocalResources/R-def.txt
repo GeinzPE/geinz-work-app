@@ -1005,6 +1005,7 @@ id lineal_no_cuenta
 id lineal_pago
 id lineal_plan
 id lineal_precio
+id lineal_productos_publicados
 id lineal_tienda
 id lineal_ubi
 id lineal_verificado
@@ -1097,6 +1098,7 @@ id no_internet_text
 id no_resultados
 id no_se_encontraron_trabajadores
 id no_se_encontraron_trabajos
+id no_se_encontro_publicaciones
 id nombeTienda
 id nombre
 id nombreCategoria
