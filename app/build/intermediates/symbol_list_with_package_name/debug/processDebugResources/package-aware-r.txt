@@ -4861,11 +4861,13 @@ id carga
 id cargaIMG_text
 id cargaIMGtexto
 id cargaLike
+id cargaProductos_promo_trabajos
 id cargaServicios
 id cargaimg
 id cargandoContenido
 id cargandoRef
 id cargandoText
+id cargando_contenido
 id cargando_lat_log
 id cargarConteindo
 id carracteristicasUser
@@ -4874,7 +4876,6 @@ id carrito_compras
 id carrucel
 id carrucelImgContainer
 id carrucelImgProductosVentaUser
-id carrucelMasProductosPublicados
 id carrucel_tiendas
 id carruse2
 id carrusel
@@ -5598,7 +5599,6 @@ id linealServicios
 id linealSinReportes
 id linealStokDisponible
 id linealSubir
-id linealTXTmas_productos
 id linealTiendaProp
 id linealTipoTrabajo
 id linealTitulo
@@ -5951,6 +5951,7 @@ id postLayout
 id precio
 id precioAntiguo
 id precioDelivery
+id precioDescuento
 id precioDisponible
 id precioDriver
 id precioDriverLineal
@@ -6019,6 +6020,7 @@ id radial
 id radio
 id radioGrupMetodosPago
 id ratio
+id realitveCardView
 id realtive
 id realtive_clikc
 id reccileRadioBtn
@@ -6264,6 +6266,7 @@ id textoPoliticas
 id textoPreview
 id texto_Trabajo
 id texto_adicional
+id texto_cambiar_trabajos_o_publicaciones
 id texto_pincipal
 id texto_promo
 id texto_trabajos_realzados
@@ -6404,7 +6407,6 @@ id verificados
 id verificar
 id verificationText
 id verificationTitle
-id vermasProductos
 id vermasServicios
 id vermecanica
 id versionActual
@@ -6790,6 +6792,7 @@ layout include_tienda_socia
 layout include_total_pagar
 layout info_tienda
 layout item_anuncios
+layout item_cargar_productos_promociones_trabajos
 layout item_carousel
 layout item_carrito_compras
 layout item_circle_categoria

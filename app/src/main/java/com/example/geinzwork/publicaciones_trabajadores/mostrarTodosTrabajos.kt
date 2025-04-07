@@ -168,7 +168,7 @@ class mostrarTodosTrabajos : AppCompatActivity() {
 
         }
 
-        bindingMostrar.linealMostrarTrabajos.isVisible = false
+        bindingMostrar.cargaProductosPromoTrabajos.linealMostrarTrabajos.isVisible = false
         bindingMostrar.textoTrabajosRealzados.text = item.texto_promo
         bindingMostrar.tituloTrabajosRealizados.text = item.titulo_promo
         constantestextos_general.extender_acortar_texto(

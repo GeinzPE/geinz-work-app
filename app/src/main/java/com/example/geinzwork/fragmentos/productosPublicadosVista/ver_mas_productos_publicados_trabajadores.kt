@@ -280,16 +280,14 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
         idTrabajador: String,
         productoClikado: String
     ) {
-        val vistaInfo=info()
         val bindingProductosTrabajadores =
             BottomsheetProductosVendidosUserVerifiBinding.inflate(LayoutInflater.from(this))
         dialog.setContentView(bindingProductosTrabajadores.root)
         bindingProductosTrabajadores.cerrar.setOnClickListener {
             dialog.dismiss()
         }
-        bindingProductosTrabajadores.linealTXTmasProductos.isVisible=false
-        bindingProductosTrabajadores.carrucelMasProductosPublicados.isVisible=false
-
+//
+        bindingProductosTrabajadores.cargaProductosPromoTrabajos.linealMostrarTrabajos.isVisible=false
         bindingProductosTrabajadores.comprar.setOnClickListener {
             val intent=Intent(this,compras_productos_vendedor::class.java).apply {
                 putExtra("idProducto",productoClikado)

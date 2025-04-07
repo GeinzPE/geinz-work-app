@@ -32,10 +32,10 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout LinealModeloProducto;
 
   @NonNull
-  public final RecyclerView carrucelImgProductosVentaUser;
+  public final ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos;
 
   @NonNull
-  public final RecyclerView carrucelMasProductosPublicados;
+  public final RecyclerView carrucelImgProductosVentaUser;
 
   @NonNull
   public final TextView categoriaProducto;
@@ -92,9 +92,6 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout linealStokDisponible;
 
   @NonNull
-  public final LinearLayout linealTXTmasProductos;
-
-  @NonNull
   public final TextView marca;
 
   @NonNull
@@ -124,13 +121,10 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   @NonNull
   public final TextView tvReadMore;
 
-  @NonNull
-  public final TextView vermasProductos;
-
   private BottomsheetProductosVendidosUserVerifiBinding(@NonNull RelativeLayout rootView,
       @NonNull TextView Condicion, @NonNull LinearLayout LinealModeloProducto,
-      @NonNull RecyclerView carrucelImgProductosVentaUser,
-      @NonNull RecyclerView carrucelMasProductosPublicados, @NonNull TextView categoriaProducto,
+      @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
+      @NonNull RecyclerView carrucelImgProductosVentaUser, @NonNull TextView categoriaProducto,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull MaterialButton comprar,
       @NonNull MaterialButton cordinarVendedor, @NonNull TextView descripcion,
       @NonNull TextView descuentoPorcentaje, @NonNull TextView entregaDomicilio,
@@ -139,17 +133,16 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull LinearLayout linealDescripcionProducto, @NonNull LinearLayout linealEntregaDomicilio,
       @NonNull LinearLayout linealFechaPublicada, @NonNull LinearLayout linealGarantiaDisponible,
       @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
-      @NonNull LinearLayout linealStokDisponible, @NonNull LinearLayout linealTXTmasProductos,
-      @NonNull TextView marca, @NonNull TextView modelo, @NonNull LinearLayout netScrollView,
-      @NonNull NestedScrollView nettScrollView, @NonNull TextView nombreProducto,
-      @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
-      @NonNull ProgressBar progressCarga, @NonNull TextView stok, @NonNull TextView tvReadMore,
-      @NonNull TextView vermasProductos) {
+      @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
+      @NonNull LinearLayout netScrollView, @NonNull NestedScrollView nettScrollView,
+      @NonNull TextView nombreProducto, @NonNull TextView precioAntiguo,
+      @NonNull TextView precioProducto, @NonNull ProgressBar progressCarga, @NonNull TextView stok,
+      @NonNull TextView tvReadMore) {
     this.rootView = rootView;
     this.Condicion = Condicion;
     this.LinealModeloProducto = LinealModeloProducto;
+    this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
     this.carrucelImgProductosVentaUser = carrucelImgProductosVentaUser;
-    this.carrucelMasProductosPublicados = carrucelMasProductosPublicados;
     this.categoriaProducto = categoriaProducto;
     this.cerrar = cerrar;
     this.comprar = comprar;
@@ -168,7 +161,6 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.linealMarcaProducto = linealMarcaProducto;
     this.linealPrecioProducto = linealPrecioProducto;
     this.linealStokDisponible = linealStokDisponible;
-    this.linealTXTmasProductos = linealTXTmasProductos;
     this.marca = marca;
     this.modelo = modelo;
     this.netScrollView = netScrollView;
@@ -179,7 +171,6 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.progressCarga = progressCarga;
     this.stok = stok;
     this.tvReadMore = tvReadMore;
-    this.vermasProductos = vermasProductos;
   }
 
   @Override
@@ -222,15 +213,16 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.cargaProductos_promo_trabajos;
+      View cargaProductosPromoTrabajos = ViewBindings.findChildViewById(rootView, id);
+      if (cargaProductosPromoTrabajos == null) {
+        break missingId;
+      }
+      ItemCargarProductosPromocionesTrabajosBinding binding_cargaProductosPromoTrabajos = ItemCargarProductosPromocionesTrabajosBinding.bind(cargaProductosPromoTrabajos);
+
       id = R.id.carrucelImgProductosVentaUser;
       RecyclerView carrucelImgProductosVentaUser = ViewBindings.findChildViewById(rootView, id);
       if (carrucelImgProductosVentaUser == null) {
-        break missingId;
-      }
-
-      id = R.id.carrucelMasProductosPublicados;
-      RecyclerView carrucelMasProductosPublicados = ViewBindings.findChildViewById(rootView, id);
-      if (carrucelMasProductosPublicados == null) {
         break missingId;
       }
 
@@ -342,12 +334,6 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      id = R.id.linealTXTmas_productos;
-      LinearLayout linealTXTmasProductos = ViewBindings.findChildViewById(rootView, id);
-      if (linealTXTmasProductos == null) {
-        break missingId;
-      }
-
       id = R.id.marca;
       TextView marca = ViewBindings.findChildViewById(rootView, id);
       if (marca == null) {
@@ -408,21 +394,14 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      id = R.id.vermasProductos;
-      TextView vermasProductos = ViewBindings.findChildViewById(rootView, id);
-      if (vermasProductos == null) {
-        break missingId;
-      }
-
       return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView, Condicion,
-          LinealModeloProducto, carrucelImgProductosVentaUser, carrucelMasProductosPublicados,
+          LinealModeloProducto, binding_cargaProductosPromoTrabajos, carrucelImgProductosVentaUser,
           categoriaProducto, cerrar, comprar, cordinarVendedor, descripcion, descuentoPorcentaje,
           entregaDomicilio, fechaPublicado, garantia, linealCategoriaProducto,
           linealCondicionProducto, linealDescripcionProducto, linealEntregaDomicilio,
           linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
-          linealStokDisponible, linealTXTmasProductos, marca, modelo, netScrollView, nettScrollView,
-          nombreProducto, precioAntiguo, precioProducto, progressCarga, stok, tvReadMore,
-          vermasProductos);
+          linealStokDisponible, marca, modelo, netScrollView, nettScrollView, nombreProducto,
+          precioAntiguo, precioProducto, progressCarga, stok, tvReadMore);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

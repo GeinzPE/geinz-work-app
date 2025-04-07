@@ -40,10 +40,8 @@ object constantes_publicaciones_general_user_tiendas {
         plan: String,
         id: String,
         lista: MutableList<dataclas_trabajos_ralizados>,
-
         context: Context,
         adapter: RecyclerView.Adapter<*>,
-
         binding: FragmentInfoBinding,
         ) {
         if (plan == Variables.plaA) {
@@ -173,7 +171,7 @@ object constantes_publicaciones_general_user_tiendas {
         bindingProductosTrabajadores.cerrar.setOnClickListener {
             dialog.dismiss()
         }
-        bindingProductosTrabajadores.vermasProductos.setOnClickListener {
+        bindingProductosTrabajadores.cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
             val intent =
                 Intent(context, ver_mas_productos_publicados_trabajadores::class.java).apply {
                     putExtra("idTrabajador", idTrabajador)
@@ -231,6 +229,9 @@ object constantes_publicaciones_general_user_tiendas {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("productos_venta")
+        bindingProductosVencidodos.cargaProductosPromoTrabajos.cargandoContenido.isVisible=true
+        bindingProductosVencidodos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
+            "Productos"
         db.get().addOnSuccessListener { res ->
             listaProductosUSer.clear()
             for (datos in res) {
@@ -255,8 +256,17 @@ object constantes_publicaciones_general_user_tiendas {
                     listaProductosUSer,
                     bindingProductosVencidodos
                 )
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.cargandoContenido.isVisible=false
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible=true
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible=false
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.cargandoContenido.isVisible=false
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible=false
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible=true
+                bindingProductosVencidodos.cargaProductosPromoTrabajos.textoCambiarTrabajosOPublicaciones.text =
+                    "No se encontro mas productos"
+
             }
 
 
@@ -363,7 +373,7 @@ object constantes_publicaciones_general_user_tiendas {
         lista_productosVentaUSer: MutableList<dataclassPorductosVerntaUser>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
     ) {
-        val recicle = bindingProductosTrabajadores.carrucelMasProductosPublicados
+        val recicle = bindingProductosTrabajadores.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
         val adapter = adapter_productos_venta_user(lista_productosVentaUSer) { item ->
@@ -447,10 +457,6 @@ object constantes_publicaciones_general_user_tiendas {
         if (img_url3.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url3))
         if (img_url4.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url4))
 
-        Log.d(
-            "IMG_DEBUG",
-            "Contenido de listaImg después de limpiar: ${listaImg.joinToString { it.imgProducto.toString() }}"
-        )
 
         // Configurar RecyclerView solo una vez
         val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser

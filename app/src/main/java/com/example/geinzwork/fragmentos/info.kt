@@ -157,9 +157,6 @@ class info : Fragment() {
         recicle.layoutManager = customLayoutManager
 
 
-
-
-
         binding.qrTrabajador.setOnClickListener {
             var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
                 putExtra(Variables.info, Variables.info)
@@ -457,7 +454,7 @@ class info : Fragment() {
         bindingMostrar.tituloNombreTrabajador.text =
             "Trabajos realizados por ${binding.nombre.text}"
         // Configurar botón para ver todos los trabajos
-        bindingMostrar.verTodosTrabajos.setOnClickListener {
+        bindingMostrar.cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
             val intent = Intent(mContex, mostrarTodosTrabajos::class.java).apply {
                 putExtra("idTrabajador", idTrabajador)
                 putExtra("fecha_rec", fecha_rec)
@@ -509,6 +506,7 @@ class info : Fragment() {
             }
             bindingMostrar.carruselImgTrabajos.setData(carouselItems)
 
+
         }
 
         // Obtener más trabajos relacionados
@@ -549,7 +547,7 @@ class info : Fragment() {
                 bindingMostrar.tituloNombreTrabajador.text =
                     "Trabajos realizados por ${binding.nombre.text}"
 
-                bindingMostrar.verTodosTrabajos.setOnClickListener {
+                bindingMostrar.cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
                     val intent = Intent(mContex, mostrarTodosTrabajos::class.java).apply {
                         putExtra("idTrabajador", idTrabajador)
                         putExtra("fecha_rec", fecha_rec)
@@ -608,8 +606,11 @@ class info : Fragment() {
                         }
                     bindingMostrar.carruselImgTrabajos.setData(ArrayList(carouselItems))
                 } else {
-                    bindingMostrar.linealNoSeEncontraron.isVisible = true
-                    bindingMostrar.masTrabajosRealiados.isVisible = false
+                    bindingMostrar.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                        true
+                    bindingMostrar.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                        false
+
                 }
                 obtnerMasTrabajosRealziadosTrabajosReicntes(
                     idTrabajador,
@@ -621,154 +622,6 @@ class info : Fragment() {
             println("Error al obtener los datos: ${it.message}")
         }
     }
-//
-//
-//    fun inizializarImgProductos(
-//        context: Context,
-//        listaImg: MutableList<dataclassMostarImgProductosVendedor>,
-//        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
-//        data: Map<String, Any>
-//    ) {
-//        // Limpiar la lista para evitar duplicados
-//        listaImg.clear()
-//
-//        // Obtener las imágenes del mapa `data`
-//        val imgPrincipal = data["img_principal"] as? String ?: ""
-//        val img_url2 = data["img_url2"] as? String ?: ""
-//        val img_url3 = data["img_url3"] as? String ?: ""
-//        val img_url4 = data["img_url4"] as? String ?: ""
-//
-//        // Agregar las imágenes a la lista si no están vacías
-//        if (imgPrincipal.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(imgPrincipal))
-//        if (img_url2.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url2))
-//        if (img_url3.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url3))
-//        if (img_url4.isNotEmpty()) listaImg.add(dataclassMostarImgProductosVendedor(img_url4))
-//
-//        Log.d(
-//            "IMG_DEBUG",
-//            "Contenido de listaImg después de limpiar: ${listaImg.joinToString { it.imgProducto.toString() }}"
-//        )
-//
-//        // Configurar RecyclerView solo una vez
-//        val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
-//        if (recicle.adapter == null) {
-//            recicle.layoutManager =
-//                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-//            recicle.adapter = adapterInicializarRecycleimgProductosTrabajadores(listaImg)
-//        } else {
-//            recicle.adapter?.notifyDataSetChanged()
-//        }
-//    }
-
-
-//    fun obtenerMasProductosVenta(
-//        context: Context,
-//        idTrabajador: String,
-//        idProducto: String,
-//        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
-//    ) {
-//        val db = FirebaseFirestore.getInstance()
-//            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
-//            .collection("trabajadores").document(idTrabajador).collection("productos_venta")
-//        db.get().addOnSuccessListener { res ->
-//            listaProductosUSer.clear()
-//            for (datos in res) {
-//                val data = datos.data
-//                val id = data?.get("id") as? String ?: ""
-//                val imgpricipal = data?.get("img_principal") as? String ?: ""
-//                val descuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
-//                val porcentajeDescuentoBool = data?.get("descuento") as? Boolean ?: false
-//                val descripcion = data?.get("") as? String ?: ""
-//                if (id != idProducto) {
-//                    val dataClass = dataclassPorductosVerntaUser(
-//                        id, imgpricipal, descuento, porcentajeDescuentoBool
-//                    )
-//                    listaProductosUSer.add(dataClass)
-//                }
-//            }
-//            if (listaProductosUSer.isNotEmpty()) {
-//                listaProductosUSer.shuffle()
-//                inizializarCarruceBindig(
-//                    context,
-//                    idTrabajador,
-//                    listaProductosUSer,
-//                    bindingProductosVencidodos
-//                )
-//            } else {
-//                Log.d("error obtenerDAtos", "No hay datos para mostrar")
-//            }
-//
-//
-//        }.addOnFailureListener { e ->
-//            println("no se econtro productos publicados $e")
-//        }
-//
-//    }
-
-    private fun cargarDatosNuevaMente(
-        context: Context,
-        idTrabajador: String,
-        productoClikado: String,
-        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
-    ) {
-        bindingProductosVencidodos.progressCarga.isVisible = true
-        bindingProductosVencidodos.netScrollView.isVisible = false
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(productoClikado)
-        listaProductosUSer.clear()
-        db.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data ?: emptyMap()
-                bindingProductosVencidodos.progressCarga.isVisible = true
-                bindingProductosVencidodos.netScrollView.isVisible = false
-//                setearDatosdialogProductos(data, bindingProductosVencidodos) { completado ->
-//                    if (completado) {
-//                        bindingProductosVencidodos.progressCarga.isVisible = false
-//                        bindingProductosVencidodos.netScrollView.isVisible = true
-//                    } else {
-//                        bindingProductosVencidodos.progressCarga.isVisible = true
-//                        bindingProductosVencidodos.netScrollView.isVisible = false
-//                    }
-//
-//                }
-//                obtenerMasProductosVenta(
-//                    context,
-//                    idTrabajador,
-//                    productoClikado,
-//                    bindingProductosVencidodos
-//                )
-            } else {
-
-            }
-        }.addOnFailureListener { e ->
-
-            println("no se econtro datos del producto")
-        }
-
-    }
-
-
-//    private fun inizializarCarruceBindig(
-//        context: Context,
-//        idTrabajador: String,
-//        lista_productosVentaUSer: MutableList<dataclassPorductosVerntaUser>,
-//        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
-//    ) {
-//        val recicle = bindingProductosTrabajadores.carrucelMasProductosPublicados
-//        recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-//
-//        val adapter = adapter_productos_venta_user(lista_productosVentaUSer) { item ->
-//            cargarDatosNuevaMente(
-//                context,
-//                idTrabajador,
-//                item.id.toString(),
-//                bindingProductosTrabajadores
-//            )
-//        }
-//        recicle.adapter = adapter
-//
-//    }
 
 
     fun cagrarDatosNuevamente(
@@ -793,7 +646,7 @@ class info : Fragment() {
         nuevaLista.shuffle()
 
         // Inicializar RecyclerView con la lista actualizada
-        bindingMostrarTRabajos.masTrabajosRealiados.adapter =
+        bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.adapter =
             adapter_trabajos_realizados_trabajador(
                 false,
                 nuevaLista
@@ -819,8 +672,10 @@ class info : Fragment() {
             }, 2000)
 
         } else {
-            bindingMostrarTRabajos.linealNoSeEncontraron.isVisible = true
-            bindingMostrarTRabajos.masTrabajosRealiados.isVisible = false
+            bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                true
+            bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                false
         }
 
     }
@@ -1016,10 +871,6 @@ class info : Fragment() {
         val igView = binding.ig
         val fbView = binding.fb
         val tkView = binding.tk
-        val linealappLayout = binding.linealappLayout
-//        val linealNoCuenta = binding.linno
-        val linealTrabajosRealizados = binding.linealTrabajosRealziados
-
         val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
             .document(Variables.verificacionesDB).collection(Variables.activos).document(id)
 
@@ -1030,7 +881,6 @@ class info : Fragment() {
                 val plan = data?.get(Variables.plan) as? String? ?: ""
                 if (estado) {
                     verificado.isVisible = true
-//                    obtenerARticulosComprasVerificado(id)
                     binding.verificadoTXT.text = "verificado"
                     banerPublicacionesRecientes.isVisible = true
                     val adapter = adapterTrabajo_realizados(listAdapter) { item ->
@@ -1040,11 +890,6 @@ class info : Fragment() {
                             item.id_publicacion.toString(),
                         )
                         dialog.show()
-                        Toast.makeText(
-                            mContex,
-                            "realziando clik en ${item.id_publicacion}",
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
 
                     constantes_publicaciones_general_user_tiendas.obtenerPublicaciones(
@@ -1221,216 +1066,6 @@ class info : Fragment() {
     }
 
 
-//    private fun ShowBottomSheetDialogProductosTrabajadores(
-//        context: Context,
-//        idTrabajador: String,
-//        productoClikado: String
-//    ) {
-//        val bindingProductosTrabajadores =
-//            BottomsheetProductosVendidosUserVerifiBinding.inflate(LayoutInflater.from(mContex))
-//        dialog.setContentView(bindingProductosTrabajadores.root)
-//        bindingProductosTrabajadores.cerrar.setOnClickListener {
-//            dialog.dismiss()
-//        }
-//        bindingProductosTrabajadores.vermasProductos.setOnClickListener {
-//            val intent =
-//                Intent(mContex, ver_mas_productos_publicados_trabajadores::class.java).apply {
-//                    putExtra("idTrabajador", idTrabajador)
-//                }
-//            startActivity(intent)
-//            dialog.dismiss()
-//        }
-//        bindingProductosTrabajadores.comprar.setOnClickListener {
-//            val intent = Intent(mContex, compras_productos_vendedor::class.java).apply {
-//                putExtra("idProducto", productoClikado)
-//                putExtra("idTrabajador", idTrabajador)
-//            }
-//            startActivity(intent)
-//            dialog.dismiss()
-//        }
-//        val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
-//        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
-//        recicle.layoutManager = customLayoutManager
-//
-//        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-//            .document("trabajadores").collection("trabajadores").document(idTrabajador)
-//            .collection("productos_venta").document(productoClikado)
-//
-//        db.get().addOnSuccessListener { res ->
-//            if (res.exists()) {
-//                val data = res.data ?: emptyMap()
-//                bindingProductosTrabajadores.progressCarga.isVisible = true
-//                bindingProductosTrabajadores.nettScrollView.isVisible = false
-//                setearDatosdialogProductos(data, bindingProductosTrabajadores) { cargado ->
-//                    bindingProductosTrabajadores.progressCarga.isVisible = false
-//                    bindingProductosTrabajadores.nettScrollView.isVisible = true
-//                }
-//                obtenerMasProductosVenta(
-//                    context,
-//                    idTrabajador,
-//                    productoClikado,
-//                    bindingProductosTrabajadores
-//                )
-//
-//            } else {
-//                println("no se encontraron datos del producto")
-//            }
-//        }.addOnFailureListener { e ->
-//            println("no se encontro ningun dato de producto $e")
-//        }
-//
-//    }
-
-//    private fun obtenerARticulosComprasVerificado(idTrabajador: String) {
-//        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-//            .document("trabajadores").collection("trabajadores").document(idTrabajador)
-//            .collection("productos_venta")
-//
-//        db.get().addOnSuccessListener { res ->
-//            val listaTemporal = mutableListOf<dataclas_item_preview_art_comprar>()
-//
-//            for (datos in res) {
-//                val data = datos.data
-//                val imgProducto = data["img_principal"] as? String ?: ""
-//                val descuentoActivo = data["descuento"] as? Boolean ?: false
-//                val id = data["id"] as? String ?: ""
-//                val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
-//
-//                val item = dataclas_item_preview_art_comprar(
-//                    id, imgProducto, "", null, null, descuentoActivo, cantidadDescuento
-//                )
-//                listaTemporal.add(item)
-//            }
-//
-//            listaTemporal.shuffle()
-//
-//            listaAdapterProductosTRabajdores.clear()
-//            listaAdapterProductosTRabajdores.addAll(listaTemporal)
-//
-//            // Inicializar RecyclerView una sola vez
-//            if (listaAdapterProductosTRabajdores.isNotEmpty()) {
-//                inicializarRecicleProductosVentasTrabajdores(
-//                    listaAdapterProductosTRabajdores,
-//                    idTrabajador
-//                )
-//
-//            } else {
-//          //no hay publicaciones recientes
-//            }
-//        }.addOnFailureListener { e ->
-//            println("No se encontraron datos: ${e.message}")
-//        }
-//    }
-
-//    private fun inicializarRecicleProductosVentasTrabajdores(
-//        listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>,
-//        idTrabajador: String
-//    ) {
-//        val recicle = binding.productosDestacados
-//        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
-//        recicle.adapter = adapter_mostra_articulos_trabajadores(
-//            listaAdapterProductosTRabajdores
-//        ) { item ->
-//            dialog = BottomSheetDialog(mContex)
-//            ShowBottomSheetDialogProductosTrabajadores(
-//                mContex,
-//                idTrabajador,
-//                item.id.toString(),
-//            )
-//            dialog.show()
-//        }
-//    }
-//
-//    fun setearDatosdialogProductos(
-//
-//        data: Map<String, Any>,
-//        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
-//        onComplete: (Boolean) -> Unit
-//    ) {
-//        try {
-//            val cantidadPorcentajeDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
-//            val precio = data["precio"] as? Number ?: 0
-//            val precioDescuento = data["precio_descuento"] as? Number ?: 0
-//            val totalProducto = data["total_producto"] as? Number ?: 0
-//
-//            constantestextos_general.extender_acortar_texto(
-//                bindingProductosTrabajadores.descripcion,
-//                bindingProductosTrabajadores.tvReadMore
-//            )
-//
-//            val categoria = data["categoria"] as? String ?: ""
-//            val condicionProducto = data["condicion_producto"] as? String ?: ""
-//            val descripcion = data["descripcion"] as? String ?: ""
-//
-//
-//            val modelo = data["modelo"] as? String ?: ""
-//            val descuento = data["descuento"] as? Boolean ?: false
-//            val efectivo = data["efectivo"] as? Boolean ?: false
-//            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: true
-//
-//            val garantia = data["garantia"] as? String ?: ""
-//            val id = data["id"] as? String ?: ""
-//            val fechaPublicada = data["fechaPublicada"] as? String ?: ""
-//
-//            val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
-//            val marca = data["marca"] as? String ?: ""
-//            val nombre = data["nombre"] as? String ?: ""
-//            val plin = data["plin"] as? Boolean ?: false
-//            val stok = data["stok"] as? String ?: ""
-//            val yape = data["yape"] as? Boolean ?: false
-//            val cantidad_porcentaje_descuento =
-//                data["cantidad_porcentaje_descuento"] as? Number ?: 0
-//
-//            if (entrega_domicilio) {
-//                bindingProductosTrabajadores.entregaDomicilio.text = "si"
-//            } else {
-//                bindingProductosTrabajadores.entregaDomicilio.text = "no"
-//            }
-//            if (descuento) {
-//                constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.precioAntiguo)
-//
-//
-//                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-//                    precioDescuento,
-//                    bindingProductosTrabajadores.precioProducto,
-//                    precio,
-//                    bindingProductosTrabajadores.precioAntiguo,
-//                    cantidad_porcentaje_descuento,
-//                    bindingProductosTrabajadores.descuentoPorcentaje
-//                )
-//
-//                bindingProductosTrabajadores.precioAntiguo.isVisible = true
-//                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = true
-//            } else {
-//                bindingProductosTrabajadores.precioAntiguo.isVisible = false
-//                bindingProductosTrabajadores.descuentoPorcentaje.isVisible = false
-//                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-//                    precio,
-//                    bindingProductosTrabajadores.precioProducto
-//                )
-//
-//            }
-//
-//            bindingProductosTrabajadores.categoriaProducto.text = categoria
-//            bindingProductosTrabajadores.nombreProducto.text = nombre
-//            bindingProductosTrabajadores.marca.text = marca
-//            bindingProductosTrabajadores.modelo.text = modelo
-//            bindingProductosTrabajadores.stok.text = stok
-//            bindingProductosTrabajadores.garantia.text = garantia
-//            bindingProductosTrabajadores.Condicion.text = condicionProducto
-//            bindingProductosTrabajadores.descripcion.text = descripcion
-//            bindingProductosTrabajadores.fechaPublicado.text = fechaPublicada
-//            inizializarImgProductos(mContex, listaImg, bindingProductosTrabajadores, data)
-//            constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.precioAntiguo)
-//
-//
-//            onComplete(true)
-//        } catch (e: Exception) {
-//            onComplete(false)
-//        }
-//    }
-
-
     private fun obtenerMasTrabajosRealiazdos(
         idTrabajador: String,
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
@@ -1439,7 +1074,9 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
-
+        bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = true
+        bindingMostrarTRabajos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
+            "Trabajos recientes"
         db.get().addOnSuccessListener { res ->
             listaMas_promo.clear()
 
@@ -1477,8 +1114,16 @@ class info : Fragment() {
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
                 inicializarTrabajosRealizados(bindingMostrarTRabajos)
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible = false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible = true
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = false
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible = true
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible = false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.textoCambiarTrabajosOPublicaciones.text =
+                    "No se encontro mas trabajos recientes"
             }
         }.addOnFailureListener { e ->
             println("error al encontrar $e")
@@ -1494,6 +1139,9 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("trabajos_realizados")
+        bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = true
+        bindingMostrarTRabajos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
+            "Publicaciones recientes"
 
         db.get().addOnSuccessListener { res ->
             listaMas_promo.clear()
@@ -1532,8 +1180,24 @@ class info : Fragment() {
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
                 inicializarTrabajosRealizados(bindingMostrarTRabajos)
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                    false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                    true
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
+                    false
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
+                    false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                    true
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                    false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.textoCambiarTrabajosOPublicaciones.text =
+                    "No se encontro mas publicaciones recientes"
+
+
             }
         }.addOnFailureListener { e ->
             println("error al encontrar $e")
@@ -1542,7 +1206,7 @@ class info : Fragment() {
 
 
     private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
-        val recicle = bindingMostrarTRabajos.masTrabajosRealiados
+        val recicle =  bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.adapter = adapter_trabajos_realizados_trabajador(
             false,

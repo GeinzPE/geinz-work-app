@@ -10,15 +10,14 @@
         android:id="@+id/progressCarga"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_centerInParent="true"
-        />
+        android:layout_centerInParent="true" />
 
     <androidx.core.widget.NestedScrollView
-        android:visibility="gone"
         android:id="@+id/nettScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:visibility="gone">
 
 
         <LinearLayout
@@ -393,41 +392,9 @@
                 </LinearLayout>
 
 
-                <LinearLayout
-                    android:id="@+id/linealTXTmas_productos"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="5dp"
-                        android:layout_weight="1"
-                        android:text="Mas productos publicados"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-
-                        android:id="@+id/vermasProductos"
-                        style="@style/VioletaColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="ver todos" />
-                </LinearLayout>
-
-
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/carrucelMasProductosPublicados"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-
+                <include
+                    android:id="@+id/cargaProductos_promo_trabajos"
+                    layout="@layout/item_cargar_productos_promociones_trabajos" />
 
 
             </LinearLayout>

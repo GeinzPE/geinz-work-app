@@ -8,6 +8,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -19,7 +20,7 @@ import java.lang.String;
 
 public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding {
   @NonNull
-  private final RelativeLayout rootView;
+  private final CardView rootView;
 
   @NonNull
   public final TextView descuentoPorcentaje;
@@ -28,20 +29,38 @@ public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding
   public final PhotoView imageView;
 
   @NonNull
+  public final TextView nombreProducto;
+
+  @NonNull
+  public final TextView precioDescuento;
+
+  @NonNull
+  public final TextView precioProducto;
+
+  @NonNull
   public final CircularProgressIndicator progressCargaImagen;
 
-  private ItemCustomTrabajadoresProductosBinding(@NonNull RelativeLayout rootView,
+  @NonNull
+  public final RelativeLayout realitveCardView;
+
+  private ItemCustomTrabajadoresProductosBinding(@NonNull CardView rootView,
       @NonNull TextView descuentoPorcentaje, @NonNull PhotoView imageView,
-      @NonNull CircularProgressIndicator progressCargaImagen) {
+      @NonNull TextView nombreProducto, @NonNull TextView precioDescuento,
+      @NonNull TextView precioProducto, @NonNull CircularProgressIndicator progressCargaImagen,
+      @NonNull RelativeLayout realitveCardView) {
     this.rootView = rootView;
     this.descuentoPorcentaje = descuentoPorcentaje;
     this.imageView = imageView;
+    this.nombreProducto = nombreProducto;
+    this.precioDescuento = precioDescuento;
+    this.precioProducto = precioProducto;
     this.progressCargaImagen = progressCargaImagen;
+    this.realitveCardView = realitveCardView;
   }
 
   @Override
   @NonNull
-  public RelativeLayout getRoot() {
+  public CardView getRoot() {
     return rootView;
   }
 
@@ -78,14 +97,39 @@ public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding
         break missingId;
       }
 
+      id = R.id.nombreProducto;
+      TextView nombreProducto = ViewBindings.findChildViewById(rootView, id);
+      if (nombreProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.precioDescuento;
+      TextView precioDescuento = ViewBindings.findChildViewById(rootView, id);
+      if (precioDescuento == null) {
+        break missingId;
+      }
+
+      id = R.id.precioProducto;
+      TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
+      if (precioProducto == null) {
+        break missingId;
+      }
+
       id = R.id.progress_carga_imagen;
       CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
       if (progressCargaImagen == null) {
         break missingId;
       }
 
-      return new ItemCustomTrabajadoresProductosBinding((RelativeLayout) rootView,
-          descuentoPorcentaje, imageView, progressCargaImagen);
+      id = R.id.realitveCardView;
+      RelativeLayout realitveCardView = ViewBindings.findChildViewById(rootView, id);
+      if (realitveCardView == null) {
+        break missingId;
+      }
+
+      return new ItemCustomTrabajadoresProductosBinding((CardView) rootView, descuentoPorcentaje,
+          imageView, nombreProducto, precioDescuento, precioProducto, progressCargaImagen,
+          realitveCardView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

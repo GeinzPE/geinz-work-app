@@ -104,6 +104,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\reloj_icon_blanco_vista_tienda.webp"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_item_custom_trabajadores_productos.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_custom_trabajadores_productos.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_cuenta_fracment.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_cuenta_fracment.xml"
     },
@@ -326,6 +330,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_bottom_sheet_info_publicidad.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_info_publicidad.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_item_cargar_productos_promociones_trabajos.xml.flat",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_cargar_productos_promociones_trabajos.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_ocultar_arriva.xml.flat",
@@ -970,10 +978,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_round_item_selecionado.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\round_item_selecionado.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_fragment_info.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_info.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_baseline_navigate_next_24.xml.flat",

@@ -10,7 +10,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -25,7 +24,7 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   private final RelativeLayout rootView;
 
   @NonNull
-  public final TextView cambiarTextoTrabajosRealziadosTrabajosRecientes;
+  public final ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos;
 
   @NonNull
   public final ProgressBar cargarConteindo;
@@ -35,15 +34,6 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
 
   @NonNull
   public final BottomSheetDragHandleView cerrar;
-
-  @NonNull
-  public final LinearLayout linealMostrarTrabajos;
-
-  @NonNull
-  public final RelativeLayout linealNoSeEncontraron;
-
-  @NonNull
-  public final RecyclerView masTrabajosRealiados;
 
   @NonNull
   public final LinearLayout scollView;
@@ -60,31 +50,22 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
   @NonNull
   public final TextView tvReadMore;
 
-  @NonNull
-  public final TextView verTodosTrabajos;
-
   private BottomSheetMostarTrabajosRecientesBinding(@NonNull RelativeLayout rootView,
-      @NonNull TextView cambiarTextoTrabajosRealziadosTrabajosRecientes,
+      @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
       @NonNull ProgressBar cargarConteindo, @NonNull ImageCarousel carruselImgTrabajos,
-      @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout linealMostrarTrabajos,
-      @NonNull RelativeLayout linealNoSeEncontraron, @NonNull RecyclerView masTrabajosRealiados,
-      @NonNull LinearLayout scollView, @NonNull TextView textoTrabajosRealzados,
-      @NonNull TextView tituloNombreTrabajador, @NonNull TextView tituloTrabajosRealizados,
-      @NonNull TextView tvReadMore, @NonNull TextView verTodosTrabajos) {
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout scollView,
+      @NonNull TextView textoTrabajosRealzados, @NonNull TextView tituloNombreTrabajador,
+      @NonNull TextView tituloTrabajosRealizados, @NonNull TextView tvReadMore) {
     this.rootView = rootView;
-    this.cambiarTextoTrabajosRealziadosTrabajosRecientes = cambiarTextoTrabajosRealziadosTrabajosRecientes;
+    this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
     this.cargarConteindo = cargarConteindo;
     this.carruselImgTrabajos = carruselImgTrabajos;
     this.cerrar = cerrar;
-    this.linealMostrarTrabajos = linealMostrarTrabajos;
-    this.linealNoSeEncontraron = linealNoSeEncontraron;
-    this.masTrabajosRealiados = masTrabajosRealiados;
     this.scollView = scollView;
     this.textoTrabajosRealzados = textoTrabajosRealzados;
     this.tituloNombreTrabajador = tituloNombreTrabajador;
     this.tituloTrabajosRealizados = tituloTrabajosRealizados;
     this.tvReadMore = tvReadMore;
-    this.verTodosTrabajos = verTodosTrabajos;
   }
 
   @Override
@@ -115,11 +96,12 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.cambiarTexto_trabajos_realziados_trabajos_recientes;
-      TextView cambiarTextoTrabajosRealziadosTrabajosRecientes = ViewBindings.findChildViewById(rootView, id);
-      if (cambiarTextoTrabajosRealziadosTrabajosRecientes == null) {
+      id = R.id.cargaProductos_promo_trabajos;
+      View cargaProductosPromoTrabajos = ViewBindings.findChildViewById(rootView, id);
+      if (cargaProductosPromoTrabajos == null) {
         break missingId;
       }
+      ItemCargarProductosPromocionesTrabajosBinding binding_cargaProductosPromoTrabajos = ItemCargarProductosPromocionesTrabajosBinding.bind(cargaProductosPromoTrabajos);
 
       id = R.id.cargarConteindo;
       ProgressBar cargarConteindo = ViewBindings.findChildViewById(rootView, id);
@@ -136,24 +118,6 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
       id = R.id.cerrar;
       BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
       if (cerrar == null) {
-        break missingId;
-      }
-
-      id = R.id.linealMostrarTrabajos;
-      LinearLayout linealMostrarTrabajos = ViewBindings.findChildViewById(rootView, id);
-      if (linealMostrarTrabajos == null) {
-        break missingId;
-      }
-
-      id = R.id.linealNo_seEncontraron;
-      RelativeLayout linealNoSeEncontraron = ViewBindings.findChildViewById(rootView, id);
-      if (linealNoSeEncontraron == null) {
-        break missingId;
-      }
-
-      id = R.id.mas_trabajos_realiados;
-      RecyclerView masTrabajosRealiados = ViewBindings.findChildViewById(rootView, id);
-      if (masTrabajosRealiados == null) {
         break missingId;
       }
 
@@ -187,17 +151,10 @@ public final class BottomSheetMostarTrabajosRecientesBinding implements ViewBind
         break missingId;
       }
 
-      id = R.id.verTodosTrabajos;
-      TextView verTodosTrabajos = ViewBindings.findChildViewById(rootView, id);
-      if (verTodosTrabajos == null) {
-        break missingId;
-      }
-
       return new BottomSheetMostarTrabajosRecientesBinding((RelativeLayout) rootView,
-          cambiarTextoTrabajosRealziadosTrabajosRecientes, cargarConteindo, carruselImgTrabajos,
-          cerrar, linealMostrarTrabajos, linealNoSeEncontraron, masTrabajosRealiados, scollView,
-          textoTrabajosRealzados, tituloNombreTrabajador, tituloTrabajosRealizados, tvReadMore,
-          verTodosTrabajos);
+          binding_cargaProductosPromoTrabajos, cargarConteindo, carruselImgTrabajos, cerrar,
+          scollView, textoTrabajosRealzados, tituloNombreTrabajador, tituloTrabajosRealizados,
+          tvReadMore);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
