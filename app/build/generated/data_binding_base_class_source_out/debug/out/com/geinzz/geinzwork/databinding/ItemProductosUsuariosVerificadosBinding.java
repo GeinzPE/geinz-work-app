@@ -4,10 +4,12 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -19,7 +21,10 @@ import java.lang.String;
 
 public final class ItemProductosUsuariosVerificadosBinding implements ViewBinding {
   @NonNull
-  private final RelativeLayout rootView;
+  private final CardView rootView;
+
+  @NonNull
+  public final ProgressBar cargadoContenido;
 
   @NonNull
   public final TextView descuentoPorcentaje;
@@ -28,20 +33,39 @@ public final class ItemProductosUsuariosVerificadosBinding implements ViewBindin
   public final ShapeableImageView imgTrabajo;
 
   @NonNull
+  public final LinearLayout linealCargandoDatos;
+
+  @NonNull
+  public final TextView nombreProducto;
+
+  @NonNull
+  public final TextView precioDescuento;
+
+  @NonNull
+  public final TextView precioProducto;
+
+  @NonNull
   public final CircularProgressIndicator progressCargaImagen;
 
-  private ItemProductosUsuariosVerificadosBinding(@NonNull RelativeLayout rootView,
-      @NonNull TextView descuentoPorcentaje, @NonNull ShapeableImageView imgTrabajo,
-      @NonNull CircularProgressIndicator progressCargaImagen) {
+  private ItemProductosUsuariosVerificadosBinding(@NonNull CardView rootView,
+      @NonNull ProgressBar cargadoContenido, @NonNull TextView descuentoPorcentaje,
+      @NonNull ShapeableImageView imgTrabajo, @NonNull LinearLayout linealCargandoDatos,
+      @NonNull TextView nombreProducto, @NonNull TextView precioDescuento,
+      @NonNull TextView precioProducto, @NonNull CircularProgressIndicator progressCargaImagen) {
     this.rootView = rootView;
+    this.cargadoContenido = cargadoContenido;
     this.descuentoPorcentaje = descuentoPorcentaje;
     this.imgTrabajo = imgTrabajo;
+    this.linealCargandoDatos = linealCargandoDatos;
+    this.nombreProducto = nombreProducto;
+    this.precioDescuento = precioDescuento;
+    this.precioProducto = precioProducto;
     this.progressCargaImagen = progressCargaImagen;
   }
 
   @Override
   @NonNull
-  public RelativeLayout getRoot() {
+  public CardView getRoot() {
     return rootView;
   }
 
@@ -66,6 +90,12 @@ public final class ItemProductosUsuariosVerificadosBinding implements ViewBindin
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.cargadoContenido;
+      ProgressBar cargadoContenido = ViewBindings.findChildViewById(rootView, id);
+      if (cargadoContenido == null) {
+        break missingId;
+      }
+
       id = R.id.descuentoPorcentaje;
       TextView descuentoPorcentaje = ViewBindings.findChildViewById(rootView, id);
       if (descuentoPorcentaje == null) {
@@ -78,14 +108,39 @@ public final class ItemProductosUsuariosVerificadosBinding implements ViewBindin
         break missingId;
       }
 
+      id = R.id.linealCargandoDatos;
+      LinearLayout linealCargandoDatos = ViewBindings.findChildViewById(rootView, id);
+      if (linealCargandoDatos == null) {
+        break missingId;
+      }
+
+      id = R.id.nombreProducto;
+      TextView nombreProducto = ViewBindings.findChildViewById(rootView, id);
+      if (nombreProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.precioDescuento;
+      TextView precioDescuento = ViewBindings.findChildViewById(rootView, id);
+      if (precioDescuento == null) {
+        break missingId;
+      }
+
+      id = R.id.precioProducto;
+      TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
+      if (precioProducto == null) {
+        break missingId;
+      }
+
       id = R.id.progress_carga_imagen;
       CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
       if (progressCargaImagen == null) {
         break missingId;
       }
 
-      return new ItemProductosUsuariosVerificadosBinding((RelativeLayout) rootView,
-          descuentoPorcentaje, imgTrabajo, progressCargaImagen);
+      return new ItemProductosUsuariosVerificadosBinding((CardView) rootView, cargadoContenido,
+          descuentoPorcentaje, imgTrabajo, linealCargandoDatos, nombreProducto, precioDescuento,
+          precioProducto, progressCargaImagen);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

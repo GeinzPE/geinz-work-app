@@ -6,12 +6,13 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.geinzz.geinzwork.databinding.ItemCustomTrabajadoresProductosBinding
 
 class adapter_productos_venta_user(
-    private val lista: MutableList<dataclassPorductosVerntaUser>,
-    private val listener: (dataclassPorductosVerntaUser) -> Unit
+    private val lista: MutableList<dataclas_item_preview_art_comprar>,
+    private val listener: (dataclas_item_preview_art_comprar) -> Unit
 ) : RecyclerView.Adapter<adapter_productos_venta_user.viewHolderVentaProductos>() {
 
 
@@ -32,45 +33,45 @@ class adapter_productos_venta_user(
 
     override fun onBindViewHolder(holder: viewHolderVentaProductos, position: Int) {
         val item = lista[position]
-        holder.render(item)
+//        holder.render(item)
     }
 
 
     inner class viewHolderVentaProductos(private val binding: ItemCustomTrabajadoresProductosBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun render(item: dataclassPorductosVerntaUser) {
-            Log.d("RenderDebug", "Producto: ${item.id}, Descuento: ${item.descuento}, Descuento Número: ${item.descuentoNumero}")
-
-            if (item.descuento == true) {
-                binding.descuentoPorcentaje.text = "-${item.descuentoNumero.toString()}%"
-                binding.descuentoPorcentaje.isVisible = true
-            } else {
-                binding.descuentoPorcentaje.isVisible = false
-            }
-
-            binding.imageView.setOnClickListener {
-                listener(item)
-                Log.d("RenderDebug", "Click en: ${item.id}, Descuento: ${item.descuento}, Descuento Número: ${item.descuentoNumero}")
-
-                if (item.descuento == true) {
-                    binding.descuentoPorcentaje.text = "-${item.descuentoNumero.toString()}%"
-                    binding.descuentoPorcentaje.isVisible = true
-                } else {
-                    binding.descuentoPorcentaje.isVisible = false
-                }
-            }
-
-            constatnes_carga_imagenes_general.changer_img(
-                binding.progressCargaImagen,
-                itemView.context,
-                item.img.toString(),
-                null,
-                binding.imageView,
-                "portada",
-                null
-            ) { complet -> }
-        }
+//        fun render(item: dataclas_item_preview_art_comprar) {
+//            Log.d("RenderDebug", "Producto: ${item.id}, Descuento: ${item.descuento}, Descuento Número: ${item.descuentoNumero}")
+//
+//            if (item.descuento == true) {
+//                binding.descuentoPorcentaje.text = "-${item.descuentoNumero.toString()}%"
+//                binding.descuentoPorcentaje.isVisible = true
+//            } else {
+//                binding.descuentoPorcentaje.isVisible = false
+//            }
+//
+//            binding.imageView.setOnClickListener {
+//                listener(item)
+//                Log.d("RenderDebug", "Click en: ${item.id}, Descuento: ${item.descuento}, Descuento Número: ${item.descuentoNumero}")
+//
+//                if (item.descuento == true) {
+//                    binding.descuentoPorcentaje.text = "-${item.descuentoNumero.toString()}%"
+//                    binding.descuentoPorcentaje.isVisible = true
+//                } else {
+//                    binding.descuentoPorcentaje.isVisible = false
+//                }
+//            }
+//
+//            constatnes_carga_imagenes_general.changer_img(
+//                binding.progressCargaImagen,
+//                itemView.context,
+//                item.img.toString(),
+//                null,
+//                binding.imageView,
+//                "portada",
+//                null
+//            ) { complet -> }
+//        }
 
     }
 

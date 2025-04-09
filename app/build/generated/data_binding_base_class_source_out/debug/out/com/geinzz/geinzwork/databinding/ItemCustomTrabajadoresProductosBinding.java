@@ -29,15 +29,6 @@ public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding
   public final PhotoView imageView;
 
   @NonNull
-  public final TextView nombreProducto;
-
-  @NonNull
-  public final TextView precioDescuento;
-
-  @NonNull
-  public final TextView precioProducto;
-
-  @NonNull
   public final CircularProgressIndicator progressCargaImagen;
 
   @NonNull
@@ -45,15 +36,11 @@ public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding
 
   private ItemCustomTrabajadoresProductosBinding(@NonNull CardView rootView,
       @NonNull TextView descuentoPorcentaje, @NonNull PhotoView imageView,
-      @NonNull TextView nombreProducto, @NonNull TextView precioDescuento,
-      @NonNull TextView precioProducto, @NonNull CircularProgressIndicator progressCargaImagen,
+      @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull RelativeLayout realitveCardView) {
     this.rootView = rootView;
     this.descuentoPorcentaje = descuentoPorcentaje;
     this.imageView = imageView;
-    this.nombreProducto = nombreProducto;
-    this.precioDescuento = precioDescuento;
-    this.precioProducto = precioProducto;
     this.progressCargaImagen = progressCargaImagen;
     this.realitveCardView = realitveCardView;
   }
@@ -97,24 +84,6 @@ public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding
         break missingId;
       }
 
-      id = R.id.nombreProducto;
-      TextView nombreProducto = ViewBindings.findChildViewById(rootView, id);
-      if (nombreProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.precioDescuento;
-      TextView precioDescuento = ViewBindings.findChildViewById(rootView, id);
-      if (precioDescuento == null) {
-        break missingId;
-      }
-
-      id = R.id.precioProducto;
-      TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
-      if (precioProducto == null) {
-        break missingId;
-      }
-
       id = R.id.progress_carga_imagen;
       CircularProgressIndicator progressCargaImagen = ViewBindings.findChildViewById(rootView, id);
       if (progressCargaImagen == null) {
@@ -128,8 +97,7 @@ public final class ItemCustomTrabajadoresProductosBinding implements ViewBinding
       }
 
       return new ItemCustomTrabajadoresProductosBinding((CardView) rootView, descuentoPorcentaje,
-          imageView, nombreProducto, precioDescuento, precioProducto, progressCargaImagen,
-          realitveCardView);
+          imageView, progressCargaImagen, realitveCardView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

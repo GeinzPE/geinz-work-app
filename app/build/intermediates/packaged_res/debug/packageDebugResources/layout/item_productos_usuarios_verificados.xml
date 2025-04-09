@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginRight="10dp"
-    >
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/fondo"
+    android:layout_width="200dp"
+    android:layout_height="320dp"
+    android:layout_margin="5dp"
+    app:cardBackgroundColor="@color/colorFondo"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="3dp">
 
     <RelativeLayout
-        android:elevation="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="150dp">
+        android:layout_width="200dp"
+        android:layout_height="match_parent"
+        android:elevation="10dp">
         <!-- Imagen principal -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/img_trabajo"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="200dp"
+            android:layout_height="250dp"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
@@ -40,7 +44,70 @@
             android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/cargadoContenido"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_below="@+id/img_trabajo"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp" />
+
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/linealCargandoDatos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/img_trabajo"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/nombreProducto"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="20dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/cat"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/nombreProducto"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/precioProducto"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/cat"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/precioDescuento"
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/cat"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
     </RelativeLayout>
 
-
-</RelativeLayout>
+</androidx.cardview.widget.CardView>

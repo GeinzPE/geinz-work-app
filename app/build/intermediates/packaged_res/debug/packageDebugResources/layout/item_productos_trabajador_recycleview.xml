@@ -1,80 +1,83 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="330dp">
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/colorFondo"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:id="@+id/btn_vermas"
-        style="@style/RoundTrabajadoresBG"
-        android:layout_width="190dp"
-        android:layout_height="330dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        tools:ignore="MissingConstraints">
+        android:visibility="gone"
+        android:paddingBottom="10dp">
 
-        <RelativeLayout
-            android:layout_width="wrap_content"
+        <!-- Imagen principal -->
+        <FrameLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/img_trabajo"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/img_trabajo"
-                    android:layout_width="match_parent"
-                    android:layout_height="150dp"
-                    android:scaleType="centerCrop"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:id="@+id/progress_carga_imagen"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_centerInParent="true"
-                    android:indeterminate="true"
-                    android:visibility="gone" />
-            </RelativeLayout>
-
-
-        </RelativeLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical"
-            android:paddingHorizontal="5dp">
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progress_carga_imagen"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/descripcionProducto"
+                android:id="@+id/descuentoPorcentaje"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_margin="8dp"
+                android:background="@drawable/roun_off_descuento"
+                android:padding="5dp"
+                android:text="@string/cat"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Contenido cargado -->
+        <LinearLayout
+            android:id="@+id/linealCargandoDatos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="7dp"
+            android:paddingTop="10dp"
+            android:layout_weight="1"> <!-- Esto hace que ocupe el espacio restante -->
+
+            <TextView
+                android:layout_marginRight="10dp"
+                android:id="@+id/nombreProducto"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginBottom="10dp"
                 android:ellipsize="end"
-                android:maxLines="3"
-                android:text="@string/geinz"
-
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/descuentoProducto"
-                style="@style/descripcionColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:maxLines="1"
                 android:text="@string/cat"
-                android:textSize="15sp" />
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="5dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -82,39 +85,42 @@
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/cat"
-                    android:textSize="17sp" />
+                    android:textSize="15sp" />
 
                 <TextView
-                    android:id="@+id/descuentoPorcentaje"
+                    android:id="@+id/precioDescuento"
+                    style="@style/descripcionColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:background="@drawable/roun_off_descuento"
-                    android:padding="5dp"
+                    android:layout_marginStart="10dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/cat"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
             </LinearLayout>
 
-
             <TextView
-                android:textColor="@color/verdedelivery_gratis"
                 android:id="@+id/envioGratis"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/verdedelivery_gratis"
+                android:textStyle="bold"
                 android:text="Envio Gratis"
                 android:textSize="15sp"
                 android:visibility="gone" />
-
         </LinearLayout>
 
 
     </LinearLayout>
-
-
-</RelativeLayout>
+    <ProgressBar
+        android:id="@+id/cargadoContenido"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center" />
+</androidx.cardview.widget.CardView>

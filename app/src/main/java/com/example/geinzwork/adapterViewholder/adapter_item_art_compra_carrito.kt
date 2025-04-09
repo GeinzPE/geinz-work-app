@@ -43,10 +43,10 @@ class adapter_item_art_compra_carrito(private var lista: MutableList<dataclas_it
             }
             try {
                 val precio = item.precio ?: 0.0
-                val cantidad = item.cantidad ?: 0
+                val cantidad = item.cantidad ?: 0.0
 
-                val totalProducto = precio * cantidad
-                binding.totalProducto.text=totalProducto.toString()
+//                val totalProducto = precio * cantidad
+//                binding.totalProducto.text=totalProducto.toString()
 
             } catch (e: NumberFormatException) {
                 println("Error al convertir el precio o la cantidad: ${e.message}")

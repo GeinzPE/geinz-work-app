@@ -31,19 +31,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBinding
-import com.example.geinzwork.adapterViewholder.adapterInicializarRecycleimgProductosTrabajadores
-import com.example.geinzwork.adapterViewholder.adapter_productos_venta_user
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
-import com.example.geinzwork.adapterViewholder.adapter_mostra_articulos_trabajadores
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
-import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
-import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.R
@@ -56,7 +51,6 @@ import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomSheetContactaTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBinding
-import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
@@ -83,14 +77,9 @@ import java.net.URLEncoder
 
 class info : Fragment() {
     private val listaMas_promo = mutableListOf<dataclass_adapter_promociones>()
-
-    private val listaProductosUSer = mutableListOf<dataclassPorductosVerntaUser>()
-    val listaImg = mutableListOf<dataclassMostarImgProductosVendedor>()
     private lateinit var binding: FragmentInfoBinding
     private lateinit var mContex: Context
     private var listAdapter = mutableListOf<dataclas_trabajos_ralizados>()
-    private val listaAdapterProductosTRabajdores =
-        mutableListOf<dataclas_item_preview_art_comprar>()
     private var listaTrabajo = mutableListOf<dataClassTrabajosd>()
     private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth

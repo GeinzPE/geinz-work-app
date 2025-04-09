@@ -32,7 +32,7 @@ object constantes_publicaciones_general_user_tiendas {
     private val listaAdapterProductosTRabajdores =
         mutableListOf<dataclas_item_preview_art_comprar>()
     val listaImg = mutableListOf<dataclassMostarImgProductosVendedor>()
-    private val listaProductosUSer = mutableListOf<dataclassPorductosVerntaUser>()
+    private val listaProductosUSer = mutableListOf<dataclas_item_preview_art_comprar>()
     private lateinit var dialog: BottomSheetDialog
 
     @SuppressLint("SuspiciousIndentation")
@@ -107,9 +107,11 @@ object constantes_publicaciones_general_user_tiendas {
                 val descuentoActivo = data["descuento"] as? Boolean ?: false
                 val id = data["id"] as? String ?: ""
                 val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
-
+                val precio_descuento= data["precio_descuento"] as? Number ?: 0
+                val precio= data["precio"] as? Number ?: 0
+                val nombre= data["nombre"] as? String ?: ""
                 val item = dataclas_item_preview_art_comprar(
-                    id, imgProducto, "", null, null, descuentoActivo, cantidadDescuento
+                    id, imgProducto, nombre, precio, precio_descuento, descuentoActivo, cantidadDescuento
                 )
                 listaTemporal.add(item)
             }
@@ -235,17 +237,18 @@ object constantes_publicaciones_general_user_tiendas {
         db.get().addOnSuccessListener { res ->
             listaProductosUSer.clear()
             for (datos in res) {
-                val data = datos.data
-                val id = data?.get("id") as? String ?: ""
-                val imgpricipal = data?.get("img_principal") as? String ?: ""
-                val descuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
-                val porcentajeDescuentoBool = data?.get("descuento") as? Boolean ?: false
-                val descripcion = data?.get("") as? String ?: ""
+                val imgProducto = datos["img_principal"] as? String ?: ""
+                val descuentoActivo = datos["descuento"] as? Boolean ?: false
+                val id = datos["id"] as? String ?: ""
+                val cantidadDescuento = datos["cantidad_porcentaje_descuento"] as? Number ?: 0
+                val precio_descuento= datos["precio_descuento"] as? Number ?: 0
+                val precio= datos["precio"] as? Number ?: 0
+                val nombre= datos["nombre"] as? String ?: ""
                 if (id != idProducto) {
-                    val dataClass = dataclassPorductosVerntaUser(
-                        id, imgpricipal, descuento, porcentajeDescuentoBool
+                    val item = dataclas_item_preview_art_comprar(
+                        id, imgProducto, nombre, precio, precio_descuento, descuentoActivo, cantidadDescuento
                     )
-                    listaProductosUSer.add(dataClass)
+                    listaProductosUSer.add(item)
                 }
             }
             if (listaProductosUSer.isNotEmpty()) {
@@ -266,7 +269,6 @@ object constantes_publicaciones_general_user_tiendas {
                 bindingProductosVencidodos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible=true
                 bindingProductosVencidodos.cargaProductosPromoTrabajos.textoCambiarTrabajosOPublicaciones.text =
                     "No se encontro mas productos"
-
             }
 
 
@@ -370,13 +372,13 @@ object constantes_publicaciones_general_user_tiendas {
     private fun inizializarCarruceBindig(
         context: Context,
         idTrabajador: String,
-        lista_productosVentaUSer: MutableList<dataclassPorductosVerntaUser>,
+        lista_productosVentaUSer: MutableList<dataclas_item_preview_art_comprar>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
     ) {
         val recicle = bindingProductosTrabajadores.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
-        val adapter = adapter_productos_venta_user(lista_productosVentaUSer) { item ->
+        val adapter = adapter_mostra_articulos_trabajadores(lista_productosVentaUSer) { item ->
             cargarDatosNuevaMente(
                 context,
                 idTrabajador,

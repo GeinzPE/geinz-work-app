@@ -8,10 +8,6 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_gracias_registro.xml"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/item_custom_trabajadores_productos.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_custom_trabajadores_productos.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_vista_categoria.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_vista_categoria.xml"
     },
@@ -54,6 +50,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_productos_usuarios_verificados.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_productos_usuarios_verificados.xml"
+    },
+    {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/item_productos_trabajador_recycleview.xml",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_productos_trabajador_recycleview.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\expandabletextview.xml",

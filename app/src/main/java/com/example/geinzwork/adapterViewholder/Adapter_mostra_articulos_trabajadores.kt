@@ -1,12 +1,15 @@
 package com.example.geinzwork.adapterViewholder
 
 
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ItemProductosUsuariosVerificadosBinding
 
 class adapter_mostra_articulos_trabajadores(
@@ -39,6 +42,11 @@ class adapter_mostra_articulos_trabajadores(
         val imgARticulo = binding.imgTrabajo
         val progressVar = binding.progressCargaImagen
         val descuentoPorcentaje = binding.descuentoPorcentaje
+        val titulo=binding.nombreProducto
+        val precioProducto=binding.precioProducto
+        val precioDescuento=binding.precioDescuento
+        val carga=binding.cargadoContenido
+        val linealCamposTXT=binding.linealCargandoDatos
         fun render(item: dataclas_item_preview_art_comprar) {
             imgARticulo.setOnClickListener { listener(item) }
             constatnes_carga_imagenes_general.changer_img(
@@ -51,11 +59,24 @@ class adapter_mostra_articulos_trabajadores(
             ) { completado ->
 
             }
+            Handler(Looper.getMainLooper()).postDelayed({
+                carga.isVisible = false
+                linealCamposTXT.isVisible=true
+            }, 2000)
+
+            titulo.text=item.titulo
             if (item.descuentoBoolena == true) {
                 descuentoPorcentaje.isVisible = true
                 descuentoPorcentaje.text = "-${item.descuentoCantidad.toString()}%"
+                precioDescuento.isVisible=true
+                precioDescuento.text=item.descuentoCantidad.toString()
+                constantestextos_general.marcarDescuentoTxt(precioDescuento)
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(item.cantidad,precioProducto)
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(null,null,item.precio,precioDescuento)
             } else {
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(item.precio,precioProducto)
                 descuentoPorcentaje.isVisible = false
+                precioDescuento.isVisible=false
             }
         }
 

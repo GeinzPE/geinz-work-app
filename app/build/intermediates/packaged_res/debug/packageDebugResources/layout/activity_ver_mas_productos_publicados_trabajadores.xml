@@ -13,7 +13,7 @@
         style="@style/fondo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp">
+       >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,7 +23,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_margin="10dp">
 
                 <TextView
                     style="@style/TextoTitulos"
@@ -71,7 +72,10 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycleViewProductosFiltrados"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="4dp"
+                android:scrollbars="vertical"
                 android:visibility="gone" />
 
 

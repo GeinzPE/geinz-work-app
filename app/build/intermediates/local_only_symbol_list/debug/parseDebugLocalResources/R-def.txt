@@ -487,6 +487,7 @@ id cargaIMGtexto
 id cargaLike
 id cargaProductos_promo_trabajos
 id cargaServicios
+id cargadoContenido
 id cargaimg
 id cargandoContenido
 id cargandoRef
@@ -628,7 +629,6 @@ id descripcionus
 id descuento
 id descuentoED
 id descuentoPorcentaje
-id descuentoProducto
 id descuento_no
 id descuento_si
 id detallesBoleta
@@ -930,6 +930,7 @@ id linealCaracteristicas
 id linealCaracteristicasLayout
 id linealCarga
 id linealCargaTexto_img
+id linealCargandoDatos
 id linealCargandoHorario
 id linealCargandoImg
 id linealCargandoRef

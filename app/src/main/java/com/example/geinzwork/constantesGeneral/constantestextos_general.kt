@@ -92,12 +92,10 @@ object constantestextos_general {
 
     fun marcarDescuentoTxt(
         textViewPriceBefore: TextView,
-
         ) {
         textViewPriceBefore.paintFlags =
             textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         textViewPriceBefore.textSize = 12f
-
 
     }
 

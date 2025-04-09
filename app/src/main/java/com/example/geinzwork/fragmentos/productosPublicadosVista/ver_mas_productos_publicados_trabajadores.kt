@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.geinzwork.adapterViewholder.adapterCategoriasPromocionesFiltrado
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.adapterViewholder.adapter_ver_mas_productos_publicados
@@ -72,13 +73,15 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
                 val categoria = data.get("categoria") as? String ?: ""
+                val nombre = data.get("nombre") as? String ?: ""
+
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
                     descripcionProducto,
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    envioGratisProducto, id, cantidad_porcentaje_descuento
+                    envioGratisProducto, id, cantidad_porcentaje_descuento,nombre
                 )
                 if (categoriaFiltrado == categoria) {
                     listaVer_mas_productos.add(dataclass)
@@ -120,13 +123,15 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
                 val categoria = data.get("categoria") as? String ?:""
+                val nombre = data.get("nombre") as? String ?: ""
+
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
                     descripcionProducto,
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    envioGratisProducto, id, cantidad_porcentaje_descuento
+                    envioGratisProducto, id, cantidad_porcentaje_descuento,nombre
                 )
                 if (categoriaFiltrado == categoria && descuentoProducto) {
                     listaVer_mas_productos.add(dataclass)
@@ -212,12 +217,14 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta")
-        binding.prograsvar.isVisible=true
+        binding.prograsvar.isVisible = true
+
         db.get().addOnSuccessListener { res ->
             for (datos in res) {
                 val data = datos.data
                 val imgPrincipal = data.get("img_principal") as? String ?: ""
                 val id = data.get("id") as? String ?: ""
+                val nombre = data.get("nombre") as? String ?: ""
                 val descripcionProducto = data.get("descripcion") as? String ?: ""
                 val cantidad_porcentaje_descuento =
                     data.get("cantidad_porcentaje_descuento") as? Number ?: 0
@@ -225,54 +232,55 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val precioProducto = data.get("precio") as? Number ?: 0
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
+
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
                     descripcionProducto,
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    envioGratisProducto, id, cantidad_porcentaje_descuento
+                    envioGratisProducto, id, cantidad_porcentaje_descuento, nombre
                 )
-                listaVer_mas_productos.add(dataclass)
-                if (listaVer_mas_productos.isNotEmpty()) {
-                    inicializarRecycleProductos(idTrabajador,listaVer_mas_productos)
-                    binding.recycleViewProductosFiltrados.isVisible=true
-                    binding.textoNoEncontrado.isVisible=false
-                    binding.prograsvar.isVisible=false
-                } else {
-                    println("no se econtraron datos")
-                    binding.textoNoEncontrado.isVisible=true
-                    binding.prograsvar.isVisible=false
-                }
 
+                listaVer_mas_productos.add(dataclass)
             }
+
+
+            if (listaVer_mas_productos.isNotEmpty()) {
+                listaVer_mas_productos.shuffled()
+                inicializarRecycleProductos(idTrabajador, listaVer_mas_productos)
+                binding.recycleViewProductosFiltrados.isVisible = true
+                binding.textoNoEncontrado.isVisible = false
+                binding.prograsvar.isVisible = false
+            } else {
+                println("no se encontraron datos")
+                binding.textoNoEncontrado.isVisible = true
+                binding.prograsvar.isVisible = false
+            }
+
         }.addOnFailureListener { e ->
             println("no se encontraron datos $e")
-            binding.textoNoEncontrado.isVisible=true
-            binding.prograsvar.isVisible=false
+            binding.textoNoEncontrado.isVisible = true
+            binding.prograsvar.isVisible = false
         }
     }
 
-    private fun inicializarRecycleProductos(idTrabajador: String,listaProductos: MutableList<dataclass_ver_mas_productos_trabajador>) {
-        val recicle = binding.recycleViewProductosFiltrados
-        val layoutManager = GridLayoutManager(this, 2)
-        recicle.layoutManager = layoutManager
-        recicle.adapter = adapter_ver_mas_productos_publicados(
-            listaProductos
-        ){item->
-            dialog = BottomSheetDialog(this)
-            ShowBottomSheetDialogProductosTrabajadores(idTrabajador,item.id.toString())
-            dialog.show()
-        }
 
-        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-            override fun getSpanSize(position: Int): Int {
-                return if (position < 2) {
-                    1
-                } else {
-                    1
-                }
-            }
+    private fun inicializarRecycleProductos(
+        idTrabajador: String,
+        listaProductos: MutableList<dataclass_ver_mas_productos_trabajador>
+    ) {
+        val recicle = binding.recycleViewProductosFiltrados
+
+        // Usamos StaggeredGridLayoutManager en lugar de GridLayoutManager
+        val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        layoutManager.gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
+        recicle.layoutManager = layoutManager
+
+        recicle.adapter = adapter_ver_mas_productos_publicados(listaProductos) { item ->
+            dialog = BottomSheetDialog(this)
+            ShowBottomSheetDialogProductosTrabajadores(idTrabajador, item.id.toString())
+            dialog.show()
         }
     }
 

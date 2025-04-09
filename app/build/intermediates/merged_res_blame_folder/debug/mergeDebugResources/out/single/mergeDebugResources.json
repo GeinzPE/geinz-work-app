@@ -104,10 +104,6 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\reloj_icon_blanco_vista_tienda.webp"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_item_custom_trabajadores_productos.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_custom_trabajadores_productos.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_fragment_cuenta_fracment.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_cuenta_fracment.xml"
     },
@@ -1578,6 +1574,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_bottom_sheet_filtrar_resultados_promo.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_filtrar_resultados_promo.xml"
+    },
+    {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_item_productos_trabajador_recycleview.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_productos_trabajador_recycleview.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_navegacion_icon.webp.flat",
