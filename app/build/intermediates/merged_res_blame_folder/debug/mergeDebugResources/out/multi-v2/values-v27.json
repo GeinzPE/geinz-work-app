@@ -4,7 +4,7 @@
             "outputFile": "com.geinzz.geinzwork.app-mergeDebugResources-54:/values-v27/values-v27.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\user\\.gradle\\caches\\transforms-4\\ea5d242080a5ab6615279829aaa20fa9\\transformed\\core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",
+                    "source": "C:\\Users\\Benjamin\\.gradle\\caches\\transforms-4\\ea5d242080a5ab6615279829aaa20fa9\\transformed\\core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",
                     "from": {
                         "startLines": "2,3,4,7",
                         "startColumns": "4,4,4,4",

@@ -36,8 +36,6 @@ import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
-import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
-import com.example.geinzwork.dataclass.dataclassPorductosVerntaUser
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
@@ -55,7 +53,6 @@ import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
-import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
 import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -190,6 +187,16 @@ class info : Fragment() {
         obtenerPerfil(idTrabajador, img)
 
         confSwipe(idTrabajador, img)
+        constantes_trabajadores_info.verificarSiSiueTrabajador(binding, idTrabajador)
+        binding.dejarDeSeguirOSeguir.setOnClickListener {
+            constantes_trabajadores_info.verificarFollow(idTrabajador, binding, mContex)
+        }
+
+        binding.masInformacion.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            constantes_trabajadores_info.mostrarDialoDatosUSer(dialog,idTrabajador,mContex,img)
+            dialog.show()
+        }
     }
 
 
@@ -790,19 +797,12 @@ class info : Fragment() {
                 val nombre = data?.get(Variables.nombre) as? String ?: ""
                 val descripcion = data?.get(Variables.descripcion) as? String ?: ""
                 val categoriaTrabajo = data?.get(Variables.categoriaTrabajo) as? String ?: ""
-                val genero = data?.get(Variables.genero) as? String ?: ""
-                val horario1 = data?.get(Variables.horario1) as? String ?: ""
-                val horario2 = data?.get(Variables.horario2) as? String ?: ""
-                val nacionalidad = data?.get(Variables.nacionalidad) as? String ?: ""
-                val localidad = data?.get(Variables.localidad) as? String ?: ""
-                val codigo_pais = data?.get(Variables.codigo_pais) as? String ?: ""
-                val numero = data?.get(Variables.numero) as? String ?: ""
                 val tipoTrabajo = data?.get(Variables.tipoTrabajo) as? String ?: ""
-                val EdadActual = data?.get(Variables.EdadActual) as? String ?: ""
-                val FechaNacimiento = data?.get(Variables.fechaNac) as? String ?: ""
                 val ig = data?.get(Variables.IG) as? String ?: ""
                 val fb = data?.get(Variables.FB) as? String ?: ""
                 val tk = data?.get(Variables.TK) as? String ?: ""
+
+
 
                 verificarEstado_verificacion(fb, ig, tk, idUSer)
                 binding.nombre.text = nombre.toUpperCase()
@@ -829,20 +829,7 @@ class info : Fragment() {
 
                 binding.caracteristica1.text = spannableString
 
-                binding.genero.text = genero
-                binding.nacionalida.text = nacionalidad
-                binding.localidad.text = localidad
-                binding.horario.text = "${horario1} am : ${horario2} pm"
-                binding.telefono.text = "+${codigo_pais} ${numero}"
-                constantes_cuenta_user.calcularEdadTrabajador(FechaNacimiento) { edad ->
-                    if (edad.isNullOrEmpty()) {
-                        binding.edadUser.text = "No se calculo los años"
 
-                    } else {
-                        binding.edadUser.text = "${edad} años"
-                    }
-
-                }
 
             }
         }
@@ -1103,14 +1090,20 @@ class info : Fragment() {
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
                 inicializarTrabajosRealizados(bindingMostrarTRabajos)
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible = false
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible = true
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                    false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                    true
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
+                    false
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible = true
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible = false
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                    true
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                    false
+                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
+                    false
                 bindingMostrarTRabajos.cargaProductosPromoTrabajos.textoCambiarTrabajosOPublicaciones.text =
                     "No se encontro mas trabajos recientes"
             }
@@ -1195,7 +1188,7 @@ class info : Fragment() {
 
 
     private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
-        val recicle =  bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados
+        val recicle = bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.adapter = adapter_trabajos_realizados_trabajador(
             false,

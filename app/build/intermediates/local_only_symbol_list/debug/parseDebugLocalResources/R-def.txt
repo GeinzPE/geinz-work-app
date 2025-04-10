@@ -940,6 +940,7 @@ id linealCategoriaProducto
 id linealCategoriaT
 id linealCompartir_descargar
 id linealCondicionProducto
+id linealDatos
 id linealDescripcion
 id linealDescripcionProducto
 id linealDescuento
@@ -1213,6 +1214,7 @@ id productosDestacados
 id productosLineal
 id prograsvar
 id progresCargaCat
+id progresCargaDatos
 id progresCargandoContenido
 id progresVar3Estrellas
 id progressBar
@@ -1598,6 +1600,7 @@ layout bottom_sheet_reserva_productos
 layout bottom_sheet_reservas
 layout bottom_sheet_vista_categoria
 layout bottom_shett_cambios_realizados
+layout bottom_shett_dialog_mas_info_trabajador
 layout bottomsheet_productos_vendidos_user_verifi
 layout bottomshetet_detalles_servicios
 layout carga_carrito_compras
