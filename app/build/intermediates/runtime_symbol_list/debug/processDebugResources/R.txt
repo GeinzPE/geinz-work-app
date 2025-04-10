@@ -1772,6 +1772,7 @@ int color colorBTNFiltrado 0x7f050038
 int color colorFondo 0x7f050039
 int color colorFondoPantallaACtividades 0x7f05003a
 int color color_blanco_negro 0x7f05003b
+int color color_invertido_white_blackTexto 0x7f050370
 int color common_google_signin_btn_text_dark 0x7f05003c
 int color common_google_signin_btn_text_dark_default 0x7f05003d
 int color common_google_signin_btn_text_dark_disabled 0x7f05003e
@@ -3758,6 +3759,7 @@ int drawable baseline_more_vert_24 0x7f070088
 int drawable baseline_navigate_next_24 0x7f070089
 int drawable blanco_geinz_spahl 0x7f07008a
 int drawable border_noticias_text 0x7f07008b
+int drawable bordes_dtn_seguir_trabajdores 0x7f070300
 int drawable borrar_icon 0x7f07008c
 int drawable borrar_producto_icon 0x7f07008d
 int drawable bottom_top_shadow 0x7f07008e

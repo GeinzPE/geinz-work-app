@@ -103,7 +103,7 @@ class review : Fragment() {
 
         dbReview.get()
             .addOnSuccessListener { res ->
-                if (res.isEmpty) {
+                if (res.isEmpty ) {
                     // No hay reseñas
                     binding.frameSinReview.isVisible = true
                     binding.loading.isVisible = false

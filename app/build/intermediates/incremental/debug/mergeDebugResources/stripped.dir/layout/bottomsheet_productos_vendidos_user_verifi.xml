@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true">
+
+
+    <ProgressBar
+        android:id="@+id/progressCarga"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerInParent="true" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nettScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        android:visibility="gone">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+                android:id="@+id/cerrar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp" />
+
+            <LinearLayout
+                android:id="@+id/netScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/carrucelImgProductosVentaUser"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/nombreProducto"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/cat"
+                    android:textAllCaps="true"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/linealCategoriaProducto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="categoria: "
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:id="@+id/categoriaProducto"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/cat"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/linealFechaPublicada"
+                        android:layout_width="wrap_content"
+
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="publicado: "
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:id="@+id/fechaPublicado"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/cat" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/linealMarcaProducto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Marca: "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/marca"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="categoria"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/LinealModeloProducto"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Modelo: "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/modelo"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealStokDisponible"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="stok disponible: "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/stok"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealGarantiaDisponible"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Garantia: "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/garantia"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealCondicionProducto"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="condicion: "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/Condicion"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealDescripcionProducto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
+                        android:text="Descrpcion de producto  "
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/descripcion"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="3"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvReadMore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="Leer más"
+                        android:textColor="#027EB5"
+                        android:textSize="12sp"
+                        android:textStyle="normal"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealEntregaDomicilio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Entrega a domicilio : "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/entregaDomicilio"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/linealPrecioProducto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Precio : "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/precioProducto"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="15sp" />
+
+
+                    <TextView
+
+                        android:id="@+id/precioAntiguo"
+                        style="@style/descripcionColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:text="@string/cat"
+                        android:textSize="15sp"
+                        android:visibility="gone" />
+
+
+                    <TextView
+                        android:id="@+id/descuentoPorcentaje"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/roun_off_descuento"
+                        android:padding="5dp"
+                        android:text="@string/cat"
+                        android:textColor="@color/black"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/comprar"
+                        style="@style/RoundedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="60dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginRight="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:text="Comprar"
+                        android:textSize="14sp"
+                        app:iconGravity="textEnd" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/cordinarVendedor"
+                        style="@style/RoundedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="60dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginRight="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:text="Cordinar con el vendedor"
+                        android:textSize="14sp"
+                        app:iconGravity="textEnd" />
+                </LinearLayout>
+
+
+                <include
+                    android:id="@+id/cargaProductos_promo_trabajos"
+                    layout="@layout/item_cargar_productos_promociones_trabajos" />
+
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+</RelativeLayout>

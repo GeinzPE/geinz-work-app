@@ -9,6 +9,7 @@
     <color name="colorFondo">#F9F8FF</color>
     <color name="colorFondoPantallaACtividades">#F9F8FF</color>
     <color name="color_blanco_negro">#DFDDE0</color>
+    <color name="color_invertido_white_blackTexto">#1C2021</color>
     <color name="default_background">#3d3d3d</color>
     <color name="f1">#F9F8FF</color>
     <color name="fastlane_background">#0096a6</color>

@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".confirmacionCompraTienda.confirmacion_de_compra_tienda">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/TextoTitulos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:text="Confirmacion de compra geinz"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textSize="25sp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="@string/confirmacion_compra_txt"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="fecha realizada la compra:"
+                    android:textAllCaps="true"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/fecha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="hora realizada la compra:"
+                    android:textAllCaps="true"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/hora"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="10sp"
+                    tools:ignore="InvalidId" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="Campos del usuario(a):"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="nombre:"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/nombreUser"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="numero:"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/numero"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="localidad del usaurio:"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/localidaUSer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linealMetodoEntrega"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/layoutDireccion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="direccion de entrega:"
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/direccion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:text="***"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutDescripcion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="referencia de entrega:"
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/referenciaEntrega"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:text="***"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="campos de la tienda"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="tienda o negocio:"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/nombreTienda"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tipo tienda"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tipoTienda"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Localida tienda"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/localidadTienda"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="Metodo de compra y entrega (total)"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Codigo de pedido"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/codigoPedido"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="***"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/lineal_metodo_entrega"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Metodo entrega:"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/metodoEntrega"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+
+                    android:text="***"
+                    android:textSize="12sp"
+                    tools:ignore="InvalidId" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+
+                    android:text="tipo de pago:"
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tipop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="***"
+                    android:textSize="12sp"
+                    tools:ignore="InvalidId" />
+            </LinearLayout>
+
+
+            <LinearLayout
+
+                android:id="@+id/lineal_driver_precio"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="delivery escojido:"
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/deliveryEscojido"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="***"
+                        android:textSize="12sp"
+                        tools:ignore="InvalidId" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="precio delivery: PEN "
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/precioDriver"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="***"
+                        android:textSize="12sp"
+                        tools:ignore="InvalidId" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="total a pagar por productos : pen "
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/totalProductos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="***"
+                    android:textSize="12sp"
+                    tools:ignore="InvalidId" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="total a pagar : pen "
+                    android:textAllCaps="true"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/totalPagar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="***"
+                    android:textSize="12sp"
+                    tools:ignore="InvalidId" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/confirmar"
+                style="@style/RoundedButton"
+                android:layout_marginTop="10dp"
+                android:layout_width="150dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="5dp"
+                android:text="Confirmar"
+                android:textSize="14sp"
+                android:layout_gravity="center"
+                app:icon="@drawable/confirmar_compra_icon"
+                app:iconGravity="textEnd"
+                android:layout_weight="1"/>
+
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <ImageButton
+        android:id="@+id/productos"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:background="@drawable/circle_bakc_preset"
+        android:maxWidth="20dp"
+        android:maxHeight="20dp"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ver_productos_icon_morado" />
+
+
+</RelativeLayout>

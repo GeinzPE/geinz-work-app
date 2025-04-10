@@ -1773,6 +1773,7 @@ color colorBTNFiltrado
 color colorFondo
 color colorFondoPantallaACtividades
 color color_blanco_negro
+color color_invertido_white_blackTexto
 color common_google_signin_btn_text_dark
 color common_google_signin_btn_text_dark_default
 color common_google_signin_btn_text_dark_disabled
@@ -3759,6 +3760,7 @@ drawable baseline_more_vert_24
 drawable baseline_navigate_next_24
 drawable blanco_geinz_spahl
 drawable border_noticias_text
+drawable bordes_dtn_seguir_trabajdores
 drawable borrar_icon
 drawable borrar_producto_icon
 drawable bottom_top_shadow

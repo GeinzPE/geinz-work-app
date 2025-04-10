@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Confirmación"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:layout_gravity="center_horizontal"
+        android:fontFamily="@font/roboto_medium"
+        android:paddingBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/dialogMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Quieres dejar de seguir?"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/buttonYes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sí"
+            android:layout_marginRight="8dp"
+            style="?attr/buttonStyle"/>
+
+        <Button
+            android:id="@+id/buttonNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No"
+            style="?attr/buttonStyle"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -11,6 +11,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,6 +50,9 @@ public final class FragmentInfoBinding implements ViewBinding {
 
   @NonNull
   public final FrameLayout circle;
+
+  @NonNull
+  public final AppCompatButton dejarDeSeguirOSeguir;
 
   @NonNull
   public final TextView descripcionTrabajador;
@@ -105,6 +109,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final TextView localidad;
 
   @NonNull
+  public final AppCompatButton masInformacion;
+
+  @NonNull
   public final TextView nacionalida;
 
   @NonNull
@@ -118,6 +125,9 @@ public final class FragmentInfoBinding implements ViewBinding {
 
   @NonNull
   public final TextView nombre;
+
+  @NonNull
+  public final ImageView notificaciones;
 
   @NonNull
   public final View overlay;
@@ -142,6 +152,9 @@ public final class FragmentInfoBinding implements ViewBinding {
 
   @NonNull
   public final NestedScrollView scroll;
+
+  @NonNull
+  public final TextView segidores;
 
   @NonNull
   public final SwipeRefreshLayout swipe;
@@ -171,25 +184,27 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull RecyclerView TrabajosRealizados, @NonNull LinearLayout banerPublicacionesRecientes,
       @NonNull TextView caracteristica1, @NonNull ImageCarousel carrusel,
       @NonNull TextView categoriaTipoTrabajo, @NonNull FrameLayout circle,
-      @NonNull TextView descripcionTrabajador, @NonNull TextView edadUser, @NonNull View estado,
-      @NonNull ImageView fb, @NonNull TextView genero, @NonNull TextView horario,
-      @NonNull ImageView ig, @NonNull CircleImageView imgPerfilUser,
-      @NonNull ShapeableImageView imgPortada, @NonNull LinearLayout innerRelativeLayout,
-      @NonNull LinearLayout linealLayaout, @NonNull RelativeLayout linealNoSeEncontraron,
+      @NonNull AppCompatButton dejarDeSeguirOSeguir, @NonNull TextView descripcionTrabajador,
+      @NonNull TextView edadUser, @NonNull View estado, @NonNull ImageView fb,
+      @NonNull TextView genero, @NonNull TextView horario, @NonNull ImageView ig,
+      @NonNull CircleImageView imgPerfilUser, @NonNull ShapeableImageView imgPortada,
+      @NonNull LinearLayout innerRelativeLayout, @NonNull LinearLayout linealLayaout,
+      @NonNull RelativeLayout linealNoSeEncontraron,
       @NonNull RelativeLayout linealProductosPublicados, @NonNull LinearLayout linealRedes,
       @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
       @NonNull LinearLayoutCompat loading, @NonNull TextView localidad,
-      @NonNull TextView nacionalida, @NonNull RelativeLayout noSeEncontraronTrabajadores,
+      @NonNull AppCompatButton masInformacion, @NonNull TextView nacionalida,
+      @NonNull RelativeLayout noSeEncontraronTrabajadores,
       @NonNull TextView noSeEncontraronTrabajos, @NonNull RelativeLayout noSeEncontroPublicaciones,
-      @NonNull TextView nombre, @NonNull View overlay, @NonNull ImageView popup,
-      @NonNull RecyclerView productosDestacados,
+      @NonNull TextView nombre, @NonNull ImageView notificaciones, @NonNull View overlay,
+      @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
-      @NonNull SwipeRefreshLayout swipe, @NonNull TextView telefono, @NonNull ImageView tk,
-      @NonNull RecyclerView trabajadoresSimilares, @NonNull TextView tvReadMore,
-      @NonNull TextView verMasTrabajadores, @NonNull ImageView verificado,
-      @NonNull TextView verificadoTXT) {
+      @NonNull TextView segidores, @NonNull SwipeRefreshLayout swipe, @NonNull TextView telefono,
+      @NonNull ImageView tk, @NonNull RecyclerView trabajadoresSimilares,
+      @NonNull TextView tvReadMore, @NonNull TextView verMasTrabajadores,
+      @NonNull ImageView verificado, @NonNull TextView verificadoTXT) {
     this.rootView = rootView;
     this.TrabajosRealizados = TrabajosRealizados;
     this.banerPublicacionesRecientes = banerPublicacionesRecientes;
@@ -197,6 +212,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.carrusel = carrusel;
     this.categoriaTipoTrabajo = categoriaTipoTrabajo;
     this.circle = circle;
+    this.dejarDeSeguirOSeguir = dejarDeSeguirOSeguir;
     this.descripcionTrabajador = descripcionTrabajador;
     this.edadUser = edadUser;
     this.estado = estado;
@@ -215,11 +231,13 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.linealappLayout = linealappLayout;
     this.loading = loading;
     this.localidad = localidad;
+    this.masInformacion = masInformacion;
     this.nacionalida = nacionalida;
     this.noSeEncontraronTrabajadores = noSeEncontraronTrabajadores;
     this.noSeEncontraronTrabajos = noSeEncontraronTrabajos;
     this.noSeEncontroPublicaciones = noSeEncontroPublicaciones;
     this.nombre = nombre;
+    this.notificaciones = notificaciones;
     this.overlay = overlay;
     this.popup = popup;
     this.productosDestacados = productosDestacados;
@@ -228,6 +246,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.qrTrabajador = qrTrabajador;
     this.relativeLayout = relativeLayout;
     this.scroll = scroll;
+    this.segidores = segidores;
     this.swipe = swipe;
     this.telefono = telefono;
     this.tk = tk;
@@ -298,6 +317,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.circle;
       FrameLayout circle = ViewBindings.findChildViewById(rootView, id);
       if (circle == null) {
+        break missingId;
+      }
+
+      id = R.id.dejarDeSeguirOSeguir;
+      AppCompatButton dejarDeSeguirOSeguir = ViewBindings.findChildViewById(rootView, id);
+      if (dejarDeSeguirOSeguir == null) {
         break missingId;
       }
 
@@ -409,6 +434,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.mas_informacion;
+      AppCompatButton masInformacion = ViewBindings.findChildViewById(rootView, id);
+      if (masInformacion == null) {
+        break missingId;
+      }
+
       id = R.id.nacionalida;
       TextView nacionalida = ViewBindings.findChildViewById(rootView, id);
       if (nacionalida == null) {
@@ -436,6 +467,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.nombre;
       TextView nombre = ViewBindings.findChildViewById(rootView, id);
       if (nombre == null) {
+        break missingId;
+      }
+
+      id = R.id.notificaciones;
+      ImageView notificaciones = ViewBindings.findChildViewById(rootView, id);
+      if (notificaciones == null) {
         break missingId;
       }
 
@@ -484,6 +521,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.scroll;
       NestedScrollView scroll = ViewBindings.findChildViewById(rootView, id);
       if (scroll == null) {
+        break missingId;
+      }
+
+      id = R.id.segidores;
+      TextView segidores = ViewBindings.findChildViewById(rootView, id);
+      if (segidores == null) {
         break missingId;
       }
 
@@ -537,14 +580,14 @@ public final class FragmentInfoBinding implements ViewBinding {
 
       return new FragmentInfoBinding((FrameLayout) rootView, TrabajosRealizados,
           banerPublicacionesRecientes, caracteristica1, carrusel, categoriaTipoTrabajo, circle,
-          descripcionTrabajador, edadUser, estado, fb, genero, horario, ig, imgPerfilUser,
-          imgPortada, innerRelativeLayout, linealLayaout, linealNoSeEncontraron,
+          dejarDeSeguirOSeguir, descripcionTrabajador, edadUser, estado, fb, genero, horario, ig,
+          imgPerfilUser, imgPortada, innerRelativeLayout, linealLayaout, linealNoSeEncontraron,
           linealProductosPublicados, linealRedes, linealTrabajosRealziados, linealappLayout,
-          loading, localidad, nacionalida, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
-          noSeEncontroPublicaciones, nombre, overlay, popup, productosDestacados,
-          progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
-          swipe, telefono, tk, trabajadoresSimilares, tvReadMore, verMasTrabajadores, verificado,
-          verificadoTXT);
+          loading, localidad, masInformacion, nacionalida, noSeEncontraronTrabajadores,
+          noSeEncontraronTrabajos, noSeEncontroPublicaciones, nombre, notificaciones, overlay,
+          popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
+          relativeLayout, scroll, segidores, swipe, telefono, tk, trabajadoresSimilares, tvReadMore,
+          verMasTrabajadores, verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
