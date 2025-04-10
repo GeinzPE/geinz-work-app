@@ -240,6 +240,7 @@
                                 </RelativeLayout>
 
                                 <ImageView
+                                    android:visibility="gone"
                                     android:id="@+id/notificaciones"
                                     android:layout_width="30dp"
                                     android:layout_height="30dp"
@@ -278,6 +279,7 @@
                                 android:textSize="0sp" />
 
                             <LinearLayout
+                                android:id="@+id/linealContenidoDesctipcion"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -291,7 +293,8 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginRight="15dp"
                                     android:maxLines="4"
-                                    android:text=".****"
+                                    android:ellipsize="end"
+                                    android:text="@string/cat"
                                     android:textSize="12sp" />
                                 <!-- Botón "Leer más" -->
                                 <TextView
@@ -302,16 +305,18 @@
                                     android:textColor="#027EB5"
                                     android:textSize="12sp"
                                     android:textStyle="normal"
+
                                     android:visibility="gone" />
                             </LinearLayout>
 
                             <TextView
                                 android:id="@+id/segidores"
-                                style="@style/descripcionColor"
+                                style="@style/TextoModoOScuroColor"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
                                 android:text="0 seguidores"
+                                android:layout_marginLeft="5dp"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
 
@@ -331,7 +336,7 @@
                                     android:paddingHorizontal="10dp"
                                     android:text="Seguir Trabajador"
                                     android:textAllCaps="false"
-                                    android:textColor="@color/color_invertido_white_blackTexto" />
+                                    android:textColor="@color/heartOutlineColor" />
 
                                 <androidx.appcompat.widget.AppCompatButton
                                     android:id="@+id/mas_informacion"
@@ -344,7 +349,7 @@
                                     android:paddingHorizontal="10dp"
                                     android:text="Mas informacion"
                                     android:textAllCaps="false"
-                                    android:textColor="@color/color_invertido_white_blackTexto" />
+                                    android:textColor="@color/heartOutlineColor"  />
 
                             </LinearLayout>
 

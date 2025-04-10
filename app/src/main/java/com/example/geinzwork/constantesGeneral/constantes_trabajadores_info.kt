@@ -173,7 +173,7 @@ object constantes_trabajadores_info {
             .collection("seguidores")
         db.get().addOnSuccessListener { res ->
             val totalSeguidores = res.size()
-            binding.segidores.text = "${totalSeguidores} Seguidores"
+//            binding.segidores.text = "${totalSeguidores} Seguidores"
             for (datos in res) {
                 val data = datos.data
                 val id = data?.get("id") as? String ?: ""

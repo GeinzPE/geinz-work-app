@@ -76,6 +76,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final LinearLayout innerRelativeLayout;
 
   @NonNull
+  public final LinearLayout linealContenidoDesctipcion;
+
+  @NonNull
   public final RelativeLayout linealNoSeEncontraron;
 
   @NonNull
@@ -169,7 +172,8 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull AppCompatButton dejarDeSeguirOSeguir, @NonNull TextView descripcionTrabajador,
       @NonNull View estado, @NonNull ImageView fb, @NonNull ImageView ig,
       @NonNull CircleImageView imgPerfilUser, @NonNull ShapeableImageView imgPortada,
-      @NonNull LinearLayout innerRelativeLayout, @NonNull RelativeLayout linealNoSeEncontraron,
+      @NonNull LinearLayout innerRelativeLayout, @NonNull LinearLayout linealContenidoDesctipcion,
+      @NonNull RelativeLayout linealNoSeEncontraron,
       @NonNull RelativeLayout linealProductosPublicados, @NonNull LinearLayout linealRedes,
       @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
       @NonNull LinearLayoutCompat loading, @NonNull AppCompatButton masInformacion,
@@ -199,6 +203,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.imgPerfilUser = imgPerfilUser;
     this.imgPortada = imgPortada;
     this.innerRelativeLayout = innerRelativeLayout;
+    this.linealContenidoDesctipcion = linealContenidoDesctipcion;
     this.linealNoSeEncontraron = linealNoSeEncontraron;
     this.linealProductosPublicados = linealProductosPublicados;
     this.linealRedes = linealRedes;
@@ -338,6 +343,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.innerRelativeLayout;
       LinearLayout innerRelativeLayout = ViewBindings.findChildViewById(rootView, id);
       if (innerRelativeLayout == null) {
+        break missingId;
+      }
+
+      id = R.id.linealContenidoDesctipcion;
+      LinearLayout linealContenidoDesctipcion = ViewBindings.findChildViewById(rootView, id);
+      if (linealContenidoDesctipcion == null) {
         break missingId;
       }
 
@@ -518,13 +529,13 @@ public final class FragmentInfoBinding implements ViewBinding {
       return new FragmentInfoBinding((FrameLayout) rootView, TrabajosRealizados,
           banerPublicacionesRecientes, caracteristica1, carrusel, categoriaTipoTrabajo, circle,
           dejarDeSeguirOSeguir, descripcionTrabajador, estado, fb, ig, imgPerfilUser, imgPortada,
-          innerRelativeLayout, linealNoSeEncontraron, linealProductosPublicados, linealRedes,
-          linealTrabajosRealziados, linealappLayout, loading, masInformacion,
-          noSeEncontraronTrabajadores, noSeEncontraronTrabajos, noSeEncontroPublicaciones, nombre,
-          notificaciones, overlay, popup, productosDestacados, progressCargaImagen,
-          progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll, segidores, swipe,
-          telefono, tk, trabajadoresSimilares, tvReadMore, verMasTrabajadores, verificado,
-          verificadoTXT);
+          innerRelativeLayout, linealContenidoDesctipcion, linealNoSeEncontraron,
+          linealProductosPublicados, linealRedes, linealTrabajosRealziados, linealappLayout,
+          loading, masInformacion, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
+          noSeEncontroPublicaciones, nombre, notificaciones, overlay, popup, productosDestacados,
+          progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
+          segidores, swipe, telefono, tk, trabajadoresSimilares, tvReadMore, verMasTrabajadores,
+          verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

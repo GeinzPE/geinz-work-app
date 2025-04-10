@@ -194,7 +194,7 @@ class info : Fragment() {
 
         binding.masInformacion.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
-            constantes_trabajadores_info.mostrarDialoDatosUSer(dialog,idTrabajador,mContex,img)
+            constantes_trabajadores_info.mostrarDialoDatosUSer(dialog, idTrabajador, mContex, img)
             dialog.show()
         }
     }
@@ -809,6 +809,7 @@ class info : Fragment() {
                 binding.categoriaTipoTrabajo.text = "$tipoTrabajo | $categoriaTrabajo"
                 categoria_trabajadorReturn("$categoriaTrabajo")
 
+
                 constantestextos_general.extender_acortar_texto(
                     binding.caracteristica1,
                     binding.tvReadMore
@@ -816,7 +817,6 @@ class info : Fragment() {
 
                 val spannableString =
                     SpannableString("${"Descripcion : "} ${descripcion}")
-
                 val boldSpan = StyleSpan(Typeface.BOLD)
                 val startIndex = 0
                 val endIndex = "Descripcion : ".length
@@ -828,7 +828,6 @@ class info : Fragment() {
                 )
 
                 binding.caracteristica1.text = spannableString
-
 
 
             }
