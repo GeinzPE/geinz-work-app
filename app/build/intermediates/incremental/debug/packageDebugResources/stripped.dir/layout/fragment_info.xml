@@ -198,11 +198,13 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="10dp"
+                            android:layout_marginLeft="2dp"
                             android:background="@drawable/round_encabezado"
                             android:orientation="vertical">
 
 
                             <LinearLayout
+                                android:layout_marginTop="5dp"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal">
@@ -210,10 +212,10 @@
                                 <RelativeLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="5dp"
                                     android:layout_weight="1">
 
                                     <TextView
+                                        android:gravity="center"
                                         android:id="@+id/nombre"
                                         style="@style/TextoTitulos"
                                         android:layout_width="wrap_content"
@@ -240,15 +242,25 @@
                                 </RelativeLayout>
 
                                 <ImageView
-                                    android:visibility="gone"
                                     android:id="@+id/notificaciones"
                                     android:layout_width="30dp"
                                     android:layout_height="30dp"
-                                    android:layout_gravity="center"
-                                    android:layout_marginTop="10dp"
-                                    android:layout_marginRight="20dp"
-                                    android:src="@drawable/notification_off" />
+                                    android:layout_gravity="center_vertical"
+                                  android:layout_marginHorizontal="10dp"
+                                    android:src="@drawable/notification_off"
+                                    android:visibility="gone" />
                             </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/segidores"
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="5dp"
+                                android:layout_marginTop="5dp"
+                                android:text="0 seguidores"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/telefono"
@@ -256,9 +268,9 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/cat"
-                                android:visibility="gone"
                                 android:textSize="11sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:visibility="gone" />
 
                             <TextView
                                 android:id="@+id/categoria_tipo_trabajo"
@@ -292,8 +304,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginRight="15dp"
-                                    android:maxLines="4"
                                     android:ellipsize="end"
+                                    android:maxLines="4"
                                     android:text="@string/cat"
                                     android:textSize="12sp" />
                                 <!-- Botón "Leer más" -->
@@ -309,51 +321,122 @@
                                     android:visibility="gone" />
                             </LinearLayout>
 
-                            <TextView
-                                android:id="@+id/segidores"
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:text="0 seguidores"
-                                android:layout_marginLeft="5dp"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
 
                             <LinearLayout
+                                android:id="@+id/BtnSeguimiento"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
                                 android:orientation="horizontal">
+
 
                                 <androidx.appcompat.widget.AppCompatButton
                                     android:id="@+id/dejarDeSeguirOSeguir"
+                                    style="@style/RoundedButtonTrabajador"
                                     android:layout_width="wrap_content"
-                                    android:layout_height="40dp"
-                                    android:layout_marginTop="10dp"
-                                    android:layout_marginRight="10dp"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/bordes_dtn_seguir_trabajdores"
-                                    android:paddingHorizontal="10dp"
-                                    android:text="Seguir Trabajador"
-                                    android:textAllCaps="false"
-                                    android:textColor="@color/heartOutlineColor" />
+                                    android:layout_height="35dp"
+                                    android:layout_marginRight="5dp"
+                                    android:layout_weight="3"
+                                    android:text="Seguir Trabajador" />
 
                                 <androidx.appcompat.widget.AppCompatButton
                                     android:id="@+id/mas_informacion"
+                                    style="@style/RoundedButtonTrabajador"
                                     android:layout_width="wrap_content"
-                                    android:layout_height="40dp"
-                                    android:layout_marginHorizontal="10dp"
-                                    android:layout_marginTop="10dp"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/bordes_dtn_seguir_trabajdores"
-                                    android:paddingHorizontal="10dp"
-                                    android:text="Mas informacion"
-                                    android:textAllCaps="false"
-                                    android:textColor="@color/heartOutlineColor"  />
+                                    android:layout_height="35dp"
+                                    android:layout_marginHorizontal="5dp"
+                                    android:layout_weight="3"
+                                    android:text="Más información" />
+
+                                <RelativeLayout
+                                    android:id="@+id/mostrarSeguridos"
+                                    style="@style/RoundedButtonTrabajador"
+                                    android:layout_width="40dp"
+                                    android:layout_height="35dp"
+                                    android:layout_marginHorizontal="5dp">
+
+
+                                    <ImageView
+                                        android:id="@+id/mostrarSeguridosIMG"
+                                        android:layout_width="40dp"
+                                        android:layout_height="35dp"
+                                        android:layout_centerInParent="true"
+                                        android:src="@drawable/vector_icon_mas_trabjadores" />
+
+                                    <ProgressBar
+                                        android:id="@+id/cargadoSugeridos"
+                                        android:layout_width="30dp"
+                                        android:layout_height="30dp"
+                                        android:layout_centerInParent="true"
+                                        android:visibility="gone" />
+                                </RelativeLayout>
+
 
                             </LinearLayout>
 
 
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linealtrabajadoresGeinz"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    style="@style/TextoTitulos"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginHorizontal="10dp"
+                                    android:layout_weight="1"
+                                    android:text="Mas trabajadores Geinz"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/ver_mas_trabajadores"
+                                    style="@style/VioletaColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginRight="15dp"
+                                    android:text="ver todos" />
+                            </LinearLayout>
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginVertical="10dp">
+
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/trabajadores_similares"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:nestedScrollingEnabled="false" />
+
+                                <RelativeLayout
+                                    android:id="@+id/no_se_encontraron_trabajadores"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="220dp"
+                                    android:visibility="gone">
+
+                                    <TextView
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerInParent="true"
+                                        android:text="No se econtraron trabajadores"
+                                        android:textSize="17sp"
+                                        android:textStyle="bold" />
+                                </RelativeLayout>
+
+                            </RelativeLayout>
                         </LinearLayout>
 
 
@@ -361,9 +444,20 @@
                             style="@style/TextoTitulos"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginHorizontal="4dp"
                             android:text="Trabajos Recientes"
                             android:textSize="20sp"
                             android:textStyle="bold" />
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="7dp"
+                            android:layout_marginLeft="4dp"
+                            android:layout_marginRight="25dp"
+                            android:text="Descubre los trabajadores más destacados por sus trabajos recientes, quienes se han ganado la confianza por su excelente desempeño en los últimos proyectos."
+                            android:textSize="12sp" />
 
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -373,7 +467,7 @@
                                 android:id="@+id/carrusel"
                                 android:layout_width="match_parent"
                                 android:layout_height="220dp"
-                                android:layout_marginVertical="10dp"
+                                android:layout_marginVertical="5dp"
                                 android:layout_marginTop="16dp"
                                 app:autoWidthFixing="false"
                                 app:carouselGravity="START"
@@ -421,18 +515,17 @@
                                     style="@style/TextoTitulos"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginHorizontal="10dp"
+                                    android:layout_marginHorizontal="7dp"
                                     android:layout_marginTop="10dp"
                                     android:text="Publicaciones mas recientes del trabajador"
                                     android:textSize="20sp" />
 
                                 <TextView
-                                    style="@style/descripcionColor"
+                                    style="@style/TextoModoOScuroColor"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginVertical="10dp"
-                                    android:layout_marginLeft="10dp"
-                                    android:layout_marginRight="25dp"
+                                    android:layout_marginHorizontal="7dp"                                    android:layout_marginRight="25dp"
                                     android:text="Descrubre toda las publicaciones y ofertas disponibles del Trabajador verificado"
                                     android:textSize="12sp" />
                             </LinearLayout>
@@ -445,7 +538,7 @@
                                     android:id="@+id/Trabajos_realizados"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="20dp"
+                                    android:layout_marginBottom="10dp"
                                     android:nestedScrollingEnabled="false" />
 
                                 <RelativeLayout
@@ -485,16 +578,26 @@
                                 style="@style/TextoTitulos"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginLeft="10dp"
-                                android:layout_marginBottom="10dp"
+                                android:layout_marginHorizontal="9dp"
                                 android:text="Productos"
                                 android:textSize="20sp" />
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginVertical="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:layout_marginHorizontal="9dp"
+                                android:text="Explora los productos más recientes ofrecidos por nuestros profesionales."
+                                android:textSize="12sp" />
+
 
                             <androidx.recyclerview.widget.RecyclerView
                                 android:id="@+id/productosDestacados"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginHorizontal="10dp" />
+                                android:layout_marginTop="5dp"
+                                android:layout_marginHorizontal="7dp" />
 
                         </LinearLayout>
 
@@ -513,61 +616,6 @@
                                 android:textSize="17sp"
                                 android:textStyle="bold" />
                         </RelativeLayout>
-                    </RelativeLayout>
-
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/TextoTitulos"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="10dp"
-                            android:layout_weight="1"
-                            android:text="Mas trabajadores Geinz"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/ver_mas_trabajadores"
-                            style="@style/VioletaColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginRight="15dp"
-                            android:text="ver todos" />
-                    </LinearLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginVertical="10dp">
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/trabajadores_similares"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false" />
-
-                        <RelativeLayout
-                            android:id="@+id/no_se_encontraron_trabajadores"
-                            android:layout_width="match_parent"
-                            android:layout_height="220dp"
-                            android:visibility="gone">
-
-                            <TextView
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="No se econtraron trabajadores"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-
                     </RelativeLayout>
 
 

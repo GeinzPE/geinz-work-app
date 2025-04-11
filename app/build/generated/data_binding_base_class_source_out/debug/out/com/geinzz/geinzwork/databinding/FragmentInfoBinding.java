@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -34,6 +35,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   private final FrameLayout rootView;
 
   @NonNull
+  public final LinearLayout BtnSeguimiento;
+
+  @NonNull
   public final RecyclerView TrabajosRealizados;
 
   @NonNull
@@ -41,6 +45,9 @@ public final class FragmentInfoBinding implements ViewBinding {
 
   @NonNull
   public final TextView caracteristica1;
+
+  @NonNull
+  public final ProgressBar cargadoSugeridos;
 
   @NonNull
   public final ImageCarousel carrusel;
@@ -94,10 +101,19 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final AppBarLayout linealappLayout;
 
   @NonNull
+  public final LinearLayout linealtrabajadoresGeinz;
+
+  @NonNull
   public final LinearLayoutCompat loading;
 
   @NonNull
   public final AppCompatButton masInformacion;
+
+  @NonNull
+  public final RelativeLayout mostrarSeguridos;
+
+  @NonNull
+  public final ImageView mostrarSeguridosIMG;
 
   @NonNull
   public final RelativeLayout noSeEncontraronTrabajadores;
@@ -165,19 +181,21 @@ public final class FragmentInfoBinding implements ViewBinding {
   @NonNull
   public final TextView verificadoTXT;
 
-  private FragmentInfoBinding(@NonNull FrameLayout rootView,
+  private FragmentInfoBinding(@NonNull FrameLayout rootView, @NonNull LinearLayout BtnSeguimiento,
       @NonNull RecyclerView TrabajosRealizados, @NonNull LinearLayout banerPublicacionesRecientes,
-      @NonNull TextView caracteristica1, @NonNull ImageCarousel carrusel,
-      @NonNull TextView categoriaTipoTrabajo, @NonNull FrameLayout circle,
-      @NonNull AppCompatButton dejarDeSeguirOSeguir, @NonNull TextView descripcionTrabajador,
-      @NonNull View estado, @NonNull ImageView fb, @NonNull ImageView ig,
-      @NonNull CircleImageView imgPerfilUser, @NonNull ShapeableImageView imgPortada,
-      @NonNull LinearLayout innerRelativeLayout, @NonNull LinearLayout linealContenidoDesctipcion,
+      @NonNull TextView caracteristica1, @NonNull ProgressBar cargadoSugeridos,
+      @NonNull ImageCarousel carrusel, @NonNull TextView categoriaTipoTrabajo,
+      @NonNull FrameLayout circle, @NonNull AppCompatButton dejarDeSeguirOSeguir,
+      @NonNull TextView descripcionTrabajador, @NonNull View estado, @NonNull ImageView fb,
+      @NonNull ImageView ig, @NonNull CircleImageView imgPerfilUser,
+      @NonNull ShapeableImageView imgPortada, @NonNull LinearLayout innerRelativeLayout,
+      @NonNull LinearLayout linealContenidoDesctipcion,
       @NonNull RelativeLayout linealNoSeEncontraron,
       @NonNull RelativeLayout linealProductosPublicados, @NonNull LinearLayout linealRedes,
       @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
-      @NonNull LinearLayoutCompat loading, @NonNull AppCompatButton masInformacion,
-      @NonNull RelativeLayout noSeEncontraronTrabajadores,
+      @NonNull LinearLayout linealtrabajadoresGeinz, @NonNull LinearLayoutCompat loading,
+      @NonNull AppCompatButton masInformacion, @NonNull RelativeLayout mostrarSeguridos,
+      @NonNull ImageView mostrarSeguridosIMG, @NonNull RelativeLayout noSeEncontraronTrabajadores,
       @NonNull TextView noSeEncontraronTrabajos, @NonNull RelativeLayout noSeEncontroPublicaciones,
       @NonNull TextView nombre, @NonNull ImageView notificaciones, @NonNull View overlay,
       @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
@@ -189,9 +207,11 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull TextView tvReadMore, @NonNull TextView verMasTrabajadores,
       @NonNull ImageView verificado, @NonNull TextView verificadoTXT) {
     this.rootView = rootView;
+    this.BtnSeguimiento = BtnSeguimiento;
     this.TrabajosRealizados = TrabajosRealizados;
     this.banerPublicacionesRecientes = banerPublicacionesRecientes;
     this.caracteristica1 = caracteristica1;
+    this.cargadoSugeridos = cargadoSugeridos;
     this.carrusel = carrusel;
     this.categoriaTipoTrabajo = categoriaTipoTrabajo;
     this.circle = circle;
@@ -209,8 +229,11 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.linealRedes = linealRedes;
     this.linealTrabajosRealziados = linealTrabajosRealziados;
     this.linealappLayout = linealappLayout;
+    this.linealtrabajadoresGeinz = linealtrabajadoresGeinz;
     this.loading = loading;
     this.masInformacion = masInformacion;
+    this.mostrarSeguridos = mostrarSeguridos;
+    this.mostrarSeguridosIMG = mostrarSeguridosIMG;
     this.noSeEncontraronTrabajadores = noSeEncontraronTrabajadores;
     this.noSeEncontraronTrabajos = noSeEncontraronTrabajos;
     this.noSeEncontroPublicaciones = noSeEncontroPublicaciones;
@@ -262,6 +285,12 @@ public final class FragmentInfoBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.BtnSeguimiento;
+      LinearLayout BtnSeguimiento = ViewBindings.findChildViewById(rootView, id);
+      if (BtnSeguimiento == null) {
+        break missingId;
+      }
+
       id = R.id.Trabajos_realizados;
       RecyclerView TrabajosRealizados = ViewBindings.findChildViewById(rootView, id);
       if (TrabajosRealizados == null) {
@@ -277,6 +306,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.caracteristica1;
       TextView caracteristica1 = ViewBindings.findChildViewById(rootView, id);
       if (caracteristica1 == null) {
+        break missingId;
+      }
+
+      id = R.id.cargadoSugeridos;
+      ProgressBar cargadoSugeridos = ViewBindings.findChildViewById(rootView, id);
+      if (cargadoSugeridos == null) {
         break missingId;
       }
 
@@ -382,6 +417,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.linealtrabajadoresGeinz;
+      LinearLayout linealtrabajadoresGeinz = ViewBindings.findChildViewById(rootView, id);
+      if (linealtrabajadoresGeinz == null) {
+        break missingId;
+      }
+
       id = R.id.loading;
       LinearLayoutCompat loading = ViewBindings.findChildViewById(rootView, id);
       if (loading == null) {
@@ -391,6 +432,18 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.mas_informacion;
       AppCompatButton masInformacion = ViewBindings.findChildViewById(rootView, id);
       if (masInformacion == null) {
+        break missingId;
+      }
+
+      id = R.id.mostrarSeguridos;
+      RelativeLayout mostrarSeguridos = ViewBindings.findChildViewById(rootView, id);
+      if (mostrarSeguridos == null) {
+        break missingId;
+      }
+
+      id = R.id.mostrarSeguridosIMG;
+      ImageView mostrarSeguridosIMG = ViewBindings.findChildViewById(rootView, id);
+      if (mostrarSeguridosIMG == null) {
         break missingId;
       }
 
@@ -526,12 +579,13 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentInfoBinding((FrameLayout) rootView, TrabajosRealizados,
-          banerPublicacionesRecientes, caracteristica1, carrusel, categoriaTipoTrabajo, circle,
-          dejarDeSeguirOSeguir, descripcionTrabajador, estado, fb, ig, imgPerfilUser, imgPortada,
-          innerRelativeLayout, linealContenidoDesctipcion, linealNoSeEncontraron,
-          linealProductosPublicados, linealRedes, linealTrabajosRealziados, linealappLayout,
-          loading, masInformacion, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
+      return new FragmentInfoBinding((FrameLayout) rootView, BtnSeguimiento, TrabajosRealizados,
+          banerPublicacionesRecientes, caracteristica1, cargadoSugeridos, carrusel,
+          categoriaTipoTrabajo, circle, dejarDeSeguirOSeguir, descripcionTrabajador, estado, fb, ig,
+          imgPerfilUser, imgPortada, innerRelativeLayout, linealContenidoDesctipcion,
+          linealNoSeEncontraron, linealProductosPublicados, linealRedes, linealTrabajosRealziados,
+          linealappLayout, linealtrabajadoresGeinz, loading, masInformacion, mostrarSeguridos,
+          mostrarSeguridosIMG, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
           noSeEncontroPublicaciones, nombre, notificaciones, overlay, popup, productosDestacados,
           progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
           segidores, swipe, telefono, tk, trabajadoresSimilares, tvReadMore, verMasTrabajadores,

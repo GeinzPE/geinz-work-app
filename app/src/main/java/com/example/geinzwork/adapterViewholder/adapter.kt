@@ -20,8 +20,6 @@ class adapter(
     private var listaTrabajos: MutableList<dataClassTrabajosd>,
     private val uidString: String,
     private var cantidadMostrado: Int,
-
-
     ) : RecyclerView.Adapter<adapter.viewHolder>() {
     init {
         listaTrabajos.shuffle()
@@ -134,4 +132,6 @@ class adapter(
             }
         }
     }
+
+
 }

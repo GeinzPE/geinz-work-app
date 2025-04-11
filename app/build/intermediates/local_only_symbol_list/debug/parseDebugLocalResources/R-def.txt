@@ -54,6 +54,7 @@ drawable baseline_more_vert_24
 drawable baseline_navigate_next_24
 drawable blanco_geinz_spahl
 drawable border_noticias_text
+drawable bordes_btn_sigueindo_trabajador
 drawable bordes_dtn_seguir_trabajdores
 drawable borrar_icon
 drawable borrar_producto_icon
@@ -236,6 +237,7 @@ drawable tienda_pedido_icon
 drawable tik_tok_icon
 drawable tipo_trabajo
 drawable trabajador_drawable
+drawable vector_icon_mas_trabjadores
 drawable ver_productos_icon_morado
 drawable verificado_blanco_icon
 drawable view_drawable
@@ -265,7 +267,9 @@ id AntiguoPrecio
 id Barranca
 id Bienvenido_Geinz
 id BtnIngresar
+id BtnSeguimiento
 id CalificaionStart
+id CargaIMG
 id Categorias
 id CerradoEstado
 id Compartir
@@ -490,6 +494,7 @@ id cargaLike
 id cargaProductos_promo_trabajos
 id cargaServicios
 id cargadoContenido
+id cargadoSugeridos
 id cargaimg
 id cargandoContenido
 id cargandoRef
@@ -719,10 +724,12 @@ id filtradoslineal
 id filtradotext
 id filtradotxt
 id finaliza
+id follow
 id fotoPortada
 id foto_portada
 id fracmentoID
 id frameInfo
+id frameLayout
 id frameSinReview
 id freelancer
 id garantia
@@ -991,6 +998,7 @@ id linealUbicacion
 id linealVerificado
 id linealYape
 id lineal_Publicacion
+id lineal_campos_trabajador
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
 id lineal_contenido_tienda
@@ -1007,12 +1015,14 @@ id lineal_img_qr
 id lineal_me_gusta
 id lineal_metodo_entrega
 id lineal_no_cuenta
+id lineal_nombre_verifi
 id lineal_pago
 id lineal_plan
 id lineal_precio
 id lineal_productos_publicados
 id lineal_tienda
 id lineal_ubi
+id lineal_user
 id lineal_verificado
 id linealappLayout
 id linealdescripcion
@@ -1023,6 +1033,7 @@ id linealfechaLegada
 id linealhoActivado
 id linealhoVencimiento
 id linealnombreTienda
+id linealtrabajadoresGeinz
 id linealubiActual
 id linelaEstadisticasGeneral
 id linelaFiltrado
@@ -1079,6 +1090,8 @@ id montoTotal
 id monto_cancelar
 id mostrarOcular_contacto
 id mostrarRedes
+id mostrarSeguridos
+id mostrarSeguridosIMG
 id mostrar_ocular_compra
 id motivo
 id motivoED
@@ -1123,6 +1136,7 @@ id nombreTiendaED
 id nombreTiendaImgaView
 id nombreTrabajador
 id nombreTrabajaror
+id nombreUSer
 id nombreUser
 id nombreint
 id nombresCompletos
@@ -1165,6 +1179,7 @@ id pativilca
 id pen
 id pendiente
 id perfil_fotoTienda
+id perfil_user_img
 id peuano
 id photoView
 id piblicarReview
@@ -1677,6 +1692,7 @@ layout item_historial
 layout item_inicio_fragment_users
 layout item_mas_art_promo_servicios
 layout item_mas_publicidades_geinz
+layout item_mas_trabajadores__sugeridos
 layout item_new_noticias_tiendas
 layout item_noticias_guardadas
 layout item_planes_geinz_noticias_publicidad
@@ -2050,11 +2066,14 @@ style RoundedButton
 style RoundedButtonFiltradoHistorial
 style RoundedButtonFiltradoHistorialCLikado
 style RoundedButtonShape
+style RoundedButtonShapeTrabajajdor
+style RoundedButtonTrabajador
 style RoundedDialog
 style RoundedImageViewCorners
 style RoundedImageViewStyle
 style RoundedShape
 style ShapeAppearance.MaterialComponents.MediumComponents
+style SigueindoTrabajador
 style TextoModoOScuroColor
 style TextoTitulos
 style Theme.ApiSclasScrenn

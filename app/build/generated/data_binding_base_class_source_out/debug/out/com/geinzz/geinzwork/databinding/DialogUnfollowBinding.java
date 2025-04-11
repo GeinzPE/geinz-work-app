@@ -4,27 +4,27 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.button.MaterialButton;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
 
 public final class DialogUnfollowBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final CardView rootView;
 
   @NonNull
-  public final Button buttonNo;
+  public final MaterialButton buttonNo;
 
   @NonNull
-  public final Button buttonYes;
+  public final MaterialButton buttonYes;
 
   @NonNull
   public final TextView dialogMessage;
@@ -32,8 +32,9 @@ public final class DialogUnfollowBinding implements ViewBinding {
   @NonNull
   public final TextView dialogTitle;
 
-  private DialogUnfollowBinding(@NonNull LinearLayout rootView, @NonNull Button buttonNo,
-      @NonNull Button buttonYes, @NonNull TextView dialogMessage, @NonNull TextView dialogTitle) {
+  private DialogUnfollowBinding(@NonNull CardView rootView, @NonNull MaterialButton buttonNo,
+      @NonNull MaterialButton buttonYes, @NonNull TextView dialogMessage,
+      @NonNull TextView dialogTitle) {
     this.rootView = rootView;
     this.buttonNo = buttonNo;
     this.buttonYes = buttonYes;
@@ -43,7 +44,7 @@ public final class DialogUnfollowBinding implements ViewBinding {
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public CardView getRoot() {
     return rootView;
   }
 
@@ -69,13 +70,13 @@ public final class DialogUnfollowBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.buttonNo;
-      Button buttonNo = ViewBindings.findChildViewById(rootView, id);
+      MaterialButton buttonNo = ViewBindings.findChildViewById(rootView, id);
       if (buttonNo == null) {
         break missingId;
       }
 
       id = R.id.buttonYes;
-      Button buttonYes = ViewBindings.findChildViewById(rootView, id);
+      MaterialButton buttonYes = ViewBindings.findChildViewById(rootView, id);
       if (buttonYes == null) {
         break missingId;
       }
@@ -92,7 +93,7 @@ public final class DialogUnfollowBinding implements ViewBinding {
         break missingId;
       }
 
-      return new DialogUnfollowBinding((LinearLayout) rootView, buttonNo, buttonYes, dialogMessage,
+      return new DialogUnfollowBinding((CardView) rootView, buttonNo, buttonYes, dialogMessage,
           dialogTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);

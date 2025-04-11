@@ -36,6 +36,7 @@ import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
@@ -66,6 +67,7 @@ import com.google.firebase.dynamiclinks.itunesConnectAnalyticsParameters
 import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -77,11 +79,13 @@ class info : Fragment() {
     private lateinit var binding: FragmentInfoBinding
     private lateinit var mContex: Context
     private var listAdapter = mutableListOf<dataclas_trabajos_ralizados>()
-    private var listaTrabajo = mutableListOf<dataClassTrabajosd>()
+    private var listaTrabajo = mutableListOf<dataClasSeguirTrabajdores_info>()
     private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
     private var phoneNumberToCall: String? = null
     private val REQUEST_CALL_PHONE = 1
+    private var isNotificationOn = false
+
 
     companion object {
         private const val ARG_ID_TRABAJADOR = "id_trabajador"
@@ -142,6 +146,7 @@ class info : Fragment() {
         val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.layoutManager = customLayoutManager
 
+        constantes_trabajadores_info.actualizarSeguidres(binding, idTrabajador)
 
         binding.qrTrabajador.setOnClickListener {
             var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
@@ -157,7 +162,8 @@ class info : Fragment() {
                 categoria,
                 listaTrabajo,
                 binding.trabajadoresSimilares,
-                mContex, true
+                mContex,
+                binding,
             ) { trabajadoresEncontrados ->
                 if (trabajadoresEncontrados) {
                     binding.trabajadoresSimilares.isVisible = true
@@ -187,7 +193,7 @@ class info : Fragment() {
         obtenerPerfil(idTrabajador, img)
 
         confSwipe(idTrabajador, img)
-        constantes_trabajadores_info.verificarSiSiueTrabajador(binding, idTrabajador)
+        constantes_trabajadores_info.verificarSiSiueTrabajador(binding, idTrabajador, mContex) {}
         binding.dejarDeSeguirOSeguir.setOnClickListener {
             constantes_trabajadores_info.verificarFollow(idTrabajador, binding, mContex)
         }
@@ -196,6 +202,82 @@ class info : Fragment() {
             dialog = BottomSheetDialog(mContex)
             constantes_trabajadores_info.mostrarDialoDatosUSer(dialog, idTrabajador, mContex, img)
             dialog.show()
+        }
+        var mostrandoTrabajadores = false // fuera del click, como propiedad de la clase
+
+        binding.mostrarSeguridos.setOnClickListener {
+            if (!mostrandoTrabajadores) {
+                // Primera vez: cargar trabajadores
+                binding.mostrarSeguridosIMG.isVisible = false
+                binding.cargadoSugeridos.isVisible = true
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding.cargadoSugeridos.isVisible = false
+                    binding.mostrarSeguridosIMG.isVisible = true
+                    binding.linealtrabajadoresGeinz.isVisible = true
+                }, 2000)
+
+                mostrandoTrabajadores = true
+            } else {
+                // Segunda vez: ocultar trabajadores
+                binding.linealtrabajadoresGeinz.isVisible = false
+                binding.cargadoSugeridos.isVisible = false
+                binding.mostrarSeguridosIMG.isVisible = true
+
+
+                mostrandoTrabajadores = false
+            }
+        }
+        binding.notificaciones.setOnClickListener {
+            isNotificationOn = !isNotificationOn
+
+            if (isNotificationOn) {
+                agregarNotificacionTrabajador(true, idTrabajador, firebaseAuth.uid.toString()) {
+                    binding.notificaciones.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            mContex,
+                            R.drawable.notification_on
+                        )
+                    )
+                }
+            } else {
+                agregarNotificacionTrabajador(false, idTrabajador, firebaseAuth.uid.toString()) {
+                    binding.notificaciones.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            mContex,
+                            R.drawable.notification_off
+                        )
+                    )
+                }
+            }
+        }
+
+    }
+
+    private fun agregarNotificacionTrabajador(
+        valor: Boolean,
+        idTrabajadorActual: String,
+        idUSer: String,
+        onSuccess: () -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
+            .collection("seguidores").document(idUSer)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val hasmap = hashMapOf<String, Any>(
+                    "notificado" to valor
+                )
+                db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+                    onSuccess()
+                    val mensaje =
+                        if (valor) "Notificaciones activas" else "Notificaciones desactivadas"
+                    Toast.makeText(mContex, mensaje, Toast.LENGTH_SHORT).show()
+                    Log.d("estadoNotificacion", "estado cambiado correctamente")
+                }.addOnFailureListener { e ->
+                    Log.d("estadoNotificacion", "error al cambiar el estado $e")
+                }
+            }
         }
     }
 
@@ -787,6 +869,7 @@ class info : Fragment() {
         idUSer: String,
         categoria_trabajadorReturn: (String) -> Unit,
     ) {
+        firebaseAuth = FirebaseAuth.getInstance()
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
@@ -801,6 +884,12 @@ class info : Fragment() {
                 val ig = data?.get(Variables.IG) as? String ?: ""
                 val fb = data?.get(Variables.FB) as? String ?: ""
                 val tk = data?.get(Variables.TK) as? String ?: ""
+                val id = data?.get(Variables.id) as? String ?: ""
+                if (id == firebaseAuth.uid.toString()) {
+                    binding.BtnSeguimiento.isVisible = false
+                } else {
+                    binding.BtnSeguimiento.isVisible = true
+                }
 
 
 
