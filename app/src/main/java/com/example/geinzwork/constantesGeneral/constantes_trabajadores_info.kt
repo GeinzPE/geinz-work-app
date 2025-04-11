@@ -285,7 +285,7 @@ object constantes_trabajadores_info {
 
     fun aplicarEstiloPorDefecto(button: AppCompatButton, context: Context) {
         button.setBackgroundResource(R.drawable.bordes_dtn_seguir_trabajdores)
-        button.setTextColor(ContextCompat.getColor(context, R.color.white))
+        button.setTextColor(ContextCompat.getColor(context, R.color.heartOutlineColor))
         button.textSize = 12f
         button.setPadding(0, button.paddingTop, 0, button.paddingBottom)
         button.isAllCaps = false
