@@ -19,14 +19,14 @@
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe"
-            android:animateLayoutChanges="true"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true">
 
             <androidx.core.widget.NestedScrollView
-                android:animateLayoutChanges="true"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:animateLayoutChanges="true"
                 android:scrollbars="none">
 
 
@@ -46,8 +46,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="80dp"
                         android:layout_marginTop="10dp"
-                        app:autoPlay="true"
                         android:clickable="true"
+                        app:autoPlay="true"
                         app:autoPlayDelay="10000"
                         app:autoWidthFixing="false"
                         app:carouselGravity="START"
@@ -82,9 +82,9 @@
                                     android:id="@+id/carrusel"
                                     android:layout_width="match_parent"
                                     android:layout_height="200dp"
+                                    android:clickable="true"
                                     android:translationZ="8dp"
                                     app:autoPlay="true"
-                                    android:clickable="true"
                                     app:autoPlayDelay="4000"
                                     app:carouselPadding="66dp"
                                     app:carouselType="SHOWCASE"
@@ -233,6 +233,72 @@
                         layout="@layout/item_inicio_fragment_users" />
 
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoTitulos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Publicaciones de Trabajadores"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/ver_trabajos_publicados"
+                            style="@style/VioletaColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="ver todos" />
+                    </LinearLayout>
+
+                    <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                        android:id="@+id/carrucel_publicaciones_recientes"
+                        android:layout_width="match_parent"
+                        android:layout_height="210dp"
+                        android:layout_marginTop="10dp"
+                        android:clickable="true"
+                        app:autoPlay="true"
+                        app:autoPlayDelay="10000"
+                        app:autoWidthFixing="false"
+                        app:carouselGravity="START"
+                        app:carouselType="SHOWCASE"
+                        app:imageScaleType="centerCrop"
+                        app:infiniteCarousel="false"
+                        app:scaleOnScroll="false"
+                        app:showBottomShadow="false"
+                        app:showCaption="false"
+                        app:showIndicator="false"
+                        app:showNavigationButtons="false"
+                        app:showTopShadow="false" />
+
+                    <RelativeLayout
+                        android:id="@+id/lineal_noEncontrado"
+                        android:layout_width="match_parent"
+                        android:layout_height="210dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/noEncontrado"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="@string/cat"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+
                     <include
                         android:id="@+id/IncludeAnunciosTercero"
                         layout="@layout/include_anuncios_frame_inciofragment" />
@@ -270,6 +336,73 @@
                     <include
                         android:id="@+id/includeRecicleViewsalud"
                         layout="@layout/item_inicio_fragment_users" />
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoTitulos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Ofrecido por trabajadores verificados"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/ver_productos"
+                            style="@style/VioletaColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="ver todos" />
+
+                    </LinearLayout>
+
+                    <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                        android:id="@+id/carrucel_productos_trabajdores"
+                        android:layout_width="match_parent"
+                        android:layout_height="165dp"
+                        android:layout_marginTop="10dp"
+                        android:clickable="true"
+                        app:autoPlay="true"
+                        app:autoPlayDelay="10000"
+                        app:autoWidthFixing="false"
+                        app:carouselGravity="START"
+                        app:carouselType="SHOWCASE"
+                        app:imageScaleType="centerCrop"
+                        app:infiniteCarousel="false"
+                        app:scaleOnScroll="false"
+                        app:showBottomShadow="false"
+                        app:showCaption="false"
+                        app:showIndicator="false"
+                        app:showNavigationButtons="false"
+                        app:showTopShadow="false" />
+
+                    <RelativeLayout
+                        android:id="@+id/lineal_noEncontrado_productos"
+                        android:layout_width="match_parent"
+                        android:layout_height="165dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/noEncontrado_producto"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="@string/cat"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
 
 
                     <LinearLayout

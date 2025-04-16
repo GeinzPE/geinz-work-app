@@ -2,19 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="350dp"
+
+
+    android:layout_height="235dp">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="300dp"
-        android:layout_height="200dp"
-        android:layout_margin="10dp"
+        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_marginRight="20dp"
         app:cardCornerRadius="8dp"> <!-- Ajusta el radio de las esquinas según sea necesario -->
 
         <io.getstream.photoview.PhotoView
             android:id="@+id/image_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="235dp"
             android:scaleType="centerCrop"
             android:src="@drawable/cargando_img_geinz_500" />
     </androidx.cardview.widget.CardView>

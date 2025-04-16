@@ -22,9 +22,6 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final LinearLayout agregarImg;
-
-  @NonNull
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
@@ -73,6 +70,9 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
   public final ImageView localizacion;
 
   @NonNull
+  public final LinearLayout panelPublicacion;
+
+  @NonNull
   public final ImageView preview;
 
   @NonNull
@@ -85,18 +85,17 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
   public final ImageView web;
 
   private BottomSheetConfigCuentaBinding(@NonNull ConstraintLayout rootView,
-      @NonNull LinearLayout agregarImg, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull LinearLayout containerCerrarSeccion, @NonNull LinearLayout containerEliminarCuenta,
-      @NonNull LinearLayout containerGuardados, @NonNull LinearLayout containerLocalizacion,
-      @NonNull LinearLayout containerPreview, @NonNull LinearLayout containerReview,
-      @NonNull LinearLayout containerqrAgregarImg, @NonNull ImageView fb, @NonNull ImageView ig,
-      @NonNull LinearLayout lineaReportes, @NonNull LinearLayout linealComoFuncionGeinz,
-      @NonNull LinearLayout linealPublicacion, @NonNull LinearLayout linealServicios,
-      @NonNull LinearLayout linealVerificado, @NonNull ImageView localizacion,
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout containerCerrarSeccion,
+      @NonNull LinearLayout containerEliminarCuenta, @NonNull LinearLayout containerGuardados,
+      @NonNull LinearLayout containerLocalizacion, @NonNull LinearLayout containerPreview,
+      @NonNull LinearLayout containerReview, @NonNull LinearLayout containerqrAgregarImg,
+      @NonNull ImageView fb, @NonNull ImageView ig, @NonNull LinearLayout lineaReportes,
+      @NonNull LinearLayout linealComoFuncionGeinz, @NonNull LinearLayout linealPublicacion,
+      @NonNull LinearLayout linealServicios, @NonNull LinearLayout linealVerificado,
+      @NonNull ImageView localizacion, @NonNull LinearLayout panelPublicacion,
       @NonNull ImageView preview, @NonNull LinearLayout qrTrabajador, @NonNull ImageView tk,
       @NonNull ImageView web) {
     this.rootView = rootView;
-    this.agregarImg = agregarImg;
     this.cerrar = cerrar;
     this.containerCerrarSeccion = containerCerrarSeccion;
     this.containerEliminarCuenta = containerEliminarCuenta;
@@ -113,6 +112,7 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
     this.linealServicios = linealServicios;
     this.linealVerificado = linealVerificado;
     this.localizacion = localizacion;
+    this.panelPublicacion = panelPublicacion;
     this.preview = preview;
     this.qrTrabajador = qrTrabajador;
     this.tk = tk;
@@ -146,12 +146,6 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.agregar_img;
-      LinearLayout agregarImg = ViewBindings.findChildViewById(rootView, id);
-      if (agregarImg == null) {
-        break missingId;
-      }
-
       id = R.id.cerrar;
       BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
       if (cerrar == null) {
@@ -248,6 +242,12 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.panel_publicacion;
+      LinearLayout panelPublicacion = ViewBindings.findChildViewById(rootView, id);
+      if (panelPublicacion == null) {
+        break missingId;
+      }
+
       id = R.id.preview;
       ImageView preview = ViewBindings.findChildViewById(rootView, id);
       if (preview == null) {
@@ -272,11 +272,11 @@ public final class BottomSheetConfigCuentaBinding implements ViewBinding {
         break missingId;
       }
 
-      return new BottomSheetConfigCuentaBinding((ConstraintLayout) rootView, agregarImg, cerrar,
+      return new BottomSheetConfigCuentaBinding((ConstraintLayout) rootView, cerrar,
           containerCerrarSeccion, containerEliminarCuenta, containerGuardados,
           containerLocalizacion, containerPreview, containerReview, containerqrAgregarImg, fb, ig,
           lineaReportes, linealComoFuncionGeinz, linealPublicacion, linealServicios,
-          linealVerificado, localizacion, preview, qrTrabajador, tk, web);
+          linealVerificado, localizacion, panelPublicacion, preview, qrTrabajador, tk, web);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

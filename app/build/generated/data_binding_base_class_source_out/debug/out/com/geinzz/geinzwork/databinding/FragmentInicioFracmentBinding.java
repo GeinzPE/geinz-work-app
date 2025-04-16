@@ -52,6 +52,12 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
   public final FloatingActionButton Tiendas;
 
   @NonNull
+  public final ImageCarousel carrucelProductosTrabajdores;
+
+  @NonNull
+  public final ImageCarousel carrucelPublicacionesRecientes;
+
+  @NonNull
   public final ImageCarousel carruse2;
 
   @NonNull
@@ -88,10 +94,22 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
   public final RelativeLayout linealCaption;
 
   @NonNull
+  public final RelativeLayout linealNoEncontrado;
+
+  @NonNull
+  public final RelativeLayout linealNoEncontradoProductos;
+
+  @NonNull
   public final LinearLayoutCompat loading;
 
   @NonNull
   public final TextView mejoresTrabajadeores;
+
+  @NonNull
+  public final TextView noEncontrado;
+
+  @NonNull
+  public final TextView noEncontradoProducto;
 
   @NonNull
   public final TextView noEncontradocat;
@@ -106,6 +124,9 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
   public final SwipeRefreshLayout swipe;
 
   @NonNull
+  public final TextView verProductos;
+
+  @NonNull
   public final TextView verTecnicos;
 
   @NonNull
@@ -113,6 +134,9 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
 
   @NonNull
   public final TextView verTrabajohogar;
+
+  @NonNull
+  public final TextView verTrabajosPublicados;
 
   @NonNull
   public final TextView verdesarrollo;
@@ -130,8 +154,10 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       @NonNull IncludeAnunciosFrameInciofragmentBinding IncludeAnunciosTercero,
       @NonNull LinearLayout LinealContainer, @NonNull FrameLayout Principalfr,
       @NonNull RecyclerView RecicleCategoria, @NonNull FloatingActionButton Tiendas,
-      @NonNull ImageCarousel carruse2, @NonNull ImageCarousel carrusel,
-      @NonNull ImageCarousel carruselPimarioInicio, @NonNull FrameLayout containerGeneral,
+      @NonNull ImageCarousel carrucelProductosTrabajdores,
+      @NonNull ImageCarousel carrucelPublicacionesRecientes, @NonNull ImageCarousel carruse2,
+      @NonNull ImageCarousel carrusel, @NonNull ImageCarousel carruselPimarioInicio,
+      @NonNull FrameLayout containerGeneral,
       @NonNull IncludeCabezeroIniciofragmentBinding includeCabezero,
       @NonNull ItemInicioFragmentUsersBinding includeRecicleTecnicos,
       @NonNull ItemInicioFragmentUsersBinding includeRecicleViewddelivery,
@@ -139,11 +165,14 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       @NonNull ItemInicioFragmentUsersBinding includeReciclehogar,
       @NonNull ItemInicioFragmentUsersBinding includeReciclemecanico,
       @NonNull ItemInicioFragmentUsersBinding includeTrabajadoresTop,
-      @NonNull RelativeLayout linealCaption, @NonNull LinearLayoutCompat loading,
-      @NonNull TextView mejoresTrabajadeores, @NonNull TextView noEncontradocat,
+      @NonNull RelativeLayout linealCaption, @NonNull RelativeLayout linealNoEncontrado,
+      @NonNull RelativeLayout linealNoEncontradoProductos, @NonNull LinearLayoutCompat loading,
+      @NonNull TextView mejoresTrabajadeores, @NonNull TextView noEncontrado,
+      @NonNull TextView noEncontradoProducto, @NonNull TextView noEncontradocat,
       @NonNull ProgressBar progresCargaCat, @NonNull RecyclerView recicleTiendas1,
-      @NonNull SwipeRefreshLayout swipe, @NonNull TextView verTecnicos,
-      @NonNull TextView verTiendas, @NonNull TextView verTrabajohogar,
+      @NonNull SwipeRefreshLayout swipe, @NonNull TextView verProductos,
+      @NonNull TextView verTecnicos, @NonNull TextView verTiendas,
+      @NonNull TextView verTrabajohogar, @NonNull TextView verTrabajosPublicados,
       @NonNull TextView verdesarrollo, @NonNull TextView vermecanica,
       @NonNull TextView vertrasnporte) {
     this.rootView = rootView;
@@ -155,6 +184,8 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
     this.Principalfr = Principalfr;
     this.RecicleCategoria = RecicleCategoria;
     this.Tiendas = Tiendas;
+    this.carrucelProductosTrabajdores = carrucelProductosTrabajdores;
+    this.carrucelPublicacionesRecientes = carrucelPublicacionesRecientes;
     this.carruse2 = carruse2;
     this.carrusel = carrusel;
     this.carruselPimarioInicio = carruselPimarioInicio;
@@ -167,15 +198,21 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
     this.includeReciclemecanico = includeReciclemecanico;
     this.includeTrabajadoresTop = includeTrabajadoresTop;
     this.linealCaption = linealCaption;
+    this.linealNoEncontrado = linealNoEncontrado;
+    this.linealNoEncontradoProductos = linealNoEncontradoProductos;
     this.loading = loading;
     this.mejoresTrabajadeores = mejoresTrabajadeores;
+    this.noEncontrado = noEncontrado;
+    this.noEncontradoProducto = noEncontradoProducto;
     this.noEncontradocat = noEncontradocat;
     this.progresCargaCat = progresCargaCat;
     this.recicleTiendas1 = recicleTiendas1;
     this.swipe = swipe;
+    this.verProductos = verProductos;
     this.verTecnicos = verTecnicos;
     this.verTiendas = verTiendas;
     this.verTrabajohogar = verTrabajohogar;
+    this.verTrabajosPublicados = verTrabajosPublicados;
     this.verdesarrollo = verdesarrollo;
     this.vermecanica = vermecanica;
     this.vertrasnporte = vertrasnporte;
@@ -253,6 +290,18 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       id = R.id.Tiendas;
       FloatingActionButton Tiendas = ViewBindings.findChildViewById(rootView, id);
       if (Tiendas == null) {
+        break missingId;
+      }
+
+      id = R.id.carrucel_productos_trabajdores;
+      ImageCarousel carrucelProductosTrabajdores = ViewBindings.findChildViewById(rootView, id);
+      if (carrucelProductosTrabajdores == null) {
+        break missingId;
+      }
+
+      id = R.id.carrucel_publicaciones_recientes;
+      ImageCarousel carrucelPublicacionesRecientes = ViewBindings.findChildViewById(rootView, id);
+      if (carrucelPublicacionesRecientes == null) {
         break missingId;
       }
 
@@ -335,6 +384,18 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.lineal_noEncontrado;
+      RelativeLayout linealNoEncontrado = ViewBindings.findChildViewById(rootView, id);
+      if (linealNoEncontrado == null) {
+        break missingId;
+      }
+
+      id = R.id.lineal_noEncontrado_productos;
+      RelativeLayout linealNoEncontradoProductos = ViewBindings.findChildViewById(rootView, id);
+      if (linealNoEncontradoProductos == null) {
+        break missingId;
+      }
+
       id = R.id.loading;
       LinearLayoutCompat loading = ViewBindings.findChildViewById(rootView, id);
       if (loading == null) {
@@ -344,6 +405,18 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       id = R.id.mejores_trabajadeores;
       TextView mejoresTrabajadeores = ViewBindings.findChildViewById(rootView, id);
       if (mejoresTrabajadeores == null) {
+        break missingId;
+      }
+
+      id = R.id.noEncontrado;
+      TextView noEncontrado = ViewBindings.findChildViewById(rootView, id);
+      if (noEncontrado == null) {
+        break missingId;
+      }
+
+      id = R.id.noEncontrado_producto;
+      TextView noEncontradoProducto = ViewBindings.findChildViewById(rootView, id);
+      if (noEncontradoProducto == null) {
         break missingId;
       }
 
@@ -371,6 +444,12 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.ver_productos;
+      TextView verProductos = ViewBindings.findChildViewById(rootView, id);
+      if (verProductos == null) {
+        break missingId;
+      }
+
       id = R.id.verTecnicos;
       TextView verTecnicos = ViewBindings.findChildViewById(rootView, id);
       if (verTecnicos == null) {
@@ -386,6 +465,12 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       id = R.id.verTrabajohogar;
       TextView verTrabajohogar = ViewBindings.findChildViewById(rootView, id);
       if (verTrabajohogar == null) {
+        break missingId;
+      }
+
+      id = R.id.ver_trabajos_publicados;
+      TextView verTrabajosPublicados = ViewBindings.findChildViewById(rootView, id);
+      if (verTrabajosPublicados == null) {
         break missingId;
       }
 
@@ -410,13 +495,16 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       return new FragmentInicioFracmentBinding((FrameLayout) rootView,
           binding_IncludeAnunciosCuarto, binding_IncludeAnunciosQuinto,
           binding_IncludeAnunciosSexto, binding_IncludeAnunciosTercero, LinealContainer,
-          Principalfr, RecicleCategoria, Tiendas, carruse2, carrusel, carruselPimarioInicio,
+          Principalfr, RecicleCategoria, Tiendas, carrucelProductosTrabajdores,
+          carrucelPublicacionesRecientes, carruse2, carrusel, carruselPimarioInicio,
           containerGeneral, binding_includeCabezero, binding_includeRecicleTecnicos,
           binding_includeRecicleViewddelivery, binding_includeRecicleViewsalud,
           binding_includeReciclehogar, binding_includeReciclemecanico,
-          binding_includeTrabajadoresTop, linealCaption, loading, mejoresTrabajadeores,
-          noEncontradocat, progresCargaCat, recicleTiendas1, swipe, verTecnicos, verTiendas,
-          verTrabajohogar, verdesarrollo, vermecanica, vertrasnporte);
+          binding_includeTrabajadoresTop, linealCaption, linealNoEncontrado,
+          linealNoEncontradoProductos, loading, mejoresTrabajadeores, noEncontrado,
+          noEncontradoProducto, noEncontradocat, progresCargaCat, recicleTiendas1, swipe,
+          verProductos, verTecnicos, verTiendas, verTrabajohogar, verTrabajosPublicados,
+          verdesarrollo, vermecanica, vertrasnporte);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

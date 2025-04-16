@@ -90,7 +90,7 @@ class adaptadorAnuncios(
         ) {
             if (dataClassAnuncios.descuentoBoolean == true) {
                 binding.descuentoPorcentaje.isVisible = true
-                binding.descuentoPorcentaje.text ="- ${dataClassAnuncios.porcentajeDescuento}% OFF"
+                binding.descuentoPorcentaje.text = "- ${dataClassAnuncios.porcentajeDescuento}% OFF"
             }
 
             firebaseAuth = FirebaseAuth.getInstance()
@@ -105,7 +105,7 @@ class adaptadorAnuncios(
 
             imgAnuncio.setOnClickListener {
                 val imageUrl =
-                    dataClassAnuncios.img 
+                    dataClassAnuncios.img
                 val dialogFragment = ImageDialogFragmentURL.newInstance(imageUrl)
                 dialogFragment.show(
                     (itemView.context as AppCompatActivity).supportFragmentManager,
@@ -149,7 +149,8 @@ class adaptadorAnuncios(
                         val bitmap = (resource as BitmapDrawable).bitmap
                         val isVertical = bitmap.height > bitmap.width
 
-                        val layoutParamsAnim = like_animation.layoutParams as RelativeLayout.LayoutParams
+                        val layoutParamsAnim =
+                            like_animation.layoutParams as RelativeLayout.LayoutParams
                         val imgHeight = imgAnuncio.height
 
                         // Calcula el tamaño de like_animation en relación con la altura de imgAnuncio
@@ -192,8 +193,10 @@ class adaptadorAnuncios(
                 } else {
                     val idUser = firebaseAuth.uid.toString()
                     val db2 =
-                        FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(idUser)
+                        FirebaseFirestore.getInstance()
+                            .collection(Variables.trabajadores_usuariosDB)
+                            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                            .document(idUser)
                             .collection(Variables.noticiasGuardadas)
 
                     db2.get().addOnSuccessListener { res ->
@@ -207,7 +210,7 @@ class adaptadorAnuncios(
                                 }
                             }
                         }
-                
+
                         likeAniation = constantesNoticias.guardar(
                             Guardar,
                             R.raw.save_animation,
@@ -245,7 +248,7 @@ class adaptadorAnuncios(
             propietario.text = spannableString
         }
 
-    
+
         fun Int.dpToPx(): Int {
             val scale = Resources.getSystem().displayMetrics.density
             return (this * scale + 0.5f).toInt()
@@ -257,7 +260,8 @@ class adaptadorAnuncios(
             dataClassAnuncios: dataClassAnuncios,
         ) {
             val db2 = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(idUser)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(idUser)
                 .collection(Variables.noticiasGuardadas)
 
             db2.get().addOnSuccessListener { res ->
@@ -273,7 +277,7 @@ class adaptadorAnuncios(
                     }
                 }
 
-              
+
                 constantesNoticias.actualizarAnimacion(
                     Guardar,
                     R.raw.save_animation,
@@ -313,14 +317,14 @@ class adaptadorAnuncios(
                     ).show()
                 } else {
                     if (dataClassAnuncios.numero.toString().isNotEmpty()) {
-                     
+
                         val intent = Intent(context, ver_detalles_Promociones::class.java)
                         constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.click)
                         intent.putExtra(Variables.idAnuncio, dataClassAnuncios.id)
                         intent.putExtra(Variables.TipoPromo, dataClassAnuncios.TipoPromo)
                         intent.putExtra(Variables.idTienda, dataClassAnuncios.idProp)
                         intent.putExtra(Variables.entrada, tipo)
-                        
+
                         context.startActivity(intent)
 
                         if (finihs && context is Activity) {

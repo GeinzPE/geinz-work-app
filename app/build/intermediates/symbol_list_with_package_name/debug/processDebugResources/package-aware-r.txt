@@ -4152,6 +4152,7 @@ drawable icon_user
 drawable icon_verificado
 drawable icono_anuncio_iniciof
 drawable icono_corazon_lleno
+drawable icono_panel_de_publicacion
 drawable img_perfil
 drawable img_perfil_trabjador
 drawable info_icon
@@ -4728,7 +4729,6 @@ id adquirir
 id adquirir_web
 id adquirira
 id agregar
-id agregar_img
 id alertTitle
 id aligned
 id all
@@ -4847,6 +4847,7 @@ id camposNoticia
 id campos_oculatar
 id campos_pagos
 id campos_principales
+id campos_productos_user_verificados
 id campos_redes
 id cancel_action
 id cancel_button
@@ -4868,22 +4869,33 @@ id cargaIMG_text
 id cargaIMGtexto
 id cargaLike
 id cargaProductos_promo_trabajos
+id cargaPublicaicones_realizadas
 id cargaServicios
+id carga_contenido
+id carga_img
 id cargadoContenido
 id cargadoSugeridos
+id cargado_img
 id cargaimg
+id cargandoCategorias
+id cargandoCategoriasTrabajadores
 id cargandoContenido
+id cargandoHastags_principales
 id cargandoRef
 id cargandoText
 id cargando_contenido
 id cargando_lat_log
 id cargarConteindo
+id cargar_contenido
 id carracteristicasUser
 id carritoCompras
 id carrito_compras
 id carrucel
 id carrucelImgContainer
 id carrucelImgProductosVentaUser
+id carrucel_productos_trabajdores
+id carrucel_publicaciones_recientes
+id carrucel_publicaciones_recientes_img
 id carrucel_tiendas
 id carruse2
 id carrusel
@@ -4900,7 +4912,9 @@ id categoriaProductos
 id categoriaSelcionada
 id categoriaT
 id categoriaTienda
+id categoriaTrabajos_publicados
 id categoria_tipo_trabajo
+id categoria_trabajo
 id categroiasFiltrado
 id center
 id centerCrop
@@ -4917,6 +4931,7 @@ id chains
 id checkBoxPoliticas
 id checkbox
 id checked
+id chipGrup_hastagsP
 id chronometer
 id cincoEstrellasLineal
 id circle
@@ -4997,9 +5012,11 @@ id contenedor_sin_qr
 id contenido
 id contenidoED
 id contenidoItem
+id contenidoPublicacion
 id contenidoRelative
 id contenidoReseview
 id contenidoTienda
+id contenido_cargado
 id contenido_corto
 id contenidotext
 id content
@@ -5060,6 +5077,7 @@ id descripcionServicios
 id descripcionServiciosED
 id descripcionTrabajador
 id descripcion_contenido
+id descripcion_producto
 id descripcion_promos
 id descripcion_publicacion
 id descripcion_publicacionED
@@ -5134,6 +5152,7 @@ id easeInOut
 id easeOut
 id east
 id edadUser
+id edad_user
 id edge
 id editText_search
 id edit_query
@@ -5357,6 +5376,7 @@ id icon_zonaTienda
 id icono
 id idApelacio_problema
 id idDoc
+id idGrupoCategoriaTrabajos
 id idProblema
 id idPublicidad
 id idReferencia
@@ -5569,6 +5589,8 @@ id linealCargandoImg
 id linealCargandoRef
 id linealCategoriaProducto
 id linealCategoriaT
+id linealCategorias_trabajos
+id linealCategorias_trabajos_publicados
 id linealCompartir_descargar
 id linealCondicionProducto
 id linealContenidoDesctipcion
@@ -5636,8 +5658,11 @@ id lineal_form
 id lineal_form_btn_geinz
 id lineal_id
 id lineal_img_qr
+id lineal_info_trabajdor
 id lineal_me_gusta
 id lineal_metodo_entrega
+id lineal_noEncontrado
+id lineal_noEncontrado_productos
 id lineal_no_cuenta
 id lineal_nombre_verifi
 id lineal_pago
@@ -5805,6 +5830,7 @@ id nacionalida
 id nacionalidad
 id nacionalidadT
 id nacionalidad_driver
+id nacionnalidad
 id nacionnalidadUser
 id navigation_bar_item_active_indicator_view
 id navigation_bar_item_icon_container
@@ -5827,6 +5853,7 @@ id noEncontradoClikcCompartidas
 id noEncontradoCuentas
 id noEncontradoGenero
 id noEncontradoLocalidades
+id noEncontrado_producto
 id noEncontradocat
 id noEnctrado
 id noScroll
@@ -5858,6 +5885,8 @@ id nombreTrabajador
 id nombreTrabajaror
 id nombreUSer
 id nombreUser
+id nombre_trabajador
+id nombre_trabajadoroculto
 id nombreint
 id nombresCompletos
 id nombresCompletosED
@@ -5924,6 +5953,7 @@ id pago
 id pagoProductos
 id pago_efectivo
 id pagometodo
+id panel_publicacion
 id parallax
 id paramonga
 id parent
@@ -5941,6 +5971,7 @@ id pendiente
 id percent
 id perfil_fotoTienda
 id perfil_user_img
+id perfiltrabajador
 id peuano
 id photoView
 id piblicarReview
@@ -6169,6 +6200,7 @@ id search_voice_btn
 id secondary_controls_dock
 id seekBar
 id segidores
+id seguidores_trabajador
 id seguir
 id seleccionTrabajo
 id select_dialog_listview
@@ -6329,6 +6361,7 @@ id titulo_Trabajo
 id titulo_contenido
 id titulo_de_la_noticia
 id titulo_lineal
+id titulo_producto
 id titulo_promo
 id titulo_publicacionED
 id titulo_publicaciontext
@@ -6392,6 +6425,7 @@ id unchecked
 id uniform
 id unlabeled
 id up
+id urlTrabajador
 id useLogo
 id user
 id userNameCuenta
@@ -6420,6 +6454,8 @@ id ver_mas
 id ver_mas_promociones
 id ver_mas_trabajadores
 id ver_preview
+id ver_productos
+id ver_trabajos_publicados
 id verdesarrollo
 id verificacion
 id verificado
@@ -6632,7 +6668,6 @@ layout abc_search_dropdown_item_icons_2line
 layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
-layout activity_agregar_imagen
 layout activity_agregar_pago_comprareserva_tiendas
 layout activity_agregar_publicaciones_recientes_trabajadores_verificados
 layout activity_agregar_redes
@@ -6669,6 +6704,7 @@ layout activity_noticias_servicios_geinz
 layout activity_noticias_yofertas_filtrado
 layout activity_noticias_yreview
 layout activity_oferta_principales_geinz
+layout activity_panel_publicacion_trabajador
 layout activity_password_yuser
 layout activity_planes
 layout activity_planes_noticias_servicios_geinz
@@ -6699,6 +6735,7 @@ layout activity_ver_mas_servicios
 layout activity_ver_promociones
 layout activity_ver_publicaciones
 layout activity_ver_servicios
+layout activity_ver_toto_publicaciones_trabajador
 layout activity_verificacion_cuenta_trabajador
 layout activity_vista_categorias_t
 layout activity_vista_mostrar_todos_tiendas
@@ -6706,6 +6743,8 @@ layout activity_vista_productos_general_tiendas
 layout activity_vista_recicle_productos
 layout activity_vista_tienda
 layout activity_vista_trabajador
+layout activity_vista_ver_productos_trabajadores
+layout activity_vista_ver_publicaciones_trabajadores
 layout activity_vistas_anuncios_general
 layout activity_voleta_estado_verificacion
 layout alert_dialog_personalizado
@@ -6800,6 +6839,7 @@ layout ime_secondary_split_test_activity
 layout include_anuncios_frame_inciofragment
 layout include_cabezero_iniciofragment
 layout include_campos_principales
+layout include_campos_productos_vendidos_verificados
 layout include_descripcion_promo_art
 layout include_detalles_servicios
 layout include_direccion_envios
@@ -6834,13 +6874,16 @@ layout item_mas_publicidades_geinz
 layout item_mas_trabajadores__sugeridos
 layout item_new_noticias_tiendas
 layout item_noticias_guardadas
+layout item_perfil_trabajador
 layout item_planes_geinz_noticias_publicidad
 layout item_preview_art_comprar_carrito
 layout item_productos_tiendas
 layout item_productos_trabajador_recycleview
 layout item_productos_usuarios_verificados
+layout item_products_trabajadores_principal
 layout item_promociones_encontradas
 layout item_promociones_geinz
+layout item_publicaicones_recientes_trabajadores_inicio_fragment
 layout item_recuadros
 layout item_reportes
 layout item_reserva
@@ -6982,6 +7025,7 @@ layout notification_template_media
 layout notification_template_media_custom
 layout notification_template_part_chronometer
 layout notification_template_part_time
+layout panel_publicacion
 layout previous_button_layout
 layout radio_btn_direcion_envios
 layout recicle_trabajos
@@ -7497,6 +7541,7 @@ string oferta
 string orb_search_action
 string orientacion_publicidad
 string otro
+string panel_publicacion_txt
 string password_toggle_content_description
 string path_password_eye
 string path_password_eye_mask_strike_through
@@ -8906,6 +8951,7 @@ style custom_card_view
 style descripcionColor
 style fondo
 style roundBtnFiltradoHistorial
+style titulo_texto
 style zxing_CaptureTheme
 styleable ActionBar background backgroundSplit backgroundStacked contentInsetEnd contentInsetEndWithActions contentInsetLeft contentInsetRight contentInsetStart contentInsetStartWithNavigation customNavigationLayout displayOptions divider elevation height hideOnContentScroll homeAsUpIndicator homeLayout icon indeterminateProgressStyle itemPadding logo navigationMode popupTheme progressBarPadding progressBarStyle subtitle subtitleTextStyle title titleTextStyle
 styleable ActionBarLayout android_layout_gravity

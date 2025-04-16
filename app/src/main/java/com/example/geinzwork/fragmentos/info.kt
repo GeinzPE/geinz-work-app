@@ -44,7 +44,6 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajo_realizados
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
-import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
@@ -52,7 +51,6 @@ import com.geinzz.geinzwork.databinding.BottomSheetContactaTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
-import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
@@ -193,7 +191,29 @@ class info : Fragment() {
         obtenerPerfil(idTrabajador, img)
 
         confSwipe(idTrabajador, img)
-        constantes_trabajadores_info.verificarSiSiueTrabajador(binding, idTrabajador, mContex) {}
+        constantes_trabajadores_info.verificarSiSiueTrabajador(
+            binding,
+            idTrabajador,
+            mContex,
+            { sige -> },
+            { noti ->
+                Log.d("norificaicon",noti.toString())
+                if (noti) {
+                    binding.notificaciones.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            mContex,
+                            R.drawable.notification_on
+                        )
+                    )
+                } else {
+                    binding.notificaciones.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            mContex,
+                            R.drawable.notification_off
+                        )
+                    )
+                }
+            })
         binding.dejarDeSeguirOSeguir.setOnClickListener {
             constantes_trabajadores_info.verificarFollow(idTrabajador, binding, mContex)
         }

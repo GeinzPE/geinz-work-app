@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
 import com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar
 import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.MainActivity
@@ -57,7 +58,7 @@ object constantes_cuenta_user {
         val lineal_Publicacion = binding.linealPublicacion
         val lineal_direccionEnvios = binding.containerLocalizacion
         val containerqr_agregar_img = binding.containerqrAgregarImg
-        val agregarImagen = binding.agregarImg
+        val panel_publicacion = binding.panelPublicacion
         val lineaReportes = binding.lineaReportes
         val lineal_como_funcion_Geinz = binding.linealComoFuncionGeinz
         val qr_trabajador =binding.qrTrabajador
@@ -146,9 +147,9 @@ object constantes_cuenta_user {
             dialog.dismiss()
 
         }
-        agregarImagen.setOnClickListener {
+        panel_publicacion.setOnClickListener {
             firebaseAuth = FirebaseAuth.getInstance()
-            var intent = Intent(context, com.geinzz.geinzwork.agregarImagen::class.java)
+            var intent = Intent(context, panel_publicacion_trabajador::class.java)
             intent.putExtra(Variables.iduser, firebaseAuth.uid.toString())
             context.startActivity(intent)
             dialog.dismiss()

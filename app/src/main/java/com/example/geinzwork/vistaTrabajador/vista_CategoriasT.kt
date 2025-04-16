@@ -267,30 +267,30 @@ class vista_CategoriasT : AppCompatActivity() {
             .addOnSuccessListener { querySnapshot ->
                 for (document in querySnapshot.documents) {
                     val userData = document.data
-                    val estrellas = userData?.get("estrellas") as? String?
+                    val estrellas = userData?.get("estrellas") as? String ?:"0"
                     val estrellasInt = estrellas!!.toInt()
 
                     if (estrellasInt > 40) {
-                        val nombre = userData.get(Variables.nombre) as? String
-                        val apellido = userData.get(Variables.apellido) as? String
-                        val caracteristica1 = userData.get(Variables.caracteristica1) as? String
-                        val caracteristica2 = userData.get(Variables.caracteristica2) as? String
-                        val caracteristica3 = userData.get(Variables.caracteristica3) as? String
-                        val categoriaTrabajo = userData.get(Variables.categoriaTrabajo) as? String
-                        val codigoPais = userData.get(Variables.codigo_pais) as? String
-                        val fechaNac = userData.get(Variables.fechaNac) as? String
-                        val genero = userData.get(Variables.genero) as? String
-                        val horario1 = userData.get(Variables.horario1) as? String
-                        val horario2 = userData.get(Variables.horario2) as? String
-                        val id = (userData.get(Variables.id) as? String).toString()
-                        img = (userData.get(Variables.imagenPerfil) as? String).toString()
-                        val localidad = userData.get(Variables.localidad) as? String
-                        val nacionalidad = userData.get(Variables.nacionalidad) as? String
-                        val numero = userData.get(Variables.numero) as? String
-                        val tipoTrabajo = userData.get(Variables.tipoTrabajo) as? String
-                        val activo = userData.get(Variables.activado) as? String
-                        val EdadaActual = userData?.get(Variables.EdadActual) as? String
-                        val verificados = userData?.get(Variables.verificado) as? Boolean
+                        val nombre = userData?.get(Variables.nombre) as? String?:""
+                        val apellido = userData?.get(Variables.apellido) as? String?:""
+                        val caracteristica1 = userData?.get(Variables.caracteristica1) as? String?:""
+                        val caracteristica2 = userData?.get(Variables.caracteristica2) as? String?:""
+                        val caracteristica3 = userData?.get(Variables.caracteristica3) as? String?:""
+                        val categoriaTrabajo = userData?.get(Variables.categoriaTrabajo) as? String?:""
+                        val codigoPais = userData?.get(Variables.codigo_pais) as? String?:""
+                        val fechaNac = userData?.get(Variables.fechaNac) as? String?:""
+                        val genero = userData?.get(Variables.genero) as? String?:""
+                        val horario1 = userData?.get(Variables.horario1) as? String?:""
+                        val horario2 = userData?.get(Variables.horario2) as? String?:""
+                        val id = (userData?.get(Variables.id) as? String).toString()?:""
+                        img = (userData?.get(Variables.imagenPerfil) as? String).toString()?:""
+                        val localidad = userData?.get(Variables.localidad) as? String?:""
+                        val nacionalidad = userData?.get(Variables.nacionalidad) as? String?:""
+                        val numero = userData?.get(Variables.numero) as? String?:""
+                        val tipoTrabajo = userData?.get(Variables.tipoTrabajo) as? String?:""
+                        val activo = userData?.get(Variables.activado) as? String?:""
+                        val EdadaActual = userData?.get(Variables.EdadActual) as? String?:""
+                        val verificados = userData?.get(Variables.verificado) as? Boolean?:false
                         val usuario = dataClassTrabajosd(
                             id,
                             apellido,

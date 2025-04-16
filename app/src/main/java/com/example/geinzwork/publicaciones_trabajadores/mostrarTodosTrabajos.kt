@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.adapterViewholder.adapterCategoriasPromocionesFiltrado
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
-import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclasCaterogirasFiltrado
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.geinzz.geinzwork.R

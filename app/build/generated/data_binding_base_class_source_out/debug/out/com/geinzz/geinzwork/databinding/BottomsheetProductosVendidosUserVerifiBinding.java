@@ -16,7 +16,6 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView;
-import com.google.android.material.button.MaterialButton;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -26,10 +25,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   private final RelativeLayout rootView;
 
   @NonNull
-  public final TextView Condicion;
-
-  @NonNull
-  public final LinearLayout LinealModeloProducto;
+  public final IncludeCamposProductosVendidosVerificadosBinding camposProductosUserVerificados;
 
   @NonNull
   public final ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos;
@@ -38,64 +34,7 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final RecyclerView carrucelImgProductosVentaUser;
 
   @NonNull
-  public final TextView categoriaProducto;
-
-  @NonNull
   public final BottomSheetDragHandleView cerrar;
-
-  @NonNull
-  public final MaterialButton comprar;
-
-  @NonNull
-  public final MaterialButton cordinarVendedor;
-
-  @NonNull
-  public final TextView descripcion;
-
-  @NonNull
-  public final TextView descuentoPorcentaje;
-
-  @NonNull
-  public final TextView entregaDomicilio;
-
-  @NonNull
-  public final TextView fechaPublicado;
-
-  @NonNull
-  public final TextView garantia;
-
-  @NonNull
-  public final LinearLayout linealCategoriaProducto;
-
-  @NonNull
-  public final LinearLayout linealCondicionProducto;
-
-  @NonNull
-  public final LinearLayout linealDescripcionProducto;
-
-  @NonNull
-  public final LinearLayout linealEntregaDomicilio;
-
-  @NonNull
-  public final LinearLayout linealFechaPublicada;
-
-  @NonNull
-  public final LinearLayout linealGarantiaDisponible;
-
-  @NonNull
-  public final LinearLayout linealMarcaProducto;
-
-  @NonNull
-  public final LinearLayout linealPrecioProducto;
-
-  @NonNull
-  public final LinearLayout linealStokDisponible;
-
-  @NonNull
-  public final TextView marca;
-
-  @NonNull
-  public final TextView modelo;
 
   @NonNull
   public final LinearLayout netScrollView;
@@ -107,70 +46,24 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final TextView nombreProducto;
 
   @NonNull
-  public final TextView precioAntiguo;
-
-  @NonNull
-  public final TextView precioProducto;
-
-  @NonNull
   public final ProgressBar progressCarga;
 
-  @NonNull
-  public final TextView stok;
-
-  @NonNull
-  public final TextView tvReadMore;
-
   private BottomsheetProductosVendidosUserVerifiBinding(@NonNull RelativeLayout rootView,
-      @NonNull TextView Condicion, @NonNull LinearLayout LinealModeloProducto,
+      @NonNull IncludeCamposProductosVendidosVerificadosBinding camposProductosUserVerificados,
       @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
-      @NonNull RecyclerView carrucelImgProductosVentaUser, @NonNull TextView categoriaProducto,
-      @NonNull BottomSheetDragHandleView cerrar, @NonNull MaterialButton comprar,
-      @NonNull MaterialButton cordinarVendedor, @NonNull TextView descripcion,
-      @NonNull TextView descuentoPorcentaje, @NonNull TextView entregaDomicilio,
-      @NonNull TextView fechaPublicado, @NonNull TextView garantia,
-      @NonNull LinearLayout linealCategoriaProducto, @NonNull LinearLayout linealCondicionProducto,
-      @NonNull LinearLayout linealDescripcionProducto, @NonNull LinearLayout linealEntregaDomicilio,
-      @NonNull LinearLayout linealFechaPublicada, @NonNull LinearLayout linealGarantiaDisponible,
-      @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
-      @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
-      @NonNull LinearLayout netScrollView, @NonNull NestedScrollView nettScrollView,
-      @NonNull TextView nombreProducto, @NonNull TextView precioAntiguo,
-      @NonNull TextView precioProducto, @NonNull ProgressBar progressCarga, @NonNull TextView stok,
-      @NonNull TextView tvReadMore) {
+      @NonNull RecyclerView carrucelImgProductosVentaUser,
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout netScrollView,
+      @NonNull NestedScrollView nettScrollView, @NonNull TextView nombreProducto,
+      @NonNull ProgressBar progressCarga) {
     this.rootView = rootView;
-    this.Condicion = Condicion;
-    this.LinealModeloProducto = LinealModeloProducto;
+    this.camposProductosUserVerificados = camposProductosUserVerificados;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
     this.carrucelImgProductosVentaUser = carrucelImgProductosVentaUser;
-    this.categoriaProducto = categoriaProducto;
     this.cerrar = cerrar;
-    this.comprar = comprar;
-    this.cordinarVendedor = cordinarVendedor;
-    this.descripcion = descripcion;
-    this.descuentoPorcentaje = descuentoPorcentaje;
-    this.entregaDomicilio = entregaDomicilio;
-    this.fechaPublicado = fechaPublicado;
-    this.garantia = garantia;
-    this.linealCategoriaProducto = linealCategoriaProducto;
-    this.linealCondicionProducto = linealCondicionProducto;
-    this.linealDescripcionProducto = linealDescripcionProducto;
-    this.linealEntregaDomicilio = linealEntregaDomicilio;
-    this.linealFechaPublicada = linealFechaPublicada;
-    this.linealGarantiaDisponible = linealGarantiaDisponible;
-    this.linealMarcaProducto = linealMarcaProducto;
-    this.linealPrecioProducto = linealPrecioProducto;
-    this.linealStokDisponible = linealStokDisponible;
-    this.marca = marca;
-    this.modelo = modelo;
     this.netScrollView = netScrollView;
     this.nettScrollView = nettScrollView;
     this.nombreProducto = nombreProducto;
-    this.precioAntiguo = precioAntiguo;
-    this.precioProducto = precioProducto;
     this.progressCarga = progressCarga;
-    this.stok = stok;
-    this.tvReadMore = tvReadMore;
   }
 
   @Override
@@ -201,17 +94,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.Condicion;
-      TextView Condicion = ViewBindings.findChildViewById(rootView, id);
-      if (Condicion == null) {
+      id = R.id.campos_productos_user_verificados;
+      View camposProductosUserVerificados = ViewBindings.findChildViewById(rootView, id);
+      if (camposProductosUserVerificados == null) {
         break missingId;
       }
-
-      id = R.id.LinealModeloProducto;
-      LinearLayout LinealModeloProducto = ViewBindings.findChildViewById(rootView, id);
-      if (LinealModeloProducto == null) {
-        break missingId;
-      }
+      IncludeCamposProductosVendidosVerificadosBinding binding_camposProductosUserVerificados = IncludeCamposProductosVendidosVerificadosBinding.bind(camposProductosUserVerificados);
 
       id = R.id.cargaProductos_promo_trabajos;
       View cargaProductosPromoTrabajos = ViewBindings.findChildViewById(rootView, id);
@@ -226,123 +114,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      id = R.id.categoriaProducto;
-      TextView categoriaProducto = ViewBindings.findChildViewById(rootView, id);
-      if (categoriaProducto == null) {
-        break missingId;
-      }
-
       id = R.id.cerrar;
       BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
       if (cerrar == null) {
-        break missingId;
-      }
-
-      id = R.id.comprar;
-      MaterialButton comprar = ViewBindings.findChildViewById(rootView, id);
-      if (comprar == null) {
-        break missingId;
-      }
-
-      id = R.id.cordinarVendedor;
-      MaterialButton cordinarVendedor = ViewBindings.findChildViewById(rootView, id);
-      if (cordinarVendedor == null) {
-        break missingId;
-      }
-
-      id = R.id.descripcion;
-      TextView descripcion = ViewBindings.findChildViewById(rootView, id);
-      if (descripcion == null) {
-        break missingId;
-      }
-
-      id = R.id.descuentoPorcentaje;
-      TextView descuentoPorcentaje = ViewBindings.findChildViewById(rootView, id);
-      if (descuentoPorcentaje == null) {
-        break missingId;
-      }
-
-      id = R.id.entregaDomicilio;
-      TextView entregaDomicilio = ViewBindings.findChildViewById(rootView, id);
-      if (entregaDomicilio == null) {
-        break missingId;
-      }
-
-      id = R.id.fechaPublicado;
-      TextView fechaPublicado = ViewBindings.findChildViewById(rootView, id);
-      if (fechaPublicado == null) {
-        break missingId;
-      }
-
-      id = R.id.garantia;
-      TextView garantia = ViewBindings.findChildViewById(rootView, id);
-      if (garantia == null) {
-        break missingId;
-      }
-
-      id = R.id.linealCategoriaProducto;
-      LinearLayout linealCategoriaProducto = ViewBindings.findChildViewById(rootView, id);
-      if (linealCategoriaProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.linealCondicionProducto;
-      LinearLayout linealCondicionProducto = ViewBindings.findChildViewById(rootView, id);
-      if (linealCondicionProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.linealDescripcionProducto;
-      LinearLayout linealDescripcionProducto = ViewBindings.findChildViewById(rootView, id);
-      if (linealDescripcionProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.linealEntregaDomicilio;
-      LinearLayout linealEntregaDomicilio = ViewBindings.findChildViewById(rootView, id);
-      if (linealEntregaDomicilio == null) {
-        break missingId;
-      }
-
-      id = R.id.linealFechaPublicada;
-      LinearLayout linealFechaPublicada = ViewBindings.findChildViewById(rootView, id);
-      if (linealFechaPublicada == null) {
-        break missingId;
-      }
-
-      id = R.id.linealGarantiaDisponible;
-      LinearLayout linealGarantiaDisponible = ViewBindings.findChildViewById(rootView, id);
-      if (linealGarantiaDisponible == null) {
-        break missingId;
-      }
-
-      id = R.id.linealMarcaProducto;
-      LinearLayout linealMarcaProducto = ViewBindings.findChildViewById(rootView, id);
-      if (linealMarcaProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.linealPrecioProducto;
-      LinearLayout linealPrecioProducto = ViewBindings.findChildViewById(rootView, id);
-      if (linealPrecioProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.linealStokDisponible;
-      LinearLayout linealStokDisponible = ViewBindings.findChildViewById(rootView, id);
-      if (linealStokDisponible == null) {
-        break missingId;
-      }
-
-      id = R.id.marca;
-      TextView marca = ViewBindings.findChildViewById(rootView, id);
-      if (marca == null) {
-        break missingId;
-      }
-
-      id = R.id.modelo;
-      TextView modelo = ViewBindings.findChildViewById(rootView, id);
-      if (modelo == null) {
         break missingId;
       }
 
@@ -364,44 +138,16 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
-      id = R.id.precioAntiguo;
-      TextView precioAntiguo = ViewBindings.findChildViewById(rootView, id);
-      if (precioAntiguo == null) {
-        break missingId;
-      }
-
-      id = R.id.precioProducto;
-      TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
-      if (precioProducto == null) {
-        break missingId;
-      }
-
       id = R.id.progressCarga;
       ProgressBar progressCarga = ViewBindings.findChildViewById(rootView, id);
       if (progressCarga == null) {
         break missingId;
       }
 
-      id = R.id.stok;
-      TextView stok = ViewBindings.findChildViewById(rootView, id);
-      if (stok == null) {
-        break missingId;
-      }
-
-      id = R.id.tvReadMore;
-      TextView tvReadMore = ViewBindings.findChildViewById(rootView, id);
-      if (tvReadMore == null) {
-        break missingId;
-      }
-
-      return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView, Condicion,
-          LinealModeloProducto, binding_cargaProductosPromoTrabajos, carrucelImgProductosVentaUser,
-          categoriaProducto, cerrar, comprar, cordinarVendedor, descripcion, descuentoPorcentaje,
-          entregaDomicilio, fechaPublicado, garantia, linealCategoriaProducto,
-          linealCondicionProducto, linealDescripcionProducto, linealEntregaDomicilio,
-          linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
-          linealStokDisponible, marca, modelo, netScrollView, nettScrollView, nombreProducto,
-          precioAntiguo, precioProducto, progressCarga, stok, tvReadMore);
+      return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView,
+          binding_camposProductosUserVerificados, binding_cargaProductosPromoTrabajos,
+          carrucelImgProductosVentaUser, cerrar, netScrollView, nettScrollView, nombreProducto,
+          progressCarga);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

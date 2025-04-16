@@ -225,6 +225,7 @@
     <string name="oferta">Estamos emocionados de compartir contigo un convenio increíble entre %1$s y GEINZ. Esta oferta especial te brinda la oportunidad de disfrutar de descuentos únicos que no encontrarás en ningún otro lugar. 🌟</string>
     <string name="orientacion_publicidad">📊 Estadísticas detalladas: Visualiza el rendimiento de tu campaña.</string>
     <string name="otro">Otro</string>
+    <string name="panel_publicacion_txt">Panel de Publicación</string>
     <string name="personal_settings">Personal Settings</string>
     <string name="peruano">Peruano</string>
     <string name="pintor">Pintor</string>
@@ -529,5 +530,11 @@
         <item name="cornerSize">30dp</item>
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">#4D3187</item>
+    </style>
+    <style name="titulo_texto">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_marginBottom">12dp</item>
     </style>
 </resources>

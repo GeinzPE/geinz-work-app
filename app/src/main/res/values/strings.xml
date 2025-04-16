@@ -437,5 +437,6 @@
 
     <string name="textoApelacionToast">Apelacion Enviada Correctamente Geinz se pondra en contacto contigo</string>
     <string name="cargando_horario">Cargando Horario..</string>
+    <string name="panel_publicacion_txt">Panel de Publicación</string>
 
 </resources>

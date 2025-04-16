@@ -16,6 +16,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
@@ -26,6 +27,9 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
+import com.example.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador
+import com.example.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores
+import com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores
 import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajosMostrados
@@ -33,10 +37,13 @@ import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantesSubcategoriaszonasTiendas
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.conteoUser
 import com.geinzz.geinzwork.constantesGeneral.filtradoLocalidadElementos
 import com.geinzz.geinzwork.databinding.FragmentInicioFracmentBinding
 import com.geinzz.geinzwork.databinding.ItemCustomPublicidadPrincipalBinding
+import com.geinzz.geinzwork.databinding.ItemProductsTrabajadoresPrincipalBinding
+import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
 import com.geinzz.geinzwork.dataclass.dataClassCategoriasInicio
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
@@ -44,6 +51,7 @@ import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.integration.android.IntentIntegrator
 import org.imaginativeworld.whynotimagecarousel.ImageCarousel
@@ -188,22 +196,32 @@ class inicioFracment : Fragment() {
 
 
         val activity = requireActivity() as? MainActivity
-        setupImageCarouselTouchListener( binding.carruselPimarioInicio,activity!!)
-        setupImageCarouselTouchListener( binding.carrusel,activity!!)
-        setupImageCarouselTouchListener( binding.carruse2,activity!!)
-        setupImageCarouselTouchListener( binding.IncludeAnunciosTercero.carrucel,activity!!)
-        setupImageCarouselTouchListener( binding.IncludeAnunciosCuarto.carrucel,activity!!)
-        setupImageCarouselTouchListener( binding.IncludeAnunciosQuinto.carrucel,activity!!)
-        setupImageCarouselTouchListener( binding.IncludeAnunciosSexto.carrucel,activity!!)
-        setupRecyclerViewTouchListener(binding.includeTrabajadoresTop.trabajadores,activity!!)
-        setupRecyclerViewTouchListener(binding.includeRecicleViewddelivery.trabajadores,activity!!)
-        setupRecyclerViewTouchListener(binding.includeRecicleViewsalud.trabajadores,activity!!)
-        setupRecyclerViewTouchListener(binding.RecicleCategoria,activity!!)
-        setupRecyclerViewTouchListener(binding.includeReciclehogar.trabajadores,activity!!)
-        setupRecyclerViewTouchListener(binding.includeReciclemecanico.trabajadores,activity!!)
-        setupRecyclerViewTouchListener(binding.includeRecicleTecnicos.trabajadores,activity!!)
+        setupImageCarouselTouchListener(binding.carruselPimarioInicio, activity!!)
+        setupImageCarouselTouchListener(binding.carrusel, activity!!)
+        setupImageCarouselTouchListener(binding.carruse2, activity!!)
+        setupImageCarouselTouchListener(binding.carrucelPublicacionesRecientes, activity!!)
+        setupImageCarouselTouchListener(binding.carrucelProductosTrabajdores, activity!!)
+        setupImageCarouselTouchListener(binding.IncludeAnunciosTercero.carrucel, activity!!)
+        setupImageCarouselTouchListener(binding.IncludeAnunciosCuarto.carrucel, activity!!)
+        setupImageCarouselTouchListener(binding.IncludeAnunciosQuinto.carrucel, activity!!)
+        setupImageCarouselTouchListener(binding.IncludeAnunciosSexto.carrucel, activity!!)
+        setupRecyclerViewTouchListener(binding.includeTrabajadoresTop.trabajadores, activity!!)
+        setupRecyclerViewTouchListener(binding.includeRecicleViewddelivery.trabajadores, activity!!)
+        setupRecyclerViewTouchListener(binding.RecicleCategoria, activity!!)
+        setupRecyclerViewTouchListener(binding.includeReciclehogar.trabajadores, activity!!)
+        setupRecyclerViewTouchListener(binding.includeReciclemecanico.trabajadores, activity!!)
+        setupRecyclerViewTouchListener(binding.includeRecicleTecnicos.trabajadores, activity!!)
 
+        obtenerProductos_trabajadores()
+        obterTrabajosRecientes_trabajadores()
+        binding.verTrabajosPublicados.setOnClickListener {
+            val intent=Intent(mContex,ver_toto_publicaciones_trabajador::class.java).apply {
+
+            }
+            startActivity(intent)
+        }
     }
+
     val permisoNotificaion =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { esConcedido -> }
 
@@ -219,6 +237,7 @@ class inicioFracment : Fragment() {
                         initialX = e.x
                         initialY = e.y
                     }
+
                     MotionEvent.ACTION_MOVE -> {
                         val diffX = Math.abs(e.x - initialX)
                         val diffY = Math.abs(e.y - initialY)
@@ -230,6 +249,7 @@ class inicioFracment : Fragment() {
 //                            Toast.makeText(recyclerView.context, "RecyclerView en uso", Toast.LENGTH_SHORT).show()
                         }
                     }
+
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                         activity.setViewPagerSwipeEnabled(true)
                         rv.parent?.requestDisallowInterceptTouchEvent(false)
@@ -252,20 +272,26 @@ class inicioFracment : Fragment() {
             override fun onGlobalLayout() {
                 carousel.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-                val recyclerView = carousel.findViewById<RecyclerView>(org.imaginativeworld.whynotimagecarousel.R.id.recyclerView)
+                val recyclerView =
+                    carousel.findViewById<RecyclerView>(org.imaginativeworld.whynotimagecarousel.R.id.recyclerView)
 
                 if (recyclerView != null) {
                     recyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
                         private var initialX = 0f
                         private var initialY = 0f
 
-                        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                        override fun onInterceptTouchEvent(
+                            rv: RecyclerView,
+                            e: MotionEvent
+                        ): Boolean {
                             when (e.action) {
                                 MotionEvent.ACTION_DOWN -> {
                                     initialX = e.x
                                     initialY = e.y
-                                    carousel.autoPlay = false // 🔹 Pausa el auto-play mientras el usuario toca
+                                    carousel.autoPlay =
+                                        false // 🔹 Pausa el auto-play mientras el usuario toca
                                 }
+
                                 MotionEvent.ACTION_MOVE -> {
                                     val diffX = Math.abs(e.x - initialX)
                                     val diffY = Math.abs(e.y - initialY)
@@ -275,10 +301,12 @@ class inicioFracment : Fragment() {
                                         rv.parent?.requestDisallowInterceptTouchEvent(true)
                                     }
                                 }
+
                                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                                     activity.setViewPagerSwipeEnabled(true)
                                     rv.parent?.requestDisallowInterceptTouchEvent(false)
-                                    carousel.autoPlay = true // 🔹 Reactiva el auto-play cuando el usuario suelta
+                                    carousel.autoPlay =
+                                        true // 🔹 Reactiva el auto-play cuando el usuario suelta
                                 }
                             }
                             return false
@@ -377,7 +405,8 @@ class inicioFracment : Fragment() {
                 SetAnuncios()
                 obtenerTrabajosCat()
                 obtnerFiltrado(binding.includeCabezero.filtradoUsuairo.text.toString())
-                println("obtenisom lo valores $storedValue")
+                obtenerProductos_trabajadores()
+                obterTrabajosRecientes_trabajadores()
             }, 2000)
             binding.swipe.isVisible = true
         }
@@ -631,5 +660,294 @@ class inicioFracment : Fragment() {
 
     }
 
+    private fun obterTrabajosRecientes_trabajadores() {
+        val lista = mutableListOf<CarouselItem>()
+        val documentosFirestore = mutableListOf<DocumentSnapshot>()
+        val idTrabajadoresPorDocumento = mutableListOf<String>()
+
+        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+            .document("verificaciones").collection("activos")
+
+        db.get().addOnSuccessListener { res ->
+            val trabajadores = res.documents
+            if (trabajadores.isEmpty()) return@addOnSuccessListener
+
+            var trabajadoresProcesados = 0
+
+            for (document in trabajadores) {
+                val id_trabajador_actual = document.id
+                Log.d("trabajodenocntrad", id_trabajador_actual)
+
+                val dbUsers = FirebaseFirestore.getInstance()
+                    .collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores")
+                    .collection("trabajadores")
+                    .document(id_trabajador_actual)
+                    .collection("publicaciones_trabajos")
+
+                dbUsers.get().addOnSuccessListener { productos ->
+                    if (!productos.isEmpty) {
+                        val aleatorio = productos.documents.random()
+                        val img_producto = aleatorio.get("img_url") as? String ?: ""
+                        lista.add(CarouselItem(img_producto))
+                        documentosFirestore.add(aleatorio)
+                        idTrabajadoresPorDocumento.add(id_trabajador_actual) // Asociamos ID con documento
+                    } else {
+                        binding.carrucelPublicacionesRecientes.isVisible = false
+                        binding.linealNoEncontrado.isVisible = true
+                        binding.noEncontrado.text = "No se encontraron publicaciones"
+                    }
+
+                    trabajadoresProcesados++
+                    if (trabajadoresProcesados == trabajadores.size) {
+                        configurarCarruselPublicaicones_ralziadas(
+                            lista,
+                            documentosFirestore,
+                            idTrabajadoresPorDocumento
+                        )
+                    }
+
+                }.addOnFailureListener {
+                    binding.carrucelPublicacionesRecientes.isVisible = false
+                    binding.linealNoEncontrado.isVisible = true
+                    binding.noEncontrado.text = "No se encontraron publicaciones"
+                    trabajadoresProcesados++
+                    if (trabajadoresProcesados == trabajadores.size) {
+                        configurarCarruselPublicaicones_ralziadas(
+                            lista,
+                            documentosFirestore,
+                            idTrabajadoresPorDocumento
+                        )
+                    }
+                }
+            }
+
+        }.addOnFailureListener { e ->
+            Log.e("ProductosVerificados", "Error al obtener documentos", e)
+        }
+    }
+
+
+    private fun obtenerProductos_trabajadores() {
+        val lista = mutableListOf<CarouselItem>()
+        val documentosFirestore = mutableListOf<DocumentSnapshot>()
+        val idTrabajadoresPorDocumento = mutableListOf<String>()
+
+        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+            .document("verificaciones").collection("activos")
+
+        db.get().addOnSuccessListener { res ->
+            val trabajadores = res.documents
+            if (trabajadores.isEmpty()) return@addOnSuccessListener
+
+            var trabajadoresProcesados = 0
+
+            for (document in trabajadores) {
+                val id_trabajador = document.id
+
+                val dbUsers = FirebaseFirestore.getInstance()
+                    .collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores")
+                    .collection("trabajadores")
+                    .document(id_trabajador)
+                    .collection("productos_venta")
+
+                dbUsers.get().addOnSuccessListener { productos ->
+                    if (!productos.isEmpty) {
+                        val aleatorio = productos.documents.random()
+                        val img_producto = aleatorio.get("img_principal") as? String ?: ""
+                        lista.add(CarouselItem(img_producto))
+                        documentosFirestore.add(aleatorio)
+                        idTrabajadoresPorDocumento.add(id_trabajador)
+                    } else {
+                        binding.carrucelProductosTrabajdores.isVisible = false
+                        binding.linealNoEncontradoProductos.isVisible = true
+                        binding.noEncontradoProducto.text = "No se encontraron productos"
+                    }
+
+                    trabajadoresProcesados++
+                    if (trabajadoresProcesados == trabajadores.size) {
+                        // Todos los trabajadores han sido procesados, ahora se setea el carrusel
+                        configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                    }
+
+                }.addOnFailureListener {
+                    binding.carrucelProductosTrabajdores.isVisible = false
+                    binding.linealNoEncontradoProductos.isVisible = true
+                    binding.noEncontradoProducto.text = "No se encontraron productos"
+                    trabajadoresProcesados++
+                    if (trabajadoresProcesados == trabajadores.size) {
+                        configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                    }
+                }
+            }
+
+        }.addOnFailureListener { e ->
+            Log.e("ProductosVerificados", "Error al obtener documentos", e)
+        }
+    }
+
+    private fun configurarCarrusel(
+        id_trabajador: List<String>,
+        lista: List<CarouselItem>,
+        documentos: List<DocumentSnapshot>,
+    ) {
+        binding.carrucelProductosTrabajdores.registerLifecycle(lifecycle)
+        binding.carrucelProductosTrabajdores.carouselListener = object : CarouselListener {
+            override fun onCreateViewHolder(
+                layoutInflater: LayoutInflater,
+                parent: ViewGroup,
+            ): ViewBinding? {
+                return ItemProductsTrabajadoresPrincipalBinding.inflate(
+                    layoutInflater,
+                    parent,
+                    false
+                )
+            }
+
+            override fun onBindViewHolder(
+                binding: ViewBinding,
+                item: CarouselItem,
+                position: Int,
+            ) {
+                val currentBinding = binding as ItemProductsTrabajadoresPrincipalBinding
+                val doc = documentos[position]
+                val id_trabajador = id_trabajador[position]
+                val titulo: String = doc.get("nombre") as? String ?: ""
+                val descripcion: String = doc.get("descripcion") as? String ?: ""
+                val img_producto: String = doc.get("img_principal") as? String ?: ""
+                val precio: Number = doc.get("precio") as? Number ?: 0
+                val descuento_porcentajeProducto: Number =
+                    doc.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val descuentoBoolean: Boolean = doc.get("descuento") as? Boolean ?: false
+                val precio_descuento: Number = doc.get("precio_descuento") as? Number ?: 0
+                val envioGratis: Boolean = doc.get("envio_gratis") as? Boolean ?: false
+                val id: String = doc.get("id") as? String ?: ""
+
+
+                currentBinding.tituloProducto.text = titulo
+                currentBinding.descripcionProducto.text = descripcion
+
+                if (descuentoBoolean) {
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precio_descuento,
+                        currentBinding.precioProducto,
+                        precio,
+                        currentBinding.precioDescuento,
+                        descuento_porcentajeProducto,
+                        currentBinding.descuentoPorcentaje
+                    )
+                    currentBinding.precioDescuento.isVisible = true
+                    currentBinding.descuentoPorcentaje.isVisible = true
+                    constantestextos_general.marcarDescuentoTxt(currentBinding.precioDescuento)
+                } else {
+                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                        precio,
+                        currentBinding.precioProducto
+                    )
+                    currentBinding.precioDescuento.isVisible = false
+                    currentBinding.descuentoPorcentaje.isVisible = false
+                }
+                if (envioGratis) {
+                    currentBinding.envioGratis.isVisible = true
+                }
+
+
+                currentBinding.cargarContenido.postDelayed({
+                    currentBinding.imgProducto.isVisible = true
+                    currentBinding.cargarContenido.isVisible = false
+                    currentBinding.linealProductosPublicados.isVisible = true
+                    currentBinding.descuentoPorcentaje.isVisible = descuentoBoolean
+                }, 2000)
+                constatnes_carga_imagenes_general.changer_img(
+                    binding.cargaImg,
+                    mContex,
+                    img_producto,
+                    null,
+                    currentBinding.imgProducto as ImageView,
+                    "portada",
+                    null
+                ) {}
+                currentBinding.listener.setOnClickListener {
+                    val vista =
+                        Intent(mContex, vista_ver_productos_trabajadores::class.java).apply {
+                            putExtra("id_trabajador", id_trabajador)
+                                .putExtra("id_publicacion", id)
+                        }
+                    startActivity(vista)
+                }
+            }
+        }
+
+        binding.carrucelProductosTrabajdores.setData(lista)
+    }
+
+    private fun configurarCarruselPublicaicones_ralziadas(
+        lista: List<CarouselItem>,
+        documentos: List<DocumentSnapshot>,
+        idTrabajadores: List<String>,
+    ) {
+        binding.carrucelPublicacionesRecientes.registerLifecycle(lifecycle)
+        binding.carrucelPublicacionesRecientes.carouselListener = object : CarouselListener {
+            override fun onCreateViewHolder(
+                layoutInflater: LayoutInflater,
+                parent: ViewGroup,
+            ): ViewBinding? {
+                return ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding.inflate(
+                    layoutInflater,
+                    parent,
+                    false
+                )
+            }
+
+            override fun onBindViewHolder(
+                binding: ViewBinding,
+                item: CarouselItem,
+                position: Int,
+            ) {
+                val currentBinding =
+                    binding as ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
+                val doc = documentos[position]
+                val id_trabajador = idTrabajadores[position] // <- Ahora sí es el correcto
+
+                val contenidoPublicacion: String = doc.get("contenido") as? String ?: ""
+                val img_url: String = doc.get("img_url") as? String ?: ""
+                val id: String = doc.get("id") as? String ?: ""
+
+                Log.d("obtenosimgtrabajdor", id_trabajador)
+
+                constantesTrabajadoresTiendasInicioFragmet.obtnerIMG_trabajador(
+                    id_trabajador,
+                    currentBinding.imgPerfil,
+                    currentBinding.cargaimg,
+                    mContex
+                )
+                constatnes_carga_imagenes_general.changer_img(
+                    binding.cargaContenido,
+                    mContex,
+                    img_url,
+                    null,
+                    currentBinding.imgPublicidad as ImageView,
+                    "portada",
+                    null
+                ) {}
+                currentBinding.realtiveClikc.setOnClickListener {
+                    val vista =
+                        Intent(mContex, vista_ver_publicaciones_trabajadores::class.java).apply {
+                            putExtra("id_trabajador", id_trabajador)
+                                .putExtra("id_publicacion", id)
+                        }
+                    startActivity(vista)
+                }
+
+                currentBinding.contenidoPublicacion.text = contenidoPublicacion
+            }
+        }
+
+        binding.carrucelPublicacionesRecientes.setData(lista)
+    }
+
 
 }
+
+

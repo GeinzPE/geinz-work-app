@@ -37,6 +37,18 @@
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
         <activity
+            android:name="com.example.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador"
+            android:exported="false" />
+        <activity
+            android:name="com.example.geinzwork.fragmentos.panel_publicacion_trabajador"
+            android:exported="false" />
+        <activity
+            android:name="com.example.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores"
+            android:exported="false" />
+        <activity
+            android:name="com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores"
+            android:exported="false" />
+        <activity
             android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor"
             android:exported="false" />
         <activity
@@ -284,7 +296,7 @@
             android:name=".EditarInfo"
             android:exported="false" />
         <activity
-            android:name=".agregarImagen"
+            android:name=".panel_publicacion"
             android:exported="false" />
         <activity android:name=".vistaTrabajador.vista_CategoriasT" />
         <activity

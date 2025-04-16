@@ -12,6 +12,7 @@ import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatButton
@@ -57,6 +58,7 @@ object constantes_trabajadores_info {
             .collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
             .collection(Variables.trabajadoresDB)
+
         fun procesarLista() {
             // Loguear la lista antes de la mezcla
             Log.d("ListaTrabajoAntes", "Lista antes de mezclar: ${listaTrabajo}")
@@ -111,16 +113,26 @@ object constantes_trabajadores_info {
                             val coleccionSeguido = FirebaseFirestore.getInstance()
                                 .collection(Variables.trabajadores_usuariosDB)
                                 .document(Variables.trabajadoresDB)
-                                .collection(Variables.trabajadoresDB).document(usuario.id.toString())
+                                .collection(Variables.trabajadoresDB)
+                                .document(usuario.id.toString())
                                 .collection("seguidores").document(firebaseAuth.uid.toString())
 
-                            Log.d("Ruta_Firebase", "Ruta de la colección seguidores: ${coleccionSeguido.path}")
+                            Log.d(
+                                "Ruta_Firebase",
+                                "Ruta de la colección seguidores: ${coleccionSeguido.path}"
+                            )
 
                             coleccionSeguido.get().addOnSuccessListener { res ->
                                 if (!res.exists()) {
-                                    Log.d("ListaTrabajo", "Se agrega el trabajador: ${usuario.nombreTrabajador}, ID: ${usuario.id}")
+                                    Log.d(
+                                        "ListaTrabajo",
+                                        "Se agrega el trabajador: ${usuario.nombreTrabajador}, ID: ${usuario.id}"
+                                    )
                                     listaTrabajo.add(usuario)
-                                    Log.d("TamañoLista", "Tamaño actual de la lista: ${listaTrabajo.size}")
+                                    Log.d(
+                                        "TamañoLista",
+                                        "Tamaño actual de la lista: ${listaTrabajo.size}"
+                                    )
                                 } else {
                                     Log.d("Firestore", "El seguidor ya existe en la colección.")
                                 }
@@ -129,7 +141,10 @@ object constantes_trabajadores_info {
                                     procesarLista()
                                 }
                             }.addOnFailureListener { exception ->
-                                Log.e("FirebaseError", "Error al obtener el documento: ${exception.message}")
+                                Log.e(
+                                    "FirebaseError",
+                                    "Error al obtener el documento: ${exception.message}"
+                                )
                                 trabajadoresProcesados++
                                 if (trabajadoresProcesados == totalTrabajadores) {
                                     procesarLista()
@@ -159,7 +174,6 @@ object constantes_trabajadores_info {
     }
 
 
-
     fun incializarTrabajadoresSugeridos(
         idTrabajadorActual: String, binding: FragmentInfoBinding,
         listaTrabajos: List<dataClasSeguirTrabajdores_info>,
@@ -167,7 +181,7 @@ object constantes_trabajadores_info {
         contexto: Context
     ) {
         val listaAleatoria = listaTrabajos.shuffled().toMutableList()
-        adapterTrabajadores = adapter_seguirTrabajadores_info(true, listaAleatoria,binding)
+        adapterTrabajadores = adapter_seguirTrabajadores_info(true, listaAleatoria, binding)
         recicle.layoutManager = LinearLayoutManager(contexto, LinearLayoutManager.HORIZONTAL, false)
         recicle.adapter = adapterTrabajadores
 
@@ -253,7 +267,7 @@ object constantes_trabajadores_info {
                     binding.notificaciones.isVisible = true
                     seguirTrabajador(idTrabajadorActual, binding)
                     binding.dejarDeSeguirOSeguir.text = SiguientoTXT
-                    aplicarEstiloSigueindo(binding.dejarDeSeguirOSeguir,contexto)
+                    aplicarEstiloSigueindo(binding.dejarDeSeguirOSeguir, contexto)
                 }
 
                 SiguientoTXT -> {
@@ -262,11 +276,11 @@ object constantes_trabajadores_info {
 
                 seguirSoloTXT -> {
                     binding.notificaciones.isVisible = true
-                    verificarSiSiueTrabajador(binding, idTrabajadorActual,contexto) { siguiendo ->
+                    verificarSiSiueTrabajador(binding, idTrabajadorActual, contexto, { siguiendo ->
                         if (siguiendo) {
                             seguirTrabajador(idTrabajadorActual, binding)
                         }
-                    }
+                    }, {})
 
                     binding.dejarDeSeguirOSeguir.text = SiguientoTXT
                 }
@@ -274,6 +288,7 @@ object constantes_trabajadores_info {
         }
 
     }
+
     fun aplicarEstiloSigueindo(button: AppCompatButton, context: Context) {
         button.setBackgroundResource(R.drawable.bordes_btn_sigueindo_trabajador)
         button.setTextColor(ContextCompat.getColor(context, R.color.heartOutlineColor))
@@ -297,7 +312,8 @@ object constantes_trabajadores_info {
         binding: FragmentInfoBinding,
         idTrabajadorActual: String,
         contexto: Context,
-        SeguirTrabajado: (Boolean) -> Unit
+        SeguirTrabajado: (Boolean) -> Unit,
+        notificacion: (Boolean) -> Unit
     ) {
         firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -307,14 +323,20 @@ object constantes_trabajadores_info {
             for (datos in res) {
                 val data = datos.data
                 val id = data?.get("id") as? String ?: ""
+                val notificado = data?.get("notificado") as? Boolean ?: ""
                 if (firebaseAuth.uid.toString() == id) {
                     binding.dejarDeSeguirOSeguir.text = SiguientoTXT
                     binding.notificaciones.isVisible = true
-                    aplicarEstiloSigueindo(binding.dejarDeSeguirOSeguir,contexto)
+                    aplicarEstiloSigueindo(binding.dejarDeSeguirOSeguir, contexto)
                     SeguirTrabajado(true)
+                    if (notificado == true) {
+                        notificacion(true)
+                    } else {
+                        notificacion(false)
+                    }
                 } else {
                     binding.notificaciones.isVisible = false
-                    aplicarEstiloPorDefecto(binding.dejarDeSeguirOSeguir,contexto)
+                    aplicarEstiloPorDefecto(binding.dejarDeSeguirOSeguir, contexto)
                     binding.dejarDeSeguirOSeguir.text = seguir_TXT
                     SeguirTrabajado(false)
                 }
@@ -368,12 +390,16 @@ object constantes_trabajadores_info {
         }
     }
 
-    private fun dejarSeguitrTrabajdor(binding: FragmentInfoBinding, idTrabajadorActual: String,contexto: Context) {
+    private fun dejarSeguitrTrabajdor(
+        binding: FragmentInfoBinding,
+        idTrabajadorActual: String,
+        contexto: Context
+    ) {
         firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
             .collection("seguidores").document(firebaseAuth.uid.toString())
-        aplicarEstiloPorDefecto(binding.dejarDeSeguirOSeguir,contexto)
+        aplicarEstiloPorDefecto(binding.dejarDeSeguirOSeguir, contexto)
         db.delete().addOnSuccessListener { res ->
             println("dejo seguir corecteamnte")
             actualizarSeguidres(binding, idTrabajadorActual)
@@ -397,7 +423,7 @@ object constantes_trabajadores_info {
         val dialog = builder.create()
 
         dialogView.findViewById<Button>(R.id.buttonYes).setOnClickListener {
-            dejarSeguitrTrabajdor(binding, idTrabajadorActual,context)
+            dejarSeguitrTrabajdor(binding, idTrabajadorActual, context)
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
             binding.notificaciones.isVisible = false
             dialog.dismiss()
@@ -493,10 +519,6 @@ object constantes_trabajadores_info {
                 bindingBottomSheett.nombre.text = nombre.toUpperCase()
                 bindingBottomSheett.categoriaTipoTrabajo.text = "$tipoTrabajo | $categoriaTrabajo"
 
-                constantestextos_general.extender_acortar_texto(
-                    bindingBottomSheett.caracteristica1,
-                    bindingBottomSheett.tvReadMore
-                )
 
                 val spannableString =
                     SpannableString("${"Descripcion : "} ${descripcion}")
@@ -542,6 +564,18 @@ object constantes_trabajadores_info {
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
         }
 
+    }
+
+    fun contadorSeguidores(texView: TextView, idTrabajadorActual: String) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
+            .collection("seguidores")
+        db.get().addOnSuccessListener { res ->
+            val totalSeguidores = res.size()
+            texView.text = "${totalSeguidores} Seguidores"
+        }.addOnFailureListener { e ->
+            println("error al setear los seguidores $e")
+        }
     }
 
 

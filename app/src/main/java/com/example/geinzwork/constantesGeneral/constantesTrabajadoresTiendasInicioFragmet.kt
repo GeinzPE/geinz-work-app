@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.constantesGeneral
 
 import android.content.Context
+import android.util.Log
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
@@ -333,7 +334,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                 imagen,
                 null,
                 "perfil", placeholderperfil
-            ){}
+            ) {}
         } else {
             var encontrado = false
             val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -412,7 +413,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                             null,
                             "perfil",
                             placeholderperfil
-                        ){}
+                        ) {}
                     } else {
                         constatnes_carga_imagenes_general.changer_img(
                             progressbar,
@@ -422,7 +423,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                             null,
                             "perfil",
                             placeholderperfil // Usa el placeholder también en el else
-                        ){}
+                        ) {}
                     }
                 }
             }
@@ -512,5 +513,31 @@ object constantesTrabajadoresTiendasInicioFragmet {
             .addOnFailureListener { e ->
                 println("error al encontral el numero de la tienda")
             }
+    }
+
+    fun obtnerIMG_trabajador(
+        id_trabajdor: String,
+        circleImageView: CircleImageView,
+        CircularProgressIndicator: CircularProgressIndicator, contexto: Context
+    ) {
+        Log.d("obtenosimgtrabajdor",id_trabajdor)
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(id_trabajdor)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img = data?.get("imagenPerfil") as? String ?: ""
+                Log.d("obtenosimgtrabajdor",img)
+                constatnes_carga_imagenes_general.changer_img(
+                    CircularProgressIndicator,
+                    contexto,
+                    img,
+                    circleImageView,
+                    null,
+                    "perfil",
+                    null
+                ) {}
+            }
+        }
     }
 }

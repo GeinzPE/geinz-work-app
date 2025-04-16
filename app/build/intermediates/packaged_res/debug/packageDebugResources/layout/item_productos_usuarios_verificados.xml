@@ -5,7 +5,8 @@
     style="@style/fondo"
     android:layout_width="200dp"
     android:layout_height="320dp"
-    android:layout_margin="5dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginVertical="10dp"
     app:cardBackgroundColor="@color/colorFondo"
     app:cardCornerRadius="8dp"
     app:cardElevation="3dp">

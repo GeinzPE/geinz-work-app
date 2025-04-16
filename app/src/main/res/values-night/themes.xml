@@ -12,6 +12,12 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
+    <style name="titulo_texto">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
     <style name="VioletaColor">
         <item name="android:textColor">#8900F6</item>
     </style>

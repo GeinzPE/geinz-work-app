@@ -205,7 +205,7 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/agregar_img"
+                        android:id="@+id/panel_publicacion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="5dp"
@@ -218,14 +218,14 @@
                             android:layout_height="50dp"
                             android:layout_marginHorizontal="5dp"
                             android:layout_marginBottom="10dp"
-                            android:src="@drawable/agregar_img_icon" />
+                            android:src="@drawable/icono_panel_de_publicacion" />
 
                         <TextView
                             style="@style/TextoModoOScuroColor"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/roboto_medium"
-                            android:text="Agregar Imagenes "
+                            android:text="@string/panel_publicacion_txt"
                             android:textSize="12sp" />
 
                     </LinearLayout>

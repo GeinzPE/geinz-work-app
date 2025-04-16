@@ -296,7 +296,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
         }
 //
         bindingProductosTrabajadores.cargaProductosPromoTrabajos.linealMostrarTrabajos.isVisible=false
-        bindingProductosTrabajadores.comprar.setOnClickListener {
+        bindingProductosTrabajadores.camposProductosUserVerificados.comprar.setOnClickListener {
             val intent=Intent(this,compras_productos_vendedor::class.java).apply {
                 putExtra("idProducto",productoClikado)
                 putExtra("idTrabajador",idTrabajador)

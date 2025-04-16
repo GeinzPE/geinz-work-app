@@ -3,6 +3,7 @@ package com.geinzz.geinzwork
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
 import com.geinzz.geinzwork.adapterViewholder.adapterguardados
+import com.geinzz.geinzwork.constantesGeneral.constantesReviewComplet
 import com.geinzz.geinzwork.databinding.ActivityNoticiasYreviewBinding
 import com.geinzz.geinzwork.dataclass.daclassReview
 import com.geinzz.geinzwork.dataclass.dataclassVerGuardados
@@ -50,7 +52,7 @@ class noticias_y_review : AppCompatActivity() {
             }
 
             "Tus Reseñas" -> {
-//                obtener_review()
+                obtener_review()
                 binding.texto.text = "Reseñas de tus clientes"
 
             }
@@ -59,73 +61,59 @@ class noticias_y_review : AppCompatActivity() {
         }
     }
 
-//    private fun obtener_review() {
-//        val listaReview = mutableListOf<daclassReview>()
-//        val referencia = FirebaseDatabase.getInstance().getReference(Variables.ReseñasUsuarios)
-//            .child(firebaseAuth.uid.toString())
-//
-//        referencia.addListenerForSingleValueEvent(object : ValueEventListener {
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                listaReview.clear()
-//                if (snapshot.exists()) {
-//                    for (user in snapshot.children) {
-//                        val id = user.child(Variables.iduserReview).getValue(String::class.java).toString()
-//                        val nombre = user.child(Variables.nombre).getValue(String::class.java).toString()
-//                        val reseña = user.child(Variables.reseña).getValue(String::class.java)
-//                        val cantidad = user.child(Variables.cantidad).getValue(String::class.java)
-//                        val img = user.child(Variables.imgPerfil).getValue(String::class.java)
-//                        val fecha = user.child(Variables.fecha).getValue(String::class.java)
-//                        val hora = user.child(Variables.hora).getValue(String::class.java)
-//                        val TipoTrabajo = user.child(Variables.TipoTrabajo).getValue(String::class.java)
-//                        val editado = user.child(Variables.editado).getValue(Boolean::class.java)
-//
-//                        val review = daclassReview(
-//                            img,
-//                            id,
-//                            nombre,
-//                            cantidad,
-//                            reseña,
-//                            hora,
-//                            fecha,
-//                            TipoTrabajo,
-//                            editado
-//                        )
-//                        listaReview.add(review)
-//                    }
-//
-//                    if (listaReview.isEmpty()) {
-//                        // No hay reseñas disponibles
-//                        binding.recicelGuardados.isVisible = false
-//                        binding.loading.isVisible = false
-//                        binding.relativeNoEncontrado.isVisible = true
-//                        binding.texto.isVisible=false
-//                        // Aquí podrías mostrar un mensaje indicando que no hay reseñas disponibles
-//                    } else {
-//                        // Mostrar las reseñas en el RecyclerView
-//                        binding.loading.isVisible = false
-//                        binding.texto.isVisible=true
-//                        binding.recicelGuardados.isVisible = true
-//                        binding.relativeNoEncontrado.isVisible = false
-//                        inicalizarRecicle(listaReview)
-//                    }
-//                } else {
-//                    binding.texto.isVisible=false
-//                    binding.relativeNoEncontrado.isVisible = true
-//                    binding.recicelGuardados.isVisible = false
-//                    binding.loading.isVisible = false
-//                    // Aquí podrías mostrar un mensaje indicando que no hay reseñas para el usuario
-//                }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // Manejar el error de Firebase
-//                binding.recicelGuardados.isVisible = false
-//                binding.loading.isVisible = false
-//                Toast.makeText(this@noticias_y_review, "Hubo un error: $error", Toast.LENGTH_SHORT)
-//                    .show()
-//            }
-//        })
-//    }
+    private fun obtener_review() {
+        firebaseAuth = FirebaseAuth.getInstance()
+        val listaReview = mutableListOf<daclassReview>()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("review")
+        db.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val data = datos.data
+                val editado = data?.get(Variables.editado) as? Boolean ?: false
+                val id = data?.get(Variables.iduserReview) as? String ?: ""
+                val fecha = data?.get(Variables.fecha) as? String ?: ""
+                val hora = data?.get(Variables.hora) as? String ?: ""
+                val reseña = data?.get(Variables.reseña) as? String ?: ""
+                val TipoTrabajo = data?.get(Variables.TipoTrabajo) as? String ?: ""
+                val cantidad = data?.get(Variables.cantidad) as? String ?: ""
+                Log.d("el id de los campos son ",id)
+                val review = daclassReview(
+                    id,
+                    cantidad,
+                    reseña,
+                    hora,
+                    fecha,
+                    TipoTrabajo,
+                    editado
+                )
+                listaReview.add(review)
+                if (listaReview.isNotEmpty()) {
+                    // No hay reseñas disponibles
+                    // Aquí podrías mostrar un mensaje indicando que no hay reseñas disponibles
+                    binding.loading.isVisible = false
+                    binding.texto.isVisible = true
+                    binding.recicelGuardados.isVisible = true
+                    binding.relativeNoEncontrado.isVisible = false
+                    inicalizarRecicle(listaReview)
+                } else {
+                    // Mostrar las reseñas en el RecyclerView
+                    binding.recicelGuardados.isVisible = false
+                    binding.loading.isVisible = false
+                    binding.relativeNoEncontrado.isVisible = true
+                    binding.texto.isVisible = false
+                }
+            }
+
+        }.addOnFailureListener { e ->
+            Log.d("idNull", "No se encontro review $e")
+            binding.texto.isVisible = false
+            binding.relativeNoEncontrado.isVisible = true
+            binding.recicelGuardados.isVisible = false
+            binding.loading.isVisible = false
+        }
+
+    }
 
 
     private fun inicalizarRecicle(
@@ -141,7 +129,8 @@ class noticias_y_review : AppCompatActivity() {
         val listaprincipal = mutableListOf<dataclassVerGuardados>()
 
         val db2N = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(idUSer)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+            .document(idUSer)
             .collection(Variables.noticiasGuardadas)
 
         db2N.get().addOnSuccessListener { res ->
@@ -151,16 +140,18 @@ class noticias_y_review : AppCompatActivity() {
                     for ((key, value) in data) {
                         val pendingTasks = data.size
                         var completedTasks = 0
-                        val db2 = FirebaseFirestore.getInstance().collection(Variables.noticias).document(key)
+                        val db2 = FirebaseFirestore.getInstance().collection(Variables.noticias)
+                            .document(key)
                         db2.get()
                             .addOnSuccessListener { datos ->
                                 if (datos.exists()) {
                                     val data = datos.data
-                                    val id = data?.get(Variables.id) as? String?:""
-                                    val titulo = data?.get(Variables.titulo) as? String?:""
-                                    val imagen = data?.get(Variables.imagenUrl) as? String?:""
+                                    val id = data?.get(Variables.id) as? String ?: ""
+                                    val titulo = data?.get(Variables.titulo) as? String ?: ""
+                                    val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
                                     val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
-                                    val fechaActivacion = fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
+                                    val fechaActivacion =
+                                        fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
                                     val anuncio = dataclassVerGuardados(
                                         imagen,
                                         titulo,
@@ -177,11 +168,11 @@ class noticias_y_review : AppCompatActivity() {
                                     if (listaprincipal.isEmpty()) {
                                         binding.relativeNoEncontrado.isVisible = true
                                         binding.recicelGuardados.isVisible = false
-                                        binding.texto.isVisible=false
+                                        binding.texto.isVisible = false
                                     } else {
                                         binding.relativeNoEncontrado.isVisible = false
                                         binding.recicelGuardados.isVisible = true
-                                        binding.texto.isVisible=true
+                                        binding.texto.isVisible = true
                                         inicializarRecile(listaprincipal)
                                     }
                                     binding.loading.isVisible = false
@@ -196,7 +187,7 @@ class noticias_y_review : AppCompatActivity() {
                 binding.relativeNoEncontrado.isVisible = true
                 binding.recicelGuardados.isVisible = false
                 binding.loading.isVisible = false
-                binding.texto.isVisible=false
+                binding.texto.isVisible = false
                 println("Error al obtener datos: ${it.message}")
             }
     }

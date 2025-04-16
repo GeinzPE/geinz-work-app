@@ -22,6 +22,13 @@
     <style name="TextoModoOScuroColor">
         <item name="android:textColor">@color/black</item>
     </style>
+    
+    <style name="titulo_texto">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
 
     <style name="descripcionColor">
         <item name="android:color">#757575</item>
