@@ -20,6 +20,7 @@
     <color name="rojoVivo">#FF0505</color>
     <color name="roundcustom">#ECECF7</color>
     <color name="roundcustomItemsCompra">#D4D4DE</color>
+    <color name="roundcustom_claro_cardVeri">#F9F8FF</color>
     <color name="search_opaque">#ffaa3f</color>
     <color name="selected_background">#ffaa3f</color>
     <color name="textoColorBTNFiltrado">#F6F4F2</color>

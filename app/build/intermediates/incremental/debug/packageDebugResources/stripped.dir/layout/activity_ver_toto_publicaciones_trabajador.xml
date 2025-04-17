@@ -5,25 +5,34 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="10dp"
     android:animateLayoutChanges="true"
     android:orientation="vertical"
     tools:context="com.example.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador">
 
     <TextView
+        style="@style/TextoModoOScuroColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Servicios realizados por Trabajadores Verificados" />
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+        android:text="Servicios realizados por Trabajadores Verificados"
+        android:textSize="25sp" />
 
     <TextView
+        style="@style/TextoModoOScuroColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/fuente_para_texto_special_gothic"
         android:text="Explora todos los trabajos realizados por
 trabajadores verificados en nuestra plataforma . Filtra por categoría para encontrar exactamente
-el servicio que necesitas" />
+el servicio que necesitas"
+        android:textSize="15sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp">
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -74,9 +83,13 @@ el servicio que necesitas" />
             android:visibility="gone">
 
             <TextView
+                style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="categoria de trajados" />
+                android:layout_marginHorizontal="10dp"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:text="Categoria de trabajos"
+                android:textSize="15sp" />
 
             <HorizontalScrollView
 
@@ -130,9 +143,13 @@ el servicio que necesitas" />
             android:visibility="gone">
 
             <TextView
+                style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="#Trabajos publicados" />
+                android:layout_marginHorizontal="10dp"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:text="#Trabajos publicados"
+                android:textSize="15sp" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -170,6 +187,13 @@ el servicio que necesitas" />
                 android:text="Cargando #" />
 
         </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/lista_publicaciones_trabajadores"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+
     </LinearLayout>
 
 

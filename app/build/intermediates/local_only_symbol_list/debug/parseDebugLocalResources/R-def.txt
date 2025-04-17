@@ -22,6 +22,7 @@ color rojo
 color rojoVivo
 color roundcustom
 color roundcustomItemsCompra
+color roundcustom_claro_cardVeri
 color search_opaque
 color selected_background
 color textoColorBTNFiltrado
@@ -214,6 +215,7 @@ drawable round_noticias_filtro
 drawable round_promo_vencida
 drawable round_review
 drawable round_tu_cuenta
+drawable round_verificados_nombre_productos
 drawable rounded_border
 drawable rounder_btn_vtrajador
 drawable rounder_menu
@@ -253,13 +255,18 @@ font brown_sugar
 font cbrion_light
 font coco_regular
 font font_precio_vista
+font fuente_para_texto_special_gothic
 font instagram_font
 font la_bold_font
 font lemon_bold
 font made_tommy_soft_regular
 font montserrat_light
+font precio_productos_inte_tight_medium
 font roboto_medium
 font snow_blue
+font titulo_robo_semibold_fuente
+font titulo_roboto_extra_bold_fuente
+font titulo_roboto_regular_fuente
 font uni_sans
 id AbiertoEstado
 id Acepto
@@ -328,6 +335,7 @@ id LocaludaUser
 id MetodoEntregaProducto
 id NombreTienda
 id NombreTiendaRelative
+id NombreVerificado
 id NoticiasOfertasLineal
 id NumeroCelular
 id NumeroTelf
@@ -1065,6 +1073,7 @@ id linelaFiltrado
 id link_de_sitio_web
 id link_ref
 id lista_Ubicaciones
+id lista_publicaciones_trabajadores
 id listener
 id listenerPadre
 id listenerTienda

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -44,6 +45,9 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
   public final LinearLayout linealCategoriasTrabajosPublicados;
 
   @NonNull
+  public final RecyclerView listaPublicacionesTrabajadores;
+
+  @NonNull
   public final LinearLayout main;
 
   private ActivityVerTotoPublicacionesTrabajadorBinding(@NonNull LinearLayout rootView,
@@ -52,7 +56,8 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
       @NonNull LinearLayout cargandoHastagsPrincipales,
       @NonNull ChipGroup categoriaTrabajosPublicados, @NonNull ChipGroup chipGrupHastagsP,
       @NonNull ChipGroup idGrupoCategoriaTrabajos, @NonNull LinearLayout linealCategoriasTrabajos,
-      @NonNull LinearLayout linealCategoriasTrabajosPublicados, @NonNull LinearLayout main) {
+      @NonNull LinearLayout linealCategoriasTrabajosPublicados,
+      @NonNull RecyclerView listaPublicacionesTrabajadores, @NonNull LinearLayout main) {
     this.rootView = rootView;
     this.cargandoCategorias = cargandoCategorias;
     this.cargandoCategoriasTrabajadores = cargandoCategoriasTrabajadores;
@@ -62,6 +67,7 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
     this.idGrupoCategoriaTrabajos = idGrupoCategoriaTrabajos;
     this.linealCategoriasTrabajos = linealCategoriasTrabajos;
     this.linealCategoriasTrabajosPublicados = linealCategoriasTrabajosPublicados;
+    this.listaPublicacionesTrabajadores = listaPublicacionesTrabajadores;
     this.main = main;
   }
 
@@ -141,12 +147,19 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
         break missingId;
       }
 
+      id = R.id.lista_publicaciones_trabajadores;
+      RecyclerView listaPublicacionesTrabajadores = ViewBindings.findChildViewById(rootView, id);
+      if (listaPublicacionesTrabajadores == null) {
+        break missingId;
+      }
+
       LinearLayout main = (LinearLayout) rootView;
 
       return new ActivityVerTotoPublicacionesTrabajadorBinding((LinearLayout) rootView,
           cargandoCategorias, cargandoCategoriasTrabajadores, cargandoHastagsPrincipales,
           categoriaTrabajosPublicados, chipGrupHastagsP, idGrupoCategoriaTrabajos,
-          linealCategoriasTrabajos, linealCategoriasTrabajosPublicados, main);
+          linealCategoriasTrabajos, linealCategoriasTrabajosPublicados,
+          listaPublicacionesTrabajadores, main);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

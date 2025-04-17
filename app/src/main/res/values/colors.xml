@@ -22,6 +22,8 @@
     <color name="color_blanco_negro">#DFDDE0</color>
 
     <color name="roundcustom">#ECECF7</color>
+    <color name="roundcustom_claro_cardVeri">#F9F8FF</color>
+
     <color name="roundcustomItemsCompra">#D4D4DE</color>
 
     <color name="colorFondo">#F9F8FF</color>

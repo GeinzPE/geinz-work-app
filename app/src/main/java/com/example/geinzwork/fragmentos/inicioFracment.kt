@@ -34,6 +34,7 @@ import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajosMostrados
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantesSubcategoriaszonasTiendas
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
@@ -47,6 +48,7 @@ import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresIn
 import com.geinzz.geinzwork.dataclass.dataClassCategoriasInicio
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
+import com.geinzz.geinzwork.vistaTiendas.constantesVistaTiendas
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -215,7 +217,7 @@ class inicioFracment : Fragment() {
         obtenerProductos_trabajadores()
         obterTrabajosRecientes_trabajadores()
         binding.verTrabajosPublicados.setOnClickListener {
-            val intent=Intent(mContex,ver_toto_publicaciones_trabajador::class.java).apply {
+            val intent = Intent(mContex, ver_toto_publicaciones_trabajador::class.java).apply {
 
             }
             startActivity(intent)
@@ -824,6 +826,10 @@ class inicioFracment : Fragment() {
                 val envioGratis: Boolean = doc.get("envio_gratis") as? Boolean ?: false
                 val id: String = doc.get("id") as? String ?: ""
 
+                constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido ->
+                    currentBinding.NombreVerificado.text = nombre
+                    
+                }
 
                 currentBinding.tituloProducto.text = titulo
                 currentBinding.descripcionProducto.text = descripcion
@@ -860,7 +866,7 @@ class inicioFracment : Fragment() {
                     currentBinding.descuentoPorcentaje.isVisible = descuentoBoolean
                 }, 2000)
                 constatnes_carga_imagenes_general.changer_img(
-                    binding.cargaImg,
+                    currentBinding.cargaImg,
                     mContex,
                     img_producto,
                     null,

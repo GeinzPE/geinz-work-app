@@ -4,8 +4,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="color_blanco_negro">#202020</color>
     <color name="roundcustom">#303030</color>
+    <color name="roundcustom_claro_cardVeri">#303030</color>
     <color name="color_invertido_white_blackTexto">#FFFFFF</color>
-
     <color name="roundcustomItemsCompra">#202020</color>
     <color name="colorFondo">#1A1A1A</color>
     <color name="colorBTNFiltrado">#804D3187</color>

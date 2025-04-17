@@ -26,6 +26,9 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
   private final ConstraintLayout rootView;
 
   @NonNull
+  public final TextView NombreVerificado;
+
+  @NonNull
   public final CircularProgressIndicator cargaImg;
 
   @NonNull
@@ -62,13 +65,15 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
   public final TextView tituloProducto;
 
   private ItemProductsTrabajadoresPrincipalBinding(@NonNull ConstraintLayout rootView,
-      @NonNull CircularProgressIndicator cargaImg, @NonNull ProgressBar cargarContenido,
-      @NonNull TextView descripcionProducto, @NonNull TextView descuentoPorcentaje,
-      @NonNull TextView envioGratis, @NonNull Guideline guidelineEnd,
-      @NonNull ShapeableImageView imgProducto, @NonNull LinearLayout linealProductosPublicados,
-      @NonNull CardView listener, @NonNull TextView precioDescuento,
-      @NonNull TextView precioProducto, @NonNull TextView tituloProducto) {
+      @NonNull TextView NombreVerificado, @NonNull CircularProgressIndicator cargaImg,
+      @NonNull ProgressBar cargarContenido, @NonNull TextView descripcionProducto,
+      @NonNull TextView descuentoPorcentaje, @NonNull TextView envioGratis,
+      @NonNull Guideline guidelineEnd, @NonNull ShapeableImageView imgProducto,
+      @NonNull LinearLayout linealProductosPublicados, @NonNull CardView listener,
+      @NonNull TextView precioDescuento, @NonNull TextView precioProducto,
+      @NonNull TextView tituloProducto) {
     this.rootView = rootView;
+    this.NombreVerificado = NombreVerificado;
     this.cargaImg = cargaImg;
     this.cargarContenido = cargarContenido;
     this.descripcionProducto = descripcionProducto;
@@ -110,6 +115,12 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.NombreVerificado;
+      TextView NombreVerificado = ViewBindings.findChildViewById(rootView, id);
+      if (NombreVerificado == null) {
+        break missingId;
+      }
+
       id = R.id.carga_img;
       CircularProgressIndicator cargaImg = ViewBindings.findChildViewById(rootView, id);
       if (cargaImg == null) {
@@ -182,10 +193,10 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
         break missingId;
       }
 
-      return new ItemProductsTrabajadoresPrincipalBinding((ConstraintLayout) rootView, cargaImg,
-          cargarContenido, descripcionProducto, descuentoPorcentaje, envioGratis, guidelineEnd,
-          imgProducto, linealProductosPublicados, listener, precioDescuento, precioProducto,
-          tituloProducto);
+      return new ItemProductsTrabajadoresPrincipalBinding((ConstraintLayout) rootView,
+          NombreVerificado, cargaImg, cargarContenido, descripcionProducto, descuentoPorcentaje,
+          envioGratis, guidelineEnd, imgProducto, linealProductosPublicados, listener,
+          precioDescuento, precioProducto, tituloProducto);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

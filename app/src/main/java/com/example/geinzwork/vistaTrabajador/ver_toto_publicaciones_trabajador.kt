@@ -1,5 +1,6 @@
 package com.example.geinzwork.vistaTrabajador
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -8,14 +9,26 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.geinzwork.adapterViewholder.adapter_seguirTrabajadores_info
+import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
+import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
+import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ActivityVerTotoPublicacionesTrabajadorBinding
+import com.geinzz.geinzwork.databinding.FragmentInfoBinding
+import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
+import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.firebase.firestore.FirebaseFirestore
+import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 
 class ver_toto_publicaciones_trabajador : AppCompatActivity() {
     private lateinit var binding: ActivityVerTotoPublicacionesTrabajadorBinding
+    private var lista_dataclass_trabajos= mutableListOf<dataclass_adapter_promociones>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityVerTotoPublicacionesTrabajadorBinding.inflate(layoutInflater)
@@ -27,7 +40,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
             insets
         }
         obtnerTodo_publicaciones_trabajadaor()
-
+        obtener_generales_publicaciones()
     }
 
     private fun obtnerTodo_publicaciones_trabajadaor() {
@@ -45,7 +58,11 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
         db.get().addOnSuccessListener { documentSnapshot ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
-            Toast.makeText(this, "Hashtags generales cargados en $tiempoTotal ms", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Hashtags generales cargados en $tiempoTotal ms",
+                Toast.LENGTH_SHORT
+            ).show()
 
             if (documentSnapshot.exists()) {
                 val hashtags = documentSnapshot.get("hashtags_publicaciones_array") as? List<String>
@@ -219,6 +236,87 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
         }.addOnFailureListener { exception ->
             Log.e("Firestore", "Error al obtener documento: ${exception.message}")
         }
+    }
+
+    private fun obtener_generales_publicaciones() {
+        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+            .document("verificaciones").collection("activos")
+
+        db.get().addOnSuccessListener { res ->
+            val trabajadores = res.documents
+            if (trabajadores.isEmpty()) return@addOnSuccessListener
+
+            var completados = 0
+            val total = trabajadores.size
+
+            for (document in trabajadores) {
+                val id_trabajador = document.id
+
+                val dbUsers = FirebaseFirestore.getInstance()
+                    .collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores")
+                    .collection("trabajadores")
+                    .document(id_trabajador)
+                    .collection("publicaciones_trabajos")
+
+                dbUsers.get().addOnSuccessListener { productos ->
+                    if (!productos.isEmpty) {
+                        val aleatorio = productos.documents.random()
+                        val img_producto = aleatorio.get("img_url   x") as? String ?: ""
+                        val idPublicaciones = aleatorio.get("id") as? String ?: ""
+                        val titulo = aleatorio.get("titulo") as? String ?: ""
+                        val contenido = aleatorio.get("contenido") as? String ?: ""
+                        val fecha = aleatorio.get("fecha_rec") as? String ?: ""
+                        val hora = aleatorio.get("hora_rec") as? String ?: ""
+
+                        val lista = dataclass_adapter_promociones(
+                            img_producto, null, null, null,
+                            titulo,
+                            contenido,
+                            idPublicaciones,
+                            fecha,
+                            hora
+                        )
+                        lista_dataclass_trabajos.add(lista)
+
+                        Log.d("obtnerDatos", "img: $img_producto | id: $idPublicaciones | titulo: $titulo | contenido: $contenido | fecha: $fecha | hora: $hora")
+                    }
+
+                    completados++
+                    if (completados == total) {
+                        // Solo cuando se hayan completado todos
+                        inicializarTrabajosFiltrados(lista_dataclass_trabajos)
+                    }
+
+                }.addOnFailureListener { e ->
+                    completados++
+                    Log.e("ProductosVerificados", "Error al obtener documentos", e)
+
+                    if (completados == total) {
+                        inicializarTrabajosFiltrados(lista_dataclass_trabajos)
+                    }
+                }
+            }
+        }.addOnFailureListener { e ->
+            Log.e("ProductosVerificados", "Error al obtener documentos", e)
+        }
+    }
+
+
+    private fun inicializarTrabajosFiltrados(
+//        idTrabajador: String,
+        listaFiltrada: MutableList<dataclass_adapter_promociones>
+    ) {
+        val recicle = binding.listaPublicacionesTrabajadores
+        recicle.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        recicle.adapter =
+            adapter_trabajos_realizados_trabajador(true, listaFiltrada.toMutableList()) { item ->
+//                dialog = BottomSheetDialog(this)
+//                showBottomShetDialogAnuncios(idTrabajador, item)
+//                dialog.show()
+            }
+
+
     }
 
 
