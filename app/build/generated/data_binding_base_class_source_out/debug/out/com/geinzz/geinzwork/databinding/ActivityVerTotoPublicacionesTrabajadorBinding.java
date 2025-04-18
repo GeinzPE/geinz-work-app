@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +19,7 @@ import java.lang.String;
 
 public final class ActivityVerTotoPublicacionesTrabajadorBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
   public final LinearLayout cargandoCategorias;
@@ -48,16 +49,16 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
   public final RecyclerView listaPublicacionesTrabajadores;
 
   @NonNull
-  public final LinearLayout main;
+  public final RelativeLayout main;
 
-  private ActivityVerTotoPublicacionesTrabajadorBinding(@NonNull LinearLayout rootView,
+  private ActivityVerTotoPublicacionesTrabajadorBinding(@NonNull RelativeLayout rootView,
       @NonNull LinearLayout cargandoCategorias,
       @NonNull LinearLayout cargandoCategoriasTrabajadores,
       @NonNull LinearLayout cargandoHastagsPrincipales,
       @NonNull ChipGroup categoriaTrabajosPublicados, @NonNull ChipGroup chipGrupHastagsP,
       @NonNull ChipGroup idGrupoCategoriaTrabajos, @NonNull LinearLayout linealCategoriasTrabajos,
       @NonNull LinearLayout linealCategoriasTrabajosPublicados,
-      @NonNull RecyclerView listaPublicacionesTrabajadores, @NonNull LinearLayout main) {
+      @NonNull RecyclerView listaPublicacionesTrabajadores, @NonNull RelativeLayout main) {
     this.rootView = rootView;
     this.cargandoCategorias = cargandoCategorias;
     this.cargandoCategoriasTrabajadores = cargandoCategoriasTrabajadores;
@@ -73,7 +74,7 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -153,9 +154,9 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
         break missingId;
       }
 
-      LinearLayout main = (LinearLayout) rootView;
+      RelativeLayout main = (RelativeLayout) rootView;
 
-      return new ActivityVerTotoPublicacionesTrabajadorBinding((LinearLayout) rootView,
+      return new ActivityVerTotoPublicacionesTrabajadorBinding((RelativeLayout) rootView,
           cargandoCategorias, cargandoCategoriasTrabajadores, cargandoHastagsPrincipales,
           categoriaTrabajosPublicados, chipGrupHastagsP, idGrupoCategoriaTrabajos,
           linealCategoriasTrabajos, linealCategoriasTrabajosPublicados,
