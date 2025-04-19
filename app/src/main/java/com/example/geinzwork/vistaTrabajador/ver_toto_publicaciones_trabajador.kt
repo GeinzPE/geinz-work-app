@@ -1,5 +1,6 @@
 package com.example.geinzwork.vistaTrabajador
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -81,7 +82,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                     }
                                 }
 
-                                filtrarGenerales(hashtagsGenerales)
+                                obtenerTrabajosFiltrados(hashtagsGenerales)
                                 // Mostrar lista en log
                                 Log.d("HashtagsSeleccionados", hashtagsGenerales.toString())
 
@@ -94,6 +95,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                     // Si NO hay ningún chip seleccionado:
                                     binding.linealCategoriasTrabajosPublicados.isVisible = false
                                     binding.linealCategoriasTrabajos.isVisible = false
+                                    obtener_generales_publicaciones()
                                 }
                             }
 
@@ -152,9 +154,8 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                         otherChip.isChecked = false
                                     }
                                 }
-
-
                                 if (isChecked) hashtagsCategoria.add(text.toString())
+                                obtenerTrabajosFiltrados(hashtagsGenerales, text.toString())
 
                                 Log.d(
                                     "HashtagsSeleccionados",
@@ -165,6 +166,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                     binding.categoriaTrabajosPublicados.isVisible = true
                                     obtenerHastags_cada_cat(
                                         hashtagsSeleccionados,
+                                        text.toString(),
                                         hashtagsCategoria,
                                         id
                                     )
@@ -189,9 +191,8 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
             }
     }
 
-
     private fun obtenerHastags_cada_cat(
-        hashtagsSeleccionados: MutableList<String>, // si querés usarla después, la dejás
+        hashtagsSeleccionados: MutableList<String>, categoriaSeleccion: String,
         categoriasSeleccionadas: MutableList<String>,
         id: String
     ) {
@@ -228,6 +229,12 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                     hashtagsSubcategoria.remove(text.toString())
                                 }
 
+                                obtenerTrabajosFiltrados(
+                                    hashtagsGenerales,
+                                    categoriaSeleccion,
+                                    hashtagsSubcategoria
+                                )
+
                                 Log.d(
                                     "HashtagsSeleccionados",
                                     "Categoría seleccionada: $categoriasSeleccionadas - Hashtags: $hashtagsSeleccionados Hashtags seleccionados para $id: $hashtagsSubcategoria"
@@ -238,8 +245,6 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
 
                         chipGroup.addView(chip)
                     }
-
-
                     binding.cargandoCategorias.isVisible = false
                     binding.linealCategoriasTrabajosPublicados.isVisible = true
 
@@ -258,6 +263,8 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
     private fun obtener_generales_publicaciones() {
         val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
             .document("verificaciones").collection("activos")
+        binding.listaPublicacionesTrabajadores.isVisible = false
+        binding.cargandoContenido.isVisible = true
 
         db.get().addOnSuccessListener { res ->
             val trabajadores = res.documents
@@ -268,6 +275,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
 
             for (document in trabajadores) {
                 val id_trabajador = document.id
+                Log.d("obtenosID_trabajoders",id_trabajador)
 
                 val dbUsers = FirebaseFirestore.getInstance()
                     .collection("Trabajadores_Usuarios_Drivers")
@@ -292,10 +300,11 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                             contenido,
                             idPublicaciones,
                             fecha,
-                            hora
+                            hora,id_trabajador
                         )
                         lista_dataclass_trabajos.add(lista)
-
+                        binding.cargandoContenido.isVisible = false
+                        binding.listaPublicacionesTrabajadores.isVisible = true
                         Log.d(
                             "obtnerDatos",
                             "img: $img_producto | id: $idPublicaciones | titulo: $titulo | contenido: $contenido | fecha: $fecha | hora: $hora"
@@ -305,7 +314,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                     completados++
                     if (completados == total) {
                         // Solo cuando se hayan completado todos
-                        inicializarTrabajosFiltrados(lista_dataclass_trabajos)
+                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
                     }
 
                 }.addOnFailureListener { e ->
@@ -313,7 +322,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                     Log.e("ProductosVerificados", "Error al obtener documentos", e)
 
                     if (completados == total) {
-                        inicializarTrabajosFiltrados(lista_dataclass_trabajos)
+                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
                     }
                 }
             }
@@ -340,24 +349,32 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
     }
 
     private fun inicializarTrabajosFiltrados(
-//        idTrabajador: String,
+        idTrabajador: String,
         listaFiltrada: MutableList<dataclass_adapter_promociones>
     ) {
         val recicle = binding.listaPublicacionesTrabajadores
         recicle.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         recicle.adapter =
             adapter_trabajos_realizados_trabajador(true, listaFiltrada.toMutableList()) { item ->
-//                dialog = BottomSheetDialog(this)
-//                showBottomShetDialogAnuncios(idTrabajador, item)
-//                dialog.show()
+                val vista = Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
+                        putExtra("id_trabajador", item.idTrabajador)
+                            putExtra("id_publicacion", item.id)
+                    }
+                startActivity(vista)
             }
 
 
     }
 
-    private fun filtrarGenerales(hashtagsGenerales: MutableList<String>) {
+    private fun obtenerTrabajosFiltrados(
+        hashtagsGenerales: MutableList<String>,
+        categorias_Trabajadores: String? = null,
+        hastgs_subcategorias_Trabajos: MutableList<String>? = null
+    ) {
         val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
             .document("verificaciones").collection("activos")
+        binding.listaPublicacionesTrabajadores.isVisible = false
+        lista_dataclass_trabajos.clear()
 
         db.get().addOnSuccessListener { res ->
             val trabajadores = res.documents
@@ -386,37 +403,50 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                         val fecha = aleatorio.get("fecha_rec") as? String ?: ""
                         val hora = aleatorio.get("hora_rec") as? String ?: ""
 
-                        val hashtags_generales = aleatorio.get("hashtags_generales") as? List<String>
+                        val hashtags_generales =
+                            aleatorio.get("hashtags_generales") as? List<String>
+                        val categorias_trabajosDB = aleatorio.get("categoria") as? String ?: ""
+                        val hashtags_trabajos_publicadosDB =
+                            aleatorio.get("hashtags_trabajos_publicados") as? List<String>
 
-                        // Filtrar: solo continuar si alguno coincide
-                        if (hashtags_generales != null && hashtags_generales.any { it in hashtagsGenerales }) {
+                        val cumpleHashtags =
+                            hashtags_generales?.any { it in hashtagsGenerales } == true
+                        val cumpleCategoria =
+                            categorias_Trabajadores == null || categorias_trabajosDB == categorias_Trabajadores
+                        val cumpleSubHashtags =
+                            hastgs_subcategorias_Trabajos == null || (hashtags_trabajos_publicadosDB?.any { it in hastgs_subcategorias_Trabajos } == true)
 
-                            hashtags_generales.forEach {
-                                Log.d("Hashtag", it)
+                        if (cumpleHashtags && cumpleCategoria && cumpleSubHashtags) {
+                            val yaAgregado =
+                                lista_dataclass_trabajos.any { it.id == idPublicaciones }
+                            if (!yaAgregado) {
+                                hashtagsGenerales.forEach {
+                                    Log.d("Hashtag_obtenidos", "$it ,$categorias_Trabajadores")
+                                }
+
+                                val lista = dataclass_adapter_promociones(
+                                    img_producto, null, null, null,
+                                    titulo,
+                                    contenido,
+                                    idPublicaciones,
+                                    fecha,
+                                    hora,id_trabajador
+                                )
+                                binding.cargandoContenido.isVisible = false
+                                binding.listaPublicacionesTrabajadores.isVisible = true
+                                lista_dataclass_trabajos.add(lista)
+
+                                Log.d(
+                                    "obtnerDatos",
+                                    "img: $img_producto | id: $idPublicaciones | titulo: $titulo | contenido: $contenido | fecha: $fecha | hora: $hora"
+                                )
                             }
-
-                            val lista = dataclass_adapter_promociones(
-                                img_producto, null, null, null,
-                                titulo,
-                                contenido,
-                                idPublicaciones,
-                                fecha,
-                                hora
-                            )
-                            lista_dataclass_trabajos.add(lista)
-
-                            Log.d(
-                                "obtnerDatos",
-                                "img: $img_producto | id: $idPublicaciones | titulo: $titulo | contenido: $contenido | fecha: $fecha | hora: $hora"
-                            )
                         }
                     }
 
-
                     completados++
                     if (completados == total) {
-                        // Solo cuando se hayan completado todos
-                        inicializarTrabajosFiltrados(lista_dataclass_trabajos)
+                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
                     }
 
                 }.addOnFailureListener { e ->
@@ -424,7 +454,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                     Log.e("ProductosVerificados", "Error al obtener documentos", e)
 
                     if (completados == total) {
-                        inicializarTrabajosFiltrados(lista_dataclass_trabajos)
+                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
                     }
                 }
             }
@@ -432,5 +462,6 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
             Log.e("ProductosVerificados", "Error al obtener documentos", e)
         }
     }
+
 
 }

@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +27,9 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
 
   @NonNull
   public final LinearLayout cargandoCategoriasTrabajadores;
+
+  @NonNull
+  public final ProgressBar cargandoContenido;
 
   @NonNull
   public final LinearLayout cargandoHastagsPrincipales;
@@ -53,7 +57,7 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
 
   private ActivityVerTotoPublicacionesTrabajadorBinding(@NonNull RelativeLayout rootView,
       @NonNull LinearLayout cargandoCategorias,
-      @NonNull LinearLayout cargandoCategoriasTrabajadores,
+      @NonNull LinearLayout cargandoCategoriasTrabajadores, @NonNull ProgressBar cargandoContenido,
       @NonNull LinearLayout cargandoHastagsPrincipales,
       @NonNull ChipGroup categoriaTrabajosPublicados, @NonNull ChipGroup chipGrupHastagsP,
       @NonNull ChipGroup idGrupoCategoriaTrabajos, @NonNull LinearLayout linealCategoriasTrabajos,
@@ -62,6 +66,7 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
     this.rootView = rootView;
     this.cargandoCategorias = cargandoCategorias;
     this.cargandoCategoriasTrabajadores = cargandoCategoriasTrabajadores;
+    this.cargandoContenido = cargandoContenido;
     this.cargandoHastagsPrincipales = cargandoHastagsPrincipales;
     this.categoriaTrabajosPublicados = categoriaTrabajosPublicados;
     this.chipGrupHastagsP = chipGrupHastagsP;
@@ -112,6 +117,12 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
         break missingId;
       }
 
+      id = R.id.cargando_contenido;
+      ProgressBar cargandoContenido = ViewBindings.findChildViewById(rootView, id);
+      if (cargandoContenido == null) {
+        break missingId;
+      }
+
       id = R.id.cargandoHastags_principales;
       LinearLayout cargandoHastagsPrincipales = ViewBindings.findChildViewById(rootView, id);
       if (cargandoHastagsPrincipales == null) {
@@ -157,9 +168,9 @@ public final class ActivityVerTotoPublicacionesTrabajadorBinding implements View
       RelativeLayout main = (RelativeLayout) rootView;
 
       return new ActivityVerTotoPublicacionesTrabajadorBinding((RelativeLayout) rootView,
-          cargandoCategorias, cargandoCategoriasTrabajadores, cargandoHastagsPrincipales,
-          categoriaTrabajosPublicados, chipGrupHastagsP, idGrupoCategoriaTrabajos,
-          linealCategoriasTrabajos, linealCategoriasTrabajosPublicados,
+          cargandoCategorias, cargandoCategoriasTrabajadores, cargandoContenido,
+          cargandoHastagsPrincipales, categoriaTrabajosPublicados, chipGrupHastagsP,
+          idGrupoCategoriaTrabajos, linealCategoriasTrabajos, linealCategoriasTrabajosPublicados,
           listaPublicacionesTrabajadores, main);
     }
     String missingId = rootView.getResources().getResourceName(id);

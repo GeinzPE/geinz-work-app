@@ -43,6 +43,7 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
         obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada)
+        Log.d("obtemosidStrabjaosd","$idTrabajador, $id_publicacion_clikeada")
 
         constantes_vistas_publicaciones_productos_verificados.obtener_perfil_trabajador(
             idTrabajador,
