@@ -348,9 +348,11 @@ object constantes_publicaciones_general_user_tiendas {
                 data["cantidad_porcentaje_descuento"] as? Number ?: 0
 
             if (entrega_domicilio) {
-                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text = "si"
+                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
+                    "si"
             } else {
-                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text = "no"
+                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
+                    "no"
             }
             if (descuento) {
                 constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo)
@@ -365,11 +367,15 @@ object constantes_publicaciones_general_user_tiendas {
                     bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje
                 )
 
-                bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo.isVisible = true
-                bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje.isVisible = true
+                bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo.isVisible =
+                    true
+                bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
+                    true
             } else {
-                bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo.isVisible = false
-                bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje.isVisible = false
+                bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo.isVisible =
+                    false
+                bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
+                    false
                 constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                     precio,
                     bindingProductosTrabajadores.camposProductosUserVerificados.precioProducto
@@ -377,15 +383,19 @@ object constantes_publicaciones_general_user_tiendas {
 
             }
 
-            bindingProductosTrabajadores.camposProductosUserVerificados.categoriaProducto.text = categoria
+            bindingProductosTrabajadores.camposProductosUserVerificados.categoriaProducto.text =
+                categoria
             bindingProductosTrabajadores.nombreProducto.text = nombre
             bindingProductosTrabajadores.camposProductosUserVerificados.marca.text = marca
             bindingProductosTrabajadores.camposProductosUserVerificados.modelo.text = modelo
             bindingProductosTrabajadores.camposProductosUserVerificados.stok.text = stok
             bindingProductosTrabajadores.camposProductosUserVerificados.garantia.text = garantia
-            bindingProductosTrabajadores.camposProductosUserVerificados.Condicion.text = condicionProducto
-            bindingProductosTrabajadores.camposProductosUserVerificados.descripcion.text = descripcion
-            bindingProductosTrabajadores.camposProductosUserVerificados.fechaPublicado.text = fechaPublicada
+            bindingProductosTrabajadores.camposProductosUserVerificados.Condicion.text =
+                condicionProducto
+            bindingProductosTrabajadores.camposProductosUserVerificados.descripcion.text =
+                descripcion
+            bindingProductosTrabajadores.camposProductosUserVerificados.fechaPublicado.text =
+                fechaPublicada
             inizializarImgProductos(context, listaImg, bindingProductosTrabajadores, data)
             constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo)
 
@@ -516,31 +526,37 @@ object constantes_publicaciones_general_user_tiendas {
         Nombre_trabajador: String,
         listaMas_promo: MutableList<dataclass_adapter_promociones>,
         lifecycle: Lifecycle,
-        item: dataclass_adapter_promociones,dialog: BottomSheetDialog
+        item: dataclass_adapter_promociones, dialog: BottomSheetDialog
     ) {
+        val tiempoInicio = System.currentTimeMillis()
         val bindingMostrar =
             BottomSheetMostarTrabajosRecientesBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(bindingMostrar.root)
-
+        bindingMostrar.cargarConteindo.isVisible = true
+        bindingMostrar.linealGeneralLinea.isVisible = false
         bindingMostrar.cerrar.setOnClickListener {
             dialog.dismiss()
         }
-        trabajo.document(item.id.toString()).get().addOnSuccessListener { res->
-            if(res.exists()){
-                val data=res.data
+        trabajo.document(item.id.toString()).get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotalMs = tiempoFin - tiempoInicio
+            val tiempoEnSegundos = tiempoTotalMs / 1000.0
+            if (res.exists()) {
+                val data = res.data
                 // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
                 val titulo = data?.get("titulo") as? String ?: "Sin título"
                 val contenido = data?.get("contenido") as? String ?: "Sin contenido"
                 val idSelecionado = data?.get("id") as? String ?: ""
                 val fecha_rec = data?.get("fecha_rec") as? String ?: ""
-                val hora_rec = data?.get("hora_rec")as? String ?: ""
+                val hora_rec = data?.get("hora_rec") as? String ?: ""
                 val img_url = data?.get("img_url") as? String ?: ""
                 val img_url2 = data?.get("img_url2") as? String ?: ""
                 val img_url3 = data?.get("img_url3") as? String ?: ""
                 val img_url4 = data?.get("img_url4") as? String ?: ""
                 val listaImg =
                     listOf(img_url, img_url2, img_url3, img_url4).filter { it.isNotEmpty() }
-                bindingMostrar.tituloNombreTrabajador.text = "Trabajos realizados por $Nombre_trabajador"
+                bindingMostrar.tituloNombreTrabajador.text =
+                    "Trabajos realizados por $Nombre_trabajador"
                 // Configurar botón para ver todos los trabajos
                 bindingMostrar.cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
                     val intent = Intent(context, mostrarTodosTrabajos::class.java).apply {
@@ -551,6 +567,11 @@ object constantes_publicaciones_general_user_tiendas {
                     context.startActivity(intent)
                     dialog.dismiss()
                 }
+                // Ocultar el texto después del mismo tiempo que tomó cargar los datos
+                Handler(Looper.getMainLooper()).postDelayed({
+                    bindingMostrar.cargarConteindo.isVisible = false
+                    bindingMostrar.linealGeneralLinea.isVisible = true
+                }, tiempoTotalMs)
 
                 // Configurar el texto expandible
                 constantestextos_general.extender_acortar_texto(
@@ -565,33 +586,34 @@ object constantes_publicaciones_general_user_tiendas {
                 if (listaImg.isNotEmpty()) {
                     val carouselItems = listaImg.map { CarouselItem(it) }
                     bindingMostrar.carruselImgTrabajos.registerLifecycle(lifecycle)
-                    bindingMostrar.carruselImgTrabajos.carouselListener = object : CarouselListener {
-                        override fun onCreateViewHolder(
-                            layoutInflater: LayoutInflater,
-                            parent: ViewGroup,
-                        ): ViewBinding? {
-                            return ItemCustomFixedSizeLayout2Binding.inflate(
-                                layoutInflater,
-                                parent,
-                                false
-                            )
-                        }
-
-                        override fun onBindViewHolder(
-                            binding: ViewBinding,
-                            item: CarouselItem,
-                            position: Int,
-                        ) {
-                            val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
-                            currentBinding.imageView.apply {
-                                setImage(item, R.drawable.ic_wb_cloudy_with_padding)
-                                minimumScale = 1f
-                                maximumScale = 10f
-                                mediumScale = 5f
+                    bindingMostrar.carruselImgTrabajos.carouselListener =
+                        object : CarouselListener {
+                            override fun onCreateViewHolder(
+                                layoutInflater: LayoutInflater,
+                                parent: ViewGroup,
+                            ): ViewBinding? {
+                                return ItemCustomFixedSizeLayout2Binding.inflate(
+                                    layoutInflater,
+                                    parent,
+                                    false
+                                )
                             }
-                        }
 
-                    }
+                            override fun onBindViewHolder(
+                                binding: ViewBinding,
+                                item: CarouselItem,
+                                position: Int,
+                            ) {
+                                val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
+                                currentBinding.imageView.apply {
+                                    setImage(item, R.drawable.ic_wb_cloudy_with_padding)
+                                    minimumScale = 1f
+                                    maximumScale = 10f
+                                    mediumScale = 5f
+                                }
+                            }
+
+                        }
                     bindingMostrar.carruselImgTrabajos.setData(carouselItems)
 
 
@@ -608,7 +630,6 @@ object constantes_publicaciones_general_user_tiendas {
                 )
             }
         }
-
 
 
     }

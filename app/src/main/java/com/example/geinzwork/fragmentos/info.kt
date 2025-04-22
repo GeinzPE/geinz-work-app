@@ -12,6 +12,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.text.Spannable
@@ -64,6 +65,7 @@ import com.google.firebase.dynamiclinks.iosParameters
 import com.google.firebase.dynamiclinks.itunesConnectAnalyticsParameters
 import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
@@ -83,6 +85,8 @@ class info : Fragment() {
     private var phoneNumberToCall: String? = null
     private val REQUEST_CALL_PHONE = 1
     private var isNotificationOn = false
+    private val tiempoParaContarVista: Long = 20000
+    private var vistaTimer: CountDownTimer? = null
 
 
     companion object {
@@ -197,7 +201,7 @@ class info : Fragment() {
             mContex,
             { sige -> },
             { noti ->
-                Log.d("norificaicon",noti.toString())
+                Log.d("norificaicon", noti.toString())
                 if (noti) {
                     binding.notificaciones.setImageDrawable(
                         ContextCompat.getDrawable(
@@ -299,6 +303,20 @@ class info : Fragment() {
                 }
             }
         }
+    }
+
+    private fun iniciarContadorVista(db: DocumentReference) {
+        vistaTimer = object : CountDownTimer(tiempoParaContarVista, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
+            }
+        }.start()
+    }
+
+    private fun cancelarContadorVista() {
+        vistaTimer?.cancel()
     }
 
 
@@ -512,12 +530,24 @@ class info : Fragment() {
                         setOnClickListener {
                             val trabajo = datosTrabajos[position]
                             val listaImg = trabajo["listaImg"] as? List<String> ?: emptyList()
+                            val id = trabajo["id"] as? String ?: ""
+                            constantesPublicidad.agregarCantidadClickAnuncios(
+                                db.document(id),
+                                "",
+                                "click"
+                            )
+                            iniciarContadorVista(db.document(id))
                             dialog = BottomSheetDialog(mContex)
                             showBottomShetDialogAnuncios(
+                                db.document(id),
                                 idTrabajador,
                                 trabajo,
                                 listaImg
                             )
+                            dialog.setOnDismissListener {
+                                cancelarContadorVista()
+                            }
+
                             dialog.show()
                         }
                     }
@@ -531,6 +561,7 @@ class info : Fragment() {
 
 
     private fun showBottomShetDialogAnuncios(
+        documentReference: DocumentReference,
         idTrabajador: String,
         trabajo: Map<String, Any>,
         listaImg: List<String>
@@ -542,7 +573,16 @@ class info : Fragment() {
         bindingMostrar.cerrar.setOnClickListener {
             dialog.dismiss()
         }
+        bindingMostrar.cargarConteindo.isVisible = true
+        bindingMostrar.linealGeneralLinea.isVisible = false
 
+        bindingMostrar.compartirIcon.setOnClickListener {
+            constantesPublicidad.agregarCantidadClickAnuncios(
+                documentReference,
+                "",
+                "compartir"
+            )
+        }
         // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
         val titulo = trabajo["titulo"] as? String ?: "Sin título"
         val contenido = trabajo["contenido"] as? String ?: "Sin contenido"
@@ -570,6 +610,9 @@ class info : Fragment() {
 
         bindingMostrar.textoTrabajosRealzados.text = contenido
         bindingMostrar.tituloTrabajosRealizados.text = titulo
+
+        bindingMostrar.cargarConteindo.isVisible = false
+        bindingMostrar.linealGeneralLinea.isVisible = true
 
         // Configurar el carrusel de imágenes si hay imágenes disponibles
         if (listaImg.isNotEmpty()) {
@@ -616,6 +659,7 @@ class info : Fragment() {
         idTrabajador: String,
         idTrajoReciente: String
     ) {
+        val tiempoInicio = System.currentTimeMillis()
         val bindingMostrar =
             BottomSheetMostarTrabajosRecientesBinding.inflate(LayoutInflater.from(mContex))
         dialog.setContentView(bindingMostrar.root)
@@ -623,6 +667,8 @@ class info : Fragment() {
         bindingMostrar.cerrar.setOnClickListener {
             dialog.dismiss()
         }
+        bindingMostrar.linealGeneralLinea.isVisible=false
+        bindingMostrar.cargarConteindo.isVisible=true
 
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
@@ -630,6 +676,9 @@ class info : Fragment() {
             .collection("trabajos_realizados").document(idTrajoReciente)
 
         db.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotalMs = tiempoFin - tiempoInicio
+            val tiempoEnSegundos = tiempoTotalMs / 1000.0
             if (res.exists()) {
                 val data = res.data
                 val titulo = data?.get("titulo") as? String ?: "Sin título"
@@ -661,7 +710,10 @@ class info : Fragment() {
                     .let { ArrayList(it) } // Convertir a ArrayList
 
                 println("obtenemos las referencias de las img $listaImg")
-
+                Handler(Looper.getMainLooper()).postDelayed({
+                    bindingMostrar.linealGeneralLinea.isVisible=true
+                    bindingMostrar.cargarConteindo.isVisible=false
+                }, tiempoTotalMs)
                 // Configurar el texto expandible
                 constantestextos_general.extender_acortar_texto(
                     bindingMostrar.textoTrabajosRealzados,
@@ -1155,6 +1207,9 @@ class info : Fragment() {
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
         idSelecionado: String
     ) {
+
+
+        val tiempoInicio = System.currentTimeMillis()
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
@@ -1162,6 +1217,9 @@ class info : Fragment() {
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
             "Trabajos recientes"
         db.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotalMs = tiempoFin - tiempoInicio
+            val tiempoEnSegundos = tiempoTotalMs / 1000.0
             listaMas_promo.clear()
 
             for (datos in res) {
@@ -1197,13 +1255,16 @@ class info : Fragment() {
 
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
-                inicializarTrabajosRealizados(bindingMostrarTRabajos)
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
-                    false
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
-                    true
-                bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
-                    false
+                // Ocultar el texto después del mismo tiempo que tomó cargar los datos
+                Handler(Looper.getMainLooper()).postDelayed({
+                    inicializarTrabajosRealizados(bindingMostrarTRabajos)
+                    bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
+                        false
+                    bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
+                        true
+                    bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
+                        false
+                }, tiempoTotalMs)
             } else {
                 Log.d("error obtenerDAtos", "No hay datos para mostrar")
                 bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =

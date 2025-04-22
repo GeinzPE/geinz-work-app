@@ -317,6 +317,7 @@ object constantes_vistas_publicaciones_productos_verificados {
             false,
             listaMas_promo
         ) { item ->
+            Toast.makeText(context, "selecionaste tal item", Toast.LENGTH_SHORT).show()
             dialog = BottomSheetDialog(context)
             constantes_publicaciones_general_user_tiendas.showBottomShetDialogAnuncios(
                 idTrabajador,
@@ -335,7 +336,7 @@ object constantes_vistas_publicaciones_productos_verificados {
 
     fun ver_todos_productos_activity(
         cargaProductosPromoTrabajos: ItemCargarProductosPromocionesTrabajosBinding,
-        context: Context,idTrabajador: String
+        context: Context, idTrabajador: String
     ) {
         cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
             val intent =
@@ -349,13 +350,13 @@ object constantes_vistas_publicaciones_productos_verificados {
 
     fun ver_todo_publicaciones_activty(
         cargaProductosPromoTrabajos: ItemCargarProductosPromocionesTrabajosBinding,
-        context: Context,idTrabajador: String
+        context: Context, idTrabajador: String
     ) {
         cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
             val intent = Intent(context, mostrarTodosTrabajos::class.java).apply {
                 putExtra("idTrabajador", idTrabajador)
             }
-           context.startActivity(intent)
+            context.startActivity(intent)
 
         }
 

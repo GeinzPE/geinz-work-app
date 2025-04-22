@@ -14,42 +14,60 @@
         android:layout_height="40dp"
         android:layout_centerInParent="true" />
 
+    <TextView
+        android:id="@+id/no_encontrado"
+        style="@style/TextoModoOScuroColor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No se encontro publicaciones"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
         android:animateLayoutChanges="true">
 
         <LinearLayout
             android:layout_width="match_parent"
-
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             android:orientation="vertical">
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                android:text="Servicios realizados por Trabajadores Verificados"
-                android:textSize="25sp" />
-
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/fuente_para_texto_special_gothic"
-                android:text="Explora todos los trabajos realizados por
-trabajadores verificados en nuestra plataforma . Filtra por categoría para encontrar exactamente
-el servicio que necesitas"
-                android:textSize="15sp" />
-
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp">
+                android:layout_marginHorizontal="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="Servicios realizados por Trabajadores Verificados"
+                    android:textSize="25sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/fuente_para_texto_special_gothic"
+                    android:text="Explora todos los trabajos realizados por
+trabajadores verificados en nuestra plataforma . Filtra por categoría para encontrar exactamente
+el servicio que necesitas"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp"
+                android:orientation="vertical">
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
@@ -84,12 +102,12 @@ el servicio que necesitas"
                         android:text="Cargando Categorias" />
 
                 </LinearLayout>
-            </RelativeLayout>
-
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -145,10 +163,10 @@ el servicio que necesitas"
                 </LinearLayout>
             </LinearLayout>
 
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -203,15 +221,14 @@ el servicio que necesitas"
                         android:text="Cargando #" />
 
                 </LinearLayout>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:visibility="gone"
-                    android:id="@+id/lista_publicaciones_trabajadores"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-
             </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/lista_publicaciones_trabajadores"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="7dp"
+                android:visibility="gone" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

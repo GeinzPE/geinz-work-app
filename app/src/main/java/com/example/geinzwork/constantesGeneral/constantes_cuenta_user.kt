@@ -149,8 +149,9 @@ object constantes_cuenta_user {
         }
         panel_publicacion.setOnClickListener {
             firebaseAuth = FirebaseAuth.getInstance()
-            var intent = Intent(context, panel_publicacion_trabajador::class.java)
-            intent.putExtra(Variables.iduser, firebaseAuth.uid.toString())
+            var intent = Intent(context, panel_publicacion_trabajador::class.java).apply {
+                putExtra(Variables.plan, plan)
+            }
             context.startActivity(intent)
             dialog.dismiss()
         }

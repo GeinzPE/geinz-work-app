@@ -205,7 +205,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
         }
     }
 
-    private fun popup() {
+    fun popup() {
         val popup = PopupMenu(this, binding.popup)
         popup.menu.add(Menu.NONE, 1, 1, "Estado de pago y verificacion")
         popup.menu.add(Menu.NONE, 2, 2, "Ver Publicaciones")

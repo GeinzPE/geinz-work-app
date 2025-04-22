@@ -438,5 +438,12 @@
     <string name="textoApelacionToast">Apelacion Enviada Correctamente Geinz se pondra en contacto contigo</string>
     <string name="cargando_horario">Cargando Horario..</string>
     <string name="panel_publicacion_txt">Panel de Publicación</string>
+    <string name="ver_todos">Ver Todos</string>
+    <string name="texto_agregar_bottomSheet_hastags">Agrega hashtags de manera personalizada. Puedes escribir tus propios hashtags para que otros usuarios encuentren tu contenido más fácilmente. Recuerda usar palabras clave que representen bien lo que estás publicando.</string>
+    <string name="texto_bottom_sheet_hastags_filtrado">Selecciona hashtags relacionados con tu publicación para que otros usuarios puedan encontrar más fácilmente tus ofertas o servicios de trabajo.</string>
+    <string name="texto_publicaciones_privadas">🔒 Privado – solo tú podrás verlas, nadie más tendrá acceso.</string>
+    <string name="texto_solo_seguidores_publicaciones">👥 Solo tus seguidores – solo las personas que te siguen podrán verlas.</string>
+    <string name="todos_publicaciones_trabajadores">🔓 Todos – cualquier persona podrá ver tus publicaciones.</string>
+    <string name="nota_crea_publicaciones_recientes">Nota: En esta sección puedes compartir contenido relacionado con tu trabajo, como proyectos recientes, avances, experiencias laborales u ofertas de servicio. Asegúrate de que las publicaciones mantengan un enfoque profesional. Publicaciones fuera de este contexto podrían causar la retirada de la verificación por parte de Geinz.</string>
 
 </resources>

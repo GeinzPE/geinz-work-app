@@ -71,6 +71,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                             text = hashtag
                             isCheckable = true
                             isClickable = true
+
                             setOnClickListener {
                                 // Limpiar lista antes de volver a llenar
                                 hashtagsGenerales.clear()
@@ -78,9 +79,10 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                 for (i in 0 until chipGroup.childCount) {
                                     val view = chipGroup.getChildAt(i)
                                     if (view is Chip && view.isChecked) {
-                                        hashtagsGenerales.add(view.text.toString())
+                                        hashtagsGenerales.add("${view.text}")
                                     }
                                 }
+
 
                                 obtenerTrabajosFiltrados(hashtagsGenerales)
                                 // Mostrar lista en log
@@ -101,6 +103,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
 
                         }
                         chipGroup.addView(chip)
+
                     }
 
                     // Ocultar apartado de carga y mostrar chips
@@ -265,6 +268,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
             .document("verificaciones").collection("activos")
         binding.listaPublicacionesTrabajadores.isVisible = false
         binding.cargandoContenido.isVisible = true
+        binding.noEncontrado.isVisible = false
 
         db.get().addOnSuccessListener { res ->
             val trabajadores = res.documents
@@ -275,7 +279,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
 
             for (document in trabajadores) {
                 val id_trabajador = document.id
-                Log.d("obtenosID_trabajoders",id_trabajador)
+                Log.d("obtenosID_trabajoders", id_trabajador)
 
                 val dbUsers = FirebaseFirestore.getInstance()
                     .collection("Trabajadores_Usuarios_Drivers")
@@ -300,21 +304,26 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                             contenido,
                             idPublicaciones,
                             fecha,
-                            hora,id_trabajador
+                            hora, id_trabajador
                         )
                         lista_dataclass_trabajos.add(lista)
                         binding.cargandoContenido.isVisible = false
                         binding.listaPublicacionesTrabajadores.isVisible = true
+                        binding.noEncontrado.isVisible = false
                         Log.d(
                             "obtnerDatos",
                             "img: $img_producto | id: $idPublicaciones | titulo: $titulo | contenido: $contenido | fecha: $fecha | hora: $hora"
                         )
+                    } else {
+                        binding.noEncontrado.isVisible = true
+                        binding.cargandoContenido.isVisible = false
+                        binding.listaPublicacionesTrabajadores.isVisible = false
                     }
 
                     completados++
                     if (completados == total) {
                         // Solo cuando se hayan completado todos
-                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
+                        inicializarTrabajosFiltrados(id_trabajador, lista_dataclass_trabajos)
                     }
 
                 }.addOnFailureListener { e ->
@@ -322,7 +331,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                     Log.e("ProductosVerificados", "Error al obtener documentos", e)
 
                     if (completados == total) {
-                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
+                        inicializarTrabajosFiltrados(id_trabajador, lista_dataclass_trabajos)
                     }
                 }
             }
@@ -357,9 +366,9 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
         recicle.adapter =
             adapter_trabajos_realizados_trabajador(true, listaFiltrada.toMutableList()) { item ->
                 val vista = Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
-                        putExtra("id_trabajador", item.idTrabajador)
-                            putExtra("id_publicacion", item.id)
-                    }
+                    putExtra("id_trabajador", item.idTrabajador)
+                    putExtra("id_publicacion", item.id)
+                }
                 startActivity(vista)
             }
 
@@ -373,12 +382,20 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
     ) {
         val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
             .document("verificaciones").collection("activos")
+
         binding.listaPublicacionesTrabajadores.isVisible = false
+        binding.cargandoContenido.isVisible = true
+        binding.noEncontrado.isVisible = false
         lista_dataclass_trabajos.clear()
 
         db.get().addOnSuccessListener { res ->
             val trabajadores = res.documents
-            if (trabajadores.isEmpty()) return@addOnSuccessListener
+            if (trabajadores.isEmpty()) {
+                binding.noEncontrado.isVisible = true
+                binding.cargandoContenido.isVisible = false
+                binding.listaPublicacionesTrabajadores.isVisible = false
+                return@addOnSuccessListener
+            }
 
             var completados = 0
             val total = trabajadores.size
@@ -430,10 +447,9 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                                     contenido,
                                     idPublicaciones,
                                     fecha,
-                                    hora,id_trabajador
+                                    hora,
+                                    id_trabajador
                                 )
-                                binding.cargandoContenido.isVisible = false
-                                binding.listaPublicacionesTrabajadores.isVisible = true
                                 lista_dataclass_trabajos.add(lista)
 
                                 Log.d(
@@ -446,7 +462,17 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
 
                     completados++
                     if (completados == total) {
-                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
+                        if (lista_dataclass_trabajos.isEmpty()) {
+                            binding.noEncontrado.isVisible = true
+                            binding.cargandoContenido.isVisible = false
+                            binding.listaPublicacionesTrabajadores.isVisible = false
+                        } else {
+                            binding.noEncontrado.isVisible = false
+                            binding.listaPublicacionesTrabajadores.isVisible = true
+                            binding.cargandoContenido.isVisible = false
+                        }
+
+                        inicializarTrabajosFiltrados(id_trabajador, lista_dataclass_trabajos)
                     }
 
                 }.addOnFailureListener { e ->
@@ -454,14 +480,25 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                     Log.e("ProductosVerificados", "Error al obtener documentos", e)
 
                     if (completados == total) {
-                        inicializarTrabajosFiltrados(id_trabajador,lista_dataclass_trabajos)
+                        if (lista_dataclass_trabajos.isEmpty()) {
+                            binding.noEncontrado.isVisible = true
+                            binding.cargandoContenido.isVisible = false
+                            binding.listaPublicacionesTrabajadores.isVisible = false
+                        } else {
+                            binding.noEncontrado.isVisible = false
+                            binding.listaPublicacionesTrabajadores.isVisible = true
+                            binding.cargandoContenido.isVisible = false
+                        }
+
+                        inicializarTrabajosFiltrados(id_trabajador, lista_dataclass_trabajos)
                     }
                 }
             }
         }.addOnFailureListener { e ->
             Log.e("ProductosVerificados", "Error al obtener documentos", e)
+            binding.noEncontrado.isVisible = true
+            binding.cargandoContenido.isVisible = false
+            binding.listaPublicacionesTrabajadores.isVisible = false
         }
     }
-
-
 }
