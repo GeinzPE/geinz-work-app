@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "921389328767",
+    "project_id": "geinzworkapp",
+    "storage_bucket": "geinzworkapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921389328767:android:f27b990f323000425b524a",
+        "android_client_info": {
+          "package_name": "com.geinzz.geinzwork"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

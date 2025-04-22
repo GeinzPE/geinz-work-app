@@ -9,11 +9,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.geinzwork.adapterViewholder.adapter_publicaciones_verificados_trabajos_recientes
+import com.example.geinzwork.adapterViewholder.adapter_pbl_vr_tb_recientes
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.adapterViewholder.publicaciones_ralizadas
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesVistaVerificadosBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,7 +20,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 class ver_publicaciones_vista_verificados : AppCompatActivity() {
     private lateinit var binding: ActivityVerPublicacionesVistaVerificadosBinding
     private val lista = mutableListOf<dataclas_trabajos_ralizados_verificados>()
-    private lateinit var adapter: adapter_publicaciones_verificados_trabajos_recientes
+    private lateinit var adapter: adapter_pbl_vr_tb_recientes
     private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -36,7 +35,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         obtener_publicaciones_realizadas(firebaseAuth.uid.toString())
-        adapter = adapter_publicaciones_verificados_trabajos_recientes(lista, { item ->
+        adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
 //            eliminarPublicacion(item)
         }, { item ->
 //            editarPublicacion(item)
@@ -87,7 +86,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
     private fun inicializarRecicle(
         recycle: RecyclerView,
-        adapter: adapter_publicaciones_verificados_trabajos_recientes, // Cambiado a publicaciones_ralizadas
+        adapter: adapter_pbl_vr_tb_recientes, // Cambiado a publicaciones_ralizadas
         context: Context
     ) {
         recycle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
