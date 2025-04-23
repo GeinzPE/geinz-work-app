@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/fondo"
+    android:orientation="vertical"
+    tools:context="com.example.geinzwork.fragmentos.panel_publicacion_trabajador">
+
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/titulo_texto"
+                android:textSize="25sp"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Panel de publicacion" />
+
+            <TextView
+                android:textSize="13sp"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Desde aquí puedes agregar tus trabajos recientes,crear publicaciones y mostrar tus productos. Comparte lo mejor de lo que haces en Geinz Work y conecta con más clientes." />
+
+
+            <include
+                android:id="@+id/traajos_recientes"
+                layout="@layout/include_panel_publicaciones" />
+
+            <include
+                android:id="@+id/publicaciones"
+                layout="@layout/include_panel_publicaciones" />
+
+            <include
+                android:id="@+id/productos_venta"
+                layout="@layout/include_panel_publicaciones" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</LinearLayout>

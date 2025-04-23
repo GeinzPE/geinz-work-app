@@ -1,0 +1,6 @@
+<!-- res/drawable/rounded_corners.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+    <!-- Define el redondeo de las esquinas, ajustando el radio según sea necesario -->
+    <corners android:radius="26dp"/>
+</shape>

@@ -1,5 +1,6 @@
 package com.example.geinzwork
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -62,7 +63,7 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         binding.agregarHastagsED.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            obtener_hastags_generales()
+            obtener_hastags_generales(this,hashtagsGenerales,dialog)
             dialog.show()
         }
         binding.mostrarPublicacionPara.setOnClickListener {
@@ -130,9 +131,9 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         }
     }
 
-    private fun obtener_hastags_generales() {
+    fun obtener_hastags_generales(contex:Context,hashtagsGenerales:MutableList<String>,dialog: BottomSheetDialog) {
         val bindig_BottomSheet =
-            BottomSheetHastagsFiltradosBinding.inflate(LayoutInflater.from(this))
+            BottomSheetHastagsFiltradosBinding.inflate(LayoutInflater.from(contex))
         val view = bindig_BottomSheet.root
         bindig_BottomSheet.cerrar.setOnClickListener { dialog.dismiss() }
 

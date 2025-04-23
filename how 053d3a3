@@ -1,0 +1,60 @@
+[33mcommit 053d3a38732f3348d19502a2839df3d42e2b4f3c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Benjamin lopez <soybenjadesing@gmail.com>
+Date:   Sat Apr 19 17:03:34 2025 -0500
+
+    faltan pequeños cambios en cer_todo_publicaciones_trabajador
+
+[1mdiff --git a/.gradle/8.6/executionHistory/executionHistory.bin b/.gradle/8.6/executionHistory/executionHistory.bin[m
+[1mindex eec38ae6..4dbb2d63 100644[m
+Binary files a/.gradle/8.6/executionHistory/executionHistory.bin and b/.gradle/8.6/executionHistory/executionHistory.bin differ
+[1mdiff --git a/.gradle/8.6/executionHistory/executionHistory.lock b/.gradle/8.6/executionHistory/executionHistory.lock[m
+[1mindex f048ec5a..130dbff0 100644[m
+Binary files a/.gradle/8.6/executionHistory/executionHistory.lock and b/.gradle/8.6/executionHistory/executionHistory.lock differ
+[1mdiff --git a/.gradle/8.6/fileHashes/fileHashes.bin b/.gradle/8.6/fileHashes/fileHashes.bin[m
+[1mindex a27bf68b..9db20af1 100644[m
+Binary files a/.gradle/8.6/fileHashes/fileHashes.bin and b/.gradle/8.6/fileHashes/fileHashes.bin differ
+[1mdiff --git a/.gradle/8.6/fileHashes/fileHashes.lock b/.gradle/8.6/fileHashes/fileHashes.lock[m
+[1mindex 353bfc84..164a63f5 100644[m
+Binary files a/.gradle/8.6/fileHashes/fileHashes.lock and b/.gradle/8.6/fileHashes/fileHashes.lock differ
+[1mdiff --git a/.gradle/8.6/fileHashes/resourceHashesCache.bin b/.gradle/8.6/fileHashes/resourceHashesCache.bin[m
+[1mindex e47dfc53..5e63a173 100644[m
+Binary files a/.gradle/8.6/fileHashes/resourceHashesCache.bin and b/.gradle/8.6/fileHashes/resourceHashesCache.bin differ
+[1mdiff --git a/.gradle/buildOutputCleanup/buildOutputCleanup.lock b/.gradle/buildOutputCleanup/buildOutputCleanup.lock[m
+[1mindex dc23f461..52d99b47 100644[m
+Binary files a/.gradle/buildOutputCleanup/buildOutputCleanup.lock and b/.gradle/buildOutputCleanup/buildOutputCleanup.lock differ
+[1mdiff --git a/.gradle/file-system.probe b/.gradle/file-system.probe[m
+[1mindex b90a10ad..763ed8a3 100644[m
+Binary files a/.gradle/file-system.probe and b/.gradle/file-system.probe differ
+[1mdiff --git a/.idea/gradle.xml b/.idea/gradle.xml[m
+[1mindex 0897082f..7b3006b6 100644[m
+[1m--- a/.idea/gradle.xml[m
+[1m+++ b/.idea/gradle.xml[m
+[36m@@ -4,6 +4,7 @@[m
+   <component name="GradleSettings">[m
+     <option name="linkedExternalProjectsSettings">[m
+       <GradleProjectSettings>[m
+[32m+[m[32m        <option name="testRunner" value="CHOOSE_PER_TEST" />[m
+         <option name="externalProjectPath" value="$PROJECT_DIR$" />[m
+         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />[m
+         <option name="modules">[m
+[1mdiff --git a/app/build/generated/data_binding_base_class_source_out/debug/out/com/geinzz/geinzwork/databinding/ActivityVerTotoPublicacionesTrabajadorBinding.java b/app/build/generated/data_binding_base_class_source_out/debug/out/com/geinzz/geinzwork/databinding/ActivityVerTotoPublicacionesTrabajadorBinding.java[m
+[1mindex e6db84bf..c392e9df 100644[m
+[1m--- a/app/build/generated/data_binding_base_class_source_out/debug/out/com/geinzz/geinzwork/databinding/ActivityVerTotoPublicacionesTrabajadorBinding.java[m
+[1m+++ b/app/build/generated/data_binding_base_class_source_out/debug/out/com/geinzz/geinzwork/databinding/ActivityVerTotoPublicacionesTrabajadorBinding.java[m
+[36m@@ -5,6 +5,7 @@[m [mimport android.view.LayoutInflater;[m
+ import android.view.View;[m
+ import android.view.ViewGroup;[m
+ import android.widget.LinearLayout;[m
+[32m+[m[32mimport android.widget.ProgressBar;[m
+ import android.widget.RelativeLayout;[m
+ import androidx.annotation.NonNull;[m
+ import androidx.annotation.Nullable;[m
+[36m@@ -27,6 +28,9 @@[m [mpublic final class ActivityVerTotoPublicacionesTrabajadorBinding implements View[m
+   @NonNull[m
+   public final LinearLayout cargandoCategoriasTrabajadores;[m
+ [m
+[32m+[m[32m  @NonNull[m
+[32m+[m[32m  public final ProgressBar cargandoContenido;[m
+[32m+[m
+   @NonNull[m
+   public final Lin

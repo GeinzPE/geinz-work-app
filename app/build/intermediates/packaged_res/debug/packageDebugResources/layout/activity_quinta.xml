@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".quinta">
+    <TextView
+        android:layout_marginTop="10dp"
+        android:id="@+id/generalGeinz"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/generalGeinz"
+        style="@style/TextoTitulos"
+        android:textSize="50sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5" />
+
+    <TextView
+        android:id="@+id/crea_diseña"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/crea_diseña"
+        style="@style/TextoTitulos"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/generalGeinz"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        android:layout_marginBottom="10dp"/>
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.6"
+        app:layout_constraintTop_toBottomOf="@id/crea_diseña"
+        app:layout_constraintWidth_percent="1"
+        tools:ignore="MissingConstraints">
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/imgnoCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintWidth_default="percent"
+            app:layout_constraintHeight_default="percent"
+            app:layout_constraintWidth_percent="1"
+            app:layout_constraintHeight_percent="0.6"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/login_animacion"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/TextoTitulos"
+            android:textSize="15sp"
+            android:text="registrate gratis en Geinz work"
+            app:layout_constraintTop_toBottomOf="@id/imgnoCuenta"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="50dp"/>
+    </RelativeLayout>
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/Sguiente_cuenta"
+        style="@style/RoundedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:text="Siguiente"
+        android:textSize="14sp"
+        app:icon="@drawable/baseline_navigate_next_24"
+        app:iconGravity="textEnd"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

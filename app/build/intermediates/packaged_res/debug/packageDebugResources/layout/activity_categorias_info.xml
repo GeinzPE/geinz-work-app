@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/fondo"
+    tools:context=".FuncionalidadGeinz.Categorias_info">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextoTitulos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="Categorias"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="En el apartado de categorías de la aplicación Geinz Work, encontrarás
+una amplia variedad de trabajos disponibles que hemos organizado
+para facilitar tu búsqueda. Esta sección está diseñada para que
+puedas explorar y seleccionar rápidamente el tipo de servicio que
+necesitas, conectándote con profesionales calificados en diversas áreas."
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/TextoTitulos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Características del Apartado de Categorías:"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Variedad de Trabajos:"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="Explora una extensa lista de categorías que cubren múltiples tipos de trabajos y servicios. Ya sea que necesites un electricista, plomero, artesano, jardinero o cualquier otro tipo de profesional, Geinz Work tiene lo que buscas."
+                    android:textSize="13sp" />
+
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Organización Intuitiva:"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text=" Las categorías están organizadas de manera intuitiva para facilitar tu navegación. Puedes encontrar rápidamente la categoría que te interesa y descubrir los trabajadores disponibles en esa área."
+                    android:textSize="13sp" />
+
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Ejemplos de trabajos Disponibles:"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text=" Electricistas: Encuentra profesionales calificados para instalaciones y reparaciones eléctricas."
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Plomería: Soluciona problemas de plomería con expertos en mantenimiento y reparación."
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Artesanía: Descubre artesanos talentosos para proyectos personalizados y decorativos."
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Jardinería: Contrata servicios de jardinería para el cuidado y mantenimiento de tu jardín."
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Limpieza: Accede a servicios de limpieza para tu hogar u oficina."
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+        </ScrollView>
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:id="@+id/siguiente"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:text="Siguiente >"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginRight="15dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"/>
+    </RelativeLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

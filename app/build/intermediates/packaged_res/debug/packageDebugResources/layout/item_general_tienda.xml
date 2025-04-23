@@ -1,0 +1,226 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/listenerPadre"
+        android:layout_width="300dp"
+        android:layout_height="280dp"
+        android:layout_margin="10dp"
+        style="@style/RoundTrabajadoresBG"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="160dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgPortadaTienda"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/sin_foto_portada_con_marca"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:background="@drawable/mascara_round" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/img_PerfilUser"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="10dp"
+                android:src="@drawable/img_perfil"
+                app:civ_border_color="@color/black"
+                app:civ_border_width="1dp" />
+        </RelativeLayout>
+
+        <!-- Nombre de la tienda con icono -->
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:id="@+id/icon_nombreTienda"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:layout_alignParentStart="true"
+                android:src="@drawable/icon_tienda_icon_general"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:textAllCaps="true"
+                android:id="@+id/nombreTienda"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@id/icon_nombreTienda"
+                android:text="Nombre tienda"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                style="@style/TextoModoOScuroColor"/>
+        </RelativeLayout>
+
+        <!-- Categoria y Zona -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_weight="1">
+                <!-- Categoria con icono -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="0.5">
+
+                    <ImageView
+                        android:id="@+id/icon_categoriaTienda"
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:layout_alignParentStart="true"
+                        android:src="@drawable/categoria_icon_general" />
+
+                    <TextView
+                        android:id="@+id/categoriaTienda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/icon_categoriaTienda"
+                        android:text="categoria"
+                        android:textSize="12sp"
+                        style="@style/TextoModoOScuroColor"/>
+                </RelativeLayout>
+                <!-- Calificación con icono -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/icon_calificacionTienda"
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:src="@drawable/estrellas_icon_general" />
+
+                    <TextView
+                        android:id="@+id/calificacionTienda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/icon_calificacionTienda"
+                        android:text="calificacion"
+                        android:textSize="12sp"
+                        style="@style/TextoModoOScuroColor"/>
+                </RelativeLayout>
+                <!-- Estado con icono -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="5dp">
+
+                    <ImageView
+                        android:id="@+id/icon_estadoTienda"
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:layout_alignParentStart="true"
+                        android:src="@drawable/horario_icon_general" />
+
+                    <TextView
+                        android:id="@+id/estadoTienda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/icon_estadoTienda"
+                        android:text="estado"
+                        android:textSize="12sp"
+                        style="@style/TextoModoOScuroColor"/>
+                </RelativeLayout>
+
+            </LinearLayout>
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_weight="1">
+
+                <!-- localidad con icono -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    >
+
+                    <ImageView
+                        android:id="@+id/icon_localidadTienda"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/localidad_icon_general" />
+
+                    <TextView
+                        android:id="@+id/localidadTienda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/icon_localidadTienda"
+                        android:text="localidad"
+                        android:textSize="12sp"
+                        style="@style/TextoModoOScuroColor"/>
+                </RelativeLayout>
+
+
+                <!-- Zona con icono -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                   >
+
+                    <ImageView
+                        android:id="@+id/icon_zonaTienda"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignParentStart="true"
+                        android:src="@drawable/zona_icon_general" />
+
+                    <TextView
+                        android:id="@+id/zonaTienda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/icon_zonaTienda"
+                        android:text="zona"
+                        android:textSize="12sp"
+                        style="@style/TextoModoOScuroColor"/>
+                </RelativeLayout>
+            </LinearLayout>
+
+       
+        </LinearLayout>
+   
+     
+        
+
+     
+
+       
+    </LinearLayout>
+</RelativeLayout>
