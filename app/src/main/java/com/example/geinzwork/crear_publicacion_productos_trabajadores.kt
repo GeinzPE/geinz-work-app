@@ -1,20 +1,35 @@
 package com.example.geinzwork
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
 import com.geinzz.geinzwork.databinding.ActivityCrearPublicacionProductosTrabajadoresBinding
+import com.geinzz.geinzwork.databinding.BottomSheetPublicacionesParaBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.math.roundToInt
 
 class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private lateinit var binding: ActivityCrearPublicacionProductosTrabajadoresBinding
     private lateinit var firebaseAuth: FirebaseAuth
+    private lateinit var dialog: BottomSheetDialog
+
+    private var yape:Boolean=false
+    private var plin:Boolean=false
+    private var descuento:Boolean=false
+
+    private var efectivo:Boolean=false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCrearPublicacionProductosTrabajadoresBinding.inflate(layoutInflater)
@@ -27,7 +42,120 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
+        val radioGroup = binding.metodosEntrega
+        val campoLugarEntrega = binding.lugarEntregaTXT
+        val linealDeliveryGratis = binding.linealDeliveryGratis
+        val radioDeliveryGratis =
+            binding.radioDeliveryGratis // <- Asegúrate que está en tu ViewBinding
+        obtener_estados_productos()
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+
+            campoLugarEntrega.visibility = if (checkedId == R.id.lugar_entrega) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+
+            if (checkedId == R.id.delivery) {
+                linealDeliveryGratis.visibility = View.VISIBLE
+            } else {
+                linealDeliveryGratis.visibility = View.GONE
+                radioDeliveryGratis.clearCheck() // <-- Limpiamos la selección de "sí" o "no"
+            }
+        }
+        binding.mostrarPublicacionPara.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            mostrar_dialog_para(binding.mostrarPublicacionPara.text.toString()) { selt ->
+                binding.mostrarPublicacionPara.text = selt
+            }
+            dialog.show()
+        }
+
+        binding.siHayDescuento.setOnCheckedChangeListener { _, isChecked ->
+            binding.precioNuevoDescuentoPr.visibility = if (isChecked) {
+                descuento=true
+                binding.precioNuevoDescuentoPrED.setText("0")
+                View.VISIBLE
+            } else {
+                descuento=false
+                View.GONE
+            }
+        }
+        binding.siHayGarantia.setOnCheckedChangeListener { _, isChecked ->
+            binding.hayGarantiaProducto.visibility = if (isChecked) {
+                binding.hayGarantiaProductoED.setText("")
+                View.VISIBLE
+
+            } else {
+                View.GONE
+            }
+        }
+
+        binding.agregaUbicaciones.setOnCheckedChangeListener { _, isChecked ->
+            binding.selecionLocalidad.visibility = if (isChecked) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+        }
+        constantesDatosUsuarioTienda.obtnerLocalidades(binding.agregaUbiED)
+        val yapeCheckBox = binding.yape
+        val efectivoCheckBox = binding.efectivo
+        val plinCheckBox = binding.plin
+
+        yapeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            yape = isChecked
+        }
+        efectivoCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            efectivo = isChecked
+        }
+        plinCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            plin = isChecked
+        }
+
+
     }
+
+    private fun mostrar_dialog_para(
+        selecionado: String,
+        select: (String) -> Unit
+    ) {
+        val bindig_BottomSheet_dialog_para =
+            BottomSheetPublicacionesParaBinding.inflate(LayoutInflater.from(this))
+        val view = bindig_BottomSheet_dialog_para.root
+
+        val radioGroup = bindig_BottomSheet_dialog_para.RadioGrupCaracterisiticas
+        // Preseleccionar opción desde código
+        when (selecionado.lowercase()) {
+            "todos" -> radioGroup.check(R.id.todos)
+            "seguidores" -> radioGroup.check(R.id.seguidores)
+            "privado" -> radioGroup.check(R.id.privado)
+        }
+
+        // Detectar selección
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            val seleccion = when (checkedId) {
+                R.id.todos -> "Todos"
+                R.id.seguidores -> "Seguidores"
+                R.id.privado -> "Privado"
+                else -> ""
+            }
+
+            if (seleccion.isNotEmpty()) {
+                select(seleccion)
+                dialog.dismiss()
+            }
+        }
+
+        // Cerrar diálogo manualmente
+        bindig_BottomSheet_dialog_para.cerrar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
 
     private fun crear_publicacion_producto(id_trabajador: String) {
         val titulo_producto = binding.tituloPublicacionPrED
@@ -47,32 +175,13 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .document("trabajadores").collection("trabajadores").document(id_trabajador)
             .collection("productos_venta")
 
-        val grupoRadio = binding.grupoRadio
         val grupoEnvioGratis = binding.radioDeliveryGratis
-        val yape = binding.yape
-        val efectivo = binding.efectivo
-        val plin = binding.plin
+
 
 // Variables booleanas para subir al backend o guardarlas
-        var yapeSelected = false
-        var efectivoSelected = false
-        var plinSelected = false
-
         var deliveryGratis = false
 
-        when (grupoRadio.checkedRadioButtonId) {
-            R.id.yape -> {
-                yapeSelected = true
-            }
 
-            R.id.efectivo -> {
-                efectivoSelected = true
-            }
-
-            R.id.plin -> {
-                plinSelected = true
-            }
-        }
         when (grupoEnvioGratis.checkedRadioButtonId) {
             R.id.delivery_gratis_si -> {
                 deliveryGratis = true
@@ -80,24 +189,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
             R.id.delivery_gratis_no -> {
                 deliveryGratis = false
-            }
-        }
-        val radioGroup = binding.metodosEntrega
-
-        val campoLugarEntrega = binding.lugarEntregaED
-        val linealDeliverGratis = binding.linealDeliveryGratis
-
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            campoLugarEntrega.visibility = if (checkedId == R.id.lugar_entrega) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-
-            linealDeliverGratis.visibility = if (checkedId == R.id.delivery) {
-                View.VISIBLE
-            } else {
-                View.GONE
             }
         }
 
@@ -115,6 +206,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 isCoordinarComprador = false
                 metodoEntrega = "Delivery"
 
+
             }
 
             R.id.entrega_domicilio -> {
@@ -122,6 +214,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 isEntregaDomicilio = true
                 isCoordinarComprador = false
                 metodoEntrega = "Entrega a domicilio"
+
+
             }
 
             R.id.coordinar_comprador -> {
@@ -130,6 +224,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 isCoordinarComprador = true
                 metodoEntrega = "Cordinar con el comprado"
 
+
             }
 
             R.id.lugar_entrega -> {
@@ -137,6 +232,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 isEntregaDomicilio = false
                 isCoordinarComprador = false
                 metodoEntrega = "Lugar entrega"
+
 
             }
 
@@ -148,16 +244,20 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 metodoEntrega = ""
             }
         }
-        val descuentoAplicado =
-            ((precioProducto.text.toString().toDouble() - precio_descuento_nuevo.text.toString()
-                .toDouble()) / precioProducto.text.toString().toDouble()) * 100
+        val descuentoAplicado = if (descuento) {
+            val descuentoCalculado = ((precioProducto.text.toString().toDouble() - precio_descuento_nuevo.text.toString().toDouble()) / precioProducto.text.toString().toDouble()) * 100
+            descuentoCalculado.roundToInt() // Redondeamos el valor a un Int
+        } else {
+            0
+        }
+
         val hasMap = hashMapOf<String, Any>(
             "titulo" to titulo_producto.text.toString(),
             "cantidad_porcentaje_descuento" to descuentoAplicado.toInt(),
             "condicion_producto" to condicion_producto.text.toString(),
             "descripcion" to descripcion_producto.text.toString(),
             "descuento" to binding.siHayDescuento.isChecked,
-            "efectivo" to efectivoSelected,
+            "efectivo" to efectivo,
             "entrega_domicilio" to isEntregaDomicilio,
             "fechaPublicada" to "",
             "garantia" to tiempoGarantiaYears.text.toString(),
@@ -168,12 +268,12 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "envio_gratis" to deliveryGratis,
             "modelo" to modelo_producto.text.toString(),
             "nombre" to nombre_producto.text.toString(),
-            "plin" to plinSelected,
+            "plin" to plin,
             "precio" to precioProducto.text.toString().toDouble(),
             "precioDelivery" to 5,
             "precio_descuento" to precio_descuento_nuevo.text.toString().toDouble(),
             "stok" to stok_producto.text.toString(),
-            "yape" to yapeSelected,
+            "yape" to yape,
             "visivilidad" to mostra_para.text.toString(),
         )
         db.add(hasMap).addOnSuccessListener { res ->
@@ -245,6 +345,21 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         return valido
 
+    }
+
+    private fun obtener_estados_productos() {
+        val db =
+            FirebaseFirestore.getInstance().collection("estados_condiciones_productos_generales")
+                .document("estados")
+        db.get().addOnSuccessListener { res->
+            if (res.exists()){
+                val data=res.data
+                val condicionesList = data?.get("estados") as? List<String> ?: emptyList()
+
+                val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, condicionesList)
+                binding.condicionPrED.setAdapter(adapter)
+            }
+        }
     }
 
 

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".vistaTiendas.vistaRecicleProductos">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/linealappLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_scrollFlags="scroll|enterAlways">
+
+            <TextView
+                android:layout_weight="1"
+                style="@style/TextoTitulos"
+                android:layout_marginLeft="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="Servicios disponibles"
+                android:textSize="30sp" />
+
+            <ImageButton
+                android:id="@+id/filtrado"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+       android:layout_marginRight="10dp"
+                android:background="@drawable/circle_gris"
+                android:maxWidth="20dp"
+                android:maxHeight="20dp"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/buscar_icon" />
+        </LinearLayout>
+
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/RecicleFiltrado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+        tools:ignore="MissingConstraints" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

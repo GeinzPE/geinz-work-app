@@ -349,7 +349,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
                     android:gravity="top|start"
-                    android:hint="Desripcion del producto"
+                    android:hint="Descripcion del producto"
                     android:inputType="textMultiLine"
                     android:maxLines="5"
                     android:minLines="5"
@@ -406,6 +406,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
+                android:visibility="gone"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
@@ -417,6 +418,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Precio nuevo del producto"
+                    android:text="0"
                     android:inputType="textMultiLine"
                     android:paddingLeft="10dp" />
 
@@ -450,6 +452,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
+                android:visibility="gone"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
@@ -518,6 +521,7 @@
 
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/selecion_localidad"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -531,7 +535,6 @@
                     android:id="@+id/agregaUbiED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:enabled="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -572,8 +575,7 @@
                 android:layout_height="wrap_content"
                 android:text="Metodos de pago" />
 
-            <RadioGroup
-                android:id="@+id/grupo_radio"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -595,7 +597,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Plin" />
-            </RadioGroup>
+            </LinearLayout>
+
 
             <TextView
                 android:layout_width="wrap_content"
@@ -642,12 +645,14 @@
                 android:id="@+id/lineal_delivery_gratis"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Delivery gratis?" />
+
                 <RadioGroup
                     android:id="@+id/radio_delivery_gratis"
                     android:layout_width="match_parent"
@@ -670,7 +675,6 @@
             </LinearLayout>
 
 
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/lugar_entregaTXT"
                 android:layout_width="match_parent"
@@ -687,7 +691,7 @@
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="Garantia en años"
+                    android:hint="Lugar de entrega"
                     android:inputType="textMultiLine"
                     android:paddingLeft="10dp" />
 

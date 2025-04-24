@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.geinzwork.vistaTiendas.agregarPagoComprareservaTiendas">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextoTitulos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:text="Agregar Pago"
+                android:textSize="25sp" />
+
+            <LinearLayout
+                android:id="@+id/linealSubir"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_margin="5dp"
+                    android:text="Por favor, realiza el pago para que la tienda pueda confirmar tu compra o reserva."
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_marginHorizontal="5dp"
+                    android:id="@+id/layout_yape"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoTitulos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Metodo de pago por yape o plin"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        style="@style/descripcionColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginVertical="5dp"
+                        android:layout_marginRight="10dp"
+                        android:text="Para comprar o reservar, debes hacer un adelanto del 50% a través de Yape o plin. Este adelanto es necesario para confirmar la reserva o compra de la promoción o servicio descrito en la publicación."
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/imagen_yape"
+                            android:visibility="gone"
+                            android:layout_width="match_parent"
+                            android:layout_height="170dp"
+                            android:layout_weight="1"
+                            android:scaleType="centerCrop"
+                            android:layout_marginHorizontal="5dp"
+                            android:src="@drawable/no_cuenta_img"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/imagen_plin"
+                            android:visibility="gone"
+                            android:layout_width="match_parent"
+                            android:layout_height="170dp"
+                            android:layout_weight="1"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/no_cuenta_img"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+
+
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgQR_pago"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginHorizontal="5dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/sin_foto_portada_con_marca"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="5dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Comentario adicional"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+                <TextView
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_margin="5dp"
+                    android:text="Ingresa una descripcion adicional para tu pedido"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/comentarioADI"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/comentarioADIED"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="comentario adicional EJ:(COMIDA) mas cremas"
+                        android:inputType="textMultiLine"
+                        android:layout_marginBottom="10dp"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <Button
+                    android:id="@+id/notificar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="notificar" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/LinealPagado"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginRight="10dp"
+                    android:text="Comprovante de pago subido correctamente espera la respuesta de la tienda."
+                    android:textSize="15sp"
+                    android:layout_marginHorizontal="5dp"/>
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/comprovante"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginHorizontal="5dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/sin_foto_portada_con_marca"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                <TextView
+                    android:textStyle="bold"
+                    android:layout_marginTop="10dp"
+                    android:id="@+id/texto_adicional"
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginRight="10dp"
+                    android:text="Comentarios adicionales."
+                    android:textSize="15sp"
+                    android:layout_marginHorizontal="5dp"/>
+
+                <TextView
+                    android:textSize="12sp"
+                    style="@style/descripcionColor"
+                    android:layout_marginHorizontal="5dp"
+                    android:id="@+id/comentarioAdicional"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+
+</LinearLayout>

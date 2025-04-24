@@ -5328,7 +5328,6 @@ id grupo_compra
 id grupo_metodo_compra
 id grupo_nacionalidad
 id grupo_precio
-id grupo_radio
 id grupo_reserva
 id grupo_ubicacion
 id grupolocalidadid
@@ -6279,6 +6278,7 @@ id seguidores
 id seguidores_trabajador
 id seguir
 id seleccionTrabajo
+id selecion_localidad
 id select_dialog_listview
 id selected
 id selection_type
