@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.crear_publicacion_productos_trabajadores
 import com.example.geinzwork.crear_publicaciones_recientes
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.crear_trabajos_realizados
@@ -35,7 +36,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             insets
         }
         setear_datos_includes()
-
 
     }
 
@@ -66,13 +66,19 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
 
         }
-//        obtener_hastags_generales()
         imageView2.setOnClickListener {
             var vista = Intent(this, crear_publicaciones_recientes::class.java).apply {
                 putExtra(Variables.plan, plan)
             }
             startActivity(vista)
 
+        }
+
+        imageView3.setOnClickListener {
+            var vista = Intent(this, crear_publicacion_productos_trabajadores::class.java).apply {
+                putExtra(Variables.plan, plan)
+            }
+            startActivity(vista)
         }
     }
 

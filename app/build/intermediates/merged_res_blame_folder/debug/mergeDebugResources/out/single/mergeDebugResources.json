@@ -260,10 +260,6 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_review.xml"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_bottom_sheet_editar_publicaciones_verificados.xml.flat",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/bottom_sheet_editar_publicaciones_verificados.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_inicio_info.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_inicio_info.xml"
     },
@@ -1660,6 +1656,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_sin_internet.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-debug-56:/layout_activity_crear_publicacion_productos_trabajadores.xml.flat",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_crear_publicacion_productos_trabajadores.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_eliminar_user_icon.webp.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\eliminar_user_icon.webp"
     },
@@ -1830,6 +1830,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_roun_gris_oscuro.xml.flat",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\drawable\\roun_gris_oscuro.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\layout_activity_crear_publicacion_productos_trabajadores.xml.flat",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_crear_publicacion_productos_trabajadores.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-debug-56:\\drawable_general_blanco_icon.png.flat",

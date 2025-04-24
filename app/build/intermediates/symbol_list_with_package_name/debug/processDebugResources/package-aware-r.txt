@@ -4998,6 +4998,7 @@ id compress
 id comprovante
 id comprovante_pago
 id condicionProducto
+id condicion_prED
 id confirm_button
 id confirmacion_datos_title
 id confirmar
@@ -5062,6 +5063,7 @@ id controls_card
 id controls_card_right_panel
 id controls_container
 id controls_dock
+id coordinar_comprador
 id coordinator
 id corazon
 id cordinarVendedor
@@ -5092,6 +5094,8 @@ id delatalles
 id delivery
 id deliveryEscojido
 id deliveryPrecio
+id delivery_gratis_no
+id delivery_gratis_si
 id dellatesED
 id deltaRelative
 id dependency_ordering
@@ -5105,6 +5109,7 @@ id descripcionServiciosED
 id descripcionTrabajador
 id descripcion_contenido
 id descripcion_producto
+id descripcion_productoED
 id descripcion_promos
 id descripcion_publicacion
 id descripcion_publicacionED
@@ -5191,6 +5196,7 @@ id editar_descripcion
 id editarapellido
 id editarnombre
 id editexFilter
+id efectivo
 id efectivo_checkbox
 id elastic
 id elcion_de_cateogoria
@@ -5206,6 +5212,7 @@ id enterAlwaysCollapsed
 id entragado
 id entregaDomicilio
 id entregaMetodo
+id entrega_domicilio
 id enviado_exitosamente
 id enviar
 id envioGratis
@@ -5321,6 +5328,7 @@ id grupo_compra
 id grupo_metodo_compra
 id grupo_nacionalidad
 id grupo_precio
+id grupo_radio
 id grupo_reserva
 id grupo_ubicacion
 id grupolocalidadid
@@ -5358,6 +5366,10 @@ id guideline_end
 id hActivado
 id hVecimineto
 id hardware
+id hastags_productos
+id hastags_productosED
+id hay_garantia_producto
+id hay_garantia_productoED
 id header_title
 id hide_ime_id
 id hideable
@@ -5680,6 +5692,7 @@ id lineal_como_funcion_Geinz
 id lineal_compra_reserva
 id lineal_contenido_tienda
 id lineal_delivery
+id lineal_delivery_gratis
 id lineal_driver
 id lineal_driver_precio
 id lineal_estrellas
@@ -5748,6 +5761,9 @@ id lotteSend
 id lottieAnimationView
 id lottie_animation
 id lottie_layer_name
+id lugar_entrega
+id lugar_entregaED
+id lugar_entregaTXT
 id m3_side_sheet
 id main
 id mainOnly
@@ -5757,6 +5773,7 @@ id mandarSolicitud
 id mapa
 id marca
 id marcaProducto
+id marcaProductoED
 id marquee
 id mas
 id masEstrellas
@@ -5814,6 +5831,7 @@ id metodoYape
 id metodo_entrega
 id metodo_pagos
 id metodopago
+id metodos_entrega
 id middle
 id mini
 id modalida_negocio
@@ -5926,6 +5944,8 @@ id nombreTrabajador
 id nombreTrabajaror
 id nombreUSer
 id nombreUser
+id nombre_producto
+id nombre_productoED
 id nombre_trabajador
 id nombre_trabajadoroculto
 id nombreint
@@ -6052,6 +6072,8 @@ id precioED
 id precioItem
 id precioProducto
 id precio_no
+id precio_nuevo_descuento_pr
+id precio_nuevo_descuento_prED
 id precio_producto
 id precio_productoED
 id precio_si
@@ -6121,6 +6143,7 @@ id radio
 id radioDescuento
 id radioGrupMetodosPago
 id radioTiempo_garantia
+id radio_delivery_gratis
 id radio_garantia
 id ratio
 id realitveCardView
@@ -6272,6 +6295,8 @@ id showCustom
 id showHome
 id showTitle
 id si
+id siHayDescuento
+id siHayGarantia
 id si_garantia
 id siguiente
 id sin
@@ -6307,6 +6332,7 @@ id staticLayout
 id staticPostLayout
 id status_bar_latest_event_content
 id stok
+id stokED
 id stok_producto
 id stok_productoED
 id stop
@@ -6422,6 +6448,8 @@ id titulo_producto
 id titulo_productoED
 id titulo_promo
 id titulo_publicacionED
+id titulo_publicacion_pr
+id titulo_publicacion_prED
 id titulo_publicaciontext
 id titulo_publicidad
 id titulo_servico
@@ -6560,6 +6588,7 @@ id wrap_content
 id wrap_content_constrained
 id x_left
 id x_right
+id yape
 id yape_checkbox
 id years
 id zona
@@ -6743,6 +6772,7 @@ layout activity_crea_trabajos_publicaciones
 layout activity_crea_tu_noticia
 layout activity_crea_tu_publicidad
 layout activity_crear_cuenta_tienda
+layout activity_crear_publicacion_productos_trabajadores
 layout activity_crear_publicaciones_recientes
 layout activity_crear_trabajos_realizados
 layout activity_cuarto
