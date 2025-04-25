@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    tools:context=".servicios_geinz.cambiar_imagenes_publicidad_noticias_servicios">
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/linealCargandoImg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:id="@+id/progrsBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/heartOutlineColor" />
+
+        <TextView
+            android:id="@+id/SubiendoImg"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/subiendo_imagenes" />
+    </LinearLayout>
+
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollimg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                style="@style/TextoTitulos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Agregar imagenes "
+                android:textSize="30sp" />
+
+            <TextView
+                android:id="@+id/texto"
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="Personaliza tus publicaciones o noticias añadiendo imágenes desde el panel exclusivo para usuarios del servicio Geinz."
+                android:textSize="13sp" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgPublicidad"
+                android:layout_width="match_parent"
+                android:layout_height="460dp"
+                android:layout_margin="10dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/portada_agregar_geinz"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img1"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_img_geinz"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img2"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_img_geinz"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img3"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_img_geinz"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img4"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_img_geinz"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img5"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_img_geinz"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/agregar"
+                style="@style/RoundedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:text="Guardar"
+                android:textSize="14sp"
+                app:iconGravity="textEnd" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</RelativeLayout>

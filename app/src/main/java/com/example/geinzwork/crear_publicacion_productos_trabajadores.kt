@@ -1,9 +1,16 @@
 package com.example.geinzwork
 
 import android.content.Context
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextWatcher
+import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,9 +19,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.anidacion_categorias_productovrprivate
@@ -144,7 +153,44 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             plin = isChecked
         }
 
+        var editing = false // <- esto debe estar fuera para que no se reinicie siempre
 
+        binding.descripcionProductoED.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (s.isNullOrEmpty()) return
+
+                aplicarFormatoWhatsapp(s)
+            }
+        })
+
+    }
+
+    fun aplicarFormatoWhatsapp(editable: Editable) {
+        val boldPattern = Regex("\\*(.*?)\\*")
+        val matches = boldPattern.findAll(editable.toString())
+
+        // Limpiar spans antiguos
+        val spans = editable.getSpans(0, editable.length, StyleSpan::class.java)
+        for (span in spans) {
+            editable.removeSpan(span)
+        }
+
+        // Aplicar negrita a coincidencias
+        for (match in matches) {
+            val start = match.range.first
+            val end = match.range.last + 1
+
+            editable.setSpan(
+                StyleSpan(Typeface.BOLD),
+                start + 1,
+                end - 1,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
     }
 
     fun obtener_hastags_generales(
@@ -501,7 +547,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
     private fun validarCampos(): Boolean {
         val titulo_producto = binding.tituloPublicacionPrED
-        val modelo_producto = binding.modeloProductoED
         val stok_producto = binding.stokED
         val condicion_producto = binding.condicionPrED
         val descripcion_producto = binding.descripcionProductoED
@@ -526,11 +571,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
         if (hastags.text.toString().isBlank()) {
             titulo_producto.error = "Ingrese # "
-            valido = false
-        }
-
-        if (modelo_producto.text.toString().isBlank()) {
-            modelo_producto.error = "Ingrese el modelo del producto"
             valido = false
         }
 
