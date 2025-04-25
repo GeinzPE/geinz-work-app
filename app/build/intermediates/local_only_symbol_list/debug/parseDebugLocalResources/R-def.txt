@@ -14,10 +14,14 @@ color color_blanco_negro
 color color_invertido_white_blackTexto
 color default_background
 color f1
+color facebook_blue
 color fastlane_background
 color gray
 color heartOutlineColor
 color opacity
+color purple_200
+color purple_500
+color purple_700
 color rojo
 color rojoVivo
 color roundcustom
@@ -25,6 +29,8 @@ color roundcustomItemsCompra
 color roundcustom_claro_cardVeri
 color search_opaque
 color selected_background
+color teal_200
+color teal_700
 color textoColorBTNFiltrado
 color verde
 color verdedelivery_gratis
@@ -553,6 +559,7 @@ id carrusel_img_trabajos
 id carrusel_pimario_inicio
 id carrusel_publicidad_baner
 id cat
+id catSelcionado
 id categoria
 id categoriaED
 id categoriaEmpresa
@@ -571,6 +578,7 @@ id certificados
 id certificadosEDs
 id checkBoxPoliticas
 id chipGrup_hastagsP
+id chipSubcategoryButton
 id cincoEstrellasLineal
 id circle
 id clics
@@ -819,8 +827,6 @@ id guardarMetodoPago
 id guideline_end
 id hActivado
 id hVecimineto
-id hastags_productos
-id hastags_productosED
 id hay_garantia_producto
 id hay_garantia_productoED
 id hora
@@ -866,6 +872,7 @@ id idPublicidad
 id idReferencia
 id idSelecionado
 id idTienda
+id id_item_categoria_vr
 id id_servicio
 id ig
 id igED
@@ -972,6 +979,7 @@ id layoutDireccion
 id layoutPerfilTienda
 id layout_container
 id layout_listener
+id layout_nombre_marca
 id layout_previzualisacion
 id layout_yape
 id lcalidad
@@ -1114,6 +1122,7 @@ id lista_publicaciones_trabajadores
 id listener
 id listenerPadre
 id listenerTienda
+id listener_categoria_producto
 id llamado
 id loading
 id localida
@@ -1344,6 +1353,7 @@ id progrsVar4estrellas
 id progrsVarimg1
 id progrsVarimg2
 id progrsVarimg3
+id progrss_carga
 id promocionesLineal
 id propietario
 id propietarioED
@@ -1439,6 +1449,7 @@ id retry_button
 id review
 id reyclerviewReview
 id rounderMenu
+id rvSubcategories
 id saludFilter
 id save
 id save_imageview
@@ -1477,6 +1488,7 @@ id stok_producto
 id stok_productoED
 id subcategoriED
 id subcategoria
+id subcategoria_producto
 id supe
 id swipe
 id tabLayout
@@ -1567,6 +1579,7 @@ id trabajadores
 id trabajadores_similares
 id trabajosRealizados
 id tuCuenta
+id tvCategoryTitle
 id tvContent
 id tvErrorMessage
 id tvReadMore
@@ -1628,6 +1641,7 @@ id vermecanica
 id versionActual
 id vertrasnporte
 id viewPager
+id vista_categoria
 id vistas
 id vistasNoticias
 id vistas_compartilas_cliks
@@ -1729,6 +1743,7 @@ layout bottom_sheet
 layout bottom_sheet_adquir_planes_noticias
 layout bottom_sheet_aplar_reporte
 layout bottom_sheet_cambiar_estado_user
+layout bottom_sheet_categorias_pr_vr
 layout bottom_sheet_compra_productos_tiendas
 layout bottom_sheet_config_cuenta
 layout bottom_sheet_contacta_trabajador
@@ -1816,6 +1831,7 @@ layout item_agregar_imagenes_panel_publicaciones
 layout item_anuncios
 layout item_cargar_productos_promociones_trabajos
 layout item_carrito_compras
+layout item_categoria_vr
 layout item_circle_categoria
 layout item_custom_cricle_noticias_tienda
 layout item_custom_fixed_size_layout_2
@@ -1850,6 +1866,7 @@ layout item_reserva_servicios
 layout item_review
 layout item_servicios
 layout item_servicios_activos_geinz
+layout item_subcategoria_button_vr
 layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados

@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
+    style="@style/fondo"
+    android:animateLayoutChanges="true"
     android:layout_height="match_parent"
     tools:context="com.example.geinzwork.crear_publicacion_productos_trabajadores">
 
@@ -223,6 +225,30 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:id="@+id/catSelcionado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/listener_categoria_producto"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:hint="Categoria de producto">
+
+                <AutoCompleteTextView
+                    android:id="@+id/subcategoria_producto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:enabled="true"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/nombre_producto"
                 android:layout_width="match_parent"
@@ -244,48 +270,57 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/marcaProducto"
+            <LinearLayout
+                android:id="@+id/layout_nombre_marca"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                <EditText
-                    android:id="@+id/marcaProductoED"
-                    style="@style/TextoModoOScuroColor"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/marcaProducto"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Marca del producto"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <EditText
+                        android:id="@+id/marcaProductoED"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Marca del producto"
+                        android:inputType="textMultiLine"
+                        android:paddingLeft="10dp" />
 
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/modelo_producto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/modelo_productoED"
-                    style="@style/TextoModoOScuroColor"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/modelo_producto"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Modelo_producto"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <EditText
+                        android:id="@+id/modelo_productoED"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Modelo_producto"
+                        android:inputType="textMultiLine"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/stok"
@@ -380,7 +415,8 @@
                     android:layout_height="match_parent"
                     android:hint="Precio producto"
                     android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
+                    android:paddingLeft="10dp"
+                    android:text="0" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -418,9 +454,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Precio nuevo del producto"
-                    android:text="0"
                     android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
+                    android:paddingLeft="10dp"
+                    android:text="0" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -471,7 +507,7 @@
 
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/hastags_productos"
+                android:id="@+id/agregar_hastags"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -481,13 +517,12 @@
                 app:boxCornerRadiusTopStart="8dp">
 
                 <EditText
-                    android:id="@+id/hastags_productosED"
+                    android:id="@+id/agregar_hastagsED"
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
-                    android:clickable="true"
-                    android:focusable="false"
+                    android:clickable="false"
                     android:gravity="top|start"
                     android:hint="#"
                     android:inputType="textMultiLine"

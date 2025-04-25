@@ -1833,6 +1833,7 @@ color dim_foreground_material_light
 color error_color_material_dark
 color error_color_material_light
 color f1
+color facebook_blue
 color fastlane_background
 color foreground_material_dark
 color foreground_material_light
@@ -2557,6 +2558,9 @@ color primary_text_default_material_dark
 color primary_text_default_material_light
 color primary_text_disabled_material_dark
 color primary_text_disabled_material_light
+color purple_200
+color purple_500
+color purple_700
 color ripple_material_dark
 color ripple_material_light
 color rojo
@@ -2576,6 +2580,8 @@ color switch_thumb_material_dark
 color switch_thumb_material_light
 color switch_thumb_normal_material_dark
 color switch_thumb_normal_material_light
+color teal_200
+color teal_700
 color test
 color textoColorBTNFiltrado
 color tooltip_background_dark
@@ -4930,6 +4936,7 @@ id carrusel_pimario_inicio
 id carrusel_publicidad_baner
 id carryVelocity
 id cat
+id catSelcionado
 id categoria
 id categoriaED
 id categoriaEmpresa
@@ -4958,6 +4965,7 @@ id checkBoxPoliticas
 id checkbox
 id checked
 id chipGrup_hastagsP
+id chipSubcategoryButton
 id chronometer
 id cincoEstrellasLineal
 id circle
@@ -5365,8 +5373,6 @@ id guideline_end
 id hActivado
 id hVecimineto
 id hardware
-id hastags_productos
-id hastags_productosED
 id hay_garantia_producto
 id hay_garantia_productoED
 id header_title
@@ -5424,6 +5430,7 @@ id idPublicidad
 id idReferencia
 id idSelecionado
 id idTienda
+id id_item_categoria_vr
 id id_servicio
 id ifRoom
 id ig
@@ -5557,6 +5564,7 @@ id layoutDireccion
 id layoutPerfilTienda
 id layout_container
 id layout_listener
+id layout_nombre_marca
 id layout_previzualisacion
 id layout_yape
 id lb_action_button
@@ -5743,6 +5751,7 @@ id lista_publicaciones_trabajadores
 id listener
 id listenerPadre
 id listenerTienda
+id listener_categoria_producto
 id llamado
 id loading
 id localida
@@ -6119,6 +6128,7 @@ id progrsVar4estrellas
 id progrsVarimg1
 id progrsVarimg2
 id progrsVarimg3
+id progrss_carga
 id promocionesLineal
 id propietario
 id propietarioED
@@ -6237,6 +6247,7 @@ id row_content
 id row_header
 id row_header_description
 id row_index_key
+id rvSubcategories
 id saludFilter
 id save
 id save_imageview
@@ -6339,6 +6350,7 @@ id stop
 id stretch
 id subcategoriED
 id subcategoria
+id subcategoria_producto
 id submenuarrow
 id submit_area
 id supe
@@ -6489,6 +6501,7 @@ id transition_transform
 id transport_row
 id triangle
 id tuCuenta
+id tvCategoryTitle
 id tvContent
 id tvErrorMessage
 id tvReadMore
@@ -6570,6 +6583,7 @@ id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
+id vista_categoria
 id vistas
 id vistasNoticias
 id vistas_compartilas_cliks
@@ -6845,6 +6859,7 @@ layout bottom_sheet
 layout bottom_sheet_adquir_planes_noticias
 layout bottom_sheet_aplar_reporte
 layout bottom_sheet_cambiar_estado_user
+layout bottom_sheet_categorias_pr_vr
 layout bottom_sheet_compra_productos_tiendas
 layout bottom_sheet_config_cuenta
 layout bottom_sheet_contacta_trabajador
@@ -6955,6 +6970,7 @@ layout item_anuncios
 layout item_cargar_productos_promociones_trabajos
 layout item_carousel
 layout item_carrito_compras
+layout item_categoria_vr
 layout item_circle_categoria
 layout item_custom_cricle_noticias_tienda
 layout item_custom_fixed_size_layout_2
@@ -6989,6 +7005,7 @@ layout item_reserva_servicios
 layout item_review
 layout item_servicios
 layout item_servicios_activos_geinz
+layout item_subcategoria_button_vr
 layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
