@@ -4439,6 +4439,8 @@ id ARABIC
 id AbiertoEstado
 id Acepto
 id ActulizarReview
+id Agrega_descipcion_producto
+id Agrega_descipcion_productoED
 id AntiguoPrecio
 id BASQUE
 id BELARUSIAN
@@ -4815,6 +4817,7 @@ id benefitsText
 id bestChoice
 id blocking
 id bodegasfilter
+id bold
 id borrarItem
 id botom_shet_publicacion
 id bottom
@@ -4985,6 +4988,8 @@ id codigoPedido
 id codigoReserva
 id collapseActionView
 id collectionEcontrado
+id colocarBold_agunasLetras
+id colocarBold_agunasLetrasED
 id column
 id comentarioADI
 id comentarioADIED
@@ -5088,6 +5093,7 @@ id cuatroEstrellas
 id cuentas
 id currentState
 id current_time
+id cursiva
 id custom
 id customPanel
 id cut
@@ -5327,6 +5333,7 @@ id grouping
 id groups
 id grupoDescuento
 id grupoLocalida
+id grupoSubralladoTXT
 id grupoVirtualFisica
 id grupoVisibilidad
 id grupo_Clikeable
@@ -5370,6 +5377,7 @@ id guidedstep_background
 id guidedstep_background_view_root
 id guidedstep_root
 id guideline_end
+id gurpo_mayus
 id hActivado
 id hVecimineto
 id hardware
@@ -5498,6 +5506,8 @@ id includeRecicleViewsalud
 id includeReciclehogar
 id includeReciclemecanico
 id includeTrabajadoresTop
+id include_agregar_bold_titulo
+id include_agregar_textos_cuales
 id include_lineal_precios
 id included
 id includemasculino
@@ -5815,6 +5825,7 @@ id material_timepicker_view
 id material_value_index
 id matrix
 id maxLines
+id mayuscula
 id mediaItemActionsContainer
 id mediaItemDetails
 id mediaItemDuration
@@ -5842,6 +5853,7 @@ id metodopago
 id metodos_entrega
 id middle
 id mini
+id minuscula
 id modalida_negocio
 id modelo
 id modeloProducto
@@ -6091,6 +6103,7 @@ id precioproducto
 id preferenceDivider
 id pressed
 id preview
+id previewTextTitulo
 id previous_button_container
 id privacy_policy_changes
 id privacy_policy_contact
@@ -6351,8 +6364,10 @@ id stretch
 id subcategoriED
 id subcategoria
 id subcategoria_producto
+id subir
 id submenuarrow
 id submit_area
+id subrallado
 id supe
 id supportScrollUp
 id swipe
@@ -6401,6 +6416,7 @@ id textinput_suffix_text
 id texto
 id textoCambiosRealiazdos
 id textoCaracteristica
+id textoDescripcion
 id textoGeinz
 id textoImg1
 id textoImg2
@@ -6771,6 +6787,7 @@ layout abc_search_dropdown_item_icons_2line
 layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
+layout activity_agregar_descripcion_producto_rb_vr
 layout activity_agregar_pago_comprareserva_tiendas
 layout activity_agregar_publicaciones_recientes_trabajadores_verificados
 layout activity_agregar_redes
@@ -6862,6 +6879,7 @@ layout bottom_sheet_cambiar_estado_user
 layout bottom_sheet_categorias_pr_vr
 layout bottom_sheet_compra_productos_tiendas
 layout bottom_sheet_config_cuenta
+layout bottom_sheet_configuracion_descripcion_pr_vr
 layout bottom_sheet_contacta_trabajador
 layout bottom_sheet_creacion_cuenta
 layout bottom_sheet_crear_cuenta_tienda
@@ -6947,6 +6965,7 @@ layout fragment_trabajos_realizados
 layout image_carousel
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
+layout include_agrega_productos_rb_vr_radiobutonss
 layout include_anuncios_frame_inciofragment
 layout include_cabezero_iniciofragment
 layout include_campos_principales

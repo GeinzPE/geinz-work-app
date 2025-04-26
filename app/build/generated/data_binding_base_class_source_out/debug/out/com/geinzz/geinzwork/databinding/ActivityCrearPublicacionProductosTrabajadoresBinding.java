@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -202,6 +203,9 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final AutoCompleteTextView subcategoriaProducto;
 
   @NonNull
+  public final Button subir;
+
+  @NonNull
   public final TextInputLayout tituloPublicacionPr;
 
   @NonNull
@@ -238,8 +242,8 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       @NonNull NestedScrollView scroll, @NonNull TextInputLayout selecionLocalidad,
       @NonNull Switch siHayDescuento, @NonNull Switch siHayGarantia, @NonNull TextInputLayout stok,
       @NonNull EditText stokED, @NonNull AutoCompleteTextView subcategoriaProducto,
-      @NonNull TextInputLayout tituloPublicacionPr, @NonNull EditText tituloPublicacionPrED,
-      @NonNull RadioButton yape) {
+      @NonNull Button subir, @NonNull TextInputLayout tituloPublicacionPr,
+      @NonNull EditText tituloPublicacionPrED, @NonNull RadioButton yape) {
     this.rootView = rootView;
     this.Acepto = Acepto;
     this.PublicacionesDisponibles = PublicacionesDisponibles;
@@ -297,6 +301,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.stok = stok;
     this.stokED = stokED;
     this.subcategoriaProducto = subcategoriaProducto;
+    this.subir = subir;
     this.tituloPublicacionPr = tituloPublicacionPr;
     this.tituloPublicacionPrED = tituloPublicacionPrED;
     this.yape = yape;
@@ -662,6 +667,12 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
         break missingId;
       }
 
+      id = R.id.subir;
+      Button subir = ViewBindings.findChildViewById(rootView, id);
+      if (subir == null) {
+        break missingId;
+      }
+
       id = R.id.titulo_publicacion_pr;
       TextInputLayout tituloPublicacionPr = ViewBindings.findChildViewById(rootView, id);
       if (tituloPublicacionPr == null) {
@@ -692,7 +703,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
           precioNuevoDescuentoPr, precioNuevoDescuentoPrED, precioProducto, precioProductoED,
           progressBar, progressBarContainer, publicar, radioDeliveryGratis, recycleImg, scroll,
           selecionLocalidad, siHayDescuento, siHayGarantia, stok, stokED, subcategoriaProducto,
-          tituloPublicacionPr, tituloPublicacionPrED, yape);
+          subir, tituloPublicacionPr, tituloPublicacionPrED, yape);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

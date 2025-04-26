@@ -75,6 +75,9 @@
         android:testOnly="true"
         android:theme="@style/Theme.GeinzWork" >
         <activity
+            android:name="com.example.geinzwork.agregar_descripcion_producto_rb_vr"
+            android:exported="false" />
+        <activity
             android:name="com.example.geinzwork.crear_publicacion_productos_trabajadores"
             android:exported="false" />
         <activity

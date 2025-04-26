@@ -281,6 +281,8 @@ font uni_sans
 id AbiertoEstado
 id Acepto
 id ActulizarReview
+id Agrega_descipcion_producto
+id Agrega_descipcion_productoED
 id AntiguoPrecio
 id Barranca
 id Bienvenido_Geinz
@@ -470,6 +472,7 @@ id benefit7
 id benefit8
 id benefitsText
 id bodegasfilter
+id bold
 id borrarItem
 id botom_shet_publicacion
 id btnApply
@@ -590,6 +593,8 @@ id codigoGeneradoCompra
 id codigoPedido
 id codigoReserva
 id collectionEcontrado
+id colocarBold_agunasLetras
+id colocarBold_agunasLetrasED
 id comentarioADI
 id comentarioADIED
 id comentarioAdicional
@@ -668,6 +673,7 @@ id crea_diseña
 id crear
 id cuatroEstrellas
 id cuentas
+id cursiva
 id dejarDeSeguirOSeguir
 id delatalles
 id delivery
@@ -807,6 +813,7 @@ id genero_driver
 id generoid
 id grupoDescuento
 id grupoLocalida
+id grupoSubralladoTXT
 id grupoVirtualFisica
 id grupoVisibilidad
 id grupo_Clikeable
@@ -825,6 +832,7 @@ id guardarContacto
 id guardarLinksRedes
 id guardarMetodoPago
 id guideline_end
+id gurpo_mayus
 id hActivado
 id hVecimineto
 id hay_garantia_producto
@@ -931,6 +939,8 @@ id includeRecicleViewsalud
 id includeReciclehogar
 id includeReciclemecanico
 id includeTrabajadoresTop
+id include_agregar_bold_titulo
+id include_agregar_textos_cuales
 id include_lineal_precios
 id includemasculino
 id infoCasa
@@ -1154,6 +1164,7 @@ id masSeguidores
 id mas_informacion
 id mas_trabajos_realiados
 id masculino
+id mayuscula
 id mejores_trabajadeores
 id menos
 id mensajeED
@@ -1168,6 +1179,7 @@ id metodo_entrega
 id metodo_pagos
 id metodopago
 id metodos_entrega
+id minuscula
 id modalida_negocio
 id modelo
 id modeloProducto
@@ -1319,6 +1331,7 @@ id preciodeliveryTextInputLayout
 id preciofiltrado
 id precioproducto
 id preview
+id previewTextTitulo
 id privacy_policy_changes
 id privacy_policy_contact
 id privacy_policy_data_protection
@@ -1489,6 +1502,8 @@ id stok_productoED
 id subcategoriED
 id subcategoria
 id subcategoria_producto
+id subir
+id subrallado
 id supe
 id swipe
 id tabLayout
@@ -1502,6 +1517,7 @@ id textViewValue
 id texto
 id textoCambiosRealiazdos
 id textoCaracteristica
+id textoDescripcion
 id textoGeinz
 id textoImg1
 id textoImg2
@@ -1655,6 +1671,7 @@ id yape_checkbox
 id years
 id zona
 id zonaTienda
+layout activity_agregar_descripcion_producto_rb_vr
 layout activity_agregar_pago_comprareserva_tiendas
 layout activity_agregar_publicaciones_recientes_trabajadores_verificados
 layout activity_agregar_redes
@@ -1746,6 +1763,7 @@ layout bottom_sheet_cambiar_estado_user
 layout bottom_sheet_categorias_pr_vr
 layout bottom_sheet_compra_productos_tiendas
 layout bottom_sheet_config_cuenta
+layout bottom_sheet_configuracion_descripcion_pr_vr
 layout bottom_sheet_contacta_trabajador
 layout bottom_sheet_creacion_cuenta
 layout bottom_sheet_crear_cuenta_tienda
@@ -1809,6 +1827,7 @@ layout fragment_sin_internet
 layout fragment_sin_registro_fracment
 layout fragment_trabaja_con_nosotros_tienda
 layout fragment_trabajos_realizados
+layout include_agrega_productos_rb_vr_radiobutonss
 layout include_anuncios_frame_inciofragment
 layout include_cabezero_iniciofragment
 layout include_campos_principales
