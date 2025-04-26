@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:layout_width="match_parent"
     style="@style/fondo"
-    android:animateLayoutChanges="true"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.crear_publicacion_productos_trabajadores">
 
     <FrameLayout
@@ -366,37 +366,25 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/descripcion_producto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/descripcion_productoED"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
-                    android:gravity="top|start"
-                    android:hint="Descripcion del producto"
-                    android:inputType="textMultiLine"
-                    android:maxLines="5"
-                    android:minLines="5"
-                    android:padding="10dp"
-                    android:scrollbars="vertical" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <Button
+            <TextView
+                android:id="@+id/vistra_previa_descripciontitulo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="enviar"
-                android:id="@+id/subir"/>
+                android:layout_marginTop="5dp"
+                android:text="descitpcion de producto" />
+
+            <TextView
+                android:id="@+id/vistra_previa_descripcion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="descitpcion de producto" />
+
+            <Button
+                android:id="@+id/subir"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="enviar" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

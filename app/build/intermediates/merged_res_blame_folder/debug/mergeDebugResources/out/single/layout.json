@@ -72,12 +72,12 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\custom_dialog_tiendas_filtrado.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_crea_tu_noticia.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_crea_tu_noticia.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_categorias_pr_vr.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_categorias_pr_vr.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_crea_tu_noticia.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_crea_tu_noticia.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\include_panel_publicaciones.xml",
@@ -86,10 +86,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_noticias_guardadas.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_noticias_guardadas.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/bottom_sheet_configuracion_descripcion_pr_vr.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/bottom_sheet_configuracion_descripcion_pr_vr.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_promociones_geinz.xml",
@@ -148,24 +144,24 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_vista_categorias_t.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\info_tienda.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\info_tienda.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_perfil_trabajador.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_perfil_trabajador.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\info_tienda.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\info_tienda.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\carga_tiendas.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\carga_tiendas.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_config_cuenta.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_config_cuenta.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_filtrar_resultados_promo.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_filtrar_resultados_promo.xml"
+    },
+    {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_config_cuenta.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_config_cuenta.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_vista_mostrar_todos_tiendas.xml",
@@ -224,16 +220,16 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_compra_productos_tiendas.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_add_review.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_add_review.xml"
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_creacion_cuenta.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_creacion_cuenta.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_preview_art_comprar_carrito.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_preview_art_comprar_carrito.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_creacion_cuenta.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_creacion_cuenta.xml"
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_add_review.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_add_review.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_custom_fixed_size_layout_3.xml",
@@ -248,16 +244,16 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_compras_productos_vendedor.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\panel_publicacion.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\panel_publicacion.xml"
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_filtrado_compras_carrito.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_filtrado_compras_carrito.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_subcategoria_button_vr.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_subcategoria_button_vr.xml"
     },
     {
-        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_filtrado_compras_carrito.xml",
-        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_filtrado_compras_carrito.xml"
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\panel_publicacion.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\panel_publicacion.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_anuncios.xml",
@@ -320,6 +316,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_editar_info.xml"
     },
     {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_configuracion_descripcion_pr_vr.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_configuracion_descripcion_pr_vr.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\fragment_contacto_fracment.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\fragment_contacto_fracment.xml"
     },
@@ -346,10 +346,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_custom_publicidad_principal.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_custom_publicidad_principal.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/activity_agregar_descripcion_producto_rb_vr.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_agregar_descripcion_producto_rb_vr.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet.xml",
@@ -414,6 +410,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_politicas_verificacion.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_politicas_verificacion.xml"
+    },
+    {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/activity_crear_publicacion_productos_trabajadores.xml",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/activity_crear_publicacion_productos_trabajadores.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\activity_vista_productos_general_tiendas.xml",

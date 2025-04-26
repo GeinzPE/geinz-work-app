@@ -77,12 +77,6 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final RadioButton deliveryGratisSi;
 
   @NonNull
-  public final TextInputLayout descripcionProducto;
-
-  @NonNull
-  public final EditText descripcionProductoED;
-
-  @NonNull
   public final RadioButton efectivo;
 
   @NonNull
@@ -212,6 +206,12 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final EditText tituloPublicacionPrED;
 
   @NonNull
+  public final TextView vistraPreviaDescripcion;
+
+  @NonNull
+  public final TextView vistraPreviaDescripciontitulo;
+
+  @NonNull
   public final RadioButton yape;
 
   private ActivityCrearPublicacionProductosTrabajadoresBinding(@NonNull RelativeLayout rootView,
@@ -222,7 +222,6 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       @NonNull TextView catSelcionado, @NonNull AutoCompleteTextView condicionPrED,
       @NonNull RadioButton coordinarComprador, @NonNull RadioButton delivery,
       @NonNull RadioButton deliveryGratisNo, @NonNull RadioButton deliveryGratisSi,
-      @NonNull TextInputLayout descripcionProducto, @NonNull EditText descripcionProductoED,
       @NonNull RadioButton efectivo, @NonNull RadioButton entregaDomicilio, @NonNull TextView fecha,
       @NonNull TextInputLayout hayGarantiaProducto, @NonNull EditText hayGarantiaProductoED,
       @NonNull TextView hora, @NonNull LinearLayout layoutNombreMarca,
@@ -243,7 +242,8 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       @NonNull Switch siHayDescuento, @NonNull Switch siHayGarantia, @NonNull TextInputLayout stok,
       @NonNull EditText stokED, @NonNull AutoCompleteTextView subcategoriaProducto,
       @NonNull Button subir, @NonNull TextInputLayout tituloPublicacionPr,
-      @NonNull EditText tituloPublicacionPrED, @NonNull RadioButton yape) {
+      @NonNull EditText tituloPublicacionPrED, @NonNull TextView vistraPreviaDescripcion,
+      @NonNull TextView vistraPreviaDescripciontitulo, @NonNull RadioButton yape) {
     this.rootView = rootView;
     this.Acepto = Acepto;
     this.PublicacionesDisponibles = PublicacionesDisponibles;
@@ -259,8 +259,6 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.delivery = delivery;
     this.deliveryGratisNo = deliveryGratisNo;
     this.deliveryGratisSi = deliveryGratisSi;
-    this.descripcionProducto = descripcionProducto;
-    this.descripcionProductoED = descripcionProductoED;
     this.efectivo = efectivo;
     this.entregaDomicilio = entregaDomicilio;
     this.fecha = fecha;
@@ -304,6 +302,8 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.subir = subir;
     this.tituloPublicacionPr = tituloPublicacionPr;
     this.tituloPublicacionPrED = tituloPublicacionPrED;
+    this.vistraPreviaDescripcion = vistraPreviaDescripcion;
+    this.vistraPreviaDescripciontitulo = vistraPreviaDescripciontitulo;
     this.yape = yape;
   }
 
@@ -416,18 +416,6 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       id = R.id.delivery_gratis_si;
       RadioButton deliveryGratisSi = ViewBindings.findChildViewById(rootView, id);
       if (deliveryGratisSi == null) {
-        break missingId;
-      }
-
-      id = R.id.descripcion_producto;
-      TextInputLayout descripcionProducto = ViewBindings.findChildViewById(rootView, id);
-      if (descripcionProducto == null) {
-        break missingId;
-      }
-
-      id = R.id.descripcion_productoED;
-      EditText descripcionProductoED = ViewBindings.findChildViewById(rootView, id);
-      if (descripcionProductoED == null) {
         break missingId;
       }
 
@@ -685,6 +673,18 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
         break missingId;
       }
 
+      id = R.id.vistra_previa_descripcion;
+      TextView vistraPreviaDescripcion = ViewBindings.findChildViewById(rootView, id);
+      if (vistraPreviaDescripcion == null) {
+        break missingId;
+      }
+
+      id = R.id.vistra_previa_descripciontitulo;
+      TextView vistraPreviaDescripciontitulo = ViewBindings.findChildViewById(rootView, id);
+      if (vistraPreviaDescripciontitulo == null) {
+        break missingId;
+      }
+
       id = R.id.yape;
       RadioButton yape = ViewBindings.findChildViewById(rootView, id);
       if (yape == null) {
@@ -694,16 +694,16 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       return new ActivityCrearPublicacionProductosTrabajadoresBinding((RelativeLayout) rootView,
           Acepto, PublicacionesDisponibles, PublicacionesRealizadas, TotalPublicaciones,
           agregaUbiED, agregaUbicaciones, agregarHastags, agregarHastagsED, catSelcionado,
-          condicionPrED, coordinarComprador, delivery, deliveryGratisNo, deliveryGratisSi,
-          descripcionProducto, descripcionProductoED, efectivo, entregaDomicilio, fecha,
-          hayGarantiaProducto, hayGarantiaProductoED, hora, layoutNombreMarca, linealDeliveryGratis,
-          listenerCategoriaProducto, lugarEntrega, lugarEntregaED, lugarEntregaTXT, main,
-          marcaProducto, marcaProductoED, metodosEntrega, modeloProducto, modeloProductoED,
-          mostrarPublicacionPara, nombreProducto, nombreProductoED, plan, plin, popup,
-          precioNuevoDescuentoPr, precioNuevoDescuentoPrED, precioProducto, precioProductoED,
-          progressBar, progressBarContainer, publicar, radioDeliveryGratis, recycleImg, scroll,
-          selecionLocalidad, siHayDescuento, siHayGarantia, stok, stokED, subcategoriaProducto,
-          subir, tituloPublicacionPr, tituloPublicacionPrED, yape);
+          condicionPrED, coordinarComprador, delivery, deliveryGratisNo, deliveryGratisSi, efectivo,
+          entregaDomicilio, fecha, hayGarantiaProducto, hayGarantiaProductoED, hora,
+          layoutNombreMarca, linealDeliveryGratis, listenerCategoriaProducto, lugarEntrega,
+          lugarEntregaED, lugarEntregaTXT, main, marcaProducto, marcaProductoED, metodosEntrega,
+          modeloProducto, modeloProductoED, mostrarPublicacionPara, nombreProducto,
+          nombreProductoED, plan, plin, popup, precioNuevoDescuentoPr, precioNuevoDescuentoPrED,
+          precioProducto, precioProductoED, progressBar, progressBarContainer, publicar,
+          radioDeliveryGratis, recycleImg, scroll, selecionLocalidad, siHayDescuento, siHayGarantia,
+          stok, stokED, subcategoriaProducto, subir, tituloPublicacionPr, tituloPublicacionPrED,
+          vistraPreviaDescripcion, vistraPreviaDescripciontitulo, yape);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

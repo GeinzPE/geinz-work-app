@@ -1,7 +1,7 @@
 package com.example.geinzwork
 
 import android.content.Context
-import android.content.Intent
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
@@ -11,7 +11,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.TextWatcher
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.util.Log
@@ -22,7 +21,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -40,7 +38,6 @@ import com.geinzz.geinzwork.databinding.BottomSheetCategoriasPrVrBinding
 import com.geinzz.geinzwork.databinding.BottomSheetConfiguracionDescripcionPrVrBinding
 import com.geinzz.geinzwork.databinding.BottomSheetHastagsFiltradosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetPublicacionesParaBinding
-import com.geinzz.geinzwork.databinding.ItemCategoriaVrBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
@@ -78,8 +75,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             bottom_shet_Descipcion_cate()
             dialog.show()
 
-//            val intent = Intent(this, agregar_descripcion_producto_rb_vr::class.java)
-//            startActivity(intent)
         }
         binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
         val radioGroup = binding.metodosEntrega
@@ -167,17 +162,17 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         var editing = false // <- esto debe estar fuera para que no se reinicie siempre
 
-        binding.descripcionProductoED.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (s.isNullOrEmpty()) return
-
-                aplicarFormatoWhatsapp(s)
-            }
-        })
+//        binding.descripcionProductoED.addTextChangedListener(object : TextWatcher {
+//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+//
+//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+//
+//            override fun afterTextChanged(s: Editable?) {
+//                if (s.isNullOrEmpty()) return
+//
+//                aplicarFormatoWhatsapp(s)
+//            }
+//        })
 
     }
 
@@ -425,7 +420,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val nombre_producto = binding.nombreProductoED
         val stok_producto = binding.stokED
         val condicion_producto = binding.condicionPrED
-        val descripcion_producto = binding.descripcionProductoED
+        val descripcion_producto_titulo = binding.vistraPreviaDescripciontitulo
         val precioProducto = binding.precioProductoED
         val precio_descuento_nuevo = binding.precioNuevoDescuentoPrED
         val tiempoGarantiaYears = binding.hayGarantiaProductoED
@@ -523,7 +518,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "titulo" to titulo_producto.text.toString(),
             "cantidad_porcentaje_descuento" to descuentoAplicado.toInt(),
             "condicion_producto" to condicion_producto.text.toString(),
-            "descripcion" to descripcion_producto.text.toString(),
+//            "descripcion" to descripcion_producto.text.toString(),
             "descuento" to binding.siHayDescuento.isChecked,
             "categoria_producto" to binding.catSelcionado.text.toString(),
             "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
@@ -561,7 +556,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val titulo_producto = binding.tituloPublicacionPrED
         val stok_producto = binding.stokED
         val condicion_producto = binding.condicionPrED
-        val descripcion_producto = binding.descripcionProductoED
+//        val descripcion_producto = binding.descripcionProductoED
         val precioProducto = binding.precioProductoED
         val precio_descuento_nuevo = binding.precioNuevoDescuentoPrED
         val tiempoGarantiaYears = binding.hayGarantiaProductoED
@@ -596,10 +591,10 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             valido = false
         }
 
-        if (descripcion_producto.text.toString().isBlank()) {
-            descripcion_producto.error = "Describa brevemente el producto"
-            valido = false
-        }
+//        if (descripcion_producto.text.toString().isBlank()) {
+//            descripcion_producto.error = "Describa brevemente el producto"
+//            valido = false
+//        }
 
         if (precioProducto.text.toString().isBlank()) {
             precioProducto.error = "Ingrese el precio del producto"
@@ -659,20 +654,64 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
 
 
-        binding_bottom_sheeet.includeAgregarBoldTitulo.bold.setOnCheckedChangeListener { _, _ -> actualizarTextoFormateado(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.setOnCheckedChangeListener { _, _ -> actualizarTextoFormateado(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.setOnCheckedChangeListener { _, _ -> actualizarTextoFormateado(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.setOnCheckedChangeListener { _, _ -> actualizarTextoFormateado(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.setOnCheckedChangeListener { _, _ -> actualizarTextoFormateado(binding_bottom_sheeet) }
+        binding_bottom_sheeet.includeAgregarBoldTitulo.bold.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(
+                binding_bottom_sheeet
+            )
+        }
 
-        binding_bottom_sheeet.includeAgregarTextosCuales.bold.setOnCheckedChangeListener { _, _ -> actualizarVistaPreviaConNegritas(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarTextosCuales.cursiva.setOnCheckedChangeListener { _, _ -> actualizarVistaPreviaConNegritas(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarTextosCuales.subrallado.setOnCheckedChangeListener { _, _ -> actualizarVistaPreviaConNegritas(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarTextosCuales.mayuscula.setOnCheckedChangeListener { _, _ -> actualizarVistaPreviaConNegritas(binding_bottom_sheeet) }
-        binding_bottom_sheeet.includeAgregarTextosCuales.minuscula.setOnCheckedChangeListener { _, _ -> actualizarVistaPreviaConNegritas(binding_bottom_sheeet) }
+        binding_bottom_sheeet.includeAgregarTextosCuales.bold.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarTextosCuales.cursiva.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarTextosCuales.subrallado.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarTextosCuales.mayuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.includeAgregarTextosCuales.minuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(
+                binding_bottom_sheeet
+            )
+        }
+        binding_bottom_sheeet.guardarCambios.setOnClickListener {
+            guardar_cabmios_descripcion(binding_bottom_sheeet)
+        }
         dialog.setContentView(view)
     }
-    private fun actualizarVistaPreviaConNegritas(binding_bottom_sheeet:BottomSheetConfiguracionDescripcionPrVrBinding) {
+
+    private fun actualizarVistaPreviaConNegritas(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
         var textoOriginal = binding_bottom_sheeet.AgregaDescipcionProductoED.text.toString()
         val partesTexto = binding_bottom_sheeet.colocarBoldAgunasLetrasED.text.toString()
             .split(",")
@@ -700,13 +739,30 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 // Aplicar estilos después de reemplazar
                 when {
                     binding_bottom_sheeet.includeAgregarTextosCuales.bold.isChecked -> {
-                        spannableBuilder.setSpan(StyleSpan(Typeface.BOLD), start, start + textoTransformado.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        spannableBuilder.setSpan(
+                            StyleSpan(Typeface.BOLD),
+                            start,
+                            start + textoTransformado.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
                     }
+
                     binding_bottom_sheeet.includeAgregarTextosCuales.cursiva.isChecked -> {
-                        spannableBuilder.setSpan(StyleSpan(Typeface.ITALIC), start, start + textoTransformado.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        spannableBuilder.setSpan(
+                            StyleSpan(Typeface.ITALIC),
+                            start,
+                            start + textoTransformado.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
                     }
+
                     binding_bottom_sheeet.includeAgregarTextosCuales.subrallado.isChecked -> {
-                        spannableBuilder.setSpan(UnderlineSpan(), start, start + textoTransformado.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        spannableBuilder.setSpan(
+                            UnderlineSpan(),
+                            start,
+                            start + textoTransformado.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
                     }
                 }
             }
@@ -715,7 +771,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         binding_bottom_sheeet.textoDescripcion.text = spannableBuilder
     }
 
-    private fun actualizarTextoFormateado(binding_bottom_sheeet:BottomSheetConfiguracionDescripcionPrVrBinding) {
+    private fun actualizarTextoFormateado(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
         val texto = binding_bottom_sheeet.tituloProductoED.text.toString()
         val spannable = SpannableString(texto)
 
@@ -763,10 +819,13 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
 
         binding_bottom_sheeet.previewTextTitulo.text = spannable
-        mayus_minus(spannable,binding_bottom_sheeet)
+        mayus_minus(spannable, binding_bottom_sheeet)
     }
 
-    private fun mayus_minus(texto: SpannableString,binding_bottom_sheeet:BottomSheetConfiguracionDescripcionPrVrBinding) {
+    private fun mayus_minus(
+        texto: SpannableString,
+        binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding
+    ) {
         val textoTransformado = when {
             binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.isChecked -> {
                 texto.toString().uppercase() // Convertir el texto a mayúsculas
@@ -784,7 +843,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         // Crear un nuevo SpannableString con el texto transformado
         val textoFinal = SpannableString(textoTransformado).apply {
             // Reaplicar los estilos al nuevo texto transformado si es necesario
-            if ( binding_bottom_sheeet.includeAgregarBoldTitulo.bold.isChecked) {
+            if (binding_bottom_sheeet.includeAgregarBoldTitulo.bold.isChecked) {
                 setSpan(
                     StyleSpan(Typeface.BOLD),
                     0,
@@ -792,7 +851,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
             }
-            if ( binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.isChecked) {
+            if (binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.isChecked) {
                 setSpan(
                     StyleSpan(Typeface.ITALIC),
                     0,
@@ -800,7 +859,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
             }
-            if ( binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.isChecked) {
+            if (binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.isChecked) {
                 setSpan(
                     UnderlineSpan(),
                     0,
@@ -812,6 +871,168 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         // Actualizar la vista previa con el texto final
         binding_bottom_sheeet.previewTextTitulo.text = textoFinal
+    }
+
+
+    private fun guardar_cabmios_descripcion(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        val radioPadre_bold_cursiva =
+            binding_bottom_sheeet.includeAgregarBoldTitulo.grupoSubralladoTXT
+        val radio_padre_mayus_minus = binding_bottom_sheeet.includeAgregarBoldTitulo.gurpoMayus
+        val titlo_descripcion = binding_bottom_sheeet.tituloProductoED.text.toString()
+        val descripcion_desc = binding_bottom_sheeet.AgregaDescipcionProductoED.text.toString()
+
+        val idSeleccionado = radioPadre_bold_cursiva.checkedRadioButtonId
+        val id_mayus_minus = radio_padre_mayus_minus.checkedRadioButtonId
+
+        val radio_padre_bold_cursiva_texto_des =
+            binding_bottom_sheeet.includeAgregarTextosCuales.grupoSubralladoTXT
+        val radio_padre_mayus_minus_texto_des =
+            binding_bottom_sheeet.includeAgregarTextosCuales.gurpoMayus
+        val idSeleccionado_des = radio_padre_bold_cursiva_texto_des.checkedRadioButtonId
+        val id_mayus_minus_des = radio_padre_mayus_minus_texto_des.checkedRadioButtonId
+
+
+        val valorSeleccionadoTitulo = when (idSeleccionado) {
+            R.id.bold -> "Bold"
+            R.id.cursiva -> "Cursiva"
+            R.id.subrallado -> "Subrayado"
+            else -> "" // Por si no seleccionó nada
+        }
+
+        val valorMayusMinusTitulo = when (id_mayus_minus) {
+            R.id.mayuscula -> "mayuscula"
+            R.id.minuscula -> "minuscula"
+            else -> "" // Por si no seleccionó nada
+        }
+
+
+        val valorSeleccionadoDes = when (idSeleccionado_des) {
+            R.id.bold -> "Bold"
+            R.id.cursiva -> "Cursiva"
+            R.id.subrallado -> "Subrayado"
+            else -> "" // Por si no seleccionó nada
+        }
+
+        val valorMayusMinusDes = when (id_mayus_minus_des) {
+            R.id.mayuscula -> "mayuscula"
+            R.id.minuscula -> "minuscula"
+            else -> "" // Por si no seleccionó nada
+        }
+
+        val texto = binding_bottom_sheeet.colocarBoldAgunasLetrasED.text.toString().trim()
+
+        val listaFrases = texto
+            .split(",") // separamos usando coma
+            .map { it.trim() } // quitamos espacios alrededor
+            .filter { it.isNotEmpty() } // evitamos frases vacías si las hay
+
+        Log.d("listapalabra",listaFrases.toString())
+
+
+        editar_setar_valores_campos(
+            titlo_descripcion,
+            valorSeleccionadoTitulo,
+            valorMayusMinusTitulo, descripcion_desc, valorSeleccionadoDes, valorMayusMinusDes,listaFrases
+        )
+        dialog.dismiss()
+    }
+
+
+    private fun editar_setar_valores_campos(
+        titulo: String,
+        fuenteTextoTitulo: String,
+        mayus_minus: String,
+        texto_des: String,
+        fuenteTextoTitulo_des: String,
+        mayus_minus_des: String,
+        listaFrases: List<String>
+    ) {
+        val tituloFormateado = when (mayus_minus) {
+            "mayuscula" -> titulo.uppercase()
+            "minuscula" -> titulo.lowercase()
+            else -> titulo
+        }
+        binding.vistraPreviaDescripciontitulo.text = tituloFormateado
+        when (fuenteTextoTitulo) {
+            "Bold" -> {
+                binding.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.BOLD)
+                binding.vistraPreviaDescripciontitulo.paintFlags =
+                    binding.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
+
+            "Cursiva" -> {
+                binding.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.ITALIC)
+                binding.vistraPreviaDescripciontitulo.paintFlags =
+                    binding.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
+
+            "Subrayado" -> {
+                binding.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.NORMAL)
+                binding.vistraPreviaDescripciontitulo.paintFlags =
+                    binding.vistraPreviaDescripciontitulo.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+            }
+
+            else -> {
+                binding.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.NORMAL)
+                binding.vistraPreviaDescripciontitulo.paintFlags =
+                    binding.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
+        }
+
+
+// Crear el SpannableString basado en el texto original
+        val spannableString = SpannableString(texto_des)
+
+// Recorrer la lista de frases
+        for (fraseOriginal in listaFrases) {
+            val fraseFormateada = when (mayus_minus_des) {
+                "mayuscula" -> fraseOriginal.uppercase()
+                "minuscula" -> fraseOriginal.lowercase()
+                else -> fraseOriginal
+            }
+
+            val textoBase = when (mayus_minus_des) {
+                "mayuscula" -> texto_des.uppercase()
+                "minuscula" -> texto_des.lowercase()
+                else -> texto_des
+            }
+
+            val startIndex = textoBase.indexOf(fraseFormateada)
+            if (startIndex != -1) { // Si encuentra la frase
+                val endIndex = startIndex + fraseFormateada.length
+
+                when (fuenteTextoTitulo_des) {
+                    "Bold" -> {
+                        spannableString.setSpan(
+                            StyleSpan(Typeface.BOLD),
+                            startIndex,
+                            endIndex,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                    "Cursiva" -> {
+                        spannableString.setSpan(
+                            StyleSpan(Typeface.ITALIC),
+                            startIndex,
+                            endIndex,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                    "Subrayado" -> {
+                        spannableString.setSpan(
+                            UnderlineSpan(),
+                            startIndex,
+                            endIndex,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                }
+            }
+        }
+
+// Finalmente seteamos el texto modificado
+        binding.vistraPreviaDescripcion.text = spannableString
+
     }
 
 

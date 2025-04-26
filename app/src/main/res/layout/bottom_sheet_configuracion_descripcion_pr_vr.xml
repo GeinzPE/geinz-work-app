@@ -111,6 +111,12 @@
                 android:text="Vista previa"
                 android:textSize="16sp" />
 
+            <Button
+                android:id="@+id/guardar_cambios"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="guardar cambios" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

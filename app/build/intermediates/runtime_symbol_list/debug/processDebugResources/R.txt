@@ -5122,7 +5122,6 @@ int id descripcionServiciosED 0x7f0a02aa
 int id descripcionTrabajador 0x7f0a02ab
 int id descripcion_contenido 0x7f0a02ac
 int id descripcion_producto 0x7f0a02ad
-int id descripcion_productoED 0x7f0a02ae
 int id descripcion_promos 0x7f0a02af
 int id descripcion_publicacion 0x7f0a02b0
 int id descripcion_publicacionED 0x7f0a02b1
@@ -5350,6 +5349,7 @@ int id guardarCamposPublicidad 0x7f0a038e
 int id guardarContacto 0x7f0a038f
 int id guardarLinksRedes 0x7f0a0390
 int id guardarMetodoPago 0x7f0a0391
+int id guardar_cambios 0x7f0a089c
 int id guidance_breadcrumb 0x7f0a0392
 int id guidance_container 0x7f0a0393
 int id guidance_description 0x7f0a0394
@@ -6603,6 +6603,8 @@ int id vistas 0x7f0a086d
 int id vistasNoticias 0x7f0a086e
 int id vistas_compartilas_cliks 0x7f0a086f
 int id vistas_compartilas_cliksNoticias 0x7f0a0870
+int id vistra_previa_descripcion 0x7f0a089d
+int id vistra_previa_descripciontitulo 0x7f0a089e
 int id web 0x7f0a0871
 int id websiteEd 0x7f0a0872
 int id west 0x7f0a0873
@@ -6786,7 +6788,6 @@ int layout abc_search_dropdown_item_icons_2line 0x7f0d0018
 int layout abc_search_view 0x7f0d0019
 int layout abc_select_dialog_material 0x7f0d001a
 int layout abc_tooltip 0x7f0d001b
-int layout activity_agregar_descripcion_producto_rb_vr 0x7f0d001c
 int layout activity_agregar_pago_comprareserva_tiendas 0x7f0d001d
 int layout activity_agregar_publicaciones_recientes_trabajadores_verificados 0x7f0d001e
 int layout activity_agregar_redes 0x7f0d001f

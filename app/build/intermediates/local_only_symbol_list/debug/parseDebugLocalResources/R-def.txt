@@ -692,7 +692,6 @@ id descripcionServiciosED
 id descripcionTrabajador
 id descripcion_contenido
 id descripcion_producto
-id descripcion_productoED
 id descripcion_promos
 id descripcion_publicacion
 id descripcion_publicacionED
@@ -831,6 +830,7 @@ id guardarCamposPublicidad
 id guardarContacto
 id guardarLinksRedes
 id guardarMetodoPago
+id guardar_cambios
 id guideline_end
 id gurpo_mayus
 id hActivado
@@ -1662,6 +1662,8 @@ id vistas
 id vistasNoticias
 id vistas_compartilas_cliks
 id vistas_compartilas_cliksNoticias
+id vistra_previa_descripcion
+id vistra_previa_descripciontitulo
 id web
 id websiteEd
 id whatsapp
@@ -1671,7 +1673,6 @@ id yape_checkbox
 id years
 id zona
 id zonaTienda
-layout activity_agregar_descripcion_producto_rb_vr
 layout activity_agregar_pago_comprareserva_tiendas
 layout activity_agregar_publicaciones_recientes_trabajadores_verificados
 layout activity_agregar_redes

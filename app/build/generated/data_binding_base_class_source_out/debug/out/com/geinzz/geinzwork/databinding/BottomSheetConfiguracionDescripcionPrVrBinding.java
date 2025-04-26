@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,6 +39,9 @@ public final class BottomSheetConfiguracionDescripcionPrVrBinding implements Vie
   public final EditText colocarBoldAgunasLetrasED;
 
   @NonNull
+  public final Button guardarCambios;
+
+  @NonNull
   public final IncludeAgregaProductosRbVrRadiobutonssBinding includeAgregarBoldTitulo;
 
   @NonNull
@@ -59,6 +63,7 @@ public final class BottomSheetConfiguracionDescripcionPrVrBinding implements Vie
       @NonNull TextInputLayout AgregaDescipcionProducto,
       @NonNull EditText AgregaDescipcionProductoED, @NonNull BottomSheetDragHandleView cerrar,
       @NonNull TextInputLayout colocarBoldAgunasLetras, @NonNull EditText colocarBoldAgunasLetrasED,
+      @NonNull Button guardarCambios,
       @NonNull IncludeAgregaProductosRbVrRadiobutonssBinding includeAgregarBoldTitulo,
       @NonNull IncludeAgregaProductosRbVrRadiobutonssBinding includeAgregarTextosCuales,
       @NonNull TextView previewTextTitulo, @NonNull TextView textoDescripcion,
@@ -69,6 +74,7 @@ public final class BottomSheetConfiguracionDescripcionPrVrBinding implements Vie
     this.cerrar = cerrar;
     this.colocarBoldAgunasLetras = colocarBoldAgunasLetras;
     this.colocarBoldAgunasLetrasED = colocarBoldAgunasLetrasED;
+    this.guardarCambios = guardarCambios;
     this.includeAgregarBoldTitulo = includeAgregarBoldTitulo;
     this.includeAgregarTextosCuales = includeAgregarTextosCuales;
     this.previewTextTitulo = previewTextTitulo;
@@ -135,6 +141,12 @@ public final class BottomSheetConfiguracionDescripcionPrVrBinding implements Vie
         break missingId;
       }
 
+      id = R.id.guardar_cambios;
+      Button guardarCambios = ViewBindings.findChildViewById(rootView, id);
+      if (guardarCambios == null) {
+        break missingId;
+      }
+
       id = R.id.include_agregar_bold_titulo;
       View includeAgregarBoldTitulo = ViewBindings.findChildViewById(rootView, id);
       if (includeAgregarBoldTitulo == null) {
@@ -175,7 +187,7 @@ public final class BottomSheetConfiguracionDescripcionPrVrBinding implements Vie
 
       return new BottomSheetConfiguracionDescripcionPrVrBinding((LinearLayout) rootView,
           AgregaDescipcionProducto, AgregaDescipcionProductoED, cerrar, colocarBoldAgunasLetras,
-          colocarBoldAgunasLetrasED, binding_includeAgregarBoldTitulo,
+          colocarBoldAgunasLetrasED, guardarCambios, binding_includeAgregarBoldTitulo,
           binding_includeAgregarTextosCuales, previewTextTitulo, textoDescripcion, tituloProducto,
           tituloProductoED);
     }
