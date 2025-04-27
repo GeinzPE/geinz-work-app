@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:layout_margin="5dp">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/img_perfil"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="5dp"
+        android:src="@drawable/img_perfil" />
+
+    <LinearLayout
+        android:id="@+id/linealNombre_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/img_perfil"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/nombre_user"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="Benjamin lopez abarca" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/icon_verificado"
+            android:visibility="gone" />
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/categoria_trabajo"
+        style="@style/TextoModoOScuroColor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linealNombre_user"
+        android:layout_marginHorizontal="5dp"
+        android:layout_toRightOf="@+id/img_perfil"
+        android:fontFamily="@font/fuente_para_texto_special_gothic"
+        android:text="Desarollo web y porgramacion" />
+
+    <LinearLayout
+        android:id="@+id/lineal_nacionalida_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/categoria_trabajo"
+        android:layout_toRightOf="@+id/img_perfil"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/localida_user"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="Peruano" />
+
+        <ImageView
+            android:id="@+id/bandera_nacionalidad"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/bandera_peru"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/seguir"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="10dp"
+        android:text="seguir" />
+
+
+</RelativeLayout>

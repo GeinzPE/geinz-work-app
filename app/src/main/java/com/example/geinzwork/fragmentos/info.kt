@@ -39,15 +39,19 @@ import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
+import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajo_realizados
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
+import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
+import com.geinzz.geinzwork.databinding.BottomSheetCargarSeguidoresSeguidosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetContactaTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
@@ -87,6 +91,7 @@ class info : Fragment() {
     private var isNotificationOn = false
     private val tiempoParaContarVista: Long = 20000
     private var vistaTimer: CountDownTimer? = null
+    private var lista_seguidores = mutableListOf<dataclass_seguidores_seguidos>()
 
 
     companion object {
@@ -185,6 +190,7 @@ class info : Fragment() {
                 (mContex as? Activity)?.finish()
             }
         }
+
 
         binding.ig.setOnClickListener {
             obtenerRedes(mContex, Variables.ig, idTrabajador)
@@ -314,6 +320,69 @@ class info : Fragment() {
                 constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
             }
         }.start()
+    }
+
+    private fun BottomSheet_cargarSeguidoresSeguidos(id_Trabajador_actual: String) {
+        val binding_bottom_sheet_seguidores =
+            BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
+        dialog.setContentView(binding_bottom_sheet_seguidores.root)
+
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document("id_Trabajador_actual").collection("seguidos")
+        val trabajador =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+
+        val user = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.usuarios_db).collection(Variables.usuarios_db)
+
+        db.get().addOnSuccessListener { e ->
+            for (datos in e) {
+                val data = datos.data
+                val id = data?.get("id") as? String ?: ""
+                constantes.pertenecia_trabajador_user(id) { es_trabajador ->
+                    if (es_trabajador) {
+                        trabajador.document(id).get().addOnSuccessListener { res ->
+                            val data = res.data
+                            val nombre = data?.get("nombre") as? String ?: ""
+                            val apellido = data?.get("apellido") as? String ?: ""
+                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
+                            val tipoTrabajo = data?.get("tipoTrabajo") as? String ?: ""
+                            val nacionalidad = data?.get("nacionalidad") as? String ?: ""
+                            val verificado = data?.get("verificado") as? Boolean ?: false
+                            val listaseguidores = dataclass_seguidores_seguidos(
+                                imagenPerfil,
+                                "$nombre $apellido",
+                                tipoTrabajo,
+                                nacionalidad,verificado
+                            )
+                            lista_seguidores.add(listaseguidores)
+                        }.addOnFailureListener { e ->
+                            println("no se encontraro datos")
+                        }
+                    } else {
+                        user.document(id).get().addOnSuccessListener { res ->
+                            val data = res.data
+                            val nombre = data?.get("nombre") as? String ?: ""
+                            val apellido = data?.get("apellido") as? String ?: ""
+                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
+                            val listaseguidores = dataclass_seguidores_seguidos(
+                                imagenPerfil,
+                                "$nombre $apellido",
+                                null,
+                                null,null
+                            )
+                            lista_seguidores.add(listaseguidores)
+                        }.addOnFailureListener { e ->
+                            println("no se encontraro datos")
+                        }
+                    }
+                }
+            }
+
+        }
+        dialog.show()
     }
 
     private fun cancelarContadorVista() {
@@ -668,8 +737,8 @@ class info : Fragment() {
         bindingMostrar.cerrar.setOnClickListener {
             dialog.dismiss()
         }
-        bindingMostrar.linealGeneralLinea.isVisible=false
-        bindingMostrar.cargarConteindo.isVisible=true
+        bindingMostrar.linealGeneralLinea.isVisible = false
+        bindingMostrar.cargarConteindo.isVisible = true
 
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
@@ -712,8 +781,8 @@ class info : Fragment() {
 
                 println("obtenemos las referencias de las img $listaImg")
                 Handler(Looper.getMainLooper()).postDelayed({
-                    bindingMostrar.linealGeneralLinea.isVisible=true
-                    bindingMostrar.cargarConteindo.isVisible=false
+                    bindingMostrar.linealGeneralLinea.isVisible = true
+                    bindingMostrar.cargarConteindo.isVisible = false
                 }, tiempoTotalMs)
                 // Configurar el texto expandible
                 constantestextos_general.extender_acortar_texto(

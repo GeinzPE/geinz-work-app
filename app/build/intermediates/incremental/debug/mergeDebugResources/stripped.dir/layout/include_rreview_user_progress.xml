@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="20dp"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="15dp">
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_gravity="center"
+            android:id="@+id/valoraciontrabajdor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:text="0"
+            android:textSize="50sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:layout_marginBottom="10dp"
+            android:src="@drawable/estrellas_icon_general" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="3dp"
+            android:text="valoracion de trabajador" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/cincoEstrellasLineal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ProgressBar
+
+            android:id="@+id/progress_5_stars"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/custom_progress_bar" />
+
+        <ImageView
+
+            android:layout_width="90dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:src="@drawable/start_five" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:id="@+id/porcentaje5Estrellas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="0%"
+            android:textSize="14sp" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/cuatroEstrellas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progrsVar4estrellas"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/custom_progress_bar" />
+
+        <ImageView
+            android:layout_width="90dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:src="@drawable/start_four" />
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:id="@+id/porcentaje4Estrellas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="0%"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lineal3Estrellas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progresVar3Estrellas"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/custom_progress_bar" />
+
+        <ImageView
+            android:layout_width="90dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:src="@drawable/start_tree" />
+
+        <TextView
+
+            style="@style/TextoModoOScuroColor"
+            android:id="@+id/pocentaje3Estrellas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="0%"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lineal2Estrellas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progrsVar2Estrellas"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/custom_progress_bar" />
+
+        <ImageView
+            android:layout_width="90dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:src="@drawable/start_two" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:id="@+id/porcentaje2Estrellas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="0%"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/linea1Estrellas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progresvar1Estrellas"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/custom_progress_bar" />
+
+        <ImageView
+            android:layout_width="90dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:src="@drawable/start_one" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:id="@+id/porcentaje1Estrella"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="0%"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -389,6 +389,45 @@ object constantes {
         }
     }
 
+    fun pertenecia_trabajador_user(
+        idTrabajador: String,
+        callback: (Boolean) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+
+        val tokenRef = db.collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+            .document(idTrabajador)
+
+        val tokenUserRef = db.collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.usuarios_db).collection(Variables.usuarios_db)
+            .document(idTrabajador)
+
+        tokenRef.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                callback(true) // Es trabajador
+                Log.d("obtener_tipo", "Es trabajador")
+            } else {
+                tokenUserRef.get().addOnSuccessListener { resUser ->
+                    if (resUser.exists()) {
+                        callback(false) // Es usuario normal
+                        Log.d("obtener_tipo", "Es usuario normal")
+                    } else {
+                        callback(false) // No existe en ninguna colección, igual mandamos false
+                        Log.d("obtener_tipo", "No encontrado en trabajadores ni usuarios")
+                    }
+                }.addOnFailureListener { e ->
+                    callback(false)
+                    Log.e("obtener_tipo", "Error al buscar en usuarios", e)
+                }
+            }
+        }.addOnFailureListener { e ->
+            callback(false)
+            Log.e("obtener_tipo", "Error al buscar en trabajadores", e)
+        }
+    }
+
+
 
     fun obtnerTokenTienda(idTienda: String, tokenTienda: (String) -> Unit) {
         val db = FirebaseFirestore.getInstance().collection(Variables.collection_Tiendas).document(idTienda)

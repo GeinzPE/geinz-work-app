@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".vistaTiendas.hisrotiralfr.reserva_serviciosfr">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:text="Reservas realizadas"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/todos"
+                        style="@style/RoundedButtonFiltradoHistorial"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_marginHorizontal="5dp"
+                        android:layout_marginRight="5dp"
+                        android:text="Todos"
+                        android:textSize="14sp"
+                        app:iconGravity="textEnd" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/reservaServicios"
+                        style="@style/RoundedButtonFiltradoHistorial"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_marginHorizontal="5dp"
+                        android:layout_marginRight="5dp"
+                        android:text="Servicios"
+                        android:textSize="14sp"
+                        app:iconGravity="textEnd" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/reservaPromo"
+                        style="@style/RoundedButtonFiltradoHistorial"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_marginHorizontal="5dp"
+                        android:layout_marginRight="5dp"
+                        android:text="Promociones"
+                        android:textSize="14sp"
+                        app:iconGravity="textEnd" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/reservaArticulo"
+                        style="@style/RoundedButtonFiltradoHistorial"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_marginHorizontal="5dp"
+                        android:layout_marginRight="5dp"
+                        android:text="Articulos"
+                        android:textSize="14sp"
+                        app:iconGravity="textEnd" />
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recicleReservaServicios"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</FrameLayout>
