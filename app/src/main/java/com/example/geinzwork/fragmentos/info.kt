@@ -27,11 +27,13 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBinding
+import com.example.geinzwork.adapterViewholder.adapter_seguidores_seguidos
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
@@ -102,6 +104,11 @@ class info : Fragment() {
         private const val NACIONALIDAD = "nacionalidad"
         private const val CATEGORIA = "categoria"
 
+        private lateinit var idTrabajador: String
+        private lateinit var img: String
+        private lateinit var nombre: String
+        private lateinit var nacionalidad: String
+        private lateinit var categoria: String
 
         fun newInstance(
             idTrabajador: String,
@@ -119,6 +126,17 @@ class info : Fragment() {
             args.putString(CATEGORIA, categoria)
             fragment.arguments = args
             return fragment
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            idTrabajador = it.getString(ARG_ID_TRABAJADOR, "")
+            img = it.getString(IMAGEN_PERFIL, "")
+            nombre = it.getString(NOMBRE, "")
+            nacionalidad = it.getString(NACIONALIDAD, "")
+            categoria = it.getString(CATEGORIA, "")
         }
     }
 
@@ -152,6 +170,17 @@ class info : Fragment() {
         val recicle = binding.productosDestacados
         val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.layoutManager = customLayoutManager
+
+        binding.siguiendo.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            BottomSheet_cargarSeguidoresSeguidos(idTrabajador)
+            dialog.show()
+        }
+        binding.segidores.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            BottomShett_carga_seguidores(idTrabajador)
+            dialog.show()
+        }
 
         constantes_trabajadores_info.actualizarSeguidres(binding, idTrabajador)
 
@@ -327,9 +356,12 @@ class info : Fragment() {
             BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding_bottom_sheet_seguidores.root)
 
+        val lista_seguidores = mutableListOf<dataclass_seguidores_seguidos>()
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
-            .document("id_Trabajador_actual").collection("seguidos")
+            .document(id_Trabajador_actual).collection("seguidos")
+
         val trabajador =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
@@ -338,9 +370,130 @@ class info : Fragment() {
             .document(Variables.usuarios_db).collection(Variables.usuarios_db)
 
         db.get().addOnSuccessListener { e ->
+            val totalSeguidores = e.size()
+            if (totalSeguidores == 0) {
+                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                return@addOnSuccessListener
+            }
+
+            var seguidoresCargados = 0
+
             for (datos in e) {
                 val data = datos.data
                 val id = data?.get("id") as? String ?: ""
+
+                constantes.pertenecia_trabajador_user(id) { es_trabajador ->
+                    if (es_trabajador) {
+                        trabajador.document(id).get().addOnSuccessListener { res ->
+                            val data = res.data
+                            val nombre = data?.get("nombre") as? String ?: ""
+                            val id = data?.get("id") as? String ?: ""
+                            val apellido = data?.get("apellido") as? String ?: ""
+                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
+                            val tipoTrabajo = data?.get("tipoTrabajo") as? String ?: ""
+                            val nacionalidad = data?.get("nacionalidad") as? String ?: ""
+                            val verificado = data?.get("verificado") as? Boolean ?: false
+
+                            val listaseguidor = dataclass_seguidores_seguidos(id,
+                                imagenPerfil,
+                                "$nombre $apellido",
+                                tipoTrabajo,
+                                nacionalidad,
+                                verificado
+                            )
+                            lista_seguidores.add(listaseguidor)
+
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
+
+                        }.addOnFailureListener {
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
+                        }
+                    } else {
+                        user.document(id).get().addOnSuccessListener { res ->
+                            val data = res.data
+                            val nombre = data?.get("nombre") as? String ?: ""
+                            val apellido = data?.get("apellido") as? String ?: ""
+                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
+
+                            val listaseguidor = dataclass_seguidores_seguidos(
+                                imagenPerfil,
+                                "$nombre $apellido",
+                                null,
+                                null,
+                                null
+                            )
+                            lista_seguidores.add(listaseguidor)
+
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
+
+                        }.addOnFailureListener {
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }.addOnFailureListener {
+            println("No se pudo cargar la lista de seguidos")
+        }
+
+        dialog.show()
+    }
+
+    private fun BottomShett_carga_seguidores(id_Trabajador_actual: String) {
+        val binding_bottom_sheet_seguidores =
+            BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
+        dialog.setContentView(binding_bottom_sheet_seguidores.root)
+
+        val lista_seguidores = mutableListOf<dataclass_seguidores_seguidos>()
+
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(id_Trabajador_actual).collection("seguidores")
+
+        val trabajador =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+
+        val user = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.usuarios_db).collection(Variables.usuarios_db)
+
+        db.get().addOnSuccessListener { e ->
+            val totalSeguidores = e.size()
+            if (totalSeguidores == 0) {
+                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                return@addOnSuccessListener
+            }
+
+            var seguidoresCargados = 0
+
+            for (datos in e) {
+                val data = datos.data
+                val id = data?.get("id") as? String ?: ""
+
                 constantes.pertenecia_trabajador_user(id) { es_trabajador ->
                     if (es_trabajador) {
                         trabajador.document(id).get().addOnSuccessListener { res ->
@@ -350,16 +503,34 @@ class info : Fragment() {
                             val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
                             val tipoTrabajo = data?.get("tipoTrabajo") as? String ?: ""
                             val nacionalidad = data?.get("nacionalidad") as? String ?: ""
+                            val id = data?.get("id") as? String ?: ""
                             val verificado = data?.get("verificado") as? Boolean ?: false
-                            val listaseguidores = dataclass_seguidores_seguidos(
+
+                            val listaseguidor = dataclass_seguidores_seguidos(id,
                                 imagenPerfil,
                                 "$nombre $apellido",
                                 tipoTrabajo,
-                                nacionalidad,verificado
+                                nacionalidad,
+                                verificado
                             )
-                            lista_seguidores.add(listaseguidores)
-                        }.addOnFailureListener { e ->
-                            println("no se encontraro datos")
+                            lista_seguidores.add(listaseguidor)
+
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
+
+                        }.addOnFailureListener {
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
                         }
                     } else {
                         user.document(id).get().addOnSuccessListener { res ->
@@ -367,22 +538,74 @@ class info : Fragment() {
                             val nombre = data?.get("nombre") as? String ?: ""
                             val apellido = data?.get("apellido") as? String ?: ""
                             val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
-                            val listaseguidores = dataclass_seguidores_seguidos(
+
+                            val listaseguidor = dataclass_seguidores_seguidos(
                                 imagenPerfil,
                                 "$nombre $apellido",
                                 null,
-                                null,null
+                                null,
+                                null
                             )
-                            lista_seguidores.add(listaseguidores)
-                        }.addOnFailureListener { e ->
-                            println("no se encontraro datos")
+                            lista_seguidores.add(listaseguidor)
+
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
+
+                        }.addOnFailureListener {
+                            seguidoresCargados++
+                            if (seguidoresCargados == totalSeguidores) {
+                                inizialar_seguir_seguidores(
+                                    lista_seguidores,
+                                    binding_bottom_sheet_seguidores
+                                )
+                            }
                         }
                     }
                 }
             }
-
+        }.addOnFailureListener {
+            println("No se pudo cargar la lista de seguidos")
         }
+
         dialog.show()
+    }
+
+
+    private fun inizialar_seguir_seguidores(
+        lista_seguidores: MutableList<dataclass_seguidores_seguidos>,
+        binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding
+    ) {
+        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.adapter =
+            adapter_seguidores_seguidos(lista_seguidores) { item ->
+
+                // Al hacer click en un seguidor:
+                val bundle = Bundle().apply {
+                    putString(ARG_ID_TRABAJADOR, item.id_trabajador) // El id que tú necesitas
+                    putString(IMAGEN_PERFIL, item.img_perfil)
+                    putString(NOMBRE, item.nombre_trabajador)
+                    putString(NACIONALIDAD, item.nacionalidad)
+                    putString(CATEGORIA, item.tipo_trabajado)
+                }
+
+                val fragment = info() // Aquí tu Fragment que estás usando
+                fragment.arguments = bundle
+
+                // Abrir el fragmento en la misma actividad:
+                (context as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()
+                    ?.replace(R.id.fracmentoID, fragment) // Usa tu contenedor aquí
+                    ?.addToBackStack(null)
+                    ?.commit()
+
+                dialog.dismiss() // Cierra el BottomSheet
+
+            }
     }
 
     private fun cancelarContadorVista() {

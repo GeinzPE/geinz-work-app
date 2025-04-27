@@ -463,6 +463,7 @@ id apellidouser
 id appbarLayout
 id aumentar_cantidad_lineal
 id bakPresert
+id bandera_nacionalidad
 id baner
 id baner_publicaciones_recientes
 id barranca
@@ -1054,6 +1055,7 @@ id linealMetodoEntrega
 id linealMontoDel_servicio
 id linealMostrarTrabajos
 id linealNo_seEncontraron
+id linealNombre_user
 id linealNoticias
 id linealPadre
 id linealPlin
@@ -1101,6 +1103,7 @@ id lineal_img_qr
 id lineal_info_trabajdor
 id lineal_me_gusta
 id lineal_metodo_entrega
+id lineal_nacionalida_user
 id lineal_noEncontrado
 id lineal_noEncontrado_productos
 id lineal_no_cuenta
@@ -1203,6 +1206,7 @@ id nacionalida
 id nacionalidad
 id nacionalidadT
 id nacionalidad_driver
+id nacionalidad_user
 id nacionnalidad
 id nacionnalidadUser
 id netScrollView
@@ -1251,6 +1255,7 @@ id nombre_producto
 id nombre_productoED
 id nombre_trabajador
 id nombre_trabajadoroculto
+id nombre_user
 id nombreint
 id nombresCompletos
 id nombresCompletosED
@@ -1351,6 +1356,7 @@ id productosDestacados
 id productosLineal
 id productos_venta
 id prograsvar
+id progrees_carga
 id progresCargaCat
 id progresCargaDatos
 id progresCargandoContenido
@@ -1423,6 +1429,7 @@ id recielAnuncios
 id recieleCategorias
 id recieleCompras
 id recojoEnTienda
+id recycleCargar_seguidos_Seguidores
 id recycleViewProductosFiltrados
 id recycle_img
 id redes
@@ -1652,6 +1659,7 @@ id verdesarrollo
 id verificacion
 id verificado
 id verificadoTXT
+id verificado_icono
 id verificados
 id verificar
 id verificationText
@@ -1765,6 +1773,7 @@ layout bottom_sheet
 layout bottom_sheet_adquir_planes_noticias
 layout bottom_sheet_aplar_reporte
 layout bottom_sheet_cambiar_estado_user
+layout bottom_sheet_cargar_seguidores_seguidos
 layout bottom_sheet_categorias_pr_vr
 layout bottom_sheet_compra_productos_tiendas
 layout bottom_sheet_config_cuenta
@@ -1853,6 +1862,7 @@ layout include_total_pagar
 layout info_tienda
 layout item_agregar_imagenes_panel_publicaciones
 layout item_anuncios
+layout item_carga_seguidores_seguidos
 layout item_cargar_productos_promociones_trabajos
 layout item_carrito_compras
 layout item_categoria_vr
