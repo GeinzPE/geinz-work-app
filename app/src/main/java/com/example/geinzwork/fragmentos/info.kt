@@ -150,6 +150,9 @@ class info : Fragment() {
 
         constantes_trabajadores_info.actualizarSeguidres(binding, idTrabajador)
 
+        constantes_trabajadores_info.ver_cantidad_siguiendo(binding, idTrabajador)
+
+
         binding.qrTrabajador.setOnClickListener {
             var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
                 putExtra(Variables.info, Variables.info)
@@ -247,8 +250,6 @@ class info : Fragment() {
                 binding.linealtrabajadoresGeinz.isVisible = false
                 binding.cargadoSugeridos.isVisible = false
                 binding.mostrarSeguridosIMG.isVisible = true
-
-
                 mostrandoTrabajadores = false
             }
         }

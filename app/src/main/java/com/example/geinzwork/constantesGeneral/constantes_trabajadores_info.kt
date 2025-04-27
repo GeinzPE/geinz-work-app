@@ -375,40 +375,95 @@ object constantes_trabajadores_info {
         idTrabajadorActual: String,
         binding: FragmentInfoBinding
     ) {
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
-            .collection("seguidores").document(iduserActual)
-        val hashMap = hashMapOf<String, Any>(
+        val db = FirebaseFirestore.getInstance()
+
+        // 1. Actualizar en trabajadores > seguidores
+        val refSeguidores = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(idTrabajadorActual)
+            .collection("seguidores")
+            .document(iduserActual)
+
+        val hashMapSeguidores = hashMapOf<String, Any>(
             "id" to iduserActual,
             "token" to token
         )
-        db.set(hashMap, SetOptions.merge()).addOnSuccessListener {
-            println("Seguido correctamente")
-            actualizarSeguidres(binding, idTrabajadorActual)
-        }.addOnFailureListener {
-            println("Error al seguir")
-        }
+
+        refSeguidores.set(hashMapSeguidores, SetOptions.merge())
+            .addOnSuccessListener {
+                println("Seguidor agregado correctamente")
+                actualizarSeguidres(binding, idTrabajadorActual)
+            }
+            .addOnFailureListener {
+                println("Error al seguir trabajador")
+            }
+
+        // 2. Actualizar en usuarios > seguidos
+        val refSeguidos = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(iduserActual)
+            .collection("seguidos")
+            .document(idTrabajadorActual)
+
+        val hashMapSeguidos = hashMapOf<String, Any>(
+            "id" to idTrabajadorActual
+        )
+
+        refSeguidos.set(hashMapSeguidos, SetOptions.merge())
+            .addOnSuccessListener {
+                println("Seguido agregado correctamente al usuario")
+            }
+            .addOnFailureListener {
+                println("Error al agregar seguido")
+            }
     }
 
-    private fun dejarSeguitrTrabajdor(
+
+    private fun dejarSeguirTrabajador(
         binding: FragmentInfoBinding,
         idTrabajadorActual: String,
         contexto: Context
     ) {
         firebaseAuth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
-            .collection("seguidores").document(firebaseAuth.uid.toString())
+        val db = FirebaseFirestore.getInstance()
+
+        // 1. Eliminar de la colección seguidores del trabajador
+        val refSeguidores = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(idTrabajadorActual)
+            .collection("seguidores")
+            .document(firebaseAuth.uid.toString())
+
+        // 2. Eliminar de la colección seguidos del usuario
+        val refSeguidos = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("seguidos")
+            .document(idTrabajadorActual)
+
         aplicarEstiloPorDefecto(binding.dejarDeSeguirOSeguir, contexto)
-        db.delete().addOnSuccessListener { res ->
-            println("dejo seguir corecteamnte")
+
+        // Primero eliminamos de seguidores
+        refSeguidores.delete().addOnSuccessListener {
+            println("Dejó de seguir correctamente al trabajador")
             actualizarSeguidres(binding, idTrabajadorActual)
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
-
         }.addOnFailureListener { e ->
-            println("ubo un error al dejar de seguir $e")
+            println("Hubo un error al dejar de seguir trabajador: $e")
+        }
+
+        // Después eliminamos de seguidos
+        refSeguidos.delete().addOnSuccessListener {
+            println("Trabajador eliminado de seguidos correctamente")
+        }.addOnFailureListener { e ->
+            println("Hubo un error al eliminar seguido: $e")
         }
     }
+
 
     fun showCustomUnfollowDialog(
         binding: FragmentInfoBinding,
@@ -423,7 +478,7 @@ object constantes_trabajadores_info {
         val dialog = builder.create()
 
         dialogView.findViewById<Button>(R.id.buttonYes).setOnClickListener {
-            dejarSeguitrTrabajdor(binding, idTrabajadorActual, context)
+            dejarSeguirTrabajador(binding, idTrabajadorActual, context)
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
             binding.notificaciones.isVisible = false
             dialog.dismiss()
@@ -563,7 +618,17 @@ object constantes_trabajadores_info {
         }.addOnFailureListener { e ->
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
         }
-
+    }
+    fun ver_cantidad_siguiendo(binding: FragmentInfoBinding,idTrabajadorActual: String){
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
+            .collection("seguidos")
+        db.get().addOnSuccessListener { res->
+            val totalSeguidos=res.size()
+            binding.siguiendo.text="${totalSeguidos}"
+        }.addOnFailureListener { e->
+            binding.dejarDeSeguirOSeguir.text = seguir_TXT
+        }
     }
 
     fun contadorSeguidores(texView: TextView, idTrabajadorActual: String) {

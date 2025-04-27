@@ -200,19 +200,48 @@ class adapter_seguirTrabajadores_info(
             iduserActual: String,
             idTrabajadorActual: String,
         ) {
-            val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
-                .collection("seguidores").document(iduserActual)
-            val hashMap = hashMapOf<String, Any>(
+            val db = FirebaseFirestore.getInstance()
+
+            // 1. Guardar en trabajadores > seguidores
+            val refSeguidores = db.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores")
+                .collection("trabajadores")
+                .document(idTrabajadorActual)
+                .collection("seguidores")
+                .document(iduserActual)
+
+            val hashMapSeguidores = hashMapOf<String, Any>(
                 "id" to iduserActual,
                 "token" to token
             )
-            db.set(hashMap, SetOptions.merge()).addOnSuccessListener {
-                println("Seguido correctamente")
 
-            }.addOnFailureListener {
-                println("Error al seguir")
-            }
+            refSeguidores.set(hashMapSeguidores, SetOptions.merge())
+                .addOnSuccessListener {
+                    println("Seguido correctamente en seguidores")
+                }
+                .addOnFailureListener {
+                    println("Error al seguir (seguidores)")
+                }
+
+            // 2. Guardar en usuarios > seguidos
+            val refSeguidos = db.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores")
+                .collection("trabajadores")
+                .document(iduserActual)
+                .collection("seguidos")
+                .document(idTrabajadorActual)
+
+            val hashMapSeguidos = hashMapOf<String, Any>(
+                "id" to idTrabajadorActual
+            )
+
+            refSeguidos.set(hashMapSeguidos, SetOptions.merge())
+                .addOnSuccessListener {
+                    println("Seguido correctamente en seguidos")
+                }
+                .addOnFailureListener {
+                    println("Error al seguir (seguidos)")
+                }
         }
 
     }
