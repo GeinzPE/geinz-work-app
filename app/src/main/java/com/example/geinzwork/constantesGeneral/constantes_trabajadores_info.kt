@@ -559,7 +559,7 @@ object constantes_trabajadores_info {
             .collection("seguidores")
         db.get().addOnSuccessListener { res ->
             val totalSeguidores = res.size()
-            binding.segidores.text = "${totalSeguidores} Seguidores"
+            binding.segidores.text = "${totalSeguidores}"
         }.addOnFailureListener { e ->
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
         }

@@ -58,6 +58,7 @@ drawable bakground_white
 drawable bandera_peru
 drawable bandera_venezolana
 drawable barra_carga
+drawable baseline_calendar_month_24
 drawable baseline_favorite_24
 drawable baseline_favorite_white
 drawable baseline_more_vert_24
@@ -758,6 +759,7 @@ id fbEd
 id fecha
 id fechaActivo
 id fechaActivotxt
+id fechaCreacionCuenta
 id fechaED
 id fechaInput
 id fechaNac_fre
@@ -1141,6 +1143,7 @@ id localidad
 id localidadTienda
 id localidadUser
 id localidad_disponible
+id localidad_user
 id localidaduser
 id localizacion
 id log
@@ -1492,6 +1495,7 @@ id si
 id siHayDescuento
 id siHayGarantia
 id si_garantia
+id siguiendo
 id siguiente
 id slogan
 id sloganTienda

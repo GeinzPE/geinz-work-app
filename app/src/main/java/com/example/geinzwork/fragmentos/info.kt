@@ -335,7 +335,7 @@ class info : Fragment() {
 
 
     private fun mostrarDatos() {
-        binding.loading.isVisible = false
+//        binding.loading.isVisible = false
         binding.linealappLayout.isVisible = true
         binding.swipe.isVisible = true
 

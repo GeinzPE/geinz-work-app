@@ -13,7 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -71,6 +70,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final ImageView fb;
 
   @NonNull
+  public final TextView fechaCreacionCuenta;
+
+  @NonNull
   public final ImageView ig;
 
   @NonNull
@@ -104,7 +106,7 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final LinearLayout linealtrabajadoresGeinz;
 
   @NonNull
-  public final LinearLayoutCompat loading;
+  public final TextView localidadUser;
 
   @NonNull
   public final AppCompatButton masInformacion;
@@ -158,6 +160,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final TextView segidores;
 
   @NonNull
+  public final TextView siguiendo;
+
+  @NonNull
   public final SwipeRefreshLayout swipe;
 
   @NonNull
@@ -187,13 +192,13 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull ImageCarousel carrusel, @NonNull TextView categoriaTipoTrabajo,
       @NonNull FrameLayout circle, @NonNull AppCompatButton dejarDeSeguirOSeguir,
       @NonNull TextView descripcionTrabajador, @NonNull View estado, @NonNull ImageView fb,
-      @NonNull ImageView ig, @NonNull CircleImageView imgPerfilUser,
-      @NonNull ShapeableImageView imgPortada, @NonNull LinearLayout innerRelativeLayout,
-      @NonNull LinearLayout linealContenidoDesctipcion,
+      @NonNull TextView fechaCreacionCuenta, @NonNull ImageView ig,
+      @NonNull CircleImageView imgPerfilUser, @NonNull ShapeableImageView imgPortada,
+      @NonNull LinearLayout innerRelativeLayout, @NonNull LinearLayout linealContenidoDesctipcion,
       @NonNull RelativeLayout linealNoSeEncontraron,
       @NonNull RelativeLayout linealProductosPublicados, @NonNull LinearLayout linealRedes,
       @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
-      @NonNull LinearLayout linealtrabajadoresGeinz, @NonNull LinearLayoutCompat loading,
+      @NonNull LinearLayout linealtrabajadoresGeinz, @NonNull TextView localidadUser,
       @NonNull AppCompatButton masInformacion, @NonNull RelativeLayout mostrarSeguridos,
       @NonNull ImageView mostrarSeguridosIMG, @NonNull RelativeLayout noSeEncontraronTrabajadores,
       @NonNull TextView noSeEncontraronTrabajos, @NonNull RelativeLayout noSeEncontroPublicaciones,
@@ -202,10 +207,11 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
-      @NonNull TextView segidores, @NonNull SwipeRefreshLayout swipe, @NonNull TextView telefono,
-      @NonNull ImageView tk, @NonNull RecyclerView trabajadoresSimilares,
-      @NonNull TextView tvReadMore, @NonNull TextView verMasTrabajadores,
-      @NonNull ImageView verificado, @NonNull TextView verificadoTXT) {
+      @NonNull TextView segidores, @NonNull TextView siguiendo, @NonNull SwipeRefreshLayout swipe,
+      @NonNull TextView telefono, @NonNull ImageView tk,
+      @NonNull RecyclerView trabajadoresSimilares, @NonNull TextView tvReadMore,
+      @NonNull TextView verMasTrabajadores, @NonNull ImageView verificado,
+      @NonNull TextView verificadoTXT) {
     this.rootView = rootView;
     this.BtnSeguimiento = BtnSeguimiento;
     this.TrabajosRealizados = TrabajosRealizados;
@@ -219,6 +225,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.descripcionTrabajador = descripcionTrabajador;
     this.estado = estado;
     this.fb = fb;
+    this.fechaCreacionCuenta = fechaCreacionCuenta;
     this.ig = ig;
     this.imgPerfilUser = imgPerfilUser;
     this.imgPortada = imgPortada;
@@ -230,7 +237,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.linealTrabajosRealziados = linealTrabajosRealziados;
     this.linealappLayout = linealappLayout;
     this.linealtrabajadoresGeinz = linealtrabajadoresGeinz;
-    this.loading = loading;
+    this.localidadUser = localidadUser;
     this.masInformacion = masInformacion;
     this.mostrarSeguridos = mostrarSeguridos;
     this.mostrarSeguridosIMG = mostrarSeguridosIMG;
@@ -248,6 +255,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.relativeLayout = relativeLayout;
     this.scroll = scroll;
     this.segidores = segidores;
+    this.siguiendo = siguiendo;
     this.swipe = swipe;
     this.telefono = telefono;
     this.tk = tk;
@@ -357,6 +365,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.fechaCreacionCuenta;
+      TextView fechaCreacionCuenta = ViewBindings.findChildViewById(rootView, id);
+      if (fechaCreacionCuenta == null) {
+        break missingId;
+      }
+
       id = R.id.ig;
       ImageView ig = ViewBindings.findChildViewById(rootView, id);
       if (ig == null) {
@@ -423,9 +437,9 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.loading;
-      LinearLayoutCompat loading = ViewBindings.findChildViewById(rootView, id);
-      if (loading == null) {
+      id = R.id.localidad_user;
+      TextView localidadUser = ViewBindings.findChildViewById(rootView, id);
+      if (localidadUser == null) {
         break missingId;
       }
 
@@ -531,6 +545,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.siguiendo;
+      TextView siguiendo = ViewBindings.findChildViewById(rootView, id);
+      if (siguiendo == null) {
+        break missingId;
+      }
+
       id = R.id.swipe;
       SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
       if (swipe == null) {
@@ -581,15 +601,15 @@ public final class FragmentInfoBinding implements ViewBinding {
 
       return new FragmentInfoBinding((FrameLayout) rootView, BtnSeguimiento, TrabajosRealizados,
           banerPublicacionesRecientes, caracteristica1, cargadoSugeridos, carrusel,
-          categoriaTipoTrabajo, circle, dejarDeSeguirOSeguir, descripcionTrabajador, estado, fb, ig,
-          imgPerfilUser, imgPortada, innerRelativeLayout, linealContenidoDesctipcion,
-          linealNoSeEncontraron, linealProductosPublicados, linealRedes, linealTrabajosRealziados,
-          linealappLayout, linealtrabajadoresGeinz, loading, masInformacion, mostrarSeguridos,
-          mostrarSeguridosIMG, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
-          noSeEncontroPublicaciones, nombre, notificaciones, overlay, popup, productosDestacados,
-          progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
-          segidores, swipe, telefono, tk, trabajadoresSimilares, tvReadMore, verMasTrabajadores,
-          verificado, verificadoTXT);
+          categoriaTipoTrabajo, circle, dejarDeSeguirOSeguir, descripcionTrabajador, estado, fb,
+          fechaCreacionCuenta, ig, imgPerfilUser, imgPortada, innerRelativeLayout,
+          linealContenidoDesctipcion, linealNoSeEncontraron, linealProductosPublicados, linealRedes,
+          linealTrabajosRealziados, linealappLayout, linealtrabajadoresGeinz, localidadUser,
+          masInformacion, mostrarSeguridos, mostrarSeguridosIMG, noSeEncontraronTrabajadores,
+          noSeEncontraronTrabajos, noSeEncontroPublicaciones, nombre, notificaciones, overlay,
+          popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
+          relativeLayout, scroll, segidores, siguiendo, swipe, telefono, tk, trabajadoresSimilares,
+          tvReadMore, verMasTrabajadores, verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
