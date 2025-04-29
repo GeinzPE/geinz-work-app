@@ -14,6 +14,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 object mostrarFechaDialog_horaDialog {
@@ -78,6 +79,12 @@ object mostrarFechaDialog_horaDialog {
             e.printStackTrace()
             return -1
         }
+    }
+
+    fun obtenerFechaActual(): String {
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val fechaActual = Date()
+        return formato.format(fechaActual)
     }
 
 

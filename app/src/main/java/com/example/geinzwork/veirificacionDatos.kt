@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityVeirificacionDatosBinding
 import com.geinzz.geinzwork.problemas_soporte_politicas.politicas_creacion_cuenta
 import com.google.firebase.auth.FirebaseAuth
@@ -232,6 +233,8 @@ class veirificacionDatos : AppCompatActivity() {
         hashMap["imagenPerfil"] = "${imgperfil}"
         hashMap["EdadActual"] = "${EdadActualUser}"
         hashMap["TipoCuenta"] = "${TipoCuenta}"
+        hashMap["fecha_creacion"]=mostrarFechaDialog_horaDialog.obtenerFechaActual()
+
 
         val db = FirebaseFirestore.getInstance()
         val userCollections =
@@ -308,6 +311,7 @@ class veirificacionDatos : AppCompatActivity() {
         hashMap["estrellas"] = "${start}"
         hashMap["EdadActual"] = "${EdadActualUser}"
         hashMap["TipoCuenta"] = "${TipoCuenta}"
+        hashMap["fecha_creacion"]=mostrarFechaDialog_horaDialog.obtenerFechaActual()
 
 
         val db = FirebaseFirestore.getInstance()

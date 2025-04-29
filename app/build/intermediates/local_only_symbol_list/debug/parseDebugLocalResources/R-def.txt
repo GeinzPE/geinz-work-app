@@ -799,6 +799,7 @@ id foto_portada
 id fracmentoID
 id frameInfo
 id frameLayout
+id frameLayout_img
 id frameSinReview
 id freelancer
 id garantia

@@ -60,8 +60,10 @@ import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario
+import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.errorprone.annotations.Var
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.dynamiclinks.androidParameters
@@ -79,6 +81,9 @@ import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 import org.imaginativeworld.whynotimagecarousel.utils.setImage
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class info : Fragment() {
     private val listaMas_promo = mutableListOf<dataclass_adapter_promociones>()
@@ -104,11 +109,6 @@ class info : Fragment() {
         private const val NACIONALIDAD = "nacionalidad"
         private const val CATEGORIA = "categoria"
 
-        private lateinit var idTrabajador: String
-        private lateinit var img: String
-        private lateinit var nombre: String
-        private lateinit var nacionalidad: String
-        private lateinit var categoria: String
 
         fun newInstance(
             idTrabajador: String,
@@ -126,17 +126,6 @@ class info : Fragment() {
             args.putString(CATEGORIA, categoria)
             fragment.arguments = args
             return fragment
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            idTrabajador = it.getString(ARG_ID_TRABAJADOR, "")
-            img = it.getString(IMAGEN_PERFIL, "")
-            nombre = it.getString(NOMBRE, "")
-            nacionalidad = it.getString(NACIONALIDAD, "")
-            categoria = it.getString(CATEGORIA, "")
         }
     }
 
@@ -394,7 +383,8 @@ class info : Fragment() {
                             val nacionalidad = data?.get("nacionalidad") as? String ?: ""
                             val verificado = data?.get("verificado") as? Boolean ?: false
 
-                            val listaseguidor = dataclass_seguidores_seguidos(id,
+                            val listaseguidor = dataclass_seguidores_seguidos(
+                                id,
                                 imagenPerfil,
                                 "$nombre $apellido",
                                 tipoTrabajo,
@@ -506,7 +496,8 @@ class info : Fragment() {
                             val id = data?.get("id") as? String ?: ""
                             val verificado = data?.get("verificado") as? Boolean ?: false
 
-                            val listaseguidor = dataclass_seguidores_seguidos(id,
+                            val listaseguidor = dataclass_seguidores_seguidos(
+                                id,
                                 imagenPerfil,
                                 "$nombre $apellido",
                                 tipoTrabajo,
@@ -585,25 +576,17 @@ class info : Fragment() {
         binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.adapter =
             adapter_seguidores_seguidos(lista_seguidores) { item ->
 
-                // Al hacer click en un seguidor:
-                val bundle = Bundle().apply {
-                    putString(ARG_ID_TRABAJADOR, item.id_trabajador) // El id que tú necesitas
-                    putString(IMAGEN_PERFIL, item.img_perfil)
-                    putString(NOMBRE, item.nombre_trabajador)
-                    putString(NACIONALIDAD, item.nacionalidad)
-                    putString(CATEGORIA, item.tipo_trabajado)
+                val vista_t = Intent(mContex, vistaTrabajador::class.java).apply {
+                    putExtra(Variables.id, item.id_trabajador) // El id que tú necesitas
+                    putExtra(Variables.imagenPerfil, item.img_perfil)
+                    putExtra(Variables.nombreUSer, item.nombre_trabajador)
+                    putExtra(Variables.nacionalidad, item.nacionalidad)
+                    putExtra(Variables.categoria, item.tipo_trabajado)
                 }
 
-                val fragment = info() // Aquí tu Fragment que estás usando
-                fragment.arguments = bundle
-
-                // Abrir el fragmento en la misma actividad:
-                (context as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()
-                    ?.replace(R.id.fracmentoID, fragment) // Usa tu contenedor aquí
-                    ?.addToBackStack(null)
-                    ?.commit()
-
-                dialog.dismiss() // Cierra el BottomSheet
+                startActivity(vista_t)
+                requireActivity().finish()
+                dialog.dismiss()
 
             }
     }
@@ -1246,15 +1229,20 @@ class info : Fragment() {
                 val descripcion = data?.get(Variables.descripcion) as? String ?: ""
                 val categoriaTrabajo = data?.get(Variables.categoriaTrabajo) as? String ?: ""
                 val tipoTrabajo = data?.get(Variables.tipoTrabajo) as? String ?: ""
+                val localida_user = data?.get(Variables.localidad) as? String?:""
+                val fecha_registro = data?.get("fecha_creacion") as? String?:""
                 val ig = data?.get(Variables.IG) as? String ?: ""
                 val fb = data?.get(Variables.FB) as? String ?: ""
                 val tk = data?.get(Variables.TK) as? String ?: ""
                 val id = data?.get(Variables.id) as? String ?: ""
+                setear_fechaRegistra_trabajador(fecha_registro)
                 if (id == firebaseAuth.uid.toString()) {
                     binding.BtnSeguimiento.isVisible = false
                 } else {
                     binding.BtnSeguimiento.isVisible = true
                 }
+
+                binding.localidadUser.text=localida_user
 
 
 
@@ -1289,6 +1277,37 @@ class info : Fragment() {
             .addOnFailureListener { e ->
                 println("error al obtner los datos $e")
             }
+    }
+
+
+    private fun setear_fechaRegistra_trabajador(fechaRegistro: String) {
+        val formatoEntrada = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val fecha = formatoEntrada.parse(fechaRegistro)
+
+        fecha?.let {
+            val calendario = java.util.Calendar.getInstance()
+            calendario.time = fecha
+            val numeroMes = calendario.get(Calendar.MONTH) + 1 // ¡Ojo! Calendar.MONTH empieza en 0
+            val years = calendario.get(Calendar.YEAR) // Aquí sacamos el año
+
+            val nombreMes = when (numeroMes) {
+                1 -> "Enero"
+                2 -> "Febrero"
+                3 -> "Marzo"
+                4 -> "Abril"
+                5 -> "Mayo"
+                6 -> "Junio"
+                7 -> "Julio"
+                8 -> "Agosto"
+                9 -> "Septiembre"
+                10 -> "Octubre"
+                11 -> "Noviembre"
+                12 -> "Diciembre"
+                else -> "Mes inválido"
+            }
+
+           binding.fechaCreacionCuenta.text="Se unio en $nombreMes del $years"
+        }
     }
 
 
