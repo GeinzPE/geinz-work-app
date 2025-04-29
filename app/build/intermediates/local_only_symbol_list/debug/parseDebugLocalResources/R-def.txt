@@ -677,6 +677,7 @@ id cuatroEstrellas
 id cuentas
 id cursiva
 id dejarDeSeguirOSeguir
+id dejarSeguir
 id delatalles
 id delivery
 id deliveryEscojido
@@ -1362,6 +1363,7 @@ id progresCargaCat
 id progresCargaDatos
 id progresCargandoContenido
 id progresVar3Estrellas
+id progresVar_carga
 id progressBar
 id progressBarContainer
 id progressCarga
@@ -1402,6 +1404,7 @@ id radio_delivery_gratis
 id radio_garantia
 id realitveCardView
 id realtive
+id realtive_carga
 id realtive_clikc
 id reccileRadioBtn
 id recicelGuardados
@@ -1653,6 +1656,7 @@ id ver_lugares_entrega
 id ver_mas
 id ver_mas_promociones
 id ver_mas_trabajadores
+id ver_perfil
 id ver_preview
 id ver_productos
 id ver_trabajos_publicados

@@ -5105,6 +5105,7 @@ int id decelerateAndComplete 0x7f0a029c
 int id decor_content_parent 0x7f0a029d
 int id default_activity_button 0x7f0a029e
 int id dejarDeSeguirOSeguir 0x7f0a029f
+int id dejarSeguir 0x7f0a08a9
 int id delatalles 0x7f0a02a0
 int id delivery 0x7f0a02a1
 int id deliveryEscojido 0x7f0a02a2
@@ -6134,6 +6135,7 @@ int id progresCargaCat 0x7f0a06a1
 int id progresCargaDatos 0x7f0a06a2
 int id progresCargandoContenido 0x7f0a06a3
 int id progresVar3Estrellas 0x7f0a06a4
+int id progresVar_carga 0x7f0a08ab
 int id progressBar 0x7f0a06a5
 int id progressBarContainer 0x7f0a06a6
 int id progressCarga 0x7f0a06a7
@@ -6179,6 +6181,7 @@ int id radio_garantia 0x7f0a06ce
 int id ratio 0x7f0a06cf
 int id realitveCardView 0x7f0a06d0
 int id realtive 0x7f0a06d1
+int id realtive_carga 0x7f0a08ac
 int id realtive_clikc 0x7f0a06d2
 int id reccileRadioBtn 0x7f0a06d3
 int id recicelGuardados 0x7f0a06d4
@@ -6580,6 +6583,7 @@ int id ver_lugares_entrega 0x7f0a085f
 int id ver_mas 0x7f0a0860
 int id ver_mas_promociones 0x7f0a0861
 int id ver_mas_trabajadores 0x7f0a0862
+int id ver_perfil 0x7f0a08aa
 int id ver_preview 0x7f0a0863
 int id ver_productos 0x7f0a0864
 int id ver_trabajos_publicados 0x7f0a0865

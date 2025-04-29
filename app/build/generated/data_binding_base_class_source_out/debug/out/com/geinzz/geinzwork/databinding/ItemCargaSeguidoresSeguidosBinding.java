@@ -4,13 +4,15 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -22,13 +24,19 @@ import java.lang.String;
 
 public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
   public final CircleImageView banderaNacionalidad;
 
   @NonNull
+  public final ProgressBar cargaContenido;
+
+  @NonNull
   public final TextView categoriaTrabajo;
+
+  @NonNull
+  public final AppCompatButton dejarSeguir;
 
   @NonNull
   public final FrameLayout frameLayoutImg;
@@ -43,7 +51,7 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
   public final LinearLayout linealNombreUser;
 
   @NonNull
-  public final LinearLayout listener;
+  public final RelativeLayout listener;
 
   @NonNull
   public final TextView nacionalidadUser;
@@ -55,21 +63,31 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
   public final CircularProgressIndicator progreesCarga;
 
   @NonNull
-  public final Button seguir;
+  public final LinearLayout realtiveCarga;
+
+  @NonNull
+  public final AppCompatButton seguir;
+
+  @NonNull
+  public final AppCompatButton verPerfil;
 
   @NonNull
   public final ImageView verificadoIcono;
 
-  private ItemCargaSeguidoresSeguidosBinding(@NonNull LinearLayout rootView,
-      @NonNull CircleImageView banderaNacionalidad, @NonNull TextView categoriaTrabajo,
+  private ItemCargaSeguidoresSeguidosBinding(@NonNull RelativeLayout rootView,
+      @NonNull CircleImageView banderaNacionalidad, @NonNull ProgressBar cargaContenido,
+      @NonNull TextView categoriaTrabajo, @NonNull AppCompatButton dejarSeguir,
       @NonNull FrameLayout frameLayoutImg, @NonNull CircleImageView imgPerfil,
       @NonNull LinearLayout linealNacionalidaUser, @NonNull LinearLayout linealNombreUser,
-      @NonNull LinearLayout listener, @NonNull TextView nacionalidadUser,
+      @NonNull RelativeLayout listener, @NonNull TextView nacionalidadUser,
       @NonNull TextView nombreUser, @NonNull CircularProgressIndicator progreesCarga,
-      @NonNull Button seguir, @NonNull ImageView verificadoIcono) {
+      @NonNull LinearLayout realtiveCarga, @NonNull AppCompatButton seguir,
+      @NonNull AppCompatButton verPerfil, @NonNull ImageView verificadoIcono) {
     this.rootView = rootView;
     this.banderaNacionalidad = banderaNacionalidad;
+    this.cargaContenido = cargaContenido;
     this.categoriaTrabajo = categoriaTrabajo;
+    this.dejarSeguir = dejarSeguir;
     this.frameLayoutImg = frameLayoutImg;
     this.imgPerfil = imgPerfil;
     this.linealNacionalidaUser = linealNacionalidaUser;
@@ -78,13 +96,15 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
     this.nacionalidadUser = nacionalidadUser;
     this.nombreUser = nombreUser;
     this.progreesCarga = progreesCarga;
+    this.realtiveCarga = realtiveCarga;
     this.seguir = seguir;
+    this.verPerfil = verPerfil;
     this.verificadoIcono = verificadoIcono;
   }
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -115,9 +135,21 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.carga_contenido;
+      ProgressBar cargaContenido = ViewBindings.findChildViewById(rootView, id);
+      if (cargaContenido == null) {
+        break missingId;
+      }
+
       id = R.id.categoria_trabajo;
       TextView categoriaTrabajo = ViewBindings.findChildViewById(rootView, id);
       if (categoriaTrabajo == null) {
+        break missingId;
+      }
+
+      id = R.id.dejarSeguir;
+      AppCompatButton dejarSeguir = ViewBindings.findChildViewById(rootView, id);
+      if (dejarSeguir == null) {
         break missingId;
       }
 
@@ -145,7 +177,7 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
         break missingId;
       }
 
-      LinearLayout listener = (LinearLayout) rootView;
+      RelativeLayout listener = (RelativeLayout) rootView;
 
       id = R.id.nacionalidad_user;
       TextView nacionalidadUser = ViewBindings.findChildViewById(rootView, id);
@@ -165,9 +197,21 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.realtive_carga;
+      LinearLayout realtiveCarga = ViewBindings.findChildViewById(rootView, id);
+      if (realtiveCarga == null) {
+        break missingId;
+      }
+
       id = R.id.seguir;
-      Button seguir = ViewBindings.findChildViewById(rootView, id);
+      AppCompatButton seguir = ViewBindings.findChildViewById(rootView, id);
       if (seguir == null) {
+        break missingId;
+      }
+
+      id = R.id.ver_perfil;
+      AppCompatButton verPerfil = ViewBindings.findChildViewById(rootView, id);
+      if (verPerfil == null) {
         break missingId;
       }
 
@@ -177,9 +221,10 @@ public final class ItemCargaSeguidoresSeguidosBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemCargaSeguidoresSeguidosBinding((LinearLayout) rootView, banderaNacionalidad,
-          categoriaTrabajo, frameLayoutImg, imgPerfil, linealNacionalidaUser, linealNombreUser,
-          listener, nacionalidadUser, nombreUser, progreesCarga, seguir, verificadoIcono);
+      return new ItemCargaSeguidoresSeguidosBinding((RelativeLayout) rootView, banderaNacionalidad,
+          cargaContenido, categoriaTrabajo, dejarSeguir, frameLayoutImg, imgPerfil,
+          linealNacionalidaUser, linealNombreUser, listener, nacionalidadUser, nombreUser,
+          progreesCarga, realtiveCarga, seguir, verPerfil, verificadoIcono);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

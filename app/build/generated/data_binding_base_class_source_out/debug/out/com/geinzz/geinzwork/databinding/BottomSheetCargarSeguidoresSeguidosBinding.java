@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,13 +25,17 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
+  public final ProgressBar progresVarCarga;
+
+  @NonNull
   public final RecyclerView recycleCargarSeguidosSeguidores;
 
   private BottomSheetCargarSeguidoresSeguidosBinding(@NonNull LinearLayout rootView,
-      @NonNull BottomSheetDragHandleView cerrar,
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull ProgressBar progresVarCarga,
       @NonNull RecyclerView recycleCargarSeguidosSeguidores) {
     this.rootView = rootView;
     this.cerrar = cerrar;
+    this.progresVarCarga = progresVarCarga;
     this.recycleCargarSeguidosSeguidores = recycleCargarSeguidosSeguidores;
   }
 
@@ -68,6 +73,12 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
         break missingId;
       }
 
+      id = R.id.progresVar_carga;
+      ProgressBar progresVarCarga = ViewBindings.findChildViewById(rootView, id);
+      if (progresVarCarga == null) {
+        break missingId;
+      }
+
       id = R.id.recycleCargar_seguidos_Seguidores;
       RecyclerView recycleCargarSeguidosSeguidores = ViewBindings.findChildViewById(rootView, id);
       if (recycleCargarSeguidosSeguidores == null) {
@@ -75,7 +86,7 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
       }
 
       return new BottomSheetCargarSeguidoresSeguidosBinding((LinearLayout) rootView, cerrar,
-          recycleCargarSeguidosSeguidores);
+          progresVarCarga, recycleCargarSeguidosSeguidores);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

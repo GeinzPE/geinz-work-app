@@ -1,6 +1,8 @@
 package com.example.geinzwork.adapterViewholder
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -8,6 +10,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
 import com.geinzz.geinzwork.R
@@ -19,7 +22,9 @@ import de.hdodenhof.circleimageview.CircleImageView
 
 class adapter_seguidores_seguidos(
     private val lista: MutableList<dataclass_seguidores_seguidos>,
-    private val listener: (dataclass_seguidores_seguidos) -> Unit
+    private val listener: (dataclass_seguidores_seguidos) -> Unit,
+    private val seguir: (dataclass_seguidores_seguidos) -> Unit,
+    private val dejar_seguir: (dataclass_seguidores_seguidos) -> Unit
 ) :
     RecyclerView.Adapter<adapter_seguidores_seguidos.viewholderSeguidores_Seguidos>() {
     private lateinit var firebaseAuth: FirebaseAuth
@@ -47,6 +52,7 @@ class adapter_seguidores_seguidos(
     inner class viewholderSeguidores_Seguidos(private val binding: ItemCargaSeguidoresSeguidosBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun render(item: dataclass_seguidores_seguidos) {
+            val inicio = System.currentTimeMillis()
             binding.categoriaTrabajo.text = item.tipo_trabajado
             binding.nombreUser.text = item.nombre_trabajador
             binding.nacionalidadUser.text = item.nacionalidad
@@ -90,9 +96,28 @@ class adapter_seguidores_seguidos(
             binding.listener.setOnClickListener {
                 listener(item)
             }
-            firebaseAuth=FirebaseAuth.getInstance()
-            verificar_seguimiento(binding, item.id_trabajador.toString(), firebaseAuth.uid.toString())
+            firebaseAuth = FirebaseAuth.getInstance()
+            verificar_seguimiento(
+                binding,
+                item.id_trabajador.toString(),
+                firebaseAuth.uid.toString(), itemView.context
+            )
 
+            binding.seguir.setOnClickListener {
+                seguir(item)
+            }
+            binding.dejarSeguir.setOnClickListener {
+                dejar_seguir(item)
+            }
+
+            binding.verPerfil.setOnClickListener {
+                listener(item)
+            }
+            val fin = System.currentTimeMillis()
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.cargaContenido.isVisible = false
+                binding.realtiveCarga.isVisible = true
+            }, 100)
         }
 
     }
@@ -100,7 +125,8 @@ class adapter_seguidores_seguidos(
     private fun verificar_seguimiento(
         binding: ItemCargaSeguidoresSeguidosBinding,
         id_trabajadores: String,
-        id_user_registrado: String
+        id_user_registrado: String,
+        context: Context
     ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id_trabajadores)
@@ -108,18 +134,41 @@ class adapter_seguidores_seguidos(
 
         db.get().addOnSuccessListener { res ->
             for (datos in res) {
-                if(datos.exists()){
+                if (datos.exists()) {
                     val data = datos.data
                     val id = data?.get("id") as? String ?: ""
-                    if (id == id_user_registrado) {
-                        binding.seguir.text = "deja de seguir"
+                    if (id_trabajadores == id_user_registrado) {
+                        binding.dejarSeguir.isVisible = false
+                        binding.seguir.isVisible = false
+                        binding.verPerfil.isVisible = true
+                        constantes_trabajadores_info.aplicarEstiloPorDefecto(
+                            binding.verPerfil,
+                            context
+                        )
                     } else {
-                        binding.seguir.text = "seguir"
+                        if (id == id_user_registrado) {
+                            binding.dejarSeguir.isVisible = true
+                            binding.seguir.isVisible = false
+                            constantes_trabajadores_info.aplicarEstiloSigueindo(
+                                binding.dejarSeguir,
+                                context
+                            )
+                        } else {
+                            constantes_trabajadores_info.aplicarEstiloPorDefecto(
+                                binding.seguir,
+                                context
+                            )
+                            binding.dejarSeguir.isVisible = false
+                            binding.seguir.isVisible = true
+                        }
                     }
+
                 }
             }
         }.addOnFailureListener { e ->
             println("no se econtro el usuario")
         }
     }
+
+
 }
