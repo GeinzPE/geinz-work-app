@@ -90,6 +90,32 @@ object constantestextos_general {
         }
     }
 
+    fun extender_acortar_texto2(descripcion: TextView, tvReadMore: TextView) {
+        descripcion.viewTreeObserver.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                descripcion.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                if (descripcion.lineCount >= 2) {
+                    tvReadMore.isVisible = true
+                    println("el texo es lagor $descripcion")
+                } else {
+                    tvReadMore.isVisible = false
+                }
+            }
+        })
+
+        tvReadMore.setOnClickListener {
+            if (tvReadMore.text == "Leer más") {
+                descripcion.maxLines = Integer.MAX_VALUE
+                tvReadMore.text = "Leer menos"
+            } else {
+                descripcion.maxLines = 2
+                tvReadMore.text = "Leer más"
+            }
+        }
+    }
+
+
     fun marcarDescuentoTxt(
         textViewPriceBefore: TextView,
         ) {

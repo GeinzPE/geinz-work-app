@@ -1336,7 +1336,7 @@ class info : Fragment() {
                 categoria_trabajadorReturn("$categoriaTrabajo")
 
 
-                constantestextos_general.extender_acortar_texto(
+                constantestextos_general.extender_acortar_texto2(
                     binding.caracteristica1,
                     binding.tvReadMore
                 )

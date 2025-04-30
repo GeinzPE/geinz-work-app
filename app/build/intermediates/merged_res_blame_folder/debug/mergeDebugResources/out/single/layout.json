@@ -56,10 +56,6 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\activity_ver_mas_anuncios_tiendas.xml"
     },
     {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/item_carga_seguidores_seguidos.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/item_carga_seguidores_seguidos.xml"
-    },
-    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_productos_usuarios_verificados.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_productos_usuarios_verificados.xml"
     },
@@ -218,6 +214,10 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\item_mas_publicidades_geinz.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\item_mas_publicidades_geinz.xml"
+    },
+    {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/fragment_info.xml",
+        "source": "com.geinzz.geinzwork.app-main-58:/layout/fragment_info.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_redes.xml",
@@ -626,10 +626,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottom_sheet_informacion_publicidad_noticias_servicios_geinz.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-58:\\layout\\bottom_sheet_informacion_publicidad_noticias_servicios_geinz.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-55:/layout/bottom_sheet_cargar_seguidores_seguidos.xml",
-        "source": "com.geinzz.geinzwork.app-main-58:/layout/bottom_sheet_cargar_seguidores_seguidos.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-55:\\layout\\bottomshetet_detalles_servicios.xml",
