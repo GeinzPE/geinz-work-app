@@ -3,6 +3,7 @@ package com.example.geinzwork.adapterViewholder
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -128,47 +129,61 @@ class adapter_seguidores_seguidos(
         id_user_registrado: String,
         context: Context
     ) {
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(id_trabajadores)
+        // El usuario no puede seguirse a sí mismo
+        if (id_trabajadores == id_user_registrado) {
+            binding.dejarSeguir.isVisible = false
+            binding.seguir.isVisible = false
+            binding.verPerfil.isVisible = true
+
+            constantes_trabajadores_info.aplicarEstiloPorDefecto(
+                binding.verPerfil,
+                context
+            )
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(id_trabajadores)
             .collection("seguidores")
 
         db.get().addOnSuccessListener { res ->
-            for (datos in res) {
-                if (datos.exists()) {
-                    val data = datos.data
-                    val id = data?.get("id") as? String ?: ""
-                    if (id_trabajadores == id_user_registrado) {
-                        binding.dejarSeguir.isVisible = false
-                        binding.seguir.isVisible = false
-                        binding.verPerfil.isVisible = true
-                        constantes_trabajadores_info.aplicarEstiloPorDefecto(
-                            binding.verPerfil,
-                            context
-                        )
-                    } else {
-                        if (id == id_user_registrado) {
-                            binding.dejarSeguir.isVisible = true
-                            binding.seguir.isVisible = false
-                            constantes_trabajadores_info.aplicarEstiloSigueindo(
-                                binding.dejarSeguir,
-                                context
-                            )
-                        } else {
-                            constantes_trabajadores_info.aplicarEstiloPorDefecto(
-                                binding.seguir,
-                                context
-                            )
-                            binding.dejarSeguir.isVisible = false
-                            binding.seguir.isVisible = true
-                        }
-                    }
+            var encontrado = false
 
+            for (document in res) {
+                val idSeguidor = document.getString("id")
+                if (!idSeguidor.isNullOrEmpty() && idSeguidor == id_user_registrado) {
+                    // Ya lo sigue
+                    binding.dejarSeguir.isVisible = true
+                    binding.seguir.isVisible = false
+
+                    constantes_trabajadores_info.aplicarEstiloSigueindo(
+                        binding.dejarSeguir,
+                        context
+                    )
+                    encontrado = true
+                    break // Ya lo encontramos, no es necesario seguir iterando
                 }
             }
+
+            if (!encontrado) {
+                // No lo sigue aún
+                binding.dejarSeguir.isVisible = false
+                binding.seguir.isVisible = true
+
+                constantes_trabajadores_info.aplicarEstiloPorDefecto(
+                    binding.seguir,
+                    context
+                )
+            }
+
         }.addOnFailureListener { e ->
-            println("no se econtro el usuario")
+            Log.e("verificar_seguimiento", "Error al obtener seguidores: ${e.message}")
         }
     }
+
 
 
 }

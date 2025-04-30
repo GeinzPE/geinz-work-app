@@ -1071,7 +1071,9 @@ id linealRecicleCargandoRerf
 id linealRedes
 id linealReferencia
 id linealSakeBAr
+id linealSeguidores
 id linealServicios
+id linealSiguiendo
 id linealSinReportes
 id linealStokDisponible
 id linealSubir
@@ -1080,6 +1082,7 @@ id linealTipoTrabajo
 id linealTitulo
 id linealTotalDelivery
 id linealTotalPagar
+id linealTrabajadores
 id linealTrabajosRealziados
 id linealUbi
 id linealUbicacion

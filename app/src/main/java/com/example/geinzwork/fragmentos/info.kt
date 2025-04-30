@@ -161,12 +161,12 @@ class info : Fragment() {
         val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.layoutManager = customLayoutManager
 
-        binding.siguiendo.setOnClickListener {
+        binding.linealSiguiendo.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
             BottomSheet_cargarSeguidoresSeguidos(idTrabajador)
             dialog.show()
         }
-        binding.segidores.setOnClickListener {
+        binding.linealSeguidores.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
             BottomShett_carga_seguidores(idTrabajador)
             dialog.show()
@@ -582,7 +582,7 @@ class info : Fragment() {
     private fun onCargaSeguidoresCompleta(tiempoTotal: Long,binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding) {
         Handler(Looper.getMainLooper()).postDelayed({
             binding_bottom_sheet_seguidores.progresVarCarga.isVisible=false
-            binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible=true
+            binding_bottom_sheet_seguidores.linealTrabajadores.isVisible=true
         }, tiempoTotal)
     }
 
@@ -680,7 +680,7 @@ class info : Fragment() {
 
 
     private fun mostrarDatos() {
-//        binding.loading.isVisible = false
+        binding.loading.isVisible = false
         binding.linealappLayout.isVisible = true
         binding.swipe.isVisible = true
 

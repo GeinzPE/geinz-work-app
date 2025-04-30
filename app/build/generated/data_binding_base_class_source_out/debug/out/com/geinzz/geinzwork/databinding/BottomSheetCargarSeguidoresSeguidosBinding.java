@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView;
+import com.google.android.material.textfield.TextInputLayout;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -25,18 +27,31 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
+  public final TextInputLayout inputnombre;
+
+  @NonNull
+  public final LinearLayout linealTrabajadores;
+
+  @NonNull
   public final ProgressBar progresVarCarga;
 
   @NonNull
   public final RecyclerView recycleCargarSeguidosSeguidores;
 
+  @NonNull
+  public final EditText search;
+
   private BottomSheetCargarSeguidoresSeguidosBinding(@NonNull LinearLayout rootView,
-      @NonNull BottomSheetDragHandleView cerrar, @NonNull ProgressBar progresVarCarga,
-      @NonNull RecyclerView recycleCargarSeguidosSeguidores) {
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull TextInputLayout inputnombre,
+      @NonNull LinearLayout linealTrabajadores, @NonNull ProgressBar progresVarCarga,
+      @NonNull RecyclerView recycleCargarSeguidosSeguidores, @NonNull EditText search) {
     this.rootView = rootView;
     this.cerrar = cerrar;
+    this.inputnombre = inputnombre;
+    this.linealTrabajadores = linealTrabajadores;
     this.progresVarCarga = progresVarCarga;
     this.recycleCargarSeguidosSeguidores = recycleCargarSeguidosSeguidores;
+    this.search = search;
   }
 
   @Override
@@ -73,6 +88,18 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
         break missingId;
       }
 
+      id = R.id.inputnombre;
+      TextInputLayout inputnombre = ViewBindings.findChildViewById(rootView, id);
+      if (inputnombre == null) {
+        break missingId;
+      }
+
+      id = R.id.linealTrabajadores;
+      LinearLayout linealTrabajadores = ViewBindings.findChildViewById(rootView, id);
+      if (linealTrabajadores == null) {
+        break missingId;
+      }
+
       id = R.id.progresVar_carga;
       ProgressBar progresVarCarga = ViewBindings.findChildViewById(rootView, id);
       if (progresVarCarga == null) {
@@ -85,8 +112,15 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
         break missingId;
       }
 
+      id = R.id.search;
+      EditText search = ViewBindings.findChildViewById(rootView, id);
+      if (search == null) {
+        break missingId;
+      }
+
       return new BottomSheetCargarSeguidoresSeguidosBinding((LinearLayout) rootView, cerrar,
-          progresVarCarga, recycleCargarSeguidosSeguidores);
+          inputnombre, linealTrabajadores, progresVarCarga, recycleCargarSeguidosSeguidores,
+          search);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

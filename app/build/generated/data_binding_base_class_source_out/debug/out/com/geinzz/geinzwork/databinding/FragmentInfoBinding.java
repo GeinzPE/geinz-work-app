@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -97,6 +98,12 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final LinearLayout linealRedes;
 
   @NonNull
+  public final LinearLayout linealSeguidores;
+
+  @NonNull
+  public final LinearLayout linealSiguiendo;
+
+  @NonNull
   public final LinearLayout linealTrabajosRealziados;
 
   @NonNull
@@ -104,6 +111,9 @@ public final class FragmentInfoBinding implements ViewBinding {
 
   @NonNull
   public final LinearLayout linealtrabajadoresGeinz;
+
+  @NonNull
+  public final LinearLayoutCompat loading;
 
   @NonNull
   public final TextView localidadUser;
@@ -197,10 +207,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull LinearLayout innerRelativeLayout, @NonNull LinearLayout linealContenidoDesctipcion,
       @NonNull RelativeLayout linealNoSeEncontraron,
       @NonNull RelativeLayout linealProductosPublicados, @NonNull LinearLayout linealRedes,
+      @NonNull LinearLayout linealSeguidores, @NonNull LinearLayout linealSiguiendo,
       @NonNull LinearLayout linealTrabajosRealziados, @NonNull AppBarLayout linealappLayout,
-      @NonNull LinearLayout linealtrabajadoresGeinz, @NonNull TextView localidadUser,
-      @NonNull AppCompatButton masInformacion, @NonNull RelativeLayout mostrarSeguridos,
-      @NonNull ImageView mostrarSeguridosIMG, @NonNull RelativeLayout noSeEncontraronTrabajadores,
+      @NonNull LinearLayout linealtrabajadoresGeinz, @NonNull LinearLayoutCompat loading,
+      @NonNull TextView localidadUser, @NonNull AppCompatButton masInformacion,
+      @NonNull RelativeLayout mostrarSeguridos, @NonNull ImageView mostrarSeguridosIMG,
+      @NonNull RelativeLayout noSeEncontraronTrabajadores,
       @NonNull TextView noSeEncontraronTrabajos, @NonNull RelativeLayout noSeEncontroPublicaciones,
       @NonNull TextView nombre, @NonNull ImageView notificaciones, @NonNull View overlay,
       @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
@@ -234,9 +246,12 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.linealNoSeEncontraron = linealNoSeEncontraron;
     this.linealProductosPublicados = linealProductosPublicados;
     this.linealRedes = linealRedes;
+    this.linealSeguidores = linealSeguidores;
+    this.linealSiguiendo = linealSiguiendo;
     this.linealTrabajosRealziados = linealTrabajosRealziados;
     this.linealappLayout = linealappLayout;
     this.linealtrabajadoresGeinz = linealtrabajadoresGeinz;
+    this.loading = loading;
     this.localidadUser = localidadUser;
     this.masInformacion = masInformacion;
     this.mostrarSeguridos = mostrarSeguridos;
@@ -419,6 +434,18 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.linealSeguidores;
+      LinearLayout linealSeguidores = ViewBindings.findChildViewById(rootView, id);
+      if (linealSeguidores == null) {
+        break missingId;
+      }
+
+      id = R.id.linealSiguiendo;
+      LinearLayout linealSiguiendo = ViewBindings.findChildViewById(rootView, id);
+      if (linealSiguiendo == null) {
+        break missingId;
+      }
+
       id = R.id.linealTrabajosRealziados;
       LinearLayout linealTrabajosRealziados = ViewBindings.findChildViewById(rootView, id);
       if (linealTrabajosRealziados == null) {
@@ -434,6 +461,12 @@ public final class FragmentInfoBinding implements ViewBinding {
       id = R.id.linealtrabajadoresGeinz;
       LinearLayout linealtrabajadoresGeinz = ViewBindings.findChildViewById(rootView, id);
       if (linealtrabajadoresGeinz == null) {
+        break missingId;
+      }
+
+      id = R.id.loading;
+      LinearLayoutCompat loading = ViewBindings.findChildViewById(rootView, id);
+      if (loading == null) {
         break missingId;
       }
 
@@ -604,12 +637,13 @@ public final class FragmentInfoBinding implements ViewBinding {
           categoriaTipoTrabajo, circle, dejarDeSeguirOSeguir, descripcionTrabajador, estado, fb,
           fechaCreacionCuenta, ig, imgPerfilUser, imgPortada, innerRelativeLayout,
           linealContenidoDesctipcion, linealNoSeEncontraron, linealProductosPublicados, linealRedes,
-          linealTrabajosRealziados, linealappLayout, linealtrabajadoresGeinz, localidadUser,
-          masInformacion, mostrarSeguridos, mostrarSeguridosIMG, noSeEncontraronTrabajadores,
-          noSeEncontraronTrabajos, noSeEncontroPublicaciones, nombre, notificaciones, overlay,
-          popup, productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
-          relativeLayout, scroll, segidores, siguiendo, swipe, telefono, tk, trabajadoresSimilares,
-          tvReadMore, verMasTrabajadores, verificado, verificadoTXT);
+          linealSeguidores, linealSiguiendo, linealTrabajosRealziados, linealappLayout,
+          linealtrabajadoresGeinz, loading, localidadUser, masInformacion, mostrarSeguridos,
+          mostrarSeguridosIMG, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
+          noSeEncontroPublicaciones, nombre, notificaciones, overlay, popup, productosDestacados,
+          progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
+          segidores, siguiendo, swipe, telefono, tk, trabajadoresSimilares, tvReadMore,
+          verMasTrabajadores, verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
