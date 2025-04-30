@@ -5945,6 +5945,7 @@ id noEncontradoLocalidades
 id noEncontrado_producto
 id noEncontradocat
 id noEnctrado
+id noHay_user
 id noScroll
 id noSeEncontro
 id noState

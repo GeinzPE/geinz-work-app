@@ -1227,6 +1227,7 @@ id noEncontradoLocalidades
 id noEncontrado_producto
 id noEncontradocat
 id noEnctrado
+id noHay_user
 id noSeEncontro
 id no_encontrado
 id no_garantia

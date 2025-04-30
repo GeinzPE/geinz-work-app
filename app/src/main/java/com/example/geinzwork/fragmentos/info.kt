@@ -27,10 +27,10 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.adapterViewholder.adapter_seguidores_seguidos
@@ -48,9 +48,7 @@ import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajo_realizados
 import com.geinzz.geinzwork.constantesGeneral.constantes
-import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
-import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
@@ -64,7 +62,6 @@ import com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formul
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.errorprone.annotations.Var
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.dynamiclinks.androidParameters
@@ -99,7 +96,9 @@ class info : Fragment() {
     private var isNotificationOn = false
     private val tiempoParaContarVista: Long = 20000
     private var vistaTimer: CountDownTimer? = null
-    private var lista_seguidores = mutableListOf<dataclass_seguidores_seguidos>()
+    private lateinit var adapter_seguidores_seguidos:adapter_seguidores_seguidos
+    private val listaanunciosEncontrados = mutableListOf<dataclass_seguidores_seguidos>()
+
 
 
     companion object {
@@ -345,13 +344,25 @@ class info : Fragment() {
         val binding_bottom_sheet_seguidores =
             BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding_bottom_sheet_seguidores.root)
-
-        val lista_seguidores = mutableListOf<dataclass_seguidores_seguidos>()
         val tiempoInicio = System.currentTimeMillis()
-
+        listaanunciosEncontrados.clear()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(id_Trabajador_actual).collection("seguidos")
+
+        binding_bottom_sheet_seguidores.search.addTextChangedListener { textoBusqueda ->
+            val resultadosFiltrados = listaanunciosEncontrados.filter { nota ->
+                nota.nombre_trabajador!!.lowercase().contains(textoBusqueda.toString().lowercase())
+            }
+            adapter_seguidores_seguidos.actualizarLista(resultadosFiltrados)
+            if (resultadosFiltrados.isEmpty()) {
+                binding_bottom_sheet_seguidores.noHayUser.isVisible = true
+                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = false
+            } else {
+                binding_bottom_sheet_seguidores.noHayUser.isVisible = false
+                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = true
+            }
+        }
 
         val trabajador = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
@@ -366,7 +377,7 @@ class info : Fragment() {
         db.get().addOnSuccessListener { e ->
             val totalSeguidores = e.size()
             if (totalSeguidores == 0) {
-                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                 val tiempoFin = System.currentTimeMillis()
                 onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
                 return@addOnSuccessListener
@@ -397,11 +408,11 @@ class info : Fragment() {
                                 nacionalidad,
                                 verificado
                             )
-                            lista_seguidores.add(listaseguidor)
+                            listaanunciosEncontrados.add(listaseguidor)
 
                             seguidoresCargados++
                             if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 val tiempoFin = System.currentTimeMillis()
                                 onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
                             }
@@ -409,7 +420,7 @@ class info : Fragment() {
                         }.addOnFailureListener {
                             seguidoresCargados++
                             if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 val tiempoFin = System.currentTimeMillis()
                                 onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
                             }
@@ -429,11 +440,11 @@ class info : Fragment() {
                                 null,
                                 false
                             )
-                            lista_seguidores.add(listaseguidor)
+                            listaanunciosEncontrados.add(listaseguidor)
 
                             seguidoresCargados++
                             if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 val tiempoFin = System.currentTimeMillis()
                                 onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
                             }
@@ -441,7 +452,7 @@ class info : Fragment() {
                         }.addOnFailureListener {
                             seguidoresCargados++
                             if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 val tiempoFin = System.currentTimeMillis()
                                 onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
                             }
@@ -462,9 +473,21 @@ class info : Fragment() {
         val binding_bottom_sheet_seguidores =
             BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding_bottom_sheet_seguidores.root)
-
-        val lista_seguidores = mutableListOf<dataclass_seguidores_seguidos>()
         val tiempoInicio = System.currentTimeMillis()
+        listaanunciosEncontrados.clear()
+        binding_bottom_sheet_seguidores.search.addTextChangedListener { textoBusqueda ->
+            val resultadosFiltrados = listaanunciosEncontrados.filter { nota ->
+                nota.nombre_trabajador!!.lowercase().contains(textoBusqueda.toString().lowercase())
+            }
+            adapter_seguidores_seguidos.actualizarLista(resultadosFiltrados)
+            if (resultadosFiltrados.isEmpty()) {
+                binding_bottom_sheet_seguidores.noHayUser.isVisible = true
+                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = false
+            } else {
+                binding_bottom_sheet_seguidores.noHayUser.isVisible = false
+                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = true
+            }
+        }
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -485,7 +508,7 @@ class info : Fragment() {
             if (totalSeguidores == 0) {
                 val tiempoFin = System.currentTimeMillis()
                 val tiempoTotal = tiempoFin - tiempoInicio
-                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                 onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
                 return@addOnSuccessListener
             }
@@ -516,13 +539,12 @@ class info : Fragment() {
                                 nacionalidad,
                                 verificado
                             )
-                            lista_seguidores.add(listaseguidor)
-
+                            listaanunciosEncontrados.add(listaseguidor)
                             seguidoresCargados++
                             if (seguidoresCargados == totalSeguidores) {
                                 val tiempoFin = System.currentTimeMillis()
                                 val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
                             }
 
@@ -531,7 +553,7 @@ class info : Fragment() {
                             if (seguidoresCargados == totalSeguidores) {
                                 val tiempoFin = System.currentTimeMillis()
                                 val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
                             }
                         }
@@ -550,13 +572,13 @@ class info : Fragment() {
                                 null,
                                 false
                             )
-                            lista_seguidores.add(listaseguidor)
 
+                            listaanunciosEncontrados.add(listaseguidor)
                             seguidoresCargados++
                             if (seguidoresCargados == totalSeguidores) {
                                 val tiempoFin = System.currentTimeMillis()
                                 val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
                             }
 
@@ -565,7 +587,7 @@ class info : Fragment() {
                             if (seguidoresCargados == totalSeguidores) {
                                 val tiempoFin = System.currentTimeMillis()
                                 val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(lista_seguidores, binding_bottom_sheet_seguidores)
+                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
                                 onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
                             }
                         }
@@ -591,12 +613,7 @@ class info : Fragment() {
         lista_seguidores: MutableList<dataclass_seguidores_seguidos>,
         binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding
     ) {
-        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.adapter =
-            adapter_seguidores_seguidos(
-                lista_seguidores,
-                { item ->
+        adapter_seguidores_seguidos = adapter_seguidores_seguidos(lista_seguidores, { item ->
                     val vista_t = Intent(mContex, vistaTrabajador::class.java).apply {
                         putExtra(Variables.id, item.id_trabajador)
                         putExtra(Variables.imagenPerfil, item.img_perfil)
@@ -608,17 +625,15 @@ class info : Fragment() {
                     startActivity(vista_t)
                     requireActivity().finish()
                     dialog.dismiss()
-                },
-                seguir = { item ->
+                }, seguir = { item ->
                     seguirUsuario(item.id_trabajador)
                     dialog.dismiss()
-                },
-                dejar_seguir = { item ->
+                }, dejar_seguir = { item ->
                     constantes_trabajadores_info.dejarSeguirTrabajador(binding,item.id_trabajador.toString(),mContex,false)
                     dialog.dismiss()
-                },
-
-            )
+                },)
+        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.adapter=adapter_seguidores_seguidos
 
     }
 

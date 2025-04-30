@@ -8,21 +8,21 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.geinzwork.DiffUtilClass.difultil_Seguidores_seguidos
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ItemCargaSeguidoresSeguidosBinding
-import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import de.hdodenhof.circleimageview.CircleImageView
 
 class adapter_seguidores_seguidos(
-    private val lista: MutableList<dataclass_seguidores_seguidos>,
+    private var lista: List<dataclass_seguidores_seguidos>,
     private val listener: (dataclass_seguidores_seguidos) -> Unit,
     private val seguir: (dataclass_seguidores_seguidos) -> Unit,
     private val dejar_seguir: (dataclass_seguidores_seguidos) -> Unit
@@ -30,6 +30,12 @@ class adapter_seguidores_seguidos(
     RecyclerView.Adapter<adapter_seguidores_seguidos.viewholderSeguidores_Seguidos>() {
     private lateinit var firebaseAuth: FirebaseAuth
 
+    fun actualizarLista(newList:List<dataclass_seguidores_seguidos>){
+        val difutil=difultil_Seguidores_seguidos(lista,newList)
+        val result=DiffUtil.calculateDiff(difutil)
+        lista = newList
+        result.dispatchUpdatesTo(this)
+    }
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -129,16 +135,15 @@ class adapter_seguidores_seguidos(
         id_user_registrado: String,
         context: Context
     ) {
+        // Reiniciar visibilidades siempre que se llame
+        binding.verPerfil.isVisible = false
+        binding.seguir.isVisible = false
+        binding.dejarSeguir.isVisible = false
+
         // El usuario no puede seguirse a sí mismo
         if (id_trabajadores == id_user_registrado) {
-            binding.dejarSeguir.isVisible = false
-            binding.seguir.isVisible = false
             binding.verPerfil.isVisible = true
-
-            constantes_trabajadores_info.aplicarEstiloPorDefecto(
-                binding.verPerfil,
-                context
-            )
+            constantes_trabajadores_info.aplicarEstiloPorDefecto(binding.verPerfil, context)
             return
         }
 
@@ -150,39 +155,21 @@ class adapter_seguidores_seguidos(
             .collection("seguidores")
 
         db.get().addOnSuccessListener { res ->
-            var encontrado = false
+            val loSigue = res.any { it.getString("id") == id_user_registrado }
 
-            for (document in res) {
-                val idSeguidor = document.getString("id")
-                if (!idSeguidor.isNullOrEmpty() && idSeguidor == id_user_registrado) {
-                    // Ya lo sigue
-                    binding.dejarSeguir.isVisible = true
-                    binding.seguir.isVisible = false
-
-                    constantes_trabajadores_info.aplicarEstiloSigueindo(
-                        binding.dejarSeguir,
-                        context
-                    )
-                    encontrado = true
-                    break // Ya lo encontramos, no es necesario seguir iterando
-                }
-            }
-
-            if (!encontrado) {
-                // No lo sigue aún
-                binding.dejarSeguir.isVisible = false
+            if (loSigue) {
+                binding.dejarSeguir.isVisible = true
+                constantes_trabajadores_info.aplicarEstiloSigueindo(binding.dejarSeguir, context)
+            } else {
                 binding.seguir.isVisible = true
-
-                constantes_trabajadores_info.aplicarEstiloPorDefecto(
-                    binding.seguir,
-                    context
-                )
+                constantes_trabajadores_info.aplicarEstiloPorDefecto(binding.seguir, context)
             }
 
         }.addOnFailureListener { e ->
             Log.e("verificar_seguimiento", "Error al obtener seguidores: ${e.message}")
         }
     }
+
 
 
 

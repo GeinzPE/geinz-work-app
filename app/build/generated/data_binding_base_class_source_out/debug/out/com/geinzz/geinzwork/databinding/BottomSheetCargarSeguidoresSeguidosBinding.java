@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,6 +34,9 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
   public final LinearLayout linealTrabajadores;
 
   @NonNull
+  public final TextView noHayUser;
+
+  @NonNull
   public final ProgressBar progresVarCarga;
 
   @NonNull
@@ -43,12 +47,14 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
 
   private BottomSheetCargarSeguidoresSeguidosBinding(@NonNull LinearLayout rootView,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull TextInputLayout inputnombre,
-      @NonNull LinearLayout linealTrabajadores, @NonNull ProgressBar progresVarCarga,
-      @NonNull RecyclerView recycleCargarSeguidosSeguidores, @NonNull EditText search) {
+      @NonNull LinearLayout linealTrabajadores, @NonNull TextView noHayUser,
+      @NonNull ProgressBar progresVarCarga, @NonNull RecyclerView recycleCargarSeguidosSeguidores,
+      @NonNull EditText search) {
     this.rootView = rootView;
     this.cerrar = cerrar;
     this.inputnombre = inputnombre;
     this.linealTrabajadores = linealTrabajadores;
+    this.noHayUser = noHayUser;
     this.progresVarCarga = progresVarCarga;
     this.recycleCargarSeguidosSeguidores = recycleCargarSeguidosSeguidores;
     this.search = search;
@@ -100,6 +106,12 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
         break missingId;
       }
 
+      id = R.id.noHay_user;
+      TextView noHayUser = ViewBindings.findChildViewById(rootView, id);
+      if (noHayUser == null) {
+        break missingId;
+      }
+
       id = R.id.progresVar_carga;
       ProgressBar progresVarCarga = ViewBindings.findChildViewById(rootView, id);
       if (progresVarCarga == null) {
@@ -119,8 +131,8 @@ public final class BottomSheetCargarSeguidoresSeguidosBinding implements ViewBin
       }
 
       return new BottomSheetCargarSeguidoresSeguidosBinding((LinearLayout) rootView, cerrar,
-          inputnombre, linealTrabajadores, progresVarCarga, recycleCargarSeguidosSeguidores,
-          search);
+          inputnombre, linealTrabajadores, noHayUser, progresVarCarga,
+          recycleCargarSeguidosSeguidores, search);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
