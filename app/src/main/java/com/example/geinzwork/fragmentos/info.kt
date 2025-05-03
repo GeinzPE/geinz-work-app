@@ -96,9 +96,8 @@ class info : Fragment() {
     private var isNotificationOn = false
     private val tiempoParaContarVista: Long = 20000
     private var vistaTimer: CountDownTimer? = null
-    private lateinit var adapter_seguidores_seguidos:adapter_seguidores_seguidos
+    private lateinit var adapter_seguidores_seguidos: adapter_seguidores_seguidos
     private val listaanunciosEncontrados = mutableListOf<dataclass_seguidores_seguidos>()
-
 
 
     companion object {
@@ -344,25 +343,14 @@ class info : Fragment() {
         val binding_bottom_sheet_seguidores =
             BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding_bottom_sheet_seguidores.root)
+        dialog.show() // Mostrar el diálogo desde el inicio
+
         val tiempoInicio = System.currentTimeMillis()
         listaanunciosEncontrados.clear()
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(id_Trabajador_actual).collection("seguidos")
-
-        binding_bottom_sheet_seguidores.search.addTextChangedListener { textoBusqueda ->
-            val resultadosFiltrados = listaanunciosEncontrados.filter { nota ->
-                nota.nombre_trabajador!!.lowercase().contains(textoBusqueda.toString().lowercase())
-            }
-            adapter_seguidores_seguidos.actualizarLista(resultadosFiltrados)
-            if (resultadosFiltrados.isEmpty()) {
-                binding_bottom_sheet_seguidores.noHayUser.isVisible = true
-                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = false
-            } else {
-                binding_bottom_sheet_seguidores.noHayUser.isVisible = false
-                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = true
-            }
-        }
 
         val trabajador = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
@@ -374,121 +362,113 @@ class info : Fragment() {
             .document(Variables.usuarios_db)
             .collection(Variables.usuarios_db)
 
+        // Filtro de búsqueda
+        binding_bottom_sheet_seguidores.search.addTextChangedListener { textoBusqueda ->
+            val resultadosFiltrados = listaanunciosEncontrados.filter { nota ->
+                nota.nombre_trabajador!!.lowercase().contains(textoBusqueda.toString().lowercase())
+            }
+            adapter_seguidores_seguidos.actualizarLista(resultadosFiltrados)
+            binding_bottom_sheet_seguidores.noHayUser.isVisible = resultadosFiltrados.isEmpty()
+            binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible =
+                resultadosFiltrados.isNotEmpty()
+        }
+
+        // Función para manejar el final de la carga
+        fun verificarFinalCarga(inicio: Long) {
+            val tiempoFin = System.currentTimeMillis()
+            if (listaanunciosEncontrados.isEmpty()) {
+                binding_bottom_sheet_seguidores.progresVarCarga.isVisible = false
+                binding_bottom_sheet_seguidores.noHayUser.isVisible = true
+                binding_bottom_sheet_seguidores.linealTrabajadores.isVisible = false
+            } else {
+                inizialar_seguir_seguidores(
+                    listaanunciosEncontrados,
+                    binding_bottom_sheet_seguidores
+                )
+                onCargaSeguidoresCompleta(tiempoFin - inicio, binding_bottom_sheet_seguidores)
+            }
+        }
+
         db.get().addOnSuccessListener { e ->
-            val totalSeguidores = e.size()
-            if (totalSeguidores == 0) {
-                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                val tiempoFin = System.currentTimeMillis()
-                onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
+            val totalSeguidos = e.size()
+            if (totalSeguidos == 0) {
+                verificarFinalCarga(tiempoInicio)
                 return@addOnSuccessListener
             }
 
-            var seguidoresCargados = 0
+            var seguidosCargados = 0
 
             for (datos in e) {
-                val data = datos.data
-                val id = data?.get("id") as? String ?: ""
+                val id = datos.getString("id") ?: ""
 
                 constantes.pertenecia_trabajador_user(id) { es_trabajador ->
-                    if (es_trabajador) {
-                        trabajador.document(id).get().addOnSuccessListener { res ->
-                            val data = res.data
-                            val nombre = data?.get("nombre") as? String ?: ""
-                            val apellido = data?.get("apellido") as? String ?: ""
-                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
-                            val tipoTrabajo = data?.get("tipoTrabajo") as? String ?: ""
-                            val nacionalidad = data?.get("nacionalidad") as? String ?: ""
-                            val verificado = data?.get("verificado") as? Boolean ?: false
+                    val ref = if (es_trabajador) trabajador.document(id) else user.document(id)
 
-                            val listaseguidor = dataclass_seguidores_seguidos(
-                                id,
-                                imagenPerfil,
-                                "$nombre $apellido",
-                                tipoTrabajo,
-                                nacionalidad,
-                                verificado
-                            )
-                            listaanunciosEncontrados.add(listaseguidor)
+                    ref.get().addOnSuccessListener { res ->
+                        val data = res.data
+                        val nombre = data?.get("nombre") as? String ?: ""
+                        val apellido = data?.get("apellido") as? String ?: ""
+                        val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
+                        val tipoTrabajo = data?.get("tipoTrabajo") as? String?
+                        val nacionalidad = data?.get("nacionalidad") as? String?
+                        val verificado = data?.get("verificado") as? Boolean ?: false
 
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                val tiempoFin = System.currentTimeMillis()
-                                onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
-                            }
+                        val listaseguidor = dataclass_seguidores_seguidos(
+                            id,
+                            imagenPerfil,
+                            "$nombre $apellido",
+                            tipoTrabajo,
+                            nacionalidad,
+                            verificado
+                        )
+                        listaanunciosEncontrados.add(listaseguidor)
+                        seguidosCargados++
 
-                        }.addOnFailureListener {
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                val tiempoFin = System.currentTimeMillis()
-                                onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
-                            }
+                        if (seguidosCargados == totalSeguidos) {
+                            verificarFinalCarga(tiempoInicio)
                         }
-                    } else {
-                        user.document(id).get().addOnSuccessListener { res ->
-                            val data = res.data
-                            val nombre = data?.get("nombre") as? String ?: ""
-                            val apellido = data?.get("apellido") as? String ?: ""
-                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
 
-                            val listaseguidor = dataclass_seguidores_seguidos(
-                                id,
-                                imagenPerfil,
-                                "$nombre $apellido",
-                                null,
-                                null,
-                                false
-                            )
-                            listaanunciosEncontrados.add(listaseguidor)
-
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                val tiempoFin = System.currentTimeMillis()
-                                onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
-                            }
-
-                        }.addOnFailureListener {
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                val tiempoFin = System.currentTimeMillis()
-                                onCargaSeguidoresCompleta(tiempoFin - tiempoInicio,binding_bottom_sheet_seguidores)
-                            }
+                    }.addOnFailureListener {
+                        seguidosCargados++
+                        if (seguidosCargados == totalSeguidos) {
+                            verificarFinalCarga(tiempoInicio)
                         }
                     }
                 }
             }
         }.addOnFailureListener {
-            println("No se pudo cargar la lista de seguidos")
+            Log.e("Seguidos", "No se pudo cargar la lista de seguidos", it)
+            Toast.makeText(
+                binding_bottom_sheet_seguidores.root.context,
+                "Error al cargar seguidos",
+                Toast.LENGTH_SHORT
+            ).show()
+            binding_bottom_sheet_seguidores.progresVarCarga.isVisible = false
         }
-
-        dialog.show()
     }
-
 
 
     private fun BottomShett_carga_seguidores(id_Trabajador_actual: String) {
         val binding_bottom_sheet_seguidores =
             BottomSheetCargarSeguidoresSeguidosBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding_bottom_sheet_seguidores.root)
+        dialog.show() // Mostrar el diálogo inmediatamente
+
         val tiempoInicio = System.currentTimeMillis()
         listaanunciosEncontrados.clear()
+
+        // Filtro de búsqueda
         binding_bottom_sheet_seguidores.search.addTextChangedListener { textoBusqueda ->
             val resultadosFiltrados = listaanunciosEncontrados.filter { nota ->
                 nota.nombre_trabajador!!.lowercase().contains(textoBusqueda.toString().lowercase())
             }
             adapter_seguidores_seguidos.actualizarLista(resultadosFiltrados)
-            if (resultadosFiltrados.isEmpty()) {
-                binding_bottom_sheet_seguidores.noHayUser.isVisible = true
-                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = false
-            } else {
-                binding_bottom_sheet_seguidores.noHayUser.isVisible = false
-                binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible = true
-            }
+            binding_bottom_sheet_seguidores.noHayUser.isVisible = resultadosFiltrados.isEmpty()
+            binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.isVisible =
+                resultadosFiltrados.isNotEmpty()
         }
 
+        // Refs de Firebase
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(id_Trabajador_actual).collection("seguidores")
@@ -503,108 +483,80 @@ class info : Fragment() {
             .document(Variables.usuarios_db)
             .collection(Variables.usuarios_db)
 
+        // Función reutilizable para verificar estado
+        fun verificarListaYMostrarEstado() {
+            if (listaanunciosEncontrados.isEmpty()) {
+                binding_bottom_sheet_seguidores.progresVarCarga.isVisible = false
+                binding_bottom_sheet_seguidores.noHayUser.isVisible = true
+                binding_bottom_sheet_seguidores.linealTrabajadores.isVisible = false
+            } else {
+                val tiempoFin = System.currentTimeMillis()
+                val tiempoTotal = tiempoFin - tiempoInicio
+                inizialar_seguir_seguidores(
+                    listaanunciosEncontrados,
+                    binding_bottom_sheet_seguidores
+                )
+                onCargaSeguidoresCompleta(tiempoTotal, binding_bottom_sheet_seguidores)
+            }
+        }
+
         db.get().addOnSuccessListener { e ->
             val totalSeguidores = e.size()
             if (totalSeguidores == 0) {
-                val tiempoFin = System.currentTimeMillis()
-                val tiempoTotal = tiempoFin - tiempoInicio
-                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
+                verificarListaYMostrarEstado()
                 return@addOnSuccessListener
             }
 
             var seguidoresCargados = 0
 
             for (datos in e) {
-                val data = datos.data
-                val id = data?.get("id") as? String ?: ""
-
+                val id = datos.getString("id") ?: ""
                 constantes.pertenecia_trabajador_user(id) { es_trabajador ->
-                    if (es_trabajador) {
-                        trabajador.document(id).get().addOnSuccessListener { res ->
-                            val data = res.data
-                            val nombre = data?.get("nombre") as? String ?: ""
-                            val apellido = data?.get("apellido") as? String ?: ""
-                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
-                            val tipoTrabajo = data?.get("tipoTrabajo") as? String ?: ""
-                            val nacionalidad = data?.get("nacionalidad") as? String ?: ""
-                            val id = data?.get("id") as? String ?: ""
-                            val verificado = data?.get("verificado") as? Boolean ?: false
+                    val ref = if (es_trabajador) trabajador.document(id) else user.document(id)
+                    ref.get().addOnSuccessListener { res ->
+                        val data = res.data
+                        val nombre = data?.get("nombre") as? String ?: ""
+                        val apellido = data?.get("apellido") as? String ?: ""
+                        val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
+                        val tipoTrabajo = data?.get("tipoTrabajo") as? String?
+                        val nacionalidad = data?.get("nacionalidad") as? String?
+                        val verificado = data?.get("verificado") as? Boolean ?: false
 
-                            val listaseguidor = dataclass_seguidores_seguidos(
-                                id,
-                                imagenPerfil,
-                                "$nombre $apellido",
-                                tipoTrabajo,
-                                nacionalidad,
-                                verificado
-                            )
-                            listaanunciosEncontrados.add(listaseguidor)
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                val tiempoFin = System.currentTimeMillis()
-                                val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
-                            }
-
-                        }.addOnFailureListener {
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                val tiempoFin = System.currentTimeMillis()
-                                val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
-                            }
-                        }
-                    } else {
-                        user.document(id).get().addOnSuccessListener { res ->
-                            val data = res.data
-                            val nombre = data?.get("nombre") as? String ?: ""
-                            val apellido = data?.get("apellido") as? String ?: ""
-                            val imagenPerfil = data?.get("imagenPerfil") as? String ?: ""
-
-                            val listaseguidor = dataclass_seguidores_seguidos(
-                                id,
-                                imagenPerfil,
-                                "$nombre $apellido",
-                                null,
-                                null,
-                                false
-                            )
-
-                            listaanunciosEncontrados.add(listaseguidor)
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                val tiempoFin = System.currentTimeMillis()
-                                val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
-                            }
-
-                        }.addOnFailureListener {
-                            seguidoresCargados++
-                            if (seguidoresCargados == totalSeguidores) {
-                                val tiempoFin = System.currentTimeMillis()
-                                val tiempoTotal = tiempoFin - tiempoInicio
-                                inizialar_seguir_seguidores(listaanunciosEncontrados, binding_bottom_sheet_seguidores)
-                                onCargaSeguidoresCompleta(tiempoTotal,binding_bottom_sheet_seguidores)
-                            }
-                        }
+                        val listaseguidor = dataclass_seguidores_seguidos(
+                            id,
+                            imagenPerfil,
+                            "$nombre $apellido",
+                            tipoTrabajo,
+                            nacionalidad,
+                            verificado
+                        )
+                        listaanunciosEncontrados.add(listaseguidor)
+                        seguidoresCargados++
+                        if (seguidoresCargados == totalSeguidores) verificarListaYMostrarEstado()
+                    }.addOnFailureListener {
+                        seguidoresCargados++
+                        if (seguidoresCargados == totalSeguidores) verificarListaYMostrarEstado()
                     }
                 }
             }
         }.addOnFailureListener {
-            println("No se pudo cargar la lista de seguidos")
+            Log.e("Seguidores", "No se pudo cargar la lista de seguidos", it)
+            Toast.makeText(
+                binding_bottom_sheet_seguidores.root.context,
+                "Error al cargar seguidores",
+                Toast.LENGTH_SHORT
+            ).show()
+            binding_bottom_sheet_seguidores.progresVarCarga.isVisible = false
         }
-
-        dialog.show()
     }
 
-    private fun onCargaSeguidoresCompleta(tiempoTotal: Long,binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding) {
+    private fun onCargaSeguidoresCompleta(
+        tiempoTotal: Long,
+        binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding
+    ) {
         Handler(Looper.getMainLooper()).postDelayed({
-            binding_bottom_sheet_seguidores.progresVarCarga.isVisible=false
-            binding_bottom_sheet_seguidores.linealTrabajadores.isVisible=true
+            binding_bottom_sheet_seguidores.progresVarCarga.isVisible = false
+            binding_bottom_sheet_seguidores.linealTrabajadores.isVisible = true
         }, tiempoTotal)
     }
 
@@ -613,30 +565,41 @@ class info : Fragment() {
         lista_seguidores: MutableList<dataclass_seguidores_seguidos>,
         binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding
     ) {
-        adapter_seguidores_seguidos = adapter_seguidores_seguidos(lista_seguidores, { item ->
-                    val vista_t = Intent(mContex, vistaTrabajador::class.java).apply {
-                        putExtra(Variables.id, item.id_trabajador)
-                        putExtra(Variables.imagenPerfil, item.img_perfil)
-                        putExtra(Variables.nombreUSer, item.nombre_trabajador)
-                        putExtra(Variables.nacionalidad, item.nacionalidad)
-                        putExtra(Variables.categoria, item.tipo_trabajado)
-                    }
+        adapter_seguidores_seguidos = adapter_seguidores_seguidos(
+            lista_seguidores,
+            { item ->
+                val vista_t = Intent(mContex, vistaTrabajador::class.java).apply {
+                    putExtra(Variables.id, item.id_trabajador)
+                    putExtra(Variables.imagenPerfil, item.img_perfil)
+                    putExtra(Variables.nombreUSer, item.nombre_trabajador)
+                    putExtra(Variables.nacionalidad, item.nacionalidad)
+                    putExtra(Variables.categoria, item.tipo_trabajado)
+                }
 
-                    startActivity(vista_t)
-                    requireActivity().finish()
-                    dialog.dismiss()
-                }, seguir = { item ->
-                    seguirUsuario(item.id_trabajador)
-                    dialog.dismiss()
-                }, dejar_seguir = { item ->
-                    constantes_trabajadores_info.dejarSeguirTrabajador(binding,item.id_trabajador.toString(),mContex,false)
-                    dialog.dismiss()
-                },)
-        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.adapter=adapter_seguidores_seguidos
+                startActivity(vista_t)
+                requireActivity().finish()
+                dialog.dismiss()
+            },
+            seguir = { item ->
+                seguirUsuario(item.id_trabajador)
+                dialog.dismiss()
+            },
+            dejar_seguir = { item ->
+                constantes_trabajadores_info.dejarSeguirTrabajador(
+                    binding,
+                    item.id_trabajador.toString(),
+                    mContex,
+                    false
+                )
+                dialog.dismiss()
+            },
+        )
+        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.adapter =
+            adapter_seguidores_seguidos
 
     }
-
 
 
     private fun seguirUsuario(idTrabajador: String?) {
@@ -670,8 +633,8 @@ class info : Fragment() {
                 dialog.dismiss()
             }
             builder.create().show()
-        }else{
-            constantes_trabajadores_info.seguirTrabajador(idTrabajador!!,binding,false)
+        } else {
+            constantes_trabajadores_info.seguirTrabajador(idTrabajador!!, binding, false)
         }
     }
 
@@ -936,19 +899,27 @@ class info : Fragment() {
         bindingMostrar.cargarConteindo.isVisible = true
         bindingMostrar.linealGeneralLinea.isVisible = false
 
-        bindingMostrar.compartirIcon.setOnClickListener {
-            constantesPublicidad.agregarCantidadClickAnuncios(
-                documentReference,
-                "",
-                "compartir"
-            )
-        }
+
         // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
         val titulo = trabajo["titulo"] as? String ?: "Sin título"
         val contenido = trabajo["contenido"] as? String ?: "Sin contenido"
         val idSelecionado = trabajo["id"] as? String ?: ""
         val fecha_rec = trabajo["fecha_rec"] as? String ?: ""
         val hora_rec = trabajo["hora_rec"] as? String ?: ""
+        bindingMostrar.compartirIcon.setOnClickListener {
+            constantesPublicidad.agregarCantidadClickAnuncios(
+                documentReference,
+                "",
+                "compartir"
+            )
+            crear_dinamick_link(
+                idTrabajador,
+                idSelecionado,
+                "Mira esta publicaion realizada por este trabajador",
+                "ira esta publicaicone realizada"
+            )
+            dialog.dismiss()
+        }
         bindingMostrar.tituloNombreTrabajador.text =
             "Trabajos realizados por ${binding.nombre.text}"
         // Configurar botón para ver todos los trabajos
@@ -1310,11 +1281,12 @@ class info : Fragment() {
             if (res.exists()) {
                 val data = res.data
                 val nombre = data?.get(Variables.nombre) as? String ?: ""
+                val nombre_usaurio = data?.get(Variables.Nombre_usuario) as? String ?: ""
                 val descripcion = data?.get(Variables.descripcion) as? String ?: ""
                 val categoriaTrabajo = data?.get(Variables.categoriaTrabajo) as? String ?: ""
                 val tipoTrabajo = data?.get(Variables.tipoTrabajo) as? String ?: ""
-                val localida_user = data?.get(Variables.localidad) as? String?:""
-                val fecha_registro = data?.get("fecha_creacion") as? String?:""
+                val localida_user = data?.get(Variables.localidad) as? String ?: ""
+                val fecha_registro = data?.get("fecha_creacion") as? String ?: ""
                 val ig = data?.get(Variables.IG) as? String ?: ""
                 val fb = data?.get(Variables.FB) as? String ?: ""
                 val tk = data?.get(Variables.TK) as? String ?: ""
@@ -1326,7 +1298,7 @@ class info : Fragment() {
                     binding.BtnSeguimiento.isVisible = true
                 }
 
-                binding.localidadUser.text=localida_user
+                binding.localidadUser.text = localida_user
 
 
 
@@ -1334,6 +1306,7 @@ class info : Fragment() {
                 binding.nombre.text = nombre.toUpperCase()
                 binding.categoriaTipoTrabajo.text = "$tipoTrabajo | $categoriaTrabajo"
                 categoria_trabajadorReturn("$categoriaTrabajo")
+                binding.nombreUsuario.text = "@$nombre_usaurio"
 
 
                 constantestextos_general.extender_acortar_texto2(
@@ -1390,7 +1363,7 @@ class info : Fragment() {
                 else -> "Mes inválido"
             }
 
-           binding.fechaCreacionCuenta.text="Se unio en $nombreMes del $years"
+            binding.fechaCreacionCuenta.text = "Se unio en $nombreMes del $years"
         }
     }
 
@@ -1501,6 +1474,73 @@ class info : Fragment() {
                             title = "!Mira este trabajad@r de Geinz Work $nombre"
                             description = "Categoria del trabajad@r : $categoria"
                             imageUrl = Uri.parse(imgAnuncio)
+                        }
+                    }.addOnSuccessListener { shortDynamicLink ->
+                        val shortLink = shortDynamicLink.shortLink
+                        val invitationLink = shortLink.toString()
+
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, invitationLink)
+                            type = "text/plain"
+                        }
+                        startActivity(Intent.createChooser(sendIntent, null))
+                    }.addOnFailureListener {
+                        println("Hubo un error con los links dinámicos: $it")
+                    }
+                } else {
+                    println("La URL de la imagen está vacía.")
+                }
+            } else {
+                println("El anuncio no existe.")
+            }
+        }.addOnFailureListener { exception ->
+            println("Error al obtener el anuncio: ${exception.message}")
+        }
+    }
+
+    private fun crear_dinamick_link(
+        idTrabajador: String,
+        id_publicacion: String,
+        titulo_dinamick: String,
+        texto_dinamick: String
+    ) {
+        val userCollections =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(idTrabajador).collection("publicaciones_trabajos")
+                .document(id_publicacion)
+        userCollections.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img_url = data?.get("img_url") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                Log.d("idpublicacones","$id_publicacion ,$idTrabajador ,$img_url")
+                if (img_url.isNotEmpty()) {
+                    Firebase.dynamicLinks.shortLinkAsync {
+                        link =
+                            Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
+                        domainUriPrefix = "https://geinzapp.page.link"
+                        androidParameters("com.geinzz.geinzwork") {
+                            minimumVersion = 125
+                        }
+                        iosParameters("com.geinzz.ios") {
+                            appStoreId = "123456789"
+                            minimumVersion = "1.0.1"
+                        }
+                        googleAnalyticsParameters {
+                            source = "orkut"
+                            medium = "social"
+                            campaign = "geinzz-promo"
+                        }
+                        itunesConnectAnalyticsParameters {
+                            providerToken = "123456"
+                            campaignToken = "geinzz-promo"
+                        }
+                        socialMetaTagParameters {
+                            title = titulo_dinamick
+                            description = texto_dinamick
+                            imageUrl = Uri.parse(img_url)
                         }
                     }.addOnSuccessListener { shortDynamicLink ->
                         val shortLink = shortDynamicLink.shortLink

@@ -56,6 +56,12 @@ public final class ActivityPasswordYuserBinding implements ViewBinding {
   public final RelativeLayout main;
 
   @NonNull
+  public final TextInputLayout nombreUser;
+
+  @NonNull
+  public final EditText nombreUsuario;
+
+  @NonNull
   public final EditText repetircontraFree;
 
   private ActivityPasswordYuserBinding(@NonNull RelativeLayout rootView,
@@ -63,7 +69,8 @@ public final class ActivityPasswordYuserBinding implements ViewBinding {
       @NonNull AppCompatButton btnLogin, @NonNull EditText correoElectronicoFree,
       @NonNull TextView freelancer, @NonNull TextView geinz, @NonNull TextInputLayout intContra,
       @NonNull TextInputLayout intCorreo, @NonNull TextInputLayout intRepetirContrafree,
-      @NonNull RelativeLayout main, @NonNull EditText repetircontraFree) {
+      @NonNull RelativeLayout main, @NonNull TextInputLayout nombreUser,
+      @NonNull EditText nombreUsuario, @NonNull EditText repetircontraFree) {
     this.rootView = rootView;
     this.ContraFree = ContraFree;
     this.CreatCuenta = CreatCuenta;
@@ -76,6 +83,8 @@ public final class ActivityPasswordYuserBinding implements ViewBinding {
     this.intCorreo = intCorreo;
     this.intRepetirContrafree = intRepetirContrafree;
     this.main = main;
+    this.nombreUser = nombreUser;
+    this.nombreUsuario = nombreUsuario;
     this.repetircontraFree = repetircontraFree;
   }
 
@@ -168,6 +177,18 @@ public final class ActivityPasswordYuserBinding implements ViewBinding {
 
       RelativeLayout main = (RelativeLayout) rootView;
 
+      id = R.id.nombre_user;
+      TextInputLayout nombreUser = ViewBindings.findChildViewById(rootView, id);
+      if (nombreUser == null) {
+        break missingId;
+      }
+
+      id = R.id.nombre_usuario;
+      EditText nombreUsuario = ViewBindings.findChildViewById(rootView, id);
+      if (nombreUsuario == null) {
+        break missingId;
+      }
+
       id = R.id.repetircontraFree;
       EditText repetircontraFree = ViewBindings.findChildViewById(rootView, id);
       if (repetircontraFree == null) {
@@ -176,7 +197,7 @@ public final class ActivityPasswordYuserBinding implements ViewBinding {
 
       return new ActivityPasswordYuserBinding((RelativeLayout) rootView, ContraFree, CreatCuenta,
           EstasPasos, btnLogin, correoElectronicoFree, freelancer, geinz, intContra, intCorreo,
-          intRepetirContrafree, main, repetircontraFree);
+          intRepetirContrafree, main, nombreUser, nombreUsuario, repetircontraFree);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

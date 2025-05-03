@@ -445,5 +445,7 @@
     <string name="texto_solo_seguidores_publicaciones">👥 Solo tus seguidores – solo las personas que te siguen podrán verlas.</string>
     <string name="todos_publicaciones_trabajadores">🔓 Todos – cualquier persona podrá ver tus publicaciones.</string>
     <string name="nota_crea_publicaciones_recientes">Nota: En esta sección puedes compartir contenido relacionado con tu trabajo, como proyectos recientes, avances, experiencias laborales u ofertas de servicio. Asegúrate de que las publicaciones mantengan un enfoque profesional. Publicaciones fuera de este contexto podrían causar la retirada de la verificación por parte de Geinz.</string>
+    <string name="seguidores">Seguidores</string>
+    <string name="siguiendo">Siguiendo</string>
 
 </resources>

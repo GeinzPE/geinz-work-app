@@ -5982,6 +5982,7 @@ id nombre_productoED
 id nombre_trabajador
 id nombre_trabajadoroculto
 id nombre_user
+id nombre_usuario
 id nombreint
 id nombresCompletos
 id nombresCompletosED
@@ -7768,6 +7769,7 @@ string search_menu_title
 string searchbar_scrolling_view_behavior
 string searchview_clear_text_content_description
 string searchview_navigation_content_description
+string seguidores
 string segundario
 string selccion_trabajo
 string seleccionTrabajo
@@ -7778,6 +7780,7 @@ string servicioAnuncio
 string servicioNoticia
 string side_sheet_accessibility_pane_title
 string side_sheet_behavior
+string siguiendo
 string sitioWebText
 string sitioWebTitle
 string sitios_web

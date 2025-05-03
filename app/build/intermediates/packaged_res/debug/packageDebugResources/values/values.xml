@@ -326,6 +326,7 @@
     <string name="rent_2">From $1.99</string>
     <string name="repetircontra_free">Repita la contraseña</string>
     <string name="rese_as">Reseñas</string>
+    <string name="seguidores">Seguidores</string>
     <string name="segundario">⏱ Exposición por 48 horas, ideal para campañas cortas.</string>
     <string name="selccion_trabajo">Seleccione su trabajo</string>
     <string name="seleccionTrabajo">Seleccione su tipo y categoria de trabajo</string>
@@ -333,6 +334,7 @@
     <string name="selecionGenero">Seleccione su genero</string>
     <string name="servicioAnuncio">Anuncios Geinz</string>
     <string name="servicioNoticia">Noticias Geinz</string>
+    <string name="siguiendo">Siguiendo</string>
     <string name="sitioWebText">Agrega el enlace de tu sitio web para que los usuarios puedan obtener más información sobre tu tienda</string>
     <string name="sitioWebTitle">Sitio web de tu tienda</string>
     <string name="sitios_web">web site</string>

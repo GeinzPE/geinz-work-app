@@ -104,6 +104,7 @@ object Variables {
     const val problemas = "problemas"
     const val apelado = "apelado"
     const val nombre = "nombre"
+    const val Nombre_usuario = "Nombre_usuario"
     const val apellidoUser = "apellidoUser"
     const val fechanaciminetoUSer = "fechanaciminetoUSer"
     const val amUSer = "amUSer"

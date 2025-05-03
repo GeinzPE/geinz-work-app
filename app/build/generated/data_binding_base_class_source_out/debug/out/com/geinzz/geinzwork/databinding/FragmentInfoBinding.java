@@ -140,6 +140,9 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final TextView nombre;
 
   @NonNull
+  public final TextView nombreUsuario;
+
+  @NonNull
   public final ImageView notificaciones;
 
   @NonNull
@@ -214,8 +217,8 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull RelativeLayout mostrarSeguridos, @NonNull ImageView mostrarSeguridosIMG,
       @NonNull RelativeLayout noSeEncontraronTrabajadores,
       @NonNull TextView noSeEncontraronTrabajos, @NonNull RelativeLayout noSeEncontroPublicaciones,
-      @NonNull TextView nombre, @NonNull ImageView notificaciones, @NonNull View overlay,
-      @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
+      @NonNull TextView nombre, @NonNull TextView nombreUsuario, @NonNull ImageView notificaciones,
+      @NonNull View overlay, @NonNull ImageView popup, @NonNull RecyclerView productosDestacados,
       @NonNull CircularProgressIndicator progressCargaImagen,
       @NonNull CircularProgressIndicator progressCargaImagenFondo, @NonNull ImageView qrTrabajador,
       @NonNull MaterialCardView relativeLayout, @NonNull NestedScrollView scroll,
@@ -260,6 +263,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.noSeEncontraronTrabajos = noSeEncontraronTrabajos;
     this.noSeEncontroPublicaciones = noSeEncontroPublicaciones;
     this.nombre = nombre;
+    this.nombreUsuario = nombreUsuario;
     this.notificaciones = notificaciones;
     this.overlay = overlay;
     this.popup = popup;
@@ -518,6 +522,12 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.nombre_usuario;
+      TextView nombreUsuario = ViewBindings.findChildViewById(rootView, id);
+      if (nombreUsuario == null) {
+        break missingId;
+      }
+
       id = R.id.notificaciones;
       ImageView notificaciones = ViewBindings.findChildViewById(rootView, id);
       if (notificaciones == null) {
@@ -640,10 +650,10 @@ public final class FragmentInfoBinding implements ViewBinding {
           linealSeguidores, linealSiguiendo, linealTrabajosRealziados, linealappLayout,
           linealtrabajadoresGeinz, loading, localidadUser, masInformacion, mostrarSeguridos,
           mostrarSeguridosIMG, noSeEncontraronTrabajadores, noSeEncontraronTrabajos,
-          noSeEncontroPublicaciones, nombre, notificaciones, overlay, popup, productosDestacados,
-          progressCargaImagen, progressCargaImagenFondo, qrTrabajador, relativeLayout, scroll,
-          segidores, siguiendo, swipe, telefono, tk, trabajadoresSimilares, tvReadMore,
-          verMasTrabajadores, verificado, verificadoTXT);
+          noSeEncontroPublicaciones, nombre, nombreUsuario, notificaciones, overlay, popup,
+          productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
+          relativeLayout, scroll, segidores, siguiendo, swipe, telefono, tk, trabajadoresSimilares,
+          tvReadMore, verMasTrabajadores, verificado, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

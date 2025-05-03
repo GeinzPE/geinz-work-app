@@ -55,6 +55,7 @@ class veirificacionDatos : AppCompatActivity() {
                 println("Imagen no seleccionada")
             }
         }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,10 +147,10 @@ class veirificacionDatos : AppCompatActivity() {
             firebaseAuth.createUserWithEmailAndPassword(email, contrauser)
                 .addOnSuccessListener {
                     leerinfoCreacionUser()
-                    if(img_perfil_uri!=null){
-                        subir_img_portada_perfil( "trabajador")
+                    if (img_perfil_uri != null) {
+                        subir_img_portada_perfil("trabajador")
                     }
-                    if(img_portada!=null){
+                    if (img_portada != null) {
                         subir_img_portada("trabajador")
                     }
                     crearReview()
@@ -163,8 +164,8 @@ class veirificacionDatos : AppCompatActivity() {
         } else if (tipoCuenta == "cuentaSimple") {
             firebaseAuth.createUserWithEmailAndPassword(email, contrauser)
                 .addOnSuccessListener {
-                    if(img_perfil_uri!=null){
-                        subir_img_portada_perfil( "usuario")
+                    if (img_perfil_uri != null) {
+                        subir_img_portada_perfil("usuario")
                     }
                     CrearCueentauserNomral()
                 }
@@ -175,7 +176,6 @@ class veirificacionDatos : AppCompatActivity() {
                     println("Error al crear el usuario ${e}")
                 }
         }
-
 
     }
 
@@ -204,6 +204,7 @@ class veirificacionDatos : AppCompatActivity() {
         var countryCode = intent.getStringExtra("codigo").toString().trim()
         var NumeroCelular = intent.getStringExtra("numero").toString().trim()
         var edadActualUser = intent.getStringExtra("edadActual")
+        var Nombre_usuario = intent.getStringExtra("nombre_user").toString().trim()
         val tipoCuenta = binding.TipoCuenta.text.toString()
         var correo = firebaseAuth.currentUser!!.email
         var id = firebaseAuth.uid
@@ -233,7 +234,10 @@ class veirificacionDatos : AppCompatActivity() {
         hashMap["imagenPerfil"] = "${imgperfil}"
         hashMap["EdadActual"] = "${EdadActualUser}"
         hashMap["TipoCuenta"] = "${TipoCuenta}"
-        hashMap["fecha_creacion"]=mostrarFechaDialog_horaDialog.obtenerFechaActual()
+        hashMap["fecha_creacion"] = mostrarFechaDialog_horaDialog.obtenerFechaActual()
+        hashMap["Nombre_usuario"] = Nombre_usuario
+
+
 
 
         val db = FirebaseFirestore.getInstance()
@@ -249,6 +253,7 @@ class veirificacionDatos : AppCompatActivity() {
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
                     finishAffinity()
+                    agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
                 }
                 .addOnFailureListener { e ->
                     println("Error al crear usuario en Firestore: $e")
@@ -260,10 +265,30 @@ class veirificacionDatos : AppCompatActivity() {
 
     }
 
+    private fun agregar_firestoreNombre_usuario(id_registrado: String, nombre_user: String,tipo_cuento:String) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("nombres_user")
+            .collection("nombres_user").document(id_registrado)
+
+        val hashMap = hashMapOf<String, Any>(
+            "nombres_user" to "@$nombre_user",
+            "id_registrado" to id_registrado,
+            "cuenta" to tipo_cuento
+        )
+        db.set(hashMap,SetOptions.merge()).addOnSuccessListener {
+            Log.d("user_agregado","user agregado correctament")
+        }.addOnFailureListener { e->
+            Log.d("error_user","error al agregar el user")
+
+        }
+
+    }
+
     private fun leerinfoCreacionUser() {
         progressDialog.setMessage("creando cuenta")
         val amuser = intent.getStringExtra("amUSer").toString().trim()
-        val pmuser= intent.getStringExtra("pmUser").toString().trim()
+        val pmuser = intent.getStringExtra("pmUser").toString().trim()
         val tipoTrabajo = intent.getStringExtra("tipo").toString().trim()
         val categoriaTrabajo = intent.getStringExtra("Categoria").toString().trim()
         var localidad = intent.getStringExtra("localidad").toString().trim()
@@ -271,6 +296,7 @@ class veirificacionDatos : AppCompatActivity() {
         var NumeroCelular = intent.getStringExtra("numero").toString().trim()
         var edadActualUser = intent.getStringExtra("edadActual").toString().trim()
         var descripcion = intent.getStringExtra("descripcion").toString().trim()
+        var Nombre_usuario = intent.getStringExtra("nombre_user").toString().trim()
         val tipoCuenta = binding.TipoCuenta.text.toString()
         var correo = firebaseAuth.currentUser!!.email
         var id = firebaseAuth.uid
@@ -311,7 +337,8 @@ class veirificacionDatos : AppCompatActivity() {
         hashMap["estrellas"] = "${start}"
         hashMap["EdadActual"] = "${EdadActualUser}"
         hashMap["TipoCuenta"] = "${TipoCuenta}"
-        hashMap["fecha_creacion"]=mostrarFechaDialog_horaDialog.obtenerFechaActual()
+        hashMap["fecha_creacion"] = mostrarFechaDialog_horaDialog.obtenerFechaActual()
+        hashMap["Nombre_usuario"] = Nombre_usuario
 
 
         val db = FirebaseFirestore.getInstance()
@@ -326,6 +353,7 @@ class veirificacionDatos : AppCompatActivity() {
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
                     finishAffinity()
+                    agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
                 }
                 .addOnFailureListener { e ->
                     println("Error al crear usuario en Firestore: $e")
@@ -352,7 +380,7 @@ class veirificacionDatos : AppCompatActivity() {
         val nombreuser = intent.getStringExtra("nombre")
         val apellidouser = intent.getStringExtra("apellidoUser")
         val amuser = intent.getStringExtra("amUSer")
-        val pmuser= intent.getStringExtra("pmUser")
+        val pmuser = intent.getStringExtra("pmUser")
         val fechaNaciminetouser = intent.getStringExtra("fechanaciminetoUSer")
         val nacionalidaduser = intent.getStringExtra("nacionalidadUSer")
         val correouser = intent.getStringExtra("correoUSer")
@@ -383,7 +411,11 @@ class veirificacionDatos : AppCompatActivity() {
 
     private fun obtenerDATOSCuentaNormal() {
         binding.overlay.setOnClickListener {
-            Toast.makeText(this,"Las cuentas normales no pueden subir fotos de portada",Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Las cuentas normales no pueden subir fotos de portada",
+                Toast.LENGTH_SHORT
+            ).show()
         }
         val nombreuser = intent.getStringExtra("nombre")
         val apellidouser = intent.getStringExtra("apellidoUser")
@@ -423,10 +455,12 @@ class veirificacionDatos : AppCompatActivity() {
                 "Trabajadores_Usuarios_Drivers/trabajadores/trabajadores/${firebaseAuth.uid}",
                 rutaBase
             )
+
             "usuario" -> Pair(
                 "Trabajadores_Usuarios_Drivers/usuarios/usuarios/${firebaseAuth.uid}",
                 rutaBase
             )
+
             else -> return
         }
 
@@ -454,12 +488,15 @@ class veirificacionDatos : AppCompatActivity() {
             }
         }
     }
+
     private fun subir_img_portada(tipo: String) {
-        var ruta1="foto_portada"
+        var ruta1 = "foto_portada"
         when (tipo) {
             "trabajador" -> {
-                val db2 = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                    .document("trabajadores").collection("trabajadores").document(firebaseAuth.uid.toString())
+                val db2 =
+                    FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(firebaseAuth.uid.toString())
                 val rutaimg = "usuarios/${firebaseAuth.uid.toString()}/$ruta1"
                 val contentResolver = this.contentResolver
                 GlobalScope.launch(Dispatchers.Main) {
@@ -480,15 +517,17 @@ class veirificacionDatos : AppCompatActivity() {
                                         "Imagen subida correctamente storage2",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    val hashMap= hashMapOf<String,Any>(
+                                    val hashMap = hashMapOf<String, Any>(
                                         ruta1 to urlimg
                                     )
                                     db2.set(hashMap, SetOptions.merge())
-                                        .addOnSuccessListener {  Toast.makeText(
-                                            this@veirificacionDatos,
-                                            "Imagen de portada correctamente firesotre2",
-                                            Toast.LENGTH_SHORT
-                                        ).show() }
+                                        .addOnSuccessListener {
+                                            Toast.makeText(
+                                                this@veirificacionDatos,
+                                                "Imagen de portada correctamente firesotre2",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                 }.addOnFailureListener { e ->
                                     Toast.makeText(
                                         this@veirificacionDatos,

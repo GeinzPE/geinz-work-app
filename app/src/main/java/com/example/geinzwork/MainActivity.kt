@@ -26,6 +26,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.geinzwork.constantesGeneral.constantes_agregar_estadisticas_publicaiones
 import com.example.geinzwork.oferta_principales_geinz
+import com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.databinding.ActivityMainBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMostrarProductosBinding
@@ -73,9 +74,15 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.buttonNavigation) { view, insets ->
             val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars()) // Obtener insets de la barra de estado
+            val statusBars =
+                insets.getInsets(WindowInsetsCompat.Type.statusBars()) // Obtener insets de la barra de estado
 
-            view.setPadding(0, statusBars.top, 0, navigationBars.bottom) // Ajustar padding superior e inferior
+            view.setPadding(
+                0,
+                statusBars.top,
+                0,
+                navigationBars.bottom
+            ) // Ajustar padding superior e inferior
             insets
         }
 
@@ -106,12 +113,15 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                     val idTiendaSeleccionada = deepLink.getQueryParameter("idTiendaSeleccionada")
                     val idTrabajadorGeinz = deepLink.getQueryParameter("idTrabajadorGeinz")
 
+                    val idTrabajador=deepLink.getQueryParameter("idTrabajadorVeri")
+                    val id_publicacion_clikeada=deepLink.getQueryParameter("idpublicacion")
+
                     when {
                         idPublicidadPrimaria != null && idAnuncio != null -> openPublicidadPrimaria(
                             idPublicidadPrimaria,
                             idAnuncio
                         )
-
+                        idTrabajador!=null && id_publicacion_clikeada!=null->openDinamickLink_Publicaciones_recientes(idTrabajador,id_publicacion_clikeada)
                         idTrabajadorGeinz != null -> openVistaTrabajador(idTrabajadorGeinz)
                         anunciosPrimarios != null -> openAnunciosPrimarios(anunciosPrimarios)
                         storeId != null -> openPublicidad(storeId)
@@ -191,6 +201,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             }
         })
     }
+
     fun setViewPagerSwipeEnabled(enabled: Boolean) {
         viewPager.isUserInputEnabled = enabled
     }
@@ -382,6 +393,18 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         }
         startActivity(intent)
 
+    }
+
+    private fun openDinamickLink_Publicaciones_recientes(
+        idTrabajador: String?,
+        id_publicacion_clikeada: String?
+    ) {
+        val vista =
+            Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
+                putExtra("id_trabajador", idTrabajador)
+                    .putExtra("id_publicacion", id_publicacion_clikeada)
+            }
+        startActivity(vista)
     }
 
     private fun changeSystemBarsColor(color: Int) {

@@ -5981,6 +5981,7 @@ int id nombre_productoED 0x7f0a0608
 int id nombre_trabajador 0x7f0a0609
 int id nombre_trabajadoroculto 0x7f0a060a
 int id nombre_user 0x7f0a060b
+int id nombre_usuario 0x7f0a08b1
 int id nombreint 0x7f0a060c
 int id nombresCompletos 0x7f0a060d
 int id nombresCompletosED 0x7f0a060e
@@ -7767,6 +7768,7 @@ int string search_menu_title 0x7f1301e6
 int string searchbar_scrolling_view_behavior 0x7f1301e7
 int string searchview_clear_text_content_description 0x7f1301e8
 int string searchview_navigation_content_description 0x7f1301e9
+int string seguidores 0x7f130235
 int string segundario 0x7f1301ea
 int string selccion_trabajo 0x7f1301eb
 int string seleccionTrabajo 0x7f1301ec
@@ -7777,6 +7779,7 @@ int string servicioAnuncio 0x7f1301f0
 int string servicioNoticia 0x7f1301f1
 int string side_sheet_accessibility_pane_title 0x7f1301f2
 int string side_sheet_behavior 0x7f1301f3
+int string siguiendo 0x7f130236
 int string sitioWebText 0x7f1301f4
 int string sitioWebTitle 0x7f1301f5
 int string sitios_web 0x7f1301f6

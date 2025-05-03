@@ -230,6 +230,7 @@
                                         android:textStyle="bold" />
 
 
+
                                     <ImageView
                                         android:id="@+id/verificado"
                                         android:layout_width="30dp"
@@ -255,6 +256,13 @@
                                     android:src="@drawable/notification_off"
                                     android:visibility="gone" />
                             </LinearLayout>
+                            <TextView
+                                style="@style/descripcionColor"
+                                android:textSize="12sp"
+                                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/nombre_usuario"/>
 
 
                             <TextView
@@ -298,7 +306,7 @@
                                     style="@style/TextoModoOScuroColor"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginRight="15dp"
+                                    android:layout_marginRight="20dp"
                                     android:ellipsize="end"
                                     android:maxLines="3"
                                     android:text="@string/cat"
@@ -388,7 +396,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginLeft="5dp"
                                         android:layout_marginTop="5dp"
-                                        android:text="Siguiendo"
+                                        android:text="@string/siguiendo"
                                         android:textSize="14sp" />
                                 </LinearLayout>
 
@@ -416,7 +424,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginLeft="5dp"
                                         android:layout_marginTop="5dp"
-                                        android:text="seguidores"
+                                        android:text="@string/seguidores"
                                         android:textSize="14sp" />
                                 </LinearLayout>
 

@@ -1262,6 +1262,7 @@ id nombre_productoED
 id nombre_trabajador
 id nombre_trabajadoroculto
 id nombre_user
+id nombre_usuario
 id nombreint
 id nombresCompletos
 id nombresCompletosED
@@ -2198,6 +2199,7 @@ string rent_1
 string rent_2
 string repetircontra_free
 string rese_as
+string seguidores
 string segundario
 string selccion_trabajo
 string seleccionTrabajo
@@ -2205,6 +2207,7 @@ string seleccion_tipo_Trabajo
 string selecionGenero
 string servicioAnuncio
 string servicioNoticia
+string siguiendo
 string sitioWebText
 string sitioWebTitle
 string sitios_web
