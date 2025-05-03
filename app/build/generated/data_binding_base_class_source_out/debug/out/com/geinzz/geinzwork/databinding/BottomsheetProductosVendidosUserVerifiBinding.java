@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -37,6 +38,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
+  public final ImageView compartirIcon;
+
+  @NonNull
   public final LinearLayout netScrollView;
 
   @NonNull
@@ -52,14 +56,15 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull IncludeCamposProductosVendidosVerificadosBinding camposProductosUserVerificados,
       @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
       @NonNull RecyclerView carrucelImgProductosVentaUser,
-      @NonNull BottomSheetDragHandleView cerrar, @NonNull LinearLayout netScrollView,
-      @NonNull NestedScrollView nettScrollView, @NonNull TextView nombreProducto,
-      @NonNull ProgressBar progressCarga) {
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull ImageView compartirIcon,
+      @NonNull LinearLayout netScrollView, @NonNull NestedScrollView nettScrollView,
+      @NonNull TextView nombreProducto, @NonNull ProgressBar progressCarga) {
     this.rootView = rootView;
     this.camposProductosUserVerificados = camposProductosUserVerificados;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
     this.carrucelImgProductosVentaUser = carrucelImgProductosVentaUser;
     this.cerrar = cerrar;
+    this.compartirIcon = compartirIcon;
     this.netScrollView = netScrollView;
     this.nettScrollView = nettScrollView;
     this.nombreProducto = nombreProducto;
@@ -120,6 +125,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.compartir_icon;
+      ImageView compartirIcon = ViewBindings.findChildViewById(rootView, id);
+      if (compartirIcon == null) {
+        break missingId;
+      }
+
       id = R.id.netScrollView;
       LinearLayout netScrollView = ViewBindings.findChildViewById(rootView, id);
       if (netScrollView == null) {
@@ -146,8 +157,8 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
 
       return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView,
           binding_camposProductosUserVerificados, binding_cargaProductosPromoTrabajos,
-          carrucelImgProductosVentaUser, cerrar, netScrollView, nettScrollView, nombreProducto,
-          progressCarga);
+          carrucelImgProductosVentaUser, cerrar, compartirIcon, netScrollView, nettScrollView,
+          nombreProducto, progressCarga);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

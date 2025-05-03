@@ -828,7 +828,6 @@ class inicioFracment : Fragment() {
 
                 constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido ->
                     currentBinding.NombreVerificado.text = nombre
-                    
                 }
 
                 currentBinding.tituloProducto.text = titulo

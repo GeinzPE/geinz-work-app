@@ -26,6 +26,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.geinzwork.constantesGeneral.constantes_agregar_estadisticas_publicaiones
 import com.example.geinzwork.oferta_principales_geinz
+import com.example.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores
 import com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.databinding.ActivityMainBinding
@@ -113,15 +114,28 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                     val idTiendaSeleccionada = deepLink.getQueryParameter("idTiendaSeleccionada")
                     val idTrabajadorGeinz = deepLink.getQueryParameter("idTrabajadorGeinz")
 
-                    val idTrabajador=deepLink.getQueryParameter("idTrabajadorVeri")
-                    val id_publicacion_clikeada=deepLink.getQueryParameter("idpublicacion")
+                    val idTrabajador = deepLink.getQueryParameter("idTrabajadorVeri")
+                    val id_publicacion_clikeada = deepLink.getQueryParameter("idpublicacion")
+
+
+                    val id_trabajadores_productos =
+                        deepLink.getQueryParameter("idTrabajadorVeriProducto")
+                    val id_trabajadores_productos_clikeados =
+                        deepLink.getQueryParameter("idProducto")
 
                     when {
                         idPublicidadPrimaria != null && idAnuncio != null -> openPublicidadPrimaria(
                             idPublicidadPrimaria,
                             idAnuncio
                         )
-                        idTrabajador!=null && id_publicacion_clikeada!=null->openDinamickLink_Publicaciones_recientes(idTrabajador,id_publicacion_clikeada)
+
+                        idTrabajador != null && id_publicacion_clikeada != null -> openDinamickLink_Publicaciones_recientes(
+                            idTrabajador,
+                            id_publicacion_clikeada
+                        )
+
+                        id_trabajadores_productos != null && id_trabajadores_productos_clikeados != null -> openDinamickLink_productos_publicados(id_trabajadores_productos,id_trabajadores_productos_clikeados)
+
                         idTrabajadorGeinz != null -> openVistaTrabajador(idTrabajadorGeinz)
                         anunciosPrimarios != null -> openAnunciosPrimarios(anunciosPrimarios)
                         storeId != null -> openPublicidad(storeId)
@@ -403,6 +417,19 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
                 putExtra("id_trabajador", idTrabajador)
                     .putExtra("id_publicacion", id_publicacion_clikeada)
+            }
+        startActivity(vista)
+    }
+
+    private fun openDinamickLink_productos_publicados(
+        id_trabajador: String,
+        id_publicacion: String,
+
+    ) {
+        val vista =
+            Intent(this, vista_ver_productos_trabajadores::class.java).apply {
+                putExtra("id_trabajador", id_trabajador)
+                    .putExtra("id_publicacion", id_publicacion)
             }
         startActivity(vista)
     }
