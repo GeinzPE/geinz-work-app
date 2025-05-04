@@ -20,16 +20,20 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.anidacion_categorias_productovrprivate
 import com.example.geinzwork.dataclass.CategoryWithSubcategories
+import com.example.geinzwork.dataclass.MiViewModel
 import com.example.geinzwork.dataclass.dataclas_anidacion_productos_vr
+import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
@@ -42,6 +46,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlin.math.roundToInt
 
 class crear_publicacion_productos_trabajadores : AppCompatActivity() {
@@ -54,6 +59,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var plin: Boolean = false
     private var descuento: Boolean = false
     private var efectivo: Boolean = false
+    private val viewModel: MiViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCrearPublicacionProductosTrabajadoresBinding.inflate(layoutInflater)
@@ -84,7 +90,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             binding.radioDeliveryGratis // <- Asegúrate que está en tu ViewBinding
         obtener_estados_productos()
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
-
             campoLugarEntrega.visibility = if (checkedId == R.id.lugar_entrega) {
                 View.VISIBLE
             } else {
@@ -105,7 +110,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
             dialog.show()
         }
-
         binding.siHayDescuento.setOnCheckedChangeListener { _, isChecked ->
             binding.precioNuevoDescuentoPr.visibility = if (isChecked) {
                 descuento = true
@@ -130,7 +134,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             obtener_hastags_generales(this, hashtagsGenerales, dialog)
             dialog.show()
         }
-
         binding.agregaUbicaciones.setOnCheckedChangeListener { _, isChecked ->
             binding.selecionLocalidad.visibility = if (isChecked) {
                 View.VISIBLE
@@ -139,7 +142,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 View.GONE
             }
         }
-
         constantesDatosUsuarioTienda.obtnerLocalidades(binding.agregaUbiED)
         constantesCarrito.setearDatosUsuario { nombre, numero, localid, apellido ->
             binding.agregaUbiED.setText(localid)
@@ -159,46 +161,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         plinCheckBox.setOnCheckedChangeListener { _, isChecked ->
             plin = isChecked
         }
-
-        var editing = false // <- esto debe estar fuera para que no se reinicie siempre
-
-//        binding.descripcionProductoED.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-//
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-//
-//            override fun afterTextChanged(s: Editable?) {
-//                if (s.isNullOrEmpty()) return
-//
-//                aplicarFormatoWhatsapp(s)
-//            }
-//        })
-
     }
 
-    fun aplicarFormatoWhatsapp(editable: Editable) {
-        val boldPattern = Regex("\\*(.*?)\\*")
-        val matches = boldPattern.findAll(editable.toString())
-
-        // Limpiar spans antiguos
-        val spans = editable.getSpans(0, editable.length, StyleSpan::class.java)
-        for (span in spans) {
-            editable.removeSpan(span)
-        }
-
-        // Aplicar negrita a coincidencias
-        for (match in matches) {
-            val start = match.range.first
-            val end = match.range.last + 1
-
-            editable.setSpan(
-                StyleSpan(Typeface.BOLD),
-                start + 1,
-                end - 1,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
-    }
 
     fun obtener_hastags_generales(
         contex: Context,
@@ -513,42 +477,71 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .split(",")
             .map { it.trim() }
             .filter { it.isNotBlank() }
+        viewModel.datosDescripcion.observe(this, Observer { datos ->
 
-        val hasMap = hashMapOf<String, Any>(
-            "titulo" to titulo_producto.text.toString(),
-            "cantidad_porcentaje_descuento" to descuentoAplicado.toInt(),
-            "condicion_producto" to condicion_producto.text.toString(),
-//            "descripcion" to descripcion_producto.text.toString(),
-            "descuento" to binding.siHayDescuento.isChecked,
-            "categoria_producto" to binding.catSelcionado.text.toString(),
-            "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
-            "efectivo" to efectivo,
-            "entrega_domicilio" to isEntregaDomicilio,
-            "fechaPublicada" to "",
-            "garantia" to tiempoGarantiaYears.text.toString(),
-            "localidadUser" to localida_user.text.toString(),
-            "lugarEntrega" to lugar_entrega.text.toString(),
-            "marca" to marca_producto.text.toString(),
-            "metodoEntrega" to metodoEntrega,
-            "envio_gratis" to deliveryGratis,
-            "modelo" to modelo_producto.text.toString(),
-            "hashtags_generales" to hashtagsGenerales,
-            "nombre" to nombre_producto.text.toString(),
-            "plin" to plin,
-            "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
-            "precioDelivery" to 5,
-            "precio_descuento" to (precio_descuento_nuevo.text.toString().toDoubleOrNull() ?: 0.0),
-            "stok" to stok_producto.text.toString(),
-            "yape" to yape,
-            "visivilidad" to mostra_para.text.toString(),
-        )
-        if (validarCampos()) {
-            db.add(hasMap).addOnSuccessListener { res ->
-                Toast.makeText(this, "producto agregado correctemente", Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener { e ->
-                Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
+
+            val tituloMap = mapOf(
+                "titulo_descripcion" to datos.titulo_descripcion,
+                "titulo_valor_style" to datos.valor_boldtexto_titulo,
+                "titulo_mayus" to datos.minusmayus_titulo
+            )
+            val texto_map = mapOf(
+                "texto_descripcion" to datos.descripcion_texto,
+                "texto_valor_style" to datos.valor_boldtexto_texto,
+                "texto_mayus" to datos.minusmayus_titulo_texto
+            )
+
+            val hasMap = hashMapOf<String, Any>(
+                "titulo" to titulo_producto.text.toString(),
+                "cantidad_porcentaje_descuento" to descuentoAplicado.toInt(),
+                "condicion_producto" to condicion_producto.text.toString(),
+                "descuento" to binding.siHayDescuento.isChecked,
+                "categoria_producto" to binding.catSelcionado.text.toString(),
+                "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
+                "efectivo" to efectivo,
+                "entrega_domicilio" to isEntregaDomicilio,
+                "fechaPublicada" to "",
+                "garantia" to tiempoGarantiaYears.text.toString(),
+                "localidadUser" to localida_user.text.toString(),
+                "lugarEntrega" to lugar_entrega.text.toString(),
+                "marca" to marca_producto.text.toString(),
+                "metodoEntrega" to metodoEntrega,
+                "envio_gratis" to deliveryGratis,
+                "modelo" to modelo_producto.text.toString(),
+                "hashtags_generales" to hashtagsGenerales,
+                "nombre" to nombre_producto.text.toString(),
+                "plin" to plin,
+                "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
+                "precioDelivery" to 5,
+                "precio_descuento" to (precio_descuento_nuevo.text.toString().toDoubleOrNull()
+                    ?: 0.0),
+                "stok" to stok_producto.text.toString(),
+                "yape" to yape,
+                "visivilidad" to mostra_para.text.toString(),
+                "descripcion_titulo" to tituloMap,
+                "descripcion_texto" to texto_map,
+                "descripcion_texto_lista" to datos.listaEncontrados
+            )
+            if (validarCampos()) {
+                db.add(hasMap).addOnSuccessListener { res ->
+                    // Obtener el id del documento recién creado
+                    val productId = res.id
+                    val hasmap = hashMapOf<String, Any>(
+                        "id" to productId
+                    )
+                    db.document(productId).set(hasmap, SetOptions.merge())
+                        .addOnSuccessListener { res->
+                            println("id subido correcamte")
+                        }
+
+                }.addOnFailureListener { e ->
+                    Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
+
+        })
+
+
     }
 
 
@@ -926,14 +919,34 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .map { it.trim() } // quitamos espacios alrededor
             .filter { it.isNotEmpty() } // evitamos frases vacías si las hay
 
-        Log.d("listapalabra",listaFrases.toString())
+        Log.d("listapalabra", listaFrases.toString())
+        Log.d(
+            "valores_encontrados",
+            "$titlo_descripcion,$valorSeleccionadoTitulo,$valorMayusMinusTitulo,$descripcion_desc,$valorSeleccionadoDes,$valorMayusMinusDes,$listaFrases"
+        )
 
 
         editar_setar_valores_campos(
             titlo_descripcion,
             valorSeleccionadoTitulo,
-            valorMayusMinusTitulo, descripcion_desc, valorSeleccionadoDes, valorMayusMinusDes,listaFrases
+            valorMayusMinusTitulo,
+            descripcion_desc,
+            valorSeleccionadoDes,
+            valorMayusMinusDes,
+            listaFrases
         )
+        val datos = dataclass_texto_descripcion_pr(
+            titulo_descripcion = titlo_descripcion,
+            valor_boldtexto_titulo = valorSeleccionadoTitulo,
+            minusmayus_titulo = valorMayusMinusTitulo,
+            descripcion_texto = descripcion_desc,
+            valor_boldtexto_texto = valorSeleccionadoDes,
+            minusmayus_titulo_texto = valorMayusMinusDes,
+            listaEncontrados = listaFrases
+        )
+
+        viewModel.datosDescripcion.value = datos
+
         dialog.dismiss()
     }
 
@@ -980,60 +993,58 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
 
 
-// Crear el SpannableString basado en el texto original
-        val spannableString = SpannableString(texto_des)
+        val spannable = SpannableStringBuilder(texto_des)
 
-// Recorrer la lista de frases
         for (fraseOriginal in listaFrases) {
-            val fraseFormateada = when (mayus_minus_des) {
-                "mayuscula" -> fraseOriginal.uppercase()
-                "minuscula" -> fraseOriginal.lowercase()
-                else -> fraseOriginal
-            }
+            val textoOriginalLower = texto_des.lowercase()
+            val fraseLower = fraseOriginal.lowercase()
 
-            val textoBase = when (mayus_minus_des) {
-                "mayuscula" -> texto_des.uppercase()
-                "minuscula" -> texto_des.lowercase()
-                else -> texto_des
-            }
+            var startIndex = textoOriginalLower.indexOf(fraseLower)
 
-            val startIndex = textoBase.indexOf(fraseFormateada)
-            if (startIndex != -1) { // Si encuentra la frase
-                val endIndex = startIndex + fraseFormateada.length
+            while (startIndex != -1) {
+                val endIndex = startIndex + fraseLower.length
 
+                // Aplicar estilo (Bold, Cursiva, Subrayado)
                 when (fuenteTextoTitulo_des) {
-                    "Bold" -> {
-                        spannableString.setSpan(
-                            StyleSpan(Typeface.BOLD),
-                            startIndex,
-                            endIndex,
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                        )
-                    }
-                    "Cursiva" -> {
-                        spannableString.setSpan(
-                            StyleSpan(Typeface.ITALIC),
-                            startIndex,
-                            endIndex,
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                        )
-                    }
-                    "Subrayado" -> {
-                        spannableString.setSpan(
-                            UnderlineSpan(),
-                            startIndex,
-                            endIndex,
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                        )
-                    }
+                    "Bold" -> spannable.setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        startIndex,
+                        endIndex,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+
+                    "Cursiva" -> spannable.setSpan(
+                        StyleSpan(Typeface.ITALIC),
+                        startIndex,
+                        endIndex,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+
+                    "Subrayado" -> spannable.setSpan(
+                        UnderlineSpan(),
+                        startIndex,
+                        endIndex,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
                 }
+
+                // Reemplazar visualmente la frase con mayúscula o minúscula (sin alterar el resto del texto)
+                val nuevaFrase = when (mayus_minus_des) {
+                    "mayuscula" -> texto_des.substring(startIndex, endIndex).uppercase()
+                    "minuscula" -> texto_des.substring(startIndex, endIndex).lowercase()
+                    else -> texto_des.substring(startIndex, endIndex)
+                }
+
+                spannable.replace(startIndex, endIndex, nuevaFrase)
+
+                // Buscar siguiente ocurrencia
+                val nuevoTexto = spannable.toString().lowercase()
+                startIndex = nuevoTexto.indexOf(fraseLower, startIndex + nuevaFrase.length)
             }
         }
 
-// Finalmente seteamos el texto modificado
-        binding.vistraPreviaDescripcion.text = spannableString
+        binding.vistraPreviaDescripcion.text = spannable
 
     }
-
 
 }

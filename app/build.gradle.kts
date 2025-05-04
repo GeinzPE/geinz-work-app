@@ -97,4 +97,6 @@ dependencies {
     implementation("org.quanqi:android-holo-graph:0.1.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("org.quanqi:android-holo-graph:0.1.0")
+    implementation("androidx.activity:activity-ktx:1.9.1")
+
 }

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.geinzz.geinzwork.app-mergeDebugResources-54:/values-ldrtl-v17/values-ldrtl-v17.xml",
+            "outputFile": "com.geinzz.geinzwork.app-mergeDebugResources-58:/values-ldrtl-v17/values-ldrtl-v17.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\user\\.gradle\\caches\\transforms-4\\da7cf1441c33ee8eead70878939375c3\\transformed\\material-1.11.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
+                    "source": "C:\\Users\\Benjamin\\.gradle\\caches\\transforms-4\\da7cf1441c33ee8eead70878939375c3\\transformed\\material-1.11.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\user\\.gradle\\caches\\transforms-4\\12afbd79c49a38cf1ab9b37141240848\\transformed\\leanback-1.0.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
+                    "source": "C:\\Users\\Benjamin\\.gradle\\caches\\transforms-4\\12afbd79c49a38cf1ab9b37141240848\\transformed\\leanback-1.0.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
                     "from": {
                         "startLines": "2,3,4",
                         "startColumns": "4,4,4",
