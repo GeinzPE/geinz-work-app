@@ -226,6 +226,18 @@
                 </LinearLayout>
 
 
+                <TextView
+                    android:id="@+id/vistra_previa_descripciontitulo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="descitpcion de producto" />
+
+                <TextView
+                    android:id="@+id/vistra_previa_descripcion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="descitpcion de producto" />
 
                 <include
                     android:id="@+id/cargaProductos_promo_trabajos"
@@ -233,7 +245,6 @@
 
 
             </LinearLayout>
-
 
         </LinearLayout>
 

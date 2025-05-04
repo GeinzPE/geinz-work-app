@@ -3,9 +3,15 @@ package com.geinzz.geinzwork.constantesGeneral
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -517,7 +523,7 @@ object constantes_publicaciones_general_user_tiendas {
                 )
 
             }
-
+            obtener_textos_stylos(idTrabajador, id,bindingProductosTrabajadores)
             bindingProductosTrabajadores.camposProductosUserVerificados.categoriaProducto.text =
                 categoria
             bindingProductosTrabajadores.nombreProducto.text = nombre
@@ -535,11 +541,13 @@ object constantes_publicaciones_general_user_tiendas {
             constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo)
             bindingProductosTrabajadores.ocultarCamposDePublicidad.setOnClickListener {
                 if (isCamposVisible) {
-                    bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility = View.GONE
+                    bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility =
+                        View.GONE
                     bindingProductosTrabajadores.ocultarP1.setImageResource(R.drawable.ocultar_arriva)
 
                 } else {
-                    bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility = View.VISIBLE
+                    bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility =
+                        View.VISIBLE
                     bindingProductosTrabajadores.ocultarP1.setImageResource(R.drawable.ocultar_abajo)
                 }
                 isCamposVisible = !isCamposVisible
@@ -855,6 +863,154 @@ object constantes_publicaciones_general_user_tiendas {
         }.addOnFailureListener { e ->
             println("error al encontrar $e")
         }
+    }
+
+    private fun obtener_textos_stylos(
+        idTrabajador: String,
+        idProducto: String,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("productos_venta").document(idProducto)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+
+                // Mapas
+                val descripcionTextoMap = data?.get("descripcion_texto") as? Map<*, *>
+                val descripcionTituloMap = data?.get("descripcion_titulo") as? Map<*, *>
+
+                // Arrays
+                val hashtagsGenerales = data?.get("hashtags_generales") as? List<*>
+                val listaTextoDescripcion = data?.get("descripcion_texto_lista") as? List<*>
+
+                // Convertir arrays a listas seguras de Strings
+                val listaHashtags = hashtagsGenerales?.mapNotNull { it as? String } ?: emptyList()
+                val listaFrases = listaTextoDescripcion?.mapNotNull { it as? String } ?: emptyList()
+
+                // Obtener valores del mapa de título
+                val titulo = descripcionTituloMap?.get("titulo_descripcion") as? String ?: ""
+                val fuenteTextoTitulo = descripcionTituloMap?.get("titulo_valor_style") as? String ?: ""
+                val mayusMinusTitulo = descripcionTituloMap?.get("titulo_mayus") as? String ?: ""
+
+                // Obtener valores del mapa de descripción
+                val textoDescripcion = descripcionTextoMap?.get("texto_descripcion") as? String ?: ""
+                val fuenteTextoDescripcion = descripcionTextoMap?.get("texto_valor_style") as? String ?: ""
+                val mayusMinusDescripcion = descripcionTextoMap?.get("texto_mayus") as? String ?: ""
+
+                // Llamar a la función con todos los datos necesarios
+                editar_setar_valores_campos(
+                    bindingProductosTrabajadores,
+                    titulo,
+                    fuenteTextoTitulo,
+                    mayusMinusTitulo,
+                    textoDescripcion,
+                    fuenteTextoDescripcion,
+                    mayusMinusDescripcion,
+                    listaFrases
+                )
+            }
+        }
+    }
+
+
+    private fun editar_setar_valores_campos(
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
+        titulo: String,
+        fuenteTextoTitulo: String,
+        mayus_minus: String,
+        texto_des: String,
+        fuenteTextoTitulo_des: String,
+        mayus_minus_des: String,
+        listaFrases: List<String>
+    ) {
+        val tituloFormateado = when (mayus_minus) {
+            "mayuscula" -> titulo.uppercase()
+            "minuscula" -> titulo.lowercase()
+            else -> titulo
+        }
+        bindingProductosTrabajadores.vistraPreviaDescripciontitulo.text = tituloFormateado
+        when (fuenteTextoTitulo) {
+            "Bold" -> {
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.BOLD)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
+                    bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
+
+            "Cursiva" -> {
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.ITALIC)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
+                    bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
+
+            "Subrayado" -> {
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.NORMAL)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
+                    bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+            }
+
+            else -> {
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.NORMAL)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
+                    bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
+        }
+
+
+        val spannable = SpannableStringBuilder(texto_des)
+
+        for (fraseOriginal in listaFrases) {
+            val textoOriginalLower = texto_des.lowercase()
+            val fraseLower = fraseOriginal.lowercase()
+
+            var startIndex = textoOriginalLower.indexOf(fraseLower)
+
+            while (startIndex != -1) {
+                val endIndex = startIndex + fraseLower.length
+
+                // Aplicar estilo (Bold, Cursiva, Subrayado)
+                when (fuenteTextoTitulo_des) {
+                    "Bold" -> spannable.setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        startIndex,
+                        endIndex,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+
+                    "Cursiva" -> spannable.setSpan(
+                        StyleSpan(Typeface.ITALIC),
+                        startIndex,
+                        endIndex,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+
+                    "Subrayado" -> spannable.setSpan(
+                        UnderlineSpan(),
+                        startIndex,
+                        endIndex,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+
+                // Reemplazar visualmente la frase con mayúscula o minúscula (sin alterar el resto del texto)
+                val nuevaFrase = when (mayus_minus_des) {
+                    "mayuscula" -> texto_des.substring(startIndex, endIndex).uppercase()
+                    "minuscula" -> texto_des.substring(startIndex, endIndex).lowercase()
+                    else -> texto_des.substring(startIndex, endIndex)
+                }
+
+                spannable.replace(startIndex, endIndex, nuevaFrase)
+
+                // Buscar siguiente ocurrencia
+                val nuevoTexto = spannable.toString().lowercase()
+                startIndex = nuevoTexto.indexOf(fraseLower, startIndex + nuevaFrase.length)
+            }
+        }
+
+        bindingProductosTrabajadores.vistraPreviaDescripcion.text = spannable
+
     }
 
     private fun inicializarTrabajosRealizados(

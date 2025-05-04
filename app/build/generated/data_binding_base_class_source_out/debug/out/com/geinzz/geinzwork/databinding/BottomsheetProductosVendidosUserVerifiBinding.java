@@ -88,6 +88,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   @NonNull
   public final TextView tvReadMore;
 
+  @NonNull
+  public final TextView vistraPreviaDescripcion;
+
+  @NonNull
+  public final TextView vistraPreviaDescripciontitulo;
+
   private BottomsheetProductosVendidosUserVerifiBinding(@NonNull RelativeLayout rootView,
       @NonNull IncludeCamposProductosVendidosVerificadosBinding camposProductosUserVerificados,
       @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
@@ -100,7 +106,8 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull TextView nombreProducto, @NonNull TextView nombreTrabajador,
       @NonNull LinearLayout ocultarCamposDePublicidad, @NonNull ImageView ocultarP1,
       @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
-      @NonNull ProgressBar progressCarga, @NonNull TextView tvReadMore) {
+      @NonNull ProgressBar progressCarga, @NonNull TextView tvReadMore,
+      @NonNull TextView vistraPreviaDescripcion, @NonNull TextView vistraPreviaDescripciontitulo) {
     this.rootView = rootView;
     this.camposProductosUserVerificados = camposProductosUserVerificados;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
@@ -123,6 +130,8 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.precioProducto = precioProducto;
     this.progressCarga = progressCarga;
     this.tvReadMore = tvReadMore;
+    this.vistraPreviaDescripcion = vistraPreviaDescripcion;
+    this.vistraPreviaDescripciontitulo = vistraPreviaDescripciontitulo;
   }
 
   @Override
@@ -281,12 +290,25 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.vistra_previa_descripcion;
+      TextView vistraPreviaDescripcion = ViewBindings.findChildViewById(rootView, id);
+      if (vistraPreviaDescripcion == null) {
+        break missingId;
+      }
+
+      id = R.id.vistra_previa_descripciontitulo;
+      TextView vistraPreviaDescripciontitulo = ViewBindings.findChildViewById(rootView, id);
+      if (vistraPreviaDescripciontitulo == null) {
+        break missingId;
+      }
+
       return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView,
           binding_camposProductosUserVerificados, binding_cargaProductosPromoTrabajos,
           carrucelImgProductosVentaUser, cerrar, compartirIcon, descripcion, descuentoPorcentaje,
           envioGratis, iconoVerificado, linealPrecioProducto, marcaProducto, netScrollView,
           nettScrollView, nombreProducto, nombreTrabajador, ocultarCamposDePublicidad, ocultarP1,
-          precioAntiguo, precioProducto, progressCarga, tvReadMore);
+          precioAntiguo, precioProducto, progressCarga, tvReadMore, vistraPreviaDescripcion,
+          vistraPreviaDescripciontitulo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
