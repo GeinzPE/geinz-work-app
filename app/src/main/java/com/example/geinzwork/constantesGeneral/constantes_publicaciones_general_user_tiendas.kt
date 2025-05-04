@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -236,7 +237,12 @@ object constantes_publicaciones_general_user_tiendas {
                 val data = res.data ?: emptyMap()
                 bindingProductosTrabajadores.progressCarga.isVisible = true
                 bindingProductosTrabajadores.nettScrollView.isVisible = false
-                setearDatosdialogProductos(context, data, bindingProductosTrabajadores) { cargado ->
+                setearDatosdialogProductos(
+                    idTrabajador,
+                    context,
+                    data,
+                    bindingProductosTrabajadores
+                ) { cargado ->
                     bindingProductosTrabajadores.progressCarga.isVisible = false
                     bindingProductosTrabajadores.nettScrollView.isVisible = true
                 }
@@ -394,13 +400,29 @@ object constantes_publicaciones_general_user_tiendas {
 
 
     fun setearDatosdialogProductos(
+        idTrabajador: String,
         context: Context,
         data: Map<String, Any>,
         bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
         onComplete: (Boolean) -> Unit
 
     ) {
+        var isCamposVisible = false
         try {
+            val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            db.get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data
+                    val nombre_trabajador = data?.get("nombre") as? String ?: ""
+                    val verificado = data?.get("verificado") as? Boolean ?: false
+                    if (verificado == true) {
+                        bindingProductosTrabajadores.iconoVerificado.isVisible = true
+                        bindingProductosTrabajadores.nombreTrabajador.text =
+                            "Vendido por : $nombre_trabajador"
+                    }
+                }
+            }
             val cantidadPorcentajeDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
             val precio = data["precio"] as? Number ?: 0
             val precioDescuento = data["precio_descuento"] as? Number ?: 0
@@ -419,8 +441,8 @@ object constantes_publicaciones_general_user_tiendas {
             val modelo = data["modelo"] as? String ?: ""
             val descuento = data["descuento"] as? Boolean ?: false
             val efectivo = data["efectivo"] as? Boolean ?: false
-            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: true
-
+            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: false
+            val envio_gratis = data["envio_gratis"] as? Boolean ?: false
             val garantia = data["garantia"] as? String ?: ""
             val id = data["id"] as? String ?: ""
             val fechaPublicada = data["fechaPublicada"] as? String ?: ""
@@ -433,7 +455,7 @@ object constantes_publicaciones_general_user_tiendas {
             val yape = data["yape"] as? Boolean ?: false
             val cantidad_porcentaje_descuento =
                 data["cantidad_porcentaje_descuento"] as? Number ?: 0
-
+            bindingProductosTrabajadores.marcaProducto.text = marca
             if (entrega_domicilio) {
                 bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
                     "si"
@@ -441,10 +463,23 @@ object constantes_publicaciones_general_user_tiendas {
                 bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
                     "no"
             }
+            if (envio_gratis) {
+                bindingProductosTrabajadores.envioGratis.isVisible = true
+            } else {
+                bindingProductosTrabajadores.envioGratis.isVisible = false
+            }
             if (descuento) {
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    precioDescuento,
+                    bindingProductosTrabajadores.precioProducto,
+                    precio,
+                    bindingProductosTrabajadores.precioAntiguo,
+                    cantidad_porcentaje_descuento,
+                    bindingProductosTrabajadores.descuentoPorcentaje
+                )
+                constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.precioAntiguo)
+
                 constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo)
-
-
                 constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                     precioDescuento,
                     bindingProductosTrabajadores.camposProductosUserVerificados.precioProducto,
@@ -458,14 +493,27 @@ object constantes_publicaciones_general_user_tiendas {
                     true
                 bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
                     true
+                bindingProductosTrabajadores.precioAntiguo.isVisible =
+                    true
+                bindingProductosTrabajadores.descuentoPorcentaje.isVisible =
+                    true
             } else {
                 bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo.isVisible =
                     false
                 bindingProductosTrabajadores.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
                     false
+                bindingProductosTrabajadores.precioAntiguo.isVisible =
+                    false
+                bindingProductosTrabajadores.descuentoPorcentaje.isVisible =
+                    false
                 constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                     precio,
                     bindingProductosTrabajadores.camposProductosUserVerificados.precioProducto
+                )
+
+                constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                    precio,
+                    bindingProductosTrabajadores.precioProducto
                 )
 
             }
@@ -475,7 +523,7 @@ object constantes_publicaciones_general_user_tiendas {
             bindingProductosTrabajadores.nombreProducto.text = nombre
             bindingProductosTrabajadores.camposProductosUserVerificados.marca.text = marca
             bindingProductosTrabajadores.camposProductosUserVerificados.modelo.text = modelo
-            bindingProductosTrabajadores.camposProductosUserVerificados.stok.text = stok
+            bindingProductosTrabajadores.camposProductosUserVerificados.stok.text = "$stok UND"
             bindingProductosTrabajadores.camposProductosUserVerificados.garantia.text = garantia
             bindingProductosTrabajadores.camposProductosUserVerificados.Condicion.text =
                 condicionProducto
@@ -485,7 +533,17 @@ object constantes_publicaciones_general_user_tiendas {
                 fechaPublicada
             inizializarImgProductos(context, listaImg, bindingProductosTrabajadores, data)
             constantestextos_general.marcarDescuentoTxt(bindingProductosTrabajadores.camposProductosUserVerificados.precioAntiguo)
+            bindingProductosTrabajadores.ocultarCamposDePublicidad.setOnClickListener {
+                if (isCamposVisible) {
+                    bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility = View.GONE
+                    bindingProductosTrabajadores.ocultarP1.setImageResource(R.drawable.ocultar_arriva)
 
+                } else {
+                    bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility = View.VISIBLE
+                    bindingProductosTrabajadores.ocultarP1.setImageResource(R.drawable.ocultar_abajo)
+                }
+                isCamposVisible = !isCamposVisible
+            }
 
             onComplete(true)
         } catch (e: Exception) {
@@ -532,6 +590,7 @@ object constantes_publicaciones_general_user_tiendas {
                 bindingProductosVencidodos.progressCarga.isVisible = true
                 bindingProductosVencidodos.netScrollView.isVisible = false
                 setearDatosdialogProductos(
+                    idTrabajador,
                     context,
                     data,
                     bindingProductosVencidodos

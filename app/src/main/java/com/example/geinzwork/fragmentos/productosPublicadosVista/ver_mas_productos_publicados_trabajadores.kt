@@ -317,7 +317,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 bindingProductosTrabajadores.progressCarga.isVisible=true
                 bindingProductosTrabajadores.nettScrollView.isVisible=false
                 val data = res.data ?: emptyMap()
-                constantes_publicaciones_general_user_tiendas.setearDatosdialogProductos(this,data, bindingProductosTrabajadores) { completado ->
+                constantes_publicaciones_general_user_tiendas.setearDatosdialogProductos(idTrabajador,this,data, bindingProductosTrabajadores) { completado ->
                     bindingProductosTrabajadores.progressCarga.isVisible=false
                     bindingProductosTrabajadores.nettScrollView.isVisible=true
                 }

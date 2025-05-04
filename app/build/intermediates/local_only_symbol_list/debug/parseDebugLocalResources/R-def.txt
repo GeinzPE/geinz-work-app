@@ -17,6 +17,7 @@ color f1
 color facebook_blue
 color fastlane_background
 color gray
+color gris_medio_color
 color heartOutlineColor
 color opacity
 color purple_200
@@ -217,6 +218,7 @@ drawable round_card
 drawable round_carga_carrito
 drawable round_desactivado
 drawable round_encabezado
+drawable round_envio_gratis
 drawable round_gris
 drawable round_icono_pedidos_compra
 drawable round_icono_pedidos_estado
@@ -748,6 +750,7 @@ id entrega_domicilio
 id enviado_exitosamente
 id enviar
 id envioGratis
+id envio_gratis
 id estado
 id estadoTienda
 id estadosLineal
@@ -877,6 +880,7 @@ id icon_nombreTienda
 id icon_zonaTienda
 id icono
 id iconoAgregar
+id icono_verificado
 id idApelacio_problema
 id idDoc
 id idGrupoCategoriaTrabajos
@@ -1037,7 +1041,6 @@ id linealCondicionProducto
 id linealContenidoDesctipcion
 id linealDatos
 id linealDescripcion
-id linealDescripcionProducto
 id linealDescuento
 id linealDiasRestantess
 id linealDireccion
@@ -1086,6 +1089,7 @@ id linealTrabajadores
 id linealTrabajosRealziados
 id linealUbi
 id linealUbicacion
+id linealVer
 id linealVerificado
 id linealYape
 id lineal_Publicacion
@@ -1168,6 +1172,7 @@ id mapa
 id marca
 id marcaProducto
 id marcaProductoED
+id marca_producto
 id mas
 id masEstrellas
 id masPromociones_geinz

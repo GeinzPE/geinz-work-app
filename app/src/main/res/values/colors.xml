@@ -8,6 +8,7 @@
     <color name="verde">#11C246</color>
     <color name="amarillo">#FAE51A</color>
     <color name="gray">#DBDBDB</color>
+    <color name="gris_medio_color">#B6B6B6</color>
     <color name="background_gradient_start">#000000</color>
     <color name="background_gradient_end">#DDDDDD</color>
     <color name="fastlane_background">#0096a6</color>

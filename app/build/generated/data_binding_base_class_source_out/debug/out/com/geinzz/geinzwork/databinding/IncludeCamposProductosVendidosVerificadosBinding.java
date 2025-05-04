@@ -57,9 +57,6 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
   public final LinearLayout linealCondicionProducto;
 
   @NonNull
-  public final LinearLayout linealDescripcionProducto;
-
-  @NonNull
   public final LinearLayout linealEntregaDomicilio;
 
   @NonNull
@@ -76,6 +73,9 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
 
   @NonNull
   public final LinearLayout linealStokDisponible;
+
+  @NonNull
+  public final LinearLayout linealVer;
 
   @NonNull
   public final TextView marca;
@@ -102,10 +102,10 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
       @NonNull TextView descuentoPorcentaje, @NonNull TextView entregaDomicilio,
       @NonNull TextView fechaPublicado, @NonNull TextView garantia,
       @NonNull LinearLayout linealCategoriaProducto, @NonNull LinearLayout linealCondicionProducto,
-      @NonNull LinearLayout linealDescripcionProducto, @NonNull LinearLayout linealEntregaDomicilio,
-      @NonNull LinearLayout linealFechaPublicada, @NonNull LinearLayout linealGarantiaDisponible,
-      @NonNull LinearLayout linealMarcaProducto, @NonNull LinearLayout linealPrecioProducto,
-      @NonNull LinearLayout linealStokDisponible, @NonNull TextView marca, @NonNull TextView modelo,
+      @NonNull LinearLayout linealEntregaDomicilio, @NonNull LinearLayout linealFechaPublicada,
+      @NonNull LinearLayout linealGarantiaDisponible, @NonNull LinearLayout linealMarcaProducto,
+      @NonNull LinearLayout linealPrecioProducto, @NonNull LinearLayout linealStokDisponible,
+      @NonNull LinearLayout linealVer, @NonNull TextView marca, @NonNull TextView modelo,
       @NonNull TextView precioAntiguo, @NonNull TextView precioProducto, @NonNull TextView stok,
       @NonNull TextView tvReadMore) {
     this.rootView = rootView;
@@ -121,13 +121,13 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
     this.garantia = garantia;
     this.linealCategoriaProducto = linealCategoriaProducto;
     this.linealCondicionProducto = linealCondicionProducto;
-    this.linealDescripcionProducto = linealDescripcionProducto;
     this.linealEntregaDomicilio = linealEntregaDomicilio;
     this.linealFechaPublicada = linealFechaPublicada;
     this.linealGarantiaDisponible = linealGarantiaDisponible;
     this.linealMarcaProducto = linealMarcaProducto;
     this.linealPrecioProducto = linealPrecioProducto;
     this.linealStokDisponible = linealStokDisponible;
+    this.linealVer = linealVer;
     this.marca = marca;
     this.modelo = modelo;
     this.precioAntiguo = precioAntiguo;
@@ -236,12 +236,6 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
         break missingId;
       }
 
-      id = R.id.linealDescripcionProducto;
-      LinearLayout linealDescripcionProducto = ViewBindings.findChildViewById(rootView, id);
-      if (linealDescripcionProducto == null) {
-        break missingId;
-      }
-
       id = R.id.linealEntregaDomicilio;
       LinearLayout linealEntregaDomicilio = ViewBindings.findChildViewById(rootView, id);
       if (linealEntregaDomicilio == null) {
@@ -277,6 +271,8 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
       if (linealStokDisponible == null) {
         break missingId;
       }
+
+      LinearLayout linealVer = (LinearLayout) rootView;
 
       id = R.id.marca;
       TextView marca = ViewBindings.findChildViewById(rootView, id);
@@ -317,10 +313,10 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
       return new IncludeCamposProductosVendidosVerificadosBinding((LinearLayout) rootView,
           Condicion, LinealModeloProducto, categoriaProducto, comprar, cordinarVendedor,
           descripcion, descuentoPorcentaje, entregaDomicilio, fechaPublicado, garantia,
-          linealCategoriaProducto, linealCondicionProducto, linealDescripcionProducto,
-          linealEntregaDomicilio, linealFechaPublicada, linealGarantiaDisponible,
-          linealMarcaProducto, linealPrecioProducto, linealStokDisponible, marca, modelo,
-          precioAntiguo, precioProducto, stok, tvReadMore);
+          linealCategoriaProducto, linealCondicionProducto, linealEntregaDomicilio,
+          linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
+          linealStokDisponible, linealVer, marca, modelo, precioAntiguo, precioProducto, stok,
+          tvReadMore);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
