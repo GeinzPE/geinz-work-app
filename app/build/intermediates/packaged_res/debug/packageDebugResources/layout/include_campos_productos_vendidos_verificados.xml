@@ -28,7 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="categoria: "
+                android:text="Categoria: "
                 android:textSize="15sp" />
 
             <TextView
@@ -196,7 +196,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="condicion: "
+            android:text="Condicion: "
             android:textSize="15sp" />
 
         <TextView
@@ -261,7 +261,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="publicado: "
+            android:text="Publicado: "
             android:textSize="15sp" />
 
         <TextView

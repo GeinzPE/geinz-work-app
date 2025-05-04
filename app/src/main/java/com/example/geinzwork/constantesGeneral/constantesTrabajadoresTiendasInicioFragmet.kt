@@ -135,7 +135,6 @@ object constantesTrabajadoresTiendasInicioFragmet {
             .collection("trabajadores")
 
         // Mostrar loading y ocultar los resultados
-        binding.includeReciclemecanico.progressvar.isVisible = true
         binding.loading.isVisible = true
         binding.containerGeneral.isVisible = false
 
@@ -256,14 +255,19 @@ object constantesTrabajadoresTiendasInicioFragmet {
         sectionView: ItemInicioFragmentUsersBinding,
         usuarios: List<dataClassTrabajosd>
     ) {
+        Log.d("VisibilidadCategoria", "Total usuarios encontrados: ${usuarios.size}")
+
         if (usuarios.isEmpty()) {
             sectionView.noEncontrado.isVisible = true
             sectionView.progressvar.isVisible = false
+            Log.d("VisibilidadCategoria", "Lista vacía: mostrando mensaje de no encontrado.")
         } else {
             sectionView.noEncontrado.isVisible = false
             sectionView.trabajadores.isVisible = true
+            Log.d("VisibilidadCategoria", "Lista con datos: mostrando trabajadores.")
         }
     }
+
 
 
     private fun actualizarVisibilidad(

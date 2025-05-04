@@ -4,7 +4,9 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +16,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.textfield.TextInputLayout;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -26,21 +29,44 @@ public final class FragmentCategoriasFracmentBinding implements ViewBinding {
   public final RecyclerView RecicleViewTrabajos;
 
   @NonNull
+  public final ProgressBar cargaTrabajadores;
+
+  @NonNull
+  public final TextInputLayout inputnombre;
+
+  @NonNull
+  public final LinearLayout linealNoSeEncontraron;
+
+  @NonNull
   public final LinearLayout linealPrincipal;
 
   @NonNull
   public final LinearLayoutCompat loading;
 
   @NonNull
+  public final RecyclerView recycleMostrarTrabajadores;
+
+  @NonNull
+  public final EditText search;
+
+  @NonNull
   public final SwipeRefreshLayout swipe;
 
   private FragmentCategoriasFracmentBinding(@NonNull RelativeLayout rootView,
-      @NonNull RecyclerView RecicleViewTrabajos, @NonNull LinearLayout linealPrincipal,
-      @NonNull LinearLayoutCompat loading, @NonNull SwipeRefreshLayout swipe) {
+      @NonNull RecyclerView RecicleViewTrabajos, @NonNull ProgressBar cargaTrabajadores,
+      @NonNull TextInputLayout inputnombre, @NonNull LinearLayout linealNoSeEncontraron,
+      @NonNull LinearLayout linealPrincipal, @NonNull LinearLayoutCompat loading,
+      @NonNull RecyclerView recycleMostrarTrabajadores, @NonNull EditText search,
+      @NonNull SwipeRefreshLayout swipe) {
     this.rootView = rootView;
     this.RecicleViewTrabajos = RecicleViewTrabajos;
+    this.cargaTrabajadores = cargaTrabajadores;
+    this.inputnombre = inputnombre;
+    this.linealNoSeEncontraron = linealNoSeEncontraron;
     this.linealPrincipal = linealPrincipal;
     this.loading = loading;
+    this.recycleMostrarTrabajadores = recycleMostrarTrabajadores;
+    this.search = search;
     this.swipe = swipe;
   }
 
@@ -77,6 +103,24 @@ public final class FragmentCategoriasFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.cargaTrabajadores;
+      ProgressBar cargaTrabajadores = ViewBindings.findChildViewById(rootView, id);
+      if (cargaTrabajadores == null) {
+        break missingId;
+      }
+
+      id = R.id.inputnombre;
+      TextInputLayout inputnombre = ViewBindings.findChildViewById(rootView, id);
+      if (inputnombre == null) {
+        break missingId;
+      }
+
+      id = R.id.linealNo_seEncontraron;
+      LinearLayout linealNoSeEncontraron = ViewBindings.findChildViewById(rootView, id);
+      if (linealNoSeEncontraron == null) {
+        break missingId;
+      }
+
       id = R.id.linealPrincipal;
       LinearLayout linealPrincipal = ViewBindings.findChildViewById(rootView, id);
       if (linealPrincipal == null) {
@@ -89,6 +133,18 @@ public final class FragmentCategoriasFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.recycleMostrarTrabajadores;
+      RecyclerView recycleMostrarTrabajadores = ViewBindings.findChildViewById(rootView, id);
+      if (recycleMostrarTrabajadores == null) {
+        break missingId;
+      }
+
+      id = R.id.search;
+      EditText search = ViewBindings.findChildViewById(rootView, id);
+      if (search == null) {
+        break missingId;
+      }
+
       id = R.id.swipe;
       SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
       if (swipe == null) {
@@ -96,7 +152,8 @@ public final class FragmentCategoriasFracmentBinding implements ViewBinding {
       }
 
       return new FragmentCategoriasFracmentBinding((RelativeLayout) rootView, RecicleViewTrabajos,
-          linealPrincipal, loading, swipe);
+          cargaTrabajadores, inputnombre, linealNoSeEncontraron, linealPrincipal, loading,
+          recycleMostrarTrabajadores, search, swipe);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

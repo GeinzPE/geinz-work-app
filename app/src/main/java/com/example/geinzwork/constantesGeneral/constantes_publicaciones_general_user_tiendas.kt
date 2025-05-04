@@ -439,7 +439,7 @@ object constantes_publicaciones_general_user_tiendas {
                 bindingProductosTrabajadores.camposProductosUserVerificados.tvReadMore
             )
 
-            val categoria = data["categoria"] as? String ?: ""
+            val categoria = data["categoria_producto"] as? String ?: ""
             val condicionProducto = data["condicion_producto"] as? String ?: ""
             val descripcion = data["descripcion"] as? String ?: ""
 
@@ -523,7 +523,7 @@ object constantes_publicaciones_general_user_tiendas {
                 )
 
             }
-            obtener_textos_stylos(idTrabajador, id,bindingProductosTrabajadores)
+            obtener_textos_stylos(idTrabajador, id, bindingProductosTrabajadores)
             bindingProductosTrabajadores.camposProductosUserVerificados.categoriaProducto.text =
                 categoria
             bindingProductosTrabajadores.nombreProducto.text = nombre
@@ -549,6 +549,20 @@ object constantes_publicaciones_general_user_tiendas {
                     bindingProductosTrabajadores.camposProductosUserVerificados.linealVer.visibility =
                         View.VISIBLE
                     bindingProductosTrabajadores.ocultarP1.setImageResource(R.drawable.ocultar_abajo)
+                }
+                isCamposVisible = !isCamposVisible
+            }
+
+            bindingProductosTrabajadores.ocultarCamposDescripcion.setOnClickListener {
+                if (isCamposVisible) {
+                    bindingProductosTrabajadores.linealTextosDescripcion.visibility =
+                        View.GONE
+                    bindingProductosTrabajadores.ocultarP2.setImageResource(R.drawable.ocultar_arriva)
+
+                } else {
+                    bindingProductosTrabajadores.linealTextosDescripcion.visibility =
+                        View.VISIBLE
+                    bindingProductosTrabajadores.ocultarP2.setImageResource(R.drawable.ocultar_abajo)
                 }
                 isCamposVisible = !isCamposVisible
             }
@@ -892,12 +906,15 @@ object constantes_publicaciones_general_user_tiendas {
 
                 // Obtener valores del mapa de título
                 val titulo = descripcionTituloMap?.get("titulo_descripcion") as? String ?: ""
-                val fuenteTextoTitulo = descripcionTituloMap?.get("titulo_valor_style") as? String ?: ""
+                val fuenteTextoTitulo =
+                    descripcionTituloMap?.get("titulo_valor_style") as? String ?: ""
                 val mayusMinusTitulo = descripcionTituloMap?.get("titulo_mayus") as? String ?: ""
 
                 // Obtener valores del mapa de descripción
-                val textoDescripcion = descripcionTextoMap?.get("texto_descripcion") as? String ?: ""
-                val fuenteTextoDescripcion = descripcionTextoMap?.get("texto_valor_style") as? String ?: ""
+                val textoDescripcion =
+                    descripcionTextoMap?.get("texto_descripcion") as? String ?: ""
+                val fuenteTextoDescripcion =
+                    descripcionTextoMap?.get("texto_valor_style") as? String ?: ""
                 val mayusMinusDescripcion = descripcionTextoMap?.get("texto_mayus") as? String ?: ""
 
                 // Llamar a la función con todos los datos necesarios
@@ -934,25 +951,37 @@ object constantes_publicaciones_general_user_tiendas {
         bindingProductosTrabajadores.vistraPreviaDescripciontitulo.text = tituloFormateado
         when (fuenteTextoTitulo) {
             "Bold" -> {
-                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.BOLD)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
                 bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
                     bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
             }
 
             "Cursiva" -> {
-                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.ITALIC)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(
+                    null,
+                    Typeface.ITALIC
+                )
                 bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
                     bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
             }
 
             "Subrayado" -> {
-                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.NORMAL)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(
+                    null,
+                    Typeface.NORMAL
+                )
                 bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
                     bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags or Paint.UNDERLINE_TEXT_FLAG
             }
 
             else -> {
-                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(null, Typeface.NORMAL)
+                bindingProductosTrabajadores.vistraPreviaDescripciontitulo.setTypeface(
+                    null,
+                    Typeface.NORMAL
+                )
                 bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags =
                     bindingProductosTrabajadores.vistraPreviaDescripciontitulo.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
             }

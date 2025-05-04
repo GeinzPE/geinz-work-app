@@ -112,9 +112,13 @@ class adapter_seguidores_seguidos(
 
             binding.seguir.setOnClickListener {
                 seguir(item)
+                binding.dejarSeguir.isVisible=true
+                binding.seguir.isVisible=false
             }
             binding.dejarSeguir.setOnClickListener {
                 dejar_seguir(item)
+                binding.seguir.isVisible=true
+                binding.dejarSeguir.isVisible=false
             }
 
             binding.verPerfil.setOnClickListener {

@@ -3,6 +3,7 @@ package com.example.geinzwork
 import android.content.Context
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,6 +22,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -60,6 +62,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var descuento: Boolean = false
     private var efectivo: Boolean = false
     private val viewModel: MiViewModel by viewModels()
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCrearPublicacionProductosTrabajadoresBinding.inflate(layoutInflater)
@@ -82,6 +85,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             dialog.show()
 
         }
+        constantesCarrito.obtnerfechaHora(binding.hora,binding.fecha)
         binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
         val radioGroup = binding.metodosEntrega
         val campoLugarEntrega = binding.lugarEntregaTXT
@@ -500,7 +504,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
                 "efectivo" to efectivo,
                 "entrega_domicilio" to isEntregaDomicilio,
-                "fechaPublicada" to "",
+                "fechaPublicada" to binding.fecha.text.toString(),
+                "horaPublicada" to binding.hora.text.toString(),
                 "garantia" to tiempoGarantiaYears.text.toString(),
                 "localidadUser" to localida_user.text.toString(),
                 "lugarEntrega" to lugar_entrega.text.toString(),

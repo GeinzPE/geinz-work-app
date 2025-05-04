@@ -4421,7 +4421,6 @@ font made_tommy_soft_regular
 font montserrat_light
 font precio_productos_inte_tight_medium
 font roboto_medium
-font snow_blue
 font titulo_robo_semibold_fuente
 font titulo_roboto_extra_bold_fuente
 font titulo_roboto_regular_fuente
@@ -4910,6 +4909,7 @@ id cargaLike
 id cargaProductos_promo_trabajos
 id cargaPublicaicones_realizadas
 id cargaServicios
+id cargaTrabajadores
 id carga_contenido
 id carga_img
 id cargadoContenido
@@ -5704,6 +5704,7 @@ id linealSiguiendo
 id linealSinReportes
 id linealStokDisponible
 id linealSubir
+id linealTextos_descripcion
 id linealTiendaProp
 id linealTipoTrabajo
 id linealTitulo
@@ -6018,8 +6019,10 @@ id obtenerLocalizacion
 id ocualtar
 id ocultar_campo_noticia
 id ocultar_campos_de_publicidad
+id ocultar_campos_descripcion
 id ocultar_campos_pagos
 id ocultar_p1
+id ocultar_p2
 id ocultarp2
 id ocultarp3
 id off
@@ -6223,6 +6226,7 @@ id recieleCompras
 id recojoEnTienda
 id rectangles
 id recycleCargar_seguidos_Seguidores
+id recycleMostrarTrabajadores
 id recycleViewProductosFiltrados
 id recycle_img
 id recyclerView
@@ -7366,6 +7370,7 @@ string browse_title
 string btnConfirmar_verifica
 string btnCrear_cuenta
 string btnEnviarDatos
+string buscar
 string buy_1
 string buy_2
 string call_notification_answer_action

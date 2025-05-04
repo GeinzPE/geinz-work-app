@@ -602,7 +602,7 @@ class info : Fragment() {
     }
 
 
-    private fun seguirUsuario(idTrabajador: String?) {
+    fun seguirUsuario(idTrabajador: String?) {
         if (firebaseAuth.currentUser == null) {
             val builder = androidx.appcompat.app.AlertDialog.Builder(mContex)
             builder.setTitle("No estás registrado en Geinz Work")

@@ -56,6 +56,9 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout linealPrecioProducto;
 
   @NonNull
+  public final LinearLayout linealTextosDescripcion;
+
+  @NonNull
   public final TextView marcaProducto;
 
   @NonNull
@@ -74,7 +77,13 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
   public final LinearLayout ocultarCamposDePublicidad;
 
   @NonNull
+  public final LinearLayout ocultarCamposDescripcion;
+
+  @NonNull
   public final ImageView ocultarP1;
+
+  @NonNull
+  public final ImageView ocultarP2;
 
   @NonNull
   public final TextView precioAntiguo;
@@ -101,13 +110,15 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       @NonNull BottomSheetDragHandleView cerrar, @NonNull ImageView compartirIcon,
       @NonNull TextView descripcion, @NonNull TextView descuentoPorcentaje,
       @NonNull TextView envioGratis, @NonNull ImageView iconoVerificado,
-      @NonNull LinearLayout linealPrecioProducto, @NonNull TextView marcaProducto,
-      @NonNull LinearLayout netScrollView, @NonNull NestedScrollView nettScrollView,
-      @NonNull TextView nombreProducto, @NonNull TextView nombreTrabajador,
-      @NonNull LinearLayout ocultarCamposDePublicidad, @NonNull ImageView ocultarP1,
-      @NonNull TextView precioAntiguo, @NonNull TextView precioProducto,
-      @NonNull ProgressBar progressCarga, @NonNull TextView tvReadMore,
-      @NonNull TextView vistraPreviaDescripcion, @NonNull TextView vistraPreviaDescripciontitulo) {
+      @NonNull LinearLayout linealPrecioProducto, @NonNull LinearLayout linealTextosDescripcion,
+      @NonNull TextView marcaProducto, @NonNull LinearLayout netScrollView,
+      @NonNull NestedScrollView nettScrollView, @NonNull TextView nombreProducto,
+      @NonNull TextView nombreTrabajador, @NonNull LinearLayout ocultarCamposDePublicidad,
+      @NonNull LinearLayout ocultarCamposDescripcion, @NonNull ImageView ocultarP1,
+      @NonNull ImageView ocultarP2, @NonNull TextView precioAntiguo,
+      @NonNull TextView precioProducto, @NonNull ProgressBar progressCarga,
+      @NonNull TextView tvReadMore, @NonNull TextView vistraPreviaDescripcion,
+      @NonNull TextView vistraPreviaDescripciontitulo) {
     this.rootView = rootView;
     this.camposProductosUserVerificados = camposProductosUserVerificados;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
@@ -119,13 +130,16 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
     this.envioGratis = envioGratis;
     this.iconoVerificado = iconoVerificado;
     this.linealPrecioProducto = linealPrecioProducto;
+    this.linealTextosDescripcion = linealTextosDescripcion;
     this.marcaProducto = marcaProducto;
     this.netScrollView = netScrollView;
     this.nettScrollView = nettScrollView;
     this.nombreProducto = nombreProducto;
     this.nombreTrabajador = nombreTrabajador;
     this.ocultarCamposDePublicidad = ocultarCamposDePublicidad;
+    this.ocultarCamposDescripcion = ocultarCamposDescripcion;
     this.ocultarP1 = ocultarP1;
+    this.ocultarP2 = ocultarP2;
     this.precioAntiguo = precioAntiguo;
     this.precioProducto = precioProducto;
     this.progressCarga = progressCarga;
@@ -224,6 +238,12 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.linealTextos_descripcion;
+      LinearLayout linealTextosDescripcion = ViewBindings.findChildViewById(rootView, id);
+      if (linealTextosDescripcion == null) {
+        break missingId;
+      }
+
       id = R.id.marca_producto;
       TextView marcaProducto = ViewBindings.findChildViewById(rootView, id);
       if (marcaProducto == null) {
@@ -260,9 +280,21 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
         break missingId;
       }
 
+      id = R.id.ocultar_campos_descripcion;
+      LinearLayout ocultarCamposDescripcion = ViewBindings.findChildViewById(rootView, id);
+      if (ocultarCamposDescripcion == null) {
+        break missingId;
+      }
+
       id = R.id.ocultar_p1;
       ImageView ocultarP1 = ViewBindings.findChildViewById(rootView, id);
       if (ocultarP1 == null) {
+        break missingId;
+      }
+
+      id = R.id.ocultar_p2;
+      ImageView ocultarP2 = ViewBindings.findChildViewById(rootView, id);
+      if (ocultarP2 == null) {
         break missingId;
       }
 
@@ -305,9 +337,10 @@ public final class BottomsheetProductosVendidosUserVerifiBinding implements View
       return new BottomsheetProductosVendidosUserVerifiBinding((RelativeLayout) rootView,
           binding_camposProductosUserVerificados, binding_cargaProductosPromoTrabajos,
           carrucelImgProductosVentaUser, cerrar, compartirIcon, descripcion, descuentoPorcentaje,
-          envioGratis, iconoVerificado, linealPrecioProducto, marcaProducto, netScrollView,
-          nettScrollView, nombreProducto, nombreTrabajador, ocultarCamposDePublicidad, ocultarP1,
-          precioAntiguo, precioProducto, progressCarga, tvReadMore, vistraPreviaDescripcion,
+          envioGratis, iconoVerificado, linealPrecioProducto, linealTextosDescripcion,
+          marcaProducto, netScrollView, nettScrollView, nombreProducto, nombreTrabajador,
+          ocultarCamposDePublicidad, ocultarCamposDescripcion, ocultarP1, ocultarP2, precioAntiguo,
+          precioProducto, progressCarga, tvReadMore, vistraPreviaDescripcion,
           vistraPreviaDescripciontitulo);
     }
     String missingId = rootView.getResources().getResourceName(id);

@@ -26,8 +26,8 @@ import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
-import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomShettDialogMasInfoTrabajadorBinding
+import com.geinzz.geinzwork.databinding.FragmentCategoriasFracmentBinding
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -265,7 +265,7 @@ object constantes_trabajadores_info {
             when (textoBTN.toString()) {
                 seguir_TXT -> {
                     binding.notificaciones.isVisible = true
-                    seguirTrabajador(idTrabajadorActual, binding,true)
+                    seguirTrabajador(idTrabajadorActual, binding, true)
                     binding.dejarDeSeguirOSeguir.text = SiguientoTXT
                     aplicarEstiloSigueindo(binding.dejarDeSeguirOSeguir, contexto)
                 }
@@ -278,7 +278,7 @@ object constantes_trabajadores_info {
                     binding.notificaciones.isVisible = true
                     verificarSiSiueTrabajador(binding, idTrabajadorActual, contexto, { siguiendo ->
                         if (siguiendo) {
-                            seguirTrabajador(idTrabajadorActual, binding,true)
+                            seguirTrabajador(idTrabajadorActual, binding, true)
                         }
                     }, {})
 
@@ -347,7 +347,11 @@ object constantes_trabajadores_info {
         }
     }
 
-    fun seguirTrabajador(idTrabajadorActual: String, binding: FragmentInfoBinding,funcion_aplicar: Boolean) {
+    fun seguirTrabajador(
+        idTrabajadorActual: String,
+        binding: FragmentInfoBinding,
+        funcion_aplicar: Boolean
+    ) {
         firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("tokens").collection("tokens").document(firebaseAuth.uid.toString())
@@ -359,22 +363,41 @@ object constantes_trabajadores_info {
                     token,
                     firebaseAuth.uid.toString(),
                     idTrabajadorActual,
-                    binding,funcion_aplicar
+                    binding, funcion_aplicar
                 )
             } else {
                 println("no se encontro el token del usuario")
             }
         }
+    }
 
-
+    fun seguirTrabajadorcategoriasFR(idTrabajadorActual: String, funcion_aplicar: Boolean) {
+        firebaseAuth = FirebaseAuth.getInstance()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("tokens").collection("tokens").document(firebaseAuth.uid.toString())
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val token = data?.get("token") as? String ?: ""
+                AgregarCollectionFollow(
+                    token,
+                    firebaseAuth.uid.toString(),
+                    idTrabajadorActual,
+                    null,
+                    funcion_aplicar
+                )
+            } else {
+                println("no se encontro el token del usuario")
+            }
+        }
     }
 
     private fun AgregarCollectionFollow(
         token: String,
         iduserActual: String,
         idTrabajadorActual: String,
-        binding: FragmentInfoBinding,
-        funcion_aplicar:Boolean
+        binding: FragmentInfoBinding? = null,
+        funcion_aplicar: Boolean
     ) {
         val db = FirebaseFirestore.getInstance()
 
@@ -394,8 +417,8 @@ object constantes_trabajadores_info {
         refSeguidores.set(hashMapSeguidores, SetOptions.merge())
             .addOnSuccessListener {
                 println("Seguidor agregado correctamente")
-                if(funcion_aplicar){
-                    actualizarSeguidres(binding, idTrabajadorActual)
+                if (funcion_aplicar) {
+                    actualizarSeguidres(binding!!, idTrabajadorActual)
                 }
             }
             .addOnFailureListener {
@@ -454,9 +477,43 @@ object constantes_trabajadores_info {
         refSeguidores.delete().addOnSuccessListener {
             println("Dejó de seguir correctamente al trabajador")
             actualizarSeguidres(binding, idTrabajadorActual)
-            if(estilo){
+            if (estilo) {
                 binding.dejarDeSeguirOSeguir.text = seguir_TXT
             }
+        }.addOnFailureListener { e ->
+            println("Hubo un error al dejar de seguir trabajador: $e")
+        }
+
+        refSeguidos.delete().addOnSuccessListener {
+            println("Trabajador eliminado de seguidos correctamente")
+        }.addOnFailureListener { e ->
+            println("Hubo un error al eliminar seguido: $e")
+        }
+    }
+
+    fun dejarSeguirTrabajadorcaregoriasFR(
+        idTrabajadorActual: String,
+    ) {
+        firebaseAuth = FirebaseAuth.getInstance()
+        val db = FirebaseFirestore.getInstance()
+
+        val refSeguidores = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(idTrabajadorActual)
+            .collection("seguidores")
+            .document(firebaseAuth.uid.toString())
+
+        val refSeguidos = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("seguidos")
+            .document(idTrabajadorActual)
+
+        refSeguidores.delete().addOnSuccessListener {
+            println("Dejó de seguir correctamente al trabajador")
+
         }.addOnFailureListener { e ->
             println("Hubo un error al dejar de seguir trabajador: $e")
         }
@@ -482,7 +539,7 @@ object constantes_trabajadores_info {
         val dialog = builder.create()
 
         dialogView.findViewById<Button>(R.id.buttonYes).setOnClickListener {
-            dejarSeguirTrabajador(binding, idTrabajadorActual, context,true)
+            dejarSeguirTrabajador(binding, idTrabajadorActual, context, true)
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
             binding.notificaciones.isVisible = false
             dialog.dismiss()
@@ -623,14 +680,15 @@ object constantes_trabajadores_info {
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
         }
     }
-    fun ver_cantidad_siguiendo(binding: FragmentInfoBinding,idTrabajadorActual: String){
+
+    fun ver_cantidad_siguiendo(binding: FragmentInfoBinding, idTrabajadorActual: String) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
             .collection("seguidos")
-        db.get().addOnSuccessListener { res->
-            val totalSeguidos=res.size()
-            binding.siguiendo.text="${totalSeguidos}"
-        }.addOnFailureListener { e->
+        db.get().addOnSuccessListener { res ->
+            val totalSeguidos = res.size()
+            binding.siguiendo.text = "${totalSeguidos}"
+        }.addOnFailureListener { e ->
             binding.dejarDeSeguirOSeguir.text = seguir_TXT
         }
     }

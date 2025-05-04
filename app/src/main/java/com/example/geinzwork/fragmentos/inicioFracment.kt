@@ -48,7 +48,6 @@ import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresIn
 import com.geinzz.geinzwork.dataclass.dataClassCategoriasInicio
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
-import com.geinzz.geinzwork.vistaTiendas.constantesVistaTiendas
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -88,6 +87,8 @@ class inicioFracment : Fragment() {
         obtenerImagenesFirestorage()
         SetAnuncios()
         obtenerTrabajosCat()
+        obtenerProductos_trabajadores()
+        obterTrabajosRecientes_trabajadores()
         val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
 
         val storedValue = pref?.getString(KEY, "Default Value")
@@ -214,8 +215,7 @@ class inicioFracment : Fragment() {
         setupRecyclerViewTouchListener(binding.includeReciclemecanico.trabajadores, activity!!)
         setupRecyclerViewTouchListener(binding.includeRecicleTecnicos.trabajadores, activity!!)
 
-        obtenerProductos_trabajadores()
-        obterTrabajosRecientes_trabajadores()
+
         binding.verTrabajosPublicados.setOnClickListener {
             val intent = Intent(mContex, ver_toto_publicaciones_trabajador::class.java).apply {
 
@@ -728,7 +728,6 @@ class inicioFracment : Fragment() {
             Log.e("ProductosVerificados", "Error al obtener documentos", e)
         }
     }
-
 
     private fun obtenerProductos_trabajadores() {
         val lista = mutableListOf<CarouselItem>()
