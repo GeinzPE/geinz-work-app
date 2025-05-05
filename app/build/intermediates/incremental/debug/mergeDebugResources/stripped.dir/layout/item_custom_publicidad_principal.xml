@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="300dp"
+    android:layout_height="70dp"
+    android:layout_marginLeft="10dp">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_end"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="300dp" />
+
+    <RelativeLayout
+        android:id="@+id/realtive_clikc"
+        android:layout_width="300dp"
+        android:layout_height="70dp"
+
+        app:layout_constraintEnd_toStartOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+
+            android:layout_width="300dp"
+            android:layout_height="70dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+            <RelativeLayout
+                android:layout_width="70dp"
+                android:layout_height="70dp">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/img_publicidad"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/agregar_perfil_img_geinz"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/progress_carga_imagen_fondo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:indeterminate="true"
+                    android:visibility="gone" />
+            </RelativeLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:background="@drawable/roun_custom_publicidad_prinicipal"
+                android:orientation="vertical"
+                android:paddingLeft="10dp">
+
+                <TextView
+                    android:id="@+id/titulos"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_marginBottom="5dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Titulos"
+                    android:textAllCaps="true"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/descripcion"
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="20dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="descripcion"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

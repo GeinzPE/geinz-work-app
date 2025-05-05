@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:orientation="vertical">
+
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:id="@+id/cerrar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:text="quieres quieres que vea tus publicaciones?"
+            android:textAllCaps="true"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="Elige quién podrá ver lo que compartes:"
+            android:textSize="17sp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="@string/todos_publicaciones_trabajadores"
+            android:textSize="15sp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="@string/texto_solo_seguidores_publicaciones"
+            android:textSize="15sp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="@string/texto_publicaciones_privadas"
+            android:textSize="15sp" />
+
+        <RadioGroup
+            android:id="@+id/RadioGrup_caracterisiticas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/todos"
+                android:checked="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Todos" />
+
+            <RadioButton
+                android:id="@+id/seguidores"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="Solo Seguidores" />
+
+            <RadioButton
+                android:id="@+id/privado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Privado" />
+        </RadioGroup>
+
+
+    </LinearLayout>
+
+
+</FrameLayout>

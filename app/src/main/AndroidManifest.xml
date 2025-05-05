@@ -36,9 +36,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
-        <activity
-            android:name="com.example.geinzwork.agregar_descripcion_producto_rb_vr"
-            android:exported="false" />
+
         <activity
             android:name="com.example.geinzwork.crear_publicacion_productos_trabajadores"
             android:exported="false" />
@@ -142,18 +140,14 @@
         <activity
             android:name=".publicaciones_trabajadores.voleta_estado_verificacion"
             android:exported="false" />
-        <activity
-            android:name=".publicaciones_trabajadores.editar_publicaciones"
-            android:exported="false" />
+
         <activity
             android:name=".ver_publicaciones"
             android:exported="false" />
         <activity
             android:name=".crear_trabajos_realizados"
             android:windowSoftInputMode="adjustPan" />
-        <activity
-            android:name=".problemas_soporte_politicas.new_trabajo"
-            android:exported="false" />
+
         <activity
             android:name=".problemas_soporte_politicas.veneficios_verificados"
             android:exported="false" />
@@ -215,9 +209,7 @@
         <activity
             android:name=".vistasPubliciadesGeinz.noticiasGeinzpb"
             android:exported="false" />
-        <activity
-            android:name=".vistasPubliciadesGeinz.PromocionaTuMarca"
-            android:exported="false" />
+
         <activity
             android:name=".vistaTiendas.TodasPromocionesSugeridasFiltrado"
             android:exported="false" />
@@ -310,9 +302,7 @@
         <activity
             android:name=".EditarInfo"
             android:exported="false" />
-        <activity
-            android:name=".panel_publicacion"
-            android:exported="false" />
+
         <activity android:name=".vistaTrabajador.vista_CategoriasT" />
         <activity
             android:name=".vistaTrabajador.vistaTrabajador"
@@ -348,7 +338,8 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 

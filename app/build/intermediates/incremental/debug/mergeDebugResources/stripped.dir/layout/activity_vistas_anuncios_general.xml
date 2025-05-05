@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".vistas_anuncios_general">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:id="@+id/container_basico_geinz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:padding="10dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/btnPLanes"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_margin="7dp"
+                    android:src="@drawable/soporte_icon" />
+
+                <TextView
+                    android:id="@+id/texto"
+                    style="@style/TextoTitulos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Publicidad Geinz"
+                    android:textSize="30sp" />
+
+                <TextView
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/texto"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="Explora y adquiere las mejores promociones ofrecidas por tiendas, negocios y lugares en GEINZ. Reserva o aprovecha las ofertas exclusivas que Geinz tiene para ti."
+                    android:textSize="10sp" />
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:id="@+id/realtive"
+                android:layout_width="match_parent"
+                android:layout_height="500dp">
+
+                <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                    android:id="@+id/carrusel"
+                    android:layout_width="match_parent"
+                    android:layout_height="500dp"
+                    app:autoPlay="false"
+                    app:autoPlayDelay="4000"
+                    app:carouselPadding="66dp"
+                    app:carouselType="SHOWCASE"
+                    app:imageScaleType="centerCrop"
+                    app:showBottomShadow="false"
+                    app:showCaption="false"
+                    app:showIndicator="false"
+                    app:showNavigationButtons="false"
+                    app:showTopShadow="true" />
+
+                <ImageView
+                    android:id="@+id/popup"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_margin="10dp"
+                    android:src="@drawable/menu_puntos" />
+
+                <ImageButton
+                    android:id="@+id/retroceder"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/circle_bakc_preset"
+                    android:maxWidth="20dp"
+                    android:maxHeight="20dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/back_preset_retro" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/round_encabezado" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/horarioAtencion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="0dp" />
+
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/img_anuncio"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="10dp"
+                android:contentDescription="Imagen de la publicidad"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="10dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp">
+
+                    <TextView
+                        android:id="@+id/TiendaPropietaria"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="20dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/la_bold_font"
+                        android:text="@string/cat"
+                        android:textAllCaps="true"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/redes"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="15dp"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/info_icon"
+                        android:maxWidth="20dp"
+                        android:maxHeight="20dp"
+                        android:padding="10dp"
+                        android:scaleType="fitCenter"
+                        android:text="Click Me" />
+
+
+                    <ImageView
+                        android:id="@+id/compartir"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginRight="15dp"
+                        android:background="@drawable/compartir_icon_vector"
+                        android:maxWidth="20dp"
+                        android:maxHeight="20dp"
+                        android:padding="10dp"
+                        android:text="Click Me"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/ubicacion"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginRight="15dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/localidad_icon_general"
+                        android:maxWidth="25dp"
+                        android:maxHeight="25dp"
+                        android:padding="10dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/titulo"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/cbrion_light"
+                    android:text="@string/cat"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/descripcionPublicidad"
+                    style="@style/descripcionColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginRight="5dp"
+                    android:fontFamily="@font/cbrion_light"
+                    android:text="@string/cat"
+                    android:textSize="12sp" />
+
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/adquirir_web"
+                    style="@style/RoundedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="1"
+                    android:text="Adquirir"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    app:icon="@drawable/obtener_blanco_icon"
+                    app:iconGravity="textEnd" />
+
+                <include
+                    android:id="@+id/include_lineal_precios"
+                    layout="@layout/include_item_descuento_noticias_promociones" />
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="15dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/adquirir"
+                        style="@style/RoundedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_weight="1"
+                        android:text="Adquirir"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        app:icon="@drawable/adquirir_icon_blanco"
+                        app:iconGravity="textEnd" />
+
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/reservar"
+                        style="@style/RoundedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_weight="1"
+                        android:text="Reservar"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        app:icon="@drawable/reserva_blanco_icon"
+                        app:iconGravity="textEnd" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/TextoTitulos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_weight="1"
+                        android:text="Mas promociones geinz"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/ver_mas_promociones"
+                        style="@style/VioletaColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="15dp"
+                        android:text="ver todos" />
+                </LinearLayout>
+
+
+                <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                    android:id="@+id/masPromociones_geinz"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="10dp"
+                    app:autoPlay="true"
+                    app:autoPlayDelay="10000"
+                    app:autoWidthFixing="false"
+                    app:carouselGravity="START"
+                    app:carouselType="SHOWCASE"
+                    app:imageScaleType="centerCrop"
+                    app:infiniteCarousel="false"
+                    app:scaleOnScroll="false"
+                    app:showBottomShadow="false"
+                    app:showCaption="false"
+                    app:showIndicator="false"
+                    app:showNavigationButtons="false"
+                    app:showTopShadow="false" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <!-- Loading View-->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/buttonNavigation"
+        app:shimmer_auto_start="true">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <include layout="@layout/carga_publicidad_geinz" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+</LinearLayout>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="365dp"
+    android:layout_height="160dp"
+    android:layout_margin="5dp">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_end"
+        android:layout_width="350dp"
+        android:layout_height="155dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="371dp" />
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/listener"
+        android:layout_width="350dp"
+        android:layout_height="155dp"
+        app:cardBackgroundColor="@color/roundcustom"
+        app:cardCornerRadius="8dp"
+        app:layout_constraintEnd_toStartOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <RelativeLayout
+            android:layout_width="350dp"
+            android:layout_height="155dp">
+
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgProducto"
+                android:layout_width="145dp"
+                android:layout_height="155dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/cargando_img_geinz_500"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/carga_img"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="50dp" />
+
+            <TextView
+                android:id="@+id/descuentoPorcentaje"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:background="@drawable/roun_off_descuento"
+                android:padding="5dp"
+                android:text="@string/cat"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/lineal_productos_publicados"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_toRightOf="@id/imgProducto"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/titulo_producto"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/titulo_robo_semibold_fuente"
+                    android:maxLines="2"
+                    android:text="@string/cat"
+                    android:textAllCaps="true"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/descripcion_producto"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/fuente_para_texto_special_gothic"
+                    android:maxLines="2"
+                    android:text="@string/cat"
+                    android:textSize="13sp" />
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/nombreProducto"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/precioProducto"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/precio_productos_inte_tight_medium"
+                        android:maxLines="1"
+                        android:text="@string/cat"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/precioDescuento"
+                        style="@style/descripcionColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginHorizontal="10dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/cat"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/envioGratis"
+                        style="@style/descripcionColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:ellipsize="end"
+                        android:visibility="gone"
+                        android:maxLines="1"
+                        android:layout_marginRight="10dp"
+                        android:text="Envio gratis"
+                        android:textColor="@color/verde"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:background="@drawable/round_verificados_nombre_productos"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="5dp">
+
+                        <TextView
+                            android:id="@+id/NombreVerificado"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="70dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginRight="5dp"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/fuente_para_texto_special_gothic"
+                            android:maxLines="1"
+                            android:text="Benjamin lopez" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/icon_verificado" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/cargar_contenido"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerInParent="true" />
+
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

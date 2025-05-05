@@ -1,0 +1,1155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.geinzz.geinzwork.servicios_geinz.noticias_servicios_geinz_activity">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="adquirida : " />
+
+                    <TextView
+                        android:id="@+id/adquirira"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="***" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="vence : " />
+
+                    <TextView
+                        android:id="@+id/vencimiento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="***" />
+                </LinearLayout>
+
+                <LinearLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/TextoTitulos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Noticias Geinz"
+                        android:textSize="30sp" />
+
+                    <ImageView
+                        android:id="@+id/botom_shet_publicacion"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/informacion_icon_org" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/descripcionColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginVertical="7dp"
+                    android:text="Bienvenido a noticias geinz en este panel podras danimistrar todos los campos de tu publicidad "
+                    android:textSize="12sp" />
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgPublicidad"
+                    android:layout_width="match_parent"
+                    android:layout_height="360dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/portada_agregar_geinz"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                <TextView
+                    android:id="@+id/idPublicidad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cat"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/container_noticias_campo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/roun_formulario_servicios_geinz"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoTitulos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:text="Campos de la Noticia"
+                            android:textSize="17sp" />
+
+                        <ImageView
+                            android:id="@+id/ocultar_campo_noticia"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ocultar_arriva" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/campo_noticia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/titulo_publicidad"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="5dp"
+                            android:layout_weight="1"
+                            app:boxCornerRadiusBottomEnd="8dp"
+                            app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
+                            app:boxCornerRadiusTopStart="8dp">
+
+                            <EditText
+                                android:id="@+id/titulo_de_la_noticia"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Titulo de la noticia"
+                                android:inputType="textMultiLine" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/propietario"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:layout_weight="1"
+                            app:boxCornerRadiusBottomEnd="8dp"
+                            app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
+                            app:boxCornerRadiusTopStart="8dp">
+
+                            <EditText
+                                android:id="@+id/propietarioED"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Propietario de la noticia"
+                                android:inputType="textMultiLine" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/certificados"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:layout_weight="1"
+                            app:boxCornerRadiusBottomEnd="8dp"
+                            app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
+                            app:boxCornerRadiusTopStart="8dp">
+
+                            <EditText
+                                android:id="@+id/contenidoED"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="contenido de la noticia"
+                                android:inputType="textMultiLine" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:hint="seleciona tu categoria de noticia">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/elcion_de_cateogoria"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:inputType="none" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:hint="Localidad disponible de la Notica">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/localidad_disponible"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:inputType="none" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <LinearLayout
+                            android:id="@+id/lineal_fisica_virtual"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:text="Como vendes este producto?"
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_Tipo_tienda"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="10dp"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/tienda_fisica"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Fisica" />
+
+                                <RadioButton
+                                    android:id="@+id/tienda_virtual"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Virtual" />
+                            </RadioGroup>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linealUbi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Ubicacion"
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_ubicacion"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/ubi_si"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="si" />
+
+                                <RadioButton
+                                    android:id="@+id/ubi_no"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="no" />
+                            </RadioGroup>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/ubicacionTienda"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="10dp"
+                                android:layout_weight="1"
+                                android:visibility="gone"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/ubicacion_tiendaED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Ingresa la ubicacion de tu tienda o local"
+                                    android:inputType="textMultiLine" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/camposNoticia"
+                            style="@style/RoundedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_weight="1"
+                            android:text="Guardar"
+                            android:textSize="14sp"
+                            app:iconGravity="textEnd" />
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/campo_pagos_compra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/roun_formulario_servicios_geinz"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoTitulos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:text="Compra,pagos,ubicacion,tipo"
+                            android:textSize="17sp" />
+
+                        <ImageView
+                            android:id="@+id/mostrar_ocular_compra"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ocultar_arriva" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/campo_compra_pagos_etc"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="tu noticias sera clikeable ?"
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_Clikeable"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="10dp"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/clikeable_si"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="si" />
+
+                                <RadioButton
+                                    android:id="@+id/clikeable_no"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="no" />
+                            </RadioGroup>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:text="Tipo de compra o reserva "
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_metodo_compra"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/compra_web"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="sitio web" />
+
+                                <RadioButton
+                                    android:id="@+id/compra_Geinz"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="whatsapp(Geinz)" />
+                            </RadioGroup>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/link_ref"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="10dp"
+                                android:layout_weight="1"
+                                android:visibility="gone"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/link_de_sitio_web"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Link de compra"
+                                    android:inputType="textMultiLine" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:id="@+id/lineal_compra_reserva"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:text="reserva"
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_reserva"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="10dp"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/reserva_si"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="si" />
+
+                                <RadioButton
+                                    android:id="@+id/reserva_no"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="no" />
+                            </RadioGroup>
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:text="compra"
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_compra"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="10dp"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/reserva_compra_si"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="si" />
+
+                                <RadioButton
+                                    android:id="@+id/reserva_compra_no"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="no" />
+                            </RadioGroup>
+
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:id="@+id/lineal_precio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:text="Precio"
+                                android:textAllCaps="true"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <RadioGroup
+                                android:id="@+id/grupo_precio"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/precio_si"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="si" />
+
+                                <RadioButton
+                                    android:id="@+id/precio_no"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="no" />
+                            </RadioGroup>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/precio"
+                                android:layout_width="match_parent"
+                                android:layout_height="60dp"
+                                android:layout_marginRight="20dp"
+                                android:layout_marginBottom="10dp"
+                                android:visibility="gone"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/precioED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:hint="Precio de tu articulo o de tu publicidad"
+                                    android:inputType="number"
+                                    android:paddingLeft="10dp" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <LinearLayout
+                                android:id="@+id/Lineal_metodo_pago"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="5dp"
+                                    android:text="Selecciona tu metodo de pago"
+                                    android:textAllCaps="true"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="10dp"
+                                    android:orientation="horizontal">
+
+                                    <CheckBox
+                                        android:id="@+id/yape_checkbox"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Yape" />
+
+                                    <CheckBox
+                                        android:id="@+id/efectivo_checkbox"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Efectivo" />
+
+                                    <CheckBox
+                                        android:id="@+id/plin_checkbox"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Plin" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/lineal_pago"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+                                <TextView
+                                    style="@style/TextoTitulos"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="5dp"
+                                    android:text="Metodo de pago yape o plin"
+                                    android:textSize="20sp" />
+
+                                <TextView
+                                    style="@style/descripcionColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="10dp"
+                                    android:text="sube las imagenes de tus metodos de pago yape o plin"
+                                    android:textSize="12sp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="10dp"
+                                    android:orientation="horizontal">
+
+                                    <LinearLayout
+                                        android:id="@+id/linealYape"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginRight="10dp"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <com.google.android.material.imageview.ShapeableImageView
+                                            android:id="@+id/qr_yape"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="150dp"
+                                            android:scaleType="centerCrop"
+                                            android:src="@drawable/cargando_img_geinz_500"
+                                            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:layout_marginTop="5dp"
+                                            android:text="QR _yape" />
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:id="@+id/linealPlin"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <com.google.android.material.imageview.ShapeableImageView
+                                            android:id="@+id/qr_plin"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="150dp"
+                                            android:scaleType="centerCrop"
+                                            android:src="@drawable/cargando_img_geinz_500"
+                                            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:layout_marginTop="5dp"
+                                            android:text="QR_plin" />
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/linealDescuento"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="5dp"
+                                    android:text="descuento"
+                                    android:textAllCaps="true"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <RadioGroup
+                                    android:id="@+id/grupoDescuento"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginBottom="10dp"
+                                    android:orientation="horizontal">
+
+                                    <RadioButton
+                                        android:id="@+id/descuento_si"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="si" />
+
+                                    <RadioButton
+                                        android:id="@+id/descuento_no"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="no" />
+                                </RadioGroup>
+
+                                <LinearLayout
+                                    android:id="@+id/linealdescuentoTexView"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:visibility="gone">
+
+                                    <com.google.android.material.textfield.TextInputLayout
+                                        android:id="@+id/descuento"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="60dp"
+                                        android:layout_marginBottom="10dp"
+                                        android:layout_weight="1"
+                                        app:boxCornerRadiusBottomEnd="8dp"
+                                        app:boxCornerRadiusBottomStart="8dp"
+                                        app:boxCornerRadiusTopEnd="8dp"
+                                        app:boxCornerRadiusTopStart="8dp">
+
+                                        <EditText
+                                            android:id="@+id/descuentoED"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:hint="Nuevo precio del producto"
+                                            android:inputType="number"
+                                            android:paddingLeft="10dp" />
+
+                                    </com.google.android.material.textfield.TextInputLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/camposCompraPagos"
+                                style="@style/RoundedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="60dp"
+                                android:layout_marginRight="5dp"
+                                android:layout_weight="1"
+                                android:text="Guardar"
+                                android:textSize="14sp"
+                                app:iconGravity="textEnd" />
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/campo_contacto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/roun_formulario_servicios_geinz"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoTitulos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="campos de contacto"
+                            android:textSize="17sp" />
+
+                        <ImageView
+                            android:id="@+id/mostrarOcular_contacto"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ocultar_arriva" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/campo_contacto_lineal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/numero"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginVertical="10dp"
+                            android:layout_marginRight="20dp"
+                            app:boxCornerRadiusBottomEnd="8dp"
+                            app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
+                            app:boxCornerRadiusTopStart="8dp">
+
+                            <EditText
+                                android:id="@+id/numeroTiendaED"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:hint="Numero de Whatsapp"
+                                android:inputType="number"
+                                android:paddingLeft="10dp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/mensajewhtsapp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:boxCornerRadiusBottomEnd="8dp"
+                            app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
+                            android:layout_marginBottom="5dp"
+                            app:boxCornerRadiusTopStart="8dp">
+
+                            <EditText
+                                android:id="@+id/mensajeED"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="mensaje de whatsapp"
+                                android:inputType="textMultiLine" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/camposContacto"
+                            style="@style/RoundedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_weight="1"
+                            android:text="Guardar"
+                            android:textSize="14sp"
+                            app:iconGravity="textEnd" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_margin="10dp"
+                    android:id="@+id/linealCampoRedes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="50dp"
+                    android:background="@drawable/roun_formulario_servicios_geinz"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoTitulos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:text="campos de redes sociales y sitio web"
+                            android:textSize="17sp" />
+
+                        <ImageView
+                            android:id="@+id/ocultarp3"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/ocultar_arriva" />
+                    </LinearLayout>
+                    <!--Campos redes-->
+                    <LinearLayout
+                        android:id="@+id/campos_redes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/tiktok"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/tiktokED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Link de Tik Tok"
+                                    android:inputType="textMultiLine" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <ImageView
+                                android:id="@+id/infoTikTok"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:layout_gravity="center"
+                                android:layout_marginHorizontal="10dp"
+                                android:src="@drawable/info_icon" />
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/fb"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/fbED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Link de perfil de Facebbok"
+                                    android:inputType="textMultiLine" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <ImageView
+                                android:id="@+id/infoPerfilFacebook"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:layout_gravity="center"
+                                android:layout_marginHorizontal="10dp"
+                                android:src="@drawable/info_icon" />
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/ig"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/igED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Link de perfil de Instagram"
+                                    android:inputType="textMultiLine" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <ImageView
+                                android:id="@+id/infoLinkIg"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:layout_gravity="center"
+                                android:layout_marginHorizontal="10dp"
+                                android:src="@drawable/info_icon" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/web"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/websiteEd"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Link de tu sitio web"
+                                    android:inputType="textMultiLine" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <ImageView
+                                android:id="@+id/infoLinkSitioWeb"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:layout_gravity="center"
+                                android:layout_marginHorizontal="10dp"
+                                android:src="@drawable/info_icon" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/guardarLinksRedes"
+                            style="@style/RoundedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_weight="1"
+                            android:text="Guardar"
+                            android:textSize="14sp"
+                            app:iconGravity="textEnd" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+
+    <RelativeLayout
+        android:id="@+id/Lineal_sin_servicios"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="100dp"
+            android:src="@drawable/logo_geinz_circular" />
+
+        <TextView
+            style="@style/TextoTitulos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/img_logo"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:text="No cuentas con el servicio de Noticias de Geinz"
+            android:textAlignment="center"
+            android:textSize="20sp" />
+    </RelativeLayout>
+
+
+    <!-- Loading View-->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:shimmer_auto_start="true">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <include layout="@layout/cargar_servicio_geinz_noticia" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+</RelativeLayout>

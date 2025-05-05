@@ -75,9 +75,6 @@
         android:testOnly="true"
         android:theme="@style/Theme.GeinzWork" >
         <activity
-            android:name="com.example.geinzwork.agregar_descripcion_producto_rb_vr"
-            android:exported="false" />
-        <activity
             android:name="com.example.geinzwork.crear_publicacion_productos_trabajadores"
             android:exported="false" />
         <activity
@@ -181,17 +178,11 @@
             android:name="com.geinzz.geinzwork.publicaciones_trabajadores.voleta_estado_verificacion"
             android:exported="false" />
         <activity
-            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.editar_publicaciones"
-            android:exported="false" />
-        <activity
             android:name="com.geinzz.geinzwork.ver_publicaciones"
             android:exported="false" />
         <activity
             android:name="com.geinzz.geinzwork.crear_trabajos_realizados"
             android:windowSoftInputMode="adjustPan" />
-        <activity
-            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.new_trabajo"
-            android:exported="false" />
         <activity
             android:name="com.geinzz.geinzwork.problemas_soporte_politicas.veneficios_verificados"
             android:exported="false" />
@@ -252,9 +243,6 @@
             android:exported="false" />
         <activity
             android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.noticiasGeinzpb"
-            android:exported="false" />
-        <activity
-            android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.PromocionaTuMarca"
             android:exported="false" />
         <activity
             android:name="com.geinzz.geinzwork.vistaTiendas.TodasPromocionesSugeridasFiltrado"
@@ -348,9 +336,6 @@
         <activity
             android:name="com.geinzz.geinzwork.EditarInfo"
             android:exported="false" />
-        <activity
-            android:name="com.geinzz.geinzwork.panel_publicacion"
-            android:exported="false" />
         <activity android:name="com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT" />
         <activity
             android:name="com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador"
@@ -386,7 +371,8 @@
             android:exported="false" />
         <activity
             android:name="com.geinzz.geinzwork.MainActivity"
-            android:exported="true" >
+            android:exported="true"
+            android:windowSoftInputMode="adjustNothing" >
             <intent-filter android:autoVerify="true" >
                 <action android:name="android.intent.action.VIEW" />
 

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/cerrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="8dp" />
+
+    <ProgressBar
+        android:id="@+id/progresVar_carga"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_marginVertical="20dp" />
+
+
+    <LinearLayout
+        android:id="@+id/linealTrabajadores"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="5dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/inputnombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="1"
+            app:boxCornerRadiusBottomEnd="26dp"
+            app:boxCornerRadiusBottomStart="26dp"
+            app:boxCornerRadiusTopEnd="26dp"
+            app:boxCornerRadiusTopStart="26dp"
+            app:endIconMode="clear_text">
+
+            <EditText
+                android:id="@+id/search"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="5dp"
+                android:drawableStart="@drawable/buscar_icon"
+                android:drawablePadding="5dp"
+                android:hint="Buscar"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:paddingLeft="10dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycleCargar_seguidos_Seguidores"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/noHay_user"
+        style="@style/TextoModoOScuroColor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginVertical="20dp"
+        android:fontFamily="@font/fuente_para_texto_special_gothic"
+        android:text="No hay usuarios por mostrar"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+
+</LinearLayout>
