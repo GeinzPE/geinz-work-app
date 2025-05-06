@@ -456,11 +456,19 @@ object constantes_publicaciones_general_user_tiendas {
             val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
             val marca = data["marca"] as? String ?: ""
             val nombre = data["nombre"] as? String ?: ""
+            val mas_informacio = data["mas_informacio"] as? String ?: ""
             val plin = data["plin"] as? Boolean ?: false
             val stok = data["stok"] as? String ?: ""
             val yape = data["yape"] as? Boolean ?: false
             val cantidad_porcentaje_descuento =
                 data["cantidad_porcentaje_descuento"] as? Number ?: 0
+            val metodosPago = mutableListOf<String>()
+            if (yape) metodosPago.add("Yape")
+            if (plin) metodosPago.add("Plin")
+            if (efectivo) metodosPago.add("Efectivo")
+
+            bindingProductosTrabajadores.camposProductosUserVerificados.metodosPago.text =
+                metodosPago.joinToString(", ")
             bindingProductosTrabajadores.marcaProducto.text = marca
             if (entrega_domicilio) {
                 bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
@@ -469,6 +477,7 @@ object constantes_publicaciones_general_user_tiendas {
                 bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
                     "no"
             }
+            bindingProductosTrabajadores.masInfomacion.text = mas_informacio
             if (envio_gratis) {
                 bindingProductosTrabajadores.envioGratis.isVisible = true
             } else {
@@ -561,6 +570,20 @@ object constantes_publicaciones_general_user_tiendas {
 
                 } else {
                     bindingProductosTrabajadores.linealTextosDescripcion.visibility =
+                        View.VISIBLE
+                    bindingProductosTrabajadores.ocultarP2.setImageResource(R.drawable.ocultar_abajo)
+                }
+                isCamposVisible = !isCamposVisible
+            }
+
+            bindingProductosTrabajadores.ocultarCamposMasInformacion.setOnClickListener {
+                if (isCamposVisible) {
+                    bindingProductosTrabajadores.masInfomacion.visibility =
+                        View.GONE
+                    bindingProductosTrabajadores.ocultarP2.setImageResource(R.drawable.ocultar_arriva)
+
+                } else {
+                    bindingProductosTrabajadores.masInfomacion.visibility =
                         View.VISIBLE
                     bindingProductosTrabajadores.ocultarP2.setImageResource(R.drawable.ocultar_abajo)
                 }

@@ -40,6 +40,64 @@
                         android:id="@+id/includeCabezero"
                         layout="@layout/include_cabezero_iniciofragment" />
 
+                    <LinearLayout
+                        android:id="@+id/lineal_anuncio_verificado"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:background="@drawable/card_verifica_cuenta_inicio_fr"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="15dp"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                android:text="Verificación Gratuita por 1 Mes ¡Potencia tu Cuenta!"
+                                android:textColor="@color/white"
+                                android:textSize="15sp" />
+
+                            <ImageView
+                                android:id="@+id/cerrar_anuncio"
+                                android:layout_width="25dp"
+                                android:layout_height="25dp"
+                                android:src="@drawable/close_inicio_fr" />
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:fontFamily="@font/roboto_medium"
+                                android:maxLines="2"
+                                android:text="¡Pruébalo Gratis por 1 Mes! Desbloquea funciones premium, mayor visibilidad y beneficios exclusivos. ¡Destaca ahora!"
+                                android:textColor="@color/gray"
+                                android:textSize="12sp" />
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/arrow_info_fr" />
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                     <org.imaginativeworld.whynotimagecarousel.ImageCarousel
                         android:id="@+id/carrusel_pimario_inicio"

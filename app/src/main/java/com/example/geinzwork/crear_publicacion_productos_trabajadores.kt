@@ -12,6 +12,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.TextWatcher
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.util.Log
@@ -28,6 +29,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -59,9 +61,13 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private val hashtagsGenerales = mutableListOf<String>()
     private var yape: Boolean = false
     private var plin: Boolean = false
+    private var unidadGarantia: String = ""
+    private lateinit var garantiaTextWatcher: TextWatcher
     private var descuento: Boolean = false
     private var efectivo: Boolean = false
     private val viewModel: MiViewModel by viewModels()
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,7 +91,28 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             dialog.show()
 
         }
-        constantesCarrito.obtnerfechaHora(binding.hora,binding.fecha)
+
+
+        binding.radioGrupPlazoRG.setOnCheckedChangeListener { _, checkedId ->
+            unidadGarantia = when (checkedId) {
+                R.id.meses -> {
+                    "mes"
+                }
+
+                R.id.years -> {
+                    "año"
+                }
+
+                R.id.dias -> {
+                    "día"
+                }
+
+                else -> ""
+            }
+        }
+
+
+        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
         binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
         val radioGroup = binding.metodosEntrega
         val campoLugarEntrega = binding.lugarEntregaTXT
@@ -125,7 +152,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
         }
         binding.siHayGarantia.setOnCheckedChangeListener { _, isChecked ->
-            binding.hayGarantiaProducto.visibility = if (isChecked) {
+            binding.linealGarantia.visibility = if (isChecked) {
                 binding.hayGarantiaProductoED.setText("")
                 View.VISIBLE
 
@@ -166,7 +193,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             plin = isChecked
         }
     }
-
 
     fun obtener_hastags_generales(
         contex: Context,
@@ -307,7 +333,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         categoriesWithSubcategoriesList: List<CategoryWithSubcategories>
     ) {
         val rvCategorias =
-            recyclerView // Asegúrate de tener un RecyclerView con este ID en tu layout
+            recyclerView
         rvCategorias.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         categoryAdapter =
             anidacion_categorias_productovrprivate(categoriesWithSubcategoriesList) { categoria, subcategoria ->
@@ -506,7 +532,11 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "entrega_domicilio" to isEntregaDomicilio,
                 "fechaPublicada" to binding.fecha.text.toString(),
                 "horaPublicada" to binding.hora.text.toString(),
-                "garantia" to tiempoGarantiaYears.text.toString(),
+                "garantia" to "${tiempoGarantiaYears.text} $unidadGarantia${
+                    if (tiempoGarantiaYears.text.toString()
+                            .toIntOrNull() != 1
+                    ) if (unidadGarantia == "mes") "es" else "s" else ""
+                }",
                 "localidadUser" to localida_user.text.toString(),
                 "lugarEntrega" to lugar_entrega.text.toString(),
                 "marca" to marca_producto.text.toString(),
@@ -525,7 +555,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "visivilidad" to mostra_para.text.toString(),
                 "descripcion_titulo" to tituloMap,
                 "descripcion_texto" to texto_map,
-                "descripcion_texto_lista" to datos.listaEncontrados
+                "descripcion_texto_lista" to datos.listaEncontrados,
+                "mas_informacio" to binding.masInformacionED.text.toString()
             )
             if (validarCampos()) {
                 db.add(hasMap).addOnSuccessListener { res ->
@@ -535,7 +566,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         "id" to productId
                     )
                     db.document(productId).set(hasmap, SetOptions.merge())
-                        .addOnSuccessListener { res->
+                        .addOnSuccessListener { res ->
                             println("id subido correcamte")
                         }
 
@@ -554,10 +585,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val titulo_producto = binding.tituloPublicacionPrED
         val stok_producto = binding.stokED
         val condicion_producto = binding.condicionPrED
-//        val descripcion_producto = binding.descripcionProductoED
         val precioProducto = binding.precioProductoED
         val precio_descuento_nuevo = binding.precioNuevoDescuentoPrED
-        val tiempoGarantiaYears = binding.hayGarantiaProductoED
         val hastags = binding.agregarHastagsED
         val mostra_para = binding.mostrarPublicacionPara
         val subcategoria_producto = binding.subcategoriaProducto
@@ -589,10 +618,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             valido = false
         }
 
-//        if (descripcion_producto.text.toString().isBlank()) {
-//            descripcion_producto.error = "Describa brevemente el producto"
-//            valido = false
-//        }
 
         if (precioProducto.text.toString().isBlank()) {
             precioProducto.error = "Ingrese el precio del producto"
@@ -601,11 +626,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         if (precio_descuento_nuevo.text.toString().isBlank()) {
             precio_descuento_nuevo.error = "Ingrese el precio con descuento, si aplica"
-            valido = false
-        }
-
-        if (tiempoGarantiaYears.text.toString().isBlank()) {
-            tiempoGarantiaYears.error = "Indique el tiempo de garantía en años, si aplica"
             valido = false
         }
 

@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -67,6 +68,9 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
   public final ImageCarousel carruselPimarioInicio;
 
   @NonNull
+  public final ImageView cerrarAnuncio;
+
+  @NonNull
   public final FrameLayout containerGeneral;
 
   @NonNull
@@ -89,6 +93,9 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
 
   @NonNull
   public final ItemInicioFragmentUsersBinding includeTrabajadoresTop;
+
+  @NonNull
+  public final LinearLayout linealAnuncioVerificado;
 
   @NonNull
   public final RelativeLayout linealCaption;
@@ -157,7 +164,7 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       @NonNull ImageCarousel carrucelProductosTrabajdores,
       @NonNull ImageCarousel carrucelPublicacionesRecientes, @NonNull ImageCarousel carruse2,
       @NonNull ImageCarousel carrusel, @NonNull ImageCarousel carruselPimarioInicio,
-      @NonNull FrameLayout containerGeneral,
+      @NonNull ImageView cerrarAnuncio, @NonNull FrameLayout containerGeneral,
       @NonNull IncludeCabezeroIniciofragmentBinding includeCabezero,
       @NonNull ItemInicioFragmentUsersBinding includeRecicleTecnicos,
       @NonNull ItemInicioFragmentUsersBinding includeRecicleViewddelivery,
@@ -165,7 +172,8 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
       @NonNull ItemInicioFragmentUsersBinding includeReciclehogar,
       @NonNull ItemInicioFragmentUsersBinding includeReciclemecanico,
       @NonNull ItemInicioFragmentUsersBinding includeTrabajadoresTop,
-      @NonNull RelativeLayout linealCaption, @NonNull RelativeLayout linealNoEncontrado,
+      @NonNull LinearLayout linealAnuncioVerificado, @NonNull RelativeLayout linealCaption,
+      @NonNull RelativeLayout linealNoEncontrado,
       @NonNull RelativeLayout linealNoEncontradoProductos, @NonNull LinearLayoutCompat loading,
       @NonNull TextView mejoresTrabajadeores, @NonNull TextView noEncontrado,
       @NonNull TextView noEncontradoProducto, @NonNull TextView noEncontradocat,
@@ -189,6 +197,7 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
     this.carruse2 = carruse2;
     this.carrusel = carrusel;
     this.carruselPimarioInicio = carruselPimarioInicio;
+    this.cerrarAnuncio = cerrarAnuncio;
     this.containerGeneral = containerGeneral;
     this.includeCabezero = includeCabezero;
     this.includeRecicleTecnicos = includeRecicleTecnicos;
@@ -197,6 +206,7 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
     this.includeReciclehogar = includeReciclehogar;
     this.includeReciclemecanico = includeReciclemecanico;
     this.includeTrabajadoresTop = includeTrabajadoresTop;
+    this.linealAnuncioVerificado = linealAnuncioVerificado;
     this.linealCaption = linealCaption;
     this.linealNoEncontrado = linealNoEncontrado;
     this.linealNoEncontradoProductos = linealNoEncontradoProductos;
@@ -323,6 +333,12 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.cerrar_anuncio;
+      ImageView cerrarAnuncio = ViewBindings.findChildViewById(rootView, id);
+      if (cerrarAnuncio == null) {
+        break missingId;
+      }
+
       id = R.id.containerGeneral;
       FrameLayout containerGeneral = ViewBindings.findChildViewById(rootView, id);
       if (containerGeneral == null) {
@@ -377,6 +393,12 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
         break missingId;
       }
       ItemInicioFragmentUsersBinding binding_includeTrabajadoresTop = ItemInicioFragmentUsersBinding.bind(includeTrabajadoresTop);
+
+      id = R.id.lineal_anuncio_verificado;
+      LinearLayout linealAnuncioVerificado = ViewBindings.findChildViewById(rootView, id);
+      if (linealAnuncioVerificado == null) {
+        break missingId;
+      }
 
       id = R.id.linealCaption;
       RelativeLayout linealCaption = ViewBindings.findChildViewById(rootView, id);
@@ -496,14 +518,14 @@ public final class FragmentInicioFracmentBinding implements ViewBinding {
           binding_IncludeAnunciosCuarto, binding_IncludeAnunciosQuinto,
           binding_IncludeAnunciosSexto, binding_IncludeAnunciosTercero, LinealContainer,
           Principalfr, RecicleCategoria, Tiendas, carrucelProductosTrabajdores,
-          carrucelPublicacionesRecientes, carruse2, carrusel, carruselPimarioInicio,
+          carrucelPublicacionesRecientes, carruse2, carrusel, carruselPimarioInicio, cerrarAnuncio,
           containerGeneral, binding_includeCabezero, binding_includeRecicleTecnicos,
           binding_includeRecicleViewddelivery, binding_includeRecicleViewsalud,
           binding_includeReciclehogar, binding_includeReciclemecanico,
-          binding_includeTrabajadoresTop, linealCaption, linealNoEncontrado,
-          linealNoEncontradoProductos, loading, mejoresTrabajadeores, noEncontrado,
-          noEncontradoProducto, noEncontradocat, progresCargaCat, recicleTiendas1, swipe,
-          verProductos, verTecnicos, verTiendas, verTrabajohogar, verTrabajosPublicados,
+          binding_includeTrabajadoresTop, linealAnuncioVerificado, linealCaption,
+          linealNoEncontrado, linealNoEncontradoProductos, loading, mejoresTrabajadeores,
+          noEncontrado, noEncontradoProducto, noEncontradocat, progresCargaCat, recicleTiendas1,
+          swipe, verProductos, verTecnicos, verTiendas, verTrabajohogar, verTrabajosPublicados,
           verdesarrollo, vermecanica, vertrasnporte);
     }
     String missingId = rootView.getResources().getResourceName(id);

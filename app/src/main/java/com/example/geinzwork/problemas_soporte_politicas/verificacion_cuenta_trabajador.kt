@@ -300,6 +300,27 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         }
     }
 
+    private fun obtener_categorias_verificados(selecionado: String) {
+        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+            .document("verificaciones").collection("beneficios_planes_verificados").document(selecionado)
+        db.get().addOnSuccessListener { res ->
+            if(res.exists()){
+                val data = res.data
+                val caracteristicas = data?.get("caracteristicas") as? List<String>
+                if (caracteristicas != null) {
+                    println("Características obtenidas:")
+                    caracteristicas.forEachIndexed { index, caracteristica ->
+                        println("$index: $caracteristica")
+                    }
+                } else {
+                    println("El campo 'caracteristicas' no existe o no es una matriz de strings.")
+                }
+            }
+            }
+
+
+
+    }
 
     fun llenarAutocompletPlaner() {
         var lista = listOf(
@@ -318,6 +339,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                     binding.PlanC.isVisible = false
                     binding.planSeleccionado.text = "A"
                     binding.mostrarRedes.isVisible = false
+                    obtener_categorias_verificados("plan_a")
                 }
 
                 "Plan B (Verificacion + 10 publicaciones)" -> {
@@ -326,6 +348,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                     binding.montoCancelar.text = "S/15.00"
                     binding.planSeleccionado.text = "B"
                     binding.mostrarRedes.isVisible = true
+                    obtener_categorias_verificados("plan_b")
                 }
 
                 "Plan C (Verificacion + 20 publicaciones)" -> {
@@ -334,6 +357,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                     binding.PlanB.isVisible = false
                     binding.montoCancelar.text = "S/20.00"
                     binding.planSeleccionado.text = "C"
+                    obtener_categorias_verificados("plan_c")
                 }
 
             }
@@ -423,9 +447,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         Tasks.whenAllSuccess<Uri>(imageUploadTasks)
             .addOnSuccessListener { uriList ->
                 val imageUrlMap = mutableMapOf<String, String>()
-                if (ImagenPerfil != null) imageUrlMap[Variables.ImagenPerfilUrl] = uriList[0].toString()
+                if (ImagenPerfil != null) imageUrlMap[Variables.ImagenPerfilUrl] =
+                    uriList[0].toString()
                 if (DNIFRONTAL != null) imageUrlMap[Variables.DNIFRONTALUrl] = uriList[1].toString()
-                if (DNIPOSTERIOR != null) imageUrlMap[Variables.DNIPOSTERIORUrl] = uriList[2].toString()
+                if (DNIPOSTERIOR != null) imageUrlMap[Variables.DNIPOSTERIORUrl] =
+                    uriList[2].toString()
                 if (yapePick != null) imageUrlMap[Variables.YAPEOUtrl] = uriList[3].toString()
 
                 db.document(documentId).update(imageUrlMap as Map<String, Any>)
@@ -469,7 +495,6 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                 }
             }
     }
-
 
 
 }

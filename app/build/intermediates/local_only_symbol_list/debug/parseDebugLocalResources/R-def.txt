@@ -53,6 +53,7 @@ drawable agregar_img_icon
 drawable agregar_perfil_img_geinz
 drawable agregar_trabajos
 drawable agregrar_trabajo_categoria_icon
+drawable arrow_info_fr
 drawable back_preset_retro
 drawable bakground_black
 drawable bakground_white
@@ -75,6 +76,7 @@ drawable buscar_icon
 drawable camino_pedido_icon
 drawable card_trabajos
 drawable card_trabajos_black
+drawable card_verifica_cuenta_inicio_fr
 drawable cargando_img
 drawable cargando_img_geinz_500
 drawable cargando_qr_geinz
@@ -93,6 +95,7 @@ drawable circle_gris
 drawable circle_mode_black
 drawable circulo_carga
 drawable clikc_drawable
+drawable close_inicio_fr
 drawable como_funcion_geinz
 drawable compartir_drawable
 drawable compartir_icon
@@ -526,6 +529,7 @@ id cantidad_view
 id caracteristica1
 id caracteristicasTrabajos
 id caracteristicasTrabajosED
+id caracteristicas_verificado
 id carga
 id cargaIMG_text
 id cargaIMGtexto
@@ -581,6 +585,7 @@ id categoria_trabajo
 id categroiasFiltrado
 id cerrado_layout
 id cerrar
+id cerrar_anuncio
 id certificados
 id certificadosEDs
 id checkBoxPoliticas
@@ -711,6 +716,7 @@ id dialogMessage
 id dialogTitle
 id dialog_message
 id dialog_title
+id dias
 id diasRestantes
 id direccion
 id direccionED
@@ -1047,6 +1053,7 @@ id linealDireccion
 id linealEntregaDomicilio
 id linealFecha
 id linealFechaPublicada
+id linealGarantia
 id linealGarantiaDisponible
 id linealHoraLLegada
 id linealHorario
@@ -1057,6 +1064,7 @@ id linealListener
 id linealListner
 id linealMarcaProducto
 id linealMetodoEntrega
+id linealMetodos_pago
 id linealMontoDel_servicio
 id linealMostrarTrabajos
 id linealNo_seEncontraron
@@ -1094,6 +1102,7 @@ id linealVer
 id linealVerificado
 id linealYape
 id lineal_Publicacion
+id lineal_anuncio_verificado
 id lineal_campos_trabajador
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
@@ -1145,9 +1154,9 @@ id link_ref
 id lista_Ubicaciones
 id lista_publicaciones_trabajadores
 id listener
+id listenerCategoriaProducto
 id listenerPadre
 id listenerTienda
-id listener_categoria_producto
 id llamado
 id loading
 id localida
@@ -1178,7 +1187,9 @@ id mas
 id masEstrellas
 id masPromociones_geinz
 id masSeguidores
+id mas_infomacion
 id mas_informacion
+id mas_informacionED
 id mas_trabajos_realiados
 id masculino
 id mayuscula
@@ -1187,6 +1198,7 @@ id menos
 id mensajeED
 id mensajewhatsappInfo
 id mensajewhtsapp
+id meses
 id metodoEfectivo
 id metodoEntrega
 id metodoPago
@@ -1196,6 +1208,7 @@ id metodo_entrega
 id metodo_pagos
 id metodopago
 id metodos_entrega
+id metodos_pago
 id minuscula
 id modalida_negocio
 id modelo
@@ -1205,6 +1218,8 @@ id modelo_productoED
 id month
 id montoTotal
 id monto_cancelar
+id monto_diario
+id monto_mesual
 id mostrarOcular_contacto
 id mostrarRedes
 id mostrarSeguridos
@@ -1294,9 +1309,11 @@ id ocualtar
 id ocultar_campo_noticia
 id ocultar_campos_de_publicidad
 id ocultar_campos_descripcion
+id ocultar_campos_mas_informacion
 id ocultar_campos_pagos
 id ocultar_p1
 id ocultar_p2
+id ocultar_p3
 id ocultarp2
 id ocultarp3
 id opciones
@@ -1412,6 +1429,7 @@ id qr_trabajador
 id qr_yape
 id radioDescuento
 id radioGrupMetodosPago
+id radioGrupPlazoRG
 id radioTiempo_garantia
 id radio_delivery_gratis
 id radio_garantia
@@ -1924,6 +1942,7 @@ layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
 layout item_trabajos_reallizados_trabajadores
+layout layout_beneficios_vr
 layout panel_publicacion
 layout radio_btn_direcion_envios
 layout recicle_trabajos

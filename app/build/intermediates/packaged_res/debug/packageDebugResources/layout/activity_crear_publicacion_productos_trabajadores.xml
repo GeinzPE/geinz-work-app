@@ -232,21 +232,28 @@
                 android:textSize="12sp" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/listener_categoria_producto"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:id="@+id/listenerCategoriaProducto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp"
-                android:hint="Categoria de producto">
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
 
-                <AutoCompleteTextView
+                <EditText
                     android:id="@+id/subcategoria_producto"
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:enabled="true"
-                    android:inputType="none" />
+                    android:hint="Categoria de producto"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:paddingLeft="10dp" />
+
+
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -476,27 +483,60 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/hay_garantia_producto"
+            <LinearLayout
+                android:id="@+id/linealGarantia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
                 android:visibility="gone"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/hay_garantia_productoED"
-                    style="@style/TextoModoOScuroColor"
+                android:orientation="vertical">
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/hay_garantia_producto"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Garantia en años"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <EditText
+                        android:id="@+id/hay_garantia_productoED"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Garantia en años"
+                        android:inputType="number"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <RadioGroup
+                    android:id="@+id/radioGrupPlazoRG"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/meses"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Meses" />
+
+                    <RadioButton
+                        android:id="@+id/years"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="años" />
+
+                    <RadioButton
+                        android:id="@+id/dias"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="dias" />
+                </RadioGroup>
+            </LinearLayout>
+
+
 
 
             <com.google.android.material.textfield.TextInputLayout
@@ -518,6 +558,33 @@
                     android:clickable="false"
                     android:gravity="top|start"
                     android:hint="#"
+                    android:inputType="textMultiLine"
+                    android:maxLines="5"
+                    android:minLines="5"
+                    android:padding="10dp"
+                    android:scrollbars="vertical" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/mas_informacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
+
+                <EditText
+                    android:id="@+id/mas_informacionED"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:gravity="top|start"
+                    android:hint="mas informacion"
                     android:inputType="textMultiLine"
                     android:maxLines="5"
                     android:minLines="5"

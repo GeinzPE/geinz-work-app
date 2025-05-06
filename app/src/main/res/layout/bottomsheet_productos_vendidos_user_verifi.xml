@@ -289,6 +289,51 @@
 
                 </LinearLayout>
 
+                <LinearLayout
+                    android:id="@+id/ocultar_campos_mas_informacion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/roun_formulario_servicios_geinz"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:text="Más Información"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ocultar_p3"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/ocultar_arriva" />
+                    </LinearLayout>
+
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/titulo_roboto_regular_fuente"
+                        android:id="@+id/mas_infomacion"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
                 <include
                     android:id="@+id/cargaProductos_promo_trabajos"
                     layout="@layout/item_cargar_productos_promociones_trabajos" />

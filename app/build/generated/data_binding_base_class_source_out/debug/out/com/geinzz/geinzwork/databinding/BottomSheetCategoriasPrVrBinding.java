@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -13,6 +14,7 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView;
+import com.google.android.material.textfield.TextInputLayout;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -28,18 +30,27 @@ public final class BottomSheetCategoriasPrVrBinding implements ViewBinding {
   public final ItemCategoriaVrBinding idItemCategoriaVr;
 
   @NonNull
+  public final TextInputLayout inputnombre;
+
+  @NonNull
   public final ProgressBar progrssCarga;
+
+  @NonNull
+  public final EditText search;
 
   @NonNull
   public final RelativeLayout vistaCategoria;
 
   private BottomSheetCategoriasPrVrBinding(@NonNull LinearLayout rootView,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull ItemCategoriaVrBinding idItemCategoriaVr,
-      @NonNull ProgressBar progrssCarga, @NonNull RelativeLayout vistaCategoria) {
+      @NonNull TextInputLayout inputnombre, @NonNull ProgressBar progrssCarga,
+      @NonNull EditText search, @NonNull RelativeLayout vistaCategoria) {
     this.rootView = rootView;
     this.cerrar = cerrar;
     this.idItemCategoriaVr = idItemCategoriaVr;
+    this.inputnombre = inputnombre;
     this.progrssCarga = progrssCarga;
+    this.search = search;
     this.vistaCategoria = vistaCategoria;
   }
 
@@ -83,9 +94,21 @@ public final class BottomSheetCategoriasPrVrBinding implements ViewBinding {
       }
       ItemCategoriaVrBinding binding_idItemCategoriaVr = ItemCategoriaVrBinding.bind(idItemCategoriaVr);
 
+      id = R.id.inputnombre;
+      TextInputLayout inputnombre = ViewBindings.findChildViewById(rootView, id);
+      if (inputnombre == null) {
+        break missingId;
+      }
+
       id = R.id.progrss_carga;
       ProgressBar progrssCarga = ViewBindings.findChildViewById(rootView, id);
       if (progrssCarga == null) {
+        break missingId;
+      }
+
+      id = R.id.search;
+      EditText search = ViewBindings.findChildViewById(rootView, id);
+      if (search == null) {
         break missingId;
       }
 
@@ -96,7 +119,7 @@ public final class BottomSheetCategoriasPrVrBinding implements ViewBinding {
       }
 
       return new BottomSheetCategoriasPrVrBinding((LinearLayout) rootView, cerrar,
-          binding_idItemCategoriaVr, progrssCarga, vistaCategoria);
+          binding_idItemCategoriaVr, inputnombre, progrssCarga, search, vistaCategoria);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

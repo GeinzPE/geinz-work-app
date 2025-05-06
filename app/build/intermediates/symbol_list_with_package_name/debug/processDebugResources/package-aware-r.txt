@@ -3757,6 +3757,7 @@ drawable agregar_img_icon
 drawable agregar_perfil_img_geinz
 drawable agregar_trabajos
 drawable agregrar_trabajo_categoria_icon
+drawable arrow_info_fr
 drawable avd_hide_password
 drawable avd_show_password
 drawable back_preset_retro
@@ -3790,6 +3791,7 @@ drawable buscar_icon
 drawable camino_pedido_icon
 drawable card_trabajos
 drawable card_trabajos_black
+drawable card_verifica_cuenta_inicio_fr
 drawable cargando_img
 drawable cargando_img_geinz_500
 drawable cargando_qr_geinz
@@ -3810,6 +3812,7 @@ drawable circle_gris
 drawable circle_mode_black
 drawable circulo_carga
 drawable clikc_drawable
+drawable close_inicio_fr
 drawable common_full_open_on_phone
 drawable common_google_signin_btn_icon_dark
 drawable common_google_signin_btn_icon_dark_focused
@@ -4901,6 +4904,7 @@ id cantidad_view
 id caracteristica1
 id caracteristicasTrabajos
 id caracteristicasTrabajosED
+id caracteristicas_verificado
 id cardViewRoot
 id carga
 id cargaIMG_text
@@ -4963,6 +4967,7 @@ id center_horizontal
 id center_vertical
 id cerrado_layout
 id cerrar
+id cerrar_anuncio
 id certificados
 id certificadosEDs
 id chain
@@ -5161,6 +5166,7 @@ id dialogTitle
 id dialog_button
 id dialog_message
 id dialog_title
+id dias
 id diasRestantes
 id dimensions
 id direccion
@@ -5671,6 +5677,7 @@ id linealDireccion
 id linealEntregaDomicilio
 id linealFecha
 id linealFechaPublicada
+id linealGarantia
 id linealGarantiaDisponible
 id linealHoraLLegada
 id linealHorario
@@ -5681,6 +5688,7 @@ id linealListener
 id linealListner
 id linealMarcaProducto
 id linealMetodoEntrega
+id linealMetodos_pago
 id linealMontoDel_servicio
 id linealMostrarTrabajos
 id linealNo_seEncontraron
@@ -5718,6 +5726,7 @@ id linealVer
 id linealVerificado
 id linealYape
 id lineal_Publicacion
+id lineal_anuncio_verificado
 id lineal_campos_trabajador
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
@@ -5774,9 +5783,9 @@ id list_item
 id lista_Ubicaciones
 id lista_publicaciones_trabajadores
 id listener
+id listenerCategoriaProducto
 id listenerPadre
 id listenerTienda
-id listener_categoria_producto
 id llamado
 id loading
 id localida
@@ -5814,7 +5823,9 @@ id mas
 id masEstrellas
 id masPromociones_geinz
 id masSeguidores
+id mas_infomacion
 id mas_informacion
+id mas_informacionED
 id mas_trabajos_realiados
 id masculino
 id masked
@@ -5858,6 +5869,7 @@ id menos
 id mensajeED
 id mensajewhatsappInfo
 id mensajewhtsapp
+id meses
 id message
 id metodoEfectivo
 id metodoEntrega
@@ -5868,6 +5880,7 @@ id metodo_entrega
 id metodo_pagos
 id metodopago
 id metodos_entrega
+id metodos_pago
 id middle
 id mini
 id minuscula
@@ -5885,6 +5898,8 @@ id month_navigation_previous
 id month_title
 id montoTotal
 id monto_cancelar
+id monto_diario
+id monto_mesual
 id more_actions_dock
 id mostrarOcular_contacto
 id mostrarRedes
@@ -6020,9 +6035,11 @@ id ocualtar
 id ocultar_campo_noticia
 id ocultar_campos_de_publicidad
 id ocultar_campos_descripcion
+id ocultar_campos_mas_informacion
 id ocultar_campos_pagos
 id ocultar_p1
 id ocultar_p2
+id ocultar_p3
 id ocultarp2
 id ocultarp3
 id off
@@ -6189,6 +6206,7 @@ id radial
 id radio
 id radioDescuento
 id radioGrupMetodosPago
+id radioGrupPlazoRG
 id radioTiempo_garantia
 id radio_delivery_gratis
 id radio_garantia
@@ -7063,6 +7081,7 @@ layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
 layout item_trabajos_reallizados_trabajadores
+layout layout_beneficios_vr
 layout layout_code_picker
 layout layout_full_width_code_picker
 layout layout_picker_dialog

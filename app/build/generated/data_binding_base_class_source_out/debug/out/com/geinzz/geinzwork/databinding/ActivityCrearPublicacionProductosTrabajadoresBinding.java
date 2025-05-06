@@ -77,6 +77,9 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final RadioButton deliveryGratisSi;
 
   @NonNull
+  public final RadioButton dias;
+
+  @NonNull
   public final RadioButton efectivo;
 
   @NonNull
@@ -101,6 +104,9 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final LinearLayout linealDeliveryGratis;
 
   @NonNull
+  public final LinearLayout linealGarantia;
+
+  @NonNull
   public final TextInputLayout listenerCategoriaProducto;
 
   @NonNull
@@ -120,6 +126,15 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
 
   @NonNull
   public final EditText marcaProductoED;
+
+  @NonNull
+  public final TextInputLayout masInformacion;
+
+  @NonNull
+  public final EditText masInformacionED;
+
+  @NonNull
+  public final RadioButton meses;
 
   @NonNull
   public final RadioGroup metodosEntrega;
@@ -173,6 +188,9 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final RadioGroup radioDeliveryGratis;
 
   @NonNull
+  public final RadioGroup radioGrupPlazoRG;
+
+  @NonNull
   public final RecyclerView recycleImg;
 
   @NonNull
@@ -194,7 +212,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   public final EditText stokED;
 
   @NonNull
-  public final AutoCompleteTextView subcategoriaProducto;
+  public final EditText subcategoriaProducto;
 
   @NonNull
   public final Button subir;
@@ -214,6 +232,9 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
   @NonNull
   public final RadioButton yape;
 
+  @NonNull
+  public final RadioButton years;
+
   private ActivityCrearPublicacionProductosTrabajadoresBinding(@NonNull RelativeLayout rootView,
       @NonNull CheckBox Acepto, @NonNull TextView PublicacionesDisponibles,
       @NonNull TextView PublicacionesRealizadas, @NonNull TextView TotalPublicaciones,
@@ -222,28 +243,31 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       @NonNull TextView catSelcionado, @NonNull AutoCompleteTextView condicionPrED,
       @NonNull RadioButton coordinarComprador, @NonNull RadioButton delivery,
       @NonNull RadioButton deliveryGratisNo, @NonNull RadioButton deliveryGratisSi,
-      @NonNull RadioButton efectivo, @NonNull RadioButton entregaDomicilio, @NonNull TextView fecha,
+      @NonNull RadioButton dias, @NonNull RadioButton efectivo,
+      @NonNull RadioButton entregaDomicilio, @NonNull TextView fecha,
       @NonNull TextInputLayout hayGarantiaProducto, @NonNull EditText hayGarantiaProductoED,
       @NonNull TextView hora, @NonNull LinearLayout layoutNombreMarca,
-      @NonNull LinearLayout linealDeliveryGratis,
+      @NonNull LinearLayout linealDeliveryGratis, @NonNull LinearLayout linealGarantia,
       @NonNull TextInputLayout listenerCategoriaProducto, @NonNull RadioButton lugarEntrega,
       @NonNull EditText lugarEntregaED, @NonNull TextInputLayout lugarEntregaTXT,
       @NonNull RelativeLayout main, @NonNull TextInputLayout marcaProducto,
-      @NonNull EditText marcaProductoED, @NonNull RadioGroup metodosEntrega,
-      @NonNull TextInputLayout modeloProducto, @NonNull EditText modeloProductoED,
-      @NonNull TextView mostrarPublicacionPara, @NonNull TextInputLayout nombreProducto,
-      @NonNull EditText nombreProductoED, @NonNull TextView plan, @NonNull RadioButton plin,
-      @NonNull ImageView popup, @NonNull TextInputLayout precioNuevoDescuentoPr,
-      @NonNull EditText precioNuevoDescuentoPrED, @NonNull TextInputLayout precioProducto,
-      @NonNull EditText precioProductoED, @NonNull ProgressBar progressBar,
-      @NonNull FrameLayout progressBarContainer, @NonNull AppCompatButton publicar,
-      @NonNull RadioGroup radioDeliveryGratis, @NonNull RecyclerView recycleImg,
+      @NonNull EditText marcaProductoED, @NonNull TextInputLayout masInformacion,
+      @NonNull EditText masInformacionED, @NonNull RadioButton meses,
+      @NonNull RadioGroup metodosEntrega, @NonNull TextInputLayout modeloProducto,
+      @NonNull EditText modeloProductoED, @NonNull TextView mostrarPublicacionPara,
+      @NonNull TextInputLayout nombreProducto, @NonNull EditText nombreProductoED,
+      @NonNull TextView plan, @NonNull RadioButton plin, @NonNull ImageView popup,
+      @NonNull TextInputLayout precioNuevoDescuentoPr, @NonNull EditText precioNuevoDescuentoPrED,
+      @NonNull TextInputLayout precioProducto, @NonNull EditText precioProductoED,
+      @NonNull ProgressBar progressBar, @NonNull FrameLayout progressBarContainer,
+      @NonNull AppCompatButton publicar, @NonNull RadioGroup radioDeliveryGratis,
+      @NonNull RadioGroup radioGrupPlazoRG, @NonNull RecyclerView recycleImg,
       @NonNull NestedScrollView scroll, @NonNull TextInputLayout selecionLocalidad,
       @NonNull Switch siHayDescuento, @NonNull Switch siHayGarantia, @NonNull TextInputLayout stok,
-      @NonNull EditText stokED, @NonNull AutoCompleteTextView subcategoriaProducto,
-      @NonNull Button subir, @NonNull TextInputLayout tituloPublicacionPr,
-      @NonNull EditText tituloPublicacionPrED, @NonNull TextView vistraPreviaDescripcion,
-      @NonNull TextView vistraPreviaDescripciontitulo, @NonNull RadioButton yape) {
+      @NonNull EditText stokED, @NonNull EditText subcategoriaProducto, @NonNull Button subir,
+      @NonNull TextInputLayout tituloPublicacionPr, @NonNull EditText tituloPublicacionPrED,
+      @NonNull TextView vistraPreviaDescripcion, @NonNull TextView vistraPreviaDescripciontitulo,
+      @NonNull RadioButton yape, @NonNull RadioButton years) {
     this.rootView = rootView;
     this.Acepto = Acepto;
     this.PublicacionesDisponibles = PublicacionesDisponibles;
@@ -259,6 +283,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.delivery = delivery;
     this.deliveryGratisNo = deliveryGratisNo;
     this.deliveryGratisSi = deliveryGratisSi;
+    this.dias = dias;
     this.efectivo = efectivo;
     this.entregaDomicilio = entregaDomicilio;
     this.fecha = fecha;
@@ -267,6 +292,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.hora = hora;
     this.layoutNombreMarca = layoutNombreMarca;
     this.linealDeliveryGratis = linealDeliveryGratis;
+    this.linealGarantia = linealGarantia;
     this.listenerCategoriaProducto = listenerCategoriaProducto;
     this.lugarEntrega = lugarEntrega;
     this.lugarEntregaED = lugarEntregaED;
@@ -274,6 +300,9 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.main = main;
     this.marcaProducto = marcaProducto;
     this.marcaProductoED = marcaProductoED;
+    this.masInformacion = masInformacion;
+    this.masInformacionED = masInformacionED;
+    this.meses = meses;
     this.metodosEntrega = metodosEntrega;
     this.modeloProducto = modeloProducto;
     this.modeloProductoED = modeloProductoED;
@@ -291,6 +320,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.progressBarContainer = progressBarContainer;
     this.publicar = publicar;
     this.radioDeliveryGratis = radioDeliveryGratis;
+    this.radioGrupPlazoRG = radioGrupPlazoRG;
     this.recycleImg = recycleImg;
     this.scroll = scroll;
     this.selecionLocalidad = selecionLocalidad;
@@ -305,6 +335,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
     this.vistraPreviaDescripcion = vistraPreviaDescripcion;
     this.vistraPreviaDescripciontitulo = vistraPreviaDescripciontitulo;
     this.yape = yape;
+    this.years = years;
   }
 
   @Override
@@ -419,6 +450,12 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
         break missingId;
       }
 
+      id = R.id.dias;
+      RadioButton dias = ViewBindings.findChildViewById(rootView, id);
+      if (dias == null) {
+        break missingId;
+      }
+
       id = R.id.efectivo;
       RadioButton efectivo = ViewBindings.findChildViewById(rootView, id);
       if (efectivo == null) {
@@ -467,7 +504,13 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
         break missingId;
       }
 
-      id = R.id.listener_categoria_producto;
+      id = R.id.linealGarantia;
+      LinearLayout linealGarantia = ViewBindings.findChildViewById(rootView, id);
+      if (linealGarantia == null) {
+        break missingId;
+      }
+
+      id = R.id.listenerCategoriaProducto;
       TextInputLayout listenerCategoriaProducto = ViewBindings.findChildViewById(rootView, id);
       if (listenerCategoriaProducto == null) {
         break missingId;
@@ -502,6 +545,24 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       id = R.id.marcaProductoED;
       EditText marcaProductoED = ViewBindings.findChildViewById(rootView, id);
       if (marcaProductoED == null) {
+        break missingId;
+      }
+
+      id = R.id.mas_informacion;
+      TextInputLayout masInformacion = ViewBindings.findChildViewById(rootView, id);
+      if (masInformacion == null) {
+        break missingId;
+      }
+
+      id = R.id.mas_informacionED;
+      EditText masInformacionED = ViewBindings.findChildViewById(rootView, id);
+      if (masInformacionED == null) {
+        break missingId;
+      }
+
+      id = R.id.meses;
+      RadioButton meses = ViewBindings.findChildViewById(rootView, id);
+      if (meses == null) {
         break missingId;
       }
 
@@ -607,6 +668,12 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
         break missingId;
       }
 
+      id = R.id.radioGrupPlazoRG;
+      RadioGroup radioGrupPlazoRG = ViewBindings.findChildViewById(rootView, id);
+      if (radioGrupPlazoRG == null) {
+        break missingId;
+      }
+
       id = R.id.recycle_img;
       RecyclerView recycleImg = ViewBindings.findChildViewById(rootView, id);
       if (recycleImg == null) {
@@ -650,7 +717,7 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
       }
 
       id = R.id.subcategoria_producto;
-      AutoCompleteTextView subcategoriaProducto = ViewBindings.findChildViewById(rootView, id);
+      EditText subcategoriaProducto = ViewBindings.findChildViewById(rootView, id);
       if (subcategoriaProducto == null) {
         break missingId;
       }
@@ -691,19 +758,26 @@ public final class ActivityCrearPublicacionProductosTrabajadoresBinding implemen
         break missingId;
       }
 
+      id = R.id.years;
+      RadioButton years = ViewBindings.findChildViewById(rootView, id);
+      if (years == null) {
+        break missingId;
+      }
+
       return new ActivityCrearPublicacionProductosTrabajadoresBinding((RelativeLayout) rootView,
           Acepto, PublicacionesDisponibles, PublicacionesRealizadas, TotalPublicaciones,
           agregaUbiED, agregaUbicaciones, agregarHastags, agregarHastagsED, catSelcionado,
-          condicionPrED, coordinarComprador, delivery, deliveryGratisNo, deliveryGratisSi, efectivo,
-          entregaDomicilio, fecha, hayGarantiaProducto, hayGarantiaProductoED, hora,
-          layoutNombreMarca, linealDeliveryGratis, listenerCategoriaProducto, lugarEntrega,
-          lugarEntregaED, lugarEntregaTXT, main, marcaProducto, marcaProductoED, metodosEntrega,
-          modeloProducto, modeloProductoED, mostrarPublicacionPara, nombreProducto,
-          nombreProductoED, plan, plin, popup, precioNuevoDescuentoPr, precioNuevoDescuentoPrED,
-          precioProducto, precioProductoED, progressBar, progressBarContainer, publicar,
-          radioDeliveryGratis, recycleImg, scroll, selecionLocalidad, siHayDescuento, siHayGarantia,
-          stok, stokED, subcategoriaProducto, subir, tituloPublicacionPr, tituloPublicacionPrED,
-          vistraPreviaDescripcion, vistraPreviaDescripciontitulo, yape);
+          condicionPrED, coordinarComprador, delivery, deliveryGratisNo, deliveryGratisSi, dias,
+          efectivo, entregaDomicilio, fecha, hayGarantiaProducto, hayGarantiaProductoED, hora,
+          layoutNombreMarca, linealDeliveryGratis, linealGarantia, listenerCategoriaProducto,
+          lugarEntrega, lugarEntregaED, lugarEntregaTXT, main, marcaProducto, marcaProductoED,
+          masInformacion, masInformacionED, meses, metodosEntrega, modeloProducto, modeloProductoED,
+          mostrarPublicacionPara, nombreProducto, nombreProductoED, plan, plin, popup,
+          precioNuevoDescuentoPr, precioNuevoDescuentoPrED, precioProducto, precioProductoED,
+          progressBar, progressBarContainer, publicar, radioDeliveryGratis, radioGrupPlazoRG,
+          recycleImg, scroll, selecionLocalidad, siHayDescuento, siHayGarantia, stok, stokED,
+          subcategoriaProducto, subir, tituloPublicacionPr, tituloPublicacionPrED,
+          vistraPreviaDescripcion, vistraPreviaDescripciontitulo, yape, years);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

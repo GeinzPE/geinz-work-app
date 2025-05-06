@@ -60,7 +60,6 @@ import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 
 class inicioFracment : Fragment() {
-
     private lateinit var binding: FragmentInicioFracmentBinding
     private lateinit var mContex: Context
     private lateinit var firebaseAuth: FirebaseAuth
@@ -92,7 +91,9 @@ class inicioFracment : Fragment() {
         val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
 
         val storedValue = pref?.getString(KEY, "Default Value")
-
+        binding.cerrarAnuncio.setOnClickListener {
+            binding.linealAnuncioVerificado.isVisible=false
+        }
         conteoUser.obtenerConteoUSer { usuarios ->
             binding.includeCabezero.usuariosRegistrados.text = usuarios.toString()
         }
@@ -187,7 +188,8 @@ class inicioFracment : Fragment() {
             binding.includeCabezero.progressCargaImagen,
             binding.includeCabezero.usuarioRegsitradoName,
             mContex,
-            binding.includeCabezero.imgPerfilUser
+            binding.includeCabezero.imgPerfilUser,
+            binding.linealAnuncioVerificado
         )
         binding.verTiendas.setOnClickListener {
             val vista = Intent(mContex, TiendasGenerales::class.java)

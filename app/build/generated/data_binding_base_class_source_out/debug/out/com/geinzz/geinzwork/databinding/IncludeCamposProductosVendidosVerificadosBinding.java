@@ -69,6 +69,9 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
   public final LinearLayout linealMarcaProducto;
 
   @NonNull
+  public final LinearLayout linealMetodosPago;
+
+  @NonNull
   public final LinearLayout linealPrecioProducto;
 
   @NonNull
@@ -79,6 +82,9 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
 
   @NonNull
   public final TextView marca;
+
+  @NonNull
+  public final TextView metodosPago;
 
   @NonNull
   public final TextView modelo;
@@ -104,8 +110,9 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
       @NonNull LinearLayout linealCategoriaProducto, @NonNull LinearLayout linealCondicionProducto,
       @NonNull LinearLayout linealEntregaDomicilio, @NonNull LinearLayout linealFechaPublicada,
       @NonNull LinearLayout linealGarantiaDisponible, @NonNull LinearLayout linealMarcaProducto,
-      @NonNull LinearLayout linealPrecioProducto, @NonNull LinearLayout linealStokDisponible,
-      @NonNull LinearLayout linealVer, @NonNull TextView marca, @NonNull TextView modelo,
+      @NonNull LinearLayout linealMetodosPago, @NonNull LinearLayout linealPrecioProducto,
+      @NonNull LinearLayout linealStokDisponible, @NonNull LinearLayout linealVer,
+      @NonNull TextView marca, @NonNull TextView metodosPago, @NonNull TextView modelo,
       @NonNull TextView precioAntiguo, @NonNull TextView precioProducto, @NonNull TextView stok,
       @NonNull TextView tvReadMore) {
     this.rootView = rootView;
@@ -125,10 +132,12 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
     this.linealFechaPublicada = linealFechaPublicada;
     this.linealGarantiaDisponible = linealGarantiaDisponible;
     this.linealMarcaProducto = linealMarcaProducto;
+    this.linealMetodosPago = linealMetodosPago;
     this.linealPrecioProducto = linealPrecioProducto;
     this.linealStokDisponible = linealStokDisponible;
     this.linealVer = linealVer;
     this.marca = marca;
+    this.metodosPago = metodosPago;
     this.modelo = modelo;
     this.precioAntiguo = precioAntiguo;
     this.precioProducto = precioProducto;
@@ -260,6 +269,12 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
         break missingId;
       }
 
+      id = R.id.linealMetodos_pago;
+      LinearLayout linealMetodosPago = ViewBindings.findChildViewById(rootView, id);
+      if (linealMetodosPago == null) {
+        break missingId;
+      }
+
       id = R.id.linealPrecioProducto;
       LinearLayout linealPrecioProducto = ViewBindings.findChildViewById(rootView, id);
       if (linealPrecioProducto == null) {
@@ -277,6 +292,12 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
       id = R.id.marca;
       TextView marca = ViewBindings.findChildViewById(rootView, id);
       if (marca == null) {
+        break missingId;
+      }
+
+      id = R.id.metodos_pago;
+      TextView metodosPago = ViewBindings.findChildViewById(rootView, id);
+      if (metodosPago == null) {
         break missingId;
       }
 
@@ -314,9 +335,9 @@ public final class IncludeCamposProductosVendidosVerificadosBinding implements V
           Condicion, LinealModeloProducto, categoriaProducto, comprar, cordinarVendedor,
           descripcion, descuentoPorcentaje, entregaDomicilio, fechaPublicado, garantia,
           linealCategoriaProducto, linealCondicionProducto, linealEntregaDomicilio,
-          linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealPrecioProducto,
-          linealStokDisponible, linealVer, marca, modelo, precioAntiguo, precioProducto, stok,
-          tvReadMore);
+          linealFechaPublicada, linealGarantiaDisponible, linealMarcaProducto, linealMetodosPago,
+          linealPrecioProducto, linealStokDisponible, linealVer, marca, metodosPago, modelo,
+          precioAntiguo, precioProducto, stok, tvReadMore);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

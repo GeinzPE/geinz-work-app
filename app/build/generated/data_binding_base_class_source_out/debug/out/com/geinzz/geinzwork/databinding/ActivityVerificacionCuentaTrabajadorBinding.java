@@ -91,6 +91,9 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   public final ImageView infoDescripcionServicios;
 
   @NonNull
+  public final AutoCompleteTextView localidadUser;
+
+  @NonNull
   public final LottieAnimationView lotteSend;
 
   @NonNull
@@ -151,8 +154,8 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       @NonNull TextView hora, @NonNull ShapeableImageView imagenAtras,
       @NonNull ShapeableImageView imagenFrontal, @NonNull ShapeableImageView imagenPerfil,
       @NonNull ImageView infoCertificados, @NonNull ImageView infoDescripcionServicios,
-      @NonNull LottieAnimationView lotteSend, @NonNull RelativeLayout main,
-      @NonNull TextView montoCancelar, @NonNull TextView mostrarRedes,
+      @NonNull AutoCompleteTextView localidadUser, @NonNull LottieAnimationView lotteSend,
+      @NonNull RelativeLayout main, @NonNull TextView montoCancelar, @NonNull TextView mostrarRedes,
       @NonNull TextInputLayout nombre, @NonNull EditText nombreED,
       @NonNull TextInputLayout numeroTelf, @NonNull EditText numeroTelfED,
       @NonNull TextView planSeleccionado, @NonNull AutoCompleteTextView planes,
@@ -180,6 +183,7 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
     this.imagenPerfil = imagenPerfil;
     this.infoCertificados = infoCertificados;
     this.infoDescripcionServicios = infoDescripcionServicios;
+    this.localidadUser = localidadUser;
     this.lotteSend = lotteSend;
     this.main = main;
     this.montoCancelar = montoCancelar;
@@ -347,6 +351,12 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
         break missingId;
       }
 
+      id = R.id.localidad_user;
+      AutoCompleteTextView localidadUser = ViewBindings.findChildViewById(rootView, id);
+      if (localidadUser == null) {
+        break missingId;
+      }
+
       id = R.id.lotteSend;
       LottieAnimationView lotteSend = ViewBindings.findChildViewById(rootView, id);
       if (lotteSend == null) {
@@ -449,9 +459,9 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
           PlanC, apellido, apellidoED, certificados, certificadosEDs, checkBoxPoliticas,
           comprovantePago, descripcionServicios, descripcionServiciosED, dni, dniED,
           enviadoExitosamente, fecha, hora, imagenAtras, imagenFrontal, imagenPerfil,
-          infoCertificados, infoDescripcionServicios, lotteSend, main, montoCancelar, mostrarRedes,
-          nombre, nombreED, numeroTelf, numeroTelfED, planSeleccionado, planes, progressBar,
-          progressBarContainer, qrYape, scroll, texto, textoPoliticas, verificar);
+          infoCertificados, infoDescripcionServicios, localidadUser, lotteSend, main, montoCancelar,
+          mostrarRedes, nombre, nombreED, numeroTelf, numeroTelfED, planSeleccionado, planes,
+          progressBar, progressBarContainer, qrYape, scroll, texto, textoPoliticas, verificar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
