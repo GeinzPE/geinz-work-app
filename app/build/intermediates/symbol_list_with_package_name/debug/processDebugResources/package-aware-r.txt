@@ -4490,6 +4490,8 @@ id Efectivo
 id EnTienda
 id Entrada_cantidadStart
 id Enviar
+id Especializaciones
+id EspecializacionesED
 id EstasA
 id EstasAdos
 id Estas_Pasos
@@ -4967,8 +4969,9 @@ id center_vertical
 id cerrado_layout
 id cerrar
 id cerrar_anuncio
+id certificaciones
 id certificados
-id certificadosEDs
+id certificados_tecnicos
 id chain
 id chain2
 id chains
@@ -5232,6 +5235,10 @@ id encontrados
 id end
 id endToStart
 id end_padder
+id enlace_portafolio
+id enlace_portafolioED
+id enlace_redes_sociales
+id enlace_redes_socialesED
 id enterAlways
 id enterAlwaysCollapsed
 id entragado
@@ -5243,6 +5250,12 @@ id enviar
 id envioGratis
 id envio_gratis
 id error_frame
+id especialidades
+id especialidadesED
+id especializacion
+id especializacionED
+id espezializacion
+id espezializacionED
 id estado
 id estadoTienda
 id estadosLineal
@@ -5313,6 +5326,7 @@ id follow
 id foreground_container
 id forever
 id fotoPortada
+id foto_carnet
 id foto_portada
 id foto_veiculo
 id fracmentoID
@@ -5632,6 +5646,8 @@ id left
 id leftToRight
 id left_to_right
 id legacy
+id lenguajes
+id lenguajesED
 id licencia_conducir
 id light
 id like
@@ -5733,6 +5749,7 @@ id linealYape
 id lineal_Publicacion
 id lineal_anuncio_verificado
 id lineal_campos_trabajador
+id lineal_certificaciones
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
 id lineal_contenido_tienda
@@ -5763,6 +5780,7 @@ id lineal_precio
 id lineal_productos_publicados
 id lineal_seguro
 id lineal_tienda
+id lineal_titulo
 id lineal_ubi
 id lineal_user
 id lineal_veiculo
@@ -5815,6 +5833,14 @@ id lottie_layer_name
 id lugar_entrega
 id lugar_entregaED
 id lugar_entregaTXT
+id ly_arte
+id ly_chofer
+id ly_construcion
+id ly_desarrollo
+id ly_desarrollo_personal
+id ly_desing
+id ly_educacion
+id ly_legal
 id m3_side_sheet
 id main
 id mainOnly
@@ -6124,6 +6150,8 @@ id porcentaje1Estrella
 id porcentaje2Estrellas
 id porcentaje4Estrellas
 id porcentaje5Estrellas
+id portafolio
+id portafolioED
 id position
 id postLayout
 id precio
@@ -6151,6 +6179,7 @@ id pressed
 id preview
 id previewTextTitulo
 id previous_button_container
+id principal
 id privacy_policy_changes
 id privacy_policy_contact
 id privacy_policy_data_protection
@@ -6277,6 +6306,8 @@ id relativeentrega
 id relativenotifica
 id renovar
 id repetircontraFree
+id repo
+id repoED
 id report_drawn
 id reporteID
 id reportes
@@ -6389,6 +6420,7 @@ id snackbar_text
 id snap
 id snapMargins
 id software
+id softwareED
 id south
 id spacer
 id special_effects_controller_view_tag
@@ -6538,6 +6570,7 @@ id titulo_publicidad
 id titulo_servico
 id titulo_trabajos_realizados
 id titulos
+id titulos_educativos
 id tk
 id tkED
 id todos
@@ -6680,6 +6713,8 @@ id x_right
 id yape
 id yape_checkbox
 id years
+id years_experience
+id years_experienceED
 id zona
 id zonaTienda
 id zxing_back_button
@@ -7089,10 +7124,17 @@ layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
 layout item_trabajos_reallizados_trabajadores
+layout layout_arte_antiguedades
 layout layout_beneficios_vr
 layout layout_car_chofer_privado_reparto
 layout layout_code_picker
+layout layout_construcion_hogar
+layout layout_desarrollo_personal
+layout layout_desarrollo_programacion
+layout layout_desing_graphic
+layout layout_educacion
 layout layout_full_width_code_picker
+layout layout_lega_juridico
 layout layout_picker_dialog
 layout layout_recycler_country_tile
 layout lb_action_1_line

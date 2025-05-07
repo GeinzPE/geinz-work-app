@@ -53,7 +53,7 @@
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="">
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -346,21 +346,29 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <include layout="@layout/layout_lega_juridico" />
+            <include layout="@layout/layout_lega_juridico"
+                android:id="@+id/ly_legal"/>
 
-            <include layout="@layout/layout_educacion" />
+            <include layout="@layout/layout_educacion"
+                android:id="@+id/ly_educacion"/>
 
-            <include layout="@layout/layout_desing_graphic" />
+            <include layout="@layout/layout_desing_graphic"
+                android:id="@+id/ly_desing"/>
 
-            <include layout="@layout/layout_desarrollo_programacion" />
+            <include layout="@layout/layout_desarrollo_programacion"
+                android:id="@+id/ly_desarrollo"/>
 
-            <include layout="@layout/layout_car_chofer_privado_reparto" />
+            <include layout="@layout/layout_car_chofer_privado_reparto"
+                android:id="@+id/ly_chofer"/>
 
-            <include layout="@layout/layout_construcion_hogar" />
+            <include layout="@layout/layout_construcion_hogar"
+                android:id="@+id/ly_construcion"/>
 
-            <include layout="@layout/layout_desarrollo_personal" />
+            <include layout="@layout/layout_desarrollo_personal"
+                android:id="@+id/ly_desarrollo_personal"/>
 
-            <include layout="@layout/layout_arte_antiguedades" />
+            <include layout="@layout/layout_arte_antiguedades"
+                android:id="@+id/ly_arte"/>
 
 
             <LinearLayout
@@ -369,29 +377,12 @@
                 android:layout_marginHorizontal="10dp"
                 android:orientation="horizontal">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/certificados"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
-
-                    <EditText
-                        android:id="@+id/certificadosEDs"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Certificados o Licencias Relevantes"
-                        android:inputType="textMultiLine" />
-                </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="5dp"
                     android:hint="seleciona tu plan de verificacion">
 
                     <AutoCompleteTextView

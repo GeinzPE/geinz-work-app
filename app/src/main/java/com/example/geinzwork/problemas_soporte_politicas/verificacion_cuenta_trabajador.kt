@@ -57,7 +57,8 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                 println(getString(R.string.ImgNoSeleccionada))
             }
         }
-//    private val yapePick =
+
+    //    private val yapePick =
 //        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
 //            if (uri != null) {
 //                YAPEO = uri
@@ -119,6 +120,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 //            dialogFragment.show(supportFragmentManager, "image_dialog")
 //        }
 
+        obtenerCategorias(binding.categoriaTrabajos)
         verificarEstadosCuenta()
         constantestextos_general.subrallarTexto(
             "Politicas de privacidad",
@@ -546,7 +548,174 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                         autoCompleteTextView.setAdapter(adapter)
                         autoCompleteTextView.setOnItemClickListener { parent, view, position, id ->
                             val seleccionado = parent.getItemAtPosition(position).toString()
+                            when (seleccionado) {
+                                "Construcción y hogar" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = true
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
 
+                                "Servicios de Salud" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Educación" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = true
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Legal y Jurídico" -> {
+                                    binding.lyLegal.principal.isVisible = true
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Redacción y Edición" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+
+                                }
+
+                                "Diseño Gráfico y Multimedia" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = true
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Desarrollo Web y Programación" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = true
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Marketing Digital y Publicidad" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Artes Visuales y Creativas" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = true
+                                }
+
+                                "Desarrollo Personal y Bienestar" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = true
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Escritura Creativa y Periodismo" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Conductor de reparto" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = true
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Chofer privado" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = true
+                                    binding.lyConstrucion.principal.isVisible = false
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Mecánicos" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = true
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                                "Tecnicos" -> {
+                                    binding.lyLegal.principal.isVisible = false
+                                    binding.lyEducacion.principal.isVisible = false
+                                    binding.lyDesing.principal.isVisible = false
+                                    binding.lyDesarrollo.principal.isVisible = false
+                                    binding.lyChofer.principal.isVisible = false
+                                    binding.lyConstrucion.principal.isVisible = true
+                                    binding.lyDesarrolloPersonal.principal.isVisible = false
+                                    binding.lyArte.principal.isVisible = false
+                                }
+
+                            }
                         }
 
                     }

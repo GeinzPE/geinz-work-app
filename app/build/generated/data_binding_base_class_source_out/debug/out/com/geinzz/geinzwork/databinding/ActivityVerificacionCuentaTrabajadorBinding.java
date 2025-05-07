@@ -41,12 +41,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   public final AutoCompleteTextView categoriaTrabajos;
 
   @NonNull
-  public final TextInputLayout certificados;
-
-  @NonNull
-  public final EditText certificadosEDs;
-
-  @NonNull
   public final CheckBox checkBoxPoliticas;
 
   @NonNull
@@ -107,6 +101,30 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   public final LottieAnimationView lotteSend;
 
   @NonNull
+  public final LayoutArteAntiguedadesBinding lyArte;
+
+  @NonNull
+  public final LayoutCarChoferPrivadoRepartoBinding lyChofer;
+
+  @NonNull
+  public final LayoutConstrucionHogarBinding lyConstrucion;
+
+  @NonNull
+  public final LayoutDesarrolloProgramacionBinding lyDesarrollo;
+
+  @NonNull
+  public final LayoutDesarrolloPersonalBinding lyDesarrolloPersonal;
+
+  @NonNull
+  public final LayoutDesingGraphicBinding lyDesing;
+
+  @NonNull
+  public final LayoutEducacionBinding lyEducacion;
+
+  @NonNull
+  public final LayoutLegaJuridicoBinding lyLegal;
+
+  @NonNull
   public final RelativeLayout main;
 
   @NonNull
@@ -147,8 +165,7 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
 
   private ActivityVerificacionCuentaTrabajadorBinding(@NonNull RelativeLayout rootView,
       @NonNull TextInputLayout apellido, @NonNull EditText apellidoED,
-      @NonNull AutoCompleteTextView categoriaTrabajos, @NonNull TextInputLayout certificados,
-      @NonNull EditText certificadosEDs, @NonNull CheckBox checkBoxPoliticas,
+      @NonNull AutoCompleteTextView categoriaTrabajos, @NonNull CheckBox checkBoxPoliticas,
       @NonNull ShapeableImageView comprovantePago, @NonNull TextInputLayout correoElectronido,
       @NonNull EditText correoElectronidoED, @NonNull TextInputLayout descripcionServicios,
       @NonNull EditText descripcionServiciosED, @NonNull TextInputLayout dni,
@@ -158,7 +175,13 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       @NonNull ImageView infoCertificados, @NonNull ImageView infoDescripcionServicios,
       @NonNull LayoutBeneficiosVrBinding layoutBeneficios,
       @NonNull LinearLayout linealComprovantePago, @NonNull AutoCompleteTextView localidadUser,
-      @NonNull LottieAnimationView lotteSend, @NonNull RelativeLayout main,
+      @NonNull LottieAnimationView lotteSend, @NonNull LayoutArteAntiguedadesBinding lyArte,
+      @NonNull LayoutCarChoferPrivadoRepartoBinding lyChofer,
+      @NonNull LayoutConstrucionHogarBinding lyConstrucion,
+      @NonNull LayoutDesarrolloProgramacionBinding lyDesarrollo,
+      @NonNull LayoutDesarrolloPersonalBinding lyDesarrolloPersonal,
+      @NonNull LayoutDesingGraphicBinding lyDesing, @NonNull LayoutEducacionBinding lyEducacion,
+      @NonNull LayoutLegaJuridicoBinding lyLegal, @NonNull RelativeLayout main,
       @NonNull TextInputLayout nombre, @NonNull EditText nombreED,
       @NonNull TextInputLayout numeroTelf, @NonNull EditText numeroTelfED,
       @NonNull AutoCompleteTextView planes, @NonNull ProgressBar progressBar,
@@ -169,8 +192,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
     this.apellido = apellido;
     this.apellidoED = apellidoED;
     this.categoriaTrabajos = categoriaTrabajos;
-    this.certificados = certificados;
-    this.certificadosEDs = certificadosEDs;
     this.checkBoxPoliticas = checkBoxPoliticas;
     this.comprovantePago = comprovantePago;
     this.correoElectronido = correoElectronido;
@@ -191,6 +212,14 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
     this.linealComprovantePago = linealComprovantePago;
     this.localidadUser = localidadUser;
     this.lotteSend = lotteSend;
+    this.lyArte = lyArte;
+    this.lyChofer = lyChofer;
+    this.lyConstrucion = lyConstrucion;
+    this.lyDesarrollo = lyDesarrollo;
+    this.lyDesarrolloPersonal = lyDesarrolloPersonal;
+    this.lyDesing = lyDesing;
+    this.lyEducacion = lyEducacion;
+    this.lyLegal = lyLegal;
     this.main = main;
     this.nombre = nombre;
     this.nombreED = nombreED;
@@ -249,18 +278,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       id = R.id.categoria_trabajos;
       AutoCompleteTextView categoriaTrabajos = ViewBindings.findChildViewById(rootView, id);
       if (categoriaTrabajos == null) {
-        break missingId;
-      }
-
-      id = R.id.certificados;
-      TextInputLayout certificados = ViewBindings.findChildViewById(rootView, id);
-      if (certificados == null) {
-        break missingId;
-      }
-
-      id = R.id.certificadosEDs;
-      EditText certificadosEDs = ViewBindings.findChildViewById(rootView, id);
-      if (certificadosEDs == null) {
         break missingId;
       }
 
@@ -385,6 +402,62 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
         break missingId;
       }
 
+      id = R.id.ly_arte;
+      View lyArte = ViewBindings.findChildViewById(rootView, id);
+      if (lyArte == null) {
+        break missingId;
+      }
+      LayoutArteAntiguedadesBinding binding_lyArte = LayoutArteAntiguedadesBinding.bind(lyArte);
+
+      id = R.id.ly_chofer;
+      View lyChofer = ViewBindings.findChildViewById(rootView, id);
+      if (lyChofer == null) {
+        break missingId;
+      }
+      LayoutCarChoferPrivadoRepartoBinding binding_lyChofer = LayoutCarChoferPrivadoRepartoBinding.bind(lyChofer);
+
+      id = R.id.ly_construcion;
+      View lyConstrucion = ViewBindings.findChildViewById(rootView, id);
+      if (lyConstrucion == null) {
+        break missingId;
+      }
+      LayoutConstrucionHogarBinding binding_lyConstrucion = LayoutConstrucionHogarBinding.bind(lyConstrucion);
+
+      id = R.id.ly_desarrollo;
+      View lyDesarrollo = ViewBindings.findChildViewById(rootView, id);
+      if (lyDesarrollo == null) {
+        break missingId;
+      }
+      LayoutDesarrolloProgramacionBinding binding_lyDesarrollo = LayoutDesarrolloProgramacionBinding.bind(lyDesarrollo);
+
+      id = R.id.ly_desarrollo_personal;
+      View lyDesarrolloPersonal = ViewBindings.findChildViewById(rootView, id);
+      if (lyDesarrolloPersonal == null) {
+        break missingId;
+      }
+      LayoutDesarrolloPersonalBinding binding_lyDesarrolloPersonal = LayoutDesarrolloPersonalBinding.bind(lyDesarrolloPersonal);
+
+      id = R.id.ly_desing;
+      View lyDesing = ViewBindings.findChildViewById(rootView, id);
+      if (lyDesing == null) {
+        break missingId;
+      }
+      LayoutDesingGraphicBinding binding_lyDesing = LayoutDesingGraphicBinding.bind(lyDesing);
+
+      id = R.id.ly_educacion;
+      View lyEducacion = ViewBindings.findChildViewById(rootView, id);
+      if (lyEducacion == null) {
+        break missingId;
+      }
+      LayoutEducacionBinding binding_lyEducacion = LayoutEducacionBinding.bind(lyEducacion);
+
+      id = R.id.ly_legal;
+      View lyLegal = ViewBindings.findChildViewById(rootView, id);
+      if (lyLegal == null) {
+        break missingId;
+      }
+      LayoutLegaJuridicoBinding binding_lyLegal = LayoutLegaJuridicoBinding.bind(lyLegal);
+
       RelativeLayout main = (RelativeLayout) rootView;
 
       id = R.id.nombre;
@@ -460,13 +533,15 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       }
 
       return new ActivityVerificacionCuentaTrabajadorBinding((RelativeLayout) rootView, apellido,
-          apellidoED, categoriaTrabajos, certificados, certificadosEDs, checkBoxPoliticas,
-          comprovantePago, correoElectronido, correoElectronidoED, descripcionServicios,
-          descripcionServiciosED, dni, dniED, enviadoExitosamente, fecha, hora, imagenAtras,
-          imagenFrontal, imagenPerfil, infoCertificados, infoDescripcionServicios,
-          binding_layoutBeneficios, linealComprovantePago, localidadUser, lotteSend, main, nombre,
-          nombreED, numeroTelf, numeroTelfED, planes, progressBar, progressBarContainer, qrYape,
-          scroll, texto, textoPoliticas, verificar);
+          apellidoED, categoriaTrabajos, checkBoxPoliticas, comprovantePago, correoElectronido,
+          correoElectronidoED, descripcionServicios, descripcionServiciosED, dni, dniED,
+          enviadoExitosamente, fecha, hora, imagenAtras, imagenFrontal, imagenPerfil,
+          infoCertificados, infoDescripcionServicios, binding_layoutBeneficios,
+          linealComprovantePago, localidadUser, lotteSend, binding_lyArte, binding_lyChofer,
+          binding_lyConstrucion, binding_lyDesarrollo, binding_lyDesarrolloPersonal,
+          binding_lyDesing, binding_lyEducacion, binding_lyLegal, main, nombre, nombreED,
+          numeroTelf, numeroTelfED, planes, progressBar, progressBarContainer, qrYape, scroll,
+          texto, textoPoliticas, verificar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

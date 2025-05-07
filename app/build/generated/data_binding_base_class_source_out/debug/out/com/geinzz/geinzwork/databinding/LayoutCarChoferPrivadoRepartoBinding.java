@@ -40,6 +40,9 @@ public final class LayoutCarChoferPrivadoRepartoBinding implements ViewBinding {
   public final LinearLayout linealVeiculo;
 
   @NonNull
+  public final LinearLayout principal;
+
+  @NonNull
   public final TextInputLayout puntosEntregaZonasFrecuentes;
 
   @NonNull
@@ -49,7 +52,7 @@ public final class LayoutCarChoferPrivadoRepartoBinding implements ViewBinding {
       @NonNull EditText descripcionServiciosED, @NonNull ShapeableImageView fotoVeiculo,
       @NonNull ShapeableImageView licenciaConducir, @NonNull LinearLayout linealLicencias,
       @NonNull LinearLayout linealSeguro, @NonNull LinearLayout linealVeiculo,
-      @NonNull TextInputLayout puntosEntregaZonasFrecuentes,
+      @NonNull LinearLayout principal, @NonNull TextInputLayout puntosEntregaZonasFrecuentes,
       @NonNull ShapeableImageView seguroVeicular) {
     this.rootView = rootView;
     this.descripcionServiciosED = descripcionServiciosED;
@@ -58,6 +61,7 @@ public final class LayoutCarChoferPrivadoRepartoBinding implements ViewBinding {
     this.linealLicencias = linealLicencias;
     this.linealSeguro = linealSeguro;
     this.linealVeiculo = linealVeiculo;
+    this.principal = principal;
     this.puntosEntregaZonasFrecuentes = puntosEntregaZonasFrecuentes;
     this.seguroVeicular = seguroVeicular;
   }
@@ -125,6 +129,8 @@ public final class LayoutCarChoferPrivadoRepartoBinding implements ViewBinding {
         break missingId;
       }
 
+      LinearLayout principal = (LinearLayout) rootView;
+
       id = R.id.puntos_entrega_zonas_frecuentes;
       TextInputLayout puntosEntregaZonasFrecuentes = ViewBindings.findChildViewById(rootView, id);
       if (puntosEntregaZonasFrecuentes == null) {
@@ -139,7 +145,7 @@ public final class LayoutCarChoferPrivadoRepartoBinding implements ViewBinding {
 
       return new LayoutCarChoferPrivadoRepartoBinding((LinearLayout) rootView,
           descripcionServiciosED, fotoVeiculo, licenciaConducir, linealLicencias, linealSeguro,
-          linealVeiculo, puntosEntregaZonasFrecuentes, seguroVeicular);
+          linealVeiculo, principal, puntosEntregaZonasFrecuentes, seguroVeicular);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -317,6 +317,8 @@ id Efectivo
 id EnTienda
 id Entrada_cantidadStart
 id Enviar
+id Especializaciones
+id EspecializacionesED
 id EstasA
 id EstasAdos
 id Estas_Pasos
@@ -585,8 +587,9 @@ id categroiasFiltrado
 id cerrado_layout
 id cerrar
 id cerrar_anuncio
+id certificaciones
 id certificados
-id certificadosEDs
+id certificados_tecnicos
 id checkBoxPoliticas
 id chipGrup_hastagsP
 id chipSubcategoryButton
@@ -750,6 +753,10 @@ id efectivo_checkbox
 id elcion_de_cateogoria
 id eliminar
 id encontrados
+id enlace_portafolio
+id enlace_portafolioED
+id enlace_redes_sociales
+id enlace_redes_socialesED
 id entragado
 id entregaDomicilio
 id entregaMetodo
@@ -758,6 +765,12 @@ id enviado_exitosamente
 id enviar
 id envioGratis
 id envio_gratis
+id especialidades
+id especialidadesED
+id especializacion
+id especializacionED
+id espezializacion
+id espezializacionED
 id estado
 id estadoTienda
 id estadosLineal
@@ -806,6 +819,7 @@ id filtradotxt
 id finaliza
 id follow
 id fotoPortada
+id foto_carnet
 id foto_portada
 id foto_veiculo
 id fracmentoID
@@ -1011,6 +1025,8 @@ id layout_nombre_marca
 id layout_previzualisacion
 id layout_yape
 id lcalidad
+id lenguajes
+id lenguajesED
 id licencia_conducir
 id like
 id likeNoticias
@@ -1109,6 +1125,7 @@ id linealYape
 id lineal_Publicacion
 id lineal_anuncio_verificado
 id lineal_campos_trabajador
+id lineal_certificaciones
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
 id lineal_contenido_tienda
@@ -1139,6 +1156,7 @@ id lineal_precio
 id lineal_productos_publicados
 id lineal_seguro
 id lineal_tienda
+id lineal_titulo
 id lineal_ubi
 id lineal_user
 id lineal_veiculo
@@ -1184,6 +1202,14 @@ id lottie_animation
 id lugar_entrega
 id lugar_entregaED
 id lugar_entregaTXT
+id ly_arte
+id ly_chofer
+id ly_construcion
+id ly_desarrollo
+id ly_desarrollo_personal
+id ly_desing
+id ly_educacion
+id ly_legal
 id main
 id mandarSolicitud
 id mapa
@@ -1356,6 +1382,8 @@ id porcentaje1Estrella
 id porcentaje2Estrellas
 id porcentaje4Estrellas
 id porcentaje5Estrellas
+id portafolio
+id portafolioED
 id precio
 id precioAntiguo
 id precioDelivery
@@ -1378,6 +1406,7 @@ id preciofiltrado
 id precioproducto
 id preview
 id previewTextTitulo
+id principal
 id privacy_policy_changes
 id privacy_policy_contact
 id privacy_policy_data_protection
@@ -1496,6 +1525,8 @@ id relativeentrega
 id relativenotifica
 id renovar
 id repetircontraFree
+id repo
+id repoED
 id reporteID
 id reportes
 id reserva
@@ -1550,6 +1581,8 @@ id siguiendo
 id siguiente
 id slogan
 id sloganTienda
+id software
+id softwareED
 id stok
 id stokED
 id stok_producto
@@ -1632,6 +1665,7 @@ id titulo_publicidad
 id titulo_servico
 id titulo_trabajos_realizados
 id titulos
+id titulos_educativos
 id tk
 id tkED
 id todos
@@ -1728,6 +1762,8 @@ id whatsappDriver
 id yape
 id yape_checkbox
 id years
+id years_experience
+id years_experienceED
 id zona
 id zonaTienda
 layout activity_agregar_pago_comprareserva_tiendas
@@ -1950,8 +1986,15 @@ layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
 layout item_trabajos_reallizados_trabajadores
+layout layout_arte_antiguedades
 layout layout_beneficios_vr
 layout layout_car_chofer_privado_reparto
+layout layout_construcion_hogar
+layout layout_desarrollo_personal
+layout layout_desarrollo_programacion
+layout layout_desing_graphic
+layout layout_educacion
+layout layout_lega_juridico
 layout panel_publicacion
 layout radio_btn_direcion_envios
 layout recicle_trabajos
