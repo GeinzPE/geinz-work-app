@@ -257,7 +257,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val precioDescuento = data?.get("precio_descuento") as? Number ?: 0
                         val totalProducto = data?.get("total_producto") as? Number ?: 0
 
-                        val categoria = data?.get("categoria") as? String ?: ""
+                        val categoria = data?.get("categoria_producto") as? String ?: ""
                         val condicionProducto = data?.get("condicion_producto") as? String ?: ""
                         val descripcion = data?.get("descripcion") as? String ?: ""
                         val modelo = data?.get("modelo") as? String ?: ""

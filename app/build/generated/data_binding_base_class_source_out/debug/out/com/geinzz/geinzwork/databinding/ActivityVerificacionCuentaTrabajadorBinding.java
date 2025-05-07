@@ -9,6 +9,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -31,16 +32,13 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   private final RelativeLayout rootView;
 
   @NonNull
-  public final TextView PlanB;
-
-  @NonNull
-  public final TextView PlanC;
-
-  @NonNull
   public final TextInputLayout apellido;
 
   @NonNull
   public final EditText apellidoED;
+
+  @NonNull
+  public final AutoCompleteTextView categoriaTrabajos;
 
   @NonNull
   public final TextInputLayout certificados;
@@ -53,6 +51,12 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
 
   @NonNull
   public final ShapeableImageView comprovantePago;
+
+  @NonNull
+  public final TextInputLayout correoElectronido;
+
+  @NonNull
+  public final EditText correoElectronidoED;
 
   @NonNull
   public final TextInputLayout descripcionServicios;
@@ -91,6 +95,12 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   public final ImageView infoDescripcionServicios;
 
   @NonNull
+  public final LayoutBeneficiosVrBinding layoutBeneficios;
+
+  @NonNull
+  public final LinearLayout linealComprovantePago;
+
+  @NonNull
   public final AutoCompleteTextView localidadUser;
 
   @NonNull
@@ -98,12 +108,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
 
   @NonNull
   public final RelativeLayout main;
-
-  @NonNull
-  public final TextView montoCancelar;
-
-  @NonNull
-  public final TextView mostrarRedes;
 
   @NonNull
   public final TextInputLayout nombre;
@@ -116,9 +120,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
 
   @NonNull
   public final EditText numeroTelfED;
-
-  @NonNull
-  public final TextView planSeleccionado;
 
   @NonNull
   public final AutoCompleteTextView planes;
@@ -145,32 +146,35 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   public final AppCompatButton verificar;
 
   private ActivityVerificacionCuentaTrabajadorBinding(@NonNull RelativeLayout rootView,
-      @NonNull TextView PlanB, @NonNull TextView PlanC, @NonNull TextInputLayout apellido,
-      @NonNull EditText apellidoED, @NonNull TextInputLayout certificados,
+      @NonNull TextInputLayout apellido, @NonNull EditText apellidoED,
+      @NonNull AutoCompleteTextView categoriaTrabajos, @NonNull TextInputLayout certificados,
       @NonNull EditText certificadosEDs, @NonNull CheckBox checkBoxPoliticas,
-      @NonNull ShapeableImageView comprovantePago, @NonNull TextInputLayout descripcionServicios,
+      @NonNull ShapeableImageView comprovantePago, @NonNull TextInputLayout correoElectronido,
+      @NonNull EditText correoElectronidoED, @NonNull TextInputLayout descripcionServicios,
       @NonNull EditText descripcionServiciosED, @NonNull TextInputLayout dni,
       @NonNull EditText dniED, @NonNull RelativeLayout enviadoExitosamente, @NonNull TextView fecha,
       @NonNull TextView hora, @NonNull ShapeableImageView imagenAtras,
       @NonNull ShapeableImageView imagenFrontal, @NonNull ShapeableImageView imagenPerfil,
       @NonNull ImageView infoCertificados, @NonNull ImageView infoDescripcionServicios,
-      @NonNull AutoCompleteTextView localidadUser, @NonNull LottieAnimationView lotteSend,
-      @NonNull RelativeLayout main, @NonNull TextView montoCancelar, @NonNull TextView mostrarRedes,
+      @NonNull LayoutBeneficiosVrBinding layoutBeneficios,
+      @NonNull LinearLayout linealComprovantePago, @NonNull AutoCompleteTextView localidadUser,
+      @NonNull LottieAnimationView lotteSend, @NonNull RelativeLayout main,
       @NonNull TextInputLayout nombre, @NonNull EditText nombreED,
       @NonNull TextInputLayout numeroTelf, @NonNull EditText numeroTelfED,
-      @NonNull TextView planSeleccionado, @NonNull AutoCompleteTextView planes,
-      @NonNull ProgressBar progressBar, @NonNull FrameLayout progressBarContainer,
-      @NonNull ShapeableImageView qrYape, @NonNull NestedScrollView scroll, @NonNull TextView texto,
-      @NonNull TextView textoPoliticas, @NonNull AppCompatButton verificar) {
+      @NonNull AutoCompleteTextView planes, @NonNull ProgressBar progressBar,
+      @NonNull FrameLayout progressBarContainer, @NonNull ShapeableImageView qrYape,
+      @NonNull NestedScrollView scroll, @NonNull TextView texto, @NonNull TextView textoPoliticas,
+      @NonNull AppCompatButton verificar) {
     this.rootView = rootView;
-    this.PlanB = PlanB;
-    this.PlanC = PlanC;
     this.apellido = apellido;
     this.apellidoED = apellidoED;
+    this.categoriaTrabajos = categoriaTrabajos;
     this.certificados = certificados;
     this.certificadosEDs = certificadosEDs;
     this.checkBoxPoliticas = checkBoxPoliticas;
     this.comprovantePago = comprovantePago;
+    this.correoElectronido = correoElectronido;
+    this.correoElectronidoED = correoElectronidoED;
     this.descripcionServicios = descripcionServicios;
     this.descripcionServiciosED = descripcionServiciosED;
     this.dni = dni;
@@ -183,16 +187,15 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
     this.imagenPerfil = imagenPerfil;
     this.infoCertificados = infoCertificados;
     this.infoDescripcionServicios = infoDescripcionServicios;
+    this.layoutBeneficios = layoutBeneficios;
+    this.linealComprovantePago = linealComprovantePago;
     this.localidadUser = localidadUser;
     this.lotteSend = lotteSend;
     this.main = main;
-    this.montoCancelar = montoCancelar;
-    this.mostrarRedes = mostrarRedes;
     this.nombre = nombre;
     this.nombreED = nombreED;
     this.numeroTelf = numeroTelf;
     this.numeroTelfED = numeroTelfED;
-    this.planSeleccionado = planSeleccionado;
     this.planes = planes;
     this.progressBar = progressBar;
     this.progressBarContainer = progressBarContainer;
@@ -231,18 +234,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.PlanB;
-      TextView PlanB = ViewBindings.findChildViewById(rootView, id);
-      if (PlanB == null) {
-        break missingId;
-      }
-
-      id = R.id.PlanC;
-      TextView PlanC = ViewBindings.findChildViewById(rootView, id);
-      if (PlanC == null) {
-        break missingId;
-      }
-
       id = R.id.apellido;
       TextInputLayout apellido = ViewBindings.findChildViewById(rootView, id);
       if (apellido == null) {
@@ -252,6 +243,12 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       id = R.id.apellidoED;
       EditText apellidoED = ViewBindings.findChildViewById(rootView, id);
       if (apellidoED == null) {
+        break missingId;
+      }
+
+      id = R.id.categoria_trabajos;
+      AutoCompleteTextView categoriaTrabajos = ViewBindings.findChildViewById(rootView, id);
+      if (categoriaTrabajos == null) {
         break missingId;
       }
 
@@ -276,6 +273,18 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       id = R.id.comprovante_pago;
       ShapeableImageView comprovantePago = ViewBindings.findChildViewById(rootView, id);
       if (comprovantePago == null) {
+        break missingId;
+      }
+
+      id = R.id.correo_electronido;
+      TextInputLayout correoElectronido = ViewBindings.findChildViewById(rootView, id);
+      if (correoElectronido == null) {
+        break missingId;
+      }
+
+      id = R.id.correo_electronidoED;
+      EditText correoElectronidoED = ViewBindings.findChildViewById(rootView, id);
+      if (correoElectronidoED == null) {
         break missingId;
       }
 
@@ -351,6 +360,19 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
         break missingId;
       }
 
+      id = R.id.layoutBeneficios;
+      View layoutBeneficios = ViewBindings.findChildViewById(rootView, id);
+      if (layoutBeneficios == null) {
+        break missingId;
+      }
+      LayoutBeneficiosVrBinding binding_layoutBeneficios = LayoutBeneficiosVrBinding.bind(layoutBeneficios);
+
+      id = R.id.linealComprovantePago;
+      LinearLayout linealComprovantePago = ViewBindings.findChildViewById(rootView, id);
+      if (linealComprovantePago == null) {
+        break missingId;
+      }
+
       id = R.id.localidad_user;
       AutoCompleteTextView localidadUser = ViewBindings.findChildViewById(rootView, id);
       if (localidadUser == null) {
@@ -364,18 +386,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       }
 
       RelativeLayout main = (RelativeLayout) rootView;
-
-      id = R.id.monto_cancelar;
-      TextView montoCancelar = ViewBindings.findChildViewById(rootView, id);
-      if (montoCancelar == null) {
-        break missingId;
-      }
-
-      id = R.id.mostrarRedes;
-      TextView mostrarRedes = ViewBindings.findChildViewById(rootView, id);
-      if (mostrarRedes == null) {
-        break missingId;
-      }
 
       id = R.id.nombre;
       TextInputLayout nombre = ViewBindings.findChildViewById(rootView, id);
@@ -398,12 +408,6 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       id = R.id.numeroTelfED;
       EditText numeroTelfED = ViewBindings.findChildViewById(rootView, id);
       if (numeroTelfED == null) {
-        break missingId;
-      }
-
-      id = R.id.plan_seleccionado;
-      TextView planSeleccionado = ViewBindings.findChildViewById(rootView, id);
-      if (planSeleccionado == null) {
         break missingId;
       }
 
@@ -455,13 +459,14 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
         break missingId;
       }
 
-      return new ActivityVerificacionCuentaTrabajadorBinding((RelativeLayout) rootView, PlanB,
-          PlanC, apellido, apellidoED, certificados, certificadosEDs, checkBoxPoliticas,
-          comprovantePago, descripcionServicios, descripcionServiciosED, dni, dniED,
-          enviadoExitosamente, fecha, hora, imagenAtras, imagenFrontal, imagenPerfil,
-          infoCertificados, infoDescripcionServicios, localidadUser, lotteSend, main, montoCancelar,
-          mostrarRedes, nombre, nombreED, numeroTelf, numeroTelfED, planSeleccionado, planes,
-          progressBar, progressBarContainer, qrYape, scroll, texto, textoPoliticas, verificar);
+      return new ActivityVerificacionCuentaTrabajadorBinding((RelativeLayout) rootView, apellido,
+          apellidoED, categoriaTrabajos, certificados, certificadosEDs, checkBoxPoliticas,
+          comprovantePago, correoElectronido, correoElectronidoED, descripcionServicios,
+          descripcionServiciosED, dni, dniED, enviadoExitosamente, fecha, hora, imagenAtras,
+          imagenFrontal, imagenPerfil, infoCertificados, infoDescripcionServicios,
+          binding_layoutBeneficios, linealComprovantePago, localidadUser, lotteSend, main, nombre,
+          nombreED, numeroTelf, numeroTelfED, planes, progressBar, progressBarContainer, qrYape,
+          scroll, texto, textoPoliticas, verificar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

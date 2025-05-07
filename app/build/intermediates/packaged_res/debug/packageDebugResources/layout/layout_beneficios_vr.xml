@@ -5,6 +5,7 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:layout_marginTop="10dp"
         android:id="@+id/lineal_anuncio_verificado"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,9 +40,10 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ellipsize="end"
+            android:id="@+id/planSelecionado"
             android:fontFamily="@font/roboto_medium"
             android:maxLines="2"
-            android:text="Plan de verificacion Selecionado: "
+            android:text="@string/cat"
             android:textColor="@color/gray"
             android:textSize="12sp" />
 
@@ -51,19 +53,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ellipsize="end"
             android:fontFamily="@font/roboto_medium"
-            android:maxLines="2"
             android:textColor="@color/gray"
             android:textSize="12sp" />
+
+
         <TextView
-            android:id="@+id/monto_mesual"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ellipsize="end"
+            android:text="Beneficios :"
             android:fontFamily="@font/roboto_medium"
-            android:maxLines="2"
             android:textColor="@color/gray"
             android:textSize="12sp" />
 
@@ -75,7 +75,7 @@
             android:ellipsize="end"
             android:fontFamily="@font/roboto_medium"
             android:maxLines="2"
-            android:text="Plan de verificacion Selecionado: "
+            android:text="@string/cat"
             android:textColor="@color/gray"
             android:textSize="12sp" />
 

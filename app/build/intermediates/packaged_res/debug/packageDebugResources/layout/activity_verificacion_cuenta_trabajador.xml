@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:layout_width="match_parent"
     style="@style/fondo"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".problemas_soporte_politicas.verificacion_cuenta_trabajador">
 
@@ -235,6 +235,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -295,7 +296,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
@@ -309,6 +309,46 @@
                     android:hint="Numero de telefono"
                     android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/correo_electronido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp"
+                app:endIconDrawable="@drawable/icon_user">
+
+                <EditText
+                    android:id="@+id/correo_electronidoED"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Correo electrónico"
+                    android:inputType="textEmailAddress"
+                    android:autofillHints="emailAddress" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_height="wrap_content"
+                android:hint="Seleciona tu categoria de trabajo">
+
+                <AutoCompleteTextView
+                    android:id="@+id/categoria_trabajos"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <include
+                layout="@layout/layout_car_chofer_privado_reparto"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -357,34 +397,18 @@
             </LinearLayout>
 
 
+            <include
+                android:id="@+id/layoutBeneficios"
+                layout="@layout/layout_beneficios_vr" />
+
+
 
             <LinearLayout
+                android:id="@+id/linealComprovantePago"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="5dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
-                    android:text="Plan seleccionado  "
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/plan_seleccionado"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="***"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <TextView
                     style="@style/TextoModoOScuroColor"
@@ -392,130 +416,45 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="10dp"
-                    android:text="Beneficios de la Verificación:"
-                    android:textSize="15sp"
+                    android:text="Comprobante de pago"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="- Mayor visibilidad y posibilidades de contratación."
+                    android:padding="10dp"
+                    android:text="Sube el comprobante de pago realizado hacia Geinz con el QR de Yape. Escanea y realiza el pago correspondiente al plan escogido."
                     android:textSize="12sp" />
 
-                <TextView
-                    android:id="@+id/mostrarRedes"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="-Mostrar tus redes sociales."
-                    android:textSize="12sp"
-                    android:visibility="gone" />
+                    android:orientation="horizontal">
 
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="- Confianza de los clientes al mostrar tu perfil verificado."
-                    android:textSize="12sp" />
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/comprovante_pago"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_weight="1"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/cargar_foto_500x500"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
-                <TextView
-                    android:id="@+id/PlanB"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="- Publica 10 publicaciones mensuales sobre trabajos o ofertas recientes en tu perfil."
-                    android:textSize="12sp"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/PlanC"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="10dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="- Publica 20 publicaciones mensuales sobre trabajos o ofertas recientes en tu perfil."
-                    android:textSize="12sp"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"
-                android:text="Comprobante de pago"
-                android:textSize="17sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="10dp"
-                android:text="Sube el comprobante de pago realizado hacia Geinz con el QR de Yape. Escanea y realiza el pago correspondiente al plan escogido."
-                android:textSize="12sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
-                    android:text="Monto a cancelar  "
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/monto_cancelar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="***"
-                    android:textSize="12sp" />
-            </LinearLayout>
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/qrYape"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="1"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/qr_yape"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/comprovante_pago"
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_weight="1"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/cargar_foto_500x500"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/qrYape"
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/qr_yape"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-
+                </LinearLayout>
             </LinearLayout>
 
 

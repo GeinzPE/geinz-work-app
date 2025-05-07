@@ -368,7 +368,7 @@
 
         <TextView
             android:id="@+id/metodos_pago"
-            style="@style/descripcionColor"
+            style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"

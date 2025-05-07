@@ -47,6 +47,7 @@ import com.geinzz.geinzwork.databinding.ItemProductsTrabajadoresPrincipalBinding
 import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
 import com.geinzz.geinzwork.dataclass.dataClassCategoriasInicio
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
+import com.geinzz.geinzwork.problemas_soporte_politicas.verificacion_cuenta_trabajador
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
@@ -93,6 +94,10 @@ class inicioFracment : Fragment() {
         val storedValue = pref?.getString(KEY, "Default Value")
         binding.cerrarAnuncio.setOnClickListener {
             binding.linealAnuncioVerificado.isVisible=false
+        }
+        binding.linealAnuncioVerificado.setOnClickListener {
+            val vista=Intent(mContex,verificacion_cuenta_trabajador::class.java)
+            startActivity(vista)
         }
         conteoUser.obtenerConteoUSer { usuarios ->
             binding.includeCabezero.usuariosRegistrados.text = usuarios.toString()

@@ -4574,8 +4574,6 @@ id PREMIUM_RATE
 id PUNJABI
 id Paramonga
 id Pativilca
-id PlanB
-id PlanC
 id PlanPremiun
 id Plan_anterior
 id Plin
@@ -4959,6 +4957,7 @@ id categoriaTienda
 id categoriaTrabajos_publicados
 id categoria_tipo_trabajo
 id categoria_trabajo
+id categoria_trabajos
 id categroiasFiltrado
 id center
 id centerCrop
@@ -5091,6 +5090,8 @@ id corazon
 id cordinarVendedor
 id correo_electronico
 id correo_electronicoFree
+id correo_electronido
+id correo_electronidoED
 id cos
 id counterclockwise
 id countryCodeHolder
@@ -5313,6 +5314,7 @@ id foreground_container
 id forever
 id fotoPortada
 id foto_portada
+id foto_veiculo
 id fracmentoID
 id fragment_container_view_tag
 id frameInfo
@@ -5584,6 +5586,7 @@ id labeled
 id lat
 id latitudUSer
 id layout
+id layoutBeneficios
 id layoutDescripcion
 id layoutDireccion
 id layoutPerfilTienda
@@ -5629,6 +5632,7 @@ id left
 id leftToRight
 id left_to_right
 id legacy
+id licencia_conducir
 id light
 id like
 id likeNoticias
@@ -5667,6 +5671,7 @@ id linealCategoriaT
 id linealCategorias_trabajos
 id linealCategorias_trabajos_publicados
 id linealCompartir_descargar
+id linealComprovantePago
 id linealCondicionProducto
 id linealContenidoDesctipcion
 id linealDatos
@@ -5744,6 +5749,7 @@ id lineal_general_linea
 id lineal_id
 id lineal_img_qr
 id lineal_info_trabajdor
+id lineal_licencias
 id lineal_me_gusta
 id lineal_metodo_entrega
 id lineal_nacionalida_user
@@ -5755,9 +5761,11 @@ id lineal_pago
 id lineal_plan
 id lineal_precio
 id lineal_productos_publicados
+id lineal_seguro
 id lineal_tienda
 id lineal_ubi
 id lineal_user
+id lineal_veiculo
 id lineal_verificado
 id linealappLayout
 id linealdescripcion
@@ -5899,10 +5907,8 @@ id month_title
 id montoTotal
 id monto_cancelar
 id monto_diario
-id monto_mesual
 id more_actions_dock
 id mostrarOcular_contacto
-id mostrarRedes
 id mostrarSeguridos
 id mostrarSeguridosIMG
 id mostrar_ocular_compra
@@ -6102,7 +6108,7 @@ id plan
 id planAvanzado
 id planBasico
 id planNombre
-id plan_seleccionado
+id planSelecionado
 id planes
 id playback_controls_dock
 id playback_fragment_background
@@ -6196,6 +6202,7 @@ id publicidadCuarta
 id publicidadPrimaria
 id publicidadSegundaria
 id publicidadTercera
+id puntos_entrega_zonas_frecuentes
 id qrImageView
 id qrTrabajador
 id qrYape
@@ -6347,6 +6354,7 @@ id segidores
 id seguidores
 id seguidores_trabajador
 id seguir
+id seguro_veicular
 id seleccionTrabajo
 id selecion_localidad
 id select_dialog_listview
@@ -7082,6 +7090,7 @@ layout item_trabajos_mostrados
 layout item_trabajos_ralizados
 layout item_trabajos_reallizados_trabajadores
 layout layout_beneficios_vr
+layout layout_car_chofer_privado_reparto
 layout layout_code_picker
 layout layout_full_width_code_picker
 layout layout_picker_dialog

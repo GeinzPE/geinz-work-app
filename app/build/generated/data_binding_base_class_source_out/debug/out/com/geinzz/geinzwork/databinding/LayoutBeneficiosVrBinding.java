@@ -29,16 +29,16 @@ public final class LayoutBeneficiosVrBinding implements ViewBinding {
   public final TextView montoDiario;
 
   @NonNull
-  public final TextView montoMesual;
+  public final TextView planSelecionado;
 
   private LayoutBeneficiosVrBinding(@NonNull LinearLayout rootView,
       @NonNull TextView caracteristicasVerificado, @NonNull LinearLayout linealAnuncioVerificado,
-      @NonNull TextView montoDiario, @NonNull TextView montoMesual) {
+      @NonNull TextView montoDiario, @NonNull TextView planSelecionado) {
     this.rootView = rootView;
     this.caracteristicasVerificado = caracteristicasVerificado;
     this.linealAnuncioVerificado = linealAnuncioVerificado;
     this.montoDiario = montoDiario;
-    this.montoMesual = montoMesual;
+    this.planSelecionado = planSelecionado;
   }
 
   @Override
@@ -86,14 +86,14 @@ public final class LayoutBeneficiosVrBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.monto_mesual;
-      TextView montoMesual = ViewBindings.findChildViewById(rootView, id);
-      if (montoMesual == null) {
+      id = R.id.planSelecionado;
+      TextView planSelecionado = ViewBindings.findChildViewById(rootView, id);
+      if (planSelecionado == null) {
         break missingId;
       }
 
       return new LayoutBeneficiosVrBinding((LinearLayout) rootView, caracteristicasVerificado,
-          linealAnuncioVerificado, montoDiario, montoMesual);
+          linealAnuncioVerificado, montoDiario, planSelecionado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

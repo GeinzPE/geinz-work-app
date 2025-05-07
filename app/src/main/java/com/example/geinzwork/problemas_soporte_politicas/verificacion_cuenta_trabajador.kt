@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
@@ -24,8 +25,12 @@ import com.example.geinzwork.constantesGeneral.obtenertokenIdAdmin
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
+import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVerificacionCuentaTrabajadorBinding
+import com.geinzz.geinzwork.databinding.LayoutBeneficiosVrBinding
+import com.geinzz.geinzwork.vistaTiendas.constantesVistaTiendas
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
@@ -52,15 +57,15 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                 println(getString(R.string.ImgNoSeleccionada))
             }
         }
-    private val yapePick =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) {
-                YAPEO = uri
-                binding.comprovantePago.setImageURI(uri)
-            } else {
-                println(getString(R.string.ImgNoSeleccionada))
-            }
-        }
+//    private val yapePick =
+//        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+//            if (uri != null) {
+//                YAPEO = uri
+//                binding.comprovantePago.setImageURI(uri)
+//            } else {
+//                println(getString(R.string.ImgNoSeleccionada))
+//            }
+//        }
     private val pciMEdia2 =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
@@ -99,11 +104,20 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
-
-        binding.qrYape.setOnClickListener {
-            val dialogFragment = ImageDialogFragment.newInstance(R.drawable.qr_yape)
-            dialogFragment.show(supportFragmentManager, "image_dialog")
+        constantesDatosUsuarioTienda.obtnerLocalidades(binding.localidadUser)
+        constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
+            if (nombre == null || numero == null || localidad == null || apellido == null) {
+                Log.e("user", "Error: Algunos datos son null")
+            } else {
+                binding.localidadUser.setText(localidad)
+                constantesDatosUsuarioTienda.obtnerLocalidades(binding.localidadUser)
+            }
         }
+
+//        binding.qrYape.setOnClickListener {
+//            val dialogFragment = ImageDialogFragment.newInstance(R.drawable.qr_yape)
+//            dialogFragment.show(supportFragmentManager, "image_dialog")
+//        }
 
         verificarEstadosCuenta()
         constantestextos_general.subrallarTexto(
@@ -145,7 +159,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             val descripcionServiciosEd = binding.descripcionServiciosED
             val dniEd = binding.dniED
             val numeroTelfEd = binding.numeroTelfED
-            val certificadosEd = binding.planSeleccionado
+
 
             if (nombreEd.text.isBlank() || apellidoEd.text.isBlank() ||
                 descripcionServiciosEd.text.isBlank() || dniEd.text.isBlank() ||
@@ -189,7 +203,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                         Variables.descripcion_servicios to descripcionServiciosEd.text.toString(),
                         Variables.DNI to dniEd.text.toString(),
                         Variables.numeroT to numeroTelfEd.text.toString(),
-                        Variables.Plan to certificadosEd.text.toString(),
+//                        Variables.Plan to certificadosEd.text.toString(),
                         Variables.fecha_vencimiento to fechaUnMesDespues.format(formatter),
                         Variables.token to tokenTrabajador
                     )
@@ -302,61 +316,80 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
     private fun obtener_categorias_verificados(selecionado: String) {
         val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
-            .document("verificaciones").collection("beneficios_planes_verificados").document(selecionado)
+            .document("verificaciones").collection("beneficios_planes_verificados")
+            .document(selecionado)
         db.get().addOnSuccessListener { res ->
-            if(res.exists()){
+            if (res.exists()) {
                 val data = res.data
                 val caracteristicas = data?.get("caracteristicas") as? List<String>
+                val monto_cancelar_diario = data?.get("monto_cancelar_diario") as? Number ?: 0
+                val monto_cancelar_mensual = data?.get("monto_cancelar_mensual") as? Number ?: 0
                 if (caracteristicas != null) {
-                    println("Características obtenidas:")
-                    caracteristicas.forEachIndexed { index, caracteristica ->
-                        println("$index: $caracteristica")
+                    binding.layoutBeneficios.linealAnuncioVerificado.isVisible = true
+                    when (selecionado) {
+                        "plan_a" -> {
+                            binding.layoutBeneficios.planSelecionado.text =
+                                "Plan selecionado(PLAN A)"
+                        }
+
+                        "plan_b" -> {
+                            binding.layoutBeneficios.planSelecionado.text =
+                                "Plan selecionado(PLAN B)"
+                        }
+
+                        "plan_c" -> {
+                            binding.layoutBeneficios.planSelecionado.text =
+                                "Plan selecionado(PLAN C)"
+                        }
+
+                        else -> {
+                            binding.layoutBeneficios.planSelecionado.text = "Sin plan "
+                        }
                     }
+                    binding.layoutBeneficios.montoDiario.text =
+                        "¡Impulsa tu crecimiento en Geinz! Verifica tu cuenta con un pago diario de S/$monto_cancelar_diario o mensual de S/$monto_cancelar_mensual y accede a funciones exclusivas que potencian tu perfil como trabajador."
+
+                    caracteristicas?.let {
+                        val textoFormateado = it.joinToString("\n") { caracteristica ->
+                            "-$caracteristica"
+                        }
+                        binding.layoutBeneficios.caracteristicasVerificado.text = textoFormateado
+                    }
+
                 } else {
                     println("El campo 'caracteristicas' no existe o no es una matriz de strings.")
                 }
             }
-            }
-
+        }
 
 
     }
 
     fun llenarAutocompletPlaner() {
         var lista = listOf(
-            "Plan A (Verificacion)",
-            "Plan B (Verificacion + 10 publicaciones)",
-            "Plan C (Verificacion + 20 publicaciones)"
+            "Plan A (Verificacion cuenta Geinz)",
+            "Plan B (Verificacion cuenta Geinz)",
+            "Plan C (Verificacion cuenta Geinz)"
         )
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, lista)
         binding.planes.setAdapter(adapter)
         binding.planes.setOnItemClickListener { parent, view, position, id ->
             val opcionSeleccionada = parent.getItemAtPosition(position) as String
             when (opcionSeleccionada) {
-                "Plan A (Verificacion)" -> {
-                    binding.montoCancelar.text = "S/10.00"
-                    binding.PlanB.isVisible = false
-                    binding.PlanC.isVisible = false
-                    binding.planSeleccionado.text = "A"
-                    binding.mostrarRedes.isVisible = false
+                "Plan A (Verificacion cuenta Geinz)" -> {
+                    binding.layoutBeneficios.linealAnuncioVerificado.isVisible = false
                     obtener_categorias_verificados("plan_a")
+
                 }
 
-                "Plan B (Verificacion + 10 publicaciones)" -> {
-                    binding.PlanB.isVisible = true
-                    binding.PlanC.isVisible = false
-                    binding.montoCancelar.text = "S/15.00"
-                    binding.planSeleccionado.text = "B"
-                    binding.mostrarRedes.isVisible = true
+                "Plan B (Verificacion cuenta Geinz)" -> {
+                    binding.layoutBeneficios.linealAnuncioVerificado.isVisible = false
                     obtener_categorias_verificados("plan_b")
                 }
 
-                "Plan C (Verificacion + 20 publicaciones)" -> {
-                    binding.PlanC.isVisible = true
-                    binding.mostrarRedes.isVisible = true
-                    binding.PlanB.isVisible = false
-                    binding.montoCancelar.text = "S/20.00"
-                    binding.planSeleccionado.text = "C"
+                "Plan C (Verificacion cuenta Geinz)" -> {
+
+                    binding.layoutBeneficios.linealAnuncioVerificado.isVisible = false
                     obtener_categorias_verificados("plan_c")
                 }
 
@@ -387,9 +420,9 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         binding.imagenAtras.setOnClickListener {
             pciMEdia3.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
-        binding.comprovantePago.setOnClickListener {
-            yapePick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        }
+//        binding.comprovantePago.setOnClickListener {
+//            yapePick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//        }
     }
 
     private fun uploadImages(documentId: String) {
@@ -452,7 +485,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                 if (DNIFRONTAL != null) imageUrlMap[Variables.DNIFRONTALUrl] = uriList[1].toString()
                 if (DNIPOSTERIOR != null) imageUrlMap[Variables.DNIPOSTERIORUrl] =
                     uriList[2].toString()
-                if (yapePick != null) imageUrlMap[Variables.YAPEOUtrl] = uriList[3].toString()
+//                if (yapePick != null) imageUrlMap[Variables.YAPEOUtrl] = uriList[3].toString()
 
                 db.document(documentId).update(imageUrlMap as Map<String, Any>)
                     .addOnSuccessListener {
@@ -492,6 +525,32 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                     binding.progressBarContainer.visibility = View.GONE
                     binding.scroll.isVisible = true
                     Log.e("error_actualiazr", "Error al subir las imágenes: ${e.message}")
+                }
+            }
+    }
+
+    fun obtenerCategorias(autoCompleteTextView: AutoCompleteTextView) {
+        val db = FirebaseFirestore.getInstance()
+        val collection = db.collection(Variables.categoriasDB).document(Variables.categoriasTrabajo)
+
+        collection.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val categorias = document.get(Variables.categoriasDB) as? ArrayList<String>
+                    if (categorias != null) {
+                        val adapter = ArrayAdapter<String>(
+                            autoCompleteTextView.context,
+                            android.R.layout.simple_dropdown_item_1line,
+                            categorias
+                        )
+                        autoCompleteTextView.setAdapter(adapter)
+                        autoCompleteTextView.setOnItemClickListener { parent, view, position, id ->
+                            val seleccionado = parent.getItemAtPosition(position).toString()
+
+                        }
+
+                    }
+
                 }
             }
     }
