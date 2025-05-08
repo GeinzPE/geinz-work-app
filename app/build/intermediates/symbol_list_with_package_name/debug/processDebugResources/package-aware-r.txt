@@ -4387,6 +4387,7 @@ drawable splash_screen_img
 drawable start_five
 drawable start_four
 drawable start_icon
+drawable start_icon_dravalbe
 drawable start_one
 drawable start_tree
 drawable start_two
@@ -4630,6 +4631,7 @@ id Selector
 id ServiciosLineal
 id Sguiente_cuenta
 id Siguiente
+id Sin_review
 id Stok
 id StokDiponible
 id SubiendoImg
@@ -4930,6 +4932,7 @@ id cargando_contenido
 id cargando_lat_log
 id cargarConteindo
 id cargar_contenido
+id carnet_medico
 id carracteristicasUser
 id carritoCompras
 id carrito_compras
@@ -4966,6 +4969,7 @@ id centerCrop
 id centerInside
 id center_horizontal
 id center_vertical
+id ceritificado_medico
 id cerrado_layout
 id cerrar
 id cerrar_anuncio
@@ -5103,6 +5107,7 @@ id crea_direccion
 id crea_diseña
 id crear
 id cuatroEstrellas
+id cuatro_a_cinco
 id cuentas
 id currentState
 id current_time
@@ -5307,6 +5312,7 @@ id filtradoEstado
 id filtradoFecha
 id filtradoGeneral
 id filtradoUsuairo
+id filtrado_verificado
 id filtradobtn
 id filtradocategoria
 id filtradomandado
@@ -5414,6 +5420,10 @@ id hardware
 id hay_garantia_producto
 id hay_garantia_productoED
 id header_title
+id herramenta_marketing
+id herramenta_marketingED
+id herramienta
+id herramientaED
 id hide_ime_id
 id hideable
 id home
@@ -5749,7 +5759,9 @@ id linealYape
 id lineal_Publicacion
 id lineal_anuncio_verificado
 id lineal_campos_trabajador
+id lineal_carnet_salud
 id lineal_certificaciones
+id lineal_colegiatura
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
 id lineal_contenido_tienda
@@ -5841,6 +5853,11 @@ id ly_desarrollo_personal
 id ly_desing
 id ly_educacion
 id ly_legal
+id ly_marketing
+id ly_mecanico
+id ly_redacion
+id ly_servicioSalud
+id ly_tecnicos
 id m3_side_sheet
 id main
 id mainOnly
@@ -6628,6 +6645,7 @@ id ubicacion_tiendaED
 id unchecked
 id uniform
 id unlabeled
+id uno_a_tres
 id up
 id urlTrabajador
 id useLogo
@@ -7135,8 +7153,13 @@ layout layout_desing_graphic
 layout layout_educacion
 layout layout_full_width_code_picker
 layout layout_lega_juridico
+layout layout_marketing_digital
+layout layout_mecanicos
 layout layout_picker_dialog
 layout layout_recycler_country_tile
+layout layout_redaccion_edicion
+layout layout_sevicio_salud
+layout layout_tecnicos
 layout lb_action_1_line
 layout lb_action_2_lines
 layout lb_background_window

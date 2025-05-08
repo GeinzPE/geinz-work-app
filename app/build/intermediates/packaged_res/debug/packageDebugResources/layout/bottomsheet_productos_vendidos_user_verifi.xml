@@ -57,7 +57,6 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="5dp"
                     android:layout_marginBottom="5dp"
@@ -150,6 +149,7 @@
                         android:layout_marginLeft="10dp"
                         android:background="@drawable/roun_off_descuento"
                         android:padding="5dp"
+                        android:layout_gravity="center"
                         android:text="@string/cat"
                         android:textColor="@color/black"
                         android:textSize="12sp"

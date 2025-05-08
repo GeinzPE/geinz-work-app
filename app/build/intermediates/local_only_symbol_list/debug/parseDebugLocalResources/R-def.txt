@@ -247,6 +247,7 @@ drawable splash_screen_img
 drawable start_five
 drawable start_four
 drawable start_icon
+drawable start_icon_dravalbe
 drawable start_one
 drawable start_tree
 drawable start_two
@@ -396,6 +397,7 @@ id Selector
 id ServiciosLineal
 id Sguiente_cuenta
 id Siguiente
+id Sin_review
 id Stok
 id StokDiponible
 id SubiendoImg
@@ -554,6 +556,7 @@ id cargando_contenido
 id cargando_lat_log
 id cargarConteindo
 id cargar_contenido
+id carnet_medico
 id carracteristicasUser
 id carritoCompras
 id carrito_compras
@@ -584,6 +587,7 @@ id categoria_tipo_trabajo
 id categoria_trabajo
 id categoria_trabajos
 id categroiasFiltrado
+id ceritificado_medico
 id cerrado_layout
 id cerrar
 id cerrar_anuncio
@@ -685,6 +689,7 @@ id crea_direccion
 id crea_diseña
 id crear
 id cuatroEstrellas
+id cuatro_a_cinco
 id cuentas
 id cursiva
 id dejarDeSeguirOSeguir
@@ -810,6 +815,7 @@ id filtradoEstado
 id filtradoFecha
 id filtradoGeneral
 id filtradoUsuairo
+id filtrado_verificado
 id filtradobtn
 id filtradocategoria
 id filtradomandado
@@ -867,6 +873,10 @@ id hActivado
 id hVecimineto
 id hay_garantia_producto
 id hay_garantia_productoED
+id herramenta_marketing
+id herramenta_marketingED
+id herramienta
+id herramientaED
 id hora
 id horaActual
 id horaPago
@@ -1125,7 +1135,9 @@ id linealYape
 id lineal_Publicacion
 id lineal_anuncio_verificado
 id lineal_campos_trabajador
+id lineal_carnet_salud
 id lineal_certificaciones
+id lineal_colegiatura
 id lineal_como_funcion_Geinz
 id lineal_compra_reserva
 id lineal_contenido_tienda
@@ -1210,6 +1222,11 @@ id ly_desarrollo_personal
 id ly_desing
 id ly_educacion
 id ly_legal
+id ly_marketing
+id ly_mecanico
+id ly_redacion
+id ly_servicioSalud
+id ly_tecnicos
 id main
 id mandarSolicitud
 id mapa
@@ -1703,6 +1720,7 @@ id ubicacionTienda
 id ubicacionTiendaImageview
 id ubicacion_tienda
 id ubicacion_tiendaED
+id uno_a_tres
 id urlTrabajador
 id user
 id userNameCuenta
@@ -1995,6 +2013,11 @@ layout layout_desarrollo_programacion
 layout layout_desing_graphic
 layout layout_educacion
 layout layout_lega_juridico
+layout layout_marketing_digital
+layout layout_mecanicos
+layout layout_redaccion_edicion
+layout layout_sevicio_salud
+layout layout_tecnicos
 layout panel_publicacion
 layout radio_btn_direcion_envios
 layout recicle_trabajos

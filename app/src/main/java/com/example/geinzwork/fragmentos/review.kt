@@ -14,13 +14,7 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesReviewComplet
 import com.geinzz.geinzwork.databinding.FragmentReviewBinding
-import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlin.math.log
 
 
 class review : Fragment() {
@@ -55,9 +49,13 @@ class review : Fragment() {
 
     private fun confSwipe(idTrabajador: String) {
         binding.swipe.setOnRefreshListener {
+            binding.loading.isVisible=true
+            binding.relativeReview.isVisible=false
             binding.swipe.setColorSchemeResources(R.color.violeta)
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.swipe.isRefreshing = false
+                binding.loading.isVisible=false
+                binding.relativeReview.isVisible=true
                 verificarSihayReviews(idTrabajador.toString())
                 obtenerPorcentajeEstrellasUser(idTrabajador.toString())
                 promedioEstrellas(idTrabajador.toString())
@@ -69,24 +67,80 @@ class review : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR)
+        val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR).toString()
         verificarSihayReviews(idTrabajador.toString())
         obtenerPorcentajeEstrellasUser(idTrabajador.toString())
         promedioEstrellas(idTrabajador.toString())
         confSwipe(idTrabajador.toString())
+
+        binding.todos.setOnClickListener {
+            binding.reyclerviewReview.isVisible=false
+            binding.cargaContenido.isVisible=true
+            constantesReviewComplet.obtenerReview(
+                binding.SinReview,
+                binding.reyclerviewReview,
+                binding.cargaContenido,
+                idTrabajador,
+                binding.reyclerviewReview,
+                mContex, "todos"
+            )
+
+        }
+        binding.filtradoVerificado.setOnClickListener {
+
+            binding.reyclerviewReview.isVisible=false
+            binding.cargaContenido.isVisible=true
+            constantesReviewComplet.obtenerReview(
+                binding.SinReview,
+                binding.reyclerviewReview,
+                binding.cargaContenido,
+                idTrabajador,
+                binding.reyclerviewReview,
+                mContex, "verificado"
+            )
+        }
+
+        binding.unoATres.setOnClickListener {
+            binding.reyclerviewReview.isVisible=false
+            binding.cargaContenido.isVisible=true
+            constantesReviewComplet.obtenerReview(
+                binding.SinReview,
+                binding.reyclerviewReview,
+                binding.cargaContenido,
+                idTrabajador,
+                binding.reyclerviewReview,
+                mContex, "uno_tres"
+            )
+        }
+
+        binding.cuatroACinco.setOnClickListener {
+            binding.reyclerviewReview.isVisible=false
+            binding.cargaContenido.isVisible=true
+            constantesReviewComplet.obtenerReview(
+                binding.SinReview,
+                binding.reyclerviewReview,
+                binding.cargaContenido,
+                idTrabajador,
+                binding.reyclerviewReview,
+                mContex, "cuatro_cinco"
+            )
+        }
     }
 
     private fun mostrarDatos() {
         binding.loading.isVisible = false
         binding.relativeReview.isVisible = true
-        binding.swipe.isVisible=true
+        binding.swipe.isVisible = true
     }
 
     private fun obtnerReview(idTrabajador: String) {
         constantesReviewComplet.obtenerReview(
+            binding.SinReview,
+            binding.reyclerviewReview,
+            null,
             idTrabajador,
             binding.reyclerviewReview,
-            mContex
+            mContex, ""
         )
         Handler(Looper.getMainLooper()).postDelayed({
             mostrarDatos()
@@ -103,7 +157,7 @@ class review : Fragment() {
 
         dbReview.get()
             .addOnSuccessListener { res ->
-                if (res.isEmpty ) {
+                if (res.isEmpty) {
                     // No hay reseñas
                     binding.frameSinReview.isVisible = true
                     binding.loading.isVisible = false

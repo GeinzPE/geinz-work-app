@@ -262,9 +262,10 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val descripcion = data?.get("descripcion") as? String ?: ""
                         val modelo = data?.get("modelo") as? String ?: ""
                         val descuento = data?.get("descuento") as? Boolean ?: false
-
+                        val verificado = data?.get("verificado") as? Boolean ?: false
                         val entrega_domicilio = data?.get("entrega_domicilio") as? Boolean ?: true
                         val garantia = data?.get("garantia") as? String ?: ""
+                        val cantidad_porcentaje_descuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
                         val id = data?.get("id") as? String ?: ""
                         val fechaPublicada = data?.get("fechaPublicada") as? String ?: ""
                         val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
@@ -275,6 +276,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val efectivo = data?.get("efectivo") as? Boolean ?: false
                         val yape = data?.get("yape") as? Boolean ?: false
                         val mas_informacio = data?.get("mas_informacio") as? String ?: ""
+                        val envio_gratis = data?.get("envio_gratis") as? Boolean ?: false
                         // Obtener valores del mapa de título
                         val descripcionTextoMap = data?.get("descripcion_texto") as? Map<*, *>
                         val descripcionTituloMap = data?.get("descripcion_titulo") as? Map<*, *>
@@ -295,6 +297,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val mayusMinusTitulo =
                             descripcionTituloMap?.get("titulo_mayus") as? String ?: ""
 
+
                         // Obtener valores del mapa de descripción
                         val textoDescripcion =
                             descripcionTextoMap?.get("texto_descripcion") as? String ?: ""
@@ -314,8 +317,14 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         if (plin) metodosPago.add("Plin")
                         if (efectivo) metodosPago.add("Efectivo")
 
-                        binding.camposProductosUserVerificados.metodosPago.text = metodosPago.joinToString(", ")
+                        binding.camposProductosUserVerificados.metodosPago.text =
+                            metodosPago.joinToString(", ")
                         binding.masInfomacion.text = mas_informacio
+                        if (envio_gratis) {
+                            binding.envioGratis.isVisible = true
+                        } else {
+                            binding.envioGratis.isVisible = false
+                        }
                         if (descuento) {
                             constantestextos_general.marcarDescuentoTxt(binding.camposProductosUserVerificados.precioAntiguo)
                             constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
@@ -329,15 +338,56 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                             binding.camposProductosUserVerificados.precioAntiguo.isVisible = true
                             binding.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
                                 true
+                            constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                                precioDescuento,
+                                binding.precioProducto,
+                                precio,
+                                binding.precioAntiguo,
+                                cantidad_porcentaje_descuento,
+                                binding.descuentoPorcentaje
+                            )
+                            constantestextos_general.marcarDescuentoTxt(binding.precioAntiguo)
+
+                            constantestextos_general.marcarDescuentoTxt(binding.camposProductosUserVerificados.precioAntiguo)
+                            constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                                precioDescuento,
+                                binding.camposProductosUserVerificados.precioProducto,
+                                precio,
+                                binding.camposProductosUserVerificados.precioAntiguo,
+                                cantidad_porcentaje_descuento,
+                                binding.camposProductosUserVerificados.descuentoPorcentaje
+                            )
+                            binding.camposProductosUserVerificados.precioAntiguo.isVisible =
+                                true
+                            binding.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
+                                true
+                            binding.precioAntiguo.isVisible =
+                                true
+                            binding.descuentoPorcentaje.isVisible =
+                                true
                         } else {
                             binding.camposProductosUserVerificados.precioAntiguo.isVisible = false
                             binding.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
                                 false
                             constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                                 precio,
+                                binding.precioProducto
+                            )
+                            binding.camposProductosUserVerificados.precioAntiguo.isVisible =
+                                false
+                            binding.camposProductosUserVerificados.descuentoPorcentaje.isVisible =
+                                false
+                            binding.precioAntiguo.isVisible =
+                                false
+                            binding.descuentoPorcentaje.isVisible =
+                                false
+                            constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                                precio,
                                 binding.camposProductosUserVerificados.precioProducto
                             )
                         }
+
+
                         editar_setar_valores_campos(
                             titulo,
                             fuenteTextoTitulo,
@@ -347,6 +397,24 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                             mayusMinusDescripcion,
                             listaFrases
                         )
+                        binding.marcaProducto.text = marca
+                        binding.nombreProducto.text = nombre
+                        val db = FirebaseFirestore.getInstance()
+                            .collection("Trabajadores_Usuarios_Drivers")
+                            .document("trabajadores").collection("trabajadores")
+                            .document(idTrabajador)
+                        db.get().addOnSuccessListener { res ->
+                            if (res.exists()) {
+                                val data = res.data
+                                val nombre_trabajador = data?.get("nombre") as? String ?: ""
+                                val verificado = data?.get("verificado") as? Boolean ?: false
+                                if (verificado == true) {
+                                    binding.iconoVerificado.isVisible = true
+                                    binding.nombreTrabajador.text =
+                                        "Vendido por : $nombre_trabajador"
+                                }
+                            }
+                        }
 
                         binding.camposProductosUserVerificados.categoriaProducto.text = categoria
                         binding.camposProductosUserVerificados.marca.text = marca

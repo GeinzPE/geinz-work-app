@@ -42,6 +42,9 @@ public final class ItemReviewBinding implements ViewBinding {
   public final TextView hora;
 
   @NonNull
+  public final ImageView iconoVerificado;
+
+  @NonNull
   public final CircleImageView imgPerfilUser;
 
   @NonNull
@@ -58,9 +61,9 @@ public final class ItemReviewBinding implements ViewBinding {
 
   private ItemReviewBinding(@NonNull RelativeLayout rootView, @NonNull ImageView cantidadStart,
       @NonNull ProgressBar cargaIMGtexto, @NonNull TextView editado, @NonNull TextView fecha,
-      @NonNull LinearLayout general, @NonNull TextView hora, @NonNull CircleImageView imgPerfilUser,
-      @NonNull LinearLayout linealIMgTexto, @NonNull TextView nombre, @NonNull TextView review,
-      @NonNull TextView tipoTrabajo) {
+      @NonNull LinearLayout general, @NonNull TextView hora, @NonNull ImageView iconoVerificado,
+      @NonNull CircleImageView imgPerfilUser, @NonNull LinearLayout linealIMgTexto,
+      @NonNull TextView nombre, @NonNull TextView review, @NonNull TextView tipoTrabajo) {
     this.rootView = rootView;
     this.cantidadStart = cantidadStart;
     this.cargaIMGtexto = cargaIMGtexto;
@@ -68,6 +71,7 @@ public final class ItemReviewBinding implements ViewBinding {
     this.fecha = fecha;
     this.general = general;
     this.hora = hora;
+    this.iconoVerificado = iconoVerificado;
     this.imgPerfilUser = imgPerfilUser;
     this.linealIMgTexto = linealIMgTexto;
     this.nombre = nombre;
@@ -138,6 +142,12 @@ public final class ItemReviewBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.icono_verificado;
+      ImageView iconoVerificado = ViewBindings.findChildViewById(rootView, id);
+      if (iconoVerificado == null) {
+        break missingId;
+      }
+
       id = R.id.img_PerfilUser;
       CircleImageView imgPerfilUser = ViewBindings.findChildViewById(rootView, id);
       if (imgPerfilUser == null) {
@@ -169,7 +179,8 @@ public final class ItemReviewBinding implements ViewBinding {
       }
 
       return new ItemReviewBinding((RelativeLayout) rootView, cantidadStart, cargaIMGtexto, editado,
-          fecha, general, hora, imgPerfilUser, linealIMgTexto, nombre, review, tipoTrabajo);
+          fecha, general, hora, iconoVerificado, imgPerfilUser, linealIMgTexto, nombre, review,
+          tipoTrabajo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

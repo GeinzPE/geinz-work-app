@@ -125,6 +125,21 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
   public final LayoutLegaJuridicoBinding lyLegal;
 
   @NonNull
+  public final LayoutMarketingDigitalBinding lyMarketing;
+
+  @NonNull
+  public final LayoutMecanicosBinding lyMecanico;
+
+  @NonNull
+  public final LayoutRedaccionEdicionBinding lyRedacion;
+
+  @NonNull
+  public final LayoutSevicioSaludBinding lyServicioSalud;
+
+  @NonNull
+  public final LayoutTecnicosBinding lyTecnicos;
+
+  @NonNull
   public final RelativeLayout main;
 
   @NonNull
@@ -181,8 +196,11 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       @NonNull LayoutDesarrolloProgramacionBinding lyDesarrollo,
       @NonNull LayoutDesarrolloPersonalBinding lyDesarrolloPersonal,
       @NonNull LayoutDesingGraphicBinding lyDesing, @NonNull LayoutEducacionBinding lyEducacion,
-      @NonNull LayoutLegaJuridicoBinding lyLegal, @NonNull RelativeLayout main,
-      @NonNull TextInputLayout nombre, @NonNull EditText nombreED,
+      @NonNull LayoutLegaJuridicoBinding lyLegal,
+      @NonNull LayoutMarketingDigitalBinding lyMarketing,
+      @NonNull LayoutMecanicosBinding lyMecanico, @NonNull LayoutRedaccionEdicionBinding lyRedacion,
+      @NonNull LayoutSevicioSaludBinding lyServicioSalud, @NonNull LayoutTecnicosBinding lyTecnicos,
+      @NonNull RelativeLayout main, @NonNull TextInputLayout nombre, @NonNull EditText nombreED,
       @NonNull TextInputLayout numeroTelf, @NonNull EditText numeroTelfED,
       @NonNull AutoCompleteTextView planes, @NonNull ProgressBar progressBar,
       @NonNull FrameLayout progressBarContainer, @NonNull ShapeableImageView qrYape,
@@ -220,6 +238,11 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
     this.lyDesing = lyDesing;
     this.lyEducacion = lyEducacion;
     this.lyLegal = lyLegal;
+    this.lyMarketing = lyMarketing;
+    this.lyMecanico = lyMecanico;
+    this.lyRedacion = lyRedacion;
+    this.lyServicioSalud = lyServicioSalud;
+    this.lyTecnicos = lyTecnicos;
     this.main = main;
     this.nombre = nombre;
     this.nombreED = nombreED;
@@ -458,6 +481,41 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
       }
       LayoutLegaJuridicoBinding binding_lyLegal = LayoutLegaJuridicoBinding.bind(lyLegal);
 
+      id = R.id.ly_marketing;
+      View lyMarketing = ViewBindings.findChildViewById(rootView, id);
+      if (lyMarketing == null) {
+        break missingId;
+      }
+      LayoutMarketingDigitalBinding binding_lyMarketing = LayoutMarketingDigitalBinding.bind(lyMarketing);
+
+      id = R.id.ly_mecanico;
+      View lyMecanico = ViewBindings.findChildViewById(rootView, id);
+      if (lyMecanico == null) {
+        break missingId;
+      }
+      LayoutMecanicosBinding binding_lyMecanico = LayoutMecanicosBinding.bind(lyMecanico);
+
+      id = R.id.ly_redacion;
+      View lyRedacion = ViewBindings.findChildViewById(rootView, id);
+      if (lyRedacion == null) {
+        break missingId;
+      }
+      LayoutRedaccionEdicionBinding binding_lyRedacion = LayoutRedaccionEdicionBinding.bind(lyRedacion);
+
+      id = R.id.ly_servicioSalud;
+      View lyServicioSalud = ViewBindings.findChildViewById(rootView, id);
+      if (lyServicioSalud == null) {
+        break missingId;
+      }
+      LayoutSevicioSaludBinding binding_lyServicioSalud = LayoutSevicioSaludBinding.bind(lyServicioSalud);
+
+      id = R.id.ly_tecnicos;
+      View lyTecnicos = ViewBindings.findChildViewById(rootView, id);
+      if (lyTecnicos == null) {
+        break missingId;
+      }
+      LayoutTecnicosBinding binding_lyTecnicos = LayoutTecnicosBinding.bind(lyTecnicos);
+
       RelativeLayout main = (RelativeLayout) rootView;
 
       id = R.id.nombre;
@@ -539,9 +597,10 @@ public final class ActivityVerificacionCuentaTrabajadorBinding implements ViewBi
           infoCertificados, infoDescripcionServicios, binding_layoutBeneficios,
           linealComprovantePago, localidadUser, lotteSend, binding_lyArte, binding_lyChofer,
           binding_lyConstrucion, binding_lyDesarrollo, binding_lyDesarrolloPersonal,
-          binding_lyDesing, binding_lyEducacion, binding_lyLegal, main, nombre, nombreED,
-          numeroTelf, numeroTelfED, planes, progressBar, progressBarContainer, qrYape, scroll,
-          texto, textoPoliticas, verificar);
+          binding_lyDesing, binding_lyEducacion, binding_lyLegal, binding_lyMarketing,
+          binding_lyMecanico, binding_lyRedacion, binding_lyServicioSalud, binding_lyTecnicos, main,
+          nombre, nombreED, numeroTelf, numeroTelfED, planes, progressBar, progressBarContainer,
+          qrYape, scroll, texto, textoPoliticas, verificar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

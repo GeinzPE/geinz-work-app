@@ -93,10 +93,10 @@ class inicioFracment : Fragment() {
 
         val storedValue = pref?.getString(KEY, "Default Value")
         binding.cerrarAnuncio.setOnClickListener {
-            binding.linealAnuncioVerificado.isVisible=false
+            binding.linealAnuncioVerificado.isVisible = false
         }
         binding.linealAnuncioVerificado.setOnClickListener {
-            val vista=Intent(mContex,verificacion_cuenta_trabajador::class.java)
+            val vista = Intent(mContex, verificacion_cuenta_trabajador::class.java)
             startActivity(vista)
         }
         conteoUser.obtenerConteoUSer { usuarios ->
@@ -832,7 +832,7 @@ class inicioFracment : Fragment() {
                 val envioGratis: Boolean = doc.get("envio_gratis") as? Boolean ?: false
                 val id: String = doc.get("id") as? String ?: ""
 
-                constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido ->
+                constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
                     currentBinding.NombreVerificado.text = nombre
                 }
 

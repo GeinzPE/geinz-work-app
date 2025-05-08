@@ -1175,8 +1175,10 @@ object constantesCarrito {
             }
     }
 
-    fun setearDatosUsuarioImgNombre(idUSer: String, callback: (String?, String?, String?) -> Unit) {
-
+    fun setearDatosUsuarioImgNombre(
+        idUSer: String,
+        callback: (String?, String?, String?, String?, String?, Boolean?, String?) -> Unit
+    ) {
         val firestore = FirebaseFirestore.getInstance()
         val usuariosRef = firestore.collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -1186,12 +1188,23 @@ object constantesCarrito {
         usuariosRef.whereEqualTo("id", idUSer).get()
             .addOnSuccessListener { trabajadoresResult ->
                 if (!trabajadoresResult.isEmpty) {
-
                     val datos = trabajadoresResult.documents.first()
-                    val nombre = datos.getString("nombre")
-                    val imagenPerfil = datos.getString("imagenPerfil")
-                    val apellido = datos.getString("apellido")
-                    callback(nombre, imagenPerfil, apellido)
+                    val nombre = datos.getString("nombre") ?: ""
+                    val imagenPerfil = datos.getString("imagenPerfil") ?: ""
+                    val apellido = datos.getString("apellido") ?: ""
+                    val nacionalidad = datos.getString("nacionalidad") ?: ""
+                    val categoriaTrabajo = datos.getString("categoriaTrabajo") ?: ""
+                    val verificado = datos.getBoolean("verificado") ?: false
+
+                    callback(
+                        nombre,
+                        imagenPerfil,
+                        apellido,
+                        nacionalidad,
+                        categoriaTrabajo,
+                        verificado,
+                        "trabajador"
+                    )
                 } else {
                     // Si no se encuentra en "trabajadores", buscar en "usuarios"
                     usuariosCuentaNormalRef.whereEqualTo("id", idUSer).get()
@@ -1202,10 +1215,10 @@ object constantesCarrito {
                                 val nombre = datos.getString("nombre")
                                 val imagenPerfil = datos.getString("imagenPerfil")
                                 val apellido = datos.getString("apellido")
-                                callback(nombre, imagenPerfil, apellido)
+                                callback(nombre, imagenPerfil, apellido, "", "", false, "usuario")
                             } else {
                                 // Si no se encuentra en ninguna de las colecciones
-                                callback(null, null, null)
+                                callback(null, null, null, null, null, null, null)
                             }
                         }
                         .addOnFailureListener { exception ->
@@ -1214,7 +1227,7 @@ object constantesCarrito {
                                 "Error al obtener documentos de usuarios",
                                 exception
                             )
-                            callback(null, null, null)
+                            callback(null, null, null, null, null, null, null)
                         }
                 }
             }
@@ -1224,9 +1237,53 @@ object constantesCarrito {
                     "Error al obtener documentos de trabajadores",
                     exception
                 )
-                callback(null, null, null)
+                callback(null, null, null, null, null, null, null)
             }
     }
+
+    fun verificar_estado_verificado_user(idUSer: String, verificadoBool: (Boolean) -> Unit) {
+        println("Los user pasados son los $idUSer")
+        val firestore = FirebaseFirestore.getInstance()
+        val usuariosCuentaNormalRef = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("usuarios").collection("usuarios")
+        val usuariosRef = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+
+        // Bandera para saber si ya encontraste el estado verificado
+        var verificadoEncontrado = false
+
+        // Consulta en la colección de trabajadores
+        usuariosRef.whereEqualTo("id", idUSer).get()
+            .addOnSuccessListener { trabajadoresResult ->
+                if (!trabajadoresResult.isEmpty) {
+                    val datos = trabajadoresResult.documents.first()
+                    val verificado = datos.getBoolean("verificado") ?: false
+                    if (!verificadoEncontrado) {  // Si aún no se encontró, asignamos el valor
+                        verificadoBool(verificado)
+                        verificadoEncontrado = true
+                    }
+                }
+
+                // Consulta en la colección de usuarios solo si no se encontró en trabajadores
+                if (!verificadoEncontrado) {
+                    usuariosCuentaNormalRef.whereEqualTo("id", idUSer).get()
+                        .addOnSuccessListener { usuariosResult ->
+                            if (!usuariosResult.isEmpty) {
+                                verificadoBool(false)
+                            } else {
+                                verificadoBool(false)
+                            }
+                        }
+                        .addOnFailureListener {
+                            verificadoBool(false)
+                        }
+                }
+            }
+            .addOnFailureListener {
+                verificadoBool(false)
+            }
+    }
+
 
 
     fun retornarIDTienda(callback: (List<String>) -> Unit) {

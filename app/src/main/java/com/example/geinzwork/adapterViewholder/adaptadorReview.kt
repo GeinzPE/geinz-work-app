@@ -1,20 +1,25 @@
 package com.geinzz.geinzwork.adapterViewholder
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ItemReviewBinding
 import com.geinzz.geinzwork.dataclass.daclassReview
+import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
+import com.google.firebase.firestore.FirebaseFirestore
 
 class adaptadorReview(
     private val listaReview: MutableList<daclassReview>,
@@ -53,7 +58,7 @@ class adaptadorReview(
             setearStarts(daclassReview)
             constantesCarrito.setearDatosUsuarioImgNombre(
                 idUSer = daclassReview.idUsuarioReview.toString()
-            ) { nombre, img, apellido ->
+            ) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajadorUSer ->
 
                 val nombreCompleto = "$nombre $apellido"
                 binding.nombre.text = nombreCompleto
@@ -66,6 +71,12 @@ class adaptadorReview(
                 } catch (e: Exception) {
                     println("error al setear la img")
                 }
+                if (verificado == true) {
+                    binding.iconoVerificado.isVisible = true
+
+                } else {
+                    binding.iconoVerificado.isVisible = false
+                }
 
                 // Verificación después de setear
                 val nombreYaCargado = binding.nombre.text.toString() == nombreCompleto
@@ -76,11 +87,31 @@ class adaptadorReview(
                 if (nombreYaCargado && nombreValido && imagenValida) {
                     println("✅ Todo está cargado correctamente")
                     binding.cargaIMGtexto.isVisible = false
-                    binding.linealIMgTexto.isVisible=true
+                    binding.linealIMgTexto.isVisible = true
                 } else {
                     binding.cargaIMGtexto.isVisible = false
-                    binding.linealIMgTexto.isVisible=false
+                    binding.linealIMgTexto.isVisible = false
                     println("⚠️ Aún falta cargar algún dato")
+                }
+
+                binding.general.setOnClickListener {
+                    if (trabajadorUSer.equals("trabajador")) {
+                        val vista = Intent(itemView.context, vistaTrabajador::class.java).apply {
+                            putExtra(Variables.id, daclassReview.idUsuarioReview)
+                            putExtra(Variables.nombreUSer, nombre)
+                            putExtra(Variables.nacionalidad, nacionalidad)
+                            putExtra(Variables.categoria, categoria)
+                            putExtra(Variables.imagenPerfil, img)
+                        }
+                        itemView.context.startActivity(vista)
+                    } else {
+                        Toast.makeText(
+                            itemView.context,
+                            "La cuenta no es cuenta trabajador",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
                 }
             }
 
@@ -88,6 +119,7 @@ class adaptadorReview(
             constantestextos_general.textoPrimarioBold(daclassReview, binding.review)
 
             constantestextos_general.textoPrimarioBold2(daclassReview, binding.tipoTrabajo)
+
 
             if (daclassReview.editado == true) {
                 binding.editado.isVisible = true
@@ -116,6 +148,7 @@ class adaptadorReview(
                 println(e)
             }
         }
+
 
     }
 }

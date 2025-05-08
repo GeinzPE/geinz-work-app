@@ -73,7 +73,7 @@ class EditarReview : AppCompatActivity() {
         val nombre = intent.getStringExtra(Variables.nombre).toString()
         val review = intent.getStringExtra(Variables.review).toString()
 
-        constantesCarrito.setearDatosUsuarioImgNombre(idUSer = idUser) { nombre, img, apellido ->
+        constantesCarrito.setearDatosUsuarioImgNombre(idUSer = idUser) { nombre, img, apellido,nacionalidad,categoria,verificado,trabajador_user ->
 
             val nombreCompleto = "$nombre $apellido"
             binding.nombre.text = nombreCompleto

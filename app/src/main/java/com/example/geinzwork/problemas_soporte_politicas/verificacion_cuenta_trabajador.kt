@@ -558,6 +558,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = true
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Servicios de Salud" -> {
@@ -569,6 +574,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=true
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Educación" -> {
@@ -580,6 +590,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Legal y Jurídico" -> {
@@ -591,6 +606,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Redacción y Edición" -> {
@@ -602,6 +622,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=true
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
 
                                 }
 
@@ -614,6 +639,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Desarrollo Web y Programación" -> {
@@ -625,6 +655,12 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
+
                                 }
 
                                 "Marketing Digital y Publicidad" -> {
@@ -636,6 +672,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=true
                                 }
 
                                 "Artes Visuales y Creativas" -> {
@@ -647,6 +688,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = true
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Desarrollo Personal y Bienestar" -> {
@@ -658,6 +704,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = true
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Escritura Creativa y Periodismo" -> {
@@ -669,6 +720,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=true
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Conductor de reparto" -> {
@@ -680,6 +736,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Chofer privado" -> {
@@ -691,6 +752,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Mecánicos" -> {
@@ -699,9 +765,14 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyDesing.principal.isVisible = false
                                     binding.lyDesarrollo.principal.isVisible = false
                                     binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = true
+                                    binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=false
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=true
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                                 "Tecnicos" -> {
@@ -710,9 +781,14 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                                     binding.lyDesing.principal.isVisible = false
                                     binding.lyDesarrollo.principal.isVisible = false
                                     binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = true
+                                    binding.lyConstrucion.principal.isVisible = false
                                     binding.lyDesarrolloPersonal.principal.isVisible = false
                                     binding.lyArte.principal.isVisible = false
+                                    binding.lyTecnicos.principal.isVisible=true
+                                    binding.lyServicioSalud.principal.isVisible=false
+                                    binding.lyRedacion.principal.isVisible=false
+                                    binding.lyMecanico.principal.isVisible=false
+                                    binding.lyMarketing.principal.isVisible=false
                                 }
 
                             }

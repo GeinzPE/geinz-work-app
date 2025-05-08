@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.chip.Chip;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -24,6 +26,18 @@ public final class FragmentReviewBinding implements ViewBinding {
 
   @NonNull
   public final IncludeRreviewUserProgressBinding IncudeProgrs;
+
+  @NonNull
+  public final RelativeLayout SinReview;
+
+  @NonNull
+  public final ProgressBar cargaContenido;
+
+  @NonNull
+  public final Chip cuatroACinco;
+
+  @NonNull
+  public final Chip filtradoVerificado;
 
   @NonNull
   public final LinearLayout frameSinReview;
@@ -40,17 +54,32 @@ public final class FragmentReviewBinding implements ViewBinding {
   @NonNull
   public final SwipeRefreshLayout swipe;
 
+  @NonNull
+  public final Chip todos;
+
+  @NonNull
+  public final Chip unoATres;
+
   private FragmentReviewBinding(@NonNull RelativeLayout rootView,
-      @NonNull IncludeRreviewUserProgressBinding IncudeProgrs, @NonNull LinearLayout frameSinReview,
+      @NonNull IncludeRreviewUserProgressBinding IncudeProgrs, @NonNull RelativeLayout SinReview,
+      @NonNull ProgressBar cargaContenido, @NonNull Chip cuatroACinco,
+      @NonNull Chip filtradoVerificado, @NonNull LinearLayout frameSinReview,
       @NonNull LinearLayoutCompat loading, @NonNull LinearLayout relativeReview,
-      @NonNull RecyclerView reyclerviewReview, @NonNull SwipeRefreshLayout swipe) {
+      @NonNull RecyclerView reyclerviewReview, @NonNull SwipeRefreshLayout swipe,
+      @NonNull Chip todos, @NonNull Chip unoATres) {
     this.rootView = rootView;
     this.IncudeProgrs = IncudeProgrs;
+    this.SinReview = SinReview;
+    this.cargaContenido = cargaContenido;
+    this.cuatroACinco = cuatroACinco;
+    this.filtradoVerificado = filtradoVerificado;
     this.frameSinReview = frameSinReview;
     this.loading = loading;
     this.relativeReview = relativeReview;
     this.reyclerviewReview = reyclerviewReview;
     this.swipe = swipe;
+    this.todos = todos;
+    this.unoATres = unoATres;
   }
 
   @Override
@@ -87,6 +116,30 @@ public final class FragmentReviewBinding implements ViewBinding {
       }
       IncludeRreviewUserProgressBinding binding_IncudeProgrs = IncludeRreviewUserProgressBinding.bind(IncudeProgrs);
 
+      id = R.id.Sin_review;
+      RelativeLayout SinReview = ViewBindings.findChildViewById(rootView, id);
+      if (SinReview == null) {
+        break missingId;
+      }
+
+      id = R.id.carga_contenido;
+      ProgressBar cargaContenido = ViewBindings.findChildViewById(rootView, id);
+      if (cargaContenido == null) {
+        break missingId;
+      }
+
+      id = R.id.cuatro_a_cinco;
+      Chip cuatroACinco = ViewBindings.findChildViewById(rootView, id);
+      if (cuatroACinco == null) {
+        break missingId;
+      }
+
+      id = R.id.filtrado_verificado;
+      Chip filtradoVerificado = ViewBindings.findChildViewById(rootView, id);
+      if (filtradoVerificado == null) {
+        break missingId;
+      }
+
       id = R.id.frameSinReview;
       LinearLayout frameSinReview = ViewBindings.findChildViewById(rootView, id);
       if (frameSinReview == null) {
@@ -117,8 +170,21 @@ public final class FragmentReviewBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentReviewBinding((RelativeLayout) rootView, binding_IncudeProgrs,
-          frameSinReview, loading, relativeReview, reyclerviewReview, swipe);
+      id = R.id.todos;
+      Chip todos = ViewBindings.findChildViewById(rootView, id);
+      if (todos == null) {
+        break missingId;
+      }
+
+      id = R.id.uno_a_tres;
+      Chip unoATres = ViewBindings.findChildViewById(rootView, id);
+      if (unoATres == null) {
+        break missingId;
+      }
+
+      return new FragmentReviewBinding((RelativeLayout) rootView, binding_IncudeProgrs, SinReview,
+          cargaContenido, cuatroACinco, filtradoVerificado, frameSinReview, loading, relativeReview,
+          reyclerviewReview, swipe, todos, unoATres);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

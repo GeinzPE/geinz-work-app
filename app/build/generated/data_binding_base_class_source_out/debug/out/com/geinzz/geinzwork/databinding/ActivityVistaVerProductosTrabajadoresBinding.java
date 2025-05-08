@@ -36,7 +36,25 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
   public final RecyclerView carrucelImgProductosVentaUser;
 
   @NonNull
+  public final ImageView compartirIcon;
+
+  @NonNull
   public final NestedScrollView containerDatos;
+
+  @NonNull
+  public final TextView descripcion;
+
+  @NonNull
+  public final TextView descuentoPorcentaje;
+
+  @NonNull
+  public final TextView envioGratis;
+
+  @NonNull
+  public final ImageView iconoVerificado;
+
+  @NonNull
+  public final LinearLayout linealPrecioProducto;
 
   @NonNull
   public final LinearLayout linealTextosDescripcion;
@@ -45,7 +63,16 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
   public final RelativeLayout main;
 
   @NonNull
+  public final TextView marcaProducto;
+
+  @NonNull
   public final TextView masInfomacion;
+
+  @NonNull
+  public final TextView nombreProducto;
+
+  @NonNull
+  public final TextView nombreTrabajador;
 
   @NonNull
   public final LinearLayout ocultarCamposDePublicidad;
@@ -69,6 +96,15 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
   public final ItemPerfilTrabajadorBinding perfiltrabajador;
 
   @NonNull
+  public final TextView precioAntiguo;
+
+  @NonNull
+  public final TextView precioProducto;
+
+  @NonNull
+  public final TextView tvReadMore;
+
+  @NonNull
   public final TextView vistraPreviaDescripcion;
 
   @NonNull
@@ -78,23 +114,37 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
       @NonNull IncludeCamposProductosVendidosVerificadosBinding camposProductosUserVerificados,
       @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
       @NonNull LinearLayout cargandoContenido, @NonNull RecyclerView carrucelImgProductosVentaUser,
-      @NonNull NestedScrollView containerDatos, @NonNull LinearLayout linealTextosDescripcion,
-      @NonNull RelativeLayout main, @NonNull TextView masInfomacion,
-      @NonNull LinearLayout ocultarCamposDePublicidad,
+      @NonNull ImageView compartirIcon, @NonNull NestedScrollView containerDatos,
+      @NonNull TextView descripcion, @NonNull TextView descuentoPorcentaje,
+      @NonNull TextView envioGratis, @NonNull ImageView iconoVerificado,
+      @NonNull LinearLayout linealPrecioProducto, @NonNull LinearLayout linealTextosDescripcion,
+      @NonNull RelativeLayout main, @NonNull TextView marcaProducto,
+      @NonNull TextView masInfomacion, @NonNull TextView nombreProducto,
+      @NonNull TextView nombreTrabajador, @NonNull LinearLayout ocultarCamposDePublicidad,
       @NonNull LinearLayout ocultarCamposDescripcion,
       @NonNull LinearLayout ocultarCamposMasInformacion, @NonNull ImageView ocultarP1,
       @NonNull ImageView ocultarP2, @NonNull ImageView ocultarP3,
-      @NonNull ItemPerfilTrabajadorBinding perfiltrabajador,
+      @NonNull ItemPerfilTrabajadorBinding perfiltrabajador, @NonNull TextView precioAntiguo,
+      @NonNull TextView precioProducto, @NonNull TextView tvReadMore,
       @NonNull TextView vistraPreviaDescripcion, @NonNull TextView vistraPreviaDescripciontitulo) {
     this.rootView = rootView;
     this.camposProductosUserVerificados = camposProductosUserVerificados;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
     this.cargandoContenido = cargandoContenido;
     this.carrucelImgProductosVentaUser = carrucelImgProductosVentaUser;
+    this.compartirIcon = compartirIcon;
     this.containerDatos = containerDatos;
+    this.descripcion = descripcion;
+    this.descuentoPorcentaje = descuentoPorcentaje;
+    this.envioGratis = envioGratis;
+    this.iconoVerificado = iconoVerificado;
+    this.linealPrecioProducto = linealPrecioProducto;
     this.linealTextosDescripcion = linealTextosDescripcion;
     this.main = main;
+    this.marcaProducto = marcaProducto;
     this.masInfomacion = masInfomacion;
+    this.nombreProducto = nombreProducto;
+    this.nombreTrabajador = nombreTrabajador;
     this.ocultarCamposDePublicidad = ocultarCamposDePublicidad;
     this.ocultarCamposDescripcion = ocultarCamposDescripcion;
     this.ocultarCamposMasInformacion = ocultarCamposMasInformacion;
@@ -102,6 +152,9 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
     this.ocultarP2 = ocultarP2;
     this.ocultarP3 = ocultarP3;
     this.perfiltrabajador = perfiltrabajador;
+    this.precioAntiguo = precioAntiguo;
+    this.precioProducto = precioProducto;
+    this.tvReadMore = tvReadMore;
     this.vistraPreviaDescripcion = vistraPreviaDescripcion;
     this.vistraPreviaDescripciontitulo = vistraPreviaDescripciontitulo;
   }
@@ -160,9 +213,45 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
         break missingId;
       }
 
+      id = R.id.compartir_icon;
+      ImageView compartirIcon = ViewBindings.findChildViewById(rootView, id);
+      if (compartirIcon == null) {
+        break missingId;
+      }
+
       id = R.id.containerDatos;
       NestedScrollView containerDatos = ViewBindings.findChildViewById(rootView, id);
       if (containerDatos == null) {
+        break missingId;
+      }
+
+      id = R.id.descripcion;
+      TextView descripcion = ViewBindings.findChildViewById(rootView, id);
+      if (descripcion == null) {
+        break missingId;
+      }
+
+      id = R.id.descuentoPorcentaje;
+      TextView descuentoPorcentaje = ViewBindings.findChildViewById(rootView, id);
+      if (descuentoPorcentaje == null) {
+        break missingId;
+      }
+
+      id = R.id.envio_gratis;
+      TextView envioGratis = ViewBindings.findChildViewById(rootView, id);
+      if (envioGratis == null) {
+        break missingId;
+      }
+
+      id = R.id.icono_verificado;
+      ImageView iconoVerificado = ViewBindings.findChildViewById(rootView, id);
+      if (iconoVerificado == null) {
+        break missingId;
+      }
+
+      id = R.id.linealPrecioProducto;
+      LinearLayout linealPrecioProducto = ViewBindings.findChildViewById(rootView, id);
+      if (linealPrecioProducto == null) {
         break missingId;
       }
 
@@ -174,9 +263,27 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
 
       RelativeLayout main = (RelativeLayout) rootView;
 
+      id = R.id.marca_producto;
+      TextView marcaProducto = ViewBindings.findChildViewById(rootView, id);
+      if (marcaProducto == null) {
+        break missingId;
+      }
+
       id = R.id.mas_infomacion;
       TextView masInfomacion = ViewBindings.findChildViewById(rootView, id);
       if (masInfomacion == null) {
+        break missingId;
+      }
+
+      id = R.id.nombreProducto;
+      TextView nombreProducto = ViewBindings.findChildViewById(rootView, id);
+      if (nombreProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.nombre_trabajador;
+      TextView nombreTrabajador = ViewBindings.findChildViewById(rootView, id);
+      if (nombreTrabajador == null) {
         break missingId;
       }
 
@@ -223,6 +330,24 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
       }
       ItemPerfilTrabajadorBinding binding_perfiltrabajador = ItemPerfilTrabajadorBinding.bind(perfiltrabajador);
 
+      id = R.id.precioAntiguo;
+      TextView precioAntiguo = ViewBindings.findChildViewById(rootView, id);
+      if (precioAntiguo == null) {
+        break missingId;
+      }
+
+      id = R.id.precioProducto;
+      TextView precioProducto = ViewBindings.findChildViewById(rootView, id);
+      if (precioProducto == null) {
+        break missingId;
+      }
+
+      id = R.id.tvReadMore;
+      TextView tvReadMore = ViewBindings.findChildViewById(rootView, id);
+      if (tvReadMore == null) {
+        break missingId;
+      }
+
       id = R.id.vistra_previa_descripcion;
       TextView vistraPreviaDescripcion = ViewBindings.findChildViewById(rootView, id);
       if (vistraPreviaDescripcion == null) {
@@ -237,10 +362,13 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
 
       return new ActivityVistaVerProductosTrabajadoresBinding((RelativeLayout) rootView,
           binding_camposProductosUserVerificados, binding_cargaProductosPromoTrabajos,
-          cargandoContenido, carrucelImgProductosVentaUser, containerDatos, linealTextosDescripcion,
-          main, masInfomacion, ocultarCamposDePublicidad, ocultarCamposDescripcion,
+          cargandoContenido, carrucelImgProductosVentaUser, compartirIcon, containerDatos,
+          descripcion, descuentoPorcentaje, envioGratis, iconoVerificado, linealPrecioProducto,
+          linealTextosDescripcion, main, marcaProducto, masInfomacion, nombreProducto,
+          nombreTrabajador, ocultarCamposDePublicidad, ocultarCamposDescripcion,
           ocultarCamposMasInformacion, ocultarP1, ocultarP2, ocultarP3, binding_perfiltrabajador,
-          vistraPreviaDescripcion, vistraPreviaDescripciontitulo);
+          precioAntiguo, precioProducto, tvReadMore, vistraPreviaDescripcion,
+          vistraPreviaDescripciontitulo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
