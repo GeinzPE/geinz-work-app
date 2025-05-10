@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.RecicleTrabajosBinding
@@ -99,7 +100,23 @@ class adapter(
             calificacion.text =
                 "${promedioEstrellas(dataClassTrabajosd)} (${dataClassTrabajosd.start})"
             localidad.text = dataClassTrabajosd.localidad
-            constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v->}
+            constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v,plan->
+                when(plan){
+                    Variables.plaA->{
+                        binding.verificados.setImageResource(R.drawable.verificado_a)
+
+                    }
+                    Variables.planB->{
+                        binding.verificados.setImageResource(R.drawable.icon_verificado)
+                    }
+                    Variables.PlanC->{
+                        binding.verificados.setImageResource(R.drawable.verificado_c)
+
+
+                    }
+                }
+
+            }
 
 
             btnVermas.setOnClickListener {

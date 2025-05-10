@@ -199,6 +199,7 @@ object Variables {
     //VARIABLES CUENTA FRAGMENT
     const val ImagenPerfl="ImagenPerfl"
     const val TipoCuenta="TipoCuenta"
+    const val nombre_usuario="Nombre_usuario"
     const val tipoCuenta="tipoCuenta"
     const val tipo="tipo"
     const val categoriaTrabajo="categoriaTrabajo"

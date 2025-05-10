@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
@@ -253,7 +254,7 @@ class veirificacionDatos : AppCompatActivity() {
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
                     finishAffinity()
-                    agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
+                    constantes_nombre_usuarios.agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
                 }
                 .addOnFailureListener { e ->
                     println("Error al crear usuario en Firestore: $e")
@@ -265,25 +266,7 @@ class veirificacionDatos : AppCompatActivity() {
 
     }
 
-    private fun agregar_firestoreNombre_usuario(id_registrado: String, nombre_user: String,tipo_cuento:String) {
-        val db = FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers")
-            .document("nombres_user")
-            .collection("nombres_user").document(id_registrado)
 
-        val hashMap = hashMapOf<String, Any>(
-            "nombres_user" to "@$nombre_user",
-            "id_registrado" to id_registrado,
-            "cuenta" to tipo_cuento
-        )
-        db.set(hashMap,SetOptions.merge()).addOnSuccessListener {
-            Log.d("user_agregado","user agregado correctament")
-        }.addOnFailureListener { e->
-            Log.d("error_user","error al agregar el user")
-
-        }
-
-    }
 
     private fun leerinfoCreacionUser() {
         progressDialog.setMessage("creando cuenta")
@@ -353,7 +336,7 @@ class veirificacionDatos : AppCompatActivity() {
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
                     finishAffinity()
-                    agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
+                    constantes_nombre_usuarios.agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
                 }
                 .addOnFailureListener { e ->
                     println("Error al crear usuario en Firestore: $e")

@@ -44,6 +44,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -889,6 +890,12 @@ object constantesCarrito {
 
         fecha.text = formattedDate
         hora.text = formattedTime
+    }
+
+    fun obtenerFechaActual(): String {
+        val fechaActual = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        return fechaActual.format(formatter)
     }
 
 

@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ItemReviewBinding
 import com.geinzz.geinzwork.dataclass.daclassReview
@@ -71,12 +72,24 @@ class adaptadorReview(
                 } catch (e: Exception) {
                     println("error al setear la img")
                 }
-                if (verificado == true) {
-                    binding.iconoVerificado.isVisible = true
+                constantes_servicios.verificarEstado_vericiacion(binding.iconoVerificado,daclassReview.idUsuarioReview.toString() ){ v, plan->
+                    when(plan){
+                        Variables.plaA->{
+                            binding.iconoVerificado.setImageResource(R.drawable.verificado_a)
 
-                } else {
-                    binding.iconoVerificado.isVisible = false
+                        }
+                        Variables.planB->{
+                            binding.iconoVerificado.setImageResource(R.drawable.icon_verificado)
+                        }
+                        Variables.PlanC->{
+                            binding.iconoVerificado.setImageResource(R.drawable.verificado_c)
+
+
+                        }
+                    }
+
                 }
+
 
                 // Verificación después de setear
                 val nombreYaCargado = binding.nombre.text.toString() == nombreCompleto

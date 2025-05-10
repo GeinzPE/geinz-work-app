@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.geinzz.geinzwork.databinding.ActivityPasswordYuserBinding
 import com.geinzz.geinzwork.databinding.ActivitySeleccionDeTrabajoBinding
 import com.google.firebase.firestore.FirebaseFirestore
@@ -78,7 +79,7 @@ class passwordYuser : AppCompatActivity() {
         } else if (Nombre_usuario.isEmpty()) {
             binding.repetircontraFree.error = "Escribe tu nombre de usaurio"
         } else {
-            verificar_existencia_nombre_usuario(Nombre_usuario) { existe ->
+            constantes_nombre_usuarios.verificar_existencia_nombre_usuario(Nombre_usuario) { existe ->
                 if (existe) {
                     binding.nombreUsuario.error = "Este nombre de usuario ya existe, elige otro"
                 } else {
@@ -138,7 +139,7 @@ class passwordYuser : AppCompatActivity() {
         } else if (Nombre_usuario.isEmpty()) {
             binding.repetircontraFree.error = "Escribe tu nombre de usaurio"
         } else {
-            verificar_existencia_nombre_usuario(Nombre_usuario) { existe ->
+            constantes_nombre_usuarios.verificar_existencia_nombre_usuario(Nombre_usuario) { existe ->
                 if (existe) {
                     binding.nombreUsuario.error = "Este nombre de usuario ya existe, elige otro"
                 } else {
@@ -166,26 +167,5 @@ class passwordYuser : AppCompatActivity() {
         }
     }
 
-    private fun verificar_existencia_nombre_usuario(
-        rawNombreUsuario: String,
-        callback: (Boolean) -> Unit
-    ) {
-        val nombreUsuario = if (rawNombreUsuario.startsWith("@")) rawNombreUsuario else "@$rawNombreUsuario"
-
-        val db = FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers")
-            .document("nombres_user")
-            .collection("nombres_user")
-
-        db.whereEqualTo("nombres_user", nombreUsuario)
-            .get()
-            .addOnSuccessListener { res ->
-                callback(!res.isEmpty) // true si existe, false si no
-            }
-            .addOnFailureListener { e ->
-                println("Error al verificar nombre de usuario: $e")
-                callback(false)
-            }
-    }
 
 }

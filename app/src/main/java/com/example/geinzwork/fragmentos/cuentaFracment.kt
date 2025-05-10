@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.EditarInfo
 import com.geinzz.geinzwork.Login
@@ -29,11 +30,16 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
 import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
+import com.geinzz.geinzwork.databinding.BottomSheetConfigCuentaBinding
+import com.geinzz.geinzwork.databinding.BottomSheetEditarCamposBinding
 import com.geinzz.geinzwork.databinding.FragmentCuentaFracmentBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +101,7 @@ class cuentaFracment : Fragment() {
         confSwipe()
         verificarDeDondeEsUsuario(firebaseAuth.uid.toString())
         constantes.obtenerEstado(binding.estado, firebaseAuth.uid.toString())
+
         verificarEstado_vericiacion(firebaseAuth.uid.toString())
         binding.popup.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
@@ -116,40 +123,358 @@ class cuentaFracment : Fragment() {
         binding.fotoPortada.setOnClickListener {
             picmedaiFotoPoprtada.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
+
         binding.editarnombre.setOnClickListener {
-            var nombreuser = binding.nombreUser.text.toString()
-            val vista = Intent(mContex, EditarInfo::class.java)
-            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-            vista.putExtra(Variables.tipo, Variables.nombre)
-            vista.putExtra(Variables.valor, nombreuser)
-            startActivity(vista)
+            dialog = BottomSheetDialog(mContex)
+            bottomShettEditar_informaciones(
+                binding.tipoCuenta.text.toString(),
+                Variables.nombre,
+                binding.nombreUser.text.toString()
+            )
+            dialog.show()
+
         }
         binding.editarapellido.setOnClickListener {
-            var apellidoUser = binding.apellidoUSer.text.toString()
-            val vista = Intent(mContex, EditarInfo::class.java)
-            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-            vista.putExtra(Variables.tipo, Variables.apellido)
-            vista.putExtra(Variables.valor, apellidoUser)
-            startActivity(vista)
+            dialog = BottomSheetDialog(mContex)
+            bottomShettEditar_informaciones(
+                binding.tipoCuenta.text.toString(),
+                Variables.apellido,
+                binding.apellidoUSer.text.toString()
+            )
+            dialog.show()
+//            var apellidoUser = binding.apellidoUSer.text.toString()
+//            val vista = Intent(mContex, EditarInfo::class.java)
+//            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
+//            vista.putExtra(Variables.tipo, Variables.apellido)
+//            vista.putExtra(Variables.valor, apellidoUser)
+//            startActivity(vista)
         }
         binding.editarNumero.setOnClickListener {
-            var telefonouser = binding.numero.text.toString()
-            val vista = Intent(mContex, EditarInfo::class.java)
-            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-            vista.putExtra(Variables.tipo, Variables.numeroT)
-            vista.putExtra(Variables.valor, telefonouser)
-            startActivity(vista)
+            dialog = BottomSheetDialog(mContex)
+            bottomShettEditar_informaciones(
+                binding.tipoCuenta.text.toString(),
+                Variables.numeroT,
+                binding.numero.text.toString()
+            )
+            dialog.show()
+//            var telefonouser = binding.numero.text.toString()
+//            val vista = Intent(mContex, EditarInfo::class.java)
+//            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
+//            vista.putExtra(Variables.tipo, Variables.numeroT)
+//            vista.putExtra(Variables.valor, telefonouser)
+//            startActivity(vista)
         }
         binding.editarDescripcion.setOnClickListener {
-            var descripcionUser = binding.descripcion.text.toString()
-            val vista = Intent(mContex, EditarInfo::class.java)
-            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-            vista.putExtra(Variables.tipo, Variables.descripcion)
-            vista.putExtra(Variables.valor, descripcionUser)
-            startActivity(vista)
+            dialog = BottomSheetDialog(mContex)
+            bottomShettEditar_informaciones(
+                binding.tipoCuenta.text.toString(),
+                Variables.descripcion,
+                binding.descripcion.text.toString()
+            )
+            dialog.show()
+//            var descripcionUser = binding.descripcion.text.toString()
+//            val vista = Intent(mContex, EditarInfo::class.java)
+//            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
+//            vista.putExtra(Variables.tipo, Variables.descripcion)
+//            vista.putExtra(Variables.valor, descripcionUser)
+//            startActivity(vista)
         }
-        
+        binding.editarNombreUsuario.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            bottomShettEditar_informaciones(
+                binding.tipoCuenta.text.toString(),
+                Variables.Nombre_usuario,
+                binding.nombreUsuario.text.toString()
+            )
+            dialog.show()
+        }
+
     }
+
+    private fun bottomShettEditar_informaciones(tipoCuenta: String, tipo: String, valor: String) {
+        val bottomSheet = BottomSheetEditarCamposBinding.inflate(LayoutInflater.from(mContex))
+        val view = bottomSheet.root
+        val referenciaTrabajador =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(firebaseAuth.uid.toString())
+        val referenciaUsuario =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.usuarios_db).collection(Variables.usuarios_db)
+                .document(firebaseAuth.uid.toString())
+
+        when (tipoCuenta) {
+            "Cuenta Simple" -> {
+                if (tipo != null && valor != null) {
+                    when (tipo) {
+                        "nombre" -> {
+                            bottomSheet.informacion.text = "nombre"
+                            bottomSheet.nombre.setText(valor)
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val nombre = bottomSheet.nombre.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaUsuario,
+                                    nombre,
+                                    "nombre",
+                                    false
+                                )
+                            }
+                        }
+
+                        "numeroT" -> {
+                            bottomSheet.informacion.text = "telefono"
+                            bottomSheet.telefono.setText(valor)
+                            bottomSheet.telefonoInput.isVisible = true
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val telefono = bottomSheet.telefono.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaUsuario,
+                                    telefono,
+                                    "numero",
+                                    false
+                                )
+                            }
+                        }
+
+                        "apellido" -> {
+                            bottomSheet.informacion.text = "apellido"
+                            println("Se envió el apellido: $valor")
+                            bottomSheet.apellido.setText(valor)
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val apellido = bottomSheet.apellido.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaUsuario,
+                                    apellido,
+                                    "apellido",
+                                    false
+                                )
+                            }
+                        }
+
+
+                        Variables.Nombre_usuario -> {
+                            bottomSheet.informacion.text = "Nombre de usuario"
+                            bottomSheet.nombreUsuarioED.setText(valor)
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.nombreUsaurio.isVisible = true
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val Nombre_usuario = bottomSheet.nombreUsuarioED.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaUsuario,
+                                    Nombre_usuario,
+                                    "Nombre_usuario",
+                                    true
+                                )
+                            }
+                        }
+
+                        else -> {
+                            println("Tipo de valor desconocido: $tipo")
+                        }
+                    }
+                }
+            }
+
+            "Cuenta Trabajador" -> {
+                if (tipo != null && valor != null) {
+                    when (tipo) {
+                        "nombre" -> {
+                            bottomSheet.informacion.text = "nombre"
+                            bottomSheet.nombre.setText(valor)
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val nombre = bottomSheet.nombre.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaTrabajador,
+                                    nombre,
+                                    "nombre",
+                                    false
+                                )
+                            }
+                        }
+
+                        "numeroT" -> {
+                            bottomSheet.informacion.text = "telefono"
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.telefono.setText(valor)
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val telefono = bottomSheet.telefono.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaTrabajador,
+                                    telefono,
+                                    "numero",
+                                    false
+                                )
+                            }
+                        }
+
+                        "apellido" -> {
+                            bottomSheet.informacion.text = "apellido"
+                            println("Se envió el apellido: $valor")
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.apellido.setText(valor)
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val apellido = bottomSheet.apellido.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaTrabajador,
+                                    apellido,
+                                    "apellido",
+                                    false
+                                )
+                            }
+                        }
+
+                        "descripcion" -> {
+                            bottomSheet.informacion.text = "Descripcion"
+                            bottomSheet.caracteristicasTrabajosED.setText(valor)
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.caracteristicasTrabajos.isVisible = true
+                            bottomSheet.enviar.setOnClickListener {
+                                val fechaN = bottomSheet.caracteristicasTrabajosED.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaTrabajador,
+                                    fechaN,
+                                    "descripcion",
+                                    false
+                                )
+                            }
+                        }
+
+                        Variables.Nombre_usuario -> {
+                            bottomSheet.informacion.text = "Nombre de usuario"
+                            bottomSheet.nombreUsuarioED.setText(valor)
+                            bottomSheet.nombreInput.visibility = View.GONE
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.apellidoInput.visibility = View.GONE
+                            bottomSheet.telefonoInput.visibility = View.GONE
+                            bottomSheet.nombreUsaurio.isVisible = true
+                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.enviar.setOnClickListener {
+                                val Nombre_usuario = bottomSheet.nombreUsuarioED.text.toString()
+                                ActulizarDatos(
+                                    bottomSheet,
+                                    referenciaTrabajador,
+                                    Nombre_usuario,
+                                    "Nombre_usuario",
+                                    true
+                                )
+                            }
+                        }
+
+
+                        else -> {
+                            println("Tipo de valor desconocido: $tipo")
+                        }
+                    }
+                }
+            }
+
+        }
+
+        dialog.setContentView(view)
+    }
+
+    private fun ActulizarDatos(
+        bottomSheetDialog: BottomSheetEditarCamposBinding,
+        dbDocumento: DocumentReference,
+        valorCambiado: String,
+        instaDB: String,
+        verificar_Nombre_user: Boolean
+    ) {
+        if (valorCambiado.isBlank()) {
+            Toast.makeText(mContex, "El campo no puede estar vacío", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val nuevoUsername = bottomSheetDialog.nombreUsuarioED.text.toString()
+
+        val actualizar = {
+            actualizarCampo(dbDocumento, instaDB, valorCambiado) {
+                if (verificar_Nombre_user) {
+                    constantes_nombre_usuarios.actualizar_nombre_usuario(
+                        firebaseAuth.uid.toString(),
+                        nuevoUsername
+                    )
+                }
+            }
+        }
+
+        if (verificar_Nombre_user) {
+            constantes_nombre_usuarios.verificar_existencia_nombre_usuario(nuevoUsername) { existe ->
+                if (existe) {
+                    bottomSheetDialog.nombreUsuarioED.error = "El nombre de usuario ya existe"
+                } else {
+                    actualizar()
+                }
+            }
+        } else {
+            actualizar()
+        }
+    }
+
+    private fun actualizarCampo(
+        dbDocumento: DocumentReference,
+        campo: String,
+        valor: String,
+        onSuccess: () -> Unit
+    ) {
+        val hashMap = hashMapOf<String, Any>(campo to valor)
+        dbDocumento.update(hashMap)
+            .addOnSuccessListener {
+                Toast.makeText(
+                    mContex,
+                    "Campo actualizado correctamente Actualiza para ver tus cambios.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                onSuccess()
+                dialog.dismiss()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(
+                    mContex,
+                    "Error al actualizar el campo",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.d("erro_actualziad", "${e.message}")
+            }
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun confSwipe() {
@@ -176,6 +501,20 @@ class cuentaFracment : Fragment() {
                 val data = res.data
                 val estado = data?.get(Variables.estado) as? Boolean
                 val plan = data?.get(Variables.plan) as? String
+                when (plan) {
+                    Variables.plaA -> {
+                        binding.iconVerificado.setImageResource(R.drawable.verificado_a)
+
+                    }
+
+                    Variables.planB -> {
+                        binding.iconVerificado.setImageResource(R.drawable.icon_verificado)
+                    }
+
+                    Variables.PlanC -> {
+                        binding.iconVerificado.setImageResource(R.drawable.verificado_c)
+                    }
+                }
                 if (estado != false) {
                     binding.verificado.text = "Verificado"
                     binding.iconVerificado.isVisible = true
@@ -251,19 +590,20 @@ class cuentaFracment : Fragment() {
             .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
                     val userData = documentSnapshot.data
-                    val nombre = userData?.get(Variables.nombre) as? String?:""
-                    val apellido = userData?.get(Variables.apellido) as? String?:""
-                    val codigoPais = userData?.get(Variables.codigo_pais) as? String?:""
-                    val correo = userData?.get(Variables.correo) as? String?:""
-                    val fechaNac = userData?.get(Variables.fechaNac) as? String?:""
-                    val genero = userData?.get(Variables.genero) as? String?:""
-                    idUSer = (userData?.get(Variables.id) as? String).toString()?:""
-                    val imagenPerfil = userData?.get(Variables.imagenPerfil) as? String?:""
-                    val localidad = userData?.get(Variables.localidad) as? String?:""
-                    val nacionalidad = userData?.get(Variables.nacionalidad) as? String?:""
-                    val numero = userData?.get(Variables.numero) as? String?:""
-                    val edadUSer = userData?.get(Variables.EdadActual) as? String?:""
-                    val TipoCuenta = userData?.get(Variables.TipoCuenta) as? String?:""
+                    val nombre = userData?.get(Variables.nombre) as? String ?: ""
+                    val apellido = userData?.get(Variables.apellido) as? String ?: ""
+                    val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
+                    val correo = userData?.get(Variables.correo) as? String ?: ""
+                    val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
+                    val genero = userData?.get(Variables.genero) as? String ?: ""
+                    idUSer = (userData?.get(Variables.id) as? String).toString() ?: ""
+                    val imagenPerfil = userData?.get(Variables.imagenPerfil) as? String ?: ""
+                    val localidad = userData?.get(Variables.localidad) as? String ?: ""
+                    val nacionalidad = userData?.get(Variables.nacionalidad) as? String ?: ""
+                    val numero = userData?.get(Variables.numero) as? String ?: ""
+                    val edadUSer = userData?.get(Variables.EdadActual) as? String ?: ""
+                    val TipoCuenta = userData?.get(Variables.TipoCuenta) as? String ?: ""
+                    val nombre_usuario = userData?.get(Variables.Nombre_usuario) as? String ?: ""
 
                     obtenerPerfil(
                         firebaseAuth.uid!!,
@@ -272,6 +612,7 @@ class cuentaFracment : Fragment() {
                         Variables.usuarios_db,
                         Variables.usuarios_db
                     )
+                    binding.nombreUsuario.text = "$nombre_usuario"
                     binding.nombreUser.text = nombre
                     binding.apellidoUSer.text = apellido
                     binding.fechaNaciminetoUSer.text = fechaNac
@@ -283,7 +624,8 @@ class cuentaFracment : Fragment() {
                     binding.edadUser.text = "${edadUSer} años"
                     binding.tipoCuenta.text = TipoCuenta
 
-                    val placeholderperfil = ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
+                    val placeholderperfil =
+                        ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
                     constatnes_carga_imagenes_general.changer_img(
                         binding.progressCargaImagen,
                         mContex,
@@ -291,7 +633,7 @@ class cuentaFracment : Fragment() {
                         binding.imagenPerfil,
                         null,
                         "perfil", placeholderperfil
-                    ){}
+                    ) {}
 
                 }
             }
@@ -338,23 +680,25 @@ class cuentaFracment : Fragment() {
             .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
                     val userData = documentSnapshot.data
-                    val nombre = userData?.get(Variables.nombre) as? String?:""
-                    val apellido = userData?.get(Variables.apellido) as? String?:""
-                    val categoriaTrabajo = userData?.get(Variables.categoriaTrabajo) as? String?:""
-                    val codigoPais = userData?.get(Variables.codigo_pais) as? String?:""
-                    val correo = userData?.get(Variables.correo) as? String?:""
-                    val fechaNac = userData?.get(Variables.fechaNac) as? String?:""
-                    val genero = userData?.get(Variables.genero) as? String?:""
-                    val horario1 = userData?.get(Variables.horario1) as? String?:""
-                    val horario2 = userData?.get(Variables.horario2) as? String?:""
-                    val imagenPerfil = userData?.get(Variables.imagenPerfil) as? String?:""
-                    val localidad = userData?.get(Variables.localidad) as? String?:""
-                    val nacionalidad = userData?.get(Variables.nacionalidad) as? String?:""
-                    val numero = userData?.get(Variables.numero) as? String?:""
-                    val tipoTrabajo = userData?.get(Variables.tipoTrabajo) as? String?:""
-                    val edadUSer = userData?.get(Variables.EdadActual) as? String?:""
-                    val TipoCuenta = userData?.get(Variables.TipoCuenta) as? String?:""
-                    val descripcion = userData?.get(Variables.descripcion) as? String?:""
+                    val nombre = userData?.get(Variables.nombre) as? String ?: ""
+                    val apellido = userData?.get(Variables.apellido) as? String ?: ""
+                    val categoriaTrabajo =
+                        userData?.get(Variables.categoriaTrabajo) as? String ?: ""
+                    val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
+                    val correo = userData?.get(Variables.correo) as? String ?: ""
+                    val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
+                    val genero = userData?.get(Variables.genero) as? String ?: ""
+                    val horario1 = userData?.get(Variables.horario1) as? String ?: ""
+                    val horario2 = userData?.get(Variables.horario2) as? String ?: ""
+                    val imagenPerfil = userData?.get(Variables.imagenPerfil) as? String ?: ""
+                    val localidad = userData?.get(Variables.localidad) as? String ?: ""
+                    val nacionalidad = userData?.get(Variables.nacionalidad) as? String ?: ""
+                    val numero = userData?.get(Variables.numero) as? String ?: ""
+                    val tipoTrabajo = userData?.get(Variables.tipoTrabajo) as? String ?: ""
+                    val edadUSer = userData?.get(Variables.EdadActual) as? String ?: ""
+                    val TipoCuenta = userData?.get(Variables.TipoCuenta) as? String ?: ""
+                    val descripcion = userData?.get(Variables.descripcion) as? String ?: ""
+                    val nombre_usuario = userData?.get(Variables.Nombre_usuario) as? String ?: ""
 
                     obtenerPerfil(
                         firebaseAuth.uid!!,
@@ -363,6 +707,7 @@ class cuentaFracment : Fragment() {
                         Variables.trabajadoresDB,
                         Variables.trabajadoresDB
                     )
+                    binding.nombreUsuario.text = "$nombre_usuario"
 
                     binding.descripcion.text = descripcion
 
@@ -381,7 +726,8 @@ class cuentaFracment : Fragment() {
                     binding.tipoCuenta.text = TipoCuenta
 
 
-                    val placeholderperfil = ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
+                    val placeholderperfil =
+                        ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
                     constatnes_carga_imagenes_general.changer_img(
                         binding.progressCargaImagen,
                         mContex,
@@ -389,7 +735,7 @@ class cuentaFracment : Fragment() {
                         binding.imagenPerfil,
                         null,
                         "perfil", placeholderperfil
-                    ){}
+                    ) {}
                 }
             }
         val refStorage =

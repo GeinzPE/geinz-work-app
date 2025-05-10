@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.geinzz.geinzwork.Crea_tu_publicidad
 import com.geinzz.geinzwork.CuentaFreelancer
@@ -42,7 +43,7 @@ object constantesPublicidad {
     private lateinit var firebaseAuth: FirebaseAuth
     private val KEY = "MY_KEY"
 
-    fun obtenerAnunciosGeinz(carucel: ImageCarousel, contexto: Context, filtradoUsuairo: TextView) {
+    fun obtenerAnunciosGeinz(viewPager: ViewPager2, carucel: ImageCarousel, contexto: Context, filtradoUsuairo: TextView) {
         val db =
             FirebaseFirestore.getInstance().collection("anuncios").document("anunciosPrimarios")
                 .collection("anuncios")
@@ -122,7 +123,7 @@ object constantesPublicidad {
                     }
 
                     "img7" -> {
-                        contexto.startActivity(Intent(contexto, noticiasGeinzpb::class.java))
+                        viewPager.currentItem = 1
                     }
 
                 }

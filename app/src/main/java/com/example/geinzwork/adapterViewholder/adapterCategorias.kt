@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
@@ -73,7 +74,22 @@ class adapterCategorias
             )
             constantes.setearBanderas(dataClassTrabajosd, itemView.context, nacionalidad)
             Tu_cuentaMostrado(uidString,dataClassTrabajosd)
-            constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v->}
+            constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v,plan->
+                when(plan){
+                    Variables.plaA->{
+                        binding.verificados.setImageResource(R.drawable.verificado_a)
+
+                    }
+                    Variables.planB->{
+                        binding.verificados.setImageResource(R.drawable.icon_verificado)
+                    }
+                    Variables.PlanC->{
+                        binding.verificados.setImageResource(R.drawable.verificado_c)
+
+
+                    }
+                }
+            }
             constantes.obtenerEstado(actividad,dataClassTrabajosd.id.toString())
         }
 

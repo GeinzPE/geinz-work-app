@@ -17,6 +17,7 @@ import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.ItemCargaSeguidoresSeguidosBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -63,11 +64,25 @@ class adapter_seguidores_seguidos(
             binding.categoriaTrabajo.text = item.tipo_trabajado
             binding.nombreUser.text = item.nombre_trabajador
             binding.nacionalidadUser.text = item.nacionalidad
-            if (item.verificado == true) {
-                binding.verificadoIcono.isVisible = true
-            } else {
-                binding.verificadoIcono.isVisible = false
+
+            constantes_servicios.verificarEstado_vericiacion(binding.verificadoIcono,item.id_trabajador.toString() ){ v, plan->
+                when(plan){
+                    Variables.plaA->{
+                        binding.verificadoIcono.setImageResource(R.drawable.verificado_a)
+
+                    }
+                    Variables.planB->{
+                        binding.verificadoIcono.setImageResource(R.drawable.icon_verificado)
+                    }
+                    Variables.PlanC->{
+                        binding.verificadoIcono.setImageResource(R.drawable.verificado_c)
+
+
+                    }
+                }
+
             }
+
             val drawable = ContextCompat.getDrawable(itemView.context, R.drawable.img_perfil)
             constatnes_carga_imagenes_general.changer_img(
                 binding.progreesCarga,

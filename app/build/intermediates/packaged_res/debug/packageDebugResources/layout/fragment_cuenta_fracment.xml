@@ -11,19 +11,19 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe"
         android:layout_width="match_parent"
-        android:animateLayoutChanges="true"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:visibility="gone">
 
         <androidx.core.widget.NestedScrollView
-            android:animateLayoutChanges="true"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true">
 
             <LinearLayout
-                android:animateLayoutChanges="true"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:animateLayoutChanges="true"
                 android:orientation="vertical">
 
                 <RelativeLayout
@@ -33,7 +33,6 @@
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="200dp">
-
 
 
                         <ImageView
@@ -104,9 +103,10 @@
 
                     <RelativeLayout
                         android:layout_width="150dp"
+                        android:layout_height="150dp"
                         android:layout_alignParentBottom="true"
-                        android:layout_centerInParent="true"
-                        android:layout_height="150dp">
+                        android:layout_centerInParent="true">
+
                         <de.hdodenhof.circleimageview.CircleImageView
                             android:id="@+id/imagenPerfil"
                             android:layout_width="150dp"
@@ -116,6 +116,7 @@
                             android:src="@drawable/img_perfil"
                             app:civ_border_color="#FF000000"
                             app:civ_border_width="2dp" />
+
                         <com.google.android.material.progressindicator.CircularProgressIndicator
                             android:id="@+id/progress_carga_imagen"
                             android:layout_width="150dp"
@@ -237,7 +238,6 @@
                                         android:layout_height="20dp"
                                         android:layout_gravity="center"
                                         android:layout_marginLeft="10dp"
-                                        android:src="@drawable/icon_verificado"
                                         android:visibility="gone" />
 
                                 </LinearLayout>
@@ -310,6 +310,53 @@
                                         android:textSize="12sp" />
 
                                 </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="10dp"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="Nombre de usuario:"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+
+                                    <ImageView
+                                        android:id="@+id/editar_nombre_usuario"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_marginLeft="20dp"
+                                        android:src="@drawable/editar_icon" />
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+                                        <TextView
+                                            android:layout_gravity="center"
+                                            style="@style/TextoModoOScuroColor"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginLeft="15dp"
+                                            android:text="@"
+                                            android:textSize="12sp" />
+                                        <TextView
+                                            android:id="@+id/nombre_usuario"
+                                            style="@style/TextoModoOScuroColor"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/cat"
+                                            android:textSize="12sp" />
+                                    </LinearLayout>
+
+
+                                </LinearLayout>
+
 
                                 <!--FECHA DE NACIMIENTO-->
                                 <LinearLayout

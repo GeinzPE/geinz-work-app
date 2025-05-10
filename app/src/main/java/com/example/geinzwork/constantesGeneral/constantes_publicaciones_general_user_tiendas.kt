@@ -422,10 +422,28 @@ object constantes_publicaciones_general_user_tiendas {
                     val data = res.data
                     val nombre_trabajador = data?.get("nombre") as? String ?: ""
                     val verificado = data?.get("verificado") as? Boolean ?: false
-                    if (verificado == true) {
-                        bindingProductosTrabajadores.iconoVerificado.isVisible = true
-                        bindingProductosTrabajadores.nombreTrabajador.text =
-                            "Vendido por : $nombre_trabajador"
+                    constantes_servicios.verificarEstado_vericiacion(bindingProductosTrabajadores.iconoVerificado,idTrabajador ){ v, plan->
+                        when(plan){
+                            Variables.plaA->{
+                                bindingProductosTrabajadores.iconoVerificado.setImageResource(R.drawable.verificado_a)
+                                bindingProductosTrabajadores.nombreTrabajador.text =
+                                    "Vendido por : $nombre_trabajador"
+
+                            }
+                            Variables.planB->{
+                                bindingProductosTrabajadores.iconoVerificado.setImageResource(R.drawable.icon_verificado)
+                                bindingProductosTrabajadores.nombreTrabajador.text =
+                                    "Vendido por : $nombre_trabajador"
+                            }
+                            Variables.PlanC->{
+                                bindingProductosTrabajadores.iconoVerificado.setImageResource(R.drawable.verificado_c)
+                                bindingProductosTrabajadores.nombreTrabajador.text =
+                                    "Vendido por : $nombre_trabajador"
+
+
+                            }
+                        }
+
                     }
                 }
             }

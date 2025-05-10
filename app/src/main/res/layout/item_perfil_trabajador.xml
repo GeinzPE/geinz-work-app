@@ -57,11 +57,12 @@
                     android:layout_gravity="center" />
 
                 <ImageView
+                    android:id="@+id/verificado"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:layout_gravity="bottom|end"
                     android:layout_marginRight="20dp"
-                    android:src="@drawable/icon_verificado" />
+                    />
 
             </FrameLayout>
 

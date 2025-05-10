@@ -16,9 +16,11 @@ import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
 import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.ItemCargarProductosPromocionesTrabajosBinding
 import com.geinzz.geinzwork.databinding.ItemPerfilTrabajadorBinding
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
@@ -143,6 +145,23 @@ object constantes_vistas_publicaciones_productos_verificados {
                     ItemPerfilTrabajadorBinding.cargadoImg,
                     context
                 )
+                constantes_servicios.verificarEstado_vericiacion(ItemPerfilTrabajadorBinding.verificado,idTrabajador ){ v, plan->
+                    when(plan){
+                        Variables.plaA->{
+                            ItemPerfilTrabajadorBinding.verificado.setImageResource(R.drawable.verificado_a)
+
+                        }
+                        Variables.planB->{
+                            ItemPerfilTrabajadorBinding.verificado.setImageResource(R.drawable.icon_verificado)
+                        }
+                        Variables.PlanC->{
+                            ItemPerfilTrabajadorBinding.verificado.setImageResource(R.drawable.verificado_c)
+
+
+                        }
+                    }
+
+                }
                 constantes_trabajadores_info.contadorSeguidores(
                     ItemPerfilTrabajadorBinding.seguidoresTrabajador,
                     idTrabajador

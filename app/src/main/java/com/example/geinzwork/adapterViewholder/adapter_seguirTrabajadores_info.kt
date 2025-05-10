@@ -19,6 +19,7 @@ import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding
 import com.geinzz.geinzwork.databinding.ItemMasTrabajadoresSugeridosBinding
 import com.google.android.material.progressindicator.CircularProgressIndicator
@@ -105,12 +106,24 @@ class adapter_seguirTrabajadores_info(
             binding.linealCamposTrabajador.isVisible = true
 
 
+            constantes_servicios.verificarEstado_vericiacion(binding.verificado,item.id.toString() ){ v, plan->
+                when(plan){
+                    Variables.plaA->{
+                        binding.verificado.setImageResource(R.drawable.verificado_a)
 
-            if (item.verificado == true) {
-                binding.verificado.isVisible = true
-            } else {
-                binding.verificado.isVisible = false
+                    }
+                    Variables.planB->{
+                        binding.verificado.setImageResource(R.drawable.icon_verificado)
+                    }
+                    Variables.PlanC->{
+                        binding.verificado.setImageResource(R.drawable.verificado_c)
+
+
+                    }
+                }
+
             }
+
             binding.linealCamposTrabajador.setOnClickListener {
 
                 val vista = Intent(

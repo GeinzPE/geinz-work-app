@@ -215,6 +215,8 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             }
         })
     }
+    val getViewPager: ViewPager2
+        get() = viewPager
 
     fun setViewPagerSwipeEnabled(enabled: Boolean) {
         viewPager.isUserInputEnabled = enabled

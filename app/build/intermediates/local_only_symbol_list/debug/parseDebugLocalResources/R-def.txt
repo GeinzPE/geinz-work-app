@@ -259,7 +259,9 @@ drawable tipo_trabajo
 drawable trabajador_drawable
 drawable vector_icon_mas_trabjadores
 drawable ver_productos_icon_morado
+drawable verificado_a
 drawable verificado_blanco_icon
+drawable verificado_c
 drawable view_drawable
 drawable web_icon
 drawable whatsapp_icon
@@ -750,6 +752,7 @@ id editado
 id editar
 id editarNumero
 id editar_descripcion
+id editar_nombre_usuario
 id editarapellido
 id editarnombre
 id editexFilter
@@ -885,12 +888,10 @@ id horaRealizado
 id hora_llegada
 id horaaproximanda
 id horaint
-id horaioPMInput
 id horareserva
 id horario
 id horarioAtencion
 id horarioDomingo
-id horarioInput
 id horarioJueves
 id horarioLunes
 id horarioMartes
@@ -899,7 +900,6 @@ id horarioReloj
 id horarioSabado
 id horarioUser
 id horarioViernes
-id horariopm
 id horarios
 id horaus
 id iconStart
@@ -1331,8 +1331,10 @@ id nombre_producto
 id nombre_productoED
 id nombre_trabajador
 id nombre_trabajadoroculto
+id nombre_usaurio
 id nombre_user
 id nombre_usuario
+id nombre_usuarioED
 id nombreint
 id nombresCompletos
 id nombresCompletosED
@@ -1756,6 +1758,7 @@ id verdesarrollo
 id verificacion
 id verificado
 id verificadoTXT
+id verificado_icon
 id verificado_icono
 id verificados
 id verificar
@@ -1880,6 +1883,7 @@ layout bottom_sheet_configuracion_descripcion_pr_vr
 layout bottom_sheet_contacta_trabajador
 layout bottom_sheet_creacion_cuenta
 layout bottom_sheet_crear_cuenta_tienda
+layout bottom_sheet_editar_campos
 layout bottom_sheet_editar_publicacion
 layout bottom_sheet_editar_publicaciones_verificados
 layout bottom_sheet_filtrado_compras_carrito

@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -64,6 +65,9 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
   @NonNull
   public final TextView tituloProducto;
 
+  @NonNull
+  public final ImageView verificado;
+
   private ItemProductsTrabajadoresPrincipalBinding(@NonNull ConstraintLayout rootView,
       @NonNull TextView NombreVerificado, @NonNull CircularProgressIndicator cargaImg,
       @NonNull ProgressBar cargarContenido, @NonNull TextView descripcionProducto,
@@ -71,7 +75,7 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
       @NonNull Guideline guidelineEnd, @NonNull ShapeableImageView imgProducto,
       @NonNull LinearLayout linealProductosPublicados, @NonNull CardView listener,
       @NonNull TextView precioDescuento, @NonNull TextView precioProducto,
-      @NonNull TextView tituloProducto) {
+      @NonNull TextView tituloProducto, @NonNull ImageView verificado) {
     this.rootView = rootView;
     this.NombreVerificado = NombreVerificado;
     this.cargaImg = cargaImg;
@@ -86,6 +90,7 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
     this.precioDescuento = precioDescuento;
     this.precioProducto = precioProducto;
     this.tituloProducto = tituloProducto;
+    this.verificado = verificado;
   }
 
   @Override
@@ -193,10 +198,16 @@ public final class ItemProductsTrabajadoresPrincipalBinding implements ViewBindi
         break missingId;
       }
 
+      id = R.id.verificado;
+      ImageView verificado = ViewBindings.findChildViewById(rootView, id);
+      if (verificado == null) {
+        break missingId;
+      }
+
       return new ItemProductsTrabajadoresPrincipalBinding((ConstraintLayout) rootView,
           NombreVerificado, cargaImg, cargarContenido, descripcionProducto, descuentoPorcentaje,
           envioGratis, guidelineEnd, imgProducto, linealProductosPublicados, listener,
-          precioDescuento, precioProducto, tituloProducto);
+          precioDescuento, precioProducto, tituloProducto, verificado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

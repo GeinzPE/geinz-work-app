@@ -51,8 +51,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.nombre.setText(valor)
                             binding.apellidoInput.visibility = View.GONE
                             binding.fechaInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.telefonoInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
@@ -68,8 +66,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.apellidoInput.visibility = View.GONE
                             binding.nombreInput.visibility = View.GONE
                             binding.fechaInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
                                 val telefono = binding.telefono.text.toString()
@@ -84,8 +80,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.telefonoInput.visibility = View.GONE
                             binding.nombreInput.visibility = View.GONE
                             binding.fechaInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
                                 val apellido = binding.apellido.text.toString()
@@ -99,7 +93,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.nombreInput.visibility = View.GONE
                             binding.telefonoInput.visibility = View.GONE
                             binding.apellidoInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.telefonoInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
@@ -124,8 +117,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.apellidoInput.visibility = View.GONE
                             binding.fechaInput.visibility = View.GONE
                             binding.telefonoInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
                                 val nombre = binding.nombre.text.toString()
@@ -138,8 +129,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.apellidoInput.visibility = View.GONE
                             binding.nombreInput.visibility = View.GONE
                             binding.fechaInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
                                 val telefono = binding.telefono.text.toString()
@@ -154,8 +143,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.telefonoInput.visibility = View.GONE
                             binding.nombreInput.visibility = View.GONE
                             binding.fechaInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
                                 val apellido = binding.apellido.text.toString()
@@ -169,8 +156,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.nombreInput.visibility = View.GONE
                             binding.telefonoInput.visibility = View.GONE
                             binding.apellidoInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = false
                             binding.enviar.setOnClickListener {
                                 val fechaN = binding.fecha.text.toString()
@@ -185,8 +170,6 @@ class EditarInfo : AppCompatActivity() {
                             binding.nombreInput.visibility = View.GONE
                             binding.telefonoInput.visibility = View.GONE
                             binding.apellidoInput.visibility = View.GONE
-                            binding.horarioInput.visibility = View.GONE
-                            binding.horaioPMInput.visibility = View.GONE
                             binding.caracteristicasTrabajos.isVisible = true
                             binding.enviar.setOnClickListener {
                                 val fechaN = binding.caracteristicasTrabajosED.text.toString()
@@ -203,34 +186,8 @@ class EditarInfo : AppCompatActivity() {
 
         }
 
-
-
-        binding.horario.setOnClickListener {
-            showTimePickerDialog()
-        }
-        binding.horariopm.setOnClickListener {
-            showTimePickerDialogpm()
-        }
-
     }
 
-    private fun showTimePickerDialog() {
-        val timePicker = timePickterFracment { HoraSeleccionada(it) }
-        timePicker.show(supportFragmentManager, "time")
-    }
-
-    private fun showTimePickerDialogpm() {
-        val timePickerpm = timePickterFracment { horapmSelecionanda(it) }
-        timePickerpm.show(supportFragmentManager, "timepm")
-    }
-
-    private fun HoraSeleccionada(time: String) {
-        binding.horario.setText("${time}")
-    }
-
-    private fun horapmSelecionanda(time: String) {
-        binding.horariopm.setText("${time}")
-    }
 
     private fun ActulizarDatos(
         dbDocumento: DocumentReference,

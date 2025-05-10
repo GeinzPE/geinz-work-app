@@ -194,7 +194,7 @@ public final class FragmentInfoBinding implements ViewBinding {
   public final TextView verMasTrabajadores;
 
   @NonNull
-  public final ImageView verificado;
+  public final ImageView verificadoIcon;
 
   @NonNull
   public final TextView verificadoTXT;
@@ -225,7 +225,7 @@ public final class FragmentInfoBinding implements ViewBinding {
       @NonNull TextView segidores, @NonNull TextView siguiendo, @NonNull SwipeRefreshLayout swipe,
       @NonNull TextView telefono, @NonNull ImageView tk,
       @NonNull RecyclerView trabajadoresSimilares, @NonNull TextView tvReadMore,
-      @NonNull TextView verMasTrabajadores, @NonNull ImageView verificado,
+      @NonNull TextView verMasTrabajadores, @NonNull ImageView verificadoIcon,
       @NonNull TextView verificadoTXT) {
     this.rootView = rootView;
     this.BtnSeguimiento = BtnSeguimiento;
@@ -281,7 +281,7 @@ public final class FragmentInfoBinding implements ViewBinding {
     this.trabajadoresSimilares = trabajadoresSimilares;
     this.tvReadMore = tvReadMore;
     this.verMasTrabajadores = verMasTrabajadores;
-    this.verificado = verificado;
+    this.verificadoIcon = verificadoIcon;
     this.verificadoTXT = verificadoTXT;
   }
 
@@ -630,9 +630,9 @@ public final class FragmentInfoBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.verificado;
-      ImageView verificado = ViewBindings.findChildViewById(rootView, id);
-      if (verificado == null) {
+      id = R.id.verificado_icon;
+      ImageView verificadoIcon = ViewBindings.findChildViewById(rootView, id);
+      if (verificadoIcon == null) {
         break missingId;
       }
 
@@ -653,7 +653,7 @@ public final class FragmentInfoBinding implements ViewBinding {
           noSeEncontroPublicaciones, nombre, nombreUsuario, notificaciones, overlay, popup,
           productosDestacados, progressCargaImagen, progressCargaImagenFondo, qrTrabajador,
           relativeLayout, scroll, segidores, siguiendo, swipe, telefono, tk, trabajadoresSimilares,
-          tvReadMore, verMasTrabajadores, verificado, verificadoTXT);
+          tvReadMore, verMasTrabajadores, verificadoIcon, verificadoTXT);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

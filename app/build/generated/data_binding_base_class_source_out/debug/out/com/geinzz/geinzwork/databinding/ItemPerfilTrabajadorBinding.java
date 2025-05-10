@@ -71,6 +71,9 @@ public final class ItemPerfilTrabajadorBinding implements ViewBinding {
   @NonNull
   public final TextView urlTrabajador;
 
+  @NonNull
+  public final ImageView verificado;
+
   private ItemPerfilTrabajadorBinding(@NonNull LinearLayout rootView,
       @NonNull CircularProgressIndicator cargadoImg, @NonNull ProgressBar cargarContenido,
       @NonNull TextView categoriaTrabajo, @NonNull TextView edadUser, @NonNull ImageView fb,
@@ -78,7 +81,8 @@ public final class ItemPerfilTrabajadorBinding implements ViewBinding {
       @NonNull LinearLayout linealInfoTrabajdor, @NonNull TextView localidad,
       @NonNull TextView nacionnalidad, @NonNull TextView nombreTrabajador,
       @NonNull TextView nombreTrabajadoroculto, @NonNull TextView seguidoresTrabajador,
-      @NonNull TextView tipoTrabajo, @NonNull ImageView tk, @NonNull TextView urlTrabajador) {
+      @NonNull TextView tipoTrabajo, @NonNull ImageView tk, @NonNull TextView urlTrabajador,
+      @NonNull ImageView verificado) {
     this.rootView = rootView;
     this.cargadoImg = cargadoImg;
     this.cargarContenido = cargarContenido;
@@ -96,6 +100,7 @@ public final class ItemPerfilTrabajadorBinding implements ViewBinding {
     this.tipoTrabajo = tipoTrabajo;
     this.tk = tk;
     this.urlTrabajador = urlTrabajador;
+    this.verificado = verificado;
   }
 
   @Override
@@ -221,10 +226,16 @@ public final class ItemPerfilTrabajadorBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.verificado;
+      ImageView verificado = ViewBindings.findChildViewById(rootView, id);
+      if (verificado == null) {
+        break missingId;
+      }
+
       return new ItemPerfilTrabajadorBinding((LinearLayout) rootView, cargadoImg, cargarContenido,
           categoriaTrabajo, edadUser, fb, ig, imgPerfil, linealInfoTrabajdor, localidad,
           nacionnalidad, nombreTrabajador, nombreTrabajadoroculto, seguidoresTrabajador,
-          tipoTrabajo, tk, urlTrabajador);
+          tipoTrabajo, tk, urlTrabajador, verificado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

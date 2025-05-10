@@ -51,6 +51,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomSheetCargarSeguidoresSeguidosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetContactaTrabajadorBinding
@@ -1369,7 +1370,6 @@ class info : Fragment() {
 
 
     private fun verificarEstado_verificacion(fb: String, ig: String, tk: String, id: String) {
-        val verificado = binding.verificado
         val banerPublicacionesRecientes = binding.banerPublicacionesRecientes
         val trabajosRealizados = binding.TrabajosRealizados
         val linealRedes = binding.linealRedes
@@ -1381,11 +1381,27 @@ class info : Fragment() {
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
+                constantes_servicios.verificarEstado_vericiacion(binding.verificadoIcon,id ){ v, plan->
+                    when(plan){
+                        Variables.plaA->{
+                            binding.verificadoIcon.setImageResource(R.drawable.verificado_a)
+
+                        }
+                        Variables.planB->{
+                            binding.verificadoIcon.setImageResource(R.drawable.icon_verificado)
+                        }
+                        Variables.PlanC->{
+                            binding.verificadoIcon.setImageResource(R.drawable.verificado_c)
+
+
+                        }
+                    }
+
+                }
                 val data = res.data
                 val estado = data?.get(Variables.estado) as? Boolean ?: false
                 val plan = data?.get(Variables.plan) as? String? ?: ""
                 if (estado) {
-                    verificado.isVisible = true
                     binding.verificadoTXT.text = "verificado"
                     banerPublicacionesRecientes.isVisible = true
                     val adapter = adapterTrabajo_realizados(listAdapter) { item ->
@@ -1415,13 +1431,11 @@ class info : Fragment() {
 
                 } else {
                     binding.linealProductosPublicados.isVisible = false
-                    verificado.isVisible = false
                     banerPublicacionesRecientes.isVisible = false
                     trabajosRealizados.isVisible = false
                     binding.verificadoTXT.text = "noverificado"
                 }
             } else {
-                verificado.isVisible = false
                 binding.linealProductosPublicados.isVisible = false
                 binding.verificadoTXT.text = "noverificado"
                 banerPublicacionesRecientes.isVisible = false

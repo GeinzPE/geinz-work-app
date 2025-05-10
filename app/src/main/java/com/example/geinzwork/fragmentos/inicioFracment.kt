@@ -38,6 +38,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantesSubcategoriaszonasTiendas
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.conteoUser
 import com.geinzz.geinzwork.constantesGeneral.filtradoLocalidadElementos
@@ -90,6 +91,7 @@ class inicioFracment : Fragment() {
         obtenerProductos_trabajadores()
         obterTrabajosRecientes_trabajadores()
         val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
+
 
         val storedValue = pref?.getString(KEY, "Default Value")
         binding.cerrarAnuncio.setOnClickListener {
@@ -506,6 +508,7 @@ class inicioFracment : Fragment() {
 
     private fun SetAnuncios() {
         constantesPublicidad.obtenerAnunciosGeinz(
+            (activity as MainActivity).getViewPager ,// Pasa la propiedad viewPager de la Activity
             binding.carrusel,
             mContex,
             binding.includeCabezero.filtradoUsuairo
@@ -832,6 +835,28 @@ class inicioFracment : Fragment() {
                 val envioGratis: Boolean = doc.get("envio_gratis") as? Boolean ?: false
                 val id: String = doc.get("id") as? String ?: ""
 
+                constantes_servicios.verificarEstado_vericiacion(
+                    currentBinding.verificado,
+                    id_trabajador
+                ) { v, plan ->
+                    when (plan) {
+                        Variables.plaA -> {
+                            currentBinding.verificado.setImageResource(R.drawable.verificado_a)
+
+                        }
+
+                        Variables.planB -> {
+                            currentBinding.verificado.setImageResource(R.drawable.icon_verificado)
+                        }
+
+                        Variables.PlanC -> {
+                            currentBinding.verificado.setImageResource(R.drawable.verificado_c)
+
+                        }
+                    }
+
+                }
+
                 constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
                     currentBinding.NombreVerificado.text = nombre
                 }
@@ -926,6 +951,28 @@ class inicioFracment : Fragment() {
                 val id: String = doc.get("id") as? String ?: ""
 
                 Log.d("obtenosimgtrabajdor", id_trabajador)
+
+                constantes_servicios.verificarEstado_vericiacion(
+                    currentBinding.verificado,
+                    id_trabajador
+                ) { v, plan ->
+                    when (plan) {
+                        Variables.plaA -> {
+                            currentBinding.verificado.setImageResource(R.drawable.verificado_a)
+
+                        }
+
+                        Variables.planB -> {
+                            currentBinding.verificado.setImageResource(R.drawable.icon_verificado)
+                        }
+
+                        Variables.PlanC -> {
+                            currentBinding.verificado.setImageResource(R.drawable.verificado_c)
+
+                        }
+                    }
+
+                }
 
                 constantesTrabajadoresTiendasInicioFragmet.obtnerIMG_trabajador(
                     id_trabajador,

@@ -172,10 +172,11 @@
                             android:text="Benjamin lopez" />
 
                         <ImageView
+                            android:id="@+id/verificado"
+                            android:visibility="gone"
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/icon_verificado" />
+                            android:layout_gravity="center" />
                     </LinearLayout>
 
 

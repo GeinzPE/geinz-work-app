@@ -21,11 +21,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapterInicializarRecycleimgProductosTrabajadores
+import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vistas_publicaciones_productos_verificados
 import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
+import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaVerProductosTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
@@ -407,11 +409,28 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                             if (res.exists()) {
                                 val data = res.data
                                 val nombre_trabajador = data?.get("nombre") as? String ?: ""
-                                val verificado = data?.get("verificado") as? Boolean ?: false
-                                if (verificado == true) {
-                                    binding.iconoVerificado.isVisible = true
-                                    binding.nombreTrabajador.text =
-                                        "Vendido por : $nombre_trabajador"
+                                constantes_servicios.verificarEstado_vericiacion(binding.iconoVerificado,idTrabajador ){ v, plan->
+                                    when(plan){
+                                        Variables.plaA->{
+                                            binding.iconoVerificado.setImageResource(R.drawable.verificado_a)
+                                            binding.nombreTrabajador.text =
+                                                "Vendido por : $nombre_trabajador"
+
+                                        }
+                                        Variables.planB->{
+                                            binding.iconoVerificado.setImageResource(R.drawable.icon_verificado)
+                                            binding.nombreTrabajador.text =
+                                                "Vendido por : $nombre_trabajador"
+                                        }
+                                        Variables.PlanC->{
+                                            binding.iconoVerificado.setImageResource(R.drawable.verificado_c)
+                                            binding.nombreTrabajador.text =
+                                                "Vendido por : $nombre_trabajador"
+
+
+                                        }
+                                    }
+
                                 }
                             }
                         }

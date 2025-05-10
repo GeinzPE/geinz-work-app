@@ -47,18 +47,6 @@ public final class ActivityEditarInfoBinding implements ViewBinding {
   public final TextInputLayout fechaInput;
 
   @NonNull
-  public final TextInputLayout horaioPMInput;
-
-  @NonNull
-  public final EditText horario;
-
-  @NonNull
-  public final TextInputLayout horarioInput;
-
-  @NonNull
-  public final EditText horariopm;
-
-  @NonNull
   public final TextView informacion;
 
   @NonNull
@@ -80,8 +68,6 @@ public final class ActivityEditarInfoBinding implements ViewBinding {
       @NonNull TextInputLayout apellidoInput, @NonNull TextInputLayout caracteristicasTrabajos,
       @NonNull EditText caracteristicasTrabajosED, @NonNull TextView editar,
       @NonNull MaterialButton enviar, @NonNull EditText fecha, @NonNull TextInputLayout fechaInput,
-      @NonNull TextInputLayout horaioPMInput, @NonNull EditText horario,
-      @NonNull TextInputLayout horarioInput, @NonNull EditText horariopm,
       @NonNull TextView informacion, @NonNull LinearLayout main, @NonNull EditText nombre,
       @NonNull TextInputLayout nombreInput, @NonNull EditText telefono,
       @NonNull TextInputLayout telefonoInput) {
@@ -94,10 +80,6 @@ public final class ActivityEditarInfoBinding implements ViewBinding {
     this.enviar = enviar;
     this.fecha = fecha;
     this.fechaInput = fechaInput;
-    this.horaioPMInput = horaioPMInput;
-    this.horario = horario;
-    this.horarioInput = horarioInput;
-    this.horariopm = horariopm;
     this.informacion = informacion;
     this.main = main;
     this.nombre = nombre;
@@ -181,30 +163,6 @@ public final class ActivityEditarInfoBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.horaioPMInput;
-      TextInputLayout horaioPMInput = ViewBindings.findChildViewById(rootView, id);
-      if (horaioPMInput == null) {
-        break missingId;
-      }
-
-      id = R.id.horario;
-      EditText horario = ViewBindings.findChildViewById(rootView, id);
-      if (horario == null) {
-        break missingId;
-      }
-
-      id = R.id.horarioInput;
-      TextInputLayout horarioInput = ViewBindings.findChildViewById(rootView, id);
-      if (horarioInput == null) {
-        break missingId;
-      }
-
-      id = R.id.horariopm;
-      EditText horariopm = ViewBindings.findChildViewById(rootView, id);
-      if (horariopm == null) {
-        break missingId;
-      }
-
       id = R.id.informacion;
       TextView informacion = ViewBindings.findChildViewById(rootView, id);
       if (informacion == null) {
@@ -239,8 +197,7 @@ public final class ActivityEditarInfoBinding implements ViewBinding {
 
       return new ActivityEditarInfoBinding((LinearLayout) rootView, apellido, apellidoInput,
           caracteristicasTrabajos, caracteristicasTrabajosED, editar, enviar, fecha, fechaInput,
-          horaioPMInput, horario, horarioInput, horariopm, informacion, main, nombre, nombreInput,
-          telefono, telefonoInput);
+          informacion, main, nombre, nombreInput, telefono, telefonoInput);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

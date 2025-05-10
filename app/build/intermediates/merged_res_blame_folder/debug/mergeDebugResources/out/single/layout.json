@@ -4,6 +4,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-62:\\layout\\include_estadisticas_general_noticias_baner.xml"
     },
     {
+        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-59:/layout/fragment_cuenta_fracment.xml",
+        "source": "com.geinzz.geinzwork.app-main-62:/layout/fragment_cuenta_fracment.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-59:\\layout\\include_agrega_productos_rb_vr_radiobutonss.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-62:\\layout\\include_agrega_productos_rb_vr_radiobutonss.xml"
     },
@@ -704,6 +708,10 @@
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-62:\\layout\\activity_servicios_geinz.xml"
     },
     {
+        "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-59:\\layout\\bottom_sheet_editar_campos.xml",
+        "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-62:\\layout\\bottom_sheet_editar_campos.xml"
+    },
+    {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-59:\\layout\\fragment_categorias_fracment.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-62:\\layout\\fragment_categorias_fracment.xml"
     },
@@ -822,10 +830,6 @@
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-59:\\layout\\fragment_add_review.xml",
         "source": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-main-62:\\layout\\fragment_add_review.xml"
-    },
-    {
-        "merged": "com.geinzz.geinzwork.app-mergeDebugResources-59:/layout/bottomsheet_productos_vendidos_user_verifi.xml",
-        "source": "com.geinzz.geinzwork.app-main-62:/layout/bottomsheet_productos_vendidos_user_verifi.xml"
     },
     {
         "merged": "C:\\Users\\Benjamin\\.gradle\\daemon\\8.6\\com.geinzz.geinzwork.app-mergeDebugResources-59:\\layout\\activity_promocionesvista.xml",
