@@ -449,4 +449,11 @@
     <string name="siguiendo">Siguiendo</string>
     <string name="buscar">Buscar</string>
 
+
+    <string name="texto_nombre">Actualiza tu nombre y guarda los cambios para verlo reflejado.</string>
+    <string name="texto_nombre_usuario">Recuerda que solo puedes cambiar tu nombre de usuario una vez al mes. Guarda los cambios para que se actualicen.</string>
+    <string name="texto_apellido">Actualiza tu apellido y guarda los cambios para verlo reflejado.</string>
+    <string name="texto_numero">Actualiza tu número y guarda los cambios para verlo reflejado.</string>
+    <string name="texto_descripcion">Edita tu descripción de trabajo y guarda los cambios para verlo reflejado.</string>
+
 </resources>

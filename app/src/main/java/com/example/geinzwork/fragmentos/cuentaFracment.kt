@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.InputType
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -33,6 +34,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.BottomSheetConfigCuentaBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarCamposBinding
+import com.geinzz.geinzwork.databinding.BottomSheetVerificadoMasInfoBinding
 import com.geinzz.geinzwork.databinding.FragmentCuentaFracmentBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -164,6 +166,11 @@ class cuentaFracment : Fragment() {
 //            vista.putExtra(Variables.valor, telefonouser)
 //            startActivity(vista)
         }
+        binding.informacion.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            informacion_verificados(firebaseAuth.uid.toString())
+            dialog.show()
+        }
         binding.editarDescripcion.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
             bottomShettEditar_informaciones(
@@ -191,6 +198,100 @@ class cuentaFracment : Fragment() {
 
     }
 
+    private fun informacion_verificados(id_Trabajador: String) {
+        val bottomSheet_verificado =
+            BottomSheetVerificadoMasInfoBinding.inflate(LayoutInflater.from(mContex))
+
+        val img_verificado = bottomSheet_verificado.insigniaVerificado
+        val fecha_verificiada = bottomSheet_verificado.fechaVerificado
+        val fecha_vencimineto = bottomSheet_verificado.fechaVencimiento
+        val plan_verificado = bottomSheet_verificado.planVerificado
+        val beneficios_verificado = bottomSheet_verificado.beneficiosVerificados
+
+
+        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+            .document("verificaciones")
+
+        db.collection("activos").get().addOnSuccessListener { res ->
+            for (documents in res) {
+                val documentId = documents.id
+                val data = documents.data
+                val plan = data?.get("plan") as? String ?: ""
+                val fechas = data.get("fechas") as? Map<*, *>
+
+                if (fechas != null) {
+                    val fechaActivacion = fechas["fecha_activacion"] as? String ?: ""
+                    val fechaVencimiento = fechas["fecha_vencimiento"] as? String ?: ""
+                    bottomSheet_verificado.fechaVerificado.text = fechaActivacion
+                    bottomSheet_verificado.fechaVencimiento.text = fechaVencimiento
+                }
+
+                Log.d("Firestore_verificados", "ID del documento: $documentId su plan es $plan")
+
+                if (documentId == id_Trabajador) {
+                    when (plan) {
+                        "A" -> {
+                            bottomSheet_verificado.planVerificado.text = "Plan A"
+                            setear_caracteristicasVerificados(db,"plan_a",bottomSheet_verificado)
+                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_a)
+
+                        }
+
+                        "B" -> {
+                            bottomSheet_verificado.planVerificado.text = "Plan B"
+                            setear_caracteristicasVerificados(db,"plan_b",bottomSheet_verificado)
+                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.icon_verificado)
+
+                        }
+
+                        "C" -> {
+                            bottomSheet_verificado.planVerificado.text = "Plan C"
+                            setear_caracteristicasVerificados(db,"plan_c",bottomSheet_verificado)
+                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_c)
+
+                        }
+                    }
+                }
+            }
+        }.addOnFailureListener { e ->
+            Log.e("Firestore", "Error al obtener documentos", e)
+        }
+
+        db.collection("beneficios_planes_verificados").get().addOnSuccessListener { res ->
+
+        }
+
+        val view = bottomSheet_verificado.root
+        dialog.setContentView(view)
+
+    }
+
+    private fun setear_caracteristicasVerificados(
+        db: DocumentReference,
+        documento: String,
+        bottomSheet_verificado: BottomSheetVerificadoMasInfoBinding
+    ) {
+        db.collection("beneficios_planes_verificados").document(documento)
+            .get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data
+                    val caracteristicas = data?.get("caracteristicas") as? List<*>
+                    if (caracteristicas != null) {
+                        val builder = StringBuilder()
+                        for (caracteristica in caracteristicas) {
+                            val texto = caracteristica as? String
+                            texto?.let {
+                                builder.append("- $it\n") // salto de línea después de cada ítem
+                            }
+                        }
+                        bottomSheet_verificado.beneficiosVerificados.text = builder.toString().trim()
+                    }
+                }
+            }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun bottomShettEditar_informaciones(tipoCuenta: String, tipo: String, valor: String) {
         val bottomSheet = BottomSheetEditarCamposBinding.inflate(LayoutInflater.from(mContex))
         val view = bottomSheet.root
@@ -209,13 +310,12 @@ class cuentaFracment : Fragment() {
                     when (tipo) {
                         "nombre" -> {
                             bottomSheet.informacion.text = "nombre"
-                            bottomSheet.nombre.setText(valor)
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
-                            bottomSheet.nombreUsaurio.isVisible = false
+                            bottomSheet.nombre.textoCambiante.text =
+                                getString(R.string.texto_nombre)
+                            bottomSheet.nombre.linealCamposGeneral.isVisible = true
+                            bottomSheet.nombre.campoReferidoED.setText(valor)
                             bottomSheet.enviar.setOnClickListener {
-                                val nombre = bottomSheet.nombre.text.toString()
+                                val nombre = bottomSheet.nombre.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaUsuario,
@@ -227,15 +327,15 @@ class cuentaFracment : Fragment() {
                         }
 
                         "numeroT" -> {
+                            bottomSheet.numero.textoCambiante.text =
+                                getString(R.string.texto_numero)
                             bottomSheet.informacion.text = "telefono"
-                            bottomSheet.telefono.setText(valor)
-                            bottomSheet.telefonoInput.isVisible = true
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.nombreUsaurio.isVisible = false
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.numero.linealCamposGeneral.isVisible = true
+                            bottomSheet.numero.campoReferidoED.inputType =
+                                InputType.TYPE_CLASS_NUMBER
+                            bottomSheet.numero.campoReferidoED.setText(valor)
                             bottomSheet.enviar.setOnClickListener {
-                                val telefono = bottomSheet.telefono.text.toString()
+                                val telefono = bottomSheet.numero.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaUsuario,
@@ -248,14 +348,13 @@ class cuentaFracment : Fragment() {
 
                         "apellido" -> {
                             bottomSheet.informacion.text = "apellido"
+                            bottomSheet.apellido.textoCambiante.text =
+                                getString(R.string.texto_apellido)
                             println("Se envió el apellido: $valor")
-                            bottomSheet.apellido.setText(valor)
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.nombreUsaurio.isVisible = false
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.apellido.linealCamposGeneral.isVisible = true
+                            bottomSheet.apellido.campoReferidoED.setText(valor)
                             bottomSheet.enviar.setOnClickListener {
-                                val apellido = bottomSheet.apellido.text.toString()
+                                val apellido = bottomSheet.apellido.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaUsuario,
@@ -269,15 +368,18 @@ class cuentaFracment : Fragment() {
 
                         Variables.Nombre_usuario -> {
                             bottomSheet.informacion.text = "Nombre de usuario"
-                            bottomSheet.nombreUsuarioED.setText(valor)
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.nombreUsaurio.isVisible = true
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.nombreUser.textoCambiante.text =
+                                getString(R.string.texto_nombre_usuario)
+                            bottomSheet.nombreUser.linealCamposGeneral.isVisible = true
+                            bottomSheet.nombreUser.nuevaFechaEdicion.isVisible = true
+                            constantes_nombre_usuarios.obtene_fechas_cambios(firebaseAuth.uid.toString()) { f1, f2 ->
+                                bottomSheet.nombreUser.nuevaFechaEdicion.text =
+                                    "Fecha de edicion fue $f1 y finaliza el $f2"
+                            }
+                            bottomSheet.nombreUser.campoReferidoED.setText(valor)
                             bottomSheet.enviar.setOnClickListener {
-                                val Nombre_usuario = bottomSheet.nombreUsuarioED.text.toString()
+                                val Nombre_usuario =
+                                    bottomSheet.nombreUser.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaUsuario,
@@ -300,13 +402,12 @@ class cuentaFracment : Fragment() {
                     when (tipo) {
                         "nombre" -> {
                             bottomSheet.informacion.text = "nombre"
-                            bottomSheet.nombre.setText(valor)
-                            bottomSheet.nombreUsaurio.isVisible = false
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.nombreUser.linealCamposGeneral.isVisible = true
+                            bottomSheet.nombreUser.textoCambiante.text =
+                                getString(R.string.texto_nombre)
+                            bottomSheet.nombreUser.campoReferidoED.setText(valor)
                             bottomSheet.enviar.setOnClickListener {
-                                val nombre = bottomSheet.nombre.text.toString()
+                                val nombre = bottomSheet.nombreUser.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaTrabajador,
@@ -319,13 +420,14 @@ class cuentaFracment : Fragment() {
 
                         "numeroT" -> {
                             bottomSheet.informacion.text = "telefono"
-                            bottomSheet.nombreUsaurio.isVisible = false
-                            bottomSheet.telefono.setText(valor)
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.numero.textoCambiante.text =
+                                getString(R.string.texto_numero)
+                            bottomSheet.numero.linealCamposGeneral.isVisible = true
+                            bottomSheet.numero.campoReferidoED.setText(valor)
+                            bottomSheet.numero.campoReferidoED.inputType =
+                                InputType.TYPE_CLASS_NUMBER
                             bottomSheet.enviar.setOnClickListener {
-                                val telefono = bottomSheet.telefono.text.toString()
+                                val telefono = bottomSheet.numero.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaTrabajador,
@@ -337,15 +439,14 @@ class cuentaFracment : Fragment() {
                         }
 
                         "apellido" -> {
+                            bottomSheet.apellido.textoCambiante.text =
+                                getString(R.string.texto_apellido)
                             bottomSheet.informacion.text = "apellido"
                             println("Se envió el apellido: $valor")
-                            bottomSheet.nombreUsaurio.isVisible = false
-                            bottomSheet.apellido.setText(valor)
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.apellido.linealCamposGeneral.isVisible = true
+                            bottomSheet.apellido.campoReferidoED.setText(valor)
                             bottomSheet.enviar.setOnClickListener {
-                                val apellido = bottomSheet.apellido.text.toString()
+                                val apellido = bottomSheet.apellido.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaTrabajador,
@@ -357,15 +458,15 @@ class cuentaFracment : Fragment() {
                         }
 
                         "descripcion" -> {
+                            bottomSheet.descripcion.textoCambiante.text =
+                                getString(R.string.texto_descripcion)
                             bottomSheet.informacion.text = "Descripcion"
-                            bottomSheet.caracteristicasTrabajosED.setText(valor)
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.nombreUsaurio.isVisible = false
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.caracteristicasTrabajos.isVisible = true
+                            bottomSheet.descripcion.linealCamposGeneral.isVisible = true
+                            bottomSheet.descripcion.campoReferidoED.setText(valor)
+                            bottomSheet.numero.campoReferidoED.inputType =
+                                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
                             bottomSheet.enviar.setOnClickListener {
-                                val fechaN = bottomSheet.caracteristicasTrabajosED.text.toString()
+                                val fechaN = bottomSheet.descripcion.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaTrabajador,
@@ -377,16 +478,19 @@ class cuentaFracment : Fragment() {
                         }
 
                         Variables.Nombre_usuario -> {
+                            bottomSheet.nombreUser.textoCambiante.text =
+                                getString(R.string.texto_nombre_usuario)
                             bottomSheet.informacion.text = "Nombre de usuario"
-                            bottomSheet.nombreUsuarioED.setText(valor)
-                            bottomSheet.nombreInput.visibility = View.GONE
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.apellidoInput.visibility = View.GONE
-                            bottomSheet.telefonoInput.visibility = View.GONE
-                            bottomSheet.nombreUsaurio.isVisible = true
-                            bottomSheet.caracteristicasTrabajos.isVisible = false
+                            bottomSheet.nombreUser.linealCamposGeneral.isVisible = true
+                            bottomSheet.nombreUser.campoReferidoED.setText(valor)
+                            bottomSheet.nombreUser.nuevaFechaEdicion.isVisible = true
+                            constantes_nombre_usuarios.obtene_fechas_cambios(firebaseAuth.uid.toString()) { f1, f2 ->
+                                bottomSheet.nombreUser.nuevaFechaEdicion.text =
+                                    "Fecha de edicion fue $f1 y finaliza el $f2"
+                            }
                             bottomSheet.enviar.setOnClickListener {
-                                val Nombre_usuario = bottomSheet.nombreUsuarioED.text.toString()
+                                val Nombre_usuario =
+                                    bottomSheet.nombreUser.campoReferidoED.text.toString()
                                 ActulizarDatos(
                                     bottomSheet,
                                     referenciaTrabajador,
@@ -396,7 +500,6 @@ class cuentaFracment : Fragment() {
                                 )
                             }
                         }
-
 
                         else -> {
                             println("Tipo de valor desconocido: $tipo")
@@ -410,6 +513,7 @@ class cuentaFracment : Fragment() {
         dialog.setContentView(view)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun ActulizarDatos(
         bottomSheetDialog: BottomSheetEditarCamposBinding,
         dbDocumento: DocumentReference,
@@ -421,30 +525,16 @@ class cuentaFracment : Fragment() {
             Toast.makeText(mContex, "El campo no puede estar vacío", Toast.LENGTH_SHORT).show()
             return
         }
-
-        val nuevoUsername = bottomSheetDialog.nombreUsuarioED.text.toString()
-
-        val actualizar = {
-            actualizarCampo(dbDocumento, instaDB, valorCambiado) {
-                if (verificar_Nombre_user) {
-                    constantes_nombre_usuarios.actualizar_nombre_usuario(
-                        firebaseAuth.uid.toString(),
-                        nuevoUsername
-                    )
-                }
-            }
-        }
-
+        val nuevoUsername = bottomSheetDialog.nombreUser.campoReferidoED.text.toString()
         if (verificar_Nombre_user) {
-            constantes_nombre_usuarios.verificar_existencia_nombre_usuario(nuevoUsername) { existe ->
-                if (existe) {
-                    bottomSheetDialog.nombreUsuarioED.error = "El nombre de usuario ya existe"
-                } else {
-                    actualizar()
-                }
-            }
+            constantes_nombre_usuarios.actualizar_nombre_usuario(
+                bottomSheetDialog,
+                dialog, dbDocumento, instaDB, valorCambiado,
+                firebaseAuth.uid.toString(),
+                nuevoUsername, mContex
+            )
         } else {
-            actualizar()
+            actualizarCampo(dbDocumento, instaDB, valorCambiado) {}
         }
     }
 

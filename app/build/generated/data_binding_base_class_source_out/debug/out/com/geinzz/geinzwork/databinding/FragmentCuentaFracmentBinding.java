@@ -95,6 +95,9 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
   public final CircleImageView imagenPerfil;
 
   @NonNull
+  public final ImageView informacion;
+
+  @NonNull
   public final LinearLayout linealCategoriaT;
 
   @NonNull
@@ -164,13 +167,14 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
       @NonNull ImageView editarnombre, @NonNull View estado, @NonNull TextView fechaNaciminetoUSer,
       @NonNull ImageView fotoPortada, @NonNull TextView genero, @NonNull FrameLayout horarioReloj,
       @NonNull TextView horarioUser, @NonNull ImageView iconVerificado,
-      @NonNull CircleImageView imagenPerfil, @NonNull LinearLayout linealCategoriaT,
-      @NonNull LinearLayout linealDescripcion, @NonNull LinearLayout linealHorario,
-      @NonNull LinearLayout linealPlan, @NonNull LinearLayout linealTipoTrabajo,
-      @NonNull LinearLayout linealVerificado, @NonNull LinearLayoutCompat loading,
-      @NonNull TextView localidad, @NonNull TextView nacionnalidadUser,
-      @NonNull TextView nombreUser, @NonNull TextView nombreUsuario, @NonNull TextView numero,
-      @NonNull View overlay, @NonNull TextView plan, @NonNull ImageButton popup,
+      @NonNull CircleImageView imagenPerfil, @NonNull ImageView informacion,
+      @NonNull LinearLayout linealCategoriaT, @NonNull LinearLayout linealDescripcion,
+      @NonNull LinearLayout linealHorario, @NonNull LinearLayout linealPlan,
+      @NonNull LinearLayout linealTipoTrabajo, @NonNull LinearLayout linealVerificado,
+      @NonNull LinearLayoutCompat loading, @NonNull TextView localidad,
+      @NonNull TextView nacionnalidadUser, @NonNull TextView nombreUser,
+      @NonNull TextView nombreUsuario, @NonNull TextView numero, @NonNull View overlay,
+      @NonNull TextView plan, @NonNull ImageButton popup,
       @NonNull CircularProgressIndicator progressCargaImagen, @NonNull SwipeRefreshLayout swipe,
       @NonNull TextView tipoCuenta, @NonNull TextView tipoTrabajores,
       @NonNull TextView verificado) {
@@ -197,6 +201,7 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
     this.horarioUser = horarioUser;
     this.iconVerificado = iconVerificado;
     this.imagenPerfil = imagenPerfil;
+    this.informacion = informacion;
     this.linealCategoriaT = linealCategoriaT;
     this.linealDescripcion = linealDescripcion;
     this.linealHorario = linealHorario;
@@ -378,6 +383,12 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.informacion;
+      ImageView informacion = ViewBindings.findChildViewById(rootView, id);
+      if (informacion == null) {
+        break missingId;
+      }
+
       id = R.id.linealCategoriaT;
       LinearLayout linealCategoriaT = ViewBindings.findChildViewById(rootView, id);
       if (linealCategoriaT == null) {
@@ -502,7 +513,7 @@ public final class FragmentCuentaFracmentBinding implements ViewBinding {
           RelativeGeneral, apellidoUSer, btnHorairo, cat, containerDatos, contenedorDatos,
           descripcion, edadUser, editarDescripcion, editarNombreUsuario, editarNumero,
           editarapellido, editarnombre, estado, fechaNaciminetoUSer, fotoPortada, genero,
-          horarioReloj, horarioUser, iconVerificado, imagenPerfil, linealCategoriaT,
+          horarioReloj, horarioUser, iconVerificado, imagenPerfil, informacion, linealCategoriaT,
           linealDescripcion, linealHorario, linealPlan, linealTipoTrabajo, linealVerificado,
           loading, localidad, nacionnalidadUser, nombreUser, nombreUsuario, numero, overlay, plan,
           popup, progressCargaImagen, swipe, tipoCuenta, tipoTrabajores, verificado);

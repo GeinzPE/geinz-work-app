@@ -4,7 +4,6 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -14,7 +13,6 @@ import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputLayout;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -24,19 +22,13 @@ public final class BottomSheetEditarCamposBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
-  public final EditText apellido;
-
-  @NonNull
-  public final TextInputLayout apellidoInput;
-
-  @NonNull
-  public final TextInputLayout caracteristicasTrabajos;
-
-  @NonNull
-  public final EditText caracteristicasTrabajosED;
+  public final IncludeEditarCaposPeriflBinding apellido;
 
   @NonNull
   public final BottomSheetDragHandleView cerrar;
+
+  @NonNull
+  public final IncludeEditarCaposPeriflBinding descripcion;
 
   @NonNull
   public final TextView editar;
@@ -48,45 +40,31 @@ public final class BottomSheetEditarCamposBinding implements ViewBinding {
   public final TextView informacion;
 
   @NonNull
-  public final EditText nombre;
+  public final IncludeEditarCaposPeriflBinding nombre;
 
   @NonNull
-  public final TextInputLayout nombreInput;
+  public final IncludeEditarCaposPeriflBinding nombreUser;
 
   @NonNull
-  public final TextInputLayout nombreUsaurio;
+  public final IncludeEditarCaposPeriflBinding numero;
 
-  @NonNull
-  public final EditText nombreUsuarioED;
-
-  @NonNull
-  public final EditText telefono;
-
-  @NonNull
-  public final TextInputLayout telefonoInput;
-
-  private BottomSheetEditarCamposBinding(@NonNull LinearLayout rootView, @NonNull EditText apellido,
-      @NonNull TextInputLayout apellidoInput, @NonNull TextInputLayout caracteristicasTrabajos,
-      @NonNull EditText caracteristicasTrabajosED, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull TextView editar, @NonNull MaterialButton enviar, @NonNull TextView informacion,
-      @NonNull EditText nombre, @NonNull TextInputLayout nombreInput,
-      @NonNull TextInputLayout nombreUsaurio, @NonNull EditText nombreUsuarioED,
-      @NonNull EditText telefono, @NonNull TextInputLayout telefonoInput) {
+  private BottomSheetEditarCamposBinding(@NonNull LinearLayout rootView,
+      @NonNull IncludeEditarCaposPeriflBinding apellido, @NonNull BottomSheetDragHandleView cerrar,
+      @NonNull IncludeEditarCaposPeriflBinding descripcion, @NonNull TextView editar,
+      @NonNull MaterialButton enviar, @NonNull TextView informacion,
+      @NonNull IncludeEditarCaposPeriflBinding nombre,
+      @NonNull IncludeEditarCaposPeriflBinding nombreUser,
+      @NonNull IncludeEditarCaposPeriflBinding numero) {
     this.rootView = rootView;
     this.apellido = apellido;
-    this.apellidoInput = apellidoInput;
-    this.caracteristicasTrabajos = caracteristicasTrabajos;
-    this.caracteristicasTrabajosED = caracteristicasTrabajosED;
     this.cerrar = cerrar;
+    this.descripcion = descripcion;
     this.editar = editar;
     this.enviar = enviar;
     this.informacion = informacion;
     this.nombre = nombre;
-    this.nombreInput = nombreInput;
-    this.nombreUsaurio = nombreUsaurio;
-    this.nombreUsuarioED = nombreUsuarioED;
-    this.telefono = telefono;
-    this.telefonoInput = telefonoInput;
+    this.nombreUser = nombreUser;
+    this.numero = numero;
   }
 
   @Override
@@ -117,34 +95,24 @@ public final class BottomSheetEditarCamposBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.apellido;
-      EditText apellido = ViewBindings.findChildViewById(rootView, id);
+      View apellido = ViewBindings.findChildViewById(rootView, id);
       if (apellido == null) {
         break missingId;
       }
-
-      id = R.id.apellidoInput;
-      TextInputLayout apellidoInput = ViewBindings.findChildViewById(rootView, id);
-      if (apellidoInput == null) {
-        break missingId;
-      }
-
-      id = R.id.caracteristicasTrabajos;
-      TextInputLayout caracteristicasTrabajos = ViewBindings.findChildViewById(rootView, id);
-      if (caracteristicasTrabajos == null) {
-        break missingId;
-      }
-
-      id = R.id.caracteristicasTrabajosED;
-      EditText caracteristicasTrabajosED = ViewBindings.findChildViewById(rootView, id);
-      if (caracteristicasTrabajosED == null) {
-        break missingId;
-      }
+      IncludeEditarCaposPeriflBinding binding_apellido = IncludeEditarCaposPeriflBinding.bind(apellido);
 
       id = R.id.cerrar;
       BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
       if (cerrar == null) {
         break missingId;
       }
+
+      id = R.id.descripcion;
+      View descripcion = ViewBindings.findChildViewById(rootView, id);
+      if (descripcion == null) {
+        break missingId;
+      }
+      IncludeEditarCaposPeriflBinding binding_descripcion = IncludeEditarCaposPeriflBinding.bind(descripcion);
 
       id = R.id.editar;
       TextView editar = ViewBindings.findChildViewById(rootView, id);
@@ -165,44 +133,29 @@ public final class BottomSheetEditarCamposBinding implements ViewBinding {
       }
 
       id = R.id.nombre;
-      EditText nombre = ViewBindings.findChildViewById(rootView, id);
+      View nombre = ViewBindings.findChildViewById(rootView, id);
       if (nombre == null) {
         break missingId;
       }
+      IncludeEditarCaposPeriflBinding binding_nombre = IncludeEditarCaposPeriflBinding.bind(nombre);
 
-      id = R.id.nombreInput;
-      TextInputLayout nombreInput = ViewBindings.findChildViewById(rootView, id);
-      if (nombreInput == null) {
+      id = R.id.nombre_user;
+      View nombreUser = ViewBindings.findChildViewById(rootView, id);
+      if (nombreUser == null) {
         break missingId;
       }
+      IncludeEditarCaposPeriflBinding binding_nombreUser = IncludeEditarCaposPeriflBinding.bind(nombreUser);
 
-      id = R.id.nombre_usaurio;
-      TextInputLayout nombreUsaurio = ViewBindings.findChildViewById(rootView, id);
-      if (nombreUsaurio == null) {
+      id = R.id.numero;
+      View numero = ViewBindings.findChildViewById(rootView, id);
+      if (numero == null) {
         break missingId;
       }
+      IncludeEditarCaposPeriflBinding binding_numero = IncludeEditarCaposPeriflBinding.bind(numero);
 
-      id = R.id.nombre_usuarioED;
-      EditText nombreUsuarioED = ViewBindings.findChildViewById(rootView, id);
-      if (nombreUsuarioED == null) {
-        break missingId;
-      }
-
-      id = R.id.telefono;
-      EditText telefono = ViewBindings.findChildViewById(rootView, id);
-      if (telefono == null) {
-        break missingId;
-      }
-
-      id = R.id.telefonoInput;
-      TextInputLayout telefonoInput = ViewBindings.findChildViewById(rootView, id);
-      if (telefonoInput == null) {
-        break missingId;
-      }
-
-      return new BottomSheetEditarCamposBinding((LinearLayout) rootView, apellido, apellidoInput,
-          caracteristicasTrabajos, caracteristicasTrabajosED, cerrar, editar, enviar, informacion,
-          nombre, nombreInput, nombreUsaurio, nombreUsuarioED, telefono, telefonoInput);
+      return new BottomSheetEditarCamposBinding((LinearLayout) rootView, binding_apellido, cerrar,
+          binding_descripcion, editar, enviar, informacion, binding_nombre, binding_nombreUser,
+          binding_numero);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

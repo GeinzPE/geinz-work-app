@@ -356,9 +356,14 @@
     <string name="textoPublicidad">Destaca tus publicaciones o anuncios con una imagen principal en formato horizontal y complementa la información con imágenes verticales.
                 "Desde el panel exclusivo de Geinz, crea contenido visualmente atractivo y optimizado para captar la atención de tus usuarios.</string>
     <string name="texto_agregar_bottomSheet_hastags">Agrega hashtags de manera personalizada. Puedes escribir tus propios hashtags para que otros usuarios encuentren tu contenido más fácilmente. Recuerda usar palabras clave que representen bien lo que estás publicando.</string>
+    <string name="texto_apellido">Actualiza tu apellido y guarda los cambios para verlo reflejado.</string>
     <string name="texto_bootom_shet_carritoCompras">"Realiza tus compras de manera rápida y eficiente con Geinz. Completa el formulario y envíalo para que la tienda o negocio procese tu solicitud de compra. Gracias por elegir GEINZ WORK."
     </string>
     <string name="texto_bottom_sheet_hastags_filtrado">Selecciona hashtags relacionados con tu publicación para que otros usuarios puedan encontrar más fácilmente tus ofertas o servicios de trabajo.</string>
+    <string name="texto_descripcion">Edita tu descripción de trabajo y guarda los cambios para verlo reflejado.</string>
+    <string name="texto_nombre">Actualiza tu nombre y guarda los cambios para verlo reflejado.</string>
+    <string name="texto_nombre_usuario">Recuerda que solo puedes cambiar tu nombre de usuario una vez al mes. Guarda los cambios para que se actualicen.</string>
+    <string name="texto_numero">Actualiza tu número y guarda los cambios para verlo reflejado.</string>
     <string name="texto_publicaciones_privadas">🔒 Privado – solo tú podrás verlas, nadie más tendrá acceso.</string>
     <string name="texto_solo_seguidores_publicaciones">👥 Solo tus seguidores – solo las personas que te siguen podrán verlas.</string>
     <string name="texto_ver_promociones">Personaliza tu búsqueda y descubre promociones exclusivas que se adaptan a tus necesidades. Filtra por categoría, ubicación, precio y más. ¡No dejes pasar las ofertas que más te interesan!</string>

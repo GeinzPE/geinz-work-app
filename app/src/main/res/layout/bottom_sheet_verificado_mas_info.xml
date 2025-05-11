@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/cerrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/insignia_verificado"
+        style="@style/TextoModoOScuroColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+        android:gravity="center"
+        android:text="Cuenta Geinz veirificada"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/icono_verificado"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        />
+
+    <TextView
+        android:id="@+id/fecha_verificado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+      />
+    <TextView
+        android:id="@+id/fecha_vencimiento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+       />
+    <TextView
+        android:id="@+id/plan_verificado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
+    <TextView
+        android:id="@+id/beneficios_verificados"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
+
+</LinearLayout>

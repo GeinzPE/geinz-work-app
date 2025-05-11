@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/cerrar"
         android:layout_width="match_parent"
@@ -20,21 +21,20 @@
         android:layout_below="@+id/cerrar"
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
         android:text="Editar"
         android:textSize="30sp"
-        android:layout_marginBottom="10dp"
-
         android:textStyle="bold" />
 
     <TextView
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
         android:id="@+id/informacion"
         style="@style/TextoTitulos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/cerrar"
         android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
         android:layout_toRightOf="@+id/editar"
         android:ellipsize="end"
         android:maxLines="1"
@@ -42,110 +42,34 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
         android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/nombreInput"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp">
+        <include
+            android:id="@+id/nombre"
+            layout="@layout/include_editar_capos_perifl" />
 
-            <EditText
-                android:id="@+id/nombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Nombre"
-                tools:ignore="MissingConstraints" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <include
+            android:id="@+id/nombre_user"
+            layout="@layout/include_editar_capos_perifl" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/nombre_usaurio"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp">
+        <include
+            android:id="@+id/apellido"
+            layout="@layout/include_editar_capos_perifl" />
 
-            <EditText
-                android:id="@+id/nombre_usuarioED"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Nombre de usuario"
-                tools:ignore="MissingConstraints" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <include
+            android:id="@+id/numero"
+            layout="@layout/include_editar_capos_perifl" />
 
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/apellidoInput"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp">
-
-            <EditText
-                android:id="@+id/apellido"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Apellido"
-                tools:ignore="MissingConstraints" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/telefonoInput"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp">
-
-            <EditText
-                android:id="@+id/telefono"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Numero de telefono"
-                android:inputType="date"
-                tools:ignore="MissingConstraints" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/caracteristicasTrabajos"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp">
-
-            <EditText
-                android:id="@+id/caracteristicasTrabajosED"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="top|start"
-                android:hint="Escribe una descripción"
-                android:inputType="textMultiLine"
-                android:maxLines="5"
-                android:minLines="5"
-                android:padding="10dp"
-                android:scrollbars="vertical" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <include
+            android:id="@+id/descripcion"
+            layout="@layout/include_editar_capos_perifl" />
 
         <com.google.android.material.button.MaterialButton
+            android:layout_marginTop="10dp"
             android:id="@+id/enviar"
             style="@style/RoundedButton"
             android:layout_width="match_parent"

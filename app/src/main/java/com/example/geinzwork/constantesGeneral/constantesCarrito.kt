@@ -892,11 +892,19 @@ object constantesCarrito {
         hora.text = formattedTime
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaActual(): String {
         val fechaActual = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         return fechaActual.format(formatter)
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerFechaDentroDeUnMes(): String {
+        val fechaFutura = LocalDateTime.now().plusMonths(1)
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        return fechaFutura.format(formatter)
+    }
+
 
 
     fun obtnerFotoPErfilTienda(

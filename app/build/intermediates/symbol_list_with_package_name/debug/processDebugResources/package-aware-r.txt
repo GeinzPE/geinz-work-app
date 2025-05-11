@@ -4818,6 +4818,7 @@ id barrier
 id baseline
 id beginOnFirstDraw
 id beginning
+id beneficios_verificados
 id benefit1
 id benefit2
 id benefit3
@@ -4878,6 +4879,8 @@ id calificacionTienda
 id callMeasure
 id cambiarTexto_trabajos_realziados_trabajos_recientes
 id camino
+id campoReferido
+id campoReferidoED
 id campo_compra_pagos_etc
 id campo_contacto
 id campo_contacto_lineal
@@ -5297,6 +5300,8 @@ id fechaRealizado
 id fechaVencimineto
 id fecha_llegada
 id fecha_publicada
+id fecha_vencimiento
+id fecha_verificado
 id fechaentrega
 id fechaimt
 id fechareserva
@@ -5588,6 +5593,7 @@ id inputapellido
 id inputgmail
 id inputnombre
 id inputpasword
+id insignia_verificado
 id intNumeroCelular
 id int_Genero
 id int_Localidad
@@ -5758,6 +5764,7 @@ id linealVerificado
 id linealYape
 id lineal_Publicacion
 id lineal_anuncio_verificado
+id lineal_campos_general
 id lineal_campos_trabajador
 id lineal_carnet_salud
 id lineal_certificaciones
@@ -6051,10 +6058,8 @@ id nombre_producto
 id nombre_productoED
 id nombre_trabajador
 id nombre_trabajadoroculto
-id nombre_usaurio
 id nombre_user
 id nombre_usuario
-id nombre_usuarioED
 id nombreint
 id nombresCompletos
 id nombresCompletosED
@@ -6070,6 +6075,7 @@ id notification_background
 id notification_main_column
 id notification_main_column_container
 id nuevaReview
+id nueva_fecha_edicion
 id numero
 id numero2
 id numeroContacto
@@ -6154,6 +6160,7 @@ id planAvanzado
 id planBasico
 id planNombre
 id planSelecionado
+id plan_verificado
 id planes
 id playback_controls_dock
 id playback_fragment_background
@@ -6536,6 +6543,7 @@ id textoPoliticas
 id textoPreview
 id texto_Trabajo
 id texto_adicional
+id texto_cambiante
 id texto_cambiar_trabajos_o_publicaciones
 id texto_pincipal
 id texto_promo
@@ -7014,6 +7022,7 @@ layout bottom_sheet_redes
 layout bottom_sheet_renovar_verificacion
 layout bottom_sheet_reserva_productos
 layout bottom_sheet_reservas
+layout bottom_sheet_verificado_mas_info
 layout bottom_sheet_vista_categoria
 layout bottom_shett_cambios_realizados
 layout bottom_shett_dialog_mas_info_trabajador
@@ -7089,6 +7098,7 @@ layout include_campos_productos_vendidos_verificados
 layout include_descripcion_promo_art
 layout include_detalles_servicios
 layout include_direccion_envios
+layout include_editar_capos_perifl
 layout include_estadisticas_general_noticias_baner
 layout include_item_descuento_noticias_promociones
 layout include_item_preview_producto
@@ -7906,8 +7916,13 @@ string textoApelacionToast
 string textoNoticia
 string textoPublicidad
 string texto_agregar_bottomSheet_hastags
+string texto_apellido
 string texto_bootom_shet_carritoCompras
 string texto_bottom_sheet_hastags_filtrado
+string texto_descripcion
+string texto_nombre
+string texto_nombre_usuario
+string texto_numero
 string texto_publicaciones_privadas
 string texto_solo_seguidores_publicaciones
 string texto_ver_promociones

@@ -213,7 +213,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="10dp"
                                     android:orientation="horizontal">
-
+                                    
                                     <TextView
                                         style="@style/TextoModoOScuroColor"
                                         android:layout_width="wrap_content"
@@ -222,7 +222,12 @@
                                         android:text="Verificado:"
                                         android:textSize="16sp"
                                         android:textStyle="bold" />
-
+                                    <ImageView
+                                        android:id="@+id/informacion"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_marginLeft="20dp"
+                                        android:src="@drawable/info_icon" />
                                     <TextView
                                         android:id="@+id/verificado"
                                         style="@style/TextoModoOScuroColor"
@@ -240,7 +245,11 @@
                                         android:layout_marginLeft="10dp"
                                         android:visibility="gone" />
 
+                                  
+
                                 </LinearLayout>
+
+                               
 
                                 <!--NOMBRE USER-->
                                 <LinearLayout
