@@ -54,6 +54,9 @@ public final class ItemReviewBinding implements ViewBinding {
   public final TextView nombre;
 
   @NonNull
+  public final ImageView reportar;
+
+  @NonNull
   public final TextView review;
 
   @NonNull
@@ -63,7 +66,8 @@ public final class ItemReviewBinding implements ViewBinding {
       @NonNull ProgressBar cargaIMGtexto, @NonNull TextView editado, @NonNull TextView fecha,
       @NonNull LinearLayout general, @NonNull TextView hora, @NonNull ImageView iconoVerificado,
       @NonNull CircleImageView imgPerfilUser, @NonNull LinearLayout linealIMgTexto,
-      @NonNull TextView nombre, @NonNull TextView review, @NonNull TextView tipoTrabajo) {
+      @NonNull TextView nombre, @NonNull ImageView reportar, @NonNull TextView review,
+      @NonNull TextView tipoTrabajo) {
     this.rootView = rootView;
     this.cantidadStart = cantidadStart;
     this.cargaIMGtexto = cargaIMGtexto;
@@ -75,6 +79,7 @@ public final class ItemReviewBinding implements ViewBinding {
     this.imgPerfilUser = imgPerfilUser;
     this.linealIMgTexto = linealIMgTexto;
     this.nombre = nombre;
+    this.reportar = reportar;
     this.review = review;
     this.tipoTrabajo = tipoTrabajo;
   }
@@ -166,6 +171,12 @@ public final class ItemReviewBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.reportar;
+      ImageView reportar = ViewBindings.findChildViewById(rootView, id);
+      if (reportar == null) {
+        break missingId;
+      }
+
       id = R.id.review;
       TextView review = ViewBindings.findChildViewById(rootView, id);
       if (review == null) {
@@ -179,8 +190,8 @@ public final class ItemReviewBinding implements ViewBinding {
       }
 
       return new ItemReviewBinding((RelativeLayout) rootView, cantidadStart, cargaIMGtexto, editado,
-          fecha, general, hora, iconoVerificado, imgPerfilUser, linealIMgTexto, nombre, review,
-          tipoTrabajo);
+          fecha, general, hora, iconoVerificado, imgPerfilUser, linealIMgTexto, nombre, reportar,
+          review, tipoTrabajo);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

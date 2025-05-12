@@ -1530,7 +1530,6 @@ class info : Fragment() {
                 val img_url = data?.get("img_url") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
                 Log.d("idpublicacones","$id_publicacion ,$idTrabajador ,$img_url")
-                if (img_url.isNotEmpty()) {
                     Firebase.dynamicLinks.shortLinkAsync {
                         link =
                             Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
@@ -1565,13 +1564,11 @@ class info : Fragment() {
                             putExtra(Intent.EXTRA_TEXT, invitationLink)
                             type = "text/plain"
                         }
-                        startActivity(Intent.createChooser(sendIntent, null))
+                        mContex.startActivity(Intent.createChooser(sendIntent, null))
                     }.addOnFailureListener {
                         println("Hubo un error con los links dinámicos: $it")
                     }
-                } else {
-                    println("La URL de la imagen está vacía.")
-                }
+
             } else {
                 println("El anuncio no existe.")
             }

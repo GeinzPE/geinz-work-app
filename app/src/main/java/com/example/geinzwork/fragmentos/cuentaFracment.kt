@@ -201,14 +201,6 @@ class cuentaFracment : Fragment() {
     private fun informacion_verificados(id_Trabajador: String) {
         val bottomSheet_verificado =
             BottomSheetVerificadoMasInfoBinding.inflate(LayoutInflater.from(mContex))
-
-        val img_verificado = bottomSheet_verificado.insigniaVerificado
-        val fecha_verificiada = bottomSheet_verificado.fechaVerificado
-        val fecha_vencimineto = bottomSheet_verificado.fechaVencimiento
-        val plan_verificado = bottomSheet_verificado.planVerificado
-        val beneficios_verificado = bottomSheet_verificado.beneficiosVerificados
-
-
         val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
             .document("verificaciones")
 
@@ -222,8 +214,10 @@ class cuentaFracment : Fragment() {
                 if (fechas != null) {
                     val fechaActivacion = fechas["fecha_activacion"] as? String ?: ""
                     val fechaVencimiento = fechas["fecha_vencimiento"] as? String ?: ""
-                    bottomSheet_verificado.fechaVerificado.text = fechaActivacion
-                    bottomSheet_verificado.fechaVencimiento.text = fechaVencimiento
+                    bottomSheet_verificado.fechaVerificado.text =
+                        "Fecha de verificacion:$fechaActivacion"
+                    bottomSheet_verificado.fechaVencimiento.text =
+                        "Fecha de vencimiento: $fechaVencimiento"
                 }
 
                 Log.d("Firestore_verificados", "ID del documento: $documentId su plan es $plan")
@@ -231,24 +225,51 @@ class cuentaFracment : Fragment() {
                 if (documentId == id_Trabajador) {
                     when (plan) {
                         "A" -> {
-                            bottomSheet_verificado.planVerificado.text = "Plan A"
-                            setear_caracteristicasVerificados(db,"plan_a",bottomSheet_verificado)
+                            bottomSheet_verificado.planVerificado.text = "Plan de obtenido: Plan A"
+                            setear_caracteristicasVerificados(
+                                db,
+                                "plan_a",
+                                bottomSheet_verificado
+                            ) { tiempo ->
+                                val handler = Handler(Looper.getMainLooper())
+                                handler.postDelayed({
+                                    bottomSheet_verificado.lineaContenido.isVisible = true
+                                    bottomSheet_verificado.cargaContenido.isVisible = false
+                                }, tiempo)
+                            }
                             bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_a)
-
                         }
 
                         "B" -> {
-                            bottomSheet_verificado.planVerificado.text = "Plan B"
-                            setear_caracteristicasVerificados(db,"plan_b",bottomSheet_verificado)
+                            bottomSheet_verificado.planVerificado.text = "Plan de obtenido: Plan B"
+                            setear_caracteristicasVerificados(
+                                db,
+                                "plan_b",
+                                bottomSheet_verificado
+                            ) { tiempo ->
+                                val handler = Handler(Looper.getMainLooper())
+                                handler.postDelayed({
+                                    bottomSheet_verificado.lineaContenido.isVisible = true
+                                    bottomSheet_verificado.cargaContenido.isVisible = false
+                                }, tiempo)
+                            }
                             bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.icon_verificado)
-
                         }
 
                         "C" -> {
-                            bottomSheet_verificado.planVerificado.text = "Plan C"
-                            setear_caracteristicasVerificados(db,"plan_c",bottomSheet_verificado)
+                            bottomSheet_verificado.planVerificado.text = "Plan de obtenido: Plan C"
+                            setear_caracteristicasVerificados(
+                                db,
+                                "plan_c",
+                                bottomSheet_verificado
+                            ) { tiempo ->
+                                val handler = Handler(Looper.getMainLooper())
+                                handler.postDelayed({
+                                    bottomSheet_verificado.lineaContenido.isVisible = true
+                                    bottomSheet_verificado.cargaContenido.isVisible = false
+                                }, tiempo)
+                            }
                             bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_c)
-
                         }
                     }
                 }
@@ -256,11 +277,6 @@ class cuentaFracment : Fragment() {
         }.addOnFailureListener { e ->
             Log.e("Firestore", "Error al obtener documentos", e)
         }
-
-        db.collection("beneficios_planes_verificados").get().addOnSuccessListener { res ->
-
-        }
-
         val view = bottomSheet_verificado.root
         dialog.setContentView(view)
 
@@ -269,10 +285,18 @@ class cuentaFracment : Fragment() {
     private fun setear_caracteristicasVerificados(
         db: DocumentReference,
         documento: String,
-        bottomSheet_verificado: BottomSheetVerificadoMasInfoBinding
+        bottomSheet_verificado: BottomSheetVerificadoMasInfoBinding,
+        tiempoCarga: (Long) -> Unit
     ) {
+        val tiempoInicio = System.currentTimeMillis()
+
         db.collection("beneficios_planes_verificados").document(documento)
             .get().addOnSuccessListener { res ->
+                val tiempoFin = System.currentTimeMillis()
+                val duracion = tiempoFin - tiempoInicio
+                Log.d("TiempoFirestore", "Tiempo de carga: ${duracion} ms")
+                tiempoCarga(duracion)
+
                 if (res.exists()) {
                     val data = res.data
                     val caracteristicas = data?.get("caracteristicas") as? List<*>
@@ -281,10 +305,11 @@ class cuentaFracment : Fragment() {
                         for (caracteristica in caracteristicas) {
                             val texto = caracteristica as? String
                             texto?.let {
-                                builder.append("- $it\n") // salto de línea después de cada ítem
+                                builder.append("- $it ✅ \n")
                             }
                         }
-                        bottomSheet_verificado.beneficiosVerificados.text = builder.toString().trim()
+                        bottomSheet_verificado.beneficiosVerificados.text =
+                            builder.toString().trim()
                     }
                 }
             }

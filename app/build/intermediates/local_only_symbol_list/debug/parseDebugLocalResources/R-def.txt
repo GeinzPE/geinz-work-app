@@ -315,6 +315,8 @@ id Cuenta
 id Cuenta_Trabajador
 id Cuenta_usuario
 id Delivery
+id Descripcion_del_problema
+id Descripcion_del_problemaED
 id Editar
 id Efectivo
 id EnTienda
@@ -1058,6 +1060,7 @@ id lineaLocalida
 id lineaPadreListener
 id lineaReportes
 id lineaTipoT
+id linea_contenido
 id lineal
 id lineal2Estrellas
 id lineal3Estrellas
@@ -1553,6 +1556,7 @@ id renovar
 id repetircontraFree
 id repo
 id repoED
+id reportar
 id reporteID
 id reportes
 id reserva
@@ -1661,6 +1665,7 @@ id tipoCuenta
 id tipoTienda
 id tipoTrabajo
 id tipo_Servicio
+id tipo_incidencia
 id tipo_servicio
 id tipo_trabajo
 id tipo_trabajoED
@@ -1907,6 +1912,7 @@ layout bottom_sheet_redes
 layout bottom_sheet_renovar_verificacion
 layout bottom_sheet_reserva_productos
 layout bottom_sheet_reservas
+layout bottom_sheet_review_reportado
 layout bottom_sheet_verificado_mas_info
 layout bottom_sheet_vista_categoria
 layout bottom_shett_cambios_realizados

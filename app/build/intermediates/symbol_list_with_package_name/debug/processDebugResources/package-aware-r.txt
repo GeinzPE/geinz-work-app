@@ -4487,6 +4487,8 @@ id Cuenta_usuario
 id DANISH
 id DUTCH
 id Delivery
+id Descripcion_del_problema
+id Descripcion_del_problemaED
 id ENGLISH
 id Editar
 id Efectivo
@@ -5682,6 +5684,7 @@ id lineaLocalida
 id lineaPadreListener
 id lineaReportes
 id lineaTipoT
+id linea_contenido
 id lineal
 id lineal2Estrellas
 id lineal3Estrellas
@@ -6335,6 +6338,7 @@ id repetircontraFree
 id repo
 id repoED
 id report_drawn
+id reportar
 id reporteID
 id reportes
 id reserva
@@ -6561,6 +6565,7 @@ id tipoCuenta
 id tipoTienda
 id tipoTrabajo
 id tipo_Servicio
+id tipo_incidencia
 id tipo_servicio
 id tipo_trabajo
 id tipo_trabajoED
@@ -7022,6 +7027,7 @@ layout bottom_sheet_redes
 layout bottom_sheet_renovar_verificacion
 layout bottom_sheet_reserva_productos
 layout bottom_sheet_reservas
+layout bottom_sheet_review_reportado
 layout bottom_sheet_verificado_mas_info
 layout bottom_sheet_vista_categoria
 layout bottom_shett_cambios_realizados

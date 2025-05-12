@@ -327,7 +327,7 @@ object constantesReviewComplet {
                                 pendingVerifications--
                                 if (pendingVerifications == 0) {
                                     if (reviewsExist) {
-                                        inicalizarRecicle(reviewsParaMostrar, recicleContainer, context)
+                                        inicalizarRecicle(idTrabajdor,reviewsParaMostrar, recicleContainer, context)
                                         recyclerView.visibility = View.VISIBLE
                                     } else {
                                         relativeLayout.visibility = View.VISIBLE
@@ -350,7 +350,7 @@ object constantesReviewComplet {
                 // Para los casos donde no se necesita verificación asíncrona
                 if (fitlradoString != "verificado") {
                     if (reviewsExist) {
-                        inicalizarRecicle(reviewsParaMostrar, recicleContainer, context)
+                        inicalizarRecicle(idTrabajdor,reviewsParaMostrar, recicleContainer, context)
                         recyclerView.visibility = View.VISIBLE
                     } else {
                         relativeLayout.visibility = View.VISIBLE
@@ -375,12 +375,13 @@ object constantesReviewComplet {
 
 
     fun inicalizarRecicle(
+        idTrabajdor:String,
         listaReview: MutableList<daclassReview>,
         recicleContainer: RecyclerView, context: Context
     ) {
         val recicle = recicleContainer
         recicle.layoutManager = LinearLayoutManager(context)
-        recicle.adapter = adaptadorReview(listaReview)
+        recicle.adapter = adaptadorReview(listaReview,idTrabajdor)
     }
 
 }

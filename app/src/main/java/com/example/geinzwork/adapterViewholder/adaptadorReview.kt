@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.adapterViewholder
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Typeface
 import android.text.Spannable
@@ -8,6 +9,7 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -17,19 +19,25 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
+import com.geinzz.geinzwork.databinding.BottomSheetConfigCuentaBinding
+import com.geinzz.geinzwork.databinding.BottomSheetReviewReportadoBinding
 import com.geinzz.geinzwork.databinding.ItemReviewBinding
 import com.geinzz.geinzwork.dataclass.daclassReview
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class adaptadorReview(
     private val listaReview: MutableList<daclassReview>,
+    private val idtrabajadorClikeado: String?=null,
 
     ) : RecyclerView.Adapter<adaptadorReview.viewHolderReview>() {
+    private lateinit var dialog: Dialog
+    private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolderReview {
         val binding = ItemReviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return viewHolderReview(binding)
-
     }
 
     override fun getItemCount(): Int {
@@ -50,12 +58,18 @@ class adaptadorReview(
         val imgpeStart = binding.cantidadStart
         val hora = binding.hora
         val fecha = binding.fecha
+        val reportar = binding.reportar
 
         fun render(daclassReview: daclassReview) {
             review.text = daclassReview.review
             fecha.text = daclassReview.fecha
             hora.text = daclassReview.hora
-
+            firebaseAuth=FirebaseAuth.getInstance()
+            reportar.setOnClickListener {
+                dialog = BottomSheetDialog(itemView.context)
+                BottomShett_UsoIndebido(daclassReview)
+                dialog.show()
+            }
             setearStarts(daclassReview)
             constantesCarrito.setearDatosUsuarioImgNombre(
                 idUSer = daclassReview.idUsuarioReview.toString()
@@ -72,16 +86,21 @@ class adaptadorReview(
                 } catch (e: Exception) {
                     println("error al setear la img")
                 }
-                constantes_servicios.verificarEstado_vericiacion(binding.iconoVerificado,daclassReview.idUsuarioReview.toString() ){ v, plan->
-                    when(plan){
-                        Variables.plaA->{
+                constantes_servicios.verificarEstado_vericiacion(
+                    binding.iconoVerificado,
+                    daclassReview.idUsuarioReview.toString()
+                ) { v, plan ->
+                    when (plan) {
+                        Variables.plaA -> {
                             binding.iconoVerificado.setImageResource(R.drawable.verificado_a)
 
                         }
-                        Variables.planB->{
+
+                        Variables.planB -> {
                             binding.iconoVerificado.setImageResource(R.drawable.icon_verificado)
                         }
-                        Variables.PlanC->{
+
+                        Variables.PlanC -> {
                             binding.iconoVerificado.setImageResource(R.drawable.verificado_c)
 
 
@@ -160,6 +179,68 @@ class adaptadorReview(
             } catch (e: Exception) {
                 println(e)
             }
+        }
+
+        private fun BottomShett_UsoIndebido(
+            item: daclassReview,
+        ) {
+            val bottomSheet =
+                BottomSheetReviewReportadoBinding.inflate(LayoutInflater.from(itemView.context))
+            val view = bottomSheet.root
+            val tipoIncidencia = bottomSheet.tipoIncidencia
+
+            val opciones = listOf(
+                "Comportamiento inapropiado",
+                "Contenido ofensivo o falso",
+                "Incumplimiento de las políticas de Geinz",
+                "Lenguaje abusivo o discriminatorio",
+                "Spam o promoción no autorizada",
+                "Otro"
+            )
+
+            val adapter = ArrayAdapter(
+                itemView.context,
+                android.R.layout.simple_dropdown_item_1line,
+                opciones
+            )
+
+            tipoIncidencia.setAdapter(adapter)
+            val enviar = bottomSheet.btnApply
+
+
+            enviar.setOnClickListener {
+                val db =
+                    FirebaseFirestore.getInstance().collection("politicas_problemas_verificaciones")
+                        .document("denuncia_review").collection("denuncia_review")
+                val hasmap = hashMapOf<String, Any>(
+                    "id_registrado" to firebaseAuth.uid.toString(),
+                    "id_review" to item.idUsuarioReview.toString(),
+                    "id_trabajador" to (idtrabajadorClikeado ?: ""),
+                    "id_usuario_review" to item.idUsuarioReview.toString(),
+                    "incidencia" to bottomSheet.tipoIncidencia.text.toString(),
+                    "descripcion" to bottomSheet.DescripcionDelProblemaED.text.toString()
+
+                )
+                db.add(hasmap).addOnSuccessListener {
+                    Toast.makeText(
+                        itemView.context,
+                        "Denuncia enviada exitosamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dialog.dismiss()
+                }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(
+                            itemView.context,
+                            "Error al enviar el formulario",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                dialog.dismiss()
+
+            }
+            dialog.setContentView(view)
+
         }
 
 

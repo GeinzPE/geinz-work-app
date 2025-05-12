@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +26,9 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
   public final TextView beneficiosVerificados;
 
   @NonNull
+  public final ProgressBar cargaContenido;
+
+  @NonNull
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
@@ -40,20 +44,26 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
   public final TextView insigniaVerificado;
 
   @NonNull
+  public final LinearLayout lineaContenido;
+
+  @NonNull
   public final TextView planVerificado;
 
   private BottomSheetVerificadoMasInfoBinding(@NonNull LinearLayout rootView,
-      @NonNull TextView beneficiosVerificados, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull TextView fechaVencimiento, @NonNull TextView fechaVerificado,
-      @NonNull ImageView iconoVerificado, @NonNull TextView insigniaVerificado,
+      @NonNull TextView beneficiosVerificados, @NonNull ProgressBar cargaContenido,
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull TextView fechaVencimiento,
+      @NonNull TextView fechaVerificado, @NonNull ImageView iconoVerificado,
+      @NonNull TextView insigniaVerificado, @NonNull LinearLayout lineaContenido,
       @NonNull TextView planVerificado) {
     this.rootView = rootView;
     this.beneficiosVerificados = beneficiosVerificados;
+    this.cargaContenido = cargaContenido;
     this.cerrar = cerrar;
     this.fechaVencimiento = fechaVencimiento;
     this.fechaVerificado = fechaVerificado;
     this.iconoVerificado = iconoVerificado;
     this.insigniaVerificado = insigniaVerificado;
+    this.lineaContenido = lineaContenido;
     this.planVerificado = planVerificado;
   }
 
@@ -90,6 +100,12 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.carga_contenido;
+      ProgressBar cargaContenido = ViewBindings.findChildViewById(rootView, id);
+      if (cargaContenido == null) {
+        break missingId;
+      }
+
       id = R.id.cerrar;
       BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
       if (cerrar == null) {
@@ -120,6 +136,12 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.linea_contenido;
+      LinearLayout lineaContenido = ViewBindings.findChildViewById(rootView, id);
+      if (lineaContenido == null) {
+        break missingId;
+      }
+
       id = R.id.plan_verificado;
       TextView planVerificado = ViewBindings.findChildViewById(rootView, id);
       if (planVerificado == null) {
@@ -127,8 +149,8 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
       }
 
       return new BottomSheetVerificadoMasInfoBinding((LinearLayout) rootView, beneficiosVerificados,
-          cerrar, fechaVencimiento, fechaVerificado, iconoVerificado, insigniaVerificado,
-          planVerificado);
+          cargaContenido, cerrar, fechaVencimiento, fechaVerificado, iconoVerificado,
+          insigniaVerificado, lineaContenido, planVerificado);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
