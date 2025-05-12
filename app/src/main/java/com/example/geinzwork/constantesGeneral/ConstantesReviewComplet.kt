@@ -273,7 +273,6 @@ object constantesReviewComplet {
         recyclerView.visibility = View.GONE
 
         if (idTrabajdor != null) {
-            val listaReview = mutableListOf<daclassReview>()
             val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
                 .document("trabajadores").collection("trabajadores")
                 .document(idTrabajdor).collection("review")

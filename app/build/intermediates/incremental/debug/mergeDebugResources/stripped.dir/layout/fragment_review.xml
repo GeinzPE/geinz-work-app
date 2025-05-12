@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:orientation="vertical"
+    tools:context=".fragmentos.review">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:visibility="gone">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true">
+
+            <LinearLayout
+                android:animateLayoutChanges="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:animateLayoutChanges="true"
+                    android:id="@+id/relative_review"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/IncudeProgrs"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <include
+                        android:id="@+id/IncudeProgrs"
+                        layout="@layout/include_rreview_user_progress" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="10dp">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/todos"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Todos"
+                                app:chipIconVisible="true" />
+
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/filtrado_verificado"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="verificados"
+                                app:chipIcon="@drawable/icon_verificado"
+                                app:chipIconVisible="true"
+                                app:iconEndPadding="4dp"
+                                app:iconStartPadding="4dp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/uno_a_tres"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="1 a 3"
+                                app:chipIcon="@drawable/start_icon_dravalbe"
+                                app:chipIconVisible="true"
+                                app:iconEndPadding="4dp"
+                                app:iconStartPadding="4dp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/cuatro_a_cinco"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="4 a 5"
+                                app:chipIcon="@drawable/start_icon_dravalbe"
+                                app:chipIconVisible="true"
+                                app:iconEndPadding="4dp"
+                                app:iconStartPadding="4dp" />
+                        </com.google.android.material.chip.ChipGroup>
+
+                    </HorizontalScrollView>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <ProgressBar
+                            android:visibility="gone"
+                            android:layout_marginTop="50dp"
+                            android:id="@+id/carga_contenido"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/reyclerviewReview"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="5dp" />
+
+                        <RelativeLayout
+                            android:visibility="gone"
+                            android:id="@+id/Sin_review"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            >
+                            <TextView
+android:layout_centerInParent="true"
+                                style="@style/TextoModoOScuroColor"
+                                android:textStyle="bold"
+                                android:textSize="17sp"
+                                android:layout_marginTop="60dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No se encontraron reseñas"/>
+                        </RelativeLayout>
+                    </RelativeLayout>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <LinearLayout
+        android:id="@+id/frameSinReview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="30dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_gravity="center"
+            android:src="@drawable/revision_icon" />
+
+        <ImageView
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_gravity="center"
+            android:src="@drawable/confundir_icon" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="Se el primero en dejar una reseña"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!--carga    -->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:shimmer_auto_start="true"
+        tools:ignore="MissingConstraints">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/carga_review" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+</RelativeLayout>

@@ -1609,6 +1609,7 @@ id siHayGarantia
 id si_garantia
 id siguiendo
 id siguiente
+id sinVerificacion
 id slogan
 id sloganTienda
 id software

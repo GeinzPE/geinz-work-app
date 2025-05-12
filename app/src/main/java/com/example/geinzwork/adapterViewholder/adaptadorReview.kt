@@ -30,7 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class adaptadorReview(
     private val listaReview: MutableList<daclassReview>,
-    private val idtrabajadorClikeado: String?=null,
+    private val idtrabajadorClikeado: String? = null,
 
     ) : RecyclerView.Adapter<adaptadorReview.viewHolderReview>() {
     private lateinit var dialog: Dialog
@@ -64,11 +64,22 @@ class adaptadorReview(
             review.text = daclassReview.review
             fecha.text = daclassReview.fecha
             hora.text = daclassReview.hora
-            firebaseAuth=FirebaseAuth.getInstance()
+            firebaseAuth = FirebaseAuth.getInstance()
             reportar.setOnClickListener {
-                dialog = BottomSheetDialog(itemView.context)
-                BottomShett_UsoIndebido(daclassReview)
-                dialog.show()
+                verificar_denunciaExistente(daclassReview.idUsuarioReview.toString()) { existe ->
+                    if (existe) {
+                        Toast.makeText(
+                            itemView.context,
+                            "Ya tienes una denuncia en esta reseña",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        dialog = BottomSheetDialog(itemView.context)
+                        BottomShett_UsoIndebido(daclassReview)
+                        dialog.show()
+                    }
+                }
+
             }
             setearStarts(daclassReview)
             constantesCarrito.setearDatosUsuarioImgNombre(
@@ -209,38 +220,70 @@ class adaptadorReview(
 
 
             enviar.setOnClickListener {
-                val db =
-                    FirebaseFirestore.getInstance().collection("politicas_problemas_verificaciones")
-                        .document("denuncia_review").collection("denuncia_review")
-                val hasmap = hashMapOf<String, Any>(
-                    "id_registrado" to firebaseAuth.uid.toString(),
-                    "id_review" to item.idUsuarioReview.toString(),
-                    "id_trabajador" to (idtrabajadorClikeado ?: ""),
-                    "id_usuario_review" to item.idUsuarioReview.toString(),
-                    "incidencia" to bottomSheet.tipoIncidencia.text.toString(),
-                    "descripcion" to bottomSheet.DescripcionDelProblemaED.text.toString()
+                if (bottomSheet.tipoIncidencia.text.toString().isEmpty()) {
+                    bottomSheet.tipoIncidencia.error = "Selecione un tipo de incidencia"
+                } else if (bottomSheet.DescripcionDelProblemaED.text.toString().isEmpty()) {
+                    bottomSheet.DescripcionDelProblemaED.error = "Ingrese una descripcion"
+                } else {
+                    val db =
+                        FirebaseFirestore.getInstance()
+                            .collection("politicas_problemas_verificaciones")
+                            .document("denuncia_review").collection("denuncia_review")
+                    val hasmap = hashMapOf<String, Any>(
+                        "id_registrado" to firebaseAuth.uid.toString(),
+                        "id_review" to item.idUsuarioReview.toString(),
+                        "id_trabajador" to (idtrabajadorClikeado ?: ""),
+                        "id_usuario_review" to item.idUsuarioReview.toString(),
+                        "incidencia" to bottomSheet.tipoIncidencia.text.toString(),
+                        "descripcion" to bottomSheet.DescripcionDelProblemaED.text.toString()
 
-                )
-                db.add(hasmap).addOnSuccessListener {
-                    Toast.makeText(
-                        itemView.context,
-                        "Denuncia enviada exitosamente",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    dialog.dismiss()
-                }
-                    .addOnFailureListener { e ->
+                    )
+                    db.add(hasmap).addOnSuccessListener {
                         Toast.makeText(
                             itemView.context,
-                            "Error al enviar el formulario",
+                            "Denuncia enviada exitosamente",
                             Toast.LENGTH_SHORT
                         ).show()
+                        dialog.dismiss()
                     }
-                dialog.dismiss()
-
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                itemView.context,
+                                "Error al enviar el formulario",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    dialog.dismiss()
+                }
             }
             dialog.setContentView(view)
 
+        }
+
+        private fun verificar_denunciaExistente(idclikeado: String, existe: (Boolean) -> Unit) {
+            val db = FirebaseFirestore.getInstance()
+                .collection("politicas_problemas_verificaciones")
+                .document("denuncia_review")
+                .collection("denuncia_review")
+
+            db.get().addOnSuccessListener { res ->
+                var encontrada = false
+
+                for (datos in res) {
+                    val id_review = datos.getString("id_review") ?: ""
+                    val id_registrado = datos.getString("id_registrado") ?: ""
+
+                    if (idclikeado == id_review && id_registrado == firebaseAuth.uid.toString()) {
+                        encontrada = true
+                        break
+                    }
+                }
+
+                existe(encontrada)
+            }.addOnFailureListener {
+                println("Error al obtener datos: ${it.message}")
+                existe(false)
+            }
         }
 
 

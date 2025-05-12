@@ -49,12 +49,15 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
   @NonNull
   public final TextView planVerificado;
 
+  @NonNull
+  public final TextView sinVerificacion;
+
   private BottomSheetVerificadoMasInfoBinding(@NonNull LinearLayout rootView,
       @NonNull TextView beneficiosVerificados, @NonNull ProgressBar cargaContenido,
       @NonNull BottomSheetDragHandleView cerrar, @NonNull TextView fechaVencimiento,
       @NonNull TextView fechaVerificado, @NonNull ImageView iconoVerificado,
       @NonNull TextView insigniaVerificado, @NonNull LinearLayout lineaContenido,
-      @NonNull TextView planVerificado) {
+      @NonNull TextView planVerificado, @NonNull TextView sinVerificacion) {
     this.rootView = rootView;
     this.beneficiosVerificados = beneficiosVerificados;
     this.cargaContenido = cargaContenido;
@@ -65,6 +68,7 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
     this.insigniaVerificado = insigniaVerificado;
     this.lineaContenido = lineaContenido;
     this.planVerificado = planVerificado;
+    this.sinVerificacion = sinVerificacion;
   }
 
   @Override
@@ -148,9 +152,15 @@ public final class BottomSheetVerificadoMasInfoBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.sinVerificacion;
+      TextView sinVerificacion = ViewBindings.findChildViewById(rootView, id);
+      if (sinVerificacion == null) {
+        break missingId;
+      }
+
       return new BottomSheetVerificadoMasInfoBinding((LinearLayout) rootView, beneficiosVerificados,
           cargaContenido, cerrar, fechaVencimiento, fechaVerificado, iconoVerificado,
-          insigniaVerificado, lineaContenido, planVerificado);
+          insigniaVerificado, lineaContenido, planVerificado, sinVerificacion);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

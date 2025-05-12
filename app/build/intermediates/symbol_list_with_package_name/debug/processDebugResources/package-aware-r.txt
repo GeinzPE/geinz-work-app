@@ -2587,6 +2587,8 @@ color test
 color textoColorBTNFiltrado
 color tooltip_background_dark
 color tooltip_background_light
+color vector_tint_color
+color vector_tint_theme_color
 color verde
 color verdedelivery_gratis
 color violeta
@@ -4777,6 +4779,7 @@ id all
 id allStates
 id always
 id amTienda
+id androidx_compose_ui_view_composition_context
 id animateToEnd
 id animateToStart
 id antiClockwise
@@ -5024,6 +5027,7 @@ id compartidasNoticias
 id compartir
 id compartir_icon
 id complete
+id compose_view_saveable_id_tag
 id compraPromo
 id compra_Geinz
 id compra_web
@@ -5038,6 +5042,7 @@ id confirm_button
 id confirmacion_datos_title
 id confirmar
 id constraint
+id consume_window_insets_tag
 id contador
 id contadorLike
 id container
@@ -5435,6 +5440,7 @@ id herramenta_marketingED
 id herramienta
 id herramientaED
 id hide_ime_id
+id hide_in_inspector_tag
 id hideable
 id home
 id homeAsUp
@@ -5596,6 +5602,7 @@ id inputgmail
 id inputnombre
 id inputpasword
 id insignia_verificado
+id inspection_slot_table_set
 id intNumeroCelular
 id int_Genero
 id int_Localidad
@@ -5607,6 +5614,7 @@ id int_nacionalidad
 id int_repetirContrafree
 id invisible
 id inward
+id is_pooling_container_tag
 id italic
 id item_preview_productos
 id item_touch_helper_previous_elevation
@@ -6174,6 +6182,7 @@ id plin
 id plin_checkbox
 id pmTienda
 id pocentaje3Estrellas
+id pooling_container_listener_holder_tag
 id popup
 id porcentaje1Estrella
 id porcentaje2Estrellas
@@ -6440,6 +6449,7 @@ id si_garantia
 id siguiendo
 id siguiente
 id sin
+id sinVerificacion
 id skipCollapsed
 id skipped
 id slide
@@ -6742,6 +6752,7 @@ id withinBounds
 id wrap
 id wrap_content
 id wrap_content_constrained
+id wrapped_composition_tag
 id x_left
 id x_right
 id yape
@@ -7519,6 +7530,8 @@ string character_counter_pattern
 string clear_search_button_content_description
 string clear_text_end_icon_content_description
 string cliks
+string close_drawer
+string close_sheet
 string cocina
 string com_google_firebase_crashlytics_mapping_file_id
 string common_google_play_services_enable_button
@@ -7557,6 +7570,8 @@ string crea_diseña
 string cuarto
 string cuenta
 string cuenta_usuario
+string default_error_message
+string default_popup_window_title
 string define_zxingandroidembedded
 string dejaTuReseña
 string deja_tu_opinion
@@ -7572,6 +7587,7 @@ string detalles
 string dialog_positive
 string dismiss_button_content_description
 string dismiss_error
+string dropdown_menu
 string electrisistas
 string enchapadores
 string encuentra
@@ -7617,6 +7633,8 @@ string hogar_contrucccion
 string horario_disponivilidad
 string icon_content_description
 string ilustrador
+string in_progress
+string indeterminate
 string ingrese_contra
 string ingrese_su_mail
 string iniciar_Seccion
@@ -7795,6 +7813,7 @@ string mtrl_timepicker_cancel
 string mtrl_timepicker_confirm
 string nacionalida
 string nacionalidad_verifica
+string navigation_menu
 string next
 string noCuentas_servicios
 string no_result_found
@@ -7812,6 +7831,7 @@ string nombrerefUNO
 string nombrerefUNOTitle
 string nombretiendaTitle
 string nombreuser
+string not_selected
 string nota_crea_publicaciones_recientes
 string noticias_incluida
 string notificacion_chanel_id_defaul
@@ -7821,6 +7841,8 @@ string numero
 string numero2
 string numeroa1
 string oferta
+string off
+string on
 string orb_search_action
 string orientacion_publicidad
 string otro
@@ -7879,6 +7901,8 @@ string publicidad_apartado_alto
 string publicidad_apartado_medio
 string quinto
 string radio
+string range_end
+string range_start
 string registrarme_btn
 string registrate
 string registrate_gratis_user
@@ -7899,6 +7923,7 @@ string seleccionTrabajo
 string seleccion_tipo_Trabajo
 string selecionGenero
 string select_country
+string selected
 string servicioAnuncio
 string servicioNoticia
 string side_sheet_accessibility_pane_title
@@ -7912,10 +7937,13 @@ string solicitud_enviada_correctamente
 string status_bar_notification_info_overflow
 string su_cuenta_fue_verificada
 string subiendo_imagenes
+string switch_role
+string tab
 string tarrajeadores
 string taxista_carro
 string taxista_moto
 string tecnico_electrodomestico
+string template_percent
 string tercero
 string terminos_Condiciones
 string textoApelacionToast
@@ -8275,6 +8303,9 @@ style CardView_Dark
 style CardView_Light
 style CustomTextAppearance
 style CustomTextLargo
+style DialogWindowTheme
+style FloatingDialogTheme
+style FloatingDialogWindowTheme
 style MaterialAlertDialog_Material3
 style MaterialAlertDialog_Material3_Animation
 style MaterialAlertDialog_Material3_Body_Text

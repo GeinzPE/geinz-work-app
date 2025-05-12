@@ -205,82 +205,85 @@ class cuentaFracment : Fragment() {
             .document("verificaciones")
 
         db.collection("activos").get().addOnSuccessListener { res ->
+            var encontrado = false
+            bottomSheet_verificado.sinVerificacion.isVisible = false
+
             for (documents in res) {
                 val documentId = documents.id
                 val data = documents.data
-                val plan = data?.get("plan") as? String ?: ""
-                val fechas = data.get("fechas") as? Map<*, *>
-
-                if (fechas != null) {
-                    val fechaActivacion = fechas["fecha_activacion"] as? String ?: ""
-                    val fechaVencimiento = fechas["fecha_vencimiento"] as? String ?: ""
-                    bottomSheet_verificado.fechaVerificado.text =
-                        "Fecha de verificacion:$fechaActivacion"
-                    bottomSheet_verificado.fechaVencimiento.text =
-                        "Fecha de vencimiento: $fechaVencimiento"
-                }
-
-                Log.d("Firestore_verificados", "ID del documento: $documentId su plan es $plan")
 
                 if (documentId == id_Trabajador) {
+                    encontrado = true
+                    val plan = data["plan"] as? String ?: ""
+                    val fechas = data["fechas"] as? Map<*, *>
+
+                    if (fechas != null) {
+                        val fechaActivacion = fechas["fecha_activacion"] as? String ?: ""
+                        val fechaVencimiento = fechas["fecha_vencimiento"] as? String ?: ""
+                        bottomSheet_verificado.fechaVerificado.text =
+                            "Fecha de verificación: $fechaActivacion"
+                        bottomSheet_verificado.fechaVencimiento.text =
+                            "Fecha de vencimiento: $fechaVencimiento"
+                    }
+
+                    Log.d("Firestore_verificados", "ID del documento: $documentId su plan es $plan")
+
                     when (plan) {
                         "A" -> {
-                            bottomSheet_verificado.planVerificado.text = "Plan de obtenido: Plan A"
-                            setear_caracteristicasVerificados(
-                                db,
-                                "plan_a",
-                                bottomSheet_verificado
-                            ) { tiempo ->
-                                val handler = Handler(Looper.getMainLooper())
-                                handler.postDelayed({
+                            bottomSheet_verificado.planVerificado.text =
+                                "Plan de obtenido: Plan A"
+                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_a)
+                            setear_caracteristicasVerificados(db, "plan_a", bottomSheet_verificado) { tiempo ->
+                                Handler(Looper.getMainLooper()).postDelayed({
                                     bottomSheet_verificado.lineaContenido.isVisible = true
                                     bottomSheet_verificado.cargaContenido.isVisible = false
                                 }, tiempo)
                             }
-                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_a)
                         }
 
                         "B" -> {
-                            bottomSheet_verificado.planVerificado.text = "Plan de obtenido: Plan B"
-                            setear_caracteristicasVerificados(
-                                db,
-                                "plan_b",
-                                bottomSheet_verificado
-                            ) { tiempo ->
-                                val handler = Handler(Looper.getMainLooper())
-                                handler.postDelayed({
+                            bottomSheet_verificado.planVerificado.text =
+                                "Plan de obtenido: Plan B"
+                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.icon_verificado)
+                            setear_caracteristicasVerificados(db, "plan_b", bottomSheet_verificado) { tiempo ->
+                                Handler(Looper.getMainLooper()).postDelayed({
                                     bottomSheet_verificado.lineaContenido.isVisible = true
                                     bottomSheet_verificado.cargaContenido.isVisible = false
                                 }, tiempo)
                             }
-                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.icon_verificado)
                         }
 
                         "C" -> {
-                            bottomSheet_verificado.planVerificado.text = "Plan de obtenido: Plan C"
-                            setear_caracteristicasVerificados(
-                                db,
-                                "plan_c",
-                                bottomSheet_verificado
-                            ) { tiempo ->
-                                val handler = Handler(Looper.getMainLooper())
-                                handler.postDelayed({
+                            bottomSheet_verificado.planVerificado.text =
+                                "Plan de obtenido: Plan C"
+                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_c)
+                            setear_caracteristicasVerificados(db, "plan_c", bottomSheet_verificado) { tiempo ->
+                                Handler(Looper.getMainLooper()).postDelayed({
                                     bottomSheet_verificado.lineaContenido.isVisible = true
                                     bottomSheet_verificado.cargaContenido.isVisible = false
                                 }, tiempo)
                             }
-                            bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_c)
                         }
                     }
+
+                    break
                 }
+            }
+
+            if (!encontrado) {
+                bottomSheet_verificado.sinVerificacion.isVisible = true
+                bottomSheet_verificado.cargaContenido.isVisible = false
             }
         }.addOnFailureListener { e ->
             Log.e("Firestore", "Error al obtener documentos", e)
+            bottomSheet_verificado.sinVerificacion.isVisible = true
+            bottomSheet_verificado.cargaContenido.isVisible = false
         }
+
         val view = bottomSheet_verificado.root
         dialog.setContentView(view)
-
     }
+
 
     private fun setear_caracteristicasVerificados(
         db: DocumentReference,

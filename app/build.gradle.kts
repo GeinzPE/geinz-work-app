@@ -71,6 +71,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.compose.material:material:1.5.4")
     implementation("com.hbb20:ccp:2.7.0")
     implementation("com.google.firebase:firebase-firestore")
     implementation("de.hdodenhof:circleimageview:3.1.0")
