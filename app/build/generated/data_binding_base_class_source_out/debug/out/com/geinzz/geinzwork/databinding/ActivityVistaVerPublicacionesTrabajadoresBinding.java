@@ -4,6 +4,8 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -35,6 +37,9 @@ public final class ActivityVistaVerPublicacionesTrabajadoresBinding implements V
   public final ImageCarousel carrucelPublicacionesRecientesImg;
 
   @NonNull
+  public final ImageView compartirIcon;
+
+  @NonNull
   public final NestedScrollView contenidoCargado;
 
   @NonNull
@@ -47,6 +52,9 @@ public final class ActivityVistaVerPublicacionesTrabajadoresBinding implements V
   public final ItemPerfilTrabajadorBinding perfiltrabajador;
 
   @NonNull
+  public final ImageButton retroceder;
+
+  @NonNull
   public final TextView titulo;
 
   @NonNull
@@ -56,19 +64,21 @@ public final class ActivityVistaVerPublicacionesTrabajadoresBinding implements V
       @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaProductosPromoTrabajos,
       @NonNull ItemCargarProductosPromocionesTrabajosBinding cargaPublicaiconesRealizadas,
       @NonNull LinearLayout cargandoContenido,
-      @NonNull ImageCarousel carrucelPublicacionesRecientesImg,
+      @NonNull ImageCarousel carrucelPublicacionesRecientesImg, @NonNull ImageView compartirIcon,
       @NonNull NestedScrollView contenidoCargado, @NonNull TextView descripcionPublicacion,
       @NonNull RelativeLayout main, @NonNull ItemPerfilTrabajadorBinding perfiltrabajador,
-      @NonNull TextView titulo, @NonNull TextView tvReadMore) {
+      @NonNull ImageButton retroceder, @NonNull TextView titulo, @NonNull TextView tvReadMore) {
     this.rootView = rootView;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
     this.cargaPublicaiconesRealizadas = cargaPublicaiconesRealizadas;
     this.cargandoContenido = cargandoContenido;
     this.carrucelPublicacionesRecientesImg = carrucelPublicacionesRecientesImg;
+    this.compartirIcon = compartirIcon;
     this.contenidoCargado = contenidoCargado;
     this.descripcionPublicacion = descripcionPublicacion;
     this.main = main;
     this.perfiltrabajador = perfiltrabajador;
+    this.retroceder = retroceder;
     this.titulo = titulo;
     this.tvReadMore = tvReadMore;
   }
@@ -127,6 +137,12 @@ public final class ActivityVistaVerPublicacionesTrabajadoresBinding implements V
         break missingId;
       }
 
+      id = R.id.compartir_icon;
+      ImageView compartirIcon = ViewBindings.findChildViewById(rootView, id);
+      if (compartirIcon == null) {
+        break missingId;
+      }
+
       id = R.id.contenido_cargado;
       NestedScrollView contenidoCargado = ViewBindings.findChildViewById(rootView, id);
       if (contenidoCargado == null) {
@@ -148,6 +164,12 @@ public final class ActivityVistaVerPublicacionesTrabajadoresBinding implements V
       }
       ItemPerfilTrabajadorBinding binding_perfiltrabajador = ItemPerfilTrabajadorBinding.bind(perfiltrabajador);
 
+      id = R.id.retroceder;
+      ImageButton retroceder = ViewBindings.findChildViewById(rootView, id);
+      if (retroceder == null) {
+        break missingId;
+      }
+
       id = R.id.titulo;
       TextView titulo = ViewBindings.findChildViewById(rootView, id);
       if (titulo == null) {
@@ -162,8 +184,8 @@ public final class ActivityVistaVerPublicacionesTrabajadoresBinding implements V
 
       return new ActivityVistaVerPublicacionesTrabajadoresBinding((RelativeLayout) rootView,
           binding_cargaProductosPromoTrabajos, binding_cargaPublicaiconesRealizadas,
-          cargandoContenido, carrucelPublicacionesRecientesImg, contenidoCargado,
-          descripcionPublicacion, main, binding_perfiltrabajador, titulo, tvReadMore);
+          cargandoContenido, carrucelPublicacionesRecientesImg, compartirIcon, contenidoCargado,
+          descripcionPublicacion, main, binding_perfiltrabajador, retroceder, titulo, tvReadMore);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

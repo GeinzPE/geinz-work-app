@@ -84,10 +84,67 @@
 
 
             </LinearLayout>
+<HorizontalScrollView
+    android:layout_width="match_parent"
+    android:scrollbars="none"
+    android:layout_height="wrap_content">
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupFiltro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        android:checkableBehavior="single">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/todos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Todos"
+            android:checkable="true"
+            app:chipIconVisible="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/filtrado_verificado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verificados"
+            android:checkable="true"
+            app:chipIcon="@drawable/icon_verificado"
+            app:chipIconVisible="true"
+            app:iconStartPadding="4dp"
+            app:iconEndPadding="4dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/mas_estrellas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Más estrellas"
+            android:checkable="true"
+            app:chipIcon="@drawable/start_icon_dravalbe"
+            app:chipIconVisible="true"
+            app:iconStartPadding="4dp"
+            app:iconEndPadding="4dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/activos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Activos"
+            android:checkable="true"
+            app:chipIcon="@drawable/round_activo"
+            app:chipIconVisible="true"
+            app:iconStartPadding="4dp"
+            app:iconEndPadding="4dp" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+</HorizontalScrollView>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/filtradocategoria"
                 android:layout_width="match_parent"
+                android:visibility="gone"
                 android:layout_height="40dp" />
 
             <TextView

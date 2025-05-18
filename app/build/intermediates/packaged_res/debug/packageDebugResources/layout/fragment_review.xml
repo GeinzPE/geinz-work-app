@@ -43,12 +43,13 @@
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
                         android:scrollbars="none">
 
                         <com.google.android.material.chip.ChipGroup
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="10dp">
+                          >
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/todos"
@@ -84,6 +85,16 @@
                                 android:layout_height="wrap_content"
                                 android:text="4 a 5"
                                 app:chipIcon="@drawable/start_icon_dravalbe"
+                                app:chipIconVisible="true"
+                                app:iconEndPadding="4dp"
+                                app:iconStartPadding="4dp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/tu_review"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tu reseña"
+                                app:chipIcon="@drawable/registrado_icon"
                                 app:chipIconVisible="true"
                                 app:iconEndPadding="4dp"
                                 app:iconStartPadding="4dp" />

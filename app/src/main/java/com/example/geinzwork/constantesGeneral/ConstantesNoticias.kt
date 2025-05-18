@@ -34,6 +34,7 @@ import com.geinzz.geinzwork.adapterViewholder.adaptadorAnuncios
 import com.geinzz.geinzwork.dataclass.dataClassAnuncios
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView
+import com.google.android.material.chip.Chip
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -492,10 +493,14 @@ object constantesNoticias {
         val linealContainer =
             view.findViewById<LinearLayout>(com.geinzz.geinzwork.R.id.lineal_filtrado_btn)
 
+        val linealFiltroChips =
+            view.findViewById<LinearLayout>(com.geinzz.geinzwork.R.id.lineal_filtros_chips)
 
-        val deGeinz = view.findViewById<Button>(com.geinzz.geinzwork.R.id.geinz)
-        val general = view.findViewById<Button>(com.geinzz.geinzwork.R.id.general)
+
+        val deGeinz = view.findViewById<Chip>(com.geinzz.geinzwork.R.id.geinz)
+        val general = view.findViewById<Chip>(com.geinzz.geinzwork.R.id.general)
         linealContainer.isVisible = true
+        linealFiltroChips.isVisible = true
         FiltradoLocalidad.isVisible = true
         Filtradocategoria.isVisible = true
         visualLocalidad.isVisible = true

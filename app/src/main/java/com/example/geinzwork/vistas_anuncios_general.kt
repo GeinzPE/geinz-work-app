@@ -246,7 +246,7 @@ class vistas_anuncios_general : AppCompatActivity() {
         bindingBottomShet.horaint.isVisible = false
         bindingBottomShet.dniint.isVisible = false
         bindingBottomShet.servicioProducto.text = tipoServicioProducto
-        bindingBottomShet.montoTotal.text = "S/$precio"
+        bindingBottomShet.montoTotal.text = "$precio"
         bindingBottomShet.tvTitle.text = titulo
         bindingBottomShet.Yape.isVisible = false
         bindingBottomShet.Efectivo.isVisible = false
@@ -582,7 +582,7 @@ class vistas_anuncios_general : AppCompatActivity() {
                         val isYape = yape ?: false
                         val yapeImage = yape_img ?: ""
                         val isPlin = plin ?: false
-                        val price = precio ?: ""
+                        val price = binding.includeLinealPrecios.precio.text.toString()?: ""
                         val plinImage = plin_img ?: ""
                         bottomshetGeneral(
                             "Adquirir",
@@ -633,7 +633,7 @@ class vistas_anuncios_general : AppCompatActivity() {
                             yapeImage,
                             isPlin,
                             plinImage,
-                            price, mensaje
+                            binding.includeLinealPrecios.precio.text.toString(), mensaje
                         )
 
                         dialog.show()

@@ -1,10 +1,12 @@
 package com.geinzz.geinzwork
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -32,13 +34,19 @@ class EditarReview : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        val nuevaReseview = intent.getStringExtra(Variables.nuevaReseña).toString()
-        val nuevaCantidadStart = intent.getStringExtra(Variables.cantidadStart).toString()
+
         val TipoEditado = intent.getStringExtra(Variables.TipoEditado).toString()
         val iduser = intent.getStringExtra(Variables.iduser).toString()
         seterReviewAnterior(iduser)
-        binding.nuevaReview.setText(nuevaReseview)
+        val nuevaReseview = intent.getStringExtra(Variables.nuevaReseña)
+        val editado_adaptador = intent.getBooleanExtra("editado_adaptador", false)
+        if (!nuevaReseview.isNullOrEmpty()) {
+            binding.nuevaReview.setText(nuevaReseview)
+        }
+
+        val nuevaCantidadStart = intent.getStringExtra(Variables.cantidadStart) ?: ""
         binding.EntradaCantidadStart.setText(nuevaCantidadStart)
+
 
 
         when (TipoEditado) {
@@ -54,6 +62,12 @@ class EditarReview : AppCompatActivity() {
             }
 
             Variables.CuentaFreelancer -> {
+                if (editado_adaptador == false) {
+                    binding.reseAtxt.isVisible = false
+                } else {
+                    binding.reseAtxt.isVisible = true
+
+                }
                 binding.ActulizarReview.setOnClickListener {
                     val idUserNewReview = intent.getStringExtra(Variables.iduser).toString()
                     actualizarReview(
@@ -73,12 +87,13 @@ class EditarReview : AppCompatActivity() {
         val nombre = intent.getStringExtra(Variables.nombre).toString()
         val review = intent.getStringExtra(Variables.review).toString()
 
-        constantesCarrito.setearDatosUsuarioImgNombre(idUSer = idUser) { nombre, img, apellido,nacionalidad,categoria,verificado,trabajador_user ->
+        constantesCarrito.setearDatosUsuarioImgNombre(idUSer = idUser) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
 
             val nombreCompleto = "$nombre $apellido"
             binding.nombre.text = nombreCompleto
 
-            // Asumimos que changer_img tiene un callback con cargado = true cuando la imagen está lista
+            val placeholder: Drawable? =
+                ContextCompat.getDrawable(this, R.drawable.img_perfil)
             constatnes_carga_imagenes_general.changer_img(
                 binding.carga,
                 this,
@@ -86,23 +101,24 @@ class EditarReview : AppCompatActivity() {
                 binding.imgPerfilUser,
                 null,
                 "perfil",
-                null
+                placeholder
             ) { cargado ->
-                // Validamos que nombre y apellido no estén vacíos
-                val nombreValido = nombre.toString().isNotBlank() && apellido.toString().isNotBlank()
-                val nombreCorrecto = binding.nombre.text.toString() == nombreCompleto
 
-                if (nombreValido && nombreCorrecto && cargado) {
-                    binding.linealCargaTextoImg.isVisible=true
-                    binding.cargaIMGText.isVisible=false
+            }
+            // Validamos que nombre y apellido no estén vacíos
+            val nombreValido = nombre.toString().isNotBlank() && apellido.toString().isNotBlank()
+            val nombreCorrecto = binding.nombre.text.toString() == nombreCompleto
 
-                    // Aquí puedes ejecutar cualquier lógica que dependa de que todo esté listo
-                } else {
-                    binding.linealCargaTextoImg.isVisible=false
-                    binding.cargaIMGText.isVisible=true
+            if (nombreValido && nombreCorrecto) {
+                binding.linealCargaTextoImg.isVisible = true
+                binding.cargaIMGText.isVisible = false
 
-                    println("⚠️ Aún falta cargar algún dato")
-                }
+
+            } else {
+                binding.linealCargaTextoImg.isVisible = false
+                binding.cargaIMGText.isVisible = true
+
+                println("⚠️ Aún falta cargar algún dato")
             }
         }
 
@@ -124,15 +140,7 @@ class EditarReview : AppCompatActivity() {
         } catch (e: Exception) {
             println(e)
         }
-        try {
-            Glide.with(this)
-                .load(imgPerfil)
-                .placeholder(R.drawable.img_perfil)
-                .into(binding.imgPerfilUser)
 
-        } catch (e: Exception) {
-            println(e)
-        }
     }
 
 
@@ -156,99 +164,52 @@ class EditarReview : AppCompatActivity() {
         val nuevasEstrellas = binding.EntradaCantidadStart.text.toString().toIntOrNull()
         val estrellasAnteriores = intent.getStringExtra(Variables.cantidad)?.toIntOrNull()
 
+
         // Validar entrada de estrellas antes de procesar
         if (nuevasEstrellas == null || nuevasEstrellas !in 0..5) {
             mostrarError("Las estrellas ingresadas deben estar entre 0 y 5")
             Log.e("ActualizarReview", "Las estrellas ingresadas no son válidas: $nuevasEstrellas")
             return
         }
-
         val hashMap = hashMapOf<String, Any>(
             Variables.editado to true,
             Variables.reseña to nuevaReview,
             Variables.cantidad to nuevasEstrellas.toString()
         )
-
-        firestoreDocument.get().addOnSuccessListener { documento ->
-            if (!documento.exists()) {
-                mostrarError("El documento no existe")
-                Log.e("ActualizarReview", "El documento del trabajador $idTrabajador no existe.")
-                return@addOnSuccessListener
-            }
-
-            val data = documento.data
-            val estrellasTotales = (data?.get(Variables.estrellas) as? String)?.toIntOrNull()
-
-            if (estrellasTotales == null || estrellasAnteriores == null) {
-                mostrarError("Datos inválidos para calcular estrellas")
-                Log.e(
-                    "ActualizarReview",
-                    "Datos inválidos: estrellasTotales=$estrellasTotales, estrellasAnteriores=$estrellasAnteriores"
-                )
-                return@addOnSuccessListener
-            }
-
-            // Actualizar estrellas totales (restar las anteriores, agregar las nuevas)
-            val estrellasActualizadas = (estrellasTotales - estrellasAnteriores) + nuevasEstrellas
-            Log.d(
-                "ActualizarReview",
-                "Cálculo de estrellas: $estrellasTotales - $estrellasAnteriores + $nuevasEstrellas = $estrellasActualizadas"
-            )
-
-            // Validar el rango de estrellas actualizadas
-            if (estrellasActualizadas !in 0..5 * 100) { // Ajusta el rango según la lógica de tu aplicación
-                mostrarError("El total de estrellas debe ser válido")
-                Log.e(
-                    "ActualizarReview",
-                    "El total de estrellas actualizadas no es válido: $estrellasActualizadas"
-                )
-                return@addOnSuccessListener
-            }
-
-            val updateMap = hashMapOf<String, Any>(
-                Variables.estrellas to estrellasActualizadas.toString()
-            )
-
-            // Actualizar la colección "review"
-            dbReview.set(hashMap, SetOptions.merge())
-                .addOnSuccessListener {
-                    Log.d("ActualizarReview", "Reseña actualizada exitosamente en dbReview.")
-                }.addOnFailureListener { exception ->
-                    Log.e(
-                        "ActualizarReview",
-                        "Error al actualizar la reseña: ${exception.message}",
-                        exception
-                    )
-                }
-
-            // Actualizar la colección principal
-            firestoreDocument.update(updateMap)
-                .addOnSuccessListener {
-                    Toast.makeText(
-                        this@EditarReview,
-                        "Estrellas actualizadas correctamente",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d(
-                        "ActualizarReview",
-                        "Estrellas actualizadas exitosamente en firestoreDocument."
-                    )
-                    finish()
-                }.addOnFailureListener { exception ->
-                    Log.e(
-                        "ActualizarReview",
-                        "Error al actualizar las estrellas: ${exception.message}",
-                        exception
-                    )
-                }
-
-        }.addOnFailureListener { exception ->
-            Log.e(
-                "ActualizarReview",
-                "Error al obtener el documento: ${exception.message}",
-                exception
-            )
+        dbReview.set(hashMap, SetOptions.merge()).addOnSuccessListener { res ->
+            Toast.makeText(
+                this,
+                "Estrellas actulizadas correctamente actualiza para ver los nuevos cambios",
+                Toast.LENGTH_SHORT
+            ).show()
+            finish()
+        }.addOnFailureListener { e ->
+            Log.d("error_actualizar", "error al actualizar las estrellas")
         }
+
+        firestoreDocument.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val estrellas = data?.get("estrellas") as? String ?: ""
+
+                val estrellasInt = estrellas.toInt()
+                val resta = (estrellasInt - estrellasAnteriores!!) + nuevasEstrellas
+                Log.d(
+                    "entrellasEncontradas",
+                    "$estrellasInt.toString() y el total de estrellas es $resta"
+                )
+                val updateMap = hashMapOf<String, Any>(
+                    Variables.estrellas to resta.toString()
+                )
+                firestoreDocument.update(updateMap).addOnSuccessListener { res ->
+                    Log.d("estrellas_Actualizadas", "estrellas actulizadas correctamente")
+                }.addOnFailureListener {
+                    Log.e("estrellas_Actualizadas", "error al subir las estrellas")
+
+                }
+            }
+        }
+
     }
 
 

@@ -31,15 +31,20 @@ public final class BottomSheetCreacionCuentaBinding implements ViewBinding {
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
+  public final TextView iniciarSeccion;
+
+  @NonNull
   public final TextView tvTitle;
 
   private BottomSheetCreacionCuentaBinding(@NonNull LinearLayout rootView,
       @NonNull ImageButton CuentaTrabajador, @NonNull ImageButton CuentaUsuario,
-      @NonNull BottomSheetDragHandleView cerrar, @NonNull TextView tvTitle) {
+      @NonNull BottomSheetDragHandleView cerrar, @NonNull TextView iniciarSeccion,
+      @NonNull TextView tvTitle) {
     this.rootView = rootView;
     this.CuentaTrabajador = CuentaTrabajador;
     this.CuentaUsuario = CuentaUsuario;
     this.cerrar = cerrar;
+    this.iniciarSeccion = iniciarSeccion;
     this.tvTitle = tvTitle;
   }
 
@@ -88,6 +93,12 @@ public final class BottomSheetCreacionCuentaBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.iniciarSeccion;
+      TextView iniciarSeccion = ViewBindings.findChildViewById(rootView, id);
+      if (iniciarSeccion == null) {
+        break missingId;
+      }
+
       id = R.id.tvTitle;
       TextView tvTitle = ViewBindings.findChildViewById(rootView, id);
       if (tvTitle == null) {
@@ -95,7 +106,7 @@ public final class BottomSheetCreacionCuentaBinding implements ViewBinding {
       }
 
       return new BottomSheetCreacionCuentaBinding((LinearLayout) rootView, CuentaTrabajador,
-          CuentaUsuario, cerrar, tvTitle);
+          CuentaUsuario, cerrar, iniciarSeccion, tvTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

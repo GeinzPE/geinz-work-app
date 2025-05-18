@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
+import com.example.geinzwork.vista_denuncia_reporte
 import com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar
 import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.MainActivity
@@ -75,17 +76,17 @@ object constantes_cuenta_user {
             }
             else -> ""
         }
-        if (plan.isEmpty() || plan == Variables.plaA) {
-            lineal_Publicacion.isVisible = false
-        } else if (plan == Variables.planB || plan == Variables.PlanC){
-            lineal_Publicacion.isVisible = true
-        }
+//        if (plan.isEmpty() || plan == Variables.plaA) {
+//            lineal_Publicacion.isVisible = false
+//        } else if (plan == Variables.planB || plan == Variables.PlanC){
+//            lineal_Publicacion.isVisible = true
+//        }
         lineal_Publicacion.setOnClickListener {
-            var vista = Intent(context, crear_trabajos_realizados::class.java).apply {
-                putExtra(Variables.plan, plan)
-            }
-            context.startActivity(vista)
-            dialog.dismiss()
+//            var vista = Intent(context, vista_denuncia_reporte::class.java).apply {
+//                putExtra(Variables.plan, plan)
+//            }
+//            context.startActivity(vista)
+//            dialog.dismiss()
 
 
         }
@@ -101,7 +102,12 @@ object constantes_cuenta_user {
             dialog.dismiss()
         }
         lineaReportes.setOnClickListener {
-            context.startActivity(Intent(context, reportes_users::class.java))
+//            context.startActivity(Intent(context, reportes_users::class.java))
+//            dialog.dismiss()
+            var vista = Intent(context, vista_denuncia_reporte::class.java).apply {
+                putExtra(Variables.plan, plan)
+            }
+            context.startActivity(vista)
             dialog.dismiss()
         }
         qr_trabajador.setOnClickListener {

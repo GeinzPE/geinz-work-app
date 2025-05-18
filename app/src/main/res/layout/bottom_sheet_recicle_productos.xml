@@ -17,7 +17,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="20dp">
-
+       
         <TextView
             android:id="@+id/tvTitle"
             style="@style/TextoTitulos"
@@ -27,6 +27,46 @@
             android:text="Filtrado por categoria"
             android:textSize="18sp"
             android:textStyle="bold" />
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/lineal_filtros_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFiltro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                android:checkableBehavior="single">
+
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/general"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="General"
+                    android:checkable="true"
+                    app:chipIcon="@drawable/categoria_icon_general"
+                    app:chipIconVisible="true"
+                    app:iconStartPadding="4dp"
+                    app:iconEndPadding="4dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/geinz"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="De Geinz"
+                    android:checkable="true"
+                    app:chipIcon="@drawable/logo_geinz_circular"
+                    app:chipIconVisible="true"
+                    app:iconStartPadding="4dp"
+                    app:iconEndPadding="4dp" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/FiltradoLocalidad"
@@ -144,14 +184,12 @@
                 android:layout_marginBottom="10dp"
                 android:gravity="center"
                 android:orientation="horizontal"
-
                 android:visibility="gone">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnApply"
                     style="@style/RoundedButton"
                     android:layout_width="match_parent"
-
                     android:layout_height="60dp"
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
@@ -160,29 +198,6 @@
                     app:icon="@drawable/buscar_icon"
                     app:iconGravity="textEnd" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/general"
-                    style="@style/RoundedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:text="General"
-                    android:textSize="14sp"
-                    app:icon="@drawable/general_blanco_icon"
-                    app:iconGravity="textEnd" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/geinz"
-                    style="@style/RoundedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_weight="1"
-                    android:text="De Geinz"
-                    android:textSize="14sp"
-                    app:icon="@drawable/g_blanco_icon"
-                    app:iconGravity="textEnd" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancel"

@@ -14,6 +14,8 @@ import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -41,6 +43,9 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
   public final BottomSheetDragHandleView cerrar;
 
   @NonNull
+  public final ChipGroup chipGroupFiltro;
+
+  @NonNull
   public final TextView filtradoCateogoriaPromo;
 
   @NonNull
@@ -50,16 +55,19 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
   public final TextView filtradotext;
 
   @NonNull
-  public final MaterialButton geinz;
+  public final Chip geinz;
 
   @NonNull
-  public final MaterialButton general;
+  public final Chip general;
 
   @NonNull
   public final LinearLayout lineaLocalida;
 
   @NonNull
   public final LinearLayout linealFiltradoBtn;
+
+  @NonNull
+  public final LinearLayout linealFiltrosChips;
 
   @NonNull
   public final AutoCompleteTextView localidad;
@@ -71,11 +79,11 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
       @NonNull LinearLayout FiltradoLocalidad, @NonNull LinearLayout Filtradocategoria,
       @NonNull MaterialButton btnApply, @NonNull MaterialButton btnCancel,
       @NonNull AutoCompleteTextView categoria, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull TextView filtradoCateogoriaPromo, @NonNull TextView filtradoUsuairo,
-      @NonNull TextView filtradotext, @NonNull MaterialButton geinz,
-      @NonNull MaterialButton general, @NonNull LinearLayout lineaLocalida,
-      @NonNull LinearLayout linealFiltradoBtn, @NonNull AutoCompleteTextView localidad,
-      @NonNull TextView tvTitle) {
+      @NonNull ChipGroup chipGroupFiltro, @NonNull TextView filtradoCateogoriaPromo,
+      @NonNull TextView filtradoUsuairo, @NonNull TextView filtradotext, @NonNull Chip geinz,
+      @NonNull Chip general, @NonNull LinearLayout lineaLocalida,
+      @NonNull LinearLayout linealFiltradoBtn, @NonNull LinearLayout linealFiltrosChips,
+      @NonNull AutoCompleteTextView localidad, @NonNull TextView tvTitle) {
     this.rootView = rootView;
     this.FiltradoLocalidad = FiltradoLocalidad;
     this.Filtradocategoria = Filtradocategoria;
@@ -83,6 +91,7 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
     this.btnCancel = btnCancel;
     this.categoria = categoria;
     this.cerrar = cerrar;
+    this.chipGroupFiltro = chipGroupFiltro;
     this.filtradoCateogoriaPromo = filtradoCateogoriaPromo;
     this.filtradoUsuairo = filtradoUsuairo;
     this.filtradotext = filtradotext;
@@ -90,6 +99,7 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
     this.general = general;
     this.lineaLocalida = lineaLocalida;
     this.linealFiltradoBtn = linealFiltradoBtn;
+    this.linealFiltrosChips = linealFiltrosChips;
     this.localidad = localidad;
     this.tvTitle = tvTitle;
   }
@@ -157,6 +167,12 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.chipGroupFiltro;
+      ChipGroup chipGroupFiltro = ViewBindings.findChildViewById(rootView, id);
+      if (chipGroupFiltro == null) {
+        break missingId;
+      }
+
       id = R.id.filtradoCateogoriaPromo;
       TextView filtradoCateogoriaPromo = ViewBindings.findChildViewById(rootView, id);
       if (filtradoCateogoriaPromo == null) {
@@ -176,13 +192,13 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
       }
 
       id = R.id.geinz;
-      MaterialButton geinz = ViewBindings.findChildViewById(rootView, id);
+      Chip geinz = ViewBindings.findChildViewById(rootView, id);
       if (geinz == null) {
         break missingId;
       }
 
       id = R.id.general;
-      MaterialButton general = ViewBindings.findChildViewById(rootView, id);
+      Chip general = ViewBindings.findChildViewById(rootView, id);
       if (general == null) {
         break missingId;
       }
@@ -199,6 +215,12 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.lineal_filtros_chips;
+      LinearLayout linealFiltrosChips = ViewBindings.findChildViewById(rootView, id);
+      if (linealFiltrosChips == null) {
+        break missingId;
+      }
+
       id = R.id.localidad;
       AutoCompleteTextView localidad = ViewBindings.findChildViewById(rootView, id);
       if (localidad == null) {
@@ -212,9 +234,9 @@ public final class BottomSheetRecicleProductosBinding implements ViewBinding {
       }
 
       return new BottomSheetRecicleProductosBinding((LinearLayout) rootView, FiltradoLocalidad,
-          Filtradocategoria, btnApply, btnCancel, categoria, cerrar, filtradoCateogoriaPromo,
-          filtradoUsuairo, filtradotext, geinz, general, lineaLocalida, linealFiltradoBtn,
-          localidad, tvTitle);
+          Filtradocategoria, btnApply, btnCancel, categoria, cerrar, chipGroupFiltro,
+          filtradoCateogoriaPromo, filtradoUsuairo, filtradotext, geinz, general, lineaLocalida,
+          linealFiltradoBtn, linealFiltrosChips, localidad, tvTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

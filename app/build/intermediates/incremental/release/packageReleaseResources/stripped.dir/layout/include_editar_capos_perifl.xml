@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone"
+    android:id="@+id/lineal_campos_general"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/texto_cambiante"
+        style="@style/TextoModoOScuroColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/fuente_para_texto_special_gothic"
+        android:text="@string/cat"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/nueva_fecha_edicion"
+        style="@style/TextoModoOScuroColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/fuente_para_texto_special_gothic"
+        android:textSize="15sp" />
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/campoReferido"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        android:layout_marginBottom="10dp"
+        app:boxCornerRadiusTopStart="8dp">
+
+        <EditText
+            android:inputType="textMultiLine"
+            android:id="@+id/campoReferidoED"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:ignore="MissingConstraints" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>

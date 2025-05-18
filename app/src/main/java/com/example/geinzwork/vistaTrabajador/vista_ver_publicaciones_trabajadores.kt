@@ -45,6 +45,9 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada)
         Log.d("obtemosidStrabjaosd","$idTrabajador, $id_publicacion_clikeada")
 
+        binding.retroceder.setOnClickListener{
+            onBackPressed()
+        }
         constantes_vistas_publicaciones_productos_verificados.obtener_perfil_trabajador(
             idTrabajador,
             binding.perfiltrabajador,

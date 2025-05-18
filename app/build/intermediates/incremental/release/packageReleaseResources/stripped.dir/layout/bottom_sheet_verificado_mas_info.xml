@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/cerrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="8dp" />
+
+
+    <ProgressBar
+        android:id="@+id/carga_contenido"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:id="@+id/sinVerificacion"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        style="@style/TextoModoOScuroColor"
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:layout_marginVertical="10dp"
+        android:visibility="gone"
+        android:layout_height="wrap_content"
+        android:text="No tienes una verificacion activa" />
+
+    <LinearLayout
+        android:id="@+id/linea_contenido"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="5dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/insignia_verificado"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+            android:gravity="center"
+            android:text="Cuenta Geinz verificada"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/icono_verificado"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Como trabajador, esta verificación no solo respalda tu identidad, sino que también inspira tranquilidad a los usuarios y clientes que confían en tus servicios. Te recomendamos mantener siempre un trato profesional, cumplir con tus compromisos y ofrecer un trabajo de calidad: tu reputación es tu mejor carta de presentación."
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/fecha_verificado"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/fecha_vencimiento"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/plan_verificado"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:textSize="15sp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+            android:text="Beneficios obtenidos"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/beneficios_verificados"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+
+</LinearLayout>

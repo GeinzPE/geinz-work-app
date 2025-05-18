@@ -18,7 +18,6 @@ import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.dataclass.dataclasCaterogirasFiltrado
 import com.example.geinzwork.dataclass.dataclass_ver_mas_productos_trabajador
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.adapterViewholder.adapter
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.databinding.ActivityVerMasProductosPublicadosTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding

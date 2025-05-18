@@ -17,7 +17,6 @@ import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
 import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.adapterViewholder.adapter
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.FragmentInfoBinding

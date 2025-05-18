@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -102,6 +103,9 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
   public final TextView precioProducto;
 
   @NonNull
+  public final ImageButton retroceder;
+
+  @NonNull
   public final TextView tvReadMore;
 
   @NonNull
@@ -125,8 +129,9 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
       @NonNull LinearLayout ocultarCamposMasInformacion, @NonNull ImageView ocultarP1,
       @NonNull ImageView ocultarP2, @NonNull ImageView ocultarP3,
       @NonNull ItemPerfilTrabajadorBinding perfiltrabajador, @NonNull TextView precioAntiguo,
-      @NonNull TextView precioProducto, @NonNull TextView tvReadMore,
-      @NonNull TextView vistraPreviaDescripcion, @NonNull TextView vistraPreviaDescripciontitulo) {
+      @NonNull TextView precioProducto, @NonNull ImageButton retroceder,
+      @NonNull TextView tvReadMore, @NonNull TextView vistraPreviaDescripcion,
+      @NonNull TextView vistraPreviaDescripciontitulo) {
     this.rootView = rootView;
     this.camposProductosUserVerificados = camposProductosUserVerificados;
     this.cargaProductosPromoTrabajos = cargaProductosPromoTrabajos;
@@ -154,6 +159,7 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
     this.perfiltrabajador = perfiltrabajador;
     this.precioAntiguo = precioAntiguo;
     this.precioProducto = precioProducto;
+    this.retroceder = retroceder;
     this.tvReadMore = tvReadMore;
     this.vistraPreviaDescripcion = vistraPreviaDescripcion;
     this.vistraPreviaDescripciontitulo = vistraPreviaDescripciontitulo;
@@ -342,6 +348,12 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
         break missingId;
       }
 
+      id = R.id.retroceder;
+      ImageButton retroceder = ViewBindings.findChildViewById(rootView, id);
+      if (retroceder == null) {
+        break missingId;
+      }
+
       id = R.id.tvReadMore;
       TextView tvReadMore = ViewBindings.findChildViewById(rootView, id);
       if (tvReadMore == null) {
@@ -367,7 +379,7 @@ public final class ActivityVistaVerProductosTrabajadoresBinding implements ViewB
           linealTextosDescripcion, main, marcaProducto, masInfomacion, nombreProducto,
           nombreTrabajador, ocultarCamposDePublicidad, ocultarCamposDescripcion,
           ocultarCamposMasInformacion, ocultarP1, ocultarP2, ocultarP3, binding_perfiltrabajador,
-          precioAntiguo, precioProducto, tvReadMore, vistraPreviaDescripcion,
+          precioAntiguo, precioProducto, retroceder, tvReadMore, vistraPreviaDescripcion,
           vistraPreviaDescripciontitulo);
     }
     String missingId = rootView.getResources().getResourceName(id);

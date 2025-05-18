@@ -17,6 +17,8 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.geinzz.geinzwork.R;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputLayout;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -27,13 +29,22 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
   private final RelativeLayout rootView;
 
   @NonNull
+  public final Chip activos;
+
+  @NonNull
   public final LinearLayout appbarLayout;
 
   @NonNull
   public final TextView categoria;
 
   @NonNull
+  public final ChipGroup chipGroupFiltro;
+
+  @NonNull
   public final EditText editexFilter;
+
+  @NonNull
+  public final Chip filtradoVerificado;
 
   @NonNull
   public final RecyclerView filtradocategoria;
@@ -51,6 +62,9 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
   public final RelativeLayout main;
 
   @NonNull
+  public final Chip masEstrellas;
+
+  @NonNull
   public final ImageView noResultados;
 
   @NonNull
@@ -63,32 +77,41 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
   public final ShimmerFrameLayout shimmerFrameLayout;
 
   @NonNull
+  public final Chip todos;
+
+  @NonNull
   public final TextView totalUser;
 
   @NonNull
   public final TextView txtNoResultados;
 
-  private ActivityVistaCategoriasTBinding(@NonNull RelativeLayout rootView,
+  private ActivityVistaCategoriasTBinding(@NonNull RelativeLayout rootView, @NonNull Chip activos,
       @NonNull LinearLayout appbarLayout, @NonNull TextView categoria,
-      @NonNull EditText editexFilter, @NonNull RecyclerView filtradocategoria,
+      @NonNull ChipGroup chipGroupFiltro, @NonNull EditText editexFilter,
+      @NonNull Chip filtradoVerificado, @NonNull RecyclerView filtradocategoria,
       @NonNull TextInputLayout inputnombre, @NonNull LinearLayout linelaFiltrado,
-      @NonNull LinearLayoutCompat loading, @NonNull RelativeLayout main,
+      @NonNull LinearLayoutCompat loading, @NonNull RelativeLayout main, @NonNull Chip masEstrellas,
       @NonNull ImageView noResultados, @NonNull RecyclerView recicleCategoria,
       @NonNull RelativeLayout relativeNoEncontrado, @NonNull ShimmerFrameLayout shimmerFrameLayout,
-      @NonNull TextView totalUser, @NonNull TextView txtNoResultados) {
+      @NonNull Chip todos, @NonNull TextView totalUser, @NonNull TextView txtNoResultados) {
     this.rootView = rootView;
+    this.activos = activos;
     this.appbarLayout = appbarLayout;
     this.categoria = categoria;
+    this.chipGroupFiltro = chipGroupFiltro;
     this.editexFilter = editexFilter;
+    this.filtradoVerificado = filtradoVerificado;
     this.filtradocategoria = filtradocategoria;
     this.inputnombre = inputnombre;
     this.linelaFiltrado = linelaFiltrado;
     this.loading = loading;
     this.main = main;
+    this.masEstrellas = masEstrellas;
     this.noResultados = noResultados;
     this.recicleCategoria = recicleCategoria;
     this.relativeNoEncontrado = relativeNoEncontrado;
     this.shimmerFrameLayout = shimmerFrameLayout;
+    this.todos = todos;
     this.totalUser = totalUser;
     this.txtNoResultados = txtNoResultados;
   }
@@ -120,6 +143,12 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.activos;
+      Chip activos = ViewBindings.findChildViewById(rootView, id);
+      if (activos == null) {
+        break missingId;
+      }
+
       id = R.id.appbarLayout;
       LinearLayout appbarLayout = ViewBindings.findChildViewById(rootView, id);
       if (appbarLayout == null) {
@@ -132,9 +161,21 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.chipGroupFiltro;
+      ChipGroup chipGroupFiltro = ViewBindings.findChildViewById(rootView, id);
+      if (chipGroupFiltro == null) {
+        break missingId;
+      }
+
       id = R.id.editexFilter;
       EditText editexFilter = ViewBindings.findChildViewById(rootView, id);
       if (editexFilter == null) {
+        break missingId;
+      }
+
+      id = R.id.filtrado_verificado;
+      Chip filtradoVerificado = ViewBindings.findChildViewById(rootView, id);
+      if (filtradoVerificado == null) {
         break missingId;
       }
 
@@ -164,6 +205,12 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
 
       RelativeLayout main = (RelativeLayout) rootView;
 
+      id = R.id.mas_estrellas;
+      Chip masEstrellas = ViewBindings.findChildViewById(rootView, id);
+      if (masEstrellas == null) {
+        break missingId;
+      }
+
       id = R.id.no_resultados;
       ImageView noResultados = ViewBindings.findChildViewById(rootView, id);
       if (noResultados == null) {
@@ -188,6 +235,12 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.todos;
+      Chip todos = ViewBindings.findChildViewById(rootView, id);
+      if (todos == null) {
+        break missingId;
+      }
+
       id = R.id.total_user;
       TextView totalUser = ViewBindings.findChildViewById(rootView, id);
       if (totalUser == null) {
@@ -200,9 +253,10 @@ public final class ActivityVistaCategoriasTBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityVistaCategoriasTBinding((RelativeLayout) rootView, appbarLayout, categoria,
-          editexFilter, filtradocategoria, inputnombre, linelaFiltrado, loading, main, noResultados,
-          recicleCategoria, relativeNoEncontrado, shimmerFrameLayout, totalUser, txtNoResultados);
+      return new ActivityVistaCategoriasTBinding((RelativeLayout) rootView, activos, appbarLayout,
+          categoria, chipGroupFiltro, editexFilter, filtradoVerificado, filtradocategoria,
+          inputnombre, linelaFiltrado, loading, main, masEstrellas, noResultados, recicleCategoria,
+          relativeNoEncontrado, shimmerFrameLayout, todos, totalUser, txtNoResultados);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

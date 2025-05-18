@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="365dp"
-    android:layout_height="160dp"
+    android:layout_height="170dp"
     android:layout_margin="5dp">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_end"
         android:layout_width="350dp"
-        android:layout_height="155dp"
+        android:layout_height="165dp"
         android:orientation="vertical"
         app:layout_constraintGuide_begin="371dp" />
 
@@ -17,7 +17,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/listener"
         android:layout_width="350dp"
-        android:layout_height="155dp"
+        android:layout_height="165dp"
         app:cardBackgroundColor="@color/roundcustom"
         app:cardCornerRadius="8dp"
         app:layout_constraintEnd_toStartOf="@id/guideline_end"
@@ -26,13 +26,13 @@
 
         <RelativeLayout
             android:layout_width="350dp"
-            android:layout_height="155dp">
+            android:layout_height="165dp">
 
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imgProducto"
                 android:layout_width="145dp"
-                android:layout_height="155dp"
+                android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/cargando_img_geinz_500"
                 android:visibility="gone"
@@ -60,6 +60,7 @@
                 android:visibility="gone" />
 
             <LinearLayout
+                android:layout_marginVertical="5dp"
                 android:id="@+id/lineal_productos_publicados"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

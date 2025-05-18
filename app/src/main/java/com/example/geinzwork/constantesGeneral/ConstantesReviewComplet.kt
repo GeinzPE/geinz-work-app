@@ -98,6 +98,7 @@ object constantesReviewComplet {
                             putExtra("review", review)
                             putExtra("nuevaReseña", contenidoReview.text.toString())
                             putExtra("cantidadStart", cantidadEstrellas.text.toString())
+                            putExtra("editado_adaptador",true)
                         }
                         contenidoReview.setText("")
                         cantidadEstrellas.setText("")
@@ -310,12 +311,14 @@ object constantesReviewComplet {
                                 reviewsExist = true
                             }
                         }
+
                         "cuatro_cinco" -> {
                             if (cantidad in 4..5) {
                                 reviewsParaMostrar.add(review)
                                 reviewsExist = true
                             }
                         }
+
                         "verificado" -> {
                             pendingVerifications++
                             constantesCarrito.setearDatosUsuarioImgNombre(idUSer = id) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
@@ -326,7 +329,12 @@ object constantesReviewComplet {
                                 pendingVerifications--
                                 if (pendingVerifications == 0) {
                                     if (reviewsExist) {
-                                        inicalizarRecicle(idTrabajdor,reviewsParaMostrar, recicleContainer, context)
+                                        inicalizarRecicle(
+                                            idTrabajdor,
+                                            reviewsParaMostrar,
+                                            recicleContainer,
+                                            context
+                                        )
                                         recyclerView.visibility = View.VISIBLE
                                     } else {
                                         relativeLayout.visibility = View.VISIBLE
@@ -335,10 +343,22 @@ object constantesReviewComplet {
                                 }
                             }
                         }
+
                         "todos" -> {
                             reviewsParaMostrar.add(review)
                             reviewsExist = true
                         }
+
+                        "tu_review" -> {
+                            println("neceisto_holaaa $id == ${firebaseAuth.uid.toString()}")
+                            if (id == firebaseAuth.uid.toString()) {
+                                reviewsParaMostrar.add(review)
+                                reviewsExist = true
+                            }
+                            // No hacer nada si no coincide, simplemente se ignora esa review
+                        }
+
+
                         else -> {
                             reviewsParaMostrar.add(review)
                             reviewsExist = true
@@ -349,7 +369,12 @@ object constantesReviewComplet {
                 // Para los casos donde no se necesita verificación asíncrona
                 if (fitlradoString != "verificado") {
                     if (reviewsExist) {
-                        inicalizarRecicle(idTrabajdor,reviewsParaMostrar, recicleContainer, context)
+                        inicalizarRecicle(
+                            idTrabajdor,
+                            reviewsParaMostrar,
+                            recicleContainer,
+                            context
+                        )
                         recyclerView.visibility = View.VISIBLE
                     } else {
                         relativeLayout.visibility = View.VISIBLE
@@ -372,15 +397,18 @@ object constantesReviewComplet {
     }
 
 
-
     fun inicalizarRecicle(
-        idTrabajdor:String,
+        idTrabajdor: String,
         listaReview: MutableList<daclassReview>,
         recicleContainer: RecyclerView, context: Context
     ) {
         val recicle = recicleContainer
         recicle.layoutManager = LinearLayoutManager(context)
-        recicle.adapter = adaptadorReview(listaReview,idTrabajdor)
+        recicle.adapter = adaptadorReview(listaReview, idTrabajdor)
+    }
+
+    private fun obtenerReview_trabajador_user_registrado() {
+
     }
 
 }

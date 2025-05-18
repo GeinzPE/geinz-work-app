@@ -6,6 +6,8 @@ import android.content.Intent
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +23,7 @@ class adapter(
     private var listaTrabajos: MutableList<dataClassTrabajosd>,
     private val uidString: String,
     private var cantidadMostrado: Int,
+    private var match_parent:Boolean
     ) : RecyclerView.Adapter<adapter.viewHolder>() {
     init {
         listaTrabajos.shuffle()
@@ -66,6 +69,13 @@ class adapter(
             uidString: String,
         ) {
 
+            if(match_parent){
+                val params = btnVermas.layoutParams as ViewGroup.MarginLayoutParams
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                btnVermas.layoutParams = params
+
+
+            }
             setearCompo(dataClassTrabajosd)
             constantes.obtenerFotoPerfil(
                 dataClassTrabajosd,

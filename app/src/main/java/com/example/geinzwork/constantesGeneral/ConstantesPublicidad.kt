@@ -18,6 +18,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.geinzz.geinzwork.Crea_tu_publicidad
 import com.geinzz.geinzwork.CuentaFreelancer
+import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.Nosotros
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout3Binding
@@ -196,6 +197,7 @@ object constantesPublicidad {
 
         val cuentaTrabajador = view.findViewById<ImageButton>(R.id.Cuenta_Trabajador)
         val cuentaUsario = view.findViewById<ImageButton>(R.id.Cuenta_usuario)
+        val IniciarSeccion = view.findViewById<TextView>(R.id.iniciarSeccion)
 
         cuentaTrabajador.setOnClickListener {
             constantes.showLoadingDialog(contexto, 3000, "Dirigiendo al sitio", "espere un momento")
@@ -204,6 +206,10 @@ object constantesPublicidad {
             vista.putExtra("Title", "Cuenta Freelancer")
             vista.putExtra("pasos", "Estas a 1/5 pasos")
             contexto.startActivity(vista)
+            dialog.dismiss()
+        }
+        IniciarSeccion.setOnClickListener{
+            contexto.startActivity(Intent(contexto,Login::class.java))
             dialog.dismiss()
         }
         cuentaUsario.setOnClickListener {

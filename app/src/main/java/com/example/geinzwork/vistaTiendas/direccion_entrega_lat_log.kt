@@ -5,12 +5,17 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.content.pm.PackageManager
-import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -21,12 +26,15 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.example.geinzwork.dataclass.dataClass_ubicacion_user
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.databinding.ActivityDireccionEntregaLatLogBinding
+import com.geinzz.geinzwork.databinding.BottomSheetEditarElimaarDireccionBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -34,8 +42,10 @@ import com.google.firebase.firestore.SetOptions
 class direccion_entrega_lat_log : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var binding: ActivityDireccionEntregaLatLogBinding
+    private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,25 +59,31 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        mostrarDialog()
+        confSwipe()
+        mostrarDialog(binding.nombreColecciones, binding.infoCasa, binding.infoRef)
         val nombreColeccion = binding.nombreColeccionED
         obtenerUbicaciones(firebaseAuth.uid.toString())
         binding.obtenerLocalizacion.setOnClickListener {
-            binding.cargandoLatLog.isVisible=true
-            binding.obtenerLocalizacion.isVisible=false
-            getLocation { completado ->
+            binding.cargandoLatLog.isVisible = true
+            binding.obtenerLocalizacion.isVisible = false
+            getLocation(
+                binding.cargandoLatLog,
+                binding.obtenerLocalizacion,
+                binding.direccion,
+                binding.latitudUSer,
+                binding.longituduser
+            ) { completado ->
                 if (completado) {
-                    binding.cargandoLatLog.isVisible=false
-                    binding.obtenerLocalizacion.isVisible=true
+                    binding.cargandoLatLog.isVisible = false
+                    binding.obtenerLocalizacion.isVisible = true
                     Toast.makeText(
                         this,
                         "Ubicacion obtenida ",
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    binding.cargandoLatLog.isVisible=false
-                    binding.obtenerLocalizacion.isVisible=true
+                    binding.cargandoLatLog.isVisible = false
+                    binding.obtenerLocalizacion.isVisible = true
                     Toast.makeText(
                         this,
                         "error al obtener la ubicacion trate en un momento",
@@ -78,8 +94,8 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             }
         }
         binding.crear.setOnClickListener {
+
             binding.containerSinUBI.isVisible = false
-            binding.editar.isVisible = false
             binding.linealForm.isVisible = true
             nombreColeccion.isEnabled = true
             val nombreColeccion = nombreColeccion.text.toString()
@@ -98,10 +114,10 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                     if (referencia.isEmpty()) binding.referenciaED.error =
                         "Este campo es obligatorio"
                 } else {
-                    agregaDireccionUsuario(false, firebaseAuth.uid.toString())
+                    agregaDireccionUsuario(firebaseAuth.uid.toString())
                 }
             } else {
-                binding.editar.isVisible = false
+
                 binding.crear.text = "crear"
                 binding.nombreColeccionED.setText("")
                 binding.direccion.setText("")
@@ -113,65 +129,221 @@ class direccion_entrega_lat_log : AppCompatActivity() {
 
 
         }
-        binding.editar.setOnClickListener {
-            agregaDireccionUsuario(
-                true,
-                firebaseAuth.uid.toString(),
-                binding.idReferencia.text.toString()
-            )
-            binding.crear.isVisible = true
-        }
 
-        binding.eliminar.setOnClickListener {
-            eliminarReferencia(
-                binding.collectionEcontrado.text.toString(),
-                firebaseAuth.uid.toString(),
-                binding.idReferencia.text.toString()
-            )
-        }
+
+
 
         binding.listaUbicaciones.setOnItemClickListener { parent, view, position, id ->
             val ubicacion = parent.getItemAtPosition(position) as dataClass_ubicacion_user
-            val log = ubicacion.log
-            val lat = ubicacion.lat
-            val direccion = ubicacion.direccion
-            val id = ubicacion.id
-            val referencia = ubicacion.referencia
-            val nombreColeccion = ubicacion.nombreC
-            binding.crear.isVisible = false
-            binding.linealForm.isVisible = true
-            binding.nombreColeccionED.setText(nombreColeccion)
-            binding.nombreColeccionED.isEnabled = false
-            binding.direccion.setText("$lat,$log")
-            binding.latitudUSer.text = lat
-            binding.longituduser.text = log
-            binding.direccionCasaED.setText(direccion)
-            binding.referenciaED.setText(referencia)
-            binding.editar.isVisible = true
-            binding.idReferencia.text = id.toString()
-            binding.eliminar.isVisible = true
+            dialog = BottomSheetDialog(this)
+            BottomSheetEditar_eliminar(ubicacion)
+            dialog.show()
+
         }
 
     }
 
+    private fun confSwipe() {
+        binding.swipe.setOnRefreshListener {
+            binding.linealCargandoDirecciones.isVisible = false
+            binding.crear.isVisible=false
+            binding.netScrollView.isVisible = false
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            obtenerUbicaciones(firebaseAuth.uid.toString())
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+                binding.linealCargandoDirecciones.isVisible = false
+                binding.netScrollView.isVisible = true
+                binding.crear.isVisible=true
+            }, 2000)
+        }
+    }
+
+    private fun BottomSheetEditar_eliminar(ubicacion: dataClass_ubicacion_user) {
+        val bindingBottomSheet =
+            BottomSheetEditarElimaarDireccionBinding.inflate(LayoutInflater.from(this))
+        val view = bindingBottomSheet.root
+        val tiempoInicio = System.currentTimeMillis()
+        mostrarDialog(
+            bindingBottomSheet.nombreColecciones,
+            bindingBottomSheet.infoCasa,
+            bindingBottomSheet.infoRef
+        )
+        bindingBottomSheet.nombreColeccionED.setText(ubicacion.nombreC)
+        bindingBottomSheet.nombreColeccionED.isEnabled = false
+        bindingBottomSheet.direccion.setText("${ubicacion.lat},${ubicacion.log}")
+        bindingBottomSheet.latitudUSer.text = ubicacion.lat
+        bindingBottomSheet.longituduser.text = ubicacion.log
+        bindingBottomSheet.direccionCasaED.setText(ubicacion.direccion)
+        bindingBottomSheet.referenciaED.setText(ubicacion.referencia)
+        bindingBottomSheet.idReferencia.text = ubicacion.id.toString()
+        val tiempoFin = System.currentTimeMillis()
+        val tiempoTotal = tiempoFin - tiempoInicio
+        handler.postDelayed({
+            bindingBottomSheet.linealCarganoDatos.isVisible = false
+            bindingBottomSheet.linealForm.isVisible = true
+        }, tiempoTotal)
+
+        bindingBottomSheet.eliminar.setOnClickListener {
+            eliminarReferencia(
+                binding.collectionEcontrado.text.toString(),
+                firebaseAuth.uid.toString(),
+                bindingBottomSheet.idReferencia.text.toString()
+            )
+        }
+        bindingBottomSheet.editar.setOnClickListener {
+
+            editar_ubicacion(
+                bindingBottomSheet,
+                firebaseAuth.uid.toString(),
+                bindingBottomSheet.idReferencia.text.toString()
+            )
+        }
+        bindingBottomSheet.obtenerLocalizacion.setOnClickListener {
+            bindingBottomSheet.cargandoLatLog.isVisible = true
+            bindingBottomSheet.obtenerLocalizacion.isVisible = false
+            getLocation(
+                bindingBottomSheet.cargandoLatLog,
+                bindingBottomSheet.obtenerLocalizacion,
+                bindingBottomSheet.direccion,
+                bindingBottomSheet.latitudUSer,
+                bindingBottomSheet.longituduser
+            ) { completado ->
+                if (completado) {
+                    bindingBottomSheet.cargandoLatLog.isVisible = false
+                    bindingBottomSheet.obtenerLocalizacion.isVisible = true
+                    Toast.makeText(
+                        this,
+                        "Ubicacion obtenida ",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    bindingBottomSheet.cargandoLatLog.isVisible = false
+                    bindingBottomSheet.obtenerLocalizacion.isVisible = true
+                    Toast.makeText(
+                        this,
+                        "error al obtener la ubicacion trate en un momento",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+            }
+        }
+
+        dialog.setContentView(view)
+    }
+
     private fun eliminarReferencia(coleccion_one: String, idUSer: String, documento: String) {
+        dialog.dismiss()
+        ocultar_datos("Eliminado Referencia...")
         val instance = FirebaseFirestore.getInstance()
         val dbTrabajador = instance.collection("Trabajadores_Usuarios_Drivers")
             .document(coleccion_one).collection(coleccion_one).document(idUSer)
             .collection("ubicacion").document(documento)
-        dbTrabajador.delete().addOnSuccessListener { res ->
-            obtenerUbicaciones(idUSer)
-            Toast.makeText(this, "ubicacion eliminada correctamente", Toast.LENGTH_SHORT).show()
-            binding.linealForm.isVisible = false
-            binding.linealBtnELiminarEditar.isVisible = false
-            binding.crear.isVisible = true
-        }
+
+        val startTime = System.currentTimeMillis()
+
+        dbTrabajador.delete()
+            .addOnSuccessListener { res ->
+                val endTime = System.currentTimeMillis()
+                val duration = endTime - startTime
+                mostrarDatos(duration)
+                obtenerUbicaciones(idUSer)
+                Toast.makeText(this, "Ubicación eliminada correctamente", Toast.LENGTH_SHORT).show()
+
+
+            }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "error al eliminar la ubicacion", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error al eliminar la ubicación", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun agregaDireccionUsuario(editar: Boolean, id: String, idRef: String? = null) {
+    private fun editar_ubicacion(
+        binding_bottomSheet: BottomSheetEditarElimaarDireccionBinding,
+        id: String,
+        idRefCreado: String? = null
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val coleccionRaiz = firestore.collection("Trabajadores_Usuarios_Drivers")
+
+        fun actualizarUbicacion(docTipo: String) {
+            dialog.dismiss()
+            val ubicacionesRef = coleccionRaiz
+                .document(docTipo)
+                .collection(docTipo)
+                .document(id)
+                .collection("ubicacion")
+
+            ocultar_datos("Guardando cambios")
+            val tiempoInicio = System.currentTimeMillis()
+
+            ubicacionesRef.get().addOnSuccessListener { res ->
+                val ubicacionEncontrada = res.firstOrNull {
+                    val idReferencia = it.getString("id")
+                    idReferencia == idRefCreado
+                }
+
+                if (ubicacionEncontrada != null && idRefCreado != null) {
+                    val hashMap = hashMapOf<String, Any>(
+                        "log" to binding_bottomSheet.longituduser.text.toString(),
+                        "lat" to binding_bottomSheet.latitudUSer.text.toString(),
+                        "direccion" to binding_bottomSheet.direccionCasaED.text.toString(),
+                        "referencia" to binding_bottomSheet.referenciaED.text.toString()
+                    )
+
+                    ubicacionesRef.document(idRefCreado).set(hashMap, SetOptions.merge())
+                        .addOnSuccessListener {
+                            val tiempoTotal = System.currentTimeMillis() - tiempoInicio
+                            mostrarDatos(tiempoTotal)
+                            Toast.makeText(
+                                this,
+                                "Cambios realizados correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            obtenerUbicaciones(firebaseAuth.uid.toString())
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("error_actualizar", "Error al actualizar los datos: ${e.message}")
+                        }
+                } else {
+                    Log.d("encontrado", "No se encontró una ubicación con el ID indicado")
+                }
+            }
+        }
+
+        // Buscar primero en trabajadores, luego en usuarios
+        coleccionRaiz.document("trabajadores").collection("trabajadores").document(id)
+            .get()
+            .addOnSuccessListener { trabajadorDoc ->
+                if (trabajadorDoc.exists()) {
+                    Log.d("encontrado", "Documento encontrado en trabajadores")
+                    actualizarUbicacion("trabajadores")
+                } else {
+                    coleccionRaiz.document("usuarios").collection("usuarios").document(id)
+                        .get()
+                        .addOnSuccessListener { usuarioDoc ->
+                            if (usuarioDoc.exists()) {
+                                Log.d("encontrado", "Documento encontrado en usuarios")
+                                actualizarUbicacion("usuarios")
+                            } else {
+                                Log.d(
+                                    "encontrado",
+                                    "No se encontró el documento ni en trabajadores ni en usuarios"
+                                )
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.d("error", "Error al buscar en usuarios: ${e.message}")
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.d("error", "Error al buscar en trabajadores: ${e.message}")
+            }
+    }
+
+    private fun agregaDireccionUsuario(id: String) {
+        val tiempoInicio = System.currentTimeMillis()
         val instance = FirebaseFirestore.getInstance()
         val dbTrabajador = instance.collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id)
@@ -180,16 +352,23 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         var encontrado = false
 
         dbTrabajador.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotal = tiempoFin - tiempoInicio
             if (res.exists()) {
                 encontrado = true
-                agregarUbicacion(editar, "trabajadores", "trabajadores", id, idRef)
+                agregarUbicacion("trabajadores", "trabajadores", id)
                 Log.d("encontrado", "Documento encontrado en trabajadores")
+                mostrarDatos(tiempoTotal)
+
             }
             dbUsuario.get().addOnSuccessListener { res ->
+                val tiempoFin = System.currentTimeMillis()
+                val tiempoTotal = tiempoFin - tiempoInicio
                 if (res.exists()) {
                     encontrado = true
-                    agregarUbicacion(editar, "usuarios", "usuarios", id, idRef)
+                    agregarUbicacion("usuarios", "usuarios", id)
                     Log.d("encontrado", "Documento encontrado en usuarios")
+                    mostrarDatos(tiempoTotal)
                 }
 
                 if (!encontrado) {
@@ -204,11 +383,15 @@ class direccion_entrega_lat_log : AppCompatActivity() {
     }
 
     private fun obtenerUbicaciones(id: String) {
+        val tiempoInicio = System.currentTimeMillis()
+
         val instance = FirebaseFirestore.getInstance()
         val dbTrabajador = instance.collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id)
         val dbUsuario = instance.collection("Trabajadores_Usuarios_Drivers")
             .document("usuarios").collection("usuarios").document(id)
+
+        // Flag para saber si se encontró al menos 1 ubicación
         var encontrado = false
 
         dbTrabajador.collection("ubicacion").get().addOnSuccessListener { result ->
@@ -216,62 +399,90 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                 encontrado = true
                 val ubicaciones = mutableListOf<dataClass_ubicacion_user>()
                 for (document in result) {
-                    val log = document.getString("log") ?: "No disponible"
-                    val lat = document.getString("lat") ?: "No disponible"
-                    val direccion = document.getString("direccion") ?: "No disponible"
-                    val id = document.getString("id") ?: "No disponible"
-                    val referencia = document.getString("referencia") ?: "No disponible"
-                    val nombreC = document.getString("nombre") ?: "No disponible"
-                    val ubicacion =
-                        dataClass_ubicacion_user(log, lat, direccion, id, referencia, nombreC)
+                    val ubicacion = dataClass_ubicacion_user(
+                        document.getString("log") ?: "No disponible",
+                        document.getString("lat") ?: "No disponible",
+                        document.getString("direccion") ?: "No disponible",
+                        document.getString("id") ?: "No disponible",
+                        document.getString("referencia") ?: "No disponible",
+                        document.getString("nombre") ?: "No disponible"
+                    )
                     ubicaciones.add(ubicacion)
                 }
+
                 mostrarUbicaciones(ubicaciones)
                 binding.collectionEcontrado.text = "trabajadores"
-                Log.d("econtrado", "Ubicaciones encontradas en trabajadores")
+                binding.containerSinUBI.isVisible = false
+
+                val tiempoFinal = System.currentTimeMillis()
+                mostrarDatos(tiempoFinal - tiempoInicio)
 
             } else {
-                dbUsuario.collection("ubicacion").get().addOnSuccessListener { result ->
-                    if (!result.isEmpty) {
+                // No encontró en trabajadores, buscar en usuarios
+                dbUsuario.collection("ubicacion").get().addOnSuccessListener { result2 ->
+                    if (!result2.isEmpty) {
                         encontrado = true
                         val ubicaciones = mutableListOf<dataClass_ubicacion_user>()
-                        for (document in result) {
-                            val log = document.getString("log") ?: "No disponible"
-                            val lat = document.getString("lat") ?: "No disponible"
-                            val direccion = document.getString("direccion") ?: "No disponible"
-                            val idRefencia = document.getString("id") ?: "No disponible"
-                            val referencia = document.getString("referencia") ?: "No disponible"
-                            val nombreC = document.getString("nombre") ?: "No disponible"
+                        for (document in result2) {
                             val ubicacion = dataClass_ubicacion_user(
-                                log,
-                                lat,
-                                direccion,
-                                idRefencia,
-                                referencia,
-                                nombreC
+                                document.getString("log") ?: "No disponible",
+                                document.getString("lat") ?: "No disponible",
+                                document.getString("direccion") ?: "No disponible",
+                                document.getString("id") ?: "No disponible",
+                                document.getString("referencia") ?: "No disponible",
+                                document.getString("nombre") ?: "No disponible"
                             )
                             ubicaciones.add(ubicacion)
                         }
+
                         mostrarUbicaciones(ubicaciones)
                         binding.collectionEcontrado.text = "usuarios"
-                        Log.d("econtrado", "Ubicaciones encontradas en usuarios")
                         binding.containerSinUBI.isVisible = false
-                    }
-                    if (!encontrado) {
-                        Log.d("econtrado", "No se encontraron ubicaciones en ninguna colección")
+
+                        val tiempoFinal = System.currentTimeMillis()
+                        mostrarDatos(tiempoFinal - tiempoInicio)
+
+                    } else {
+                        // No encontró ubicaciones en ninguno
                         binding.containerSinUBI.isVisible = true
+
+                        val tiempoFinal = System.currentTimeMillis()
+                        mostrarDatos(tiempoFinal - tiempoInicio)
                     }
                 }.addOnFailureListener { e ->
                     Log.d("econtrado", "Error al buscar en usuarios: ${e.message}")
                     binding.containerSinUBI.isVisible = true
+
+                    val tiempoFinal = System.currentTimeMillis()
+                    mostrarDatos(tiempoFinal - tiempoInicio)
                 }
             }
         }.addOnFailureListener { e ->
             Log.d("econtrado", "Error al buscar en trabajadores: ${e.message}")
             binding.containerSinUBI.isVisible = true
+
+            val tiempoFinal = System.currentTimeMillis()
+            mostrarDatos(tiempoFinal - tiempoInicio)
         }
     }
 
+
+    private fun mostrarDatos(tiempo: Long) {
+        handler.postDelayed({
+            binding.netScrollView.isVisible = true
+            binding.linealCargandoDirecciones.isVisible = false
+            binding.crear.isVisible = true
+            binding.swipe.isVisible=true
+        }, tiempo)
+    }
+
+    private fun ocultar_datos(texto_mostrado: String) {
+        binding.textCambiarTextoCargando.text = texto_mostrado
+        binding.linealCargandoDirecciones.isVisible = true
+        binding.crear.isVisible = false
+        binding.netScrollView.isVisible = false
+        binding.swipe.isVisible=false
+    }
 
     private fun mostrarUbicaciones(ubicaciones: List<dataClass_ubicacion_user>) {
         if (ubicaciones.isEmpty()) {
@@ -283,9 +494,12 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         }
     }
 
-
-    private fun mostrarDialog() {
-        binding.nombreColecciones.setOnClickListener {
+    private fun mostrarDialog(
+        nombreColecciones: ImageButton,
+        infoCasa: ImageButton,
+        infoRef: ImageButton
+    ) {
+        nombreColecciones.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle(getString(R.string.nombreCollectioTitle))
             builder.setMessage(getString(R.string.nombreCollection))
@@ -293,8 +507,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             val dialog: AlertDialog = builder.create()
             dialog.show()
         }
-
-        binding.infoCasa.setOnClickListener {
+        infoCasa.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle(getString(R.string.nombrerefUNOTitle))
             builder.setMessage(getString(R.string.nombrerefUNO))
@@ -303,7 +516,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             dialog.show()
         }
 
-        binding.infoRef.setOnClickListener {
+        infoRef.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle(getString(R.string.nombrerefDOSTitle))
             builder.setMessage(getString(R.string.nombrerefDOS))
@@ -314,11 +527,9 @@ class direccion_entrega_lat_log : AppCompatActivity() {
     }
 
     private fun agregarUbicacion(
-        editar: Boolean,
         doc1: String,
         doc2: String,
         id: String,
-        idRefCreado: String? = null
     ) {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")
@@ -327,96 +538,58 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             .document(id)
             .collection("ubicacion")
 
-        if (editar) {
-            db.get().addOnSuccessListener { res ->
-                for (datae in res) {
-                    val data = datae.data
-                    val idReferencia = data?.get("id") as? String ?: ""
-                    if (idReferencia == idRefCreado) {
-                        val hashMap = hashMapOf<String, Any>(
-                            "log" to binding.longituduser.text.toString(),
-                            "lat" to binding.latitudUSer.text.toString(),
-                            "direccion" to binding.direccionCasaED.text.toString(),
-                            "referencia" to binding.referenciaED.text.toString()
-                        )
-                        db.document(idRefCreado).set(hashMap, SetOptions.merge())
-                            .addOnSuccessListener {
-                                Toast.makeText(
-                                    this,
-                                    "cambios realizados correctamente",
-                                    Toast.LENGTH_SHORT
-                                ).show()
 
-                                obtenerUbicaciones(firebaseAuth.uid.toString())
-
-                                // Limpiar campos y ocultar vistas
-                                binding.nombreColeccionED.setText("")
-                                binding.direccionCasaED.setText("")
-                                binding.referenciaED.setText("")
-                                binding.linealForm.isVisible = false
-                                binding.editar.isVisible = false
-                                binding.eliminar.isVisible = false
-                            }.addOnFailureListener { e->
-                                Log.e("error_actualizar","error al actulizar los datos")
-                            }
-                    } else {
-                        Log.d("encontrado", "no se enconotr uina igual")
-
+        ocultar_datos("Creando direccion")
+        val hashMap = hashMapOf<String, Any>(
+            "nombre" to binding.nombreColeccionED.text.toString(),
+            "log" to binding.longituduser.text.toString(),
+            "lat" to binding.latitudUSer.text.toString(),
+            "direccion" to binding.direccionCasaED.text.toString(),
+            "referencia" to binding.referenciaED.text.toString()
+        )
+        val tiempoInicio = System.currentTimeMillis()
+        db.add(hashMap)
+            .addOnSuccessListener { documentReference ->
+                // Ahora actualizamos el documento con su ID generado
+                val tiempoFin = System.currentTimeMillis()
+                val tiempoTotal = tiempoFin - tiempoInicio
+                mostrarDatos(tiempoTotal)
+                documentReference.update("id", documentReference.id)
+                    .addOnSuccessListener {
+                        Toast.makeText(
+                            this,
+                            "Ubicación agregada correctamente ",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        binding.crear.text = "Crear nuevo"
                     }
-                }
+
+                    .addOnFailureListener { e ->
+                        Log.d("errroref", "Error al actualizar el ID: ${e.message}")
+                    }
+
+                obtenerUbicaciones(firebaseAuth.uid.toString())
+                binding.nombreColeccionED.setText("")
+                binding.direccionCasaED.setText("")
+                binding.referenciaED.setText("")
+                binding.linealForm.isVisible = false
             }
-        } else {
-            val hashMap = hashMapOf<String, Any>(
-                "nombre" to binding.nombreColeccionED.text.toString(),
-                "log" to binding.longituduser.text.toString(),
-                "lat" to binding.latitudUSer.text.toString(),
-                "direccion" to binding.direccionCasaED.text.toString(),
-                "referencia" to binding.referenciaED.text.toString()
-            )
-
-            db.add(hashMap)
-                .addOnSuccessListener { documentReference ->
-                    // Ahora actualizamos el documento con su ID generado
-                    documentReference.update("id", documentReference.id)
-                        .addOnSuccessListener {
-                            Toast.makeText(
-                                this,
-                                "Ubicación agregada correctamente con ID: ${documentReference.id}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(
-                                this,
-                                "Error al actualizar el ID: ${e.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-
-                    obtenerUbicaciones(firebaseAuth.uid.toString())
-
-                    // Limpiar campos y ocultar vistas
-                    binding.nombreColeccionED.setText("")
-                    binding.direccionCasaED.setText("")
-                    binding.referenciaED.setText("")
-                    binding.linealForm.isVisible = false
-                    binding.editar.isVisible = false
-                    binding.eliminar.isVisible = false
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(
-                        this,
-                        "Error al subir la ubicación: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-        }
-
+            .addOnFailureListener { e ->
+                Toast.makeText(
+                    this,
+                    "Error al subir la ubicación: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
 
     }
 
-
-    private fun getLocation(completado: (Boolean) -> Unit) {
+    private fun getLocation(
+        cargandoLatLog: ProgressBar,
+        obtenerLocalizacion: ImageButton,
+        direccion: EditText, latitudUSer: TextView, longituduser: TextView,
+        completado: (Boolean) -> Unit,
+    ) {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 
@@ -427,13 +600,13 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                 .setTitle("Ubicación desactivada")
                 .setMessage("Por favor, active su ubicación para continuar.")
                 .setPositiveButton("Activar") { _, _ ->
-                    binding.cargandoLatLog.isVisible=false
-                    binding.obtenerLocalizacion.isVisible=true
+                    cargandoLatLog.isVisible = false
+                    obtenerLocalizacion.isVisible = true
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 }
                 .setNegativeButton("Cancelar") { dialog, _ ->
-                    binding.cargandoLatLog.isVisible=false
-                    binding.obtenerLocalizacion.isVisible=true
+                    cargandoLatLog.isVisible = false
+                    obtenerLocalizacion.isVisible = true
                     dialog.dismiss()
                     completado(false)
                 }
@@ -441,8 +614,16 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             return
         }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
             return
         }
 
@@ -460,19 +641,26 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                     completado(true)
                     val latitude = location.latitude
                     val longitude = location.longitude
-                    binding.direccion.setText("$latitude,$longitude")
-                    binding.latitudUSer.text = latitude.toString()
-                    binding.longituduser.text = longitude.toString()
+                    direccion.setText("$latitude,$longitude")
+                    latitudUSer.text = latitude.toString()
+                    longituduser.text = longitude.toString()
                 } else {
                     completado(false)
-                    Toast.makeText(this@direccion_entrega_lat_log, "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@direccion_entrega_lat_log,
+                        "No se pudo obtener la ubicación",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
 
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -482,12 +670,16 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getLocation() {}
+                getLocation(
+                    binding.cargandoLatLog,
+                    binding.obtenerLocalizacion,
+                    binding.direccion,
+                    binding.latitudUSer,
+                    binding.longituduser
+                ) {}
             } else {
                 Toast.makeText(this, "Permiso de ubicación denegado.", Toast.LENGTH_SHORT).show()
             }
         }
     }
-
-
 }

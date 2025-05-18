@@ -14,6 +14,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.geinzz.geinzwork.R;
@@ -49,12 +51,6 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
   public final EditText direccionCasaED;
 
   @NonNull
-  public final MaterialButton editar;
-
-  @NonNull
-  public final MaterialButton eliminar;
-
-  @NonNull
   public final TextView idReferencia;
 
   @NonNull
@@ -70,7 +66,7 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
   public final TextView latitudUSer;
 
   @NonNull
-  public final LinearLayout linealBtnELiminarEditar;
+  public final LinearLayout linealCargandoDirecciones;
 
   @NonNull
   public final LinearLayout linealForm;
@@ -86,6 +82,9 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
 
   @NonNull
   public final RelativeLayout main;
+
+  @NonNull
+  public final NestedScrollView netScrollView;
 
   @NonNull
   public final TextInputLayout nombreColeccion;
@@ -108,21 +107,27 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
   @NonNull
   public final EditText referenciaED;
 
+  @NonNull
+  public final SwipeRefreshLayout swipe;
+
+  @NonNull
+  public final TextView textCambiarTextoCargando;
+
   private ActivityDireccionEntregaLatLogBinding(@NonNull RelativeLayout rootView,
       @NonNull ProgressBar cargandoLatLog, @NonNull TextView collectionEcontrado,
       @NonNull RelativeLayout containerSinUBI, @NonNull MaterialButton crear,
       @NonNull EditText direccion, @NonNull TextInputLayout direccionCasa,
-      @NonNull EditText direccionCasaED, @NonNull MaterialButton editar,
-      @NonNull MaterialButton eliminar, @NonNull TextView idReferencia,
+      @NonNull EditText direccionCasaED, @NonNull TextView idReferencia,
       @NonNull ImageView imgLocalizacion, @NonNull ImageButton infoCasa,
       @NonNull ImageButton infoRef, @NonNull TextView latitudUSer,
-      @NonNull LinearLayout linealBtnELiminarEditar, @NonNull LinearLayout linealForm,
+      @NonNull LinearLayout linealCargandoDirecciones, @NonNull LinearLayout linealForm,
       @NonNull LinearLayout linealubiActual, @NonNull ListView listaUbicaciones,
       @NonNull TextView longituduser, @NonNull RelativeLayout main,
-      @NonNull TextInputLayout nombreColeccion, @NonNull EditText nombreColeccionED,
-      @NonNull ImageButton nombreColecciones, @NonNull TextInputLayout numeropersonasint,
-      @NonNull ImageButton obtenerLocalizacion, @NonNull TextInputLayout referencia,
-      @NonNull EditText referenciaED) {
+      @NonNull NestedScrollView netScrollView, @NonNull TextInputLayout nombreColeccion,
+      @NonNull EditText nombreColeccionED, @NonNull ImageButton nombreColecciones,
+      @NonNull TextInputLayout numeropersonasint, @NonNull ImageButton obtenerLocalizacion,
+      @NonNull TextInputLayout referencia, @NonNull EditText referenciaED,
+      @NonNull SwipeRefreshLayout swipe, @NonNull TextView textCambiarTextoCargando) {
     this.rootView = rootView;
     this.cargandoLatLog = cargandoLatLog;
     this.collectionEcontrado = collectionEcontrado;
@@ -131,19 +136,18 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
     this.direccion = direccion;
     this.direccionCasa = direccionCasa;
     this.direccionCasaED = direccionCasaED;
-    this.editar = editar;
-    this.eliminar = eliminar;
     this.idReferencia = idReferencia;
     this.imgLocalizacion = imgLocalizacion;
     this.infoCasa = infoCasa;
     this.infoRef = infoRef;
     this.latitudUSer = latitudUSer;
-    this.linealBtnELiminarEditar = linealBtnELiminarEditar;
+    this.linealCargandoDirecciones = linealCargandoDirecciones;
     this.linealForm = linealForm;
     this.linealubiActual = linealubiActual;
     this.listaUbicaciones = listaUbicaciones;
     this.longituduser = longituduser;
     this.main = main;
+    this.netScrollView = netScrollView;
     this.nombreColeccion = nombreColeccion;
     this.nombreColeccionED = nombreColeccionED;
     this.nombreColecciones = nombreColecciones;
@@ -151,6 +155,8 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
     this.obtenerLocalizacion = obtenerLocalizacion;
     this.referencia = referencia;
     this.referenciaED = referenciaED;
+    this.swipe = swipe;
+    this.textCambiarTextoCargando = textCambiarTextoCargando;
   }
 
   @Override
@@ -222,18 +228,6 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
         break missingId;
       }
 
-      id = R.id.editar;
-      MaterialButton editar = ViewBindings.findChildViewById(rootView, id);
-      if (editar == null) {
-        break missingId;
-      }
-
-      id = R.id.eliminar;
-      MaterialButton eliminar = ViewBindings.findChildViewById(rootView, id);
-      if (eliminar == null) {
-        break missingId;
-      }
-
       id = R.id.idReferencia;
       TextView idReferencia = ViewBindings.findChildViewById(rootView, id);
       if (idReferencia == null) {
@@ -264,9 +258,9 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
         break missingId;
       }
 
-      id = R.id.linealBtnELiminarEditar;
-      LinearLayout linealBtnELiminarEditar = ViewBindings.findChildViewById(rootView, id);
-      if (linealBtnELiminarEditar == null) {
+      id = R.id.lineal_cargando_direcciones;
+      LinearLayout linealCargandoDirecciones = ViewBindings.findChildViewById(rootView, id);
+      if (linealCargandoDirecciones == null) {
         break missingId;
       }
 
@@ -295,6 +289,12 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
       }
 
       RelativeLayout main = (RelativeLayout) rootView;
+
+      id = R.id.netScrollView;
+      NestedScrollView netScrollView = ViewBindings.findChildViewById(rootView, id);
+      if (netScrollView == null) {
+        break missingId;
+      }
 
       id = R.id.nombreColeccion;
       TextInputLayout nombreColeccion = ViewBindings.findChildViewById(rootView, id);
@@ -338,12 +338,24 @@ public final class ActivityDireccionEntregaLatLogBinding implements ViewBinding 
         break missingId;
       }
 
+      id = R.id.swipe;
+      SwipeRefreshLayout swipe = ViewBindings.findChildViewById(rootView, id);
+      if (swipe == null) {
+        break missingId;
+      }
+
+      id = R.id.text_cambiar_texto_cargando;
+      TextView textCambiarTextoCargando = ViewBindings.findChildViewById(rootView, id);
+      if (textCambiarTextoCargando == null) {
+        break missingId;
+      }
+
       return new ActivityDireccionEntregaLatLogBinding((RelativeLayout) rootView, cargandoLatLog,
           collectionEcontrado, containerSinUBI, crear, direccion, direccionCasa, direccionCasaED,
-          editar, eliminar, idReferencia, imgLocalizacion, infoCasa, infoRef, latitudUSer,
-          linealBtnELiminarEditar, linealForm, linealubiActual, listaUbicaciones, longituduser,
-          main, nombreColeccion, nombreColeccionED, nombreColecciones, numeropersonasint,
-          obtenerLocalizacion, referencia, referenciaED);
+          idReferencia, imgLocalizacion, infoCasa, infoRef, latitudUSer, linealCargandoDirecciones,
+          linealForm, linealubiActual, listaUbicaciones, longituduser, main, netScrollView,
+          nombreColeccion, nombreColeccionED, nombreColecciones, numeropersonasint,
+          obtenerLocalizacion, referencia, referenciaED, swipe, textCambiarTextoCargando);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

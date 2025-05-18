@@ -316,7 +316,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
             onBackPresser,
             listaAleatoria,
             firebaseAuth.uid.toString(),
-            4
+            4,false
         )
     }
 
@@ -326,7 +326,8 @@ object constantesTrabajadoresTiendasInicioFragmet {
         TextView: TextView,
         contexto: Context,
         imagen: CircleImageView,
-        linealAnuncioVerificado: LinearLayout
+        linealAnuncioVerificado: LinearLayout,
+        verificadoBoolena:(Boolean)->Unit
     ) {
         if (constantes.firebaseAuth.currentUser == null) {
             val placeholderperfil =
@@ -361,9 +362,11 @@ object constantesTrabajadoresTiendasInicioFragmet {
                             imagen
                         )
                         if(verificado==true){
-                            linealAnuncioVerificado.isVisible=false
+                            verificadoBoolena(true)
+//                            linealAnuncioVerificado.isVisible=false
                         }else{
-                            linealAnuncioVerificado.isVisible=true
+                            verificadoBoolena(false)
+//                            linealAnuncioVerificado.isVisible=true
                         }
                         break
                     }
@@ -376,7 +379,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
 
                     db2.get().addOnSuccessListener { res2 ->
                         for (resultado in res2) {
-                            linealAnuncioVerificado.isVisible=false
+//                            linealAnuncioVerificado.isVisible=false
                             val data = resultado.data
                             val id = data?.get("id") as? String
                             if (id == constantes.firebaseAuth.uid.toString()) {

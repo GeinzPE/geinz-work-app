@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".problemas_soporte_politicas.politicas_verificacion">
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Política de Privacidad"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:paddingBottom="16dp"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Introducción"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bienvenido a Geinz. Valoramos tu privacidad y nos comprometemos a proteger tu información personal. Esta política de privacidad describe cómo recopilamos, utilizamos y protegemos tus datos personales al usar nuestra aplicación para la creación y administración de tiendas."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Información que Recopilamos"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Para verificar la identidad de los usuarios y gestionar las cuentas en nuestra aplicación, recopilamos los siguientes datos:"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Nombre\n• Apellido\n• DNI (Documento Nacional de Identidad)\n• Número de teléfono\n• Foto de perfil\n• Foto del DNI (anverso y reverso)"
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cómo Utilizamos la Información"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Utilizamos la información recopilada para los siguientes fines:"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Verificar la identidad de los usuarios.\n• Gestionar y administrar las cuentas de las tiendas.\n• Mejorar la seguridad y confianza en nuestra plataforma.\n• Comunicarnos contigo sobre el estado de tu cuenta y cualquier verificación necesaria."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Compartir Información con Terceros"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No compartimos tus datos personales con terceros, excepto cuando sea necesario para cumplir con la ley o para proteger los derechos, propiedad o seguridad de nuestros usuarios y nuestra aplicación."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Seguridad de los Datos"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Implementamos medidas de seguridad adecuadas para proteger tu información contra accesos no autorizados, pérdida o alteración. Solo el personal autorizado tiene acceso a tus datos personales, y estos están obligados a mantener la confidencialidad de dicha información."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Derechos del Usuario"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tienes derecho a:"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Acceder a tus datos personales que almacenamos.\n• Solicitar la rectificación de datos incorrectos o incompletos.\n• Solicitar la eliminación de tus datos personales.\n• Oponerte al procesamiento de tus datos personales."
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Para ejercer estos derechos, por favor contáctanos a través de los medios proporcionados al final de esta política."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cookies y Tecnologías Similares"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Actualmente, nuestra aplicación no utiliza cookies. Sin embargo, nos reservamos el derecho de utilizar cookies en el futuro para mejorar la experiencia del usuario. Cualquier cambio será notificado oportunamente."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Retención de Datos"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Conservamos tus datos personales solo durante el tiempo necesario para cumplir con los fines para los cuales fueron recopilados y para cumplir con nuestras obligaciones legales. Una vez que tu cuenta sea verificada o eliminada, procederemos a eliminar tus datos personales de nuestros registros."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Actualizaciones de la Política de Privacidad"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Podemos actualizar esta política ocasionalmente. Te informaremos sobre cualquier cambio a través de nuestra aplicación o sitio web. Te recomendamos revisar esta política periódicamente para estar al tanto de cómo protegemos tu información."
+                android:paddingBottom="16dp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Contacto"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Si tienes preguntas o deseas ejercer tus derechos, contáctanos al numero +51 937659216"
+                android:paddingBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fecha de Vigencia: 4 de julio de 2024"
+                android:paddingBottom="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

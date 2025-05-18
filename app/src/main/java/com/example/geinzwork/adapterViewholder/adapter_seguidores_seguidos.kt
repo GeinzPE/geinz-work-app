@@ -1,6 +1,7 @@
 package com.example.geinzwork.adapterViewholder
 
 import android.content.Context
+import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -16,9 +17,13 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
+import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.databinding.ItemCargaSeguidoresSeguidosBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -30,7 +35,7 @@ class adapter_seguidores_seguidos(
 ) :
     RecyclerView.Adapter<adapter_seguidores_seguidos.viewholderSeguidores_Seguidos>() {
     private lateinit var firebaseAuth: FirebaseAuth
-
+    private lateinit var dialog: BottomSheetDialog
     fun actualizarLista(newList:List<dataclass_seguidores_seguidos>){
         val difutil=difultil_Seguidores_seguidos(lista,newList)
         val result=DiffUtil.calculateDiff(difutil)
@@ -126,9 +131,18 @@ class adapter_seguidores_seguidos(
             )
 
             binding.seguir.setOnClickListener {
-                seguir(item)
-                binding.dejarSeguir.isVisible=true
-                binding.seguir.isVisible=false
+                    if (firebaseAuth.currentUser == null) {
+                        dialog = BottomSheetDialog(itemView.context)
+                        constantesPublicidad.CreacionCuentaBottom_shett(
+                            itemView.context,
+                            dialog
+                        )
+                        dialog.show()
+                    } else {
+                        constantes_trabajadores_info.seguirTrabajadorcategoriasFR(item.id_trabajador!!, false)
+                        binding.dejarSeguir.isVisible=true
+                        binding.seguir.isVisible=false
+                    }
             }
             binding.dejarSeguir.setOnClickListener {
                 dejar_seguir(item)

@@ -83,6 +83,32 @@
                     android:layout_gravity="center"
                     style="@style/TextoModoOScuroColor"/>
             </LinearLayout>
+
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:text="Ya tienes cuenta?  "/>
+            <TextView
+                android:id="@+id/iniciarSeccion"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                style="@style/TextoModoOScuroColor"
+                android:textStyle="bold"
+                android:textColor="@color/violeta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Iniciar Seccion"/>
         </LinearLayout>
 
     </LinearLayout>

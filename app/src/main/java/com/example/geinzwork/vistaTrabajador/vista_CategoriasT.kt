@@ -84,21 +84,21 @@ class vista_CategoriasT : AppCompatActivity() {
         agregarCategoriasFiltrado()
         inicizializarFiltradoCat()
 
+
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun inicizializarFiltradoCat() {
-        val recicle = binding.filtradocategoria
-        adapterFiltrado = adapterFiltradoTrabajadoresVerMAs(categoriasFiltrado) { item ->
-
-            val filtrado = when (item.nombreCat) {
-                Variables.Todos -> {
+        binding.chipGroupFiltro.setOnCheckedChangeListener { _, checkedId ->
+            val filtrado = when (checkedId) {
+                R.id.todos -> {
                     binding.linelaFiltrado.isVisible = true
                     binding.editexFilter.setText("")
                     listaTrabajo
                 }
 
-                Variables.Más_estrellas -> {
+                R.id.mas_estrellas -> {
                     binding.linelaFiltrado.isVisible = false
                     binding.editexFilter.setText("")
                     listaTrabajo.filter { trabajo ->
@@ -106,16 +106,15 @@ class vista_CategoriasT : AppCompatActivity() {
                     }
                 }
 
-                Variables.Activos -> {
+                R.id.activos -> {
                     binding.linelaFiltrado.isVisible = false
                     binding.editexFilter.setText("")
                     listaTrabajo.filter {
                         obtenerActivos(it.horarioam.toString(), it.horariopm.toString())
                     }
-
                 }
 
-                Variables.Verificado -> {
+                R.id.filtrado_verificado -> {
                     binding.linelaFiltrado.isVisible = false
                     binding.editexFilter.setText("")
                     listaTrabajo.filter {
@@ -126,19 +125,23 @@ class vista_CategoriasT : AppCompatActivity() {
                 else -> emptyList()
             }
 
-            if (filtrado.isEmpty()) {
-                binding.relativeNoEncontrado.isVisible = true
-                binding.recicleCategoria.isVisible = false
-            } else {
-                binding.relativeNoEncontrado.isVisible = false
-                binding.recicleCategoria.isVisible = true
-                inicarlizarRecicle(filtrado.toMutableList())
-            }
+            aplicarFiltrado(filtrado)
         }
-
-        recicle.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        recicle.adapter = adapterFiltrado
     }
+
+    private fun aplicarFiltrado(lista: List<dataClassTrabajosd>) {
+        if (lista.isEmpty()) {
+            binding.relativeNoEncontrado.isVisible = true
+            binding.recicleCategoria.isVisible = false
+        } else {
+            binding.relativeNoEncontrado.isVisible = false
+            binding.recicleCategoria.isVisible = true
+            inicarlizarRecicle(lista.toMutableList())
+        }
+    }
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun obtenerActivos(h1: String, h2: String): Boolean {
@@ -360,7 +363,7 @@ class vista_CategoriasT : AppCompatActivity() {
             adapter(
                 false,
                 listaTrabajos,
-                firebaseAuth.uid.toString(), listaTrabajos.size
+                firebaseAuth.uid.toString(), listaTrabajos.size,true
             )
 
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {

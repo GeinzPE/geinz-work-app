@@ -48,6 +48,18 @@
             android:orientation="vertical"
             android:padding="10dp">
 
+            <ImageButton
+                android:id="@+id/retroceder"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/circle_bakc_preset"
+                android:maxWidth="20dp"
+                android:maxHeight="20dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/back_preset_retro" />
+
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/carrucelImgProductosVentaUser"
                 android:layout_width="wrap_content"

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    style="@style/fondo"
+    android:layout_height="match_parent"
+    tools:context="com.example.geinzwork.vistaTrabajador.promocionesvista">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                    android:id="@+id/imgPrincipal"
+                    android:layout_width="match_parent"
+                    android:layout_height="450dp"
+                    app:autoPlay="false"
+                    app:autoPlayDelay="4000"
+                    app:carouselPadding="66dp"
+                    app:carouselType="SHOWCASE"
+                    app:imageScaleType="fitXY"
+                    app:showBottomShadow="false"
+                    app:showCaption="false"
+                    app:showIndicator="false"
+                    app:showNavigationButtons="false"
+                    app:showTopShadow="true" />
+
+                <ImageButton
+                    android:id="@+id/popup"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:adjustViewBounds="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:elevation="8dp"
+                    android:maxWidth="20dp"
+                    android:maxHeight="20dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/navegacion_icon" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/round_encabezado" />
+                <ImageButton
+                    android:id="@+id/bakPresert"
+                    android:layout_margin="10dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/circle_bakc_preset"
+                    android:maxWidth="20dp"
+                    android:maxHeight="20dp"
+                    android:padding="10dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/back_preset_retro"
+                    />
+            </RelativeLayout>
+
+            <include
+                android:id="@+id/descripcion_promos"
+                layout="@layout/include_descripcion_promo_art"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mas promociones"
+                android:textSize="17sp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                style="@style/TextoTitulos"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recicleItem_mas"
+                android:layout_marginLeft="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <include
+                android:id="@+id/layoutPerfilTienda"
+                layout="@layout/info_tienda"/>
+
+        </LinearLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+</RelativeLayout>

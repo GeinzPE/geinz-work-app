@@ -4,19 +4,26 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.StyleSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.geinzz.geinzwork.EditarReview
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomSheetConfigCuentaBinding
@@ -33,7 +40,7 @@ class adaptadorReview(
     private val idtrabajadorClikeado: String? = null,
 
     ) : RecyclerView.Adapter<adaptadorReview.viewHolderReview>() {
-    private lateinit var dialog: Dialog
+    private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolderReview {
         val binding = ItemReviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -64,21 +71,60 @@ class adaptadorReview(
             review.text = daclassReview.review
             fecha.text = daclassReview.fecha
             hora.text = daclassReview.hora
+            val uidActual = FirebaseAuth.getInstance().uid
             firebaseAuth = FirebaseAuth.getInstance()
+            if (daclassReview.idUsuarioReview == uidActual) {
+                binding.editar.isVisible = true
+            } else {
+                binding.editar.isVisible = false
+
+            }
+            binding.editar.setOnClickListener {
+                val intent = Intent(itemView.context, EditarReview::class.java).apply {
+                    putExtra("TipoEditado", Variables.CuentaFreelancer)
+                    putExtra("idReview", uidActual)
+                    putExtra(Variables.iduser, uidActual)
+                    putExtra(Variables.idTrabajdor, idtrabajadorClikeado)
+                    putExtra(Variables.cantidad, daclassReview.cantidaStarts)
+                    putExtra("review", review.text.toString())
+                    putExtra("editado_adaptador",false)
+                }
+                itemView.context.startActivity(intent)
+            }
             reportar.setOnClickListener {
-                verificar_denunciaExistente(daclassReview.idUsuarioReview.toString()) { existe ->
-                    if (existe) {
+                if(firebaseAuth.currentUser==null){
+                    dialog = BottomSheetDialog(itemView.context)
+                    constantesPublicidad.CreacionCuentaBottom_shett(
+                        itemView.context,
+                        dialog
+                    )
+                    dialog.show()
+
+                }else{
+                    if (daclassReview.idUsuarioReview == uidActual) {
                         Toast.makeText(
                             itemView.context,
-                            "Ya tienes una denuncia en esta reseña",
+                            "No puedes denunciar tu propia review",
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        dialog = BottomSheetDialog(itemView.context)
-                        BottomShett_UsoIndebido(daclassReview)
-                        dialog.show()
+                        verificar_denunciaExistente(daclassReview.idUsuarioReview.toString()) { existe ->
+                            if (existe) {
+                                Toast.makeText(
+                                    itemView.context,
+                                    "Ya tienes una denuncia en esta reseña",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                dialog = BottomSheetDialog(itemView.context)
+                                BottomShett_UsoIndebido(daclassReview)
+                                dialog.show()
+                            }
+                        }
                     }
                 }
+
+
 
             }
             setearStarts(daclassReview)
@@ -89,14 +135,20 @@ class adaptadorReview(
                 val nombreCompleto = "$nombre $apellido"
                 binding.nombre.text = nombreCompleto
                 println("id del user ${daclassReview.idUsuarioReview.toString()}")
+                val placeholder: Drawable? =
+                    ContextCompat.getDrawable(itemView.context, R.drawable.img_perfil)
 
-                try {
-                    Glide.with(itemView.context)
-                        .load(img)
-                        .into(binding.imgPerfilUser)
-                } catch (e: Exception) {
-                    println("error al setear la img")
+                constatnes_carga_imagenes_general.changer_img(
+                    binding.cargarImg,
+                    itemView.context,
+                    img.toString(),
+                    binding.imgPerfilUser,
+                    null,
+                    "perfil", placeholder
+                ) { cargado ->
+
                 }
+
                 constantes_servicios.verificarEstado_vericiacion(
                     binding.iconoVerificado,
                     daclassReview.idUsuarioReview.toString()
@@ -125,16 +177,15 @@ class adaptadorReview(
                 val nombreYaCargado = binding.nombre.text.toString() == nombreCompleto
                 val nombreValido =
                     nombre.toString().isNotBlank() && apellido.toString().isNotBlank()
-                val imagenValida = !img.isNullOrBlank() // o validar que no sea un placeholder
+//                val imagenValida = !img.isNullOrBlank() // o validar que no sea un placeholder
 
-                if (nombreYaCargado && nombreValido && imagenValida) {
-                    println("✅ Todo está cargado correctamente")
+                if (nombreYaCargado && nombreValido) {
                     binding.cargaIMGtexto.isVisible = false
                     binding.linealIMgTexto.isVisible = true
                 } else {
                     binding.cargaIMGtexto.isVisible = false
                     binding.linealIMgTexto.isVisible = false
-                    println("⚠️ Aún falta cargar algún dato")
+
                 }
 
                 binding.general.setOnClickListener {
@@ -282,6 +333,31 @@ class adaptadorReview(
                 existe(encontrada)
             }.addOnFailureListener {
                 println("Error al obtener datos: ${it.message}")
+                existe(false)
+            }
+
+
+        }
+
+        private fun verificar_siEsSu_review(id_trabajador: String, existe: (Boolean) -> Unit) {
+            val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores").document(id_trabajador)
+                .collection("review")
+
+            db.get().addOnSuccessListener { res ->
+                for (datos in res) {
+                    val date = datos.data
+                    val iduserREview = date?.get("iduserReview") as? String ?: ""
+                    if (iduserREview == firebaseAuth.uid.toString()) {
+                        existe(true)
+                    } else {
+                        existe(false)
+                    }
+
+
+                }
+            }.addOnFailureListener { e ->
+                Log.e("FirestoreError", "Error obteniendo reviews: $e")
                 existe(false)
             }
         }

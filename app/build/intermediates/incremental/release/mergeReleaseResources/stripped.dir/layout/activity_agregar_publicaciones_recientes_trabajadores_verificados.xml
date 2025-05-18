@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.geinzwork.fragmentos.productosPublicadosVista.agregarPublicaciones_recientes_trabajadores_verificados">
+
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="crea tus publicaciones recientes" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="¡Bienvenido al apartado para crear tus publicaciones recientes! Aquí puedes publicar los trabajos más recientes que has realizado. Comparte tus experiencias y habilidades para que más personas conozcan tu trabajo. Recuerda agregar detalles como el título, la descripción y la categoría de tu trabajo. ¡Comienza a mostrar lo mejor de tu oficio y atrae más clientes!" />
+
+
+            <include
+                android:id="@+id/horaRealizado"
+                layout="@layout/include_texto_horizontal_general" />
+
+            <include
+                android:id="@+id/fechaRealizado"
+                layout="@layout/include_texto_horizontal_general" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tituloPublicacion"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
+
+                <EditText
+                    android:id="@+id/tituloPublicacionED"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Titulo de la publicacion"
+                    android:inputType="number"
+                    android:paddingLeft="10dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/descripcion_publicacion"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
+
+                <EditText
+                    android:id="@+id/descripcion_publicacionED"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="descripcion de la publicacion"
+                    android:inputType="number"
+                    android:paddingLeft="10dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/ubicacionDondeRealizoTrabajo"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp">
+
+                <EditText
+                    android:id="@+id/ubicacionDondeRealizoTrabajoED"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Ubicacion donde se realizo el trabajo"
+                    android:inputType="number"
+                    android:paddingLeft="10dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <CheckBox
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Acepto terminos y condiciones" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/publicar_trabajo"
+                style="@style/RoundedButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:text="cpublica trabajo"
+                android:textSize="14sp"
+                app:iconGravity="textEnd" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</LinearLayout>

@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
@@ -241,7 +242,7 @@ class servicios_activos : Fragment() {
                                 ).show()
                             } else if (plan == "B" || plan == "C") {
                                 val intent =
-                                    Intent(mContext, crear_trabajos_realizados::class.java).apply {
+                                    Intent(mContext, panel_publicacion_trabajador::class.java).apply {
                                         putExtra("plan", plan)
                                     }
                                 startActivity(intent)

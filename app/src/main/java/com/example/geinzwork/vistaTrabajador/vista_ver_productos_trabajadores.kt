@@ -51,6 +51,9 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
         obtenerCampos_producto(idTrabajador, id_publicacion_clikeada)
+        binding.retroceder.setOnClickListener{
+            onBackPressed()
+        }
         binding.ocultarCamposDePublicidad.setOnClickListener {
             if (isCamposVisible) {
                 binding.camposProductosUserVerificados.linealVer.visibility =

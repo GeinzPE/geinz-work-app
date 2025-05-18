@@ -114,8 +114,8 @@ class review : Fragment() {
         }
 
         binding.cuatroACinco.setOnClickListener {
-            binding.reyclerviewReview.isVisible=false
-            binding.cargaContenido.isVisible=true
+            binding.reyclerviewReview.isVisible = false
+            binding.cargaContenido.isVisible = true
             constantesReviewComplet.obtenerReview(
                 binding.SinReview,
                 binding.reyclerviewReview,
@@ -125,6 +125,18 @@ class review : Fragment() {
                 mContex, "cuatro_cinco"
             )
         }
+            binding.tuReview.setOnClickListener {
+                binding.reyclerviewReview.isVisible=false
+                binding.cargaContenido.isVisible=true
+                constantesReviewComplet.obtenerReview(
+                    binding.SinReview,
+                    binding.reyclerviewReview,
+                    binding.cargaContenido,
+                    idTrabajador,
+                    binding.reyclerviewReview,
+                    mContex, "tu_review"
+                )
+            }
     }
 
     private fun mostrarDatos() {

@@ -92,15 +92,18 @@ class inicioFracment : Fragment() {
         obterTrabajosRecientes_trabajadores()
         val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
 
+        if(firebaseAuth.currentUser==null){
+            binding.linealAnuncioVerificado.isVisible=false
+        }else{
+            binding.linealAnuncioVerificado.isVisible=true
+
+        }
+
 
         val storedValue = pref?.getString(KEY, "Default Value")
-        binding.cerrarAnuncio.setOnClickListener {
-            binding.linealAnuncioVerificado.isVisible = false
-        }
-        binding.linealAnuncioVerificado.setOnClickListener {
-            val vista = Intent(mContex, verificacion_cuenta_trabajador::class.java)
-            startActivity(vista)
-        }
+
+
+        obtener_mensajes_destacados(binding.verificadoBoolean.text.toString())
         conteoUser.obtenerConteoUSer { usuarios ->
             binding.includeCabezero.usuariosRegistrados.text = usuarios.toString()
         }
@@ -197,7 +200,14 @@ class inicioFracment : Fragment() {
             mContex,
             binding.includeCabezero.imgPerfilUser,
             binding.linealAnuncioVerificado
-        )
+        ){verificado->
+            if(verificado){
+                binding.verificadoBoolean.text="true"
+            }else{
+                binding.verificadoBoolean.text="false"
+            }
+
+        }
         binding.verTiendas.setOnClickListener {
             val vista = Intent(mContex, TiendasGenerales::class.java)
             val filtrado = binding.includeCabezero.filtradoUsuairo.text.toString()
@@ -235,6 +245,49 @@ class inicioFracment : Fragment() {
 
     val permisoNotificaion =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { esConcedido -> }
+
+
+    private fun obtener_mensajes_destacados(verificado: String) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("politicas_problemas_verificaciones")
+            .document("anotaciones_princiapales")
+            .collection("anotaciones")
+
+        db.get().addOnSuccessListener { res ->
+            var listaAnotaciones = res.documents
+
+            // Si está verificado, filtramos el ID que no debe mostrarse
+            if (verificado == "true") {
+                listaAnotaciones = listaAnotaciones.filter { it.id != "xhGtp1qWLIzA9SOYkd74" }
+            }
+
+            if (listaAnotaciones.isNotEmpty()) {
+                val aleatorio = listaAnotaciones.random()
+                val data = aleatorio.data
+                val titulo = data?.get("titulo") as? String ?: ""
+                val texto = data?.get("texto") as? String ?: ""
+                val actividad = data?.get("actividad") as? String ?: ""
+
+                binding.tituloDestacado.text = titulo
+                binding.textoDestacado.text = texto
+
+                binding.cerrarAnuncio.setOnClickListener {
+                    binding.linealAnuncioVerificado.isVisible = false
+                }
+
+                binding.linealAnuncioVerificado.setOnClickListener {
+                    try {
+                        val clase = Class.forName(actividad)
+                        val vista = Intent(mContex, clase)
+                        startActivity(vista)
+                    } catch (e: ClassNotFoundException) {
+                        Toast.makeText(mContex, "Actividad no encontrada: $actividad", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
 
 
     fun setupRecyclerViewTouchListener(recyclerView: RecyclerView, activity: MainActivity) {
@@ -418,6 +471,7 @@ class inicioFracment : Fragment() {
                 obtnerFiltrado(binding.includeCabezero.filtradoUsuairo.text.toString())
                 obtenerProductos_trabajadores()
                 obterTrabajosRecientes_trabajadores()
+                obtener_mensajes_destacados(binding.verificadoBoolean.text.toString())
             }, 2000)
             binding.swipe.isVisible = true
         }
@@ -466,7 +520,8 @@ class inicioFracment : Fragment() {
                     categorias?.let {
                         for (categoria in it) {
                             Log.d(Variables.categoriasDB, categoria)
-                            constantesSubcategoriaszonasTiendas.obtenerImagenesCategorias(Variables.IMG_CategoriasGeneral,
+                            constantesSubcategoriaszonasTiendas.obtenerImagenesCategorias(
+                                Variables.IMG_CategoriasGeneral,
                                 Variables.categroriasTrabajadores,
                                 categoria,
                                 onSuccess = { urlImg ->
@@ -508,7 +563,7 @@ class inicioFracment : Fragment() {
 
     private fun SetAnuncios() {
         constantesPublicidad.obtenerAnunciosGeinz(
-            (activity as MainActivity).getViewPager ,// Pasa la propiedad viewPager de la Activity
+            (activity as MainActivity).getViewPager,// Pasa la propiedad viewPager de la Activity
             binding.carrusel,
             mContex,
             binding.includeCabezero.filtradoUsuairo

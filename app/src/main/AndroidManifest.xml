@@ -36,7 +36,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
+        <activity
+            android:name="com.example.geinzwork.vista_denuncia_reporte"
+            android:exported="false" />
+        <activity
+            android:name="com.example.geinzwork.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ApiSclasScrenn">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.example.geinzwork.OnboardingActivity"
+            android:exported="true" />
         <activity
             android:name="com.example.geinzwork.crear_publicacion_productos_trabajadores"
             android:exported="false" />
@@ -140,14 +155,12 @@
         <activity
             android:name=".publicaciones_trabajadores.voleta_estado_verificacion"
             android:exported="false" />
-
         <activity
             android:name=".ver_publicaciones"
             android:exported="false" />
         <activity
             android:name=".crear_trabajos_realizados"
             android:windowSoftInputMode="adjustPan" />
-
         <activity
             android:name=".problemas_soporte_politicas.veneficios_verificados"
             android:exported="false" />
@@ -158,21 +171,12 @@
             android:name=".problemas_soporte_politicas.verificacion_cuenta_trabajador"
             android:exported="false" />
         <activity
-            android:name=".quinta"
-            android:exported="false" />
-        <activity
             android:name=".problemas_soporte_politicas.politicas_geinz"
             android:exported="false" />
         <activity
             android:name=".problemas_soporte_politicas.probleas_usuarios_formulario"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
-        <activity
-            android:name=".cuarto"
-            android:exported="false" />
-        <activity
-            android:name=".tercero"
-            android:exported="false" />
         <activity
             android:name=".vistaTiendas.ver_mas_servicios"
             android:exported="false" />
@@ -209,7 +213,6 @@
         <activity
             android:name=".vistasPubliciadesGeinz.noticiasGeinzpb"
             android:exported="false" />
-
         <activity
             android:name=".vistaTiendas.TodasPromocionesSugeridasFiltrado"
             android:exported="false" />
@@ -302,7 +305,6 @@
         <activity
             android:name=".EditarInfo"
             android:exported="false" />
-
         <activity android:name=".vistaTrabajador.vista_CategoriasT" />
         <activity
             android:name=".vistaTrabajador.vistaTrabajador"
@@ -334,9 +336,6 @@
             android:name=".Login"
             android:exported="false" />
         <activity
-            android:name=".segundaria"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustNothing">
@@ -358,16 +357,6 @@
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="fullSensor"
             tools:replace="screenOrientation" />
-        <activity
-            android:name=".Primario"
-            android:exported="true"
-            android:theme="@style/Theme.ApiSclasScrenn">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
         <service
             android:name=".MyFirebaseMessagingService"

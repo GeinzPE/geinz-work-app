@@ -1,0 +1,1285 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.geinzz.geinzwork"
+4    android:versionCode="27"
+5    android:versionName="1.14.1" >
+6
+7    <uses-sdk
+7-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:6:5-73
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:8:5-67
+11-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:8:22-64
+12    <uses-permission android:name="android.permission.CALL_PHONE" />
+12-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:9:5-69
+12-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:9:22-66
+13    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+13-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:10:5-77
+13-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:10:22-74
+14    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+14-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:11:5-81
+14-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:11:22-78
+15    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+15-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:12:5-80
+15-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:12:22-77
+16    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+16-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:13:5-79
+16-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:13:22-76
+17    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+17-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:14:5-16:45
+17-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:15:9-63
+18    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+18-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:17:5-81
+18-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:17:22-78
+19
+20    <uses-feature
+20-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:19:5-21:36
+21        android:name="android.hardware.touchscreen"
+21-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:20:9-52
+22        android:required="false" />
+22-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:21:9-33
+23    <uses-feature
+23-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:22:5-24:36
+24        android:name="android.software.leanback"
+24-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:23:9-49
+25        android:required="false" />
+25-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:24:9-33
+26    <uses-feature
+26-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:25:5-27:36
+27        android:name="android.hardware.telephony"
+27-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:26:9-50
+28        android:required="false" />
+28-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:27:9-33
+29
+30    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Required by older versions of Google Play services to create IID tokens -->
+30-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:24:5-68
+30-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:24:22-65
+31    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+31-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:26:5-82
+31-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:26:22-79
+32    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+32-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:25:5-79
+32-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:25:22-76
+33    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" />
+33-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:26:5-88
+33-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:26:22-85
+34    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" />
+34-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:27:5-82
+34-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:27:22-79
+35    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+35-->[com.google.android.recaptcha:recaptcha:18.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\e3bedd6e90398b00735cb71eaecdc341\transformed\recaptcha-18.4.0\AndroidManifest.xml:9:5-98
+35-->[com.google.android.recaptcha:recaptcha:18.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\e3bedd6e90398b00735cb71eaecdc341\transformed\recaptcha-18.4.0\AndroidManifest.xml:9:22-95
+36    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE" />
+36-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:26:5-110
+36-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:26:22-107
+37
+38    <permission
+38-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\ccb046ccf0d8dc4e54e58a26eb26c106\transformed\core-1.13.0\AndroidManifest.xml:22:5-24:47
+39        android:name="com.geinzz.geinzwork.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+39-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\ccb046ccf0d8dc4e54e58a26eb26c106\transformed\core-1.13.0\AndroidManifest.xml:23:9-81
+40        android:protectionLevel="signature" />
+40-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\ccb046ccf0d8dc4e54e58a26eb26c106\transformed\core-1.13.0\AndroidManifest.xml:24:9-44
+41
+42    <uses-permission android:name="com.geinzz.geinzwork.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+42-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\ccb046ccf0d8dc4e54e58a26eb26c106\transformed\core-1.13.0\AndroidManifest.xml:26:5-97
+42-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\ccb046ccf0d8dc4e54e58a26eb26c106\transformed\core-1.13.0\AndroidManifest.xml:26:22-94
+43    <uses-permission android:name="android.permission.CAMERA" /> <!-- Don't require camera, as this requires a rear camera. This allows it to work on the Nexus 7 -->
+43-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:22:5-65
+43-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:22:22-62
+44    <uses-feature
+44-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:25:5-27:36
+45        android:name="android.hardware.camera"
+45-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:26:9-47
+46        android:required="false" />
+46-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:27:9-33
+47    <uses-feature
+47-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:28:5-30:36
+48        android:name="android.hardware.camera.front"
+48-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:29:9-53
+49        android:required="false" /> <!-- TODO replace above two with next line after Android 4.2 -->
+49-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:30:9-33
+50    <!-- <uses-feature android:name="android.hardware.camera.any"/> -->
+51    <uses-feature
+51-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:33:5-35:36
+52        android:name="android.hardware.camera.autofocus"
+52-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:34:9-57
+53        android:required="false" />
+53-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:35:9-33
+54    <uses-feature
+54-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:36:5-38:36
+55        android:name="android.hardware.camera.flash"
+55-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:37:9-53
+56        android:required="false" />
+56-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:38:9-33
+57    <uses-feature
+57-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:39:5-41:36
+58        android:name="android.hardware.screen.landscape"
+58-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:40:9-57
+59        android:required="false" />
+59-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:41:9-33
+60    <uses-feature
+60-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:42:5-44:36
+61        android:name="android.hardware.wifi"
+61-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:43:9-45
+62        android:required="false" />
+62-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:44:9-33
+63
+64    <application
+64-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:29:5-372:19
+65        android:allowBackup="true"
+65-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:30:9-35
+66        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+66-->[androidx.core:core:1.13.0] C:\Users\Benjamin\.gradle\caches\transforms-4\ccb046ccf0d8dc4e54e58a26eb26c106\transformed\core-1.13.0\AndroidManifest.xml:28:18-86
+67        android:dataExtractionRules="@xml/data_extraction_rules"
+67-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:31:9-65
+68        android:extractNativeLibs="false"
+69        android:fullBackupContent="@xml/backup_rules"
+69-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:32:9-54
+70        android:icon="@mipmap/ic_launcher"
+70-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:33:9-43
+71        android:label="@string/app_name"
+71-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:34:9-41
+72        android:roundIcon="@mipmap/ic_launcher_round"
+72-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:35:9-54
+73        android:supportsRtl="true"
+73-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:36:9-35
+74        android:theme="@style/Theme.GeinzWork" >
+74-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:37:9-47
+75        <activity
+75-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:39:9-47:20
+76            android:name="com.example.geinzwork.SplashActivity"
+76-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:40:13-64
+77            android:exported="true"
+77-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:41:13-36
+78            android:theme="@style/Theme.ApiSclasScrenn" >
+78-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:42:13-56
+79            <intent-filter>
+79-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:43:13-46:29
+80                <action android:name="android.intent.action.MAIN" />
+80-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:44:17-69
+80-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:44:25-66
+81
+82                <category android:name="android.intent.category.LAUNCHER" />
+82-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:45:17-77
+82-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:45:27-74
+83            </intent-filter>
+84        </activity>
+85        <activity
+85-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:49:9-51:39
+86            android:name="com.example.geinzwork.OnboardingActivity"
+86-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:50:13-68
+87            android:exported="true" />
+87-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:51:13-36
+88        <activity
+88-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:52:9-54:40
+89            android:name="com.example.geinzwork.crear_publicacion_productos_trabajadores"
+89-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:53:13-90
+90            android:exported="false" />
+90-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:54:13-37
+91        <activity
+91-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:55:9-57:40
+92            android:name="com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados"
+92-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:56:13-101
+93            android:exported="false" />
+93-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:57:13-37
+94        <activity
+94-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:58:9-60:40
+95            android:name="com.example.geinzwork.Crea_trabajos_publicaciones"
+95-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:59:13-77
+96            android:exported="false" />
+96-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:60:13-37
+97        <activity
+97-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:61:9-63:40
+98            android:name="com.example.geinzwork.crear_publicaciones_recientes"
+98-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:62:13-79
+99            android:exported="false" />
+99-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:63:13-37
+100        <activity
+100-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:64:9-66:40
+101            android:name="com.example.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador"
+101-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:65:13-99
+102            android:exported="false" />
+102-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:66:13-37
+103        <activity
+103-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:67:9-69:40
+104            android:name="com.example.geinzwork.fragmentos.panel_publicacion_trabajador"
+104-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:68:13-89
+105            android:exported="false" />
+105-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:69:13-37
+106        <activity
+106-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:70:9-72:40
+107            android:name="com.example.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores"
+107-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:71:13-98
+108            android:exported="false" />
+108-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:72:13-37
+109        <activity
+109-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:73:9-75:40
+110            android:name="com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores"
+110-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:74:13-102
+111            android:exported="false" />
+111-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:75:13-37
+112        <activity
+112-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:76:9-78:40
+113            android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor"
+113-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:77:13-112
+114            android:exported="false" />
+114-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:78:13-37
+115        <activity
+115-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:79:9-81:40
+116            android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores"
+116-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:80:13-127
+117            android:exported="false" />
+117-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:81:13-37
+118        <activity
+118-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:82:9-84:40
+119            android:name="com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos"
+119-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:83:13-97
+120            android:exported="false" />
+120-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:84:13-37
+121        <activity
+121-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:85:9-87:40
+122            android:name="com.example.geinzwork.crea_tu_noticia"
+122-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:86:13-65
+123            android:exported="false" />
+123-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:87:13-37
+124        <activity
+124-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:88:9-90:40
+125            android:name="com.example.geinzwork.vistaTrabajador.ver_promociones"
+125-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:89:13-81
+126            android:exported="false" />
+126-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:90:13-37
+127        <activity
+127-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:91:9-93:40
+128            android:name="com.geinzz.geinzwork.servicios_geinz.publicidad_servicios_geinz_activity"
+128-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:92:13-80
+129            android:exported="false" />
+129-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:93:13-37
+130        <activity
+130-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:94:9-96:40
+131            android:name="com.geinzz.geinzwork.servicios_geinz.noticias_servicios_geinz_activity"
+131-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:95:13-78
+132            android:exported="false" />
+132-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:96:13-37
+133        <activity
+133-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:97:9-99:40
+134            android:name="com.example.geinzwork.oferta_principales_geinz"
+134-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:98:13-74
+135            android:exported="false" />
+135-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:99:13-37
+136        <activity
+136-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:100:9-102:40
+137            android:name="com.example.geinzwork.vistaTiendas.agregarPagoComprareservaTiendas"
+137-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:101:13-94
+138            android:exported="false" />
+138-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:102:13-37
+139        <activity
+139-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:103:9-105:40
+140            android:name="com.geinzz.geinzwork.vistaTiendas.direccion_entrega_lat_log"
+140-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:104:13-67
+141            android:exported="false" />
+141-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:105:13-37
+142        <activity
+142-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:106:9-113:20
+143            android:name="com.geinzz.geinzwork.vistaTrabajador.promocionesvista"
+143-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:107:13-61
+144            android:exported="true" >
+144-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:108:13-36
+145            <intent-filter>
+145-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:109:13-112:29
+146                <action android:name="PROMO_SUGERIDAS" />
+146-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:110:17-58
+146-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:110:25-55
+147
+148                <category android:name="android.intent.category.DEFAULT" />
+148-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+148-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+149            </intent-filter>
+150        </activity>
+151        <activity
+151-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:114:9-116:40
+152            android:name="com.geinzz.geinzwork.vistaTiendas.tienda_no_lanzada_spasl"
+152-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:115:13-65
+153            android:exported="false" />
+153-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:116:13-37
+154        <activity
+154-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:117:9-119:40
+155            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.politicas_creacion_cuenta"
+155-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:118:13-82
+156            android:exported="false" />
+156-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:119:13-37
+157        <activity
+157-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:120:9-122:40
+158            android:name="com.geinzz.geinzwork.servicios_geinz.planes_noticias_servicios_geinz"
+158-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:121:13-76
+159            android:exported="false" />
+159-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:122:13-37
+160        <activity
+160-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:123:9-125:40
+161            android:name="com.geinzz.geinzwork.servicios_geinz.cambiar_imagenes_publicidad_noticias_servicios"
+161-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:124:13-91
+162            android:exported="false" />
+162-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:125:13-37
+163        <activity
+163-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:126:9-134:20
+164            android:name="com.geinzz.geinzwork.servicios_geinz.serviciosGeinz"
+164-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:127:13-59
+165            android:exported="true"
+165-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:128:13-36
+166            android:windowSoftInputMode="adjustPan" >
+166-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:129:13-52
+167            <intent-filter>
+167-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:130:13-133:29
+168                <action android:name="SERVICIOS" />
+168-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:131:17-52
+168-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:131:25-49
+169
+170                <category android:name="android.intent.category.DEFAULT" />
+170-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+170-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+171            </intent-filter>
+172        </activity>
+173        <activity
+173-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:135:9-143:20
+174            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.reportes_users"
+174-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:136:13-71
+175            android:exported="true" >
+175-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:137:13-36
+176            <intent-filter>
+176-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:138:13-142:29
+177                <action android:name="REPORTE" />
+177-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:139:17-50
+177-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:139:25-47
+178
+179                <category android:name="android.intent.category.DEFAULT" />
+179-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+179-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+180            </intent-filter>
+181        </activity>
+182        <activity
+182-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:144:9-146:40
+183            android:name="com.geinzz.geinzwork.GenerarQR_trabajador"
+183-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:145:13-49
+184            android:exported="false" />
+184-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:146:13-37
+185        <activity
+185-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:147:9-149:40
+186            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.agregar_redes"
+186-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:148:13-69
+187            android:exported="false" />
+187-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:149:13-37
+188        <activity
+188-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:150:9-152:40
+189            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.voleta_estado_verificacion"
+189-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:151:13-82
+190            android:exported="false" />
+190-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:152:13-37
+191        <activity
+191-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:153:9-155:40
+192            android:name="com.geinzz.geinzwork.ver_publicaciones"
+192-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:154:13-46
+193            android:exported="false" />
+193-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:155:13-37
+194        <activity
+194-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:156:9-158:55
+195            android:name="com.geinzz.geinzwork.crear_trabajos_realizados"
+195-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:157:13-54
+196            android:windowSoftInputMode="adjustPan" />
+196-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:158:13-52
+197        <activity
+197-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:159:9-161:40
+198            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.veneficios_verificados"
+198-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:160:13-79
+199            android:exported="false" />
+199-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:161:13-37
+200        <activity
+200-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:162:9-164:40
+201            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.politicas_verificacion"
+201-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:163:13-79
+202            android:exported="false" />
+202-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:164:13-37
+203        <activity
+203-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:165:9-167:40
+204            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.verificacion_cuenta_trabajador"
+204-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:166:13-87
+205            android:exported="false" />
+205-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:167:13-37
+206        <activity
+206-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:169:9-171:40
+207            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.politicas_geinz"
+207-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:170:13-72
+208            android:exported="false" />
+208-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:171:13-37
+209        <activity
+209-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:172:9-175:55
+210            android:name="com.geinzz.geinzwork.problemas_soporte_politicas.probleas_usuarios_formulario"
+210-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:173:13-85
+211            android:exported="false"
+211-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:174:13-37
+212            android:windowSoftInputMode="adjustPan" />
+212-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:175:13-52
+213        <activity
+213-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:177:9-179:40
+214            android:name="com.geinzz.geinzwork.vistaTiendas.ver_mas_servicios"
+214-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:178:13-59
+215            android:exported="false" />
+215-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:179:13-37
+216        <activity
+216-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:180:9-182:40
+217            android:name="com.geinzz.geinzwork.recuperarContra"
+217-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:181:13-44
+218            android:exported="false" />
+218-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:182:13-37
+219        <activity
+219-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:183:9-190:20
+220            android:name="com.geinzz.geinzwork.vistaTiendas.verServicios"
+220-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:184:13-54
+221            android:exported="true" >
+221-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:185:13-36
+222            <intent-filter>
+222-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:186:13-189:29
+223                <action android:name="SERVICIOS_TIENDAS" />
+223-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:187:17-60
+223-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:187:25-57
+224
+225                <category android:name="android.intent.category.DEFAULT" />
+225-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+225-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+226            </intent-filter>
+227        </activity>
+228        <activity
+228-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:191:9-193:40
+229            android:name="com.geinzz.geinzwork.vistaTiendas.generarQRPedidoArticulos"
+229-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:192:13-66
+230            android:exported="false" />
+230-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:193:13-37
+231        <activity
+231-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:194:9-196:40
+232            android:name="com.geinzz.geinzwork.vistaTiendas.historialCompras"
+232-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:195:13-58
+233            android:exported="false" />
+233-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:196:13-37
+234        <activity
+234-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:197:9-199:40
+235            android:name="com.geinzz.geinzwork.vistaTiendas.carrito_compras"
+235-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:198:13-57
+236            android:exported="false" />
+236-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:199:13-37
+237        <activity
+237-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:200:9-202:40
+238            android:name="com.geinzz.geinzwork.vistaTiendas.NoticiasYofertasFiltrado"
+238-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:201:13-66
+239            android:exported="false" />
+239-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:202:13-37
+240        <activity
+240-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:203:9-205:40
+241            android:name="com.geinzz.geinzwork.confirmacionCompraTienda.confirmacion_de_compra_tienda"
+241-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:204:13-83
+242            android:exported="false" />
+242-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:205:13-37
+243        <activity
+243-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:206:9-208:40
+244            android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.crear_cuenta_Tienda"
+244-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:207:13-71
+245            android:exported="false" />
+245-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:208:13-37
+246        <activity
+246-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:209:9-211:40
+247            android:name="com.geinzz.geinzwork.vistasPubliciadesGeinz.noticiasGeinzpb"
+247-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:210:13-67
+248            android:exported="false" />
+248-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:211:13-37
+249        <activity
+249-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:212:9-214:40
+250            android:name="com.geinzz.geinzwork.vistaTiendas.TodasPromocionesSugeridasFiltrado"
+250-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:213:13-75
+251            android:exported="false" />
+251-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:214:13-37
+252        <activity
+252-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:215:9-217:40
+253            android:name="com.geinzz.geinzwork.vistaTiendas.vistaRecicleProductos"
+253-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:216:13-63
+254            android:exported="false" />
+254-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:217:13-37
+255
+256        <provider
+257            android:name="androidx.core.content.FileProvider"
+257-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:220:13-62
+258            android:authorities="com.geinzz.geinzwork.fileprovider"
+258-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:221:13-64
+259            android:exported="false"
+259-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:222:13-37
+260            android:grantUriPermissions="true" >
+260-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:223:13-47
+261            <meta-data
+261-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:224:13-226:54
+262                android:name="android.support.FILE_PROVIDER_PATHS"
+262-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:225:17-67
+263                android:resource="@xml/file_paths" />
+263-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:226:17-51
+264        </provider>
+265
+266        <activity
+266-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:229:9-236:20
+267            android:name="com.geinzz.geinzwork.vistaTiendas.vistaProductosGeneralTiendas"
+267-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:230:13-70
+268            android:exported="true" >
+268-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:231:13-36
+269            <intent-filter>
+269-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:232:13-235:29
+270                <action android:name="PRODUCTOS_PRINCIPALES" />
+270-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:233:17-64
+270-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:233:25-61
+271
+272                <category android:name="android.intent.category.DEFAULT" />
+272-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+272-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+273            </intent-filter>
+274        </activity>
+275        <activity
+275-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:237:9-239:40
+276            android:name="com.geinzz.geinzwork.vistaTiendas.Vista_mostrarTodos_Tiendas"
+276-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:238:13-68
+277            android:exported="false" />
+277-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:239:13-37
+278        <activity
+278-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:240:9-242:40
+279            android:name="com.geinzz.geinzwork.vistaTiendas.TiendasGenerales"
+279-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:241:13-58
+280            android:exported="false" />
+280-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:242:13-37
+281        <activity
+281-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:243:9-245:40
+282            android:name="com.geinzz.geinzwork.vistaTiendas.Ver_mas_anuncios_tiendas"
+282-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:244:13-66
+283            android:exported="false" />
+283-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:245:13-37
+284        <activity
+284-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:246:9-248:40
+285            android:name="com.geinzz.geinzwork.vistaTiendas.Agregar_Ver_Review"
+285-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:247:13-60
+286            android:exported="false" />
+286-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:248:13-37
+287        <activity
+287-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:249:9-256:20
+288            android:name="com.geinzz.geinzwork.vistaTiendas.VistaTienda"
+288-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:250:13-53
+289            android:exported="true" >
+289-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:251:13-36
+290            <intent-filter>
+290-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:252:13-255:29
+291                <action android:name="VISTA_TIENDA" />
+291-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:253:17-55
+291-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:253:25-52
+292
+293                <category android:name="android.intent.category.DEFAULT" />
+293-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+293-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+294            </intent-filter>
+295        </activity>
+296        <activity
+296-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:257:9-259:40
+297            android:name="com.geinzz.geinzwork.noticias_y_review"
+297-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:258:13-46
+298            android:exported="false" />
+298-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:259:13-37
+299        <activity
+299-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:260:9-268:20
+300            android:name="com.geinzz.geinzwork.vistaTrabajador.ver_detalles_Promociones"
+300-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:261:13-69
+301            android:exported="true" >
+301-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:262:13-36
+302            <intent-filter>
+302-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:263:13-267:29
+303                <action android:name="SUBIDA_NOTICIAS" />
+303-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:264:17-58
+303-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:264:25-55
+304
+305                <category android:name="android.intent.category.DEFAULT" />
+305-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+305-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+306            </intent-filter>
+307        </activity>
+308        <activity
+308-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:269:9-271:40
+309            android:name="com.geinzz.geinzwork.EditarReview"
+309-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:270:13-41
+310            android:exported="false" />
+310-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:271:13-37
+311        <activity
+311-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:272:9-274:40
+312            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Cuenta_Info"
+312-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:273:13-59
+313            android:exported="false" />
+313-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:274:13-37
+314        <activity
+314-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:275:9-277:40
+315            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Categorias_info"
+315-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:276:13-63
+316            android:exported="false" />
+316-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:277:13-37
+317        <activity
+317-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:278:9-280:40
+318            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Noticias_Info"
+318-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:279:13-61
+319            android:exported="false" />
+319-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:280:13-37
+320        <activity
+320-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:281:9-283:40
+321            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.Inicio_info"
+321-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:282:13-59
+322            android:exported="false" />
+322-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:283:13-37
+323        <activity
+323-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:284:9-286:40
+324            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar"
+324-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:285:13-56
+325            android:exported="false" />
+325-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:286:13-37
+326        <activity
+326-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:287:9-289:40
+327            android:name="com.geinzz.geinzwork.planes"
+327-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:288:13-35
+328            android:exported="false" />
+328-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:289:13-37
+329        <activity
+329-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:290:9-292:40
+330            android:name="com.geinzz.geinzwork.Crea_tu_publicidad"
+330-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:291:13-47
+331            android:exported="false" />
+331-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:292:13-37
+332        <activity
+332-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:293:9-295:40
+333            android:name="com.geinzz.geinzwork.Nosotros"
+333-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:294:13-37
+334            android:exported="false" />
+334-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:295:13-37
+335        <activity
+335-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:296:9-298:40
+336            android:name="com.geinzz.geinzwork.vistas_anuncios_general"
+336-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:297:13-52
+337            android:exported="false" />
+337-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:298:13-37
+338        <activity
+338-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:299:9-301:40
+339            android:name="com.geinzz.geinzwork.EditarInfo"
+339-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:300:13-39
+340            android:exported="false" />
+340-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:301:13-37
+341        <activity android:name="com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT" />
+341-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:302:9-71
+341-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:302:19-68
+342        <activity
+342-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:303:9-305:40
+343            android:name="com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador"
+343-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:304:13-60
+344            android:exported="false" />
+344-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:305:13-37
+345        <activity
+345-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:306:9-309:58
+346            android:name="com.geinzz.geinzwork.caracteristicaTrabajo"
+346-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:307:13-50
+347            android:exported="false"
+347-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:308:13-37
+348            android:windowSoftInputMode="adjustResize" />
+348-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:309:13-55
+349        <activity
+349-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:310:9-312:40
+350            android:name="com.geinzz.geinzwork.passwordYuser"
+350-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:311:13-42
+351            android:exported="false" />
+351-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:312:13-37
+352        <activity
+352-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:313:9-315:40
+353            android:name="com.geinzz.geinzwork.Seleccion_de_Trabajo"
+353-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:314:13-49
+354            android:exported="false" />
+354-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:315:13-37
+355        <activity
+355-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:316:9-318:40
+356            android:name="com.geinzz.geinzwork.GraciasRegistro"
+356-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:317:13-44
+357            android:exported="false" />
+357-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:318:13-37
+358        <activity
+358-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:319:9-321:40
+359            android:name="com.geinzz.geinzwork.veirificacionDatos"
+359-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:320:13-47
+360            android:exported="false" />
+360-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:321:13-37
+361        <activity
+361-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:322:9-325:58
+362            android:name="com.geinzz.geinzwork.CuentaFreelancer"
+362-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:323:13-45
+363            android:exported="false"
+363-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:324:13-37
+364            android:windowSoftInputMode="adjustResize" />
+364-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:325:13-55
+365        <activity
+365-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:326:9-328:40
+366            android:name="com.geinzz.geinzwork.CuentaUser"
+366-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:327:13-39
+367            android:exported="false" />
+367-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:328:13-37
+368        <activity
+368-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:329:9-331:40
+369            android:name="com.geinzz.geinzwork.Login"
+369-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:330:13-34
+370            android:exported="false" />
+370-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:331:13-37
+371        <activity
+371-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:333:9-348:20
+372            android:name="com.geinzz.geinzwork.MainActivity"
+372-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:334:13-41
+373            android:exported="true"
+373-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:335:13-36
+374            android:windowSoftInputMode="adjustNothing" >
+374-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:336:13-56
+375            <intent-filter android:autoVerify="true" >
+375-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:337:13-347:29
+375-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:337:28-53
+376                <action android:name="android.intent.action.VIEW" />
+376-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:17-69
+376-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:25-66
+377
+378                <category android:name="android.intent.category.DEFAULT" />
+378-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+378-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+379                <category android:name="android.intent.category.BROWSABLE" />
+379-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:17-78
+379-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:27-75
+380
+381                <data
+381-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:341:17-343:46
+382                    android:host="geinzapp.page.link"
+382-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:342:21-54
+383                    android:scheme="https" />
+383-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:343:21-43
+384                <data
+384-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:341:17-343:46
+385                    android:host="geinzapp.page.link"
+385-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:342:21-54
+386                    android:scheme="http" />
+386-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:343:21-43
+387            </intent-filter>
+388        </activity>
+389        <activity
+389-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:349:9-352:49
+390            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+390-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:350:13-74
+391            android:clearTaskOnLaunch="true"
+391-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:49:13-45
+392            android:screenOrientation="fullSensor"
+392-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:351:13-51
+393            android:stateNotNeeded="true"
+393-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:51:13-42
+394            android:theme="@style/zxing_CaptureTheme"
+394-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:52:13-54
+395            android:windowSoftInputMode="stateAlwaysHidden" />
+395-->[com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\87da48875c468b0cfee70205b652d535\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:53:13-60
+396
+397        <service
+397-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:355:9-361:19
+398            android:name="com.geinzz.geinzwork.MyFirebaseMessagingService"
+398-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:356:13-55
+399            android:exported="true" >
+399-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:357:13-36
+400            <intent-filter>
+400-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:358:13-360:29
+401                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+401-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:359:17-78
+401-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:359:25-75
+402            </intent-filter>
+403        </service>
+404
+405        <meta-data
+405-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:363:9-365:60
+406            android:name="com.google.firebase.messaging.default_notification_icon"
+406-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:364:13-83
+407            android:resource="@drawable/notification_ic" />
+407-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:365:13-57
+408        <meta-data
+408-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:366:9-368:51
+409            android:name="com.google.firebase.messaging.default_notification_color"
+409-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:367:13-84
+410            android:resource="@color/violetaQR" />
+410-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:368:13-48
+411        <meta-data
+411-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:369:9-371:69
+412            android:name="com.google.firebase.messaging.default_notification_channel_id"
+412-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:370:13-89
+413            android:value="@string/notificacion_chanel_id_defaul" />
+413-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:371:13-66
+414
+415        <service
+415-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\71ed20447bb96b877c147d3cd5881b23\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:9:9-15:19
+416            android:name="com.google.firebase.components.ComponentDiscoveryService"
+416-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\71ed20447bb96b877c147d3cd5881b23\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:10:13-84
+417            android:directBootAware="true"
+417-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:32:13-43
+418            android:exported="false" >
+418-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\71ed20447bb96b877c147d3cd5881b23\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:11:13-37
+419            <meta-data
+419-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\71ed20447bb96b877c147d3cd5881b23\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:12:13-14:85
+420                android:name="com.google.firebase.components:com.google.firebase.storage.ktx.FirebaseStorageLegacyRegistrar"
+420-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\71ed20447bb96b877c147d3cd5881b23\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:13:17-125
+421                android:value="com.google.firebase.components.ComponentRegistrar" />
+421-->[com.google.firebase:firebase-storage-ktx:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\71ed20447bb96b877c147d3cd5881b23\transformed\firebase-storage-ktx-20.3.0\AndroidManifest.xml:14:17-82
+422            <meta-data
+422-->[com.google.firebase:firebase-dynamic-links-ktx:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c0869e41529661cf1397190b22a8f559\transformed\firebase-dynamic-links-ktx-21.2.0\AndroidManifest.xml:25:13-27:85
+423                android:name="com.google.firebase.components:com.google.firebase.dynamiclinks.ktx.FirebaseDynamicLinksLegacyRegistrar"
+423-->[com.google.firebase:firebase-dynamic-links-ktx:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c0869e41529661cf1397190b22a8f559\transformed\firebase-dynamic-links-ktx-21.2.0\AndroidManifest.xml:26:17-135
+424                android:value="com.google.firebase.components.ComponentRegistrar" />
+424-->[com.google.firebase:firebase-dynamic-links-ktx:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c0869e41529661cf1397190b22a8f559\transformed\firebase-dynamic-links-ktx-21.2.0\AndroidManifest.xml:27:17-82
+425            <meta-data
+425-->[com.google.firebase:firebase-crashlytics:18.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\b363b1dae49cd1a4fcd6c513691d03ec\transformed\firebase-crashlytics-18.6.3\AndroidManifest.xml:15:13-17:85
+426                android:name="com.google.firebase.components:com.google.firebase.crashlytics.FirebaseCrashlyticsKtxRegistrar"
+426-->[com.google.firebase:firebase-crashlytics:18.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\b363b1dae49cd1a4fcd6c513691d03ec\transformed\firebase-crashlytics-18.6.3\AndroidManifest.xml:16:17-126
+427                android:value="com.google.firebase.components.ComponentRegistrar" />
+427-->[com.google.firebase:firebase-crashlytics:18.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\b363b1dae49cd1a4fcd6c513691d03ec\transformed\firebase-crashlytics-18.6.3\AndroidManifest.xml:17:17-82
+428            <meta-data
+428-->[com.google.firebase:firebase-crashlytics:18.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\b363b1dae49cd1a4fcd6c513691d03ec\transformed\firebase-crashlytics-18.6.3\AndroidManifest.xml:18:13-20:85
+429                android:name="com.google.firebase.components:com.google.firebase.crashlytics.CrashlyticsRegistrar"
+429-->[com.google.firebase:firebase-crashlytics:18.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\b363b1dae49cd1a4fcd6c513691d03ec\transformed\firebase-crashlytics-18.6.3\AndroidManifest.xml:19:17-115
+430                android:value="com.google.firebase.components.ComponentRegistrar" />
+430-->[com.google.firebase:firebase-crashlytics:18.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\b363b1dae49cd1a4fcd6c513691d03ec\transformed\firebase-crashlytics-18.6.3\AndroidManifest.xml:20:17-82
+431            <meta-data
+431-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:69:13-71:85
+432                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+432-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:70:17-109
+433                android:value="com.google.firebase.components.ComponentRegistrar" />
+433-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:71:17-82
+434            <meta-data
+434-->[com.google.firebase:firebase-firestore:24.11.0] C:\Users\Benjamin\.gradle\caches\transforms-4\86e0eea7dc4f572189f22b4d15268157\transformed\firebase-firestore-24.11.0\AndroidManifest.xml:17:13-19:85
+435                android:name="com.google.firebase.components:com.google.firebase.firestore.FirebaseFirestoreKtxRegistrar"
+435-->[com.google.firebase:firebase-firestore:24.11.0] C:\Users\Benjamin\.gradle\caches\transforms-4\86e0eea7dc4f572189f22b4d15268157\transformed\firebase-firestore-24.11.0\AndroidManifest.xml:18:17-122
+436                android:value="com.google.firebase.components.ComponentRegistrar" />
+436-->[com.google.firebase:firebase-firestore:24.11.0] C:\Users\Benjamin\.gradle\caches\transforms-4\86e0eea7dc4f572189f22b4d15268157\transformed\firebase-firestore-24.11.0\AndroidManifest.xml:19:17-82
+437            <meta-data
+437-->[com.google.firebase:firebase-firestore:24.11.0] C:\Users\Benjamin\.gradle\caches\transforms-4\86e0eea7dc4f572189f22b4d15268157\transformed\firebase-firestore-24.11.0\AndroidManifest.xml:20:13-22:85
+438                android:name="com.google.firebase.components:com.google.firebase.firestore.FirestoreRegistrar"
+438-->[com.google.firebase:firebase-firestore:24.11.0] C:\Users\Benjamin\.gradle\caches\transforms-4\86e0eea7dc4f572189f22b4d15268157\transformed\firebase-firestore-24.11.0\AndroidManifest.xml:21:17-111
+439                android:value="com.google.firebase.components.ComponentRegistrar" />
+439-->[com.google.firebase:firebase-firestore:24.11.0] C:\Users\Benjamin\.gradle\caches\transforms-4\86e0eea7dc4f572189f22b4d15268157\transformed\firebase-firestore-24.11.0\AndroidManifest.xml:22:17-82
+440            <meta-data
+440-->[com.google.firebase:firebase-config:21.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\8ac5086cc50f54e40332faddce3f74a1\transformed\firebase-config-21.6.3\AndroidManifest.xml:29:13-31:85
+441                android:name="com.google.firebase.components:com.google.firebase.remoteconfig.FirebaseRemoteConfigKtxRegistrar"
+441-->[com.google.firebase:firebase-config:21.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\8ac5086cc50f54e40332faddce3f74a1\transformed\firebase-config-21.6.3\AndroidManifest.xml:30:17-128
+442                android:value="com.google.firebase.components.ComponentRegistrar" />
+442-->[com.google.firebase:firebase-config:21.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\8ac5086cc50f54e40332faddce3f74a1\transformed\firebase-config-21.6.3\AndroidManifest.xml:31:17-82
+443            <meta-data
+443-->[com.google.firebase:firebase-config:21.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\8ac5086cc50f54e40332faddce3f74a1\transformed\firebase-config-21.6.3\AndroidManifest.xml:32:13-34:85
+444                android:name="com.google.firebase.components:com.google.firebase.remoteconfig.RemoteConfigRegistrar"
+444-->[com.google.firebase:firebase-config:21.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\8ac5086cc50f54e40332faddce3f74a1\transformed\firebase-config-21.6.3\AndroidManifest.xml:33:17-117
+445                android:value="com.google.firebase.components.ComponentRegistrar" />
+445-->[com.google.firebase:firebase-config:21.6.3] C:\Users\Benjamin\.gradle\caches\transforms-4\8ac5086cc50f54e40332faddce3f74a1\transformed\firebase-config-21.6.3\AndroidManifest.xml:34:17-82
+446            <meta-data
+446-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:57:13-59:85
+447                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingKtxRegistrar"
+447-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:58:17-122
+448                android:value="com.google.firebase.components.ComponentRegistrar" />
+448-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:59:17-82
+449            <meta-data
+449-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:60:13-62:85
+450                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+450-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:61:17-119
+451                android:value="com.google.firebase.components.ComponentRegistrar" />
+451-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:62:17-82
+452            <meta-data
+452-->[com.google.firebase:firebase-database:20.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\73c9b4812926d5fe07f117f6a7a11484\transformed\firebase-database-20.3.1\AndroidManifest.xml:29:13-31:85
+453                android:name="com.google.firebase.components:com.google.firebase.database.FirebaseDatabaseKtxRegistrar"
+453-->[com.google.firebase:firebase-database:20.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\73c9b4812926d5fe07f117f6a7a11484\transformed\firebase-database-20.3.1\AndroidManifest.xml:30:17-120
+454                android:value="com.google.firebase.components.ComponentRegistrar" />
+454-->[com.google.firebase:firebase-database:20.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\73c9b4812926d5fe07f117f6a7a11484\transformed\firebase-database-20.3.1\AndroidManifest.xml:31:17-82
+455            <meta-data
+455-->[com.google.firebase:firebase-database:20.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\73c9b4812926d5fe07f117f6a7a11484\transformed\firebase-database-20.3.1\AndroidManifest.xml:32:13-34:85
+456                android:name="com.google.firebase.components:com.google.firebase.database.DatabaseRegistrar"
+456-->[com.google.firebase:firebase-database:20.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\73c9b4812926d5fe07f117f6a7a11484\transformed\firebase-database-20.3.1\AndroidManifest.xml:33:17-109
+457                android:value="com.google.firebase.components.ComponentRegistrar" />
+457-->[com.google.firebase:firebase-database:20.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\73c9b4812926d5fe07f117f6a7a11484\transformed\firebase-database-20.3.1\AndroidManifest.xml:34:17-82
+458            <meta-data
+458-->[com.google.firebase:firebase-storage:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\2dbc7e8da678ca3c19708a9a5b21999d\transformed\firebase-storage-20.3.0\AndroidManifest.xml:30:13-32:85
+459                android:name="com.google.firebase.components:com.google.firebase.storage.FirebaseStorageKtxRegistrar"
+459-->[com.google.firebase:firebase-storage:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\2dbc7e8da678ca3c19708a9a5b21999d\transformed\firebase-storage-20.3.0\AndroidManifest.xml:31:17-118
+460                android:value="com.google.firebase.components.ComponentRegistrar" />
+460-->[com.google.firebase:firebase-storage:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\2dbc7e8da678ca3c19708a9a5b21999d\transformed\firebase-storage-20.3.0\AndroidManifest.xml:32:17-82
+461            <meta-data
+461-->[com.google.firebase:firebase-storage:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\2dbc7e8da678ca3c19708a9a5b21999d\transformed\firebase-storage-20.3.0\AndroidManifest.xml:33:13-35:85
+462                android:name="com.google.firebase.components:com.google.firebase.storage.StorageRegistrar"
+462-->[com.google.firebase:firebase-storage:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\2dbc7e8da678ca3c19708a9a5b21999d\transformed\firebase-storage-20.3.0\AndroidManifest.xml:34:17-107
+463                android:value="com.google.firebase.components.ComponentRegistrar" />
+463-->[com.google.firebase:firebase-storage:20.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\2dbc7e8da678ca3c19708a9a5b21999d\transformed\firebase-storage-20.3.0\AndroidManifest.xml:35:17-82
+464            <meta-data
+464-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:37:13-39:85
+465                android:name="com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar"
+465-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:38:17-139
+466                android:value="com.google.firebase.components.ComponentRegistrar" />
+466-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:39:17-82
+467            <meta-data
+467-->[com.google.firebase:firebase-dynamic-links:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\98030935a95a3b1e38724b6fd9bc6706\transformed\firebase-dynamic-links-21.2.0\AndroidManifest.xml:24:13-26:85
+468                android:name="com.google.firebase.components:com.google.firebase.dynamiclinks.FirebaseDynamicLinksKtxRegistrar"
+468-->[com.google.firebase:firebase-dynamic-links:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\98030935a95a3b1e38724b6fd9bc6706\transformed\firebase-dynamic-links-21.2.0\AndroidManifest.xml:25:17-128
+469                android:value="com.google.firebase.components.ComponentRegistrar" />
+469-->[com.google.firebase:firebase-dynamic-links:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\98030935a95a3b1e38724b6fd9bc6706\transformed\firebase-dynamic-links-21.2.0\AndroidManifest.xml:26:17-82
+470            <meta-data
+470-->[com.google.firebase:firebase-dynamic-links:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\98030935a95a3b1e38724b6fd9bc6706\transformed\firebase-dynamic-links-21.2.0\AndroidManifest.xml:27:13-29:85
+471                android:name="com.google.firebase.components:com.google.firebase.dynamiclinks.internal.FirebaseDynamicLinkRegistrar"
+471-->[com.google.firebase:firebase-dynamic-links:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\98030935a95a3b1e38724b6fd9bc6706\transformed\firebase-dynamic-links-21.2.0\AndroidManifest.xml:28:17-133
+472                android:value="com.google.firebase.components.ComponentRegistrar" />
+472-->[com.google.firebase:firebase-dynamic-links:21.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\98030935a95a3b1e38724b6fd9bc6706\transformed\firebase-dynamic-links-21.2.0\AndroidManifest.xml:29:17-82
+473            <meta-data
+473-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:29:13-31:85
+474                android:name="com.google.firebase.components:com.google.firebase.sessions.FirebaseSessionsRegistrar"
+474-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:30:17-117
+475                android:value="com.google.firebase.components.ComponentRegistrar" />
+475-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:31:17-82
+476            <meta-data
+476-->[com.google.firebase:firebase-installations:17.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bcd044f4cd8542922c51960833272f7f\transformed\firebase-installations-17.2.0\AndroidManifest.xml:15:13-17:85
+477                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+477-->[com.google.firebase:firebase-installations:17.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bcd044f4cd8542922c51960833272f7f\transformed\firebase-installations-17.2.0\AndroidManifest.xml:16:17-130
+478                android:value="com.google.firebase.components.ComponentRegistrar" />
+478-->[com.google.firebase:firebase-installations:17.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bcd044f4cd8542922c51960833272f7f\transformed\firebase-installations-17.2.0\AndroidManifest.xml:17:17-82
+479            <meta-data
+479-->[com.google.firebase:firebase-installations:17.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bcd044f4cd8542922c51960833272f7f\transformed\firebase-installations-17.2.0\AndroidManifest.xml:18:13-20:85
+480                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+480-->[com.google.firebase:firebase-installations:17.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bcd044f4cd8542922c51960833272f7f\transformed\firebase-installations-17.2.0\AndroidManifest.xml:19:17-127
+481                android:value="com.google.firebase.components.ComponentRegistrar" />
+481-->[com.google.firebase:firebase-installations:17.2.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bcd044f4cd8542922c51960833272f7f\transformed\firebase-installations-17.2.0\AndroidManifest.xml:20:17-82
+482            <meta-data
+482-->[com.google.firebase:firebase-appcheck:17.1.2] C:\Users\Benjamin\.gradle\caches\transforms-4\9cad7dac62814d916e23ab68741ab079\transformed\firebase-appcheck-17.1.2\AndroidManifest.xml:25:13-27:85
+483                android:name="com.google.firebase.components:com.google.firebase.appcheck.FirebaseAppCheckKtxRegistrar"
+483-->[com.google.firebase:firebase-appcheck:17.1.2] C:\Users\Benjamin\.gradle\caches\transforms-4\9cad7dac62814d916e23ab68741ab079\transformed\firebase-appcheck-17.1.2\AndroidManifest.xml:26:17-120
+484                android:value="com.google.firebase.components.ComponentRegistrar" />
+484-->[com.google.firebase:firebase-appcheck:17.1.2] C:\Users\Benjamin\.gradle\caches\transforms-4\9cad7dac62814d916e23ab68741ab079\transformed\firebase-appcheck-17.1.2\AndroidManifest.xml:27:17-82
+485            <meta-data
+485-->[com.google.firebase:firebase-appcheck:17.1.2] C:\Users\Benjamin\.gradle\caches\transforms-4\9cad7dac62814d916e23ab68741ab079\transformed\firebase-appcheck-17.1.2\AndroidManifest.xml:28:13-30:85
+486                android:name="com.google.firebase.components:com.google.firebase.appcheck.FirebaseAppCheckRegistrar"
+486-->[com.google.firebase:firebase-appcheck:17.1.2] C:\Users\Benjamin\.gradle\caches\transforms-4\9cad7dac62814d916e23ab68741ab079\transformed\firebase-appcheck-17.1.2\AndroidManifest.xml:29:17-117
+487                android:value="com.google.firebase.components.ComponentRegistrar" />
+487-->[com.google.firebase:firebase-appcheck:17.1.2] C:\Users\Benjamin\.gradle\caches\transforms-4\9cad7dac62814d916e23ab68741ab079\transformed\firebase-appcheck-17.1.2\AndroidManifest.xml:30:17-82
+488            <meta-data
+488-->[com.google.firebase:firebase-common-ktx:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\d498ad811ff36bf6d8b742a55c47d96b\transformed\firebase-common-ktx-20.4.3\AndroidManifest.xml:12:13-14:85
+489                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+489-->[com.google.firebase:firebase-common-ktx:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\d498ad811ff36bf6d8b742a55c47d96b\transformed\firebase-common-ktx-20.4.3\AndroidManifest.xml:13:17-116
+490                android:value="com.google.firebase.components.ComponentRegistrar" />
+490-->[com.google.firebase:firebase-common-ktx:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\d498ad811ff36bf6d8b742a55c47d96b\transformed\firebase-common-ktx-20.4.3\AndroidManifest.xml:14:17-82
+491            <meta-data
+491-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:35:13-37:85
+492                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+492-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:36:17-109
+493                android:value="com.google.firebase.components.ComponentRegistrar" />
+493-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:37:17-82
+494            <meta-data
+494-->[com.google.firebase:firebase-abt:21.1.1] C:\Users\Benjamin\.gradle\caches\transforms-4\b6cd1e24b94b41254e1f76ea67ef1ac6\transformed\firebase-abt-21.1.1\AndroidManifest.xml:12:13-14:85
+495                android:name="com.google.firebase.components:com.google.firebase.abt.component.AbtRegistrar"
+495-->[com.google.firebase:firebase-abt:21.1.1] C:\Users\Benjamin\.gradle\caches\transforms-4\b6cd1e24b94b41254e1f76ea67ef1ac6\transformed\firebase-abt-21.1.1\AndroidManifest.xml:13:17-109
+496                android:value="com.google.firebase.components.ComponentRegistrar" />
+496-->[com.google.firebase:firebase-abt:21.1.1] C:\Users\Benjamin\.gradle\caches\transforms-4\b6cd1e24b94b41254e1f76ea67ef1ac6\transformed\firebase-abt-21.1.1\AndroidManifest.xml:14:17-82
+497            <meta-data
+497-->[com.google.firebase:firebase-datatransport:18.1.8] C:\Users\Benjamin\.gradle\caches\transforms-4\71656cfafc9845a290e75e1a30c83249\transformed\firebase-datatransport-18.1.8\AndroidManifest.xml:27:13-29:85
+498                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+498-->[com.google.firebase:firebase-datatransport:18.1.8] C:\Users\Benjamin\.gradle\caches\transforms-4\71656cfafc9845a290e75e1a30c83249\transformed\firebase-datatransport-18.1.8\AndroidManifest.xml:28:17-115
+499                android:value="com.google.firebase.components.ComponentRegistrar" />
+499-->[com.google.firebase:firebase-datatransport:18.1.8] C:\Users\Benjamin\.gradle\caches\transforms-4\71656cfafc9845a290e75e1a30c83249\transformed\firebase-datatransport-18.1.8\AndroidManifest.xml:29:17-82
+500        </service>
+501
+502        <provider
+502-->[com.squareup.picasso:picasso:2.8] C:\Users\Benjamin\.gradle\caches\transforms-4\ac8ac231a2b6ec72f63949ef62e00c90\transformed\picasso-2.8\AndroidManifest.xml:8:9-11:40
+503            android:name="com.squareup.picasso.PicassoProvider"
+503-->[com.squareup.picasso:picasso:2.8] C:\Users\Benjamin\.gradle\caches\transforms-4\ac8ac231a2b6ec72f63949ef62e00c90\transformed\picasso-2.8\AndroidManifest.xml:9:13-64
+504            android:authorities="com.geinzz.geinzwork.com.squareup.picasso"
+504-->[com.squareup.picasso:picasso:2.8] C:\Users\Benjamin\.gradle\caches\transforms-4\ac8ac231a2b6ec72f63949ef62e00c90\transformed\picasso-2.8\AndroidManifest.xml:10:13-72
+505            android:exported="false" />
+505-->[com.squareup.picasso:picasso:2.8] C:\Users\Benjamin\.gradle\caches\transforms-4\ac8ac231a2b6ec72f63949ef62e00c90\transformed\picasso-2.8\AndroidManifest.xml:11:13-37
+506
+507        <activity
+507-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:29:9-46:20
+508            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+508-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:30:13-80
+509            android:excludeFromRecents="true"
+509-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:31:13-46
+510            android:exported="true"
+510-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:32:13-36
+511            android:launchMode="singleTask"
+511-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:33:13-44
+512            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+512-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:34:13-72
+513            <intent-filter>
+513-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:35:13-45:29
+514                <action android:name="android.intent.action.VIEW" />
+514-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:17-69
+514-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:25-66
+515
+516                <category android:name="android.intent.category.DEFAULT" />
+516-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+516-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+517                <category android:name="android.intent.category.BROWSABLE" />
+517-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:17-78
+517-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:27-75
+518
+519                <data
+519-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:341:17-343:46
+520                    android:host="firebase.auth"
+520-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:342:21-54
+521                    android:path="/"
+522                    android:scheme="genericidp" />
+522-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:343:21-43
+523            </intent-filter>
+524        </activity>
+525        <activity
+525-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:47:9-64:20
+526            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+526-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:48:13-79
+527            android:excludeFromRecents="true"
+527-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:49:13-46
+528            android:exported="true"
+528-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:50:13-36
+529            android:launchMode="singleTask"
+529-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:51:13-44
+530            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+530-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:52:13-72
+531            <intent-filter>
+531-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\dc2fb4ba7556512f1fe642e443efcaa2\transformed\firebase-auth-22.3.1\AndroidManifest.xml:53:13-63:29
+532                <action android:name="android.intent.action.VIEW" />
+532-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:17-69
+532-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:338:25-66
+533
+534                <category android:name="android.intent.category.DEFAULT" />
+534-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:17-76
+534-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:111:27-73
+535                <category android:name="android.intent.category.BROWSABLE" />
+535-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:17-78
+535-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:340:27-75
+536
+537                <data
+537-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:341:17-343:46
+538                    android:host="firebase.auth"
+538-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:342:21-54
+539                    android:path="/"
+540                    android:scheme="recaptcha" />
+540-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:343:21-43
+541            </intent-filter>
+542        </activity>
+543
+544        <receiver
+544-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:29:9-40:20
+545            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+545-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:30:13-78
+546            android:exported="true"
+546-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:31:13-36
+547            android:permission="com.google.android.c2dm.permission.SEND" >
+547-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:32:13-73
+548            <intent-filter>
+548-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:33:13-35:29
+549                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+549-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:34:17-81
+549-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:34:25-78
+550            </intent-filter>
+551
+552            <meta-data
+552-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:37:13-39:40
+553                android:name="com.google.android.gms.cloudmessaging.FINISHED_AFTER_HANDLED"
+553-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:38:17-92
+554                android:value="true" />
+554-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:39:17-37
+555        </receiver>
+556        <!--
+557             FirebaseMessagingService performs security checks at runtime,
+558             but set to not exported to explicitly avoid allowing another app to call it.
+559        -->
+560        <service
+560-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:46:9-53:19
+561            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+561-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:47:13-82
+562            android:directBootAware="true"
+562-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:48:13-43
+563            android:exported="false" >
+563-->[com.google.firebase:firebase-messaging:23.4.1] C:\Users\Benjamin\.gradle\caches\transforms-4\f7470fed202cd8b757613cb333f5e2b1\transformed\firebase-messaging-23.4.1\AndroidManifest.xml:49:13-37
+564            <intent-filter android:priority="-500" >
+564-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:358:13-360:29
+565                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+565-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:359:17-78
+565-->C:\Users\Benjamin\Desktop\geinz_work_original\geinz-work-app\app\src\main\AndroidManifest.xml:359:25-75
+566            </intent-filter>
+567        </service>
+568
+569        <property
+569-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:30:9-32:61
+570            android:name="android.adservices.AD_SERVICES_CONFIG"
+570-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:31:13-65
+571            android:resource="@xml/ga_ad_services_config" />
+571-->[com.google.android.gms:play-services-measurement-api:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\7896893f981809249c92dd5ecbc8dd2c\transformed\play-services-measurement-api-21.6.1\AndroidManifest.xml:32:13-58
+572
+573        <service
+573-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:22:9-25:40
+574            android:name="com.google.firebase.sessions.SessionLifecycleService"
+574-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:23:13-80
+575            android:enabled="true"
+575-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:24:13-35
+576            android:exported="false" />
+576-->[com.google.firebase:firebase-sessions:1.2.3] C:\Users\Benjamin\.gradle\caches\transforms-4\a3d6bf092a006ae9e089515a798ecd96\transformed\firebase-sessions-1.2.3\AndroidManifest.xml:25:13-37
+577
+578        <activity
+578-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c50fae3043dc7c76ef3bcb931fce0c11\transformed\play-services-base-18.3.0\AndroidManifest.xml:20:9-22:45
+579            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+579-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c50fae3043dc7c76ef3bcb931fce0c11\transformed\play-services-base-18.3.0\AndroidManifest.xml:20:19-85
+580            android:exported="false"
+580-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c50fae3043dc7c76ef3bcb931fce0c11\transformed\play-services-base-18.3.0\AndroidManifest.xml:22:19-43
+581            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+581-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\c50fae3043dc7c76ef3bcb931fce0c11\transformed\play-services-base-18.3.0\AndroidManifest.xml:21:19-78
+582
+583        <provider
+583-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:23:9-28:39
+584            android:name="com.google.firebase.provider.FirebaseInitProvider"
+584-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:24:13-77
+585            android:authorities="com.geinzz.geinzwork.firebaseinitprovider"
+585-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:25:13-72
+586            android:directBootAware="true"
+586-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:26:13-43
+587            android:exported="false"
+587-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:27:13-37
+588            android:initOrder="100" />
+588-->[com.google.firebase:firebase-common:20.4.3] C:\Users\Benjamin\.gradle\caches\transforms-4\65522e12389214d8a4a7049ca0c188ed\transformed\firebase-common-20.4.3\AndroidManifest.xml:28:13-36
+589
+590        <receiver
+590-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:29:9-33:20
+591            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
+591-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:30:13-85
+592            android:enabled="true"
+592-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:31:13-35
+593            android:exported="false" >
+593-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:32:13-37
+594        </receiver>
+595
+596        <service
+596-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:35:9-38:40
+597            android:name="com.google.android.gms.measurement.AppMeasurementService"
+597-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:36:13-84
+598            android:enabled="true"
+598-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:37:13-35
+599            android:exported="false" />
+599-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:38:13-37
+600        <service
+600-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:39:9-43:72
+601            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
+601-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:40:13-87
+602            android:enabled="true"
+602-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:41:13-35
+603            android:exported="false"
+603-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:42:13-37
+604            android:permission="android.permission.BIND_JOB_SERVICE" />
+604-->[com.google.android.gms:play-services-measurement:21.6.1] C:\Users\Benjamin\.gradle\caches\transforms-4\bf9f8f0f4e602b4ee5a7207ad219fdb8\transformed\play-services-measurement-21.6.1\AndroidManifest.xml:43:13-69
+605
+606        <uses-library
+606-->[androidx.privacysandbox.ads:ads-adservices:1.0.0-beta05] C:\Users\Benjamin\.gradle\caches\transforms-4\289f1cd02455ad87c7b56a671af54809\transformed\ads-adservices-1.0.0-beta05\AndroidManifest.xml:23:9-25:40
+607            android:name="android.ext.adservices"
+607-->[androidx.privacysandbox.ads:ads-adservices:1.0.0-beta05] C:\Users\Benjamin\.gradle\caches\transforms-4\289f1cd02455ad87c7b56a671af54809\transformed\ads-adservices-1.0.0-beta05\AndroidManifest.xml:24:13-50
+608            android:required="false" />
+608-->[androidx.privacysandbox.ads:ads-adservices:1.0.0-beta05] C:\Users\Benjamin\.gradle\caches\transforms-4\289f1cd02455ad87c7b56a671af54809\transformed\ads-adservices-1.0.0-beta05\AndroidManifest.xml:25:13-37
+609
+610        <provider
+610-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:24:9-32:20
+611            android:name="androidx.startup.InitializationProvider"
+611-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:25:13-67
+612            android:authorities="com.geinzz.geinzwork.androidx-startup"
+612-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:26:13-68
+613            android:exported="false" >
+613-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:27:13-37
+614            <meta-data
+614-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:29:13-31:52
+615                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+615-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:30:17-75
+616                android:value="androidx.startup" />
+616-->[androidx.emoji2:emoji2:1.4.0] C:\Users\Benjamin\.gradle\caches\transforms-4\bc535f6434f3334ec6733851a8e2c693\transformed\emoji2-1.4.0\AndroidManifest.xml:31:17-49
+617            <meta-data
+617-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Benjamin\.gradle\caches\transforms-4\e31a18fade4f320c69bf13b0ea4c2e72\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
+618                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+618-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Benjamin\.gradle\caches\transforms-4\e31a18fade4f320c69bf13b0ea4c2e72\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
+619                android:value="androidx.startup" />
+619-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Benjamin\.gradle\caches\transforms-4\e31a18fade4f320c69bf13b0ea4c2e72\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
+620            <meta-data
+620-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+621                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+621-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+622                android:value="androidx.startup" />
+622-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+623        </provider>
+624
+625        <meta-data
+625-->[com.google.android.gms:play-services-basement:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\9cd46984f8df8ccde990cd6d2dec0a94\transformed\play-services-basement-18.3.0\AndroidManifest.xml:21:9-23:69
+626            android:name="com.google.android.gms.version"
+626-->[com.google.android.gms:play-services-basement:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\9cd46984f8df8ccde990cd6d2dec0a94\transformed\play-services-basement-18.3.0\AndroidManifest.xml:22:13-58
+627            android:value="@integer/google_play_services_version" />
+627-->[com.google.android.gms:play-services-basement:18.3.0] C:\Users\Benjamin\.gradle\caches\transforms-4\9cd46984f8df8ccde990cd6d2dec0a94\transformed\play-services-basement-18.3.0\AndroidManifest.xml:23:13-66
+628
+629        <receiver
+629-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+630            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+630-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+631            android:directBootAware="false"
+631-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+632            android:enabled="true"
+632-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+633            android:exported="true"
+633-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+634            android:permission="android.permission.DUMP" >
+634-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+635            <intent-filter>
+635-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+636                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+636-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+636-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+637            </intent-filter>
+638            <intent-filter>
+638-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+639                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+639-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+639-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+640            </intent-filter>
+641            <intent-filter>
+641-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+642                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+642-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+642-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+643            </intent-filter>
+644            <intent-filter>
+644-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+645                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+645-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+645-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Benjamin\.gradle\caches\transforms-4\a30f454a707367501ec3e6f47c746812\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+646            </intent-filter>
+647        </receiver>
+648
+649        <service
+649-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\52beb55e45f7534051e41546b4c7c6a6\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:28:9-34:19
+650            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+650-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\52beb55e45f7534051e41546b4c7c6a6\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:29:13-103
+651            android:exported="false" >
+651-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\52beb55e45f7534051e41546b4c7c6a6\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:30:13-37
+652            <meta-data
+652-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\52beb55e45f7534051e41546b4c7c6a6\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:31:13-33:39
+653                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+653-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\52beb55e45f7534051e41546b4c7c6a6\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:32:17-94
+654                android:value="cct" />
+654-->[com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\52beb55e45f7534051e41546b4c7c6a6\transformed\transport-backend-cct-3.1.9\AndroidManifest.xml:33:17-36
+655        </service>
+656        <service
+656-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:26:9-30:19
+657            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+657-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:27:13-117
+658            android:exported="false"
+658-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:28:13-37
+659            android:permission="android.permission.BIND_JOB_SERVICE" >
+659-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:29:13-69
+660        </service>
+661
+662        <receiver
+662-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:32:9-34:40
+663            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+663-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:33:13-132
+664            android:exported="false" />
+664-->[com.google.android.datatransport:transport-runtime:3.1.9] C:\Users\Benjamin\.gradle\caches\transforms-4\73ca58e76ecbf14a9081e8c01aed5e48\transformed\transport-runtime-3.1.9\AndroidManifest.xml:34:13-37
+665    </application>
+666
+667</manifest>

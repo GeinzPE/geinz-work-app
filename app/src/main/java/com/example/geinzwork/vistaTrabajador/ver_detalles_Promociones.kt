@@ -111,7 +111,8 @@ class ver_detalles_Promociones : AppCompatActivity() {
             val idAnuncio = intent.getStringExtra(Variables.idAnuncio).toString()
             obtenerDatosPromocion(idAnuncio)
             obtenerNoticiasPorCategoria(idAnuncio)
-            val db = FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idAnuncio)
+            val db =
+                FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idAnuncio)
             constantesPublicidad.obtenerLocalidaGeneroTipoCuenta(db, Variables.tipoNoticia)
             binding.reserva.setOnClickListener {
                 dialog = BottomSheetDialog(this)
@@ -205,7 +206,8 @@ class ver_detalles_Promociones : AppCompatActivity() {
                             val numeroTelf = data[Variables.numero] as? String ?: ""
                             val mensaje = data[Variables.whatsappmsj] as? String ?: ""
                             val mapFechas = data[Variables.fechas] as? Map<String, Any>
-                            val fechaVencimientomap = mapFechas?.get(Variables.fecha_vencimiento) as? String ?: ""
+                            val fechaVencimientomap =
+                                mapFechas?.get(Variables.fecha_vencimiento) as? String ?: ""
                             val estadoVencimineto = data[Variables.estado] as? String ?: ""
                             val categoria = data[Variables.categoria] as? String ?: ""
                             val tipoPromo = data[Variables.tipoPromo] as? String ?: ""
@@ -341,7 +343,8 @@ class ver_detalles_Promociones : AppCompatActivity() {
         val linealUbicacion = binding.linealUbicacion
 
         if (idNoticia != null) {
-            val db = FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idNoticia)
+            val db =
+                FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idNoticia)
             db.get().addOnSuccessListener { res ->
                 if (res.exists()) {
                     val datos = res.data
@@ -458,8 +461,10 @@ class ver_detalles_Promociones : AppCompatActivity() {
                         data?.get(Variables.metodo_compra_web_Geinz) as? Boolean ?: false
                     val link_compra = data?.get(Variables.link_compra) as? String ?: ""
                     val descuento = data?.get(Variables.descuento) as? String ?: ""
-                    val descuento_boolean = data?.get(Variables.descuento_boolean) as? Boolean ?: false
-                    val porcentajeDescuento = data?.get(Variables.porcentajeDescuento) as? Number ?: 0
+                    val descuento_boolean =
+                        data?.get(Variables.descuento_boolean) as? Boolean ?: false
+                    val porcentajeDescuento =
+                        data?.get(Variables.porcentajeDescuento) as? Number ?: 0
                     val web = data?.get(Variables.web) as? String ?: ""
                     val tk = data?.get(Variables.tk) as? String ?: ""
                     val ig = data?.get(Variables.ig) as? String ?: ""
@@ -631,6 +636,8 @@ class ver_detalles_Promociones : AppCompatActivity() {
                     val efectivo = data?.get(Variables.efectivo) as? Boolean
                     val yape = data?.get(Variables.yape) as? Boolean
                     val plin = data?.get(Variables.plin) as? Boolean ?: false
+                    val descuento = data?.get(Variables.descuento_boolean) as? Boolean ?: false
+                    val descuentoNumber = data?.get(Variables.descuento) as? String ?: ""
                     val price = data?.get(Variables.price) as? String
                     val numeroTienda = data?.get(Variables.numero) as? String
 
@@ -661,10 +668,10 @@ class ver_detalles_Promociones : AppCompatActivity() {
                             "image_dialog"
                         )
                     }
-                    if (!price.isNullOrEmpty()) {
-                        bindingBottomShet.montoTotal.text = "S/${price}"
+                    if (descuento) {
+                        bindingBottomShet.montoTotal.text = "S/${descuentoNumber}"
                     } else {
-                        bindingBottomShet.linealMontoDelServicio.isVisible = false
+                        bindingBottomShet.montoTotal.text = "S/${price}"
                     }
 
                     if (yape == true && efectivo == true && plin) {
@@ -856,7 +863,8 @@ class ver_detalles_Promociones : AppCompatActivity() {
 
     private fun iniciarContadorVista() {
         val idAnuncio = intent.getStringExtra(Variables.idAnuncio).toString()
-        val db = FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idAnuncio)
+        val db =
+            FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idAnuncio)
         vistaTimer = object : CountDownTimer(tiempoParaContarVista, 1000) {
             override fun onTick(millisUntilFinished: Long) {}
 

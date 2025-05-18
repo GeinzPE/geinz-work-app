@@ -46,6 +46,7 @@ dimen nav_button_size_xxhdpi
 dimen nav_button_size_xxxhdpi
 drawable activos_blanco_icon
 drawable adquirir_icon_blanco
+drawable advertencia_icon
 drawable agrega_productos_perfil
 drawable agregar_icono_webp
 drawable agregar_img_geinz
@@ -171,6 +172,7 @@ drawable mascara_ofert_principal
 drawable mascara_round
 drawable mascara_servicios_ofertas_etc
 drawable masculono_drawable
+drawable mayor_blanco
 drawable menu_puntos
 drawable navegacion_icon
 drawable navegador_icon_blanco
@@ -195,10 +197,18 @@ drawable qr_yape
 drawable recargar_icon
 drawable rectangule_anuncio
 drawable recuadros_item_roun
+drawable registrado_icon
 drawable regresar_icon
 drawable reloj
 drawable reloj_icon_blanco_vista_tienda
 drawable reloj_white_icon
+drawable reporte_aceptado
+drawable reporte_archivado
+drawable reporte_cancelado
+drawable reporte_enviado
+drawable reporte_proceso
+drawable reporte_rechazado
+drawable reporte_resuelto
 drawable reporte_user
 drawable reserva_blanco_icon
 drawable review_icon
@@ -399,7 +409,6 @@ id ScrollView
 id Scrollview
 id Selector
 id ServiciosLineal
-id Sguiente_cuenta
 id Siguiente
 id Sin_review
 id Stok
@@ -438,6 +447,7 @@ id Ver_toda_los_servicios
 id Ver_todos_productos
 id VistaTiendas
 id Yape
+id aceptado
 id activo
 id activos
 id acvidad
@@ -462,6 +472,7 @@ id anuncioCategoria
 id anuncioNoticia
 id apelado
 id apelar
+id apelcaionAceptada
 id apellido
 id apellidoED
 id apellidoInput
@@ -470,7 +481,10 @@ id apellidoint
 id apellidos
 id apellidosED
 id apellidouser
+id aplecion_rechazada
+id aplelado
 id appbarLayout
+id archivado
 id aumentar_cantidad_lineal
 id bakPresert
 id bandera_nacionalidad
@@ -492,8 +506,10 @@ id btnApply
 id btnCancel
 id btnConfiramrDatos
 id btnExpand
+id btnNext
 id btnPLanes
 id btnRecuperar
+id btnSkip
 id btn_activado
 id btn_ausente
 id btn_descanso
@@ -523,6 +539,7 @@ id campos_pagos
 id campos_principales
 id campos_productos_user_verificados
 id campos_redes
+id cancelado
 id cancelar
 id cancelar_compra
 id cantidad
@@ -540,10 +557,13 @@ id caracteristicasTrabajos
 id caracteristicasTrabajosED
 id caracteristicas_verificado
 id carga
+id cargaContenido
 id cargaIMG_text
 id cargaIMGtexto
 id cargaLike
+id cargaNombre_img
 id cargaProductos_promo_trabajos
+id cargaProgresIndicator
 id cargaPublicaicones_realizadas
 id cargaServicios
 id cargaTrabajadores
@@ -563,6 +583,7 @@ id cargando_contenido
 id cargando_lat_log
 id cargarConteindo
 id cargar_contenido
+id cargar_img
 id carnet_medico
 id carracteristicasUser
 id carritoCompras
@@ -602,6 +623,8 @@ id certificaciones
 id certificados
 id certificados_tecnicos
 id checkBoxPoliticas
+id chipGroupFiltro
+id chipGroupestados
 id chipGrup_hastagsP
 id chipSubcategoryButton
 id cincoEstrellasLineal
@@ -617,6 +640,7 @@ id codigoReserva
 id collectionEcontrado
 id colocarBold_agunasLetras
 id colocarBold_agunasLetrasED
+id colorReview
 id comentarioADI
 id comentarioADIED
 id comentarioAdicional
@@ -722,6 +746,7 @@ id descripcion_promos
 id descripcion_publicacion
 id descripcion_publicacionED
 id descripcionus
+id descriptionTextView
 id descuento
 id descuentoED
 id descuentoPorcentaje
@@ -774,6 +799,7 @@ id entragado
 id entregaDomicilio
 id entregaMetodo
 id entrega_domicilio
+id enviado
 id enviado_exitosamente
 id enviar
 id envioGratis
@@ -825,6 +851,7 @@ id filtradoEstado
 id filtradoFecha
 id filtradoGeneral
 id filtradoUsuairo
+id filtrado_review_trabajadores
 id filtrado_verificado
 id filtradobtn
 id filtradocategoria
@@ -868,6 +895,7 @@ id grupo_compra
 id grupo_metodo_compra
 id grupo_nacionalidad
 id grupo_precio
+id grupo_repores_user
 id grupo_reserva
 id grupo_ubicacion
 id grupolocalidadid
@@ -973,6 +1001,7 @@ id img_perfil
 id img_promo
 id img_publicidad
 id img_servicio
+id img_trabajador
 id img_trabajo
 id imganeAnuncio
 id imgnoCuenta
@@ -1007,6 +1036,7 @@ id informacion
 id informacionPublicidad
 id ingrese_su_mail
 id inicarSeccion
+id iniciarSeccion
 id inicio
 id innerRelativeLayout
 id inputCantidadStart
@@ -1029,6 +1059,7 @@ id int_correo
 id int_fecha
 id int_nacionalidad
 id int_repetirContrafree
+id itemLayout
 id item_preview_productos
 id itemnAnuncios
 id lat
@@ -1081,6 +1112,7 @@ id linealCategoriaProducto
 id linealCategoriaT
 id linealCategorias_trabajos
 id linealCategorias_trabajos_publicados
+id linealChipsFiltradoestados
 id linealCompartir_descargar
 id linealComprovantePago
 id linealCondicionProducto
@@ -1145,6 +1177,8 @@ id lineal_Publicacion
 id lineal_anuncio_verificado
 id lineal_campos_general
 id lineal_campos_trabajador
+id lineal_cargando_direcciones
+id lineal_cargano_datos
 id lineal_carnet_salud
 id lineal_certificaciones
 id lineal_colegiatura
@@ -1157,6 +1191,7 @@ id lineal_driver
 id lineal_driver_precio
 id lineal_estrellas
 id lineal_filtrado_btn
+id lineal_filtros_chips
 id lineal_fisica_virtual
 id lineal_form
 id lineal_form_btn_geinz
@@ -1248,6 +1283,7 @@ id mas
 id masEstrellas
 id masPromociones_geinz
 id masSeguidores
+id mas_estrellas
 id mas_infomacion
 id mas_informacion
 id mas_informacionED
@@ -1407,6 +1443,7 @@ id plin_checkbox
 id pmTienda
 id pocentaje3Estrellas
 id popup
+id por_apelar
 id porcentaje1Estrella
 id porcentaje2Estrellas
 id porcentaje4Estrellas
@@ -1447,6 +1484,7 @@ id privacy_policy_user_rights
 id privacy_policy_worker_guidelines
 id privado
 id problemas
+id proceso
 id productos
 id productosDestacados
 id productosLineal
@@ -1503,6 +1541,7 @@ id realtive
 id realtive_carga
 id realtive_clikc
 id reccileRadioBtn
+id rechazado
 id recicelGuardados
 id recicelPromosSugeridas
 id reciclGeneral
@@ -1544,6 +1583,7 @@ id relative
 id relativeClick
 id relativeLayout
 id relativeListener
+id relativeProgrees
 id relativeTienda
 id relative_Principal
 id relative_no_encontrado
@@ -1570,10 +1610,12 @@ id reserva_si
 id reservar
 id reseña
 id reseñatxt
+id resuelto
 id resultadoEstrellas
 id retroceder
 id retry_button
 id review
+id review_reportes
 id reyclerviewReview
 id rounderMenu
 id rvSubcategories
@@ -1590,6 +1632,7 @@ id scrollViewid
 id scroll_container
 id scrollimg
 id scrollview
+id scrool_repores_mismo_trabajador
 id search
 id seekBar
 id segidores
@@ -1633,6 +1676,7 @@ id text2
 id textAboveTabLayout
 id textViewPriceBefore
 id textViewValue
+id text_cambiar_texto_cargando
 id texto
 id textoCambiosRealiazdos
 id textoCaracteristica
@@ -1652,8 +1696,10 @@ id texto_Trabajo
 id texto_adicional
 id texto_cambiante
 id texto_cambiar_trabajos_o_publicaciones
+id texto_destacado
 id texto_pincipal
 id texto_promo
+id texto_reporte
 id texto_trabajos_realzados
 id tienda
 id tiendaCancelar
@@ -1667,6 +1713,7 @@ id tipoTienda
 id tipoTrabajo
 id tipo_Servicio
 id tipo_incidencia
+id tipo_reporte_realziado
 id tipo_servicio
 id tipo_trabajo
 id tipo_trabajoED
@@ -1676,6 +1723,7 @@ id tiposT
 id tipot
 id title
 id titleHorariosDisponivilidad
+id titleTextView
 id title_confirmacion
 id titulo
 id tituloItem
@@ -1686,6 +1734,7 @@ id tituloPublicacionED
 id titulo_Trabajo
 id titulo_contenido
 id titulo_de_la_noticia
+id titulo_destacado
 id titulo_lineal
 id titulo_producto
 id titulo_productoED
@@ -1714,9 +1763,12 @@ id total_user
 id totalcancelar
 id traajos_recientes
 id trabajadores
+id trabajadores_reportes
 id trabajadores_similares
 id trabajosRealizados
 id tuCuenta
+id tu_review
+id tus_reportes
 id tvCategoryTitle
 id tvContent
 id tvErrorMessage
@@ -1771,6 +1823,7 @@ id ver_trabajos_publicados
 id verdesarrollo
 id verificacion
 id verificado
+id verificadoBoolean
 id verificadoTXT
 id verificado_icon
 id verificado_icono
@@ -1819,7 +1872,6 @@ layout activity_crear_cuenta_tienda
 layout activity_crear_publicacion_productos_trabajadores
 layout activity_crear_publicaciones_recientes
 layout activity_crear_trabajos_realizados
-layout activity_cuarto
 layout activity_cuenta_freelancer
 layout activity_cuenta_info
 layout activity_cuenta_user
@@ -1840,6 +1892,7 @@ layout activity_noticias_servicios_geinz
 layout activity_noticias_yofertas_filtrado
 layout activity_noticias_yreview
 layout activity_oferta_principales_geinz
+layout activity_onboarding
 layout activity_panel_publicacion_trabajador
 layout activity_password_yuser
 layout activity_planes
@@ -1847,17 +1900,15 @@ layout activity_planes_noticias_servicios_geinz
 layout activity_politicas_creacion_cuenta
 layout activity_politicas_geinz
 layout activity_politicas_verificacion
-layout activity_primario
 layout activity_probleas_usuarios_formulario
 layout activity_promocionesvista
 layout activity_publicidad_geinz
 layout activity_publicidad_servicios_geinz
-layout activity_quinta
 layout activity_recuperar_contra
 layout activity_reportes_users
-layout activity_segundaria
 layout activity_seleccion_de_trabajo
 layout activity_servicios_geinz
+layout activity_splash
 layout activity_tercero
 layout activity_tienda_no_lanzada_spasl
 layout activity_tiendas_generales
@@ -1875,6 +1926,7 @@ layout activity_ver_servicios
 layout activity_ver_toto_publicaciones_trabajador
 layout activity_verificacion_cuenta_trabajador
 layout activity_vista_categorias_t
+layout activity_vista_denuncia_reporte
 layout activity_vista_mostrar_todos_tiendas
 layout activity_vista_productos_general_tiendas
 layout activity_vista_recicle_productos
@@ -1898,6 +1950,7 @@ layout bottom_sheet_contacta_trabajador
 layout bottom_sheet_creacion_cuenta
 layout bottom_sheet_crear_cuenta_tienda
 layout bottom_sheet_editar_campos
+layout bottom_sheet_editar_elimaar_direccion
 layout bottom_sheet_editar_publicacion
 layout bottom_sheet_editar_publicaciones_verificados
 layout bottom_sheet_filtrado_compras_carrito
@@ -2003,6 +2056,7 @@ layout item_mas_publicidades_geinz
 layout item_mas_trabajadores__sugeridos
 layout item_new_noticias_tiendas
 layout item_noticias_guardadas
+layout item_onboarding
 layout item_perfil_trabajador
 layout item_planes_geinz_noticias_publicidad
 layout item_preview_art_comprar_carrito
@@ -2025,6 +2079,7 @@ layout item_tiendas
 layout item_trabajos_mostrados
 layout item_trabajos_ralizados
 layout item_trabajos_reallizados_trabajadores
+layout itme_denuncia_trabajador
 layout layout_arte_antiguedades
 layout layout_beneficios_vr
 layout layout_car_chofer_privado_reparto
@@ -2054,6 +2109,7 @@ raw apple_event
 raw bandai_dokkan
 raw black_joy
 raw carrito_animacion
+raw corazon_gracias_animation
 raw denegado_animation
 raw enviado_animacion
 raw enviado_animation
@@ -2071,6 +2127,9 @@ raw send
 raw sin_conexion
 raw sin_registro
 raw tiendas
+raw tiendas_geinz_animation
+raw trabajadores_localidad_animation
+raw user_registre_animation
 raw verificacion_animation
 raw verificado_animation
 string Bienvenido_Geinz

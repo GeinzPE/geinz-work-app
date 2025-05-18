@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="10dp"
+    android:animateLayoutChanges="true"
+    android:orientation="vertical"
+    tools:context="com.example.geinzwork.vista_denuncia_reporte">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                android:text="Reportes y Denuncias"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:text="En esta sección podrás ver todos los reportes o denuncias que hayas realizado, ya sea hacia trabajadores o reseñas inapropiadas. Desde aquí puedes hacer seguimiento del estado de cada reporte y verificar si ha sido revisado por nuestro equipo." />
+
+            <LinearLayout
+                android:id="@+id/lineal_filtros_chips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupFiltro"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checkableBehavior="single"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/tus_reportes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:checked="true"
+                            android:text="Tus reportes"
+                            app:chipIcon="@drawable/reporte_user"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/trabajadores_reportes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Reportes a trabajadores"
+                            app:chipIcon="@drawable/advertencia_icon"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/review_reportes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Denuncia hacia reseñas"
+                            app:chipIcon="@drawable/start_icon_dravalbe"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                    </com.google.android.material.chip.ChipGroup>
+
+                </HorizontalScrollView>
+
+
+                <HorizontalScrollView
+                    android:id="@+id/linealChipsFiltradoestados"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:visibility="gone">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupestados"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checkableBehavior="single"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/enviado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:checked="true"
+                            android:text="Enviado"
+                            app:chipIcon="@drawable/reporte_enviado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/proceso"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Proceso"
+                            app:chipIcon="@drawable/reporte_proceso"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/aceptado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Aceptado"
+                            app:chipIcon="@drawable/reporte_aceptado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/rechazado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Rechazado"
+                            app:chipIcon="@drawable/reporte_rechazado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/archivado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Archivado"
+                            app:chipIcon="@drawable/reporte_archivado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/resuelto"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Resuelto"
+                            app:chipIcon="@drawable/reporte_resuelto"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/cancelado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Cancelado"
+                            app:chipIcon="@drawable/reporte_cancelado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+                    </com.google.android.material.chip.ChipGroup>
+
+                </HorizontalScrollView>
+
+                <HorizontalScrollView
+                    android:id="@+id/scrool_repores_mismo_trabajador"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:visibility="gone">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/grupo_repores_user"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checkableBehavior="single"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/aplelado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:checked="true"
+                            android:text="Apelado"
+                            app:chipIcon="@drawable/reporte_enviado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/por_apelar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Por aplear"
+                            app:chipIcon="@drawable/reporte_proceso"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/apelcaionAceptada"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Apelacion aceptada"
+                            app:chipIcon="@drawable/reporte_aceptado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/aplecion_rechazada"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Apelacion rechazada"
+                            app:chipIcon="@drawable/reporte_rechazado"
+                            app:chipIconVisible="true"
+                            app:iconEndPadding="4dp"
+                            app:iconStartPadding="4dp" />
+
+                    </com.google.android.material.chip.ChipGroup>
+
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/filtrado_review_trabajadores"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:listitem="@layout/itme_denuncia_trabajador" />
+
+            <LinearLayout
+                android:id="@+id/cargando_contenido"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ProgressBar
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Cargando contenido...."
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+    <LinearLayout
+        android:id="@+id/no_encontrado"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="No se econtro denuncias o reportes"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>
