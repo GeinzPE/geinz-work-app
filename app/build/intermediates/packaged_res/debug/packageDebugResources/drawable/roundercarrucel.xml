@@ -1,6 +1,0 @@
-<!-- res/drawable/ic_picture_placeholder.xml -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <!-- Ajusta el radio para redondear -->
-    <solid android:color="#E0E0E0" /> <!-- Color de fondo -->
-</shape>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="gcm_defaultSenderId" translatable="false">921389328767</string>
-    <string name="google_api_key" translatable="false">AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80</string>
-    <string name="google_app_id" translatable="false">1:921389328767:android:f27b990f323000425b524a</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80</string>
-    <string name="google_storage_bucket" translatable="false">geinzworkapp.appspot.com</string>
-    <string name="project_id" translatable="false">geinzworkapp</string>
-</resources>
