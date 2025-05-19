@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.servicios_geinz
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -896,6 +898,16 @@ class noticias_servicios_geinz_activity : AppCompatActivity() {
         val publicado = bindingBottomShet.fechaPublicada
         val vencimiento = bindingBottomShet.finaliza
         val tipo_servicio_geinz = bindingBottomShet.tipoServicio
+        val copy_id=bindingBottomShet.copyId
+        copy_id.setOnClickListener {
+            val textoACopiar = bindingBottomShet.idServicio.text.toString()
+
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("texto", textoACopiar)
+            clipboard.setPrimaryClip(clip)
+
+            Toast.makeText(this, "Texto copiado al portapapeles", Toast.LENGTH_SHORT).show()
+        }
         if (id_servicio != "") {
             idServicio.text = id_servicio
         } else {

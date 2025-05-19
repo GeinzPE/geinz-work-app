@@ -3770,6 +3770,7 @@ drawable bandera_peru
 drawable bandera_venezolana
 drawable barra_carga
 drawable baseline_calendar_month_24
+drawable baseline_content_copy_24
 drawable baseline_favorite_24
 drawable baseline_favorite_white
 drawable baseline_more_vert_24
@@ -4351,6 +4352,7 @@ drawable reporte_enviado
 drawable reporte_proceso
 drawable reporte_rechazado
 drawable reporte_resuelto
+drawable reporte_todos
 drawable reporte_user
 drawable reserva_blanco_icon
 drawable review_icon
@@ -4676,6 +4678,7 @@ id Tipo_reporte
 id Title
 id Todos
 id TodosEstrellas
+id TodosFiltrado
 id TodosSeguidores
 id Total
 id TotalDriverLineal
@@ -5129,6 +5132,7 @@ id controls_container
 id controls_dock
 id coordinar_comprador
 id coordinator
+id copy_id
 id corazon
 id cordinarVendedor
 id correo_electronico
@@ -6665,6 +6669,7 @@ id titulos_educativos
 id tk
 id tkED
 id todos
+id todosFitlrados_reportes_review
 id toggle
 id top
 id topPanel

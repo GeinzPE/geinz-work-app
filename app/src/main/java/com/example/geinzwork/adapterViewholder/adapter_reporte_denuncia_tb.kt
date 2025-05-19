@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constantes_valores
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_reporte_denuncia_tb
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.databinding.ItmeDenunciaTrabajadorBinding
 
@@ -35,48 +36,188 @@ class adapter_reporte_denuncia_tb(private val lista: MutableList<dataclass_repor
     inner class ViewHolderReporte(private val binding: ItmeDenunciaTrabajadorBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun render(item: dataclass_reporte_denuncia_tb) {
+
             val impPerfil = binding.imgTrabajador
             val tipo_reporte = binding.tipoReporteRealziado
             val estado = binding.colorReview
             val problema = binding.textoReporte
-
-
             tipo_reporte.text = item.tipoReporte
             problema.text = item.problema
-            constantesCarrito.setearDatosUsuarioImgNombre(item.idtrabajador.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
-                // Verificación después de setear
-                binding.nombreTrabajador.text = nombre
-                val nombreYaCargado = binding.nombreTrabajador.text.toString() == nombre
-                val nombreValido =
-                    nombre.toString().isNotBlank()
+            if (item.tipo_enviado_recivido.equals("enviados")) {
+                constantesCarrito.setearDatosUsuarioImgNombre(item.idtrabajador.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    // Verificación después de setear
+                    binding.nombreTrabajador.text = nombre
+                    val nombreYaCargado = binding.nombreTrabajador.text.toString() == nombre
+                    val nombreValido =
+                        nombre.toString().isNotBlank()
 
-                if (nombreYaCargado) {
-                    binding.cargaContenido.isVisible = false
-                    binding.cargaNombreImg.isVisible = true
-                } else {
-                    binding.cargaContenido.isVisible = false
-                    binding.cargaNombreImg.isVisible = false
+                    if (nombreYaCargado) {
+                        binding.cargaContenido.isVisible = false
+                        binding.cargaNombreImg.isVisible = true
+                    } else {
+                        binding.cargaContenido.isVisible = false
+                        binding.cargaNombreImg.isVisible = false
 
-                }
-                constatnes_carga_imagenes_general.changer_img(
-                    binding.cargaProgresIndicator,
-                    itemView.context,
-                    img.toString(),
-                    impPerfil,
-                    null,
-                    "perfil",
-                    constantes_valores.getDrawableMiIcono(itemView.context)
-                ) { cargado ->
-                    if(cargado){
-                        Toast.makeText(itemView.context,"cagadocorretme",Toast.LENGTH_SHORT).show()
+                    }
+                    constatnes_carga_imagenes_general.changer_img(
+                        binding.cargaProgresIndicator,
+                        itemView.context,
+                        img.toString(),
+                        impPerfil,
+                        null,
+                        "perfil",
+                        constantes_valores.getDrawableMiIcono(itemView.context)
+                    ) { cargado ->
+                        if (cargado) {
+                            Toast.makeText(itemView.context, "cagadocorretme", Toast.LENGTH_SHORT)
+                                .show()
 
-                    }else{
-                        Toast.makeText(itemView.context,"no se cargo ajajjaja",Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(
+                                itemView.context,
+                                "no se cargo ajajjaja",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+
+                        }
 
                     }
 
                 }
 
+                when (item.estado!!.lowercase()) {
+                    "enviado" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_enviado)
+                    }
+
+                    "proceso" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_proceso)
+                    }
+
+                    "aceptado" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_aceptado)
+                    }
+
+                    "rechazado" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_rechazado)
+                    }
+
+                    "archivado" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_archivado)
+                    }
+
+                    "resuelto" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_resuelto)
+                    }
+
+                    "cancelado" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_cancelado)
+                    }
+
+
+                }
+
+            } else if (item.tipo_enviado_recivido.equals("recivido")) {
+                constantesCarrito.setearDatosUsuarioImgNombre(item.idusuario.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    // Verificación después de setear
+                    binding.nombreTrabajador.text = nombre
+                    val nombreYaCargado = binding.nombreTrabajador.text.toString() == nombre
+                    val nombreValido =
+                        nombre.toString().isNotBlank()
+
+                    if (nombreYaCargado) {
+                        binding.cargaContenido.isVisible = false
+                        binding.cargaNombreImg.isVisible = true
+                    } else {
+                        binding.cargaContenido.isVisible = false
+                        binding.cargaNombreImg.isVisible = false
+
+                    }
+                    constatnes_carga_imagenes_general.changer_img(
+                        binding.cargaProgresIndicator,
+                        itemView.context,
+                        img.toString(),
+                        impPerfil,
+                        null,
+                        "perfil",
+                        constantes_valores.getDrawableMiIcono(itemView.context)
+                    ) { cargado ->
+                        if (cargado) {
+                            Toast.makeText(itemView.context, "cagadocorretme", Toast.LENGTH_SHORT)
+                                .show()
+
+                        } else {
+                            Toast.makeText(
+                                itemView.context,
+                                "no se cargo ajajjaja",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+
+                        }
+
+                    }
+                }
+                when (item.estado!!.lowercase()) {
+                    "apelado" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_enviado)
+                    }
+
+                    "por apelar" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_proceso)
+                    }
+
+                    "apelacion exitosa" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_aceptado)
+                    }
+
+                    "apelacion rechazada" -> {
+                        estado.setBackgroundResource(R.drawable.reporte_rechazado)
+                    }
+
+                }
+            } else {
+                constantesCarrito.setearDatosUsuarioImgNombre(item.idusuario.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    // Verificación después de setear
+                    binding.nombreTrabajador.text = nombre
+                    val nombreYaCargado = binding.nombreTrabajador.text.toString() == nombre
+                    val nombreValido =
+                        nombre.toString().isNotBlank()
+
+                    if (nombreYaCargado) {
+                        binding.cargaContenido.isVisible = false
+                        binding.cargaNombreImg.isVisible = true
+                    } else {
+                        binding.cargaContenido.isVisible = false
+                        binding.cargaNombreImg.isVisible = false
+
+                    }
+                    constatnes_carga_imagenes_general.changer_img(
+                        binding.cargaProgresIndicator,
+                        itemView.context,
+                        img.toString(),
+                        impPerfil,
+                        null,
+                        "perfil",
+                        constantes_valores.getDrawableMiIcono(itemView.context)
+                    ) { cargado ->
+                        if (cargado) {
+                            Toast.makeText(itemView.context, "cagadocorretme", Toast.LENGTH_SHORT)
+                                .show()
+
+                        } else {
+                            Toast.makeText(
+                                itemView.context,
+                                "no se cargo ajajjaja",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+
+                        }
+
+                    }
+                }
             }
 
 

@@ -50,7 +50,7 @@ class OnboardingActivity : AppCompatActivity() {
             ),
             dataclass_onboarding(
                 "Encuentra negocios de tu localidad",
-                "Descubre tiendas y negocios cercanos. Tenemos establecimientos registrados en Barranca, Supe, Pativilca y Paramonga.",
+                "Descubre tiendas y negocios cercanos. Tenemos registrados negocios de Barranca, Supe, Pativilca y Paramonga.",
                 R.raw.tiendas_geinz_animation
             ),
 

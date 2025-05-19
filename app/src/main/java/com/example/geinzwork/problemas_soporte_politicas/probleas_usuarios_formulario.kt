@@ -134,6 +134,17 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                     .collection(Variables.politicas_problemas_verificaciones)
                     .document(Variables.problemas).collection(Variables.problemas)
 
+                val dbreporteEnviado =
+                    FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores").document(firebaseAuth.uid.toString())
+                        .collection("reporte").document("enviados").collection("enviados")
+
+                val dbreporteRecivido =
+                    FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores").document(idTrabajador)
+                        .collection("reporte").document("recivido").collection("recivido")
+
+
                 val hasmap = hashMapOf<String, Any>(
                     Variables.Trabajador to nombreTrabajador,
                     Variables.idTrabajador to idTrabajador,
@@ -144,69 +155,110 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                     Variables.nombreUsuario to nombreUsuario,
                     Variables.apellidoUsuario to apellidoUsuario,
                     Variables.problema to problema,
-                    Variables.numero_contacto to numeroContacto
+                    Variables.numero_contacto to numeroContacto,
+                    "estado" to "enviado"
                 )
 
-
-
-                db.add(hasmap)
-                    .addOnSuccessListener { documentReference ->
-                        val reporteId = documentReference.id
-                        db.document(reporteId).update(Variables.idReporte, reporteId)
-                            .addOnSuccessListener {
-                                try {
-                                    val enviar_notificaciones = NotificacionRS()
-                                    constantes.obtenerToken_trabajador(idTrabajador) { token, nombre, apellido ->
-                                        if (token.isNotEmpty()) {
-                                            GlobalScope.launch {
-                                                try {
-                                                    enviar_notificaciones.sendNotification_con_parametros(
-                                                        "idUSer",
-                                                        idTrabajador,
-                                                        "REPORTE",
-                                                        this@probleas_usuarios_formulario,
-                                                        token,
-                                                        "REPORTE DE TRABAJADOR GEINZ WORK",
-                                                        "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con su cuenta"
-                                                    )
-                                                    println("Enviamos los valores $idTrabajador, $token")
-                                                } catch (e: Exception) {
-                                                    println("Error sending notification: ${e.message}")
-                                                }
+                dbreporteEnviado.add(hasmap).addOnSuccessListener { documentReference ->
+                    val reporteId = documentReference.id
+                    dbreporteEnviado.document(reporteId).update(Variables.idReporte, reporteId)
+                        .addOnSuccessListener {
+                            try {
+                                val enviar_notificaciones = NotificacionRS()
+                                constantes.obtenerToken_trabajador(idTrabajador) { token, nombre, apellido ->
+                                    if (token.isNotEmpty()) {
+                                        GlobalScope.launch {
+                                            try {
+                                                enviar_notificaciones.sendNotification_con_parametros(
+                                                    "idUSer",
+                                                    idTrabajador,
+                                                    "REPORTE",
+                                                    this@probleas_usuarios_formulario,
+                                                    token,
+                                                    "REPORTE DE TRABAJADOR GEINZ WORK",
+                                                    "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con su cuenta"
+                                                )
+                                                println("Enviamos los valores $idTrabajador, $token")
+                                            } catch (e: Exception) {
+                                                println("Error sending notification: ${e.message}")
                                             }
-                                        } else {
-                                            println("Token no disponible o vacío.")
                                         }
+                                    } else {
+                                        println("Token no disponible o vacío.")
                                     }
-                                } catch (e: Exception) {
-                                    println("Error obtaining token: ${e.message}")
                                 }
-
-
-                                Toast.makeText(
-                                    this,
-                                    "En unos momentos nos pondremos en contacto contigo. Gracias por usar Geinz",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                onBackPressed()
-
-
+                            } catch (e: Exception) {
+                                println("Error obtaining token: ${e.message}")
                             }
-                            .addOnFailureListener { e ->
-                                Toast.makeText(
-                                    this,
-                                    "Error al actualizar el ID del reporte: ${e.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+
+
+                            Toast.makeText(
+                                this,
+                                "En unos momentos nos pondremos en contacto contigo. Gracias por usar Geinz",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackPressed()
+
+
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                this,
+                                "Error al actualizar el ID del reporte: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                }
+                dbreporteRecivido.add(hasmap).addOnSuccessListener { documentReference ->
+                    val reporteId = documentReference.id
+                    dbreporteRecivido.document(reporteId).update(Variables.idReporte, reporteId)
+                        .addOnSuccessListener {
+                            try {
+                                val enviar_notificaciones = NotificacionRS()
+                                constantes.obtenerToken_trabajador(idTrabajador) { token, nombre, apellido ->
+                                    if (token.isNotEmpty()) {
+                                        GlobalScope.launch {
+                                            try {
+                                                enviar_notificaciones.sendNotification_con_parametros(
+                                                    "idUSer",
+                                                    idTrabajador,
+                                                    "REPORTE",
+                                                    this@probleas_usuarios_formulario,
+                                                    token,
+                                                    "REPORTE DE TRABAJADOR GEINZ WORK",
+                                                    "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con su cuenta"
+                                                )
+                                                println("Enviamos los valores $idTrabajador, $token")
+                                            } catch (e: Exception) {
+                                                println("Error sending notification: ${e.message}")
+                                            }
+                                        }
+                                    } else {
+                                        println("Token no disponible o vacío.")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                println("Error obtaining token: ${e.message}")
                             }
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(
-                            this,
-                            "Error al enviar el formulario: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+
+
+                            Toast.makeText(
+                                this,
+                                "En unos momentos nos pondremos en contacto contigo. Gracias por usar Geinz",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackPressed()
+
+
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                this,
+                                "Error al actualizar el ID del reporte: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                }
 
 
             }

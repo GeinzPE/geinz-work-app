@@ -190,7 +190,7 @@ object constantesPublicidad {
     }
 
     @SuppressLint("MissingInflatedId")
-    fun     CreacionCuentaBottom_shett(contexto: Context, dialog: BottomSheetDialog) {
+    fun CreacionCuentaBottom_shett(contexto: Context, dialog: BottomSheetDialog) {
         val view = LayoutInflater.from(contexto)
             .inflate(R.layout.bottom_sheet_creacion_cuenta, null, false)
         bottomSheet = view.findViewById(R.id.cerrar)

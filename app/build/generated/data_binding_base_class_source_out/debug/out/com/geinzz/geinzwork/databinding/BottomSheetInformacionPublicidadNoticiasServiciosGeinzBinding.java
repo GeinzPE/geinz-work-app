@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -22,6 +23,9 @@ public final class BottomSheetInformacionPublicidadNoticiasServiciosGeinzBinding
 
   @NonNull
   public final BottomSheetDragHandleView cerrar;
+
+  @NonNull
+  public final ImageView copyId;
 
   @NonNull
   public final TextView fechaPublicada;
@@ -46,11 +50,12 @@ public final class BottomSheetInformacionPublicidadNoticiasServiciosGeinzBinding
 
   private BottomSheetInformacionPublicidadNoticiasServiciosGeinzBinding(
       @NonNull LinearLayout rootView, @NonNull BottomSheetDragHandleView cerrar,
-      @NonNull TextView fechaPublicada, @NonNull TextView finaliza, @NonNull TextView idServicio,
-      @NonNull LinearLayout linealId, @NonNull TextView plan, @NonNull TextView tipoServicio,
-      @NonNull TextView tvTitle) {
+      @NonNull ImageView copyId, @NonNull TextView fechaPublicada, @NonNull TextView finaliza,
+      @NonNull TextView idServicio, @NonNull LinearLayout linealId, @NonNull TextView plan,
+      @NonNull TextView tipoServicio, @NonNull TextView tvTitle) {
     this.rootView = rootView;
     this.cerrar = cerrar;
+    this.copyId = copyId;
     this.fechaPublicada = fechaPublicada;
     this.finaliza = finaliza;
     this.idServicio = idServicio;
@@ -92,6 +97,12 @@ public final class BottomSheetInformacionPublicidadNoticiasServiciosGeinzBinding
       id = R.id.cerrar;
       BottomSheetDragHandleView cerrar = ViewBindings.findChildViewById(rootView, id);
       if (cerrar == null) {
+        break missingId;
+      }
+
+      id = R.id.copy_id;
+      ImageView copyId = ViewBindings.findChildViewById(rootView, id);
+      if (copyId == null) {
         break missingId;
       }
 
@@ -138,7 +149,8 @@ public final class BottomSheetInformacionPublicidadNoticiasServiciosGeinzBinding
       }
 
       return new BottomSheetInformacionPublicidadNoticiasServiciosGeinzBinding((LinearLayout) rootView,
-          cerrar, fechaPublicada, finaliza, idServicio, linealId, plan, tipoServicio, tvTitle);
+          cerrar, copyId, fechaPublicada, finaliza, idServicio, linealId, plan, tipoServicio,
+          tvTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

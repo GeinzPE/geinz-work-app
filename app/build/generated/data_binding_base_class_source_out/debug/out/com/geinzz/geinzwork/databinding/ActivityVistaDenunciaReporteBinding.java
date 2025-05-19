@@ -23,6 +23,9 @@ public final class ActivityVistaDenunciaReporteBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
+  public final Chip TodosFiltrado;
+
+  @NonNull
   public final Chip aceptado;
 
   @NonNull
@@ -89,24 +92,29 @@ public final class ActivityVistaDenunciaReporteBinding implements ViewBinding {
   public final HorizontalScrollView scroolReporesMismoTrabajador;
 
   @NonNull
+  public final Chip todosFitlradosReportesReview;
+
+  @NonNull
   public final Chip trabajadoresReportes;
 
   @NonNull
   public final Chip tusReportes;
 
   private ActivityVistaDenunciaReporteBinding(@NonNull LinearLayout rootView,
-      @NonNull Chip aceptado, @NonNull Chip apelcaionAceptada, @NonNull Chip aplecionRechazada,
-      @NonNull Chip aplelado, @NonNull Chip archivado, @NonNull Chip cancelado,
-      @NonNull LinearLayout cargandoContenido, @NonNull ChipGroup chipGroupFiltro,
-      @NonNull ChipGroup chipGroupestados, @NonNull Chip enviado,
-      @NonNull RecyclerView filtradoReviewTrabajadores, @NonNull ChipGroup grupoReporesUser,
-      @NonNull HorizontalScrollView linealChipsFiltradoestados,
+      @NonNull Chip TodosFiltrado, @NonNull Chip aceptado, @NonNull Chip apelcaionAceptada,
+      @NonNull Chip aplecionRechazada, @NonNull Chip aplelado, @NonNull Chip archivado,
+      @NonNull Chip cancelado, @NonNull LinearLayout cargandoContenido,
+      @NonNull ChipGroup chipGroupFiltro, @NonNull ChipGroup chipGroupestados,
+      @NonNull Chip enviado, @NonNull RecyclerView filtradoReviewTrabajadores,
+      @NonNull ChipGroup grupoReporesUser, @NonNull HorizontalScrollView linealChipsFiltradoestados,
       @NonNull LinearLayout linealFiltrosChips, @NonNull LinearLayout main,
       @NonNull LinearLayout noEncontrado, @NonNull Chip porApelar, @NonNull Chip proceso,
       @NonNull Chip rechazado, @NonNull Chip resuelto, @NonNull Chip reviewReportes,
       @NonNull HorizontalScrollView scroolReporesMismoTrabajador,
-      @NonNull Chip trabajadoresReportes, @NonNull Chip tusReportes) {
+      @NonNull Chip todosFitlradosReportesReview, @NonNull Chip trabajadoresReportes,
+      @NonNull Chip tusReportes) {
     this.rootView = rootView;
+    this.TodosFiltrado = TodosFiltrado;
     this.aceptado = aceptado;
     this.apelcaionAceptada = apelcaionAceptada;
     this.aplecionRechazada = aplecionRechazada;
@@ -129,6 +137,7 @@ public final class ActivityVistaDenunciaReporteBinding implements ViewBinding {
     this.resuelto = resuelto;
     this.reviewReportes = reviewReportes;
     this.scroolReporesMismoTrabajador = scroolReporesMismoTrabajador;
+    this.todosFitlradosReportesReview = todosFitlradosReportesReview;
     this.trabajadoresReportes = trabajadoresReportes;
     this.tusReportes = tusReportes;
   }
@@ -160,6 +169,12 @@ public final class ActivityVistaDenunciaReporteBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.TodosFiltrado;
+      Chip TodosFiltrado = ViewBindings.findChildViewById(rootView, id);
+      if (TodosFiltrado == null) {
+        break missingId;
+      }
+
       id = R.id.aceptado;
       Chip aceptado = ViewBindings.findChildViewById(rootView, id);
       if (aceptado == null) {
@@ -288,6 +303,12 @@ public final class ActivityVistaDenunciaReporteBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.todosFitlrados_reportes_review;
+      Chip todosFitlradosReportesReview = ViewBindings.findChildViewById(rootView, id);
+      if (todosFitlradosReportesReview == null) {
+        break missingId;
+      }
+
       id = R.id.trabajadores_reportes;
       Chip trabajadoresReportes = ViewBindings.findChildViewById(rootView, id);
       if (trabajadoresReportes == null) {
@@ -300,12 +321,12 @@ public final class ActivityVistaDenunciaReporteBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityVistaDenunciaReporteBinding((LinearLayout) rootView, aceptado,
-          apelcaionAceptada, aplecionRechazada, aplelado, archivado, cancelado, cargandoContenido,
-          chipGroupFiltro, chipGroupestados, enviado, filtradoReviewTrabajadores, grupoReporesUser,
-          linealChipsFiltradoestados, linealFiltrosChips, main, noEncontrado, porApelar, proceso,
-          rechazado, resuelto, reviewReportes, scroolReporesMismoTrabajador, trabajadoresReportes,
-          tusReportes);
+      return new ActivityVistaDenunciaReporteBinding((LinearLayout) rootView, TodosFiltrado,
+          aceptado, apelcaionAceptada, aplecionRechazada, aplelado, archivado, cancelado,
+          cargandoContenido, chipGroupFiltro, chipGroupestados, enviado, filtradoReviewTrabajadores,
+          grupoReporesUser, linealChipsFiltradoestados, linealFiltrosChips, main, noEncontrado,
+          porApelar, proceso, rechazado, resuelto, reviewReportes, scroolReporesMismoTrabajador,
+          todosFitlradosReportesReview, trabajadoresReportes, tusReportes);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

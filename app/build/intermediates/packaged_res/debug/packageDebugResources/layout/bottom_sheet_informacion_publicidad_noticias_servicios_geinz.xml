@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_medium"
                 android:text="ID:"
-                android:textSize="14sp"/>
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/id_servicio"
@@ -50,9 +50,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:textSize="12sp"
+                android:layout_weight="1"
                 android:fontFamily="@font/roboto_medium"
-                android:text="@string/cat" />
+                android:text="@string/cat"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/copy_id"
+                android:layout_width="20dp"
+                android:layout_gravity="center"
+                android:layout_height="20dp"
+                android:src="@drawable/baseline_content_copy_24"/>
         </LinearLayout>
 
         <LinearLayout
@@ -67,18 +75,18 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_medium"
                 android:text="Plan:"
-                android:textSize="14sp"/>
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/plan"
-                android:textAllCaps="true"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:textSize="12sp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="@string/cat" />
+                android:text="@string/cat"
+                android:textAllCaps="true"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -93,18 +101,18 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_medium"
                 android:text="publicado:"
-                android:textSize="14sp"/>
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/fechaPublicada"
                 style="@style/TextoModoOScuroColor"
-                android:textAllCaps="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:textSize="12sp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="@string/cat" />
+                android:text="@string/cat"
+                android:textAllCaps="true"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -119,18 +127,18 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_medium"
                 android:text="Finaliza:"
-                android:textSize="14sp"/>
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/finaliza"
-                android:textAllCaps="true"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
                 android:layout_marginLeft="10dp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="@string/cat" />
+                android:text="@string/cat"
+                android:textAllCaps="true"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -145,18 +153,18 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_medium"
                 android:text="Tipo de servicio:"
-                android:textSize="14sp"/>
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tipo_servicio"
-                android:textAllCaps="true"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:textSize="12sp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="@string/cat" />
+                android:text="@string/cat"
+                android:textAllCaps="true"
+                android:textSize="12sp" />
 
         </LinearLayout>
 
