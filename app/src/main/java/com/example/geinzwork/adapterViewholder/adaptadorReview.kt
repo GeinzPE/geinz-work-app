@@ -87,12 +87,12 @@ class adaptadorReview(
                     putExtra(Variables.idTrabajdor, idtrabajadorClikeado)
                     putExtra(Variables.cantidad, daclassReview.cantidaStarts)
                     putExtra("review", review.text.toString())
-                    putExtra("editado_adaptador",false)
+                    putExtra("editado_adaptador", false)
                 }
                 itemView.context.startActivity(intent)
             }
             reportar.setOnClickListener {
-                if(firebaseAuth.currentUser==null){
+                if (firebaseAuth.currentUser == null) {
                     dialog = BottomSheetDialog(itemView.context)
                     constantesPublicidad.CreacionCuentaBottom_shett(
                         itemView.context,
@@ -100,7 +100,7 @@ class adaptadorReview(
                     )
                     dialog.show()
 
-                }else{
+                } else {
                     if (daclassReview.idUsuarioReview == uidActual) {
                         Toast.makeText(
                             itemView.context,
@@ -123,7 +123,6 @@ class adaptadorReview(
                         }
                     }
                 }
-
 
 
             }
@@ -286,8 +285,9 @@ class adaptadorReview(
                         "id_trabajador" to (idtrabajadorClikeado ?: ""),
                         "id_usuario_review" to item.idUsuarioReview.toString(),
                         "incidencia" to bottomSheet.tipoIncidencia.text.toString(),
-                        "descripcion" to bottomSheet.DescripcionDelProblemaED.text.toString()
-
+                        "descripcion" to bottomSheet.DescripcionDelProblemaED.text.toString(),
+                        "fecha_envio" to binding.fecha.text.toString(),
+                        "hora_envio" to binding.hora.text.toString()
                     )
                     db.add(hasmap).addOnSuccessListener {
                         Toast.makeText(

@@ -9,6 +9,7 @@
     android:padding="24dp">
 
 
+
     <com.airbnb.lottie.LottieAnimationView
         android:layout_marginHorizontal="10dp"
         android:id="@+id/imageView"

@@ -19,8 +19,12 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.dataclass.dataclass_reporte_denuncia_tb
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterReportes
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaDenunciaReporteBinding
+import com.geinzz.geinzwork.databinding.BottomSheetInformacionReportesDenunciasBinding
 import com.geinzz.geinzwork.dataclass.dataClassReportes
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -28,6 +32,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
     private lateinit var binding: ActivityVistaDenunciaReporteBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private val lista = mutableListOf<dataClassReportes>()
+    private lateinit var dialog: BottomSheetDialog
     private val lista_reporte = mutableListOf<dataclass_reporte_denuncia_tb>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,27 +50,22 @@ class vista_denuncia_reporte : AppCompatActivity() {
             when (checkedId) {
                 R.id.TodosFiltrado -> {
                     obtner_Denuncias_trabajadores(binding.scroolReporesMismoTrabajador, "recivido")
-                    Toast.makeText(this, "todos", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.aplelado -> {
                     buscarFiltrados("recivido", "apelado")
-                    Toast.makeText(this, "apelado", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.por_apelar -> {
                     buscarFiltrados("recivido", "por apelar")
-                    Toast.makeText(this, "por apelar", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.apelcaionAceptada -> {
                     buscarFiltrados("recivido", "apelacion aceptada")
-                    Toast.makeText(this, "aceptada", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.aplecion_rechazada -> {
                     buscarFiltrados("recivido", "apelacion rechazada")
-                    Toast.makeText(this, "rechazada", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -74,41 +74,34 @@ class vista_denuncia_reporte : AppCompatActivity() {
             when (checkedId) {
                 R.id.todosFitlrados_reportes_review -> {
                     obtner_Denuncias_trabajadores(binding.linealChipsFiltradoestados, "enviados")
-                    Toast.makeText(this, "Enviado", Toast.LENGTH_SHORT).show()
                 }
+
                 R.id.enviado -> {
                     buscarFiltrados("enviados", "enviado")
-                    Toast.makeText(this, "Enviado", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.proceso -> {
                     buscarFiltrados("enviados", "proceso")
-                    Toast.makeText(this, "Proceso", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.aceptado -> {
                     buscarFiltrados("enviados", "aceptado")
-                    Toast.makeText(this, "Aceptado", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.rechazado -> {
                     buscarFiltrados("enviados", "rechazado")
-                    Toast.makeText(this, "Rechazado", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.archivado -> {
                     buscarFiltrados("enviados", "archivado")
-                    Toast.makeText(this, "Archivado", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.resuelto -> {
                     buscarFiltrados("enviados", "resuelto")
-                    Toast.makeText(this, "Resuelto", Toast.LENGTH_SHORT).show()
                 }
 
                 R.id.cancelado -> {
                     buscarFiltrados("enviados", "cancelado")
-                    Toast.makeText(this, "Cancelado", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -153,6 +146,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
             // Forzar el chequeo del chip "Todos"
             binding.TodosFiltrado.isChecked = false // por si ya estaba marcado antes
             binding.TodosFiltrado.isChecked = true
+            binding.linealChipsFiltradoestados.isVisible = false
 
             // Obtener denuncias
             obtner_Denuncias_trabajadores(binding.scroolReporesMismoTrabajador, "recivido")
@@ -169,9 +163,9 @@ class vista_denuncia_reporte : AppCompatActivity() {
         horizonntalScool: HorizontalScrollView,
         enviado_recivido: String
     ) {
-        binding.cargandoContenido.isVisible=true
+        binding.cargandoContenido.isVisible = true
         binding.noEncontrado.isVisible = false
-        binding.filtradoReviewTrabajadores.isVisible=false
+        binding.filtradoReviewTrabajadores.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -188,6 +182,8 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val Tipo_reporte = data?.get("Tipo_reporte") as? String ?: ""
                 val idReporte = data?.get("idReporte") as? String ?: ""
                 val estado = data?.get("estado") as? String ?: ""
+                val fecha_envio = data["fecha_envio"] as? String ?: ""
+                val hora_envio = data["hora_envio"] as? String ?: ""
 
                 val dataclass_reporte = dataclass_reporte_denuncia_tb(
                     idTrabajador,
@@ -196,7 +192,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     Tipo_reporte,
                     problema,
                     estado,
-                    enviado_recivido
+                    enviado_recivido, fecha_envio, hora_envio
                 )
                 lista_reporte.add(dataclass_reporte)
             }
@@ -206,7 +202,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte()
+                    inicializar_listaReporte(enviado_recivido)
                     binding.noEncontrado.isVisible = false
                     binding.filtradoReviewTrabajadores.isVisible = true
                     horizonntalScool.isVisible = true
@@ -229,10 +225,10 @@ class vista_denuncia_reporte : AppCompatActivity() {
     }
 
     private fun buscarFiltrados(
-        enviado_recivido: String,filtradoSelecionado:String
+        enviado_recivido: String, filtradoSelecionado: String
     ) {
-        binding.cargandoContenido.isVisible=true
-        binding.filtradoReviewTrabajadores.isVisible=false
+        binding.cargandoContenido.isVisible = true
+        binding.filtradoReviewTrabajadores.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -249,7 +245,9 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val Tipo_reporte = data?.get("Tipo_reporte") as? String ?: ""
                 val idReporte = data?.get("idReporte") as? String ?: ""
                 val estado = data?.get("estado") as? String ?: ""
-                if(estado.toLowerCase()==filtradoSelecionado){
+                val fecha_envio = data["fecha_envio"] as? String ?: ""
+                val hora_envio = data["hora_envio"] as? String ?: ""
+                if (estado.toLowerCase() == filtradoSelecionado) {
                     val dataclass_reporte = dataclass_reporte_denuncia_tb(
                         idTrabajador,
                         idUsuario,
@@ -257,7 +255,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         Tipo_reporte,
                         problema,
                         estado,
-                        enviado_recivido
+                        enviado_recivido, fecha_envio, hora_envio
                     )
                     lista_reporte.add(dataclass_reporte)
                 }
@@ -268,14 +266,14 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte()
+                    inicializar_listaReporte(enviado_recivido)
                     binding.noEncontrado.isVisible = false
                     binding.filtradoReviewTrabajadores.isVisible = true
-                    binding.cargandoContenido.isVisible=false
+                    binding.cargandoContenido.isVisible = false
 
                 } else {
                     binding.noEncontrado.isVisible = true
-                    binding.cargandoContenido.isVisible=false
+                    binding.cargandoContenido.isVisible = false
                     binding.filtradoReviewTrabajadores.isVisible = false
                 }
                 binding.cargandoContenido.isVisible = false
@@ -291,14 +289,78 @@ class vista_denuncia_reporte : AppCompatActivity() {
     }
 
 
+    private fun inicializar_listaReporte(enviado_recivido:String) {
+        val adapter = adapter_reporte_denuncia_tb(lista_reporte) { item ->
+            dialog = BottomSheetDialog(this)
+            bottomSheet_datos(enviado_recivido,item.idreporte.toString())
+            dialog.show()
 
-
-
-    private fun inicializar_listaReporte() {
-        val adapter = adapter_reporte_denuncia_tb(lista_reporte)
+        }
         binding.filtradoReviewTrabajadores.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.filtradoReviewTrabajadores.adapter = adapter
+    }
+
+    private fun bottomSheet_datos(tipo: String, idSelect: String) {
+        val bottomSheet = BottomSheetInformacionReportesDenunciasBinding.inflate(layoutInflater)
+        val view = bottomSheet.root
+        val db =
+            FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(firebaseAuth.uid.toString()).collection("reporte").document(tipo)
+                .collection(tipo).document(idSelect)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val idReporte = data?.get("idReporte") as? String ?: ""
+                val idTrabajador = data?.get("idTrabajador") as? String ?: ""
+                val idUsuario = data?.get("idUsuario") as? String ?: ""
+                val Tipo_reporte = data?.get("Tipo_reporte") as? String ?: ""
+                val problema = data?.get("problema") as? String ?: ""
+                val estado = data?.get("estado") as? String ?: ""
+                val numero_contacto = data?.get("numero_contacto") as? String ?: ""
+                val apelacionMap = data?.get("apelado") as? Map<*, *>
+                if (apelacionMap != null && apelacionMap.isNotEmpty()) {
+                    bottomSheet.linealApelado.isVisible = true
+                    val nombre = apelacionMap["nombre"] as? String
+                    val apellido = apelacionMap["apellido"] as? String
+                    val numero = apelacionMap["numero"] as? String
+                    val fecha = apelacionMap["fecha_envio"] as? String
+                    val hora = apelacionMap["hora_envio"] as? String
+                    val motivo = apelacionMap["motivo"] as? String
+                    val detalle = apelacionMap["detalle"] as? String
+                    bottomSheet.nombreApeladoPor.text = "$nombre $apellido"
+                    bottomSheet.fechaApelado.text = fecha
+                    bottomSheet.horaApelacion.text = hora
+                    bottomSheet.numeroContactoApelacion.text = numero
+                    bottomSheet.detalleApelado.text = detalle
+                    bottomSheet.motivoApelado.text = motivo
+                } else {
+                    bottomSheet.linealApelado.isVisible = false
+
+                }
+                bottomSheet.idReporte.text = idReporte
+                constantesCarrito.setearDatosUsuarioImgNombre(idUsuario) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    bottomSheet.enviadoPor.text = "$nombre $apellido"
+                }
+                constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    bottomSheet.haciaEl.text = "$nombre $apellido"
+                }
+                bottomSheet.numeroContacto.text = numero_contacto
+                bottomSheet.motivoReporte.text = Tipo_reporte
+                bottomSheet.incidencia.text = problema
+                bottomSheet.estadoReporte.text = estado
+
+
+            }
+        }
+
+        bottomSheet.copyId.setOnClickListener {
+            constantestextos_general.copiarTexto_portapapeles(bottomSheet.idReporte,this)
+
+        }
+        dialog.setContentView(view)
+
     }
 
     private fun obtener_denuncias_Review(horizonntalScool: HorizontalScrollView) {
@@ -319,7 +381,8 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val incidencia = data["incidencia"] as? String ?: ""
                 val descripcion = data["descripcion"] as? String ?: ""
                 val estado = data["estado"] as? String ?: ""
-
+                val fecha_envio = data["fecha_envio"] as? String ?: ""
+                val hora_envio = data["hora_envio"] as? String ?: ""
                 if (id_registrado == firebaseAuth.uid.toString()) {
                     val dataclass_reporte = dataclass_reporte_denuncia_tb(
                         id_usuario_review,
@@ -328,14 +391,14 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         incidencia,
                         descripcion,
                         estado,
-                        ""
+                        "", hora_envio, fecha_envio
                     )
                     lista_reporte.add(dataclass_reporte)
                 }
             }
 
             if (lista_reporte.isNotEmpty()) {
-                inicializar_listaReporte()
+                inicializar_listaReporte("")
             } else {
                 binding.noEncontrado.isVisible = true
                 binding.filtradoReviewTrabajadores.isVisible = false

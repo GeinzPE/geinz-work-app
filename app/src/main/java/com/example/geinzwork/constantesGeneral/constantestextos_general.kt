@@ -1,5 +1,8 @@
 package com.geinzz.geinzwork.constantesGeneral
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.Spannable
@@ -8,6 +11,7 @@ import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.ViewTreeObserver
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isVisible
 import com.geinzz.geinzwork.dataclass.daclassReview
 
@@ -29,6 +33,7 @@ object constantestextos_general {
         val spannableString =
             SpannableString("Reseña:  ${daclassReview.review}")
 
+
         val boldSpan = StyleSpan(Typeface.BOLD)
         val startIndex = 0
         val endIndex = "Reseña".length ?: 0
@@ -40,6 +45,21 @@ object constantestextos_general {
         )
 
         review.text = spannableString
+    }
+
+    fun setearInformacionboldDescripcion(
+        endIndex: String,
+        SpannableString: SpannableString,
+        texview: TextView
+    ) {
+        val boldSpan = StyleSpan(Typeface.BOLD)
+        val starIndex = 0
+        val endIndex = "$endIndex".length ?: 0
+        SpannableString.setSpan(
+            boldSpan, starIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        texview.text = SpannableString
+
     }
 
     fun textoPrimarioBold2(daclassReview: daclassReview, review: TextView) {
@@ -118,7 +138,7 @@ object constantestextos_general {
 
     fun marcarDescuentoTxt(
         textViewPriceBefore: TextView,
-        ) {
+    ) {
         textViewPriceBefore.paintFlags =
             textViewPriceBefore.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         textViewPriceBefore.textSize = 12f
@@ -166,7 +186,20 @@ object constantestextos_general {
 
     }
 
+    fun copiarTexto_portapapeles(textoTexview:TextView,context: Context){
+        val textoACopiar = textoTexview.text.toString()
 
+        val clipboard =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("texto", textoACopiar)
+        clipboard.setPrimaryClip(clip)
+
+        Toast.makeText(
+            context,
+            "Texto copiado al portapapeles",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 
 
 }

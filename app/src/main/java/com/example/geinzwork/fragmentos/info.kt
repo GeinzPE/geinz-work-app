@@ -1338,6 +1338,8 @@ class info : Fragment() {
     }
 
 
+
+
     private fun setear_fechaRegistra_trabajador(fechaRegistro: String) {
         val formatoEntrada = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val fecha = formatoEntrada.parse(fechaRegistro)

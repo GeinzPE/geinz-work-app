@@ -330,7 +330,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="No se econtro denuncias o reportes"
+            android:text="No se encontro denuncias o reportes"
             android:textSize="20sp"
             android:textStyle="bold" />
     </LinearLayout>
