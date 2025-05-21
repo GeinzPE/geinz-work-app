@@ -10,6 +10,7 @@
     tools:context=".servicios_geinz.cambiar_imagenes_publicidad_noticias_servicios">
 
     <LinearLayout
+        android:animateLayoutChanges="true"
         android:visibility="gone"
         android:id="@+id/linealCargandoImg"
         android:layout_width="match_parent"
@@ -36,6 +37,7 @@
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollimg"
+        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 

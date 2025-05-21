@@ -3,6 +3,7 @@ package com.example.geinzwork
 import android.content.Context
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -22,6 +23,8 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -51,6 +54,7 @@ import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlin.math.roundToInt
 
 class crear_publicacion_productos_trabajadores : AppCompatActivity() {
@@ -62,10 +66,25 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var yape: Boolean = false
     private var plin: Boolean = false
     private var unidadGarantia: String = ""
-    private lateinit var garantiaTextWatcher: TextWatcher
     private var descuento: Boolean = false
     private var efectivo: Boolean = false
+    private var img1_uir1: Uri? = null
+
     private val viewModel: MiViewModel by viewModels()
+    private val img1Launcher =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                img1_uir1 = uri
+                Toast.makeText(this, "Imagen seleccionada: $uri", Toast.LENGTH_SHORT).show()
+
+                // ✅ Refrescar imagen en el BottomSheet si está visible
+                binding?.imgSubir?.setImageURI(uri)
+
+            } else {
+                Toast.makeText(this, getString(R.string.ImgNoSeleccionada), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -78,6 +97,15 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+        // ✅ Mostrar imagen si ya hay una seleccionada
+        img1_uir1?.let {
+            binding.imgSubir.setImageURI(it)
+        }
+
+        // ✅ Al hacer clic, lanzar el picker de imagen
+        binding.imgSubir.setOnClickListener {
+            img1Launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
         firebaseAuth = FirebaseAuth.getInstance()
         binding.subcategoriaProducto.setOnClickListener {
@@ -332,6 +360,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         recyclerView: RecyclerView,
         categoriesWithSubcategoriesList: List<CategoryWithSubcategories>
     ) {
+
         val rvCategorias =
             recyclerView
         rvCategorias.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
@@ -565,6 +594,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                     val hasmap = hashMapOf<String, Any>(
                         "id" to productId
                     )
+                    subir_imgCaracteristica(productId)
                     db.document(productId).set(hasmap, SetOptions.merge())
                         .addOnSuccessListener { res ->
                             println("id subido correcamte")
@@ -580,6 +610,35 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
     }
 
+    private fun subir_imgCaracteristica(productId:String){
+        val storageRef = FirebaseStorage.getInstance().reference
+        val userId = firebaseAuth.uid.toString()
+        val productoId = productId
+        val fileName = "caracteristica_producto"
+        val fileUri: Uri? = img1_uir1 // <- puede ser nulo
+
+        val rutaImagen = storageRef
+            .child("usuarios")
+            .child(userId)
+            .child("productos_publicados")
+            .child(productoId)
+            .child(fileName)
+
+        if (fileUri != null && fileUri.toString().isNotBlank()) {
+            rutaImagen.putFile(fileUri)
+                .addOnSuccessListener {
+                    rutaImagen.downloadUrl.addOnSuccessListener { uri ->
+                        Log.d("Upload", "Imagen subida: $uri")
+                        // Puedes guardar este URL en Firestore, RealtimeDB, etc.
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Upload", "Error al subir imagen", e)
+                }
+        } else {
+            Log.d("Upload", "No se subió imagen porque Uri es nulo o vacío")
+        }
+    }
 
     private fun validarCampos(): Boolean {
         val titulo_producto = binding.tituloPublicacionPrED
@@ -725,6 +784,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
         binding_bottom_sheeet.guardarCambios.setOnClickListener {
             guardar_cabmios_descripcion(binding_bottom_sheeet)
+            binding.imgSubir.isVisible = true
+            binding.linealVistaPreviaApartado.isVisible = true
         }
         dialog.setContentView(view)
     }

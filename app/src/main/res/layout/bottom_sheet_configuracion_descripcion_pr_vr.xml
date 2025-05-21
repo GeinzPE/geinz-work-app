@@ -111,6 +111,7 @@
                 android:text="Vista previa"
                 android:textSize="16sp" />
 
+
             <Button
                 android:id="@+id/guardar_cambios"
                 android:layout_width="wrap_content"

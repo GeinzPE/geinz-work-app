@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -90,7 +92,7 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        
+
         val tipo = intent.getStringExtra(Variables.tipo_peticion)
         binding.imgPublicidad.setOnClickListener {
             baner.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -118,13 +120,15 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                 binding.imgPublicidad.isVisible = true
                 binding.agregar.setOnClickListener {
                     subir_noticias(idNoticia)
+                    binding.scrollimg.isVisible = false
+                    binding.linealCargandoImg.isVisible = true
                 }
                 obtner_img_firestore_noticias(idNoticia)
-                binding.texto.text=getString(R.string.textoNoticia)
+                binding.texto.text = getString(R.string.textoNoticia)
             }
 
             Variables.tipoPublicidad -> {
-                binding.texto.text= getString(R.string.textoPublicidad)
+                binding.texto.text = getString(R.string.textoPublicidad)
                 cambiarAltura(binding.imgPublicidad, 200, this)
                 val plan = intent.getStringExtra(Variables.plan)
                 val documento1 = intent.getStringExtra(Variables.documento1IMG)
@@ -134,6 +138,8 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                         mostrarImagenes(1)
                         binding.agregar.setOnClickListener {
                             subir_img_publicaciones(documento1!!, docuemnto2!!, Variables.basico)
+                            binding.scrollimg.isVisible = false
+                            binding.linealCargandoImg.isVisible = true
                         }
                         obtener_imagen_publicaciones(documento1!!, docuemnto2!!, 0)
                     }
@@ -141,15 +147,19 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                     Variables.avanzado -> {
                         mostrarImagenes(4)
                         binding.agregar.setOnClickListener {
-                            subir_img_publicaciones(documento1!!, docuemnto2!!,  Variables.avanzado)
+                            subir_img_publicaciones(documento1!!, docuemnto2!!, Variables.avanzado)
+                            binding.scrollimg.isVisible = false
+                            binding.linealCargandoImg.isVisible = true
                         }
                         obtener_imagen_publicaciones(documento1!!, docuemnto2!!, 4)
                     }
 
-                    Variables.premiun-> {
+                    Variables.premiun -> {
                         mostrarImagenes(6)
                         binding.agregar.setOnClickListener {
-                            subir_img_publicaciones(documento1!!, docuemnto2!!,  Variables.premiun)
+                            subir_img_publicaciones(documento1!!, docuemnto2!!, Variables.premiun)
+                            binding.scrollimg.isVisible = false
+                            binding.linealCargandoImg.isVisible = true
                         }
                         obtener_imagen_publicaciones(documento1!!, docuemnto2!!, 6)
 
@@ -161,6 +171,8 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
     }
 
     private fun subir_img_publicaciones(docuemnto1: String, docuemnto2: String, plan: String) {
+        val tiempoInicio = System.currentTimeMillis() // ← Tiempo de inicio
+
         val refFirestore = FirebaseFirestore.getInstance()
             .collection(Variables.anuncios)
             .document(docuemnto1)
@@ -177,11 +189,12 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
         val scrollImg = binding.scrollimg
         val linealCargandoImg = binding.linealCargandoImg
 
-     
         scrollImg.isVisible = false
         linealCargandoImg.isVisible = true
 
-      
+        var tareasFinalizadas = 0
+        var totalTareas = 1 // Imagen principal al menos
+
         img_pincipal?.let { uri ->
             refFirestore.get().addOnSuccessListener { res ->
                 if (res.exists()) {
@@ -199,6 +212,8 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                                             "imagen cambiada correctamente",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                        tareasFinalizadas++
+                                        verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
                                     }
                                     .addOnFailureListener {
                                         Toast.makeText(
@@ -206,6 +221,8 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                                             "Error al cambiar la imagen",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                        tareasFinalizadas++
+                                        verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
                                     }
                             }.addOnFailureListener {
                                 Toast.makeText(
@@ -213,27 +230,33 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                                     "Error al obtener la imagen de descarga",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                tareasFinalizadas++
+                                verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
                             }
                         }.addOnFailureListener {
-                            Log.e("misma_img","La imagen principal no se subió o se dejó la misma imagen")
+                            Log.e("misma_img", "La imagen principal no se subió")
+                            tareasFinalizadas++
+                            verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
                         }
                 } else {
                     Toast.makeText(this, "El documento no existe", Toast.LENGTH_SHORT).show()
+                    tareasFinalizadas++
+                    verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
                 }
             }.addOnFailureListener {
-                Log.e("error_doc_img","Error al obtener el documento de Firestore")
+                Log.e("error_doc_img", "Error al obtener el documento de Firestore")
+                tareasFinalizadas++
+                verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
             }
         } ?: run {
-            Toast.makeText(
-                this,
-                "No se proporcionó una imagen para la imagen principal, por lo que sigue igual.",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "No se proporcionó una imagen principal", Toast.LENGTH_SHORT)
+                .show()
+            tareasFinalizadas++
+            verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
         }
 
-        // Subir imágenes adicionales dependiendo del plan
         val imagenes = when (plan) {
-           Variables.avanzado -> listOf(
+            Variables.avanzado -> listOf(
                 Pair(Variables.img1JPG, img1_uir1),
                 Pair(Variables.img2JPG, img2_uir2),
                 Pair(Variables.img3JPG, img3_uir3)
@@ -250,29 +273,46 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
             else -> emptyList()
         }
 
+        totalTareas += imagenes.size
+
         imagenes.forEach { (nombreArchivo, uri) ->
             uri?.let {
                 val imagenRef = storageImgPublicitarias.child(nombreArchivo)
                 imagenRef.putFile(it)
                     .addOnSuccessListener {
                         obtener_imagen_publicaciones(docuemnto1, docuemnto2, 0)
-                        Toast.makeText(this, "Imagen subida correctamente", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                    .addOnFailureListener {
                         Toast.makeText(
                             this,
-                            "La imagen $nombreArchivo no se subió o se dejó la misma imagen",
+                            "Imagen $nombreArchivo subida correctamente",
                             Toast.LENGTH_SHORT
                         ).show()
+                        tareasFinalizadas++
+                        verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Error al subir $nombreArchivo", Toast.LENGTH_SHORT)
+                            .show()
+                        tareasFinalizadas++
+                        verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
                     }
             } ?: run {
-                Log.d("misma_img","No se proporcionó una imagen nueva para $nombreArchivo, por lo que sigue igual.")
+                Log.d("misma_img", "No se proporcionó imagen para $nombreArchivo")
+                tareasFinalizadas++
+                verificarFinal(tareasFinalizadas, totalTareas, tiempoInicio)
             }
         }
-        
-        scrollImg.isVisible = true
-        linealCargandoImg.isVisible = false
+    }
+
+    private fun verificarFinal(completadas: Int, total: Int, inicio: Long) {
+        if (completadas == total) {
+            val fin = System.currentTimeMillis()
+            val segundos = (fin - inicio) / 1000
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.scrollimg.isVisible = true
+                binding.linealCargandoImg.isVisible = false
+            }, segundos)
+            Log.d("tiempo_subida", "Subida total en $segundos segundos")
+        }
     }
 
 
@@ -281,10 +321,12 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
         docuemnto2: String,
         numImagenes: Int,
     ) {
-        val storage = FirebaseStorage.getInstance().getReference(Variables.anuncios).child(docuemnto1)
-            .child(docuemnto2)
-        val storag2 = FirebaseStorage.getInstance().getReference(Variables.anuncios).child(docuemnto1)
-            .child(docuemnto2).child(Variables.Imagenes_publicitarias)
+        val storage =
+            FirebaseStorage.getInstance().getReference(Variables.anuncios).child(docuemnto1)
+                .child(docuemnto2)
+        val storag2 =
+            FirebaseStorage.getInstance().getReference(Variables.anuncios).child(docuemnto1)
+                .child(docuemnto2).child(Variables.Imagenes_publicitarias)
 
         cargarImagen(storage.child(Variables.Foto_publicidadJPG), binding.imgPublicidad)
 
@@ -296,8 +338,6 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
     }
 
     private fun subir_noticias(chilOtros: String) {
-      
-
         val storage = FirebaseStorage.getInstance().reference
         val storageOtros = storage.child(Variables.noticiasImagenesDB).child(chilOtros)
         val storagePrincipal =
@@ -306,10 +346,23 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
             FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(chilOtros)
 
         img_pincipal?.let { uri ->
+            val tiempoInicioPrincipal = System.currentTimeMillis()
             refFirestore.get().addOnSuccessListener { res ->
                 if (res.exists()) {
                     val imagenRef = storagePrincipal.child(Variables.PrincipalJPG)
                     imagenRef.putFile(uri).addOnSuccessListener {
+                        val tiempoFinPrincipal = System.currentTimeMillis()
+
+                        val tipoSubido = tiempoFinPrincipal - tiempoInicioPrincipal
+
+                        Log.d(
+                            "tiempo_subida",
+                            "Principal: ${(tiempoFinPrincipal - tiempoInicioPrincipal)} ms"
+                        )
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            binding.scrollimg.isVisible = true
+                            binding.linealCargandoImg.isVisible = false
+                        }, tipoSubido)
                         imagenRef.downloadUrl.addOnSuccessListener { url ->
                             val hashMap = hashMapOf<String, Any>(
                                 Variables.imagenUrl to url.toString()
@@ -335,6 +388,8 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                             ).show()
                         }
                     }.addOnFailureListener {
+                        binding.scrollimg.isVisible = true
+                        binding.linealCargandoImg.isVisible = false
                         Toast.makeText(
                             this,
                             "La imagen principal no se subió o se dejó la misma imagen",
@@ -342,14 +397,13 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                         ).show()
                     }
                 } else {
-                    Log.e("error_doc_img","Error al obtener el documento de Firestore")
+                    Log.e("error_doc_img", "Error al obtener el documento de Firestore")
                 }
             }.addOnFailureListener {
-                Log.e("error_doc_img","Error al obtener el documento de Firestore")
+                Log.e("error_doc_img", "Error al obtener el documento de Firestore")
             }
         } ?: run {
-            Log.d("misma_img","No se proporcionó una imagen nueva  por lo que sigue igual.")
-
+            Log.d("misma_img", "No se proporcionó una imagen nueva por lo que sigue igual.")
         }
 
         val imagenes = listOf(
@@ -359,17 +413,28 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
 
         imagenes.forEach { (nombreArchivo, imagenUri) ->
             imagenUri?.let { uri ->
+                val tiempoInicio = System.currentTimeMillis()
                 val imagenRef = storageOtros.child(nombreArchivo)
                 imagenRef.putFile(uri)
                     .addOnSuccessListener {
+                        val tiempoFin = System.currentTimeMillis()
+                        val tipo_subido = (tiempoFin - tiempoInicio)
+                        Log.d("tiempo_subida", "$nombreArchivo: ${(tiempoFin - tiempoInicio)} ms")
+
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            binding.scrollimg.isVisible = true
+                            binding.linealCargandoImg.isVisible = false
+                            Toast.makeText(
+                                this,
+                                "Imagen subida correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }, tipo_subido)
                         obtner_img_firestore_noticias(chilOtros)
-                        Toast.makeText(
-                            this,
-                            "Imagen subida correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                     .addOnFailureListener {
+                        binding.scrollimg.isVisible = true
+                        binding.linealCargandoImg.isVisible = false
                         Toast.makeText(
                             this,
                             "La imagen $nombreArchivo no se subió o se dejó la misma imagen",
@@ -377,17 +442,19 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                         ).show()
                     }
             } ?: run {
-                Log.d("misma_img","No se proporcionó una imagen nueva para $nombreArchivo, por lo que sigue igual.")
+                Log.d(
+                    "misma_img",
+                    "No se proporcionó una imagen nueva para $nombreArchivo, por lo que sigue igual."
+                )
             }
         }
-
     }
 
 
     private fun obtner_img_firestore_noticias(chilOtros: String) {
         val storageOtros = storage.child(Variables.noticiasImagenesDB).child(chilOtros)
         val storagePrincipal = storageOtros.child(Variables.principal)
-        
+
         cargarImagen(storageOtros.child(Variables.img1JPG), binding.img1)
         cargarImagen(storageOtros.child(Variables.img2JPG), binding.img2)
         cargarImagen(storagePrincipal.child(Variables.PrincipalJPG), binding.imgPublicidad)
@@ -400,7 +467,7 @@ class cambiar_imagenes_publicidad_noticias_servicios : AppCompatActivity() {
                 .placeholder(R.drawable.cargando_img_geinz_500)
                 .into(imageView)
         }.addOnFailureListener {
-            Log.d("img_not_found","No se encontro imagen en: ${storageRef.name}")
+            Log.d("img_not_found", "No se encontro imagen en: ${storageRef.name}")
         }
     }
 

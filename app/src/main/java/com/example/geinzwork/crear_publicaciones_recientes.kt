@@ -37,6 +37,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 class crear_publicaciones_recientes : AppCompatActivity() {
     private val hashtagsGenerales = mutableListOf<String>()
@@ -455,6 +456,7 @@ class crear_publicaciones_recientes : AppCompatActivity() {
     }
 
     private fun agregamopsPublicacion(id_trabajador: String) {
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id_trabajador)
             .collection("publicaciones_trabajos")

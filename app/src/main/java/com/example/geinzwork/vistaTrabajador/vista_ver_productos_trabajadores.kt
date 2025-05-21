@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapterInicializarRecycleimgProductosTrabajadores
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vistas_publicaciones_productos_verificados
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.geinzz.geinzwork.R
@@ -33,6 +34,7 @@ import com.geinzz.geinzwork.databinding.ActivityVistaVerProductosTrabajadoresBin
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 class vista_ver_productos_trabajadores : AppCompatActivity() {
     val listaImg = mutableListOf<dataclassMostarImgProductosVendedor>()
@@ -51,7 +53,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
         obtenerCampos_producto(idTrabajador, id_publicacion_clikeada)
-        binding.retroceder.setOnClickListener{
+        binding.retroceder.setOnClickListener {
             onBackPressed()
         }
         binding.ocultarCamposDePublicidad.setOnClickListener {
@@ -235,6 +237,46 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
     }
 
+    private fun obtner_img_descripcion(id_trabajador: String, producto_id: String) {
+        val storageRef = FirebaseStorage.getInstance().reference
+
+        val fileName = "caracteristica_producto"
+
+        val rutaImagen = storageRef
+            .child("usuarios")
+            .child(id_trabajador)
+            .child("productos_publicados")
+            .child(producto_id)
+            .child(fileName)
+
+        rutaImagen.downloadUrl
+            .addOnSuccessListener { uri ->
+                val urlImagen = uri.toString()
+                Log.d("DownloadURL", "URL de la imagen: $urlImagen")
+                if(urlImagen.isNotEmpty()){
+                    binding.relativeImgContainer.isVisible=true
+                    constatnes_carga_imagenes_general.changer_img(
+                        binding.progreesIndicator,
+                        this,
+                        urlImagen,
+                        null,
+                        binding.imgSubir,
+                        "portada",
+                        null
+                    ) { completado ->
+
+                    }
+                }else{
+                    binding.relativeImgContainer.isVisible=false
+                }
+
+            }
+            .addOnFailureListener { e ->
+                Log.e("DownloadURL", "Error al obtener la URL", e)
+            }
+
+    }
+
 
     private fun obtenerCampos_producto(idTrabajador: String, productoClikado: String) {
         val startTime = System.currentTimeMillis()
@@ -243,6 +285,9 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta").document(productoClikado)
+
+        obtner_img_descripcion(idTrabajador,productoClikado)
+
 
         db.get().addOnSuccessListener { res ->
             val endTime = System.currentTimeMillis()
@@ -270,7 +315,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val verificado = data?.get("verificado") as? Boolean ?: false
                         val entrega_domicilio = data?.get("entrega_domicilio") as? Boolean ?: true
                         val garantia = data?.get("garantia") as? String ?: ""
-                        val cantidad_porcentaje_descuento = data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                        val cantidad_porcentaje_descuento =
+                            data?.get("cantidad_porcentaje_descuento") as? Number ?: 0
                         val id = data?.get("id") as? String ?: ""
                         val fechaPublicada = data?.get("fechaPublicada") as? String ?: ""
                         val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
@@ -412,20 +458,25 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                             if (res.exists()) {
                                 val data = res.data
                                 val nombre_trabajador = data?.get("nombre") as? String ?: ""
-                                constantes_servicios.verificarEstado_vericiacion(binding.iconoVerificado,idTrabajador ){ v, plan->
-                                    when(plan){
-                                        Variables.plaA->{
+                                constantes_servicios.verificarEstado_vericiacion(
+                                    binding.iconoVerificado,
+                                    idTrabajador
+                                ) { v, plan ->
+                                    when (plan) {
+                                        Variables.plaA -> {
                                             binding.iconoVerificado.setImageResource(R.drawable.verificado_a)
                                             binding.nombreTrabajador.text =
                                                 "Vendido por : $nombre_trabajador"
 
                                         }
-                                        Variables.planB->{
+
+                                        Variables.planB -> {
                                             binding.iconoVerificado.setImageResource(R.drawable.icon_verificado)
                                             binding.nombreTrabajador.text =
                                                 "Vendido por : $nombre_trabajador"
                                         }
-                                        Variables.PlanC->{
+
+                                        Variables.PlanC -> {
                                             binding.iconoVerificado.setImageResource(R.drawable.verificado_c)
                                             binding.nombreTrabajador.text =
                                                 "Vendido por : $nombre_trabajador"

@@ -26,6 +26,7 @@ import com.example.geinzwork.adapterViewholder.adapter_mostra_articulos_trabajad
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
@@ -49,6 +50,7 @@ import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 import org.imaginativeworld.whynotimagecarousel.utils.setImage
@@ -485,6 +487,7 @@ object constantes_publicaciones_general_user_tiendas {
             if (plin) metodosPago.add("Plin")
             if (efectivo) metodosPago.add("Efectivo")
 
+            obtner_img_descripcion(context,idTrabajador,id,bindingProductosTrabajadores)
             bindingProductosTrabajadores.camposProductosUserVerificados.metodosPago.text =
                 metodosPago.joinToString(", ")
             bindingProductosTrabajadores.marcaProducto.text = marca
@@ -613,7 +616,45 @@ object constantes_publicaciones_general_user_tiendas {
             onComplete(false)
         }
     }
+    private fun obtner_img_descripcion(context: Context,id_trabajador: String, producto_id: String, bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding) {
+        val storageRef = FirebaseStorage.getInstance().reference
 
+        val fileName = "caracteristica_producto"
+
+        val rutaImagen = storageRef
+            .child("usuarios")
+            .child(id_trabajador)
+            .child("productos_publicados")
+            .child(producto_id)
+            .child(fileName)
+
+        rutaImagen.downloadUrl
+            .addOnSuccessListener { uri ->
+                val urlImagen = uri.toString()
+                Log.d("DownloadURL", "URL de la imagen: $urlImagen")
+                if(urlImagen.isNotEmpty()){
+                    bindingProductosTrabajadores.relativeImgContainer.isVisible=true
+                    constatnes_carga_imagenes_general.changer_img(
+                        bindingProductosTrabajadores.progreesIndicator,
+                        context,
+                        urlImagen,
+                        null,
+                        bindingProductosTrabajadores.imgSubir,
+                        "portada",
+                        null
+                    ) { completado ->
+
+                    }
+                }else{
+                    bindingProductosTrabajadores.relativeImgContainer.isVisible=false
+                }
+
+            }
+            .addOnFailureListener { e ->
+                Log.e("DownloadURL", "Error al obtener la URL", e)
+            }
+
+    }
     private fun inizializarCarruceBindig(
         context: Context,
         idTrabajador: String,

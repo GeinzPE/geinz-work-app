@@ -235,11 +235,9 @@ class servicios_activos : Fragment() {
                     obtener_datos_noticia("verificado", dbVerificado) { doc1, doc2, plan ->
                         binding.verificacion.listener.setOnClickListener {
                             if (plan == "A") {
-                                Toast.makeText(
-                                    mContext,
-                                    "Plan de verificacion A sin acceso",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Intent(mContext, panel_publicacion_trabajador::class.java).apply {
+                                    putExtra("plan", plan)
+                                }
                             } else if (plan == "B" || plan == "C") {
                                 val intent =
                                     Intent(mContext, panel_publicacion_trabajador::class.java).apply {
