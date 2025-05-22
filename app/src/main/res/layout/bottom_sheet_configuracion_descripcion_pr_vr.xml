@@ -90,7 +90,7 @@
 
             <include
                 android:id="@+id/include_agregar_textos_cuales"
-                layout="@layout/include_agrega_productos_rb_vr_radiobutonss" />
+                layout="@layout/include_agrega_productos_rb_vr_radio_texto" />
 
 
             <TextView
@@ -117,6 +117,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="guardar cambios" />
+
+
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

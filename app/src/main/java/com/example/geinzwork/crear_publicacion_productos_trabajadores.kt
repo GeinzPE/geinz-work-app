@@ -45,6 +45,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
 import com.geinzz.geinzwork.databinding.ActivityCrearPublicacionProductosTrabajadoresBinding
+import com.geinzz.geinzwork.databinding.BottomSheetAplarReporteBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCategoriasPrVrBinding
 import com.geinzz.geinzwork.databinding.BottomSheetConfiguracionDescripcionPrVrBinding
 import com.geinzz.geinzwork.databinding.BottomSheetHastagsFiltradosBinding
@@ -63,6 +64,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private lateinit var dialog: BottomSheetDialog
     private lateinit var categoryAdapter: anidacion_categorias_productovrprivate
     private val hashtagsGenerales = mutableListOf<String>()
+    private lateinit var datosDescripcionGlobal: dataclass_texto_descripcion_pr
     private var yape: Boolean = false
     private var plin: Boolean = false
     private var unidadGarantia: String = ""
@@ -115,9 +117,23 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
         binding.subir.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            bottom_shet_Descipcion_cate()
+            mostrarBottomSheetDescripcion(mostrarVistaPrevia = true)
             dialog.show()
 
+        }
+        binding.camposEditar.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            mostrarBottomSheetDescripcion(
+                datosDescripcionGlobal.titulo_descripcion,
+                datosDescripcionGlobal.descripcion_texto,
+                datosDescripcionGlobal.valor_boldtexto_titulo,
+                datosDescripcionGlobal.minusmayus_titulo, // <-- ¡CORREGIDO! Este es el valor de mayúsculas/minúsculas para el TÍTULO
+                datosDescripcionGlobal.valor_boldtexto_texto,
+                datosDescripcionGlobal.minusmayus_titulo_texto, // <-- ¡CORREGIDO! Este es el valor de mayúsculas/minúsculas para la DESCRIPCIÓN
+                datosDescripcionGlobal.listaEncontrados,
+                mostrarVistaPrevia = false
+            )
+            dialog.show()
         }
 
 
@@ -610,7 +626,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
     }
 
-    private fun subir_imgCaracteristica(productId:String){
+    private fun subir_imgCaracteristica(productId: String) {
         val storageRef = FirebaseStorage.getInstance().reference
         val userId = firebaseAuth.uid.toString()
         val productoId = productId
@@ -714,81 +730,146 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     }
 
 
-    private fun bottom_shet_Descipcion_cate() {
-        val binding_bottom_sheeet =
+
+    private fun mostrarBottomSheetDescripcion(
+        titulo: String? = null,
+        texto_des: String? = null,
+        fuenteTextoTitulo: String? = null,
+        mayus_minus: String? = null,
+        fuenteTextoTitulo_des: String? = null,
+        mayus_minus_des: String? = null,
+        listaFrases: List<String>? = null,
+        mostrarVistaPrevia: Boolean = false
+    ) {
+        val bindingSheet =
             BottomSheetConfiguracionDescripcionPrVrBinding.inflate(LayoutInflater.from(this))
-        val view = binding_bottom_sheeet.root
-        binding_bottom_sheeet.tituloProductoED.addTextChangedListener {
-            actualizarTextoFormateado(binding_bottom_sheeet)
-        }
-        binding_bottom_sheeet.AgregaDescipcionProductoED.addTextChangedListener {
-            binding_bottom_sheeet.textoDescripcion.text = it.toString()
-            binding_bottom_sheeet.includeAgregarTextosCuales.grupoSubralladoTXT.clearCheck()
-            binding_bottom_sheeet.includeAgregarTextosCuales.gurpoMayus.clearCheck()
-        }
-        binding_bottom_sheeet.colocarBoldAgunasLetrasED.addTextChangedListener {
-            actualizarVistaPreviaConNegritas(binding_bottom_sheeet)
+        val view = bindingSheet.root
+
+        // Prellenar campos si hay datos
+        bindingSheet.tituloProductoED.setText(titulo ?: "")
+        bindingSheet.AgregaDescipcionProductoED.setText(texto_des ?: "")
+        bindingSheet.colocarBoldAgunasLetrasED.setText(listaFrases?.joinToString(", ") ?: "")
+        Log.d("vezllamada", "mayus titulo $mayus_minus , mayus de texto $mayus_minus_des")
+
+        // --- FIX FOR MAYUS/MINUS SELECTION ---
+
+        // Clear selection for title's capitalization options
+        bindingSheet.includeAgregarBoldTitulo.gurpoMayus.clearCheck()
+        when (mayus_minus?.lowercase()) {
+            "mayuscula" -> bindingSheet.includeAgregarBoldTitulo.mayuscula.isChecked = true
+            "minuscula" -> bindingSheet.includeAgregarBoldTitulo.minuscula.isChecked = true
+            else -> {
+                // Optionally, uncheck both if no valid option is provided
+                // This ensures a clean slate if previous state was set
+                bindingSheet.includeAgregarBoldTitulo.mayuscula.isChecked = false
+                bindingSheet.includeAgregarBoldTitulo.minuscula.isChecked = false
+            }
         }
 
-
-        binding_bottom_sheeet.includeAgregarBoldTitulo.bold.setOnCheckedChangeListener { _, _ ->
-            actualizarTextoFormateado(
-                binding_bottom_sheeet
-            )
-        }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.setOnCheckedChangeListener { _, _ ->
-            actualizarTextoFormateado(
-                binding_bottom_sheeet
-            )
-        }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.setOnCheckedChangeListener { _, _ ->
-            actualizarTextoFormateado(
-                binding_bottom_sheeet
-            )
-        }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.setOnCheckedChangeListener { _, _ ->
-            actualizarTextoFormateado(
-                binding_bottom_sheeet
-            )
-        }
-        binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.setOnCheckedChangeListener { _, _ ->
-            actualizarTextoFormateado(
-                binding_bottom_sheeet
-            )
+        // Clear selection for description's capitalization options
+        bindingSheet.includeAgregarTextosCuales.gurpoMayus.clearCheck()
+        when (mayus_minus_des?.lowercase()) {
+            "mayuscula" -> bindingSheet.includeAgregarTextosCuales.mayusTxt.isChecked = true
+            "minuscula" -> bindingSheet.includeAgregarTextosCuales.minusTxt.isChecked = true
+            else -> {
+                // Optionally, uncheck both if no valid option is provided
+                bindingSheet.includeAgregarTextosCuales.mayusTxt.isChecked = false
+                bindingSheet.includeAgregarTextosCuales.minusTxt.isChecked = false
+            }
         }
 
-        binding_bottom_sheeet.includeAgregarTextosCuales.bold.setOnCheckedChangeListener { _, _ ->
-            actualizarVistaPreviaConNegritas(
-                binding_bottom_sheeet
-            )
+        // --- Continue with the rest of your existing logic ---
+
+        // Also do this for bold/italic/underline options for the title
+        bindingSheet.includeAgregarBoldTitulo.grupoSubralladoTXT.clearCheck()
+        when (fuenteTextoTitulo?.lowercase()) {
+            "bold" -> bindingSheet.includeAgregarBoldTitulo.bold.isChecked = true
+            "cursiva" -> bindingSheet.includeAgregarBoldTitulo.cursiva.isChecked = true
+            "subrayado" -> bindingSheet.includeAgregarBoldTitulo.subrallado.isChecked = true
+            else -> {
+                bindingSheet.includeAgregarBoldTitulo.bold.isChecked = false
+                bindingSheet.includeAgregarBoldTitulo.cursiva.isChecked = false
+                bindingSheet.includeAgregarBoldTitulo.subrallado.isChecked = false
+            }
         }
-        binding_bottom_sheeet.includeAgregarTextosCuales.cursiva.setOnCheckedChangeListener { _, _ ->
-            actualizarVistaPreviaConNegritas(
-                binding_bottom_sheeet
-            )
+
+        // Also do this for bold/italic/underline options for the description
+        bindingSheet.includeAgregarTextosCuales.grupoSubralladoTXT.clearCheck()
+        when (fuenteTextoTitulo_des?.lowercase()) {
+            "bold" -> bindingSheet.includeAgregarTextosCuales.bold.isChecked = true
+            "cursiva" -> bindingSheet.includeAgregarTextosCuales.cursiva.isChecked = true
+            "subrayado" -> bindingSheet.includeAgregarTextosCuales.subrallado.isChecked = true
+            else -> {
+                bindingSheet.includeAgregarTextosCuales.bold.isChecked = false
+                bindingSheet.includeAgregarTextosCuales.cursiva.isChecked = false
+                bindingSheet.includeAgregarTextosCuales.subrallado.isChecked = false
+            }
         }
-        binding_bottom_sheeet.includeAgregarTextosCuales.subrallado.setOnCheckedChangeListener { _, _ ->
-            actualizarVistaPreviaConNegritas(
-                binding_bottom_sheeet
-            )
+
+        // Listeners shared (keep these as they are)
+        bindingSheet.tituloProductoED.addTextChangedListener {
+            actualizarTextoFormateado(bindingSheet)
         }
-        binding_bottom_sheeet.includeAgregarTextosCuales.mayuscula.setOnCheckedChangeListener { _, _ ->
-            actualizarVistaPreviaConNegritas(
-                binding_bottom_sheeet
-            )
+
+        bindingSheet.AgregaDescipcionProductoED.addTextChangedListener {
+            bindingSheet.textoDescripcion.text = it.toString()
         }
-        binding_bottom_sheeet.includeAgregarTextosCuales.minuscula.setOnCheckedChangeListener { _, _ ->
-            actualizarVistaPreviaConNegritas(
-                binding_bottom_sheeet
-            )
+
+        bindingSheet.colocarBoldAgunasLetrasED.addTextChangedListener {
+            actualizarVistaPreviaConNegritas(bindingSheet)
         }
-        binding_bottom_sheeet.guardarCambios.setOnClickListener {
-            guardar_cabmios_descripcion(binding_bottom_sheeet)
-            binding.imgSubir.isVisible = true
-            binding.linealVistaPreviaApartado.isVisible = true
+
+        // Checkboxes title (keep these as they are)
+        bindingSheet.includeAgregarBoldTitulo.bold.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
         }
+        bindingSheet.includeAgregarBoldTitulo.cursiva.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.subrallado.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.mayuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.minuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+
+        // Checkboxes description (keep these as they are)
+        bindingSheet.includeAgregarTextosCuales.bold.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.cursiva.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.subrallado.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.mayusTxt.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.minusTxt.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+
+        bindingSheet.guardarCambios.setOnClickListener {
+            guardar_cabmios_descripcion(bindingSheet)
+
+            if (mostrarVistaPrevia) {
+                binding.imgSubir.isVisible = true
+                binding.linealVistaPreviaApartado.isVisible = true
+                binding.subir.isVisible = false
+                binding.camposEditar.isVisible = true
+            }
+        }
+
+        // Initial updates to preview
+        actualizarTextoFormateado(bindingSheet)
+        actualizarVistaPreviaConNegritas(bindingSheet)
         dialog.setContentView(view)
     }
+
 
     private fun actualizarVistaPreviaConNegritas(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
         var textoOriginal = binding_bottom_sheeet.AgregaDescipcionProductoED.text.toString()
@@ -806,9 +887,11 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
             if (start != -1) {
                 // Aplicar mayúscula o minúscula
+
                 val textoTransformado = when {
-                    binding_bottom_sheeet.includeAgregarTextosCuales.mayuscula.isChecked -> parte.uppercase()
-                    binding_bottom_sheeet.includeAgregarTextosCuales.minuscula.isChecked -> parte.lowercase()
+
+                    binding_bottom_sheeet.includeAgregarTextosCuales.mayusTxt.isChecked -> parte.uppercase()
+                    binding_bottom_sheeet.includeAgregarTextosCuales.minusTxt.isChecked -> parte.lowercase()
                     else -> parte
                 }
 
@@ -851,9 +934,18 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     }
 
     private fun actualizarTextoFormateado(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
-        val texto = binding_bottom_sheeet.tituloProductoED.text.toString()
+        var texto = binding_bottom_sheeet.tituloProductoED.text.toString()
+
+        // Convertir a mayúsculas o minúsculas si corresponde
+        texto = when {
+            binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.isChecked -> texto.uppercase()
+            binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.isChecked -> texto.lowercase()
+            else -> texto
+        }
+
         val spannable = SpannableString(texto)
 
+        // Aplicar estilo
         when {
             binding_bottom_sheeet.includeAgregarBoldTitulo.bold.isChecked -> {
                 spannable.setSpan(
@@ -882,74 +974,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 )
             }
         }
-        // Convertir el texto a mayúsculas o minúsculas, manteniendo los estilos aplicados
-        when {
-            binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.isChecked -> {
-                texto.uppercase()
-            }
-
-            binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.isChecked -> {
-                texto.lowercase()
-            }
-
-            else -> {
-                texto // Dejar el texto tal cual si no se selecciona mayúsculas o minúsculas
-            }
-        }
 
         binding_bottom_sheeet.previewTextTitulo.text = spannable
-        mayus_minus(spannable, binding_bottom_sheeet)
-    }
-
-    private fun mayus_minus(
-        texto: SpannableString,
-        binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding
-    ) {
-        val textoTransformado = when {
-            binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.isChecked -> {
-                texto.toString().uppercase() // Convertir el texto a mayúsculas
-            }
-
-            binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.isChecked -> {
-                texto.toString().lowercase() // Convertir el texto a minúsculas
-            }
-
-            else -> {
-                texto.toString() // Mantener el texto tal cual si no se selecciona mayúsculas o minúsculas
-            }
-        }
-
-        // Crear un nuevo SpannableString con el texto transformado
-        val textoFinal = SpannableString(textoTransformado).apply {
-            // Reaplicar los estilos al nuevo texto transformado si es necesario
-            if (binding_bottom_sheeet.includeAgregarBoldTitulo.bold.isChecked) {
-                setSpan(
-                    StyleSpan(Typeface.BOLD),
-                    0,
-                    textoTransformado.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-            if (binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.isChecked) {
-                setSpan(
-                    StyleSpan(Typeface.ITALIC),
-                    0,
-                    textoTransformado.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-            if (binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.isChecked) {
-                setSpan(
-                    UnderlineSpan(),
-                    0,
-                    textoTransformado.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-        }
-
-        // Actualizar la vista previa con el texto final
-        binding_bottom_sheeet.previewTextTitulo.text = textoFinal
     }
 
 
@@ -993,8 +1019,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
 
         val valorMayusMinusDes = when (id_mayus_minus_des) {
-            R.id.mayuscula -> "mayuscula"
-            R.id.minuscula -> "minuscula"
+            R.id.mayus_txt -> "mayuscula"
+            R.id.minus_txt -> "minuscula"
             else -> "" // Por si no seleccionó nada
         }
 
@@ -1030,12 +1056,11 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             minusmayus_titulo_texto = valorMayusMinusDes,
             listaEncontrados = listaFrases
         )
-
+        datosDescripcionGlobal = datos
         viewModel.datosDescripcion.value = datos
 
         dialog.dismiss()
     }
-
 
     private fun editar_setar_valores_campos(
         titulo: String,

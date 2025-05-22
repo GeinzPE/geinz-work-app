@@ -436,12 +436,17 @@
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
             </LinearLayout>
-
             <Button
                 android:id="@+id/subir"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Agregar Caracteristicas" />
+            <Button
+                android:visibility="gone"
+                android:id="@+id/campos_Editar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Editar campos"/>
 
             <TextView
                 style="@style/TextoModoOScuroColor"
