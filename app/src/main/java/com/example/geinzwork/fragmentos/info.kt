@@ -48,6 +48,7 @@ import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterTrabajo_realizados
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
@@ -898,29 +899,32 @@ class info : Fragment() {
             dialog.dismiss()
         }
         bindingMostrar.cargarConteindo.isVisible = true
-        bindingMostrar.linealGeneralLinea.isVisible = false
-
-
-        // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
+        bindingMostrar.linealGeneralLinea.isVisible = false // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
         val titulo = trabajo["titulo"] as? String ?: "Sin título"
         val contenido = trabajo["contenido"] as? String ?: "Sin contenido"
         val idSelecionado = trabajo["id"] as? String ?: ""
         val fecha_rec = trabajo["fecha_rec"] as? String ?: ""
         val hora_rec = trabajo["hora_rec"] as? String ?: ""
-        bindingMostrar.compartirIcon.setOnClickListener {
-            constantesPublicidad.agregarCantidadClickAnuncios(
-                documentReference,
-                "",
-                "compartir"
-            )
-            crear_dinamick_link(
-                idTrabajador,
-                idSelecionado,
-                "Mira esta publicaion realizada por este trabajador",
-                "ira esta publicaicone realizada"
-            )
-            dialog.dismiss()
+        constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+            bindingMostrar.compartirIcon.setOnClickListener {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    documentReference,
+                    "",
+                    "compartir"
+                )
+                crear_dinamick_link(
+                    idTrabajador,
+                    idSelecionado,
+                    "Mira esta publicacion relizada por $nombre $apellido",
+                    "$titulo"
+                )
+                dialog.dismiss()
+            }
         }
+
+
+
+
         bindingMostrar.tituloNombreTrabajador.text =
             "Trabajos realizados por ${binding.nombre.text}"
         // Configurar botón para ver todos los trabajos
@@ -1338,8 +1342,6 @@ class info : Fragment() {
     }
 
 
-
-
     private fun setear_fechaRegistra_trabajador(fechaRegistro: String) {
         val formatoEntrada = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val fecha = formatoEntrada.parse(fechaRegistro)
@@ -1383,16 +1385,21 @@ class info : Fragment() {
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
-                constantes_servicios.verificarEstado_vericiacion(binding.verificadoIcon,id ){ v, plan->
-                    when(plan){
-                        Variables.plaA->{
+                constantes_servicios.verificarEstado_vericiacion(
+                    binding.verificadoIcon,
+                    id
+                ) { v, plan ->
+                    when (plan) {
+                        Variables.plaA -> {
                             binding.verificadoIcon.setImageResource(R.drawable.verificado_a)
 
                         }
-                        Variables.planB->{
+
+                        Variables.planB -> {
                             binding.verificadoIcon.setImageResource(R.drawable.icon_verificado)
                         }
-                        Variables.PlanC->{
+
+                        Variables.PlanC -> {
                             binding.verificadoIcon.setImageResource(R.drawable.verificado_c)
 
 
@@ -1531,45 +1538,45 @@ class info : Fragment() {
                 val data = res.data
                 val img_url = data?.get("img_url") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
-                Log.d("idpublicacones","$id_publicacion ,$idTrabajador ,$img_url")
-                    Firebase.dynamicLinks.shortLinkAsync {
-                        link =
-                            Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
-                        domainUriPrefix = "https://geinzapp.page.link"
-                        androidParameters("com.geinzz.geinzwork") {
-                            minimumVersion = 125
-                        }
-                        iosParameters("com.geinzz.ios") {
-                            appStoreId = "123456789"
-                            minimumVersion = "1.0.1"
-                        }
-                        googleAnalyticsParameters {
-                            source = "orkut"
-                            medium = "social"
-                            campaign = "geinzz-promo"
-                        }
-                        itunesConnectAnalyticsParameters {
-                            providerToken = "123456"
-                            campaignToken = "geinzz-promo"
-                        }
-                        socialMetaTagParameters {
-                            title = titulo_dinamick
-                            description = texto_dinamick
-                            imageUrl = Uri.parse(img_url)
-                        }
-                    }.addOnSuccessListener { shortDynamicLink ->
-                        val shortLink = shortDynamicLink.shortLink
-                        val invitationLink = shortLink.toString()
-
-                        val sendIntent: Intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, invitationLink)
-                            type = "text/plain"
-                        }
-                        mContex.startActivity(Intent.createChooser(sendIntent, null))
-                    }.addOnFailureListener {
-                        println("Hubo un error con los links dinámicos: $it")
+                Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
+                Firebase.dynamicLinks.shortLinkAsync {
+                    link =
+                        Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
+                    domainUriPrefix = "https://geinzapp.page.link"
+                    androidParameters("com.geinzz.geinzwork") {
+                        minimumVersion = 125
                     }
+                    iosParameters("com.geinzz.ios") {
+                        appStoreId = "123456789"
+                        minimumVersion = "1.0.1"
+                    }
+                    googleAnalyticsParameters {
+                        source = "orkut"
+                        medium = "social"
+                        campaign = "geinzz-promo"
+                    }
+                    itunesConnectAnalyticsParameters {
+                        providerToken = "123456"
+                        campaignToken = "geinzz-promo"
+                    }
+                    socialMetaTagParameters {
+                        title = titulo_dinamick
+                        description = texto_dinamick
+                        imageUrl = Uri.parse(img_url)
+                    }
+                }.addOnSuccessListener { shortDynamicLink ->
+                    val shortLink = shortDynamicLink.shortLink
+                    val invitationLink = shortLink.toString()
+
+                    val sendIntent: Intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, invitationLink)
+                        type = "text/plain"
+                    }
+                    mContex.startActivity(Intent.createChooser(sendIntent, null))
+                }.addOnFailureListener {
+                    println("Hubo un error con los links dinámicos: $it")
+                }
 
             } else {
                 println("El anuncio no existe.")

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,12 +28,22 @@ import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaVerProductosTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
+import com.google.firebase.Firebase
+import com.google.firebase.dynamiclinks.androidParameters
+import com.google.firebase.dynamiclinks.dynamicLinks
+import com.google.firebase.dynamiclinks.googleAnalyticsParameters
+import com.google.firebase.dynamiclinks.iosParameters
+import com.google.firebase.dynamiclinks.itunesConnectAnalyticsParameters
+import com.google.firebase.dynamiclinks.shortLinkAsync
+import com.google.firebase.dynamiclinks.socialMetaTagParameters
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
@@ -55,6 +66,26 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         obtenerCampos_producto(idTrabajador, id_publicacion_clikeada)
         binding.retroceder.setOnClickListener {
             onBackPressed()
+        }
+        constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+            val db = FirebaseFirestore.getInstance()
+                .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+                .collection("trabajadores").document(idTrabajador)
+                .collection("publicaciones_trabajos").document(id_publicacion_clikeada)
+            binding.compartirIcon.setOnClickListener {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    "compartir"
+                )
+                crear_dinamick_link(
+                    this,
+                    idTrabajador,
+                    id_publicacion_clikeada,
+                    "Mira este producto publicado por $nombre $apellido",
+                    "${binding.nombreProducto.text}"
+                )
+            }
         }
         binding.ocultarCamposDePublicidad.setOnClickListener {
             if (isCamposVisible) {
@@ -127,6 +158,75 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         )
 
 
+    }
+
+
+    private fun crear_dinamick_link(
+        contex: Context,
+        idTrabajador: String,
+        id_publicacion: String,
+        titulo_dinamick: String,
+        texto_dinamick: String
+    ) {
+        val userCollections =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(idTrabajador).collection("productos_venta")
+                .document(id_publicacion)
+        userCollections.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img_url = data?.get("img_principal") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
+                if (img_url.isNotEmpty()) {
+                    Firebase.dynamicLinks.shortLinkAsync {
+                        link =
+                            Uri.parse("https://geinzapp.page.link/?idTrabajadorVeriProducto=${idTrabajador}&idProducto=${id_publicacion}")
+                        domainUriPrefix = "https://geinzapp.page.link"
+                        androidParameters("com.geinzz.geinzwork") {
+                            minimumVersion = 125
+                        }
+                        iosParameters("com.geinzz.ios") {
+                            appStoreId = "123456789"
+                            minimumVersion = "1.0.1"
+                        }
+                        googleAnalyticsParameters {
+                            source = "orkut"
+                            medium = "social"
+                            campaign = "geinzz-promo"
+                        }
+                        itunesConnectAnalyticsParameters {
+                            providerToken = "123456"
+                            campaignToken = "geinzz-promo"
+                        }
+                        socialMetaTagParameters {
+                            title = titulo_dinamick
+                            description = texto_dinamick
+                            imageUrl = Uri.parse(img_url)
+                        }
+                    }.addOnSuccessListener { shortDynamicLink ->
+                        val shortLink = shortDynamicLink.shortLink
+                        val invitationLink = shortLink.toString()
+
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, invitationLink)
+                            type = "text/plain"
+                        }
+                        contex.startActivity(Intent.createChooser(sendIntent, null))
+                    }.addOnFailureListener {
+                        println("Hubo un error con los links dinámicos: $it")
+                    }
+                } else {
+                    println("La URL de la imagen está vacía.")
+                }
+            } else {
+                println("El anuncio no existe.")
+            }
+        }.addOnFailureListener { exception ->
+            println("Error al obtener el anuncio: ${exception.message}")
+        }
     }
 
     private fun editar_setar_valores_campos(
@@ -448,7 +548,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                             mayusMinusDescripcion,
                             listaFrases
                         )
-                        binding.marcaProducto.text = marca
+
+
                         binding.nombreProducto.text = nombre
                         val db = FirebaseFirestore.getInstance()
                             .collection("Trabajadores_Usuarios_Drivers")
@@ -488,10 +589,20 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                                 }
                             }
                         }
+                        binding.marcaProducto.text = marca
+
+                        if(marca.isNotEmpty() && modelo.isNotEmpty()){
+                            binding.camposProductosUserVerificados.marca.text = marca
+                            binding.camposProductosUserVerificados.modelo.text = modelo
+                            binding.camposProductosUserVerificados.linealMarcaModelo.isVisible=true
+                        }else{
+                            binding.camposProductosUserVerificados.linealMarcaModelo.isVisible=false
+
+                        }
 
                         binding.camposProductosUserVerificados.categoriaProducto.text = categoria
-                        binding.camposProductosUserVerificados.marca.text = marca
-                        binding.camposProductosUserVerificados.modelo.text = modelo
+
+
                         binding.camposProductosUserVerificados.stok.text = stok
                         binding.camposProductosUserVerificados.garantia.text = garantia
                         binding.camposProductosUserVerificados.Condicion.text = condicionProducto
@@ -504,7 +615,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         )
                         inizializarImgProductosclikeado(this, listaImg, data)
 
-                        binding.camposProductosUserVerificados.comprar.setOnClickListener {
+                        binding.comprar.setOnClickListener {
                             val intent =
                                 Intent(this, compras_productos_vendedor::class.java).apply {
                                     putExtra("idProducto", productoClikado)

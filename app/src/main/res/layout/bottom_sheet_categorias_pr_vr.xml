@@ -3,11 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="10dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,19 +30,56 @@
                 android:layout_marginVertical="50dp" />
 
 
-            <RelativeLayout
+            <LinearLayout
                 android:id="@+id/vista_categoria"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:visibility="gone">
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="Filtra por categorias y por subcategorias"
+                    android:textSize="20sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Selecciona una categoría para ver sus subcategorías. Luego, puedes buscar por nombre para filtrar aún más."
+                    android:textColor="?android:textColorSecondary"
+                    android:textSize="14sp" />
+
+
+                <HorizontalScrollView
+                    android:id="@+id/horizontalScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/inputnombre"
+                    android:layout_marginBottom="5dp"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupCategorias"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:chipSpacing="8dp"
+                        app:singleLine="true" />
+                </HorizontalScrollView>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/inputnombre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
                     android:layout_marginBottom="10dp"
                     android:layout_weight="1"
+                    android:visibility="gone"
                     app:boxCornerRadiusBottomEnd="26dp"
                     app:boxCornerRadiusBottomStart="26dp"
                     app:boxCornerRadiusTopEnd="26dp"
@@ -59,17 +98,38 @@
                         android:paddingLeft="10dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/inputnombre">
+                <include
+                    android:id="@+id/id_item_categoria_vr"
+                    layout="@layout/item_categoria_vr" />
 
-                    <include
-                        android:id="@+id/id_item_categoria_vr"
-                        layout="@layout/item_categoria_vr" />
+                <RelativeLayout
+
+                    android:layout_marginVertical="20dp"
+                    android:id="@+id/sin_resultados"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_centerInParent="true"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No se encontro resultados"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
                 </RelativeLayout>
 
-            </RelativeLayout>
+                <ProgressBar
+                    android:visibility="gone"
+                    android:id="@+id/progrees_carga_filtrado"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"/>
+
+
+
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

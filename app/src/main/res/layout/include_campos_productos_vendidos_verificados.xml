@@ -50,69 +50,77 @@
         android:background="@color/gris_medio_color" />
 
     <LinearLayout
-        android:id="@+id/linealMarcaProducto"
         android:layout_width="match_parent"
+        android:orientation="vertical"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="5dp"
-        android:layout_marginVertical="5dp"
-        android:orientation="horizontal">
-
-
-        <TextView
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="wrap_content"
+        android:id="@+id/lineal_marca_modelo">
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/linealMarcaProducto"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Marca: "
-            android:textSize="15sp" />
+            android:layout_marginHorizontal="5dp"
+            android:layout_marginVertical="5dp"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/marca"
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="wrap_content"
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Marca: "
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/marca"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cat"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="5dp"
+            android:background="@color/gris_medio_color" />
+
+
+        <LinearLayout
+            android:id="@+id/LinealModeloProducto"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/cat"
-            android:textSize="15sp" />
+            android:layout_marginHorizontal="5dp"
+            android:layout_marginVertical="5dp"
+            android:orientation="horizontal">
+
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Modelo: "
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/modelo"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cat"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="5dp"
+            android:background="@color/gris_medio_color" />
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="5dp"
-        android:background="@color/gris_medio_color" />
-
-
-    <LinearLayout
-        android:id="@+id/LinealModeloProducto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="5dp"
-        android:layout_marginVertical="5dp"
-        android:orientation="horizontal">
-
-
-        <TextView
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Modelo: "
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/modelo"
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/cat"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="5dp"
-        android:background="@color/gris_medio_color" />
 
 
     <LinearLayout
@@ -383,39 +391,7 @@
         android:layout_marginHorizontal="5dp"
         android:background="@color/gris_medio_color" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/comprar"
-            style="@style/RoundedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="60dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_weight="1"
-            android:text="Comprar"
-            android:textSize="14sp"
-            app:iconGravity="textEnd" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/cordinarVendedor"
-            style="@style/RoundedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="60dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_weight="1"
-            android:text="Cordinar con el vendedor"
-            android:textSize="14sp"
-            app:iconGravity="textEnd" />
-    </LinearLayout>
 
 
 </LinearLayout>

@@ -214,7 +214,7 @@ object constantes_publicaciones_general_user_tiendas {
             context.startActivity(intent)
             dialog.dismiss()
         }
-        bindingProductosTrabajadores.camposProductosUserVerificados.comprar.setOnClickListener {
+        bindingProductosTrabajadores.comprar.setOnClickListener {
             val intent = Intent(context, compras_productos_vendedor::class.java).apply {
                 putExtra("idProducto", productoClikado)
                 putExtra("idTrabajador", idTrabajador)
@@ -222,16 +222,27 @@ object constantes_publicaciones_general_user_tiendas {
             context.startActivity(intent)
             dialog.dismiss()
         }
-        bindingProductosTrabajadores.compartirIcon.setOnClickListener {
-            crear_dinamick_link(
-                context,
-                idTrabajador,
-                productoClikado,
-                "mira este producto publicado por 'trabajador' ",
-                "Compra ya!!"
-            )
-            dialog.dismiss()
+        constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+            val db = FirebaseFirestore.getInstance()
+                .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+                .collection("trabajadores").document(idTrabajador)
+                .collection("publicaciones_trabajos").document(productoClikado)
+            bindingProductosTrabajadores.compartirIcon.setOnClickListener {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    "compartir"
+                )
+                crear_dinamick_link(
+                    context,
+                    idTrabajador,
+                    productoClikado,
+                    "Mira este producto publicado por $nombre $apellido",
+                    "${bindingProductosTrabajadores.nombreProducto.text}"
+                )
+            }
         }
+
         val recicle = bindingProductosTrabajadores.carrucelImgProductosVentaUser
         val customLayoutManager = classcustomscrool(context, LinearLayoutManager.HORIZONTAL, false)
         recicle.layoutManager = customLayoutManager
@@ -491,6 +502,15 @@ object constantes_publicaciones_general_user_tiendas {
             bindingProductosTrabajadores.camposProductosUserVerificados.metodosPago.text =
                 metodosPago.joinToString(", ")
             bindingProductosTrabajadores.marcaProducto.text = marca
+
+            if(marca.isNotEmpty() && modelo.isNotEmpty()){
+                bindingProductosTrabajadores.camposProductosUserVerificados.marca.text = marca
+                bindingProductosTrabajadores.camposProductosUserVerificados.modelo.text = modelo
+                bindingProductosTrabajadores.camposProductosUserVerificados.linealMarcaModelo.isVisible=true
+            }else{
+                bindingProductosTrabajadores.camposProductosUserVerificados.linealMarcaModelo.isVisible=false
+
+            }
             if (entrega_domicilio) {
                 bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
                     "si"
@@ -553,6 +573,8 @@ object constantes_publicaciones_general_user_tiendas {
                 )
 
             }
+
+
             obtener_textos_stylos(idTrabajador, id, bindingProductosTrabajadores)
             bindingProductosTrabajadores.camposProductosUserVerificados.categoriaProducto.text =
                 categoria

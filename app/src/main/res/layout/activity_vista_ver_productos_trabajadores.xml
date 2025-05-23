@@ -207,6 +207,41 @@
                 android:visibility="gone" />
 
             <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/comprar"
+                    style="@style/RoundedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="1"
+                    android:text="Comprar"
+                    android:textSize="14sp"
+                    app:iconGravity="textEnd" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cordinarVendedor"
+                    style="@style/RoundedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="1"
+                    android:text="Cordinar con el vendedor"
+                    android:textSize="14sp"
+                    app:iconGravity="textEnd" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/ocultar_campos_de_publicidad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

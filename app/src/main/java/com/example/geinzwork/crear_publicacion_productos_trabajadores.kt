@@ -28,6 +28,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -71,6 +72,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var descuento: Boolean = false
     private var efectivo: Boolean = false
     private var img1_uir1: Uri? = null
+
 
     private val viewModel: MiViewModel by viewModels()
     private val img1Launcher =
@@ -331,46 +333,163 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         bindingBottomSheetCategorias.cerrar.setOnClickListener { dialog.dismiss() }
         val view = bindingBottomSheetCategorias.root
 
-        val startTime = System.currentTimeMillis() // Marca de tiempo antes de la consulta
+        val startTime = System.currentTimeMillis()
 
         val db = FirebaseFirestore.getInstance().collection("categoria_productos")
         db.get()
             .addOnSuccessListener { querySnapshot ->
+
                 val categoriesWithSubcategoriesList = mutableListOf<CategoryWithSubcategories>()
-                for (document in querySnapshot) {
-                    val categoryName = document.id
-                    val subcategories =
-                        document.get("subcategorias") as? List<String> ?: emptyList()
-                    val category = dataclas_anidacion_productos_vr(categoryName, subcategories)
-                    categoriesWithSubcategoriesList.add(
-                        CategoryWithSubcategories(category) { subcategory ->
-                            handleSubcategoryClick(categoryName, subcategory)
-                            dialog.dismiss() // O cualquier otra acción al hacer clic
-                        }
-                    )
+
+                // Limpiar chips antes de añadir nuevos (hazlo una sola vez aquí)
+                bindingBottomSheetCategorias.chipGroupCategorias.removeAllViews()
+
+                // Variable para la categoría seleccionada, debe estar fuera del loop
+                var categoriaSeleccionada: CategoryWithSubcategories? = null
+
+                // Crear el chip "Todas"
+                val chipTodas = Chip(this).apply {
+                    text = "Todas"
+                    isCheckable = true
+                    isClickable = true
+
+                    setOnClickListener {
+
+                        bindingBottomSheetCategorias.inputnombre.isVisible = false
+                        bindingBottomSheetCategorias.search.setText("")
+
+                        categoriaSeleccionada = null // Ninguna categoría seleccionada porque mostramos todas
+
+                        // Mostrar todas las categorías completas
+                        setupCategoryRecyclerView(
+                            bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories,
+                            categoriesWithSubcategoriesList
+                        )
+                    }
                 }
-                val endTime =
-                    System.currentTimeMillis() // Marca de tiempo después de procesar los documentos
+                bindingBottomSheetCategorias.chipGroupCategorias.addView(chipTodas)
+
+                for (document in querySnapshot) {
+                    val categoryName = document.id.trim()
+                    val subcategories = document.get("subcategorias") as? List<String> ?: emptyList()
+
+                    // Filtrar para no agregar categorías vacías
+                    if (categoryName.isNotEmpty() && subcategories.isNotEmpty()) {
+                        val category = dataclas_anidacion_productos_vr(categoryName, subcategories)
+
+                        val categoryWithSub = CategoryWithSubcategories(category) { subcategory ->
+                            handleSubcategoryClick(categoryName, subcategory)
+                            dialog.dismiss()
+                        }
+
+                        categoriesWithSubcategoriesList.add(categoryWithSub)
+
+                        // Crear chip para esta categoría
+                        val chip = Chip(this).apply {
+                            text = categoryName
+                            isCheckable = true
+                            isClickable = true
+
+                            setOnClickListener {
+                                bindingBottomSheetCategorias.inputnombre.isVisible = true
+                                bindingBottomSheetCategorias.search.setText("")
+
+                                categoriaSeleccionada = categoryWithSub
+
+                                setupCategoryRecyclerView(
+                                    bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories,
+                                    listOf(categoryWithSub)
+                                )
+                            }
+                        }
+                        bindingBottomSheetCategorias.chipGroupCategorias.addView(chip)
+                    } else {
+                        Log.w("categorias_vacias", "Categoría vacía o sin subcategorías encontrada y omitida: $categoryName")
+                    }
+                }
+
+                // Añadir el TextWatcher solo una vez, fuera del loop
+                bindingBottomSheetCategorias.search.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                    override fun afterTextChanged(s: Editable?) {
+                        val textoBusqueda = s.toString().trim()
+                        val categoria = categoriaSeleccionada
+
+                        if (categoria != null) {
+                            val subcategoriasFiltradas = categoria.category.subcategories.filter {
+                                it.contains(textoBusqueda, ignoreCase = true)
+                            }
+
+                            if (subcategoriasFiltradas.isEmpty()) {
+                                // No hay subcategorías filtradas -> mostrar mensaje, ocultar RecyclerView
+                                bindingBottomSheetCategorias.sinResultados.visibility = View.VISIBLE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.GONE
+                            } else {
+                                // Hay resultados -> mostrar RecyclerView, ocultar mensaje
+                                bindingBottomSheetCategorias.sinResultados.visibility = View.GONE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.VISIBLE
+
+                                val categoriaFiltrada = CategoryWithSubcategories(
+                                    category = categoria.category.copy(subcategories = subcategoriasFiltradas),
+                                    onSubcategoryClicked = categoria.onSubcategoryClicked
+                                )
+
+                                setupCategoryRecyclerView(
+                                    bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories,
+                                    listOf(categoriaFiltrada)
+                                )
+                            }
+                        } else {
+                            // No hay categoría seleccionada, filtramos todas las categorías y subcategorías
+                            val categoriasFiltradas = categoriesWithSubcategoriesList.map { catWithSub ->
+                                val subcatsFiltradas = catWithSub.category.subcategories.filter {
+                                    it.contains(textoBusqueda, ignoreCase = true)
+                                }
+                                catWithSub.copy(
+                                    category = catWithSub.category.copy(subcategories = subcatsFiltradas)
+                                )
+                            }.filter { it.category.subcategories.isNotEmpty() }
+
+                            if (categoriasFiltradas.isEmpty()) {
+                                // No hay categorías filtradas -> mostrar mensaje, ocultar RecyclerView
+                                bindingBottomSheetCategorias.sinResultados.visibility = View.VISIBLE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.GONE
+                            } else {
+                                // Hay resultados -> mostrar RecyclerView, ocultar mensaje
+                                bindingBottomSheetCategorias.sinResultados.visibility = View.GONE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.VISIBLE
+
+                                setupCategoryRecyclerView(
+                                    bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories,
+                                    categoriasFiltradas
+                                )
+                            }
+                        }
+                    }
+                })
+
+                val endTime = System.currentTimeMillis()
                 val elapsedTime = endTime - startTime
-                val handler = Handler(Looper.getMainLooper())
-                handler.postDelayed({
+                Handler(Looper.getMainLooper()).postDelayed({
                     bindingBottomSheetCategorias.progrssCarga.isVisible = false
                     bindingBottomSheetCategorias.vistaCategoria.isVisible = true
-                    // Ahora tienes la lista 'categoriesWithSubcategoriesList' lista para pasar a tu CategoryAdapter
                 }, elapsedTime)
+
+                // Mostrar todas las categorías inicialmente
                 setupCategoryRecyclerView(
                     bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories,
                     categoriesWithSubcategoriesList
                 )
-
-
             }
+
             .addOnFailureListener { e ->
-                // Manejar el error al obtener los datos
                 println("Error al obtener categorías: $e")
             }
+
         dialog.setContentView(view)
     }
+
 
     private fun setupCategoryRecyclerView(
         recyclerView: RecyclerView,

@@ -2,6 +2,7 @@ package com.example.geinzwork.vistaTrabajador
 
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,12 +16,23 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
+import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vistas_publicaciones_productos_verificados
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaVerPublicacionesTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
+import com.google.firebase.Firebase
+import com.google.firebase.dynamiclinks.androidParameters
+import com.google.firebase.dynamiclinks.dynamicLinks
+import com.google.firebase.dynamiclinks.googleAnalyticsParameters
+import com.google.firebase.dynamiclinks.iosParameters
+import com.google.firebase.dynamiclinks.itunesConnectAnalyticsParameters
+import com.google.firebase.dynamiclinks.shortLinkAsync
+import com.google.firebase.dynamiclinks.socialMetaTagParameters
 import com.google.firebase.firestore.FirebaseFirestore
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -43,11 +55,33 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
         obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada)
-        Log.d("obtemosidStrabjaosd","$idTrabajador, $id_publicacion_clikeada")
+        Log.d("obtemosidStrabjaosd", "$idTrabajador, $id_publicacion_clikeada")
 
-        binding.retroceder.setOnClickListener{
+        binding.retroceder.setOnClickListener {
             onBackPressed()
         }
+
+        constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+            val db = FirebaseFirestore.getInstance()
+                .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+                .collection("trabajadores").document(idTrabajador)
+                .collection("publicaciones_trabajos").document(id_publicacion_clikeada)
+            binding.compartirIcon.setOnClickListener {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    "compartir"
+                )
+                crear_dinamick_link(
+                    idTrabajador,
+                    id_publicacion_clikeada,
+                    "Mira esta publicacion relizada por $nombre $apellido",
+                    "${binding.titulo.text}"
+                )
+            }
+        }
+
+
         constantes_vistas_publicaciones_productos_verificados.obtener_perfil_trabajador(
             idTrabajador,
             binding.perfiltrabajador,
@@ -108,6 +142,70 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
             idTrabajador
         )
 
+    }
+
+    private fun crear_dinamick_link(
+        idTrabajador: String,
+        id_publicacion: String,
+        titulo_dinamick: String,
+        texto_dinamick: String
+    ) {
+        val userCollections =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(idTrabajador).collection("publicaciones_trabajos")
+                .document(id_publicacion)
+        userCollections.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img_url = data?.get("img_url") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
+                Firebase.dynamicLinks.shortLinkAsync {
+                    link =
+                        Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
+                    domainUriPrefix = "https://geinzapp.page.link"
+                    androidParameters("com.geinzz.geinzwork") {
+                        minimumVersion = 125
+                    }
+                    iosParameters("com.geinzz.ios") {
+                        appStoreId = "123456789"
+                        minimumVersion = "1.0.1"
+                    }
+                    googleAnalyticsParameters {
+                        source = "orkut"
+                        medium = "social"
+                        campaign = "geinzz-promo"
+                    }
+                    itunesConnectAnalyticsParameters {
+                        providerToken = "123456"
+                        campaignToken = "geinzz-promo"
+                    }
+                    socialMetaTagParameters {
+                        title = titulo_dinamick
+                        description = texto_dinamick
+                        imageUrl = Uri.parse(img_url)
+                    }
+                }.addOnSuccessListener { shortDynamicLink ->
+                    val shortLink = shortDynamicLink.shortLink
+                    val invitationLink = shortLink.toString()
+
+                    val sendIntent: Intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, invitationLink)
+                        type = "text/plain"
+                    }
+                    startActivity(Intent.createChooser(sendIntent, null))
+                }.addOnFailureListener {
+                    println("Hubo un error con los links dinámicos: $it")
+                }
+
+            } else {
+                println("El anuncio no existe.")
+            }
+        }.addOnFailureListener { exception ->
+            println("Error al obtener el anuncio: ${exception.message}")
+        }
     }
 
     private fun obtener_publicacion_actual(idTrabajador: String, idpublicaicon: String) {
