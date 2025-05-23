@@ -48,6 +48,10 @@
             <include
                 android:id="@+id/productos_venta"
                 layout="@layout/include_panel_publicaciones" />
+
+            <include
+                android:id="@+id/panel_metoods"
+                layout="@layout/include_panel_publi_vertical" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

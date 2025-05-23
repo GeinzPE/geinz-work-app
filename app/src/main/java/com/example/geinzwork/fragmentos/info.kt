@@ -1385,6 +1385,7 @@ class info : Fragment() {
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
+                binding.linealProductosPublicados.isVisible = false
                 constantes_servicios.verificarEstado_vericiacion(
                     binding.verificadoIcon,
                     id
@@ -1439,7 +1440,6 @@ class info : Fragment() {
                     tkView.isVisible = tk.isNotEmpty()
 
                 } else {
-                    binding.linealProductosPublicados.isVisible = false
                     banerPublicacionesRecientes.isVisible = false
                     trabajosRealizados.isVisible = false
                     binding.verificadoTXT.text = "noverificado"

@@ -22,6 +22,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.R
@@ -146,31 +147,26 @@ object constantes {
     fun setearBanderas(
         dataClassTrabajosd: dataClassTrabajosd,
         contexto: Context,
-        imagen: CircleImageView,
+        imagen: CircleImageView
     ) {
-        when (dataClassTrabajosd.nacionalidad) {
-            Variables.Peruano -> {
-                try {
-                    Glide.with(contexto)
-                        .load(R.drawable.bandera_peru)
-                        .into(imagen)
-                } catch (e: Exception) {
-                    println(e)
-                }
+        val banderaResId = when (dataClassTrabajosd.nacionalidad?.trim()?.lowercase()) {
+            Variables.Peruano.lowercase() -> R.drawable.bandera_peru
+            Variables.Venezolano.lowercase() -> R.drawable.bandera_venezolana
+            else -> R.drawable.logo_geinz_circular
+        }
 
-            }
-
-            Variables.Venezolano -> {
-                try {
-                    Glide.with(contexto)
-                        .load(R.drawable.bandera_venezolana)
-                        .into(imagen)
-                } catch (e: Exception) {
-                    println(e)
-                }
-            }
+        try {
+            Glide.with(contexto)
+                .load(banderaResId)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(imagen)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
+
+
 
 
     fun contactarWhatsapp(numero: String, mensaje: String, contexto: Context) {

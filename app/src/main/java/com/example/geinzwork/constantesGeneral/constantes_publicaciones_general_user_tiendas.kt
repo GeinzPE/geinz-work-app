@@ -71,12 +71,8 @@ object constantes_publicaciones_general_user_tiendas {
         adapter: RecyclerView.Adapter<*>,
         binding: FragmentInfoBinding,
     ) {
-        if (plan == Variables.plaA) {
-            binding.noSeEncontroPublicaciones.isVisible = false
-            binding.linealProductosPublicados.isVisible = false
-            return
-        }
-        if (plan == Variables.planB || plan == Variables.PlanC) {
+
+
             val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
                 .document(id)
@@ -113,7 +109,7 @@ object constantes_publicaciones_general_user_tiendas {
                     adapter.notifyDataSetChanged() // Notificar cambios en la lista
                 }
             }
-        }
+
     }
 
     private fun obtenerARticulosComprasVerificado(
