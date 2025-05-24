@@ -1,29 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
-<LinearLayout
-    android:id="@+id/linealMetodos"
-    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-    <TextView
-        android:id="@+id/titulo_referencia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Titulo referencia" />
 
-    <TextView
-        android:id="@+id/metodos_pagos_selecionadso"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Metodos pagos" />
-
-    <View
+    <LinearLayout
+        android:id="@+id/linealMetodos"
+        style="@style/RoundTrabajadoresBG"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:background="@color/black" />
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="10dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="5dp"
+        android:paddingVertical="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre del metodo de pago : " />
+
+            <TextView
+                android:id="@+id/titulo_referencia"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/cat" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pagos selecionados : " />
+
+            <TextView
+                android:id="@+id/metodos_pagos_selecionadso"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/cat" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

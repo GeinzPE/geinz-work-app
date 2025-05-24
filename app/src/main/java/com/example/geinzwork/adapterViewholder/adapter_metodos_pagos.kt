@@ -6,7 +6,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.dataclass.dataclass_metodos_pagos
 import com.geinzz.geinzwork.databinding.MetodosPagosItemBinding
 
-class adapter_metodos_pagos(private val lista: MutableList<dataclass_metodos_pagos>,private val listaner:(dataclass_metodos_pagos)->Unit) :
+class adapter_metodos_pagos(
+    private val lista: MutableList<dataclass_metodos_pagos>,
+    private val eliminar: (dataclass_metodos_pagos) -> Unit,
+    private val editar: (dataclass_metodos_pagos) -> Unit
+) :
     RecyclerView.Adapter<adapter_metodos_pagos.viewHolderMetodosPagos>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolderMetodosPagos {
@@ -31,9 +35,14 @@ class adapter_metodos_pagos(private val lista: MutableList<dataclass_metodos_pag
                 if (item.trasnferencia == true) "transferencia" else null
             ).joinToString(", ")
 
-            binding.linealMetodos.setOnClickListener {
-                listaner(item)
+            binding.linealMetodos.setOnLongClickListener {
+                eliminar(item)
+                true
             }
+            binding.linealMetodos.setOnClickListener{
+                editar(item)
+            }
+
             binding.metodosPagosSelecionadso.text = metodosSeleccionados
 
             binding.tituloReferencia.text = item.nombre_coelccion

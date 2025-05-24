@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -82,8 +83,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         obtner_Metodos_pagosCreados(binding_bottomSheet)
 
         binding_bottomSheet.checkYape.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje = if (isChecked) "Yape seleccionado" else "Yape desmarcado"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
 //            binding_bottomSheet.metodoYape.linealMetodosPagos.isVisible = isChecked
             yape = isChecked
 //            binding_bottomSheet.metodoYape.nombreYapePlinCuentaED.hint = "Numero de yape"
@@ -91,8 +91,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
 
         binding_bottomSheet.checkPlin.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje = if (isChecked) "Plin seleccionado" else "Plin desmarcado"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
 //            binding_bottomSheet.metodoPlin.linealMetodosPagos.isVisible = isChecked
             plin = isChecked
 //            binding_bottomSheet.metodoPlin.nombreYapePlinCuentaED.hint = "Numero de Plin"
@@ -100,16 +99,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
 
         binding_bottomSheet.checkEfectivo.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje = if (isChecked) "Efectivo seleccionado" else "Efectivo desmarcado"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
             efectivo = isChecked
 //            binding_bottomSheet.metodoEfectivo.linealMetodosPagos.isVisible = isChecked
         }
 
         binding_bottomSheet.checkTransferencia.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje =
-                if (isChecked) "Transferencia seleccionada" else "Transferencia desmarcada"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
 //            binding_bottomSheet.metodoTransferencia.linealMetodosPagos.isVisible = isChecked
             trasnferecnia = isChecked
 //            binding_bottomSheet.metodoTransferencia.nombreYapePlinCuentaED.hint =
@@ -162,9 +158,14 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             // Ahora sí: agregamos el campo "id" al documento recién creado
             documentRef.set(idMap, SetOptions.merge()).addOnSuccessListener {
                 Toast.makeText(this, "Referencia creada correctamente", Toast.LENGTH_SHORT).show()
+                BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
+                BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
+                BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
+                BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
+                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
             }
         }.addOnFailureListener { e ->
-            Toast.makeText(this, "Error al subir la referencia: $e", Toast.LENGTH_SHORT).show()
+            Log.e("ERROR SUBIR","Error al subir la referencia: $e")
         }
     }
 
@@ -220,17 +221,115 @@ class panel_publicacion_trabajador : AppCompatActivity() {
     private fun inicializarRecicleViewPagos(BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding) {
         val recicles = BotomSheetDialogMetodosPagoBinding.recicleViewMetodosPagos
         recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        recicles.adapter = adapter_metodos_pagos(lista) { selecionado ->
+        recicles.adapter = adapter_metodos_pagos(lista, { selecionado ->
+            eliminarReferenciaPagoSelect(
+                selecionado.id.toString(),
+                BotomSheetDialogMetodosPagoBinding
+            )
+        }, { editado ->
+            editarCambios(editado.id.toString(), BotomSheetDialogMetodosPagoBinding)
+        })
+    }
 
+    private fun editarCambios(
+        selecionado: String,
+        BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_pago").document(selecionado)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val yape = data?.get("yape") as? Boolean ?: false
+                val efectivo = data?.get("efectivo") as? Boolean ?: false
+                val tranferencia = data?.get("transferenia") as? Boolean ?: false
+                val plin = data?.get("plin") as? Boolean ?: false
+                val nombre_colecion = data?.get("nombre_metodo") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+
+                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText(nombre_colecion)
+                BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = efectivo
+                BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = tranferencia
+                BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = plin
+                BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = yape
+
+                BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible=false
+                BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible=true
+                BotomSheetDialogMetodosPagoBinding.GuardarCambios.setOnClickListener {
+                    val hashMap = hashMapOf<String, Any>(
+                        "yape" to BotomSheetDialogMetodosPagoBinding.checkYape.isChecked,
+                        "efectivo" to BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked,
+                        "plin" to BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked,
+                        "transferenia" to BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked,
+                    )
+                    db.set(hashMap, SetOptions.merge()).addOnSuccessListener {
+                        Toast.makeText(
+                            this,
+                            "Cambios guardados correctamente",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
+                        BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
+                        BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
+                        BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
+                        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
+                        BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible=true
+                        BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible=false
+                        obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
+                    }.addOnFailureListener{e->
+                        Log.d("error guardado","error al guardar losd atos $e")
+                    }
+
+
+                }
+            }
+        }.addOnFailureListener { e ->
+            Log.e("error", "no se econtro la referencia $e")
         }
     }
+
+    private fun eliminarReferenciaPagoSelect(
+        selecionado: String,
+        binding: BotomSheetDialogMetodosPagoBinding
+    ) {
+        val context = binding.root.context
+
+        AlertDialog.Builder(context)
+            .setTitle("Eliminar método de pago")
+            .setMessage("¿Estás seguro de que deseas eliminar este método de pago?")
+            .setPositiveButton("Sí") { dialog, _ ->
+                val db = FirebaseFirestore.getInstance()
+                    .collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores")
+                    .collection("trabajadores")
+                    .document(firebaseAuth.uid.toString())
+                    .collection("metodos_pago")
+                    .document(selecionado)
+
+                db.delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(context, "Método de pago eliminado correctamente", Toast.LENGTH_SHORT).show()
+                        obtner_Metodos_pagosCreados(binding)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("error_eliminar", "Error al eliminar el método de pago: $e")
+                    }
+                dialog.dismiss()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss() // solo se cierra el diálogo sin hacer nada
+            }
+            .show()
+    }
+
 
     private fun bottomSheet_numero_nombre_pagos() {
         val binding_bottom = BottomSheetNumeroNombrePagoBinding.inflate(LayoutInflater.from(this))
         val view = binding_bottom.root
         binding_bottom.checkYape.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje = if (isChecked) "Yape seleccionado" else "Yape desmarcado"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
             binding_bottom.metodoYape.linealMetodosPagos.isVisible = isChecked
             yape = isChecked
             binding_bottom.metodoYape.numeroYapePlinCuentaED.hint = "Numero de yape"
@@ -240,17 +339,16 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 binding_bottom.metodoYape.nombreYapePlinCuentaED,
                 binding_bottom.metodoYape.numeroYapePlinCuentaED, binding_bottom
             ) { existe ->
-                if(!existe){
-                    binding_bottom.metodoYape.linealcamposnombreEtc.isVisible=true
-                    binding_bottom.metodoYape.cargaContenido.isVisible=false
+                if (!existe) {
+                    binding_bottom.metodoYape.linealcamposnombreEtc.isVisible = true
+                    binding_bottom.metodoYape.cargaContenido.isVisible = false
                 }
             }
 
         }
 
         binding_bottom.checkPlin.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje = if (isChecked) "Plin seleccionado" else "Plin desmarcado"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
             binding_bottom.metodoPlin.linealMetodosPagos.isVisible = isChecked
             plin = isChecked
             binding_bottom.metodoPlin.numeroYapePlinCuentaED.hint = "Numero de Plin"
@@ -268,9 +366,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
 
         binding_bottom.checkTransferencia.setOnCheckedChangeListener { _, isChecked ->
-            val mensaje =
-                if (isChecked) "Transferencia seleccionada" else "Transferencia desmarcada"
-            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
+
             binding_bottom.metodoTransferencia.linealMetodosPagos.isVisible = isChecked
             trasnferecnia = isChecked
             binding_bottom.metodoTransferencia.numeroYapePlinCuentaED.hint =

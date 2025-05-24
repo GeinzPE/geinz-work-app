@@ -14,6 +14,7 @@
         android:padding="8dp" />
 
     <androidx.core.widget.NestedScrollView
+        android:layout_marginHorizontal="5dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:animateLayoutChanges="true">
@@ -26,9 +27,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textSize="30sp"
+                android:layout_marginBottom="5dp"
+                style="@style/TextoModoOScuroColor"
+                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
                 android:text="Metodos de pago" />
 
             <TextView
+                android:textSize="17sp"
+                style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="NOTA:Los metodos de pago establecidos se modificaran para tus productos " />
@@ -101,6 +108,19 @@
                     android:textColor="@color/white"
                     android:textSize="15sp" />
 
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/Guardar_cambios"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:visibility="gone"
+                    android:background="@drawable/btn_login"
+                    android:text="Guardar cambios"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
 
             </LinearLayout>
 
@@ -110,7 +130,7 @@
                 android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:text="Metodos de pago creados" />
 
             <LinearLayout
@@ -121,7 +141,7 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recicleView_Metodos_pagos"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:visibility="gone" />
 
                 <TextView
@@ -129,6 +149,7 @@
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginVertical="30dp"
                     android:fontFamily="@font/titulo_robo_semibold_fuente"
                     android:gravity="center"
                     android:text="No se econtro metodos de pagos creados"
