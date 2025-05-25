@@ -137,12 +137,14 @@ object constantes_cuenta_user {
             alerta.setTitle("Cerrar Sesión")
             alerta.setMessage("¿Está seguro de que desea cerrar sesión?")
             alerta.setPositiveButton("Sí") { dialog, which ->
-                constantes_vinculados.cerrarSeccion(context, firebaseAuth.uid.toString())
-                firebaseAuth.signOut()
-                context.startActivity(Intent(context, MainActivity::class.java))
-                activity?.finishAffinity()
-
+                constantes_vinculados.cerrarSeccion(context, firebaseAuth.uid.toString()) {
+                    firebaseAuth.signOut()
+                    context.startActivity(Intent(context, MainActivity::class.java))
+                    activity?.finishAffinity()
+                }
             }
+
+
             alerta.setNegativeButton("No") { dialog, which ->
                 dialog.dismiss()
             }

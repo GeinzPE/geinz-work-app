@@ -146,8 +146,9 @@ object constantes_vinculados {
         val androidId = obtenerAndroidID(context)
 
         encontrarUser(iduser) { tipo, coleccion ->
+            Log.d("tipo",tipo.toString())
             val docRef = when (tipo) {
-                "trabajadores" -> FirebaseFirestore.getInstance()
+                "trabajador" -> FirebaseFirestore.getInstance()
                     .collection("Trabajadores_Usuarios_Drivers")
                     .document("trabajadores").collection("trabajadores")
                     .document(iduser).collection("vinculados")
