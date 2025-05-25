@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_dispo_vinculados
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
+import com.example.geinzwork.constantesGeneral.constantes_vinculados.encontrarUser
 import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
@@ -20,7 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class activity_dispositivos_vinculados : AppCompatActivity() {
     private lateinit var binding: ActivityDispositivosVinculadosBinding
-    private val lista= mutableListOf<dataclass_dispo_vinculados>()
+    private val lista = mutableListOf<dataclass_dispo_vinculados>()
     private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,12 +33,12 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        firebaseAuth=FirebaseAuth.getInstance()
+        firebaseAuth = FirebaseAuth.getInstance()
         obtener_dispositivos_vinculados()
     }
 
     private fun obtener_dispositivos_vinculados() {
-        constantes_vinculados.encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
+        encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
             when (tipo) {
                 "trabajador" -> {
                     val db = FirebaseFirestore.getInstance()
@@ -52,7 +53,9 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                             val dispositivo = data?.get("dispositivo") as? String ?: ""
                             val fecha_registro = data?.get("fecha_registro") as? String ?: ""
                             val hora_registro = data?.get("hora_registro") as? String ?: ""
-                            val datos = dataclass_dispo_vinculados(
+                            val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
+
+                            val datos = dataclass_dispo_vinculados(id_dispositivo,
                                 dispositivo,
                                 hora_registro,
                                 fecha_registro
@@ -80,7 +83,9 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                             val dispositivo = data?.get("dispositivo") as? String ?: ""
                             val fecha_registro = data?.get("fecha_registro") as? String ?: ""
                             val hora_registro = data?.get("hora_registro") as? String ?: ""
-                            val datos = dataclass_dispo_vinculados(
+                            val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
+
+                            val datos = dataclass_dispo_vinculados(id_dispositivo,
                                 dispositivo,
                                 hora_registro,
                                 fecha_registro
@@ -100,10 +105,40 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
     }
 
 
-    private fun inicializarRecicle(){
+    private fun inicializarRecicle() {
         val recicle = binding.recicleDispositivos
         recicle.layoutManager = LinearLayoutManager(this)
-        recicle.adapter = adapter_dispo_vinculados(lista)
-    }
+        recicle.adapter = adapter_dispo_vinculados(lista) { id ->
+            encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
+                Log.d("tipo", tipo.toString())
+                val docRef = when (tipo) {
+                    "trabajador" -> FirebaseFirestore.getInstance()
+                        .collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(firebaseAuth.uid.toString()).collection("vinculados")
+                        .document(id.id_dispo.toString())
 
+                    "usuario" -> FirebaseFirestore.getInstance()
+                        .collection("Trabajadores_Usuarios_Drivers")
+                        .document("usuarios").collection("usuarios")
+                        .document(firebaseAuth.uid.toString()).collection("vinculados")
+                        .document(id.id_dispo.toString())
+
+                    else -> {
+                        Log.d("RESULT", "No se encontró el usuario")
+
+                        return@encontrarUser
+                    }
+                }
+
+                docRef.delete()
+                    .addOnSuccessListener {
+                        Log.d("dispo_vinculado", "Dispositivo eliminado correctamente")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.d("error_eliminar", "Error al eliminar el dispositivo: ${e.message}")
+                    }
+            }
+        }
+    }
 }

@@ -25,6 +25,7 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.geinzwork.constantesGeneral.constantes_agregar_estadisticas_publicaiones
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores
 import com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores
@@ -91,7 +92,6 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
 
         remoteConfig = FirebaseRemoteConfig.getInstance()
         firebaseAuth = FirebaseAuth.getInstance()
-
         binding.VistaTiendas.setOnClickListener {
             startActivity(Intent(this, TiendasGenerales::class.java))
         }
@@ -134,7 +134,10 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                             id_publicacion_clikeada
                         )
 
-                        id_trabajadores_productos != null && id_trabajadores_productos_clikeados != null -> openDinamickLink_productos_publicados(id_trabajadores_productos,id_trabajadores_productos_clikeados)
+                        id_trabajadores_productos != null && id_trabajadores_productos_clikeados != null -> openDinamickLink_productos_publicados(
+                            id_trabajadores_productos,
+                            id_trabajadores_productos_clikeados
+                        )
 
                         idTrabajadorGeinz != null -> openVistaTrabajador(idTrabajadorGeinz)
                         anunciosPrimarios != null -> openAnunciosPrimarios(anunciosPrimarios)
@@ -215,6 +218,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             }
         })
     }
+
     val getViewPager: ViewPager2
         get() = viewPager
 
@@ -427,7 +431,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         id_trabajador: String,
         id_publicacion: String,
 
-    ) {
+        ) {
         val vista =
             Intent(this, vista_ver_productos_trabajadores::class.java).apply {
                 putExtra("id_trabajador", id_trabajador)
@@ -458,11 +462,6 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         }
     }
 
-    private fun updateBottomNavigation(selectedItemId: Int) {
-        isUpdatingBottomNavigation = true
-        binding.buttonNavigation.selectedItemId = selectedItemId
-        isUpdatingBottomNavigation = false
-    }
 
     private fun isInternetAvailable(context: Context): Boolean {
         val connectivityManager =

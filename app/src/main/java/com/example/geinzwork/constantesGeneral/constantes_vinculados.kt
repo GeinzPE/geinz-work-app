@@ -1,11 +1,14 @@
 package com.example.geinzwork.constantesGeneral
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
+import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -144,9 +147,8 @@ object constantes_vinculados {
 
     fun cerrarSeccion(context: Context, iduser: String, onFinish: () -> Unit) {
         val androidId = obtenerAndroidID(context)
-
         encontrarUser(iduser) { tipo, coleccion ->
-            Log.d("tipo",tipo.toString())
+            Log.d("tipo", tipo.toString())
             val docRef = when (tipo) {
                 "trabajador" -> FirebaseFirestore.getInstance()
                     .collection("Trabajadores_Usuarios_Drivers")
@@ -179,6 +181,48 @@ object constantes_vinculados {
                 }
         }
     }
+
+    fun verificaAcceso(
+        idRegistrado: String,
+        context: Context,
+        onStart: () -> Unit,
+        onFinish: (dispositivoValido: Boolean) -> Unit
+    ) {
+        val androidId = obtenerAndroidID(context)
+        onStart() // indica que la verificación empieza
+
+        encontrarUser(idRegistrado) { tipo, coleccion ->
+            if (coleccion != null) {
+                coleccion.document(idRegistrado).collection("vinculados").get()
+                    .addOnSuccessListener { res ->
+                        var dispositivoEncontrado = false
+                        for (datos in res) {
+                            val id = datos.getString("id_dispositivo")
+                            if (androidId == id) {
+                                dispositivoEncontrado = true
+                                break
+                            }
+                        }
+                        if (!dispositivoEncontrado) {
+                            FirebaseAuth.getInstance().signOut()
+                            if (context is Activity) {
+                                // context.finishAffinity()  // opcional si quieres cerrar todo
+                            }
+                        }
+                        onFinish(dispositivoEncontrado)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("verificaAcceso", "Error: ${e.message}")
+                        onFinish(false)
+                    }
+            } else {
+                onFinish(true) // si coleccion es null, dejamos continuar (válido)
+            }
+        }
+    }
+
+
+
 
 
 

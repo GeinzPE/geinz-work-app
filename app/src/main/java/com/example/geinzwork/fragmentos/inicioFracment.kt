@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.fragmentos
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -24,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
@@ -92,17 +94,86 @@ class inicioFracment : Fragment() {
         obterTrabajosRecientes_trabajadores()
         val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
 
-        if(firebaseAuth.currentUser==null){
-            binding.linealAnuncioVerificado.isVisible=false
-        }else{
-            binding.linealAnuncioVerificado.isVisible=true
 
+
+        if (firebaseAuth.currentUser == null) {
+            binding.linealAnuncioVerificado.isVisible = false
+
+        } else {
+            binding.linealAnuncioVerificado.isVisible = true
+            constantes_vinculados.verificaAcceso(
+                firebaseAuth.uid.toString(), mContex,
+                onStart = {
+                },
+                onFinish = { dispositivoValido ->
+                    if (!dispositivoValido) {
+                        val dialogBuilder = AlertDialog.Builder(mContex)
+                        dialogBuilder.setTitle("Sesión cerrada")
+                        dialogBuilder.setMessage("Tu cuenta fue cerrada desde otro dispositivo. Si no fuiste tú, por favor contáctate con Geinz Work.")
+                        dialogBuilder.setCancelable(false)
+
+                        dialogBuilder.setPositiveButton("Contactar con Geinz Work") { dialog, _ ->
+
+                            dialog.dismiss()
+                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+                                binding.includeCabezero.progressCargaImagen,
+                                binding.includeCabezero.usuarioRegsitradoName,
+                                mContex,
+                                binding.includeCabezero.imgPerfilUser,
+                                binding.linealAnuncioVerificado
+                            ) { verificado ->
+                                if (verificado) {
+                                    binding.verificadoBoolean.text = "true"
+                                } else {
+                                    binding.verificadoBoolean.text = "false"
+                                }
+
+                            }
+                        }
+
+                        dialogBuilder.setNegativeButton("Cancelar") { dialog, _ ->
+                            dialog.dismiss()
+                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+                                binding.includeCabezero.progressCargaImagen,
+                                binding.includeCabezero.usuarioRegsitradoName,
+                                mContex,
+                                binding.includeCabezero.imgPerfilUser,
+                                binding.linealAnuncioVerificado
+                            ) { verificado ->
+                                if (verificado) {
+                                    binding.verificadoBoolean.text = "true"
+                                } else {
+                                    binding.verificadoBoolean.text = "false"
+                                }
+
+                            }
+                        }
+
+                        val alertDialog = dialogBuilder.create()
+                        alertDialog.show()
+                    } else {
+                        constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+                            binding.includeCabezero.progressCargaImagen,
+                            binding.includeCabezero.usuarioRegsitradoName,
+                            mContex,
+                            binding.includeCabezero.imgPerfilUser,
+                            binding.linealAnuncioVerificado
+                        ) { verificado ->
+                            if (verificado) {
+                                binding.verificadoBoolean.text = "true"
+                            } else {
+                                binding.verificadoBoolean.text = "false"
+                            }
+
+                        }
+                    }
+                }
+
+            )
         }
 
 
         val storedValue = pref?.getString(KEY, "Default Value")
-
-
         obtener_mensajes_destacados(binding.verificadoBoolean.text.toString())
         conteoUser.obtenerConteoUSer { usuarios ->
             binding.includeCabezero.usuariosRegistrados.text = usuarios.toString()
@@ -200,11 +271,11 @@ class inicioFracment : Fragment() {
             mContex,
             binding.includeCabezero.imgPerfilUser,
             binding.linealAnuncioVerificado
-        ){verificado->
-            if(verificado){
-                binding.verificadoBoolean.text="true"
-            }else{
-                binding.verificadoBoolean.text="false"
+        ) { verificado ->
+            if (verificado) {
+                binding.verificadoBoolean.text = "true"
+            } else {
+                binding.verificadoBoolean.text = "false"
             }
 
         }
@@ -241,6 +312,7 @@ class inicioFracment : Fragment() {
             }
             startActivity(intent)
         }
+
     }
 
     val permisoNotificaion =
@@ -281,13 +353,16 @@ class inicioFracment : Fragment() {
                         val vista = Intent(mContex, clase)
                         startActivity(vista)
                     } catch (e: ClassNotFoundException) {
-                        Toast.makeText(mContex, "Actividad no encontrada: $actividad", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            mContex,
+                            "Actividad no encontrada: $actividad",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
         }
     }
-
 
 
     fun setupRecyclerViewTouchListener(recyclerView: RecyclerView, activity: MainActivity) {
