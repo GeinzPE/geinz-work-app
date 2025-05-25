@@ -355,7 +355,7 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
-                      android:visibility="gone"
+                        android:visibility="gone"
                         android:id="@+id/lineal_Publicacion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -428,6 +428,32 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/roboto_medium"
                             android:text="QR Trabajadador"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/vinculados"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="5dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginBottom="10dp"
+                            android:src="@drawable/dispositivo_vinculado" />
+
+                        <TextView
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/roboto_medium"
+                            android:text="Dispositivos vinulados"
                             android:textSize="12sp" />
                     </LinearLayout>
 

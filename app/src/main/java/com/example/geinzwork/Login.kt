@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.databinding.ActivityLoginBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -57,21 +58,22 @@ class Login : AppCompatActivity() {
             firebaseAuth.signInWithEmailAndPassword(correo, contraseña)
                 .addOnSuccessListener { resultado ->
                     val user = resultado.user
+                    val userId = user?.uid  // Aquí tienes el ID del usuario
+                    Toast.makeText(this, "Inicio de sesión exitoso. ID: $userId", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, MainActivity::class.java))
+                    constantes_vinculados.agregar_vinculado(userId.toString(),this)
                     finish()
-                    Toast.makeText(this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(
                         this,
                         "Error al iniciar sesión: ${e.message}",
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
         }
-
     }
+
 
     private fun verificarSeccion() {
         if (firebaseAuth.currentUser != null) {

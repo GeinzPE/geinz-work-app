@@ -9,7 +9,9 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
+import com.example.geinzwork.activity_dispositivos_vinculados
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
 import com.example.geinzwork.vista_denuncia_reporte
 import com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar
@@ -62,8 +64,14 @@ object constantes_cuenta_user {
         val panel_publicacion = binding.panelPublicacion
         val lineaReportes = binding.lineaReportes
         val lineal_como_funcion_Geinz = binding.linealComoFuncionGeinz
-        val qr_trabajador =binding.qrTrabajador
+        val qr_trabajador = binding.qrTrabajador
         val linealServicios = binding.linealServicios
+        val vinculados = binding.vinculados
+
+        vinculados.setOnClickListener {
+            val vista=Intent(context,activity_dispositivos_vinculados::class.java)
+            context.startActivity(vista)
+        }
         when (tipoCuenta.text.toString()) {
             Variables.Cuenta_Simple -> {
                 container_review.isVisible = false
@@ -74,6 +82,7 @@ object constantes_cuenta_user {
                 lineal_Publicacion.isVisible = false
                 qr_trabajador.isVisible = false
             }
+
             else -> ""
         }
 //        if (plan.isEmpty() || plan == Variables.plaA) {
@@ -128,9 +137,11 @@ object constantes_cuenta_user {
             alerta.setTitle("Cerrar Sesión")
             alerta.setMessage("¿Está seguro de que desea cerrar sesión?")
             alerta.setPositiveButton("Sí") { dialog, which ->
+                constantes_vinculados.cerrarSeccion(context, firebaseAuth.uid.toString())
                 firebaseAuth.signOut()
                 context.startActivity(Intent(context, MainActivity::class.java))
                 activity?.finishAffinity()
+
             }
             alerta.setNegativeButton("No") { dialog, which ->
                 dialog.dismiss()
@@ -196,8 +207,10 @@ object constantes_cuenta_user {
     ) {
         when (tipoCuenta.text.toString()) {
             Variables.Cuenta_Simple -> {
-                val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                    .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
+                val db =
+                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                        .document(id)
                 db.delete()
                     .addOnSuccessListener {
                         Toast.makeText(
@@ -215,8 +228,10 @@ object constantes_cuenta_user {
             }
 
             Variables.Cuenta_Trabajador -> {
-                val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                    .document(Variables.usuarios_db).collection(Variables.usuarios_db).document(id)
+                val db =
+                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                        .document(Variables.usuarios_db).collection(Variables.usuarios_db)
+                        .document(id)
                 db.delete()
                     .addOnSuccessListener {
                         Toast.makeText(
@@ -233,7 +248,8 @@ object constantes_cuenta_user {
                     }
             }
         }
-        val RealTime = FirebaseDatabase.getInstance().getReference(Variables.ReseñasUsuarios).child(id)
+        val RealTime =
+            FirebaseDatabase.getInstance().getReference(Variables.ReseñasUsuarios).child(id)
         RealTime.removeValue()
             .addOnSuccessListener {
                 Toast.makeText(context, "Reseña eliminada ", Toast.LENGTH_SHORT).show()
@@ -261,7 +277,8 @@ object constantes_cuenta_user {
 
     private fun mandarDatos(idRegistrado: String, context: Context) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(idRegistrado)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+            .document(idRegistrado)
         db.get()
             .addOnSuccessListener { resultado ->
                 if (resultado.exists()) {

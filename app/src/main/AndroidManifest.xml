@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="MissingLeanbackLauncher">
+    tools:ignore="MissingLeanbackLauncher" >
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
@@ -35,7 +35,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.GeinzWork"
-        tools:targetApi="31">
+        tools:targetApi="31" >
+        <activity
+            android:name="com.example.geinzwork.activity_dispositivos_vinculados"
+            android:exported="false" />
         <activity
             android:name="com.example.geinzwork.vistas_principales.tipos_verificaciones_geinz"
             android:exported="false" />
@@ -45,7 +48,7 @@
         <activity
             android:name="com.example.geinzwork.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.ApiSclasScrenn">
+            android:theme="@style/Theme.ApiSclasScrenn" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -111,7 +114,7 @@
             android:exported="false" />
         <activity
             android:name=".vistaTrabajador.promocionesvista"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="PROMO_SUGERIDAS" />
 
@@ -133,7 +136,7 @@
         <activity
             android:name=".servicios_geinz.serviciosGeinz"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan" >
             <intent-filter>
                 <action android:name="SERVICIOS" />
 
@@ -142,7 +145,7 @@
         </activity>
         <activity
             android:name=".problemas_soporte_politicas.reportes_users"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="REPORTE" />
 
@@ -188,7 +191,7 @@
             android:exported="false" />
         <activity
             android:name=".vistaTiendas.verServicios"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="SERVICIOS_TIENDAS" />
 
@@ -227,7 +230,7 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
@@ -235,7 +238,7 @@
 
         <activity
             android:name=".vistaTiendas.vistaProductosGeneralTiendas"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="PRODUCTOS_PRINCIPALES" />
 
@@ -256,7 +259,7 @@
             android:exported="false" />
         <activity
             android:name=".vistaTiendas.VistaTienda"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="VISTA_TIENDA" />
 
@@ -268,7 +271,7 @@
             android:exported="false" />
         <activity
             android:name=".vistaTrabajador.ver_detalles_Promociones"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="SUBIDA_NOTICIAS" />
 
@@ -341,8 +344,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustNothing">
-            <intent-filter android:autoVerify="true">
+            android:windowSoftInputMode="adjustNothing" >
+            <intent-filter android:autoVerify="true" >
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -363,7 +366,7 @@
 
         <service
             android:name=".MyFirebaseMessagingService"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
