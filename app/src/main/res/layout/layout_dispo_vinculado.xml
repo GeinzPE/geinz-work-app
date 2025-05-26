@@ -15,6 +15,18 @@
         android:padding="5dp">
 
         <TextView
+            android:id="@+id/dispo_actual"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/TextoModoOScuroColor"
+            android:textSize="15sp"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:textStyle="bold"
+            android:text="Dispositivo Actaul"/>
+
+        <TextView
             android:id="@+id/dispositivo"
             style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"

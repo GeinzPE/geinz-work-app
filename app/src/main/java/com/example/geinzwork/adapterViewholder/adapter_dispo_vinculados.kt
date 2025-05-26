@@ -1,8 +1,10 @@
 package com.example.geinzwork.adapterViewholder
 
+import android.os.Build
 import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
 import com.geinzz.geinzwork.R
@@ -36,6 +38,12 @@ class adapter_dispo_vinculados(
             item: dataclass_dispo_vinculados,
             eliminar: (dataclass_dispo_vinculados) -> Unit
         ) {
+            val dispo = "${Build.MANUFACTURER} ${Build.MODEL}"
+            if(dispo==item.nombre_dispo){
+                binding.dispoActual.isVisible=true
+            }else{
+                binding.dispoActual.isVisible=false
+            }
             binding.listener.setOnLongClickListener {
                 eliminar(item)
                 true
