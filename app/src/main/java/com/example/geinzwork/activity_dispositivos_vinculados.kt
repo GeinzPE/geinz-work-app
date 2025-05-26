@@ -2,6 +2,8 @@ package com.example.geinzwork
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -21,6 +23,7 @@ import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
 import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
+import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.databinding.ActivityDispositivosVinculadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCerraSeccionConfirBinding
@@ -34,6 +37,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
     private val lista = mutableListOf<dataclass_dispo_vinculados>()
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
+    private var existeDispositivoPrimario = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDispositivosVinculadosBinding.inflate(layoutInflater)
@@ -46,6 +50,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         obtener_dispositivos_vinculados()
+        confSwipe()
     }
 
     private fun obtener_dispositivos_vinculados() {
@@ -85,15 +90,16 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                         if (lista.isNotEmpty()) {
                             handler.postDelayed({
                                 binding.recicleDispositivos.isVisible = true
-                                binding.LinealCargaDispo.isVisible=false
+                                binding.LinealCargaDispo.isVisible = false
+                                binding.swipe.isVisible=true
                             }, duration)
                             inicializarRecicle()
-                        }else{
-                                binding.noDispositivo.isVisible=true
+                        } else {
+                            binding.noDispositivo.isVisible = true
                             binding.recicleDispositivos.isVisible = false
-                            binding.LinealCargaDispo.isVisible=false
+                            binding.LinealCargaDispo.isVisible = false
+                            binding.swipe.isVisible=false
                         }
-
 
 
                     }
@@ -130,19 +136,30 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                         if (lista.isNotEmpty()) {
                             handler.postDelayed({
                                 binding.recicleDispositivos.isVisible = true
-                                binding.LinealCargaDispo.isVisible=false
+                                binding.LinealCargaDispo.isVisible = false
+                                binding.swipe.isVisible=true
                             }, duration)
                             inicializarRecicle()
-                        }else{
-                            binding.noDispositivo.isVisible=true
+                        } else {
+                            binding.noDispositivo.isVisible = true
                             binding.recicleDispositivos.isVisible = false
-                            binding.LinealCargaDispo.isVisible=false
+                            binding.LinealCargaDispo.isVisible = false
+                            binding.swipe.isVisible=false
                         }
                     }
                 }
 
                 else -> Log.d("RESULT", "No se encontró el usuario")
             }
+        }
+    }
+    private fun confSwipe() {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+                obtener_dispositivos_vinculados()
+            }, 2000)
         }
     }
 
@@ -206,30 +223,69 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                 docRefActual.get().addOnSuccessListener { resActual ->
                     if (resActual.exists()) {
                         val dataActual = resActual.data
-                        val esPrimario = dataActual?.get("primario") as? Boolean ?: false
+                        val esPrimarioActual = dataActual?.get("primario") as? Boolean ?: false
 
-                        if (id.id_dispo == androidId) {
-                            // El usuario quiere cerrar sesión en su mismo dispositivo (local)
+                        val vinculadosRef = when (tipo) {
+                            "trabajador" -> FirebaseFirestore.getInstance()
+                                .collection("Trabajadores_Usuarios_Drivers")
+                                .document("trabajadores").collection("trabajadores")
+                                .document(firebaseAuth.uid.toString()).collection("vinculados")
+
+                            "usuario" -> FirebaseFirestore.getInstance()
+                                .collection("Trabajadores_Usuarios_Drivers")
+                                .document("usuarios").collection("usuarios")
+                                .document(firebaseAuth.uid.toString()).collection("vinculados")
+
+                            else -> return@addOnSuccessListener
+                        }
+
+                        vinculadosRef.get().addOnSuccessListener { documentos ->
+                            val existePrimario = documentos.any { it.getBoolean("primario") == true }
+
+                            if (id.id_dispo == androidId) {
+                                if (existePrimario) {
+                                    // Si ya hay un primario, y está intentando cerrar sesión en sí mismo (prohibido)
+                                    Toast.makeText(
+                                        this,
+                                        "No puedes cerrar sesión directa en este dispositivo",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    // No hay un primario aún → ofrecer opción para establecer como primario
+                                    dialog = BottomSheetDialog(this)
+                                    dialog_cerrar_seccion(id.id_dispo.toString(), false)
+                                    dialog.show()
+                                }
+                            } else {
+                                // Está intentando cerrar sesión en otro dispositivo
+                                if (existePrimario) {
+                                    if (esPrimarioActual) {
+                                        // Soy el primario, puedo cerrar sesión a otros
+                                        dialog = BottomSheetDialog(this)
+                                        dialog_cerrar_seccion(id.id_dispo.toString(), true)
+                                        dialog.show()
+                                    } else {
+                                        // No soy el primario, no puedo cerrar sesión a nadie
+                                        Toast.makeText(
+                                            this,
+                                            "Solo el dispositivo primario puede cerrar sesión en otros dispositivos",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } else {
+                                    // No hay primario aún → permitir cerrar sesión
+                                    dialog = BottomSheetDialog(this)
+                                    dialog_cerrar_seccion(id.id_dispo.toString(), false)
+                                    dialog.show()
+                                }
+                            }
+
+                        }.addOnFailureListener {
                             Toast.makeText(
                                 this,
-                                "No puedes cerrar sesión en este dispositivo",
+                                "Error al verificar dispositivos vinculados",
                                 Toast.LENGTH_SHORT
                             ).show()
-                        } else {
-                            // Quiere cerrar sesión en otro dispositivo
-                            if (esPrimario) {
-                                // Solo si el dispositivo actual es primario, puede cerrar sesión remota
-                                dialog = BottomSheetDialog(this)
-                                dialog_cerrar_seccion(id.id_dispo.toString())
-                                dialog.show()
-                            } else {
-                                // Dispositivo actual no es primario, no puede cerrar sesión remota
-                                Toast.makeText(
-                                    this,
-                                    "Solo el dispositivo primario puede cerrar sesión en otros dispositivos",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
                         }
                     } else {
                         Toast.makeText(
@@ -245,22 +301,146 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+
+
             }
 
 
         }
     }
 
-    private fun dialog_cerrar_seccion(id_dispo: String) {
+    private fun dialog_cerrar_seccion(id_dispo: String, sinExsitir: Boolean) {
         val bottomSheet_verificar =
             BottomSheetCerraSeccionConfirBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet_verificar.root
         val androidId = obtenerAndroidID(this)
 
-        if (id_dispo == androidId) {
+        if (sinExsitir==true) {
+            if (id_dispo == androidId) {
+                bottomSheet_verificar.camposprimario.isVisible = true
+                bottomSheet_verificar.camposCerrarSeccion.isVisible = false
+                bottomSheet_verificar.primario.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        dialog.dismiss()
+                        encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
+                            val docRef = when (tipo) {
+                                "trabajador" -> FirebaseFirestore.getInstance()
+                                    .collection("Trabajadores_Usuarios_Drivers")
+                                    .document("trabajadores").collection("trabajadores")
+                                    .document(firebaseAuth.uid.toString())
+                                    .collection("vinculados")
+                                    .document(id_dispo)
+
+                                "usuario" -> FirebaseFirestore.getInstance()
+                                    .collection("Trabajadores_Usuarios_Drivers")
+                                    .document("usuarios").collection("usuarios")
+                                    .document(firebaseAuth.uid.toString())
+                                    .collection("vinculados")
+                                    .document(id_dispo)
+
+                                else -> {
+                                    Log.d("RESULT", "No se encontró el usuario")
+                                    return@encontrarUser
+                                }
+                            }
+                            val hasmap = hashMapOf<String, Any>(
+                                "primario" to true
+                            )
+                            docRef.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+                                Toast.makeText(
+                                    this,
+                                    "Dispositivo primario guardado correctamente",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                dialog.dismiss()
+                                obtener_dispositivos_vinculados()
+                            }.addOnFailureListener { e ->
+                                Log.d("error_dispo", "error al colocar primario el dispositivo $e")
+                            }
+                        }
+                    }
+                }
+
+            } else {
+                bottomSheet_verificar.camposprimario.isVisible = false
+                bottomSheet_verificar.camposCerrarSeccion.isVisible = true
+                bottomSheet_verificar.BtnIngresar.setOnClickListener {
+                    val gmail = bottomSheet_verificar.ingreseSuMail.text.toString()
+                    val contra = bottomSheet_verificar.txtpassword.text.toString()
+                    if (gmail.isEmpty() || contra.isEmpty()) {
+                        Toast.makeText(this, "rellene los campos", Toast.LENGTH_SHORT).show()
+                    } else {
+                        firebaseAuth.signInWithEmailAndPassword(gmail, contra)
+                            .addOnSuccessListener { resultado ->
+                                val user = resultado.user
+                                val userId = user?.uid
+                                if (firebaseAuth.uid.toString() == userId) {
+                                    bottomSheet_verificar.cerrandoSeccion.isVisible=true
+                                    bottomSheet_verificar.camposCerrarSeccion.isVisible=false
+                                    encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
+                                        val docRef = when (tipo) {
+                                            "trabajador" -> FirebaseFirestore.getInstance()
+                                                .collection("Trabajadores_Usuarios_Drivers")
+                                                .document("trabajadores").collection("trabajadores")
+                                                .document(firebaseAuth.uid.toString())
+                                                .collection("vinculados")
+                                                .document(id_dispo.toString())
+
+                                            "usuario" -> FirebaseFirestore.getInstance()
+                                                .collection("Trabajadores_Usuarios_Drivers")
+                                                .document("usuarios").collection("usuarios")
+                                                .document(firebaseAuth.uid.toString())
+                                                .collection("vinculados")
+                                                .document(id_dispo.toString())
+
+                                            else -> {
+                                                Log.d("RESULT", "No se encontró el usuario")
+                                                return@encontrarUser
+                                            }
+                                        }
+
+                                        docRef.delete()
+                                            .addOnSuccessListener {
+                                                bottomSheet_verificar.cerrandoSeccion.isVisible=false
+                                                dialog.dismiss() // cerrar el dialog después de borrar
+                                                obtener_dispositivos_vinculados()
+                                                Log.d(
+                                                    "dispo_vinculado",
+                                                    "Dispositivo eliminado correctamente"
+                                                )
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Log.d(
+                                                    "error_eliminar",
+                                                    "Error al eliminar el dispositivo: ${e.message}"
+                                                )
+                                            }
+                                    }
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                val errorMessage = when {
+                                    e.message?.contains("The email address is badly formatted") == true ->
+                                        "El correo ingresado no es válido"
+
+                                    e.message?.contains("There is no user record") == true ->
+                                        "No se encontró una cuenta con ese correo"
+
+                                    e.message?.contains("The password is invalid") == true ->
+                                        "La contraseña es incorrecta"
+
+                                    else ->
+                                        "Error al iniciar sesión: ${e.message}"
+                                }
+                                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                }
+            }
+
+        } else {
             bottomSheet_verificar.camposprimario.isVisible = true
             bottomSheet_verificar.camposCerrarSeccion.isVisible = false
-
             bottomSheet_verificar.primario.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     dialog.dismiss()
@@ -302,84 +482,10 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                     }
                 }
             }
-
-        } else {
-            bottomSheet_verificar.camposprimario.isVisible = false
-            bottomSheet_verificar.camposCerrarSeccion.isVisible = true
-
-            bottomSheet_verificar.BtnIngresar.setOnClickListener {
-                val gmail = bottomSheet_verificar.ingreseSuMail.text.toString()
-                val contra = bottomSheet_verificar.txtpassword.text.toString()
-                if (gmail.isEmpty() || contra.isEmpty()) {
-                    Toast.makeText(this, "rellene los campos", Toast.LENGTH_SHORT).show()
-                } else {
-                    firebaseAuth.signInWithEmailAndPassword(gmail, contra)
-                        .addOnSuccessListener { resultado ->
-                            val user = resultado.user
-                            val userId = user?.uid
-                            if (firebaseAuth.uid.toString() == userId) {
-                                encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
-                                    val docRef = when (tipo) {
-                                        "trabajador" -> FirebaseFirestore.getInstance()
-                                            .collection("Trabajadores_Usuarios_Drivers")
-                                            .document("trabajadores").collection("trabajadores")
-                                            .document(firebaseAuth.uid.toString())
-                                            .collection("vinculados")
-                                            .document(id_dispo.toString())
-
-                                        "usuario" -> FirebaseFirestore.getInstance()
-                                            .collection("Trabajadores_Usuarios_Drivers")
-                                            .document("usuarios").collection("usuarios")
-                                            .document(firebaseAuth.uid.toString())
-                                            .collection("vinculados")
-                                            .document(id_dispo.toString())
-
-                                        else -> {
-                                            Log.d("RESULT", "No se encontró el usuario")
-                                            return@encontrarUser
-                                        }
-                                    }
-
-                                    docRef.delete()
-                                        .addOnSuccessListener {
-                                            dialog.dismiss() // cerrar el dialog después de borrar
-                                            obtener_dispositivos_vinculados()
-                                            Log.d(
-                                                "dispo_vinculado",
-                                                "Dispositivo eliminado correctamente"
-                                            )
-                                        }
-                                        .addOnFailureListener { e ->
-                                            Log.d(
-                                                "error_eliminar",
-                                                "Error al eliminar el dispositivo: ${e.message}"
-                                            )
-                                        }
-                                }
-                            }
-                        }
-                        .addOnFailureListener { e ->
-                            val errorMessage = when {
-                                e.message?.contains("The email address is badly formatted") == true ->
-                                    "El correo ingresado no es válido"
-
-                                e.message?.contains("There is no user record") == true ->
-                                    "No se encontró una cuenta con ese correo"
-
-                                e.message?.contains("The password is invalid") == true ->
-                                    "La contraseña es incorrecta"
-
-                                else ->
-                                    "Error al iniciar sesión: ${e.message}"
-                            }
-                            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-                        }
-                }
-            }
         }
 
         dialog.setContentView(view)
-        dialog.show()  // <-- Mostrar dialogo justo aquí, asegurando que siempre se muestre correctamente
+        dialog.show()
     }
 
 
