@@ -69,8 +69,9 @@ object constantes_cuenta_user {
         val vinculados = binding.vinculados
 
         vinculados.setOnClickListener {
-            val vista=Intent(context,activity_dispositivos_vinculados::class.java)
+            val vista = Intent(context, activity_dispositivos_vinculados::class.java)
             context.startActivity(vista)
+            dialog.dismiss()
         }
         when (tipoCuenta.text.toString()) {
             Variables.Cuenta_Simple -> {
@@ -85,17 +86,7 @@ object constantes_cuenta_user {
 
             else -> ""
         }
-//        if (plan.isEmpty() || plan == Variables.plaA) {
-//            lineal_Publicacion.isVisible = false
-//        } else if (plan == Variables.planB || plan == Variables.PlanC){
-//            lineal_Publicacion.isVisible = true
-//        }
         lineal_Publicacion.setOnClickListener {
-//            var vista = Intent(context, vista_denuncia_reporte::class.java).apply {
-//                putExtra(Variables.plan, plan)
-//            }
-//            context.startActivity(vista)
-//            dialog.dismiss()
 
 
         }

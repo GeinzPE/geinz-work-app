@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
@@ -128,6 +129,7 @@ class veirificacionDatos : AppCompatActivity() {
                         ).show()
                     } else {
                         verificarUsuario(tipoCuenta)
+
                     }
 
                 }
@@ -250,6 +252,7 @@ class veirificacionDatos : AppCompatActivity() {
             userCollections.document(id).set(hashMap)
                 .addOnSuccessListener {
                     println("Usuario creado en Firestore")
+                    constantes_vinculados.agregar_vinculado(id.toString(),this)
                     var vista: Intent = Intent(this, GraciasRegistro::class.java)
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
@@ -332,6 +335,7 @@ class veirificacionDatos : AppCompatActivity() {
             userCollections.document(id).set(hashMap)
                 .addOnSuccessListener {
                     println("Usuario creado en Firestore")
+                    constantes_vinculados.agregar_vinculado(id.toString(),this)
                     var vista: Intent = Intent(this, GraciasRegistro::class.java)
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)

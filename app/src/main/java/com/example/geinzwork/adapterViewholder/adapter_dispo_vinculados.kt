@@ -1,9 +1,12 @@
 package com.example.geinzwork.adapterViewholder
 
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
+import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.LayoutDispoVinculadoBinding
 
 class adapter_dispo_vinculados(
@@ -24,19 +27,69 @@ class adapter_dispo_vinculados(
 
     override fun onBindViewHolder(holder: viewholderDispo, position: Int) {
         val item = lista_dispo[position]
-        holder.render(item,eliminar)
+        holder.render(item, eliminar)
     }
 
     class viewholderDispo(private val binding: LayoutDispoVinculadoBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun render(item: dataclass_dispo_vinculados, eliminar: (dataclass_dispo_vinculados) -> Unit) {
-            binding.dispositivo.text = item.nombre_dispo
-            binding.hora.text = item.hora
-            binding.fecha.text = item.fecha
+        fun render(
+            item: dataclass_dispo_vinculados,
+            eliminar: (dataclass_dispo_vinculados) -> Unit
+        ) {
             binding.listener.setOnLongClickListener {
                 eliminar(item)
                 true
             }
+            val dispositivo =
+                SpannableString("Dispositivo : ${item.nombre_dispo}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Dispositivo",
+                dispositivo, binding.dispositivo
+            )
+            val hora =
+                SpannableString("Hora registrado : ${item.hora}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Dispositivo",
+                hora, binding.hora
+            )
+            val fecha =
+                SpannableString("Fecha registrado : ${item.fecha}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Dispositivo",
+                fecha, binding.fecha
+            )
+            val priamrio =
+                SpannableString("Primario : SI")
+            val priamrio2 =
+                SpannableString("Primario : NO")
+            if(item.priamrio==true){
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Primario",
+                    priamrio,   binding.dispositivoPrimario
+                )
+            }else{
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Primario",
+                    priamrio2,   binding.dispositivoPrimario
+                )
+
+            }
+
+            when (item.marca_logo) {
+                "Samsung" -> binding.marcaLogo.setImageResource(R.drawable.samsung_logo)
+                "Xiaomi" -> binding.marcaLogo.setImageResource(R.drawable.xiaomi_logo)
+                "Realme" -> binding.marcaLogo.setImageResource(R.drawable.xiaomi_logo)
+                "Oppo" -> binding.marcaLogo.setImageResource(R.drawable.oppo_logo)
+                "Motorola" -> binding.marcaLogo.setImageResource(R.drawable.motorola_logo)
+                "Google" -> binding.marcaLogo.setImageResource(R.drawable.google_logo)
+                "Sony" -> binding.marcaLogo.setImageResource(R.drawable.sony_logo)
+                "Asus" -> binding.marcaLogo.setImageResource(R.drawable.asus_logo)
+                "LG" -> binding.marcaLogo.setImageResource(R.drawable.lg_logo)
+                "Infinix" -> binding.marcaLogo.setImageResource(R.drawable.marca_desconocida)
+                "Tecno" -> binding.marcaLogo.setImageResource(R.drawable.tecno_logo)
+                else -> binding.marcaLogo.setImageResource(R.drawable.marca_desconocida)
+            }
+
         }
     }
 }
