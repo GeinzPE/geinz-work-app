@@ -25,6 +25,7 @@ import com.geinzz.geinzwork.adapterViewholder.adapterReportes
 import com.geinzz.geinzwork.crear_trabajos_realizados
 import com.geinzz.geinzwork.databinding.ActivityPanelPublicacionTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BotomSheetDialogMetodosPagoBinding
+import com.geinzz.geinzwork.databinding.BottomSheeetMetodoEntregaBinding
 import com.geinzz.geinzwork.databinding.BottomSheetNumeroNombrePagoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
@@ -42,6 +43,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
     private var plin: Boolean = false
     private var efectivo: Boolean = false
     private var trasnferecnia: Boolean = false
+    private var deliver_gratis: Boolean = false
+    private var delivery: Boolean = false
+    private var coordinar: Boolean = false
+    private var lugaresEntrega: Boolean = false
+    private var retiroTienda: Boolean = false
+    private var envioCourier: Boolean = false
+    private var entregaProgramada: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +64,12 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         setear_datos_includes()
         binding.panelMetoods.metodoEntrega.setOnClickListener {
-
+            dialog = BottomSheetDialog(this)
+            bottomSheet_metodo_entrega()
+            dialog.show()
         }
+
+
         binding.panelMetoods.metodosPago.setOnClickListener {
             dialog = BottomSheetDialog(this)
             bottomSheet_metodos_pago()
@@ -74,6 +86,204 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     }
 
+    private fun bottomSheet_metodo_entrega() {
+        val bottoSheet_entrega = BottomSheeetMetodoEntregaBinding.inflate(LayoutInflater.from(this))
+        bottoSheet_entrega.cerrar.setOnClickListener { dialog.dismiss() }
+        val view = bottoSheet_entrega.root
+
+        // Checkboxes con visibilidad de layouts
+        bottoSheet_entrega.delivery.setOnCheckedChangeListener { _, isChecked ->
+            delivery = isChecked
+            bottoSheet_entrega.linealEnvioGratis.isVisible = isChecked
+            if (!isChecked) bottoSheet_entrega.grupoEnvioGratis.clearCheck()
+        }
+
+        bottoSheet_entrega.corrdinar.setOnCheckedChangeListener { _, isChecked ->
+            coordinar = isChecked
+        }
+
+        bottoSheet_entrega.lugaresEntrega.setOnCheckedChangeListener { _, isChecked ->
+            lugaresEntrega = isChecked
+            bottoSheet_entrega.linealLugaresEntrega.isVisible = isChecked
+            if (!isChecked) {
+                bottoSheet_entrega.LugaresEntregaED.text?.clear()
+                bottoSheet_entrega.localidadMetodoEntregaED.text?.clear()
+            }
+        }
+
+        bottoSheet_entrega.retiroTienda.setOnCheckedChangeListener { _, isChecked ->
+            retiroTienda = isChecked
+            bottoSheet_entrega.puntosVenta.isVisible = isChecked
+            if (!isChecked) {
+                bottoSheet_entrega.lugarReferenciaPuntoVentaED.text?.clear()
+                bottoSheet_entrega.localidadEntregaPuntosED.text?.clear()
+                bottoSheet_entrega.nombreTiendaED.text?.clear()
+            }
+        }
+
+        bottoSheet_entrega.envioCourier.setOnCheckedChangeListener { _, isChecked ->
+            envioCourier = isChecked
+        }
+
+        bottoSheet_entrega.entregaProgramada.setOnCheckedChangeListener { _, isChecked ->
+            entregaProgramada = isChecked
+        }
+
+        bottoSheet_entrega.CrearMetodo.setOnClickListener {
+            crear_metodoEntrega(
+                delivery,
+                coordinar,
+                lugaresEntrega,
+                retiroTienda,
+                envioCourier,
+                entregaProgramada,
+                bottoSheet_entrega.nombreReferenciaED.text.toString(),
+                bottoSheet_entrega
+            )
+
+
+        }
+
+        dialog.setContentView(view)
+    }
+
+    private fun crear_metodoEntrega(
+        delivery: Boolean,
+        coordinar: Boolean,
+        lugaresEntrega: Boolean,
+        retiroTienda: Boolean,
+        envioCourier: Boolean,
+        entregaProgramada: Boolean,
+        nombre_referencia: String,
+        bottosheetEntrega: BottomSheeetMetodoEntregaBinding
+    ) {
+        // Validaciones
+        if (delivery && bottosheetEntrega.grupoEnvioGratis.checkedRadioButtonId == -1) {
+            Toast.makeText(this, "Selecciona si el delivery es gratis o no", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (lugaresEntrega) {
+            val textoLugares = bottosheetEntrega.LugaresEntregaED
+            val localidadLugares = bottosheetEntrega.localidadMetodoEntregaED
+
+            val textoLugaresStr = textoLugares.text.toString().trim()
+            val localidadStr = localidadLugares.text.toString().trim()
+
+            if (textoLugaresStr.isEmpty()) {
+                textoLugares.error = "Ingresa los lugares de entrega"
+                textoLugares.requestFocus()
+                return
+            }
+
+            if (localidadStr.isEmpty()) {
+                localidadLugares.error = "Ingresa una localidad de entrega"
+                localidadLugares.requestFocus()
+                return
+            }
+        }
+
+        if (retiroTienda) {
+            val textoPuntoVenta = bottosheetEntrega.lugarReferenciaPuntoVentaED.text.toString().trim()
+            val localidadPuntoVenta = bottosheetEntrega.localidadEntregaPuntosED.text.toString().trim()
+            val nombreTienda = bottosheetEntrega.nombreTiendaED.text.toString().trim()
+
+            if (textoPuntoVenta.isEmpty()) {
+                bottosheetEntrega.lugarReferenciaPuntoVentaED.error = "Ingresa el punto de venta o tienda"
+                bottosheetEntrega.lugarReferenciaPuntoVentaED.requestFocus()
+                return
+            }
+
+            if (localidadPuntoVenta.isEmpty()) {
+                bottosheetEntrega.localidadEntregaPuntosED.error = "Ingresa la localidad del punto de venta"
+                bottosheetEntrega.localidadEntregaPuntosED.requestFocus()
+                return
+            }
+
+            if (nombreTienda.isEmpty()) {
+                bottosheetEntrega.nombreTiendaED.error = "Ingresa el nombre de la tienda"
+                bottosheetEntrega.nombreTiendaED.requestFocus()
+                return
+            }
+        }
+
+        val deliver_gratis = when (bottosheetEntrega.grupoEnvioGratis.checkedRadioButtonId) {
+            R.id.si -> true
+            R.id.no -> false
+            else -> false
+        }
+
+        val hashMap = hashMapOf<String, Any>(
+            "delivery" to delivery,
+            "coordinar" to coordinar,
+            "lugaresEntrega" to lugaresEntrega,
+            "retiroTienda" to retiroTienda,
+            "envioCourier" to envioCourier,
+            "entregaProgramada" to entregaProgramada,
+            "nombre_metodo" to nombre_referencia
+        )
+
+        if (delivery) {
+            hashMap["datos_delivery"] = hashMapOf("gratis" to deliver_gratis)
+        }
+
+        if (lugaresEntrega) {
+            val lugarTexto = bottosheetEntrega.LugaresEntregaED.text.toString().trim()
+            hashMap["datos_lugares_entrega"] = hashMapOf(
+                "localidad" to bottosheetEntrega.localidadMetodoEntregaED.text.toString(),
+                "descripcion" to lugarTexto
+            )
+        }
+
+        if (retiroTienda) {
+            val puntoVentaTexto = bottosheetEntrega.lugarReferenciaPuntoVentaED.text.toString().trim()
+            hashMap["datos_retiro_tienda"] = hashMapOf(
+                "localidad" to bottosheetEntrega.localidadEntregaPuntosED.text.toString(),
+                "referencia" to puntoVentaTexto,
+                "nombre_tienda" to bottosheetEntrega.nombreTiendaED.text.toString()
+            )
+        }
+
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_entrega")
+
+        bottosheetEntrega.layoutRecicleTexview.isVisible = false
+        bottosheetEntrega.cargandoMetodosPago.isVisible = true
+
+        db.add(hashMap).addOnSuccessListener { documentReference ->
+            val idGenerado = documentReference.id
+            val hashMap = hashMapOf<String, Any>("id" to idGenerado)
+
+            db.document(idGenerado).set(hashMap, SetOptions.merge()).addOnSuccessListener {
+                Toast.makeText(this, "Método de entrega creado correctamente", Toast.LENGTH_SHORT).show()
+                bottosheetEntrega.cargandoMetodosPago.isVisible = false
+
+                // ✅ LIMPIAR TODOS LOS CAMPOS Y CHECKBOXES
+                bottosheetEntrega.delivery.isChecked = false
+                bottosheetEntrega.corrdinar.isChecked = false
+                bottosheetEntrega.lugaresEntrega.isChecked = false
+                bottosheetEntrega.retiroTienda.isChecked = false
+                bottosheetEntrega.envioCourier.isChecked = false
+                bottosheetEntrega.entregaProgramada.isChecked = false
+
+                bottosheetEntrega.nombreReferenciaED.text?.clear()
+                bottosheetEntrega.grupoEnvioGratis.clearCheck()
+                bottosheetEntrega.LugaresEntregaED.text?.clear()
+                bottosheetEntrega.localidadMetodoEntregaED.text?.clear()
+                bottosheetEntrega.lugarReferenciaPuntoVentaED.text?.clear()
+                bottosheetEntrega.localidadEntregaPuntosED.text?.clear()
+                bottosheetEntrega.nombreTiendaED.text?.clear()
+            }
+        }.addOnFailureListener { e ->
+            Log.d("error_crear", "error al crear una referencia: ${e.message}")
+            bottosheetEntrega.cargandoMetodosPago.isVisible = false
+        }
+    }
+
+
+
     private fun bottomSheet_metodos_pago() {
         val binding_bottomSheet =
             BotomSheetDialogMetodosPagoBinding.inflate(LayoutInflater.from(this))
@@ -83,35 +293,19 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         obtner_Metodos_pagosCreados(binding_bottomSheet)
 
         binding_bottomSheet.checkYape.setOnCheckedChangeListener { _, isChecked ->
-
-//            binding_bottomSheet.metodoYape.linealMetodosPagos.isVisible = isChecked
             yape = isChecked
-//            binding_bottomSheet.metodoYape.nombreYapePlinCuentaED.hint = "Numero de yape"
-//            binding_bottomSheet.metodoYape.tituloMetodoEntrega.text = "Campos de yape"
         }
 
         binding_bottomSheet.checkPlin.setOnCheckedChangeListener { _, isChecked ->
-
-//            binding_bottomSheet.metodoPlin.linealMetodosPagos.isVisible = isChecked
             plin = isChecked
-//            binding_bottomSheet.metodoPlin.nombreYapePlinCuentaED.hint = "Numero de Plin"
-//            binding_bottomSheet.metodoPlin.tituloMetodoEntrega.text = "Campos de Plin"
         }
 
         binding_bottomSheet.checkEfectivo.setOnCheckedChangeListener { _, isChecked ->
-
             efectivo = isChecked
-//            binding_bottomSheet.metodoEfectivo.linealMetodosPagos.isVisible = isChecked
         }
 
         binding_bottomSheet.checkTransferencia.setOnCheckedChangeListener { _, isChecked ->
-
-//            binding_bottomSheet.metodoTransferencia.linealMetodosPagos.isVisible = isChecked
             trasnferecnia = isChecked
-//            binding_bottomSheet.metodoTransferencia.nombreYapePlinCuentaED.hint =
-//                "Numero de cuenta o cci"
-//            binding_bottomSheet.metodoTransferencia.tituloMetodoEntrega.text =
-//                "Campos de Transfercias"
         }
 
         binding_bottomSheet.CrearMetodo.setOnClickListener {
@@ -122,7 +316,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 trasnferecnia,
                 binding_bottomSheet.nombreReferenciaED.text.toString(), binding_bottomSheet
             )
-            obtner_Metodos_pagosCreados(binding_bottomSheet)
+
         }
 
         dialog.setContentView(view)
@@ -137,6 +331,10 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         nombre_metodo: String,
         BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
     ) {
+        val startTime = System.currentTimeMillis()
+        BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible = false
+        BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible = true
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
@@ -155,19 +353,30 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             val idMap = hashMapOf<String, Any>(
                 "id" to id
             )
-            // Ahora sí: agregamos el campo "id" al documento recién creado
             documentRef.set(idMap, SetOptions.merge()).addOnSuccessListener {
-                Toast.makeText(this, "Referencia creada correctamente", Toast.LENGTH_SHORT).show()
-                BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
-                BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
-                BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
-                BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
-                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
+                val endTime = System.currentTimeMillis() // ⏱ Fin de medición
+                val elapsedTime = endTime - startTime
+                Handler(Looper.getMainLooper()).postDelayed({
+                    BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible = true
+                    BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible = false
+                    Log.d("TIEMPO_FIRESTORE", "Referencia creada en $elapsedTime ms")
+                    Toast.makeText(this, "Referencia creada correctamente", Toast.LENGTH_SHORT)
+                        .show()
+                    BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
+                    BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
+                    BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
+                    BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
+                    BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
+                    obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
+                }, elapsedTime)
+
+
             }
         }.addOnFailureListener { e ->
-            Log.e("ERROR SUBIR","Error al subir la referencia: $e")
+            Log.e("ERROR SUBIR", "Error al subir la referencia: $e")
         }
     }
+
 
     private fun obtner_Metodos_pagosCreados(
         binding: BotomSheetDialogMetodosPagoBinding
@@ -201,7 +410,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             }
 
             val tiempoFin = System.currentTimeMillis()
-            val delay = (tiempoFin - tiempoInicio).coerceAtLeast(0)
+            val delay = (tiempoFin - tiempoInicio)
 
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.cargandoMetodosPago.isVisible = false
@@ -220,7 +429,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     private fun inicializarRecicleViewPagos(BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding) {
         val recicles = BotomSheetDialogMetodosPagoBinding.recicleViewMetodosPagos
-        recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         recicles.adapter = adapter_metodos_pagos(lista, { selecionado ->
             eliminarReferenciaPagoSelect(
                 selecionado.id.toString(),
@@ -255,8 +464,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = plin
                 BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = yape
 
-                BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible=false
-                BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible=true
+                BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = false
+                BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = true
                 BotomSheetDialogMetodosPagoBinding.GuardarCambios.setOnClickListener {
                     val hashMap = hashMapOf<String, Any>(
                         "yape" to BotomSheetDialogMetodosPagoBinding.checkYape.isChecked,
@@ -275,11 +484,11 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                         BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
                         BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
                         BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
-                        BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible=true
-                        BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible=false
+                        BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = true
+                        BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = false
                         obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
-                    }.addOnFailureListener{e->
-                        Log.d("error guardado","error al guardar losd atos $e")
+                    }.addOnFailureListener { e ->
+                        Log.d("error guardado", "error al guardar losd atos $e")
                     }
 
 
@@ -310,7 +519,11 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
                 db.delete()
                     .addOnSuccessListener {
-                        Toast.makeText(context, "Método de pago eliminado correctamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Método de pago eliminado correctamente",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         obtner_Metodos_pagosCreados(binding)
                     }
                     .addOnFailureListener { e ->

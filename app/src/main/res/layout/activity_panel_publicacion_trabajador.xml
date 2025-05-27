@@ -48,17 +48,12 @@
             <include
                 android:id="@+id/productos_venta"
                 layout="@layout/include_panel_publicaciones" />
-
-            <include
-                android:id="@+id/panel_metoods"
-                layout="@layout/include_panel_publi_vertical" />
-
             <LinearLayout
                 android:id="@+id/metodo_numero_nombre"
                 style="@style/RoundTrabajadoresBG"
                 android:layout_width="match_parent"
+                android:layout_margin="10dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <RelativeLayout
@@ -142,6 +137,11 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+            <include
+                android:id="@+id/panel_metoods"
+                layout="@layout/include_panel_publi_vertical" />
+
+
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

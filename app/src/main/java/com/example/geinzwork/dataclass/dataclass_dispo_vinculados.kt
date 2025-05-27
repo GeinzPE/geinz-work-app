@@ -6,5 +6,7 @@ data class dataclass_dispo_vinculados(
     val hora: String?,
     val fecha: String?,
     val marca_logo:String?,
-    val priamrio:Boolean?
+    val priamrio:Boolean?,
+    val ultima_fecha:String?,
+    val ultima_hora:String?
 )

@@ -14,17 +14,32 @@
         android:orientation="vertical"
         android:padding="5dp">
 
-        <TextView
+        <LinearLayout
+            android:layout_marginTop="5dp"
+            android:layout_gravity="center"
             android:id="@+id/dispo_actual"
-            android:visibility="gone"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/TextoModoOScuroColor"
-            android:textSize="15sp"
             android:layout_marginBottom="5dp"
-            android:fontFamily="@font/fuente_para_texto_special_gothic"
-            android:textStyle="bold"
-            android:text="Dispositivo Actaul"/>
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:text="Dispositivo Actual"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="15dp"
+                android:layout_gravity="center"
+                android:layout_height="15dp"
+                android:layout_marginLeft="20dp"
+                android:background="@drawable/round_activo" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/dispositivo"
@@ -47,21 +62,42 @@
             android:textSize="15sp" />
 
         <TextView
-            android:layout_marginBottom="5dp"
             android:id="@+id/fecha"
             style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:fontFamily="@font/fuente_para_texto_special_gothic"
             android:text="@string/cat"
             android:textSize="15sp" />
 
         <TextView
-            android:layout_marginBottom="5dp"
             android:id="@+id/dispositivo_primario"
             style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="@string/cat"
+            android:textSize="15sp" />
+
+
+        <TextView
+            android:id="@+id/ultima_fecha"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="@string/cat"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/ultima__hora"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:fontFamily="@font/fuente_para_texto_special_gothic"
             android:text="@string/cat"
             android:textSize="15sp" />

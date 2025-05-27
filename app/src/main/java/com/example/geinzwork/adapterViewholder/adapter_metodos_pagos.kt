@@ -1,9 +1,12 @@
 package com.example.geinzwork.adapterViewholder
 
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.dataclass.dataclass_metodos_pagos
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.MetodosPagosItemBinding
 
 class adapter_metodos_pagos(
@@ -14,7 +17,7 @@ class adapter_metodos_pagos(
     RecyclerView.Adapter<adapter_metodos_pagos.viewHolderMetodosPagos>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolderMetodosPagos {
-        val binding = MetodosPagosItemBinding.inflate(LayoutInflater.from(parent.context))
+        val binding = MetodosPagosItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return viewHolderMetodosPagos(binding)
     }
 
@@ -35,17 +38,38 @@ class adapter_metodos_pagos(
                 if (item.trasnferencia == true) "transferencia" else null
             ).joinToString(", ")
 
+            if (item.yape == true) {
+                binding.logoYape.isVisible = true
+            }
+            if (item.efectivo == true) {
+                binding.logoEfectivo.isVisible = true
+            }
+            if (item.plin == true) {
+                binding.logoPlin.isVisible = true
+            }
+            if (item.trasnferencia == true) {
+                binding.logoTransferencia.isVisible = true
+            }
             binding.linealMetodos.setOnLongClickListener {
                 eliminar(item)
                 true
             }
-            binding.linealMetodos.setOnClickListener{
+            binding.linealMetodos.setOnClickListener {
                 editar(item)
             }
 
-            binding.metodosPagosSelecionadso.text = metodosSeleccionados
+            val spannableString = SpannableString("Nombre de metodo : ${item.nombre_coelccion}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Nombre de metodo",
+                spannableString, binding.tituloReferencia
+            )
 
-            binding.tituloReferencia.text = item.nombre_coelccion
+            val spannableStringpagoSelect =
+                SpannableString("Pagos seleccionados : ${metodosSeleccionados}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Pagos seleccionados",
+                spannableStringpagoSelect, binding.metodosPagosSelecionadso
+            )
         }
 
     }

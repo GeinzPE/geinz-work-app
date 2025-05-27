@@ -13,6 +13,7 @@ import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 object constantes_vinculados {
     private lateinit var firebaseAuth: FirebaseAuth
@@ -221,9 +222,29 @@ object constantes_vinculados {
         }
     }
 
+     fun setar_hora_fecha_ultimaConexion(idRegistrado: String, context: Context) {
+        val androidId = obtenerAndroidID(context)
+        encontrarUser(idRegistrado) { tipo, coleccion ->
+            if (coleccion != null) {
+                val hashMap = hashMapOf<String, Any>(
+                    "ultima_con" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+                    "untima_fecha_con" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
+                )
+                coleccion.document(idRegistrado).collection("vinculados").document(androidId).set(
+                    hashMap,
+                    SetOptions.merge()
+                ).addOnSuccessListener { res ->
+                    Log.d("campo_actualizado", "campos actualizados correctamente")
+                }
 
-
-
+                    .addOnFailureListener { e ->
+                        Log.d(
+                            "error_actualizado",
+                            "error al actuizar los campos"
+                        ) }
+            }
+        }
+    }
 
 
 }

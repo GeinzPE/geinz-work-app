@@ -101,6 +101,7 @@ class inicioFracment : Fragment() {
 
         } else {
             binding.linealAnuncioVerificado.isVisible = true
+            constantes_vinculados.setar_hora_fecha_ultimaConexion(firebaseAuth.uid.toString(),mContex)
             constantes_vinculados.verificaAcceso(
                 firebaseAuth.uid.toString(), mContex,
                 onStart = {

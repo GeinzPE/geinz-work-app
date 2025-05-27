@@ -44,6 +44,7 @@ class adapter_dispo_vinculados(
             }else{
                 binding.dispoActual.isVisible=false
             }
+
             binding.listener.setOnLongClickListener {
                 eliminar(item)
                 true
@@ -66,6 +67,35 @@ class adapter_dispo_vinculados(
                 "Dispositivo",
                 fecha, binding.fecha
             )
+
+
+
+
+            if(item.ultima_hora.toString().isNotEmpty()){
+                binding.ultimaHora.isVisible=true
+                val ULTHora =
+                    SpannableString("Ultima hora de conexion : ${item.ultima_hora}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Ultima hora de conexion",
+                    ULTHora, binding.ultimaHora
+                )
+            }else{
+                binding.ultimaHora.isVisible=false
+            }
+
+            if(item.ultima_fecha.toString().isNotEmpty()){
+                binding.ultimaFecha.isVisible=true
+                val fechaULT =
+                    SpannableString("Ultima fecha de conexion : ${item.ultima_fecha}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Ultima fecha de conexion",
+                    fechaULT, binding.ultimaFecha
+                )
+            }else{
+                binding.ultimaFecha.isVisible=false
+            }
+
+
             val priamrio =
                 SpannableString("Primario : SI")
             val priamrio2 =

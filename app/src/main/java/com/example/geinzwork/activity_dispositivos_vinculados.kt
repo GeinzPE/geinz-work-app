@@ -37,7 +37,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
     private val lista = mutableListOf<dataclass_dispo_vinculados>()
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
-    private var existeDispositivoPrimario = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDispositivosVinculadosBinding.inflate(layoutInflater)
@@ -74,13 +74,15 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                             val hora_registro = data?.get("hora_registro") as? String ?: ""
                             val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
                             val primario = data?.get("primario") as? Boolean ?: false
+                            val ultima_con = data?.get("ultima_con") as? String ?: ""
+                            val untima_fecha_con = data?.get("untima_fecha_con") as? String ?: ""
                             val marca = obtenerMarcaDesdeModelo(dispositivo)
 
                             val datos = dataclass_dispo_vinculados(
                                 id_dispositivo,
                                 dispositivo,
                                 hora_registro,
-                                fecha_registro, marca, primario
+                                fecha_registro, marca, primario,untima_fecha_con,ultima_con
                             )
                             lista.add(datos)
                         }
@@ -119,13 +121,15 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                             val fecha_registro = data?.get("fecha_registro") as? String ?: ""
                             val hora_registro = data?.get("hora_registro") as? String ?: ""
                             val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
+                            val ultima_con = data?.get("ultima_con") as? String ?: ""
+                            val untima_fecha_con = data?.get("untima_fecha_con") as? String ?: ""
                             val primario = data?.get("primario") as? Boolean ?: false
                             val marca = obtenerMarcaDesdeModelo(dispositivo)
                             val datos = dataclass_dispo_vinculados(
                                 id_dispositivo,
                                 dispositivo,
                                 hora_registro,
-                                fecha_registro, marca, primario
+                                fecha_registro, marca, primario,untima_fecha_con,ultima_con
                             )
                             lista.add(datos)
                         }
