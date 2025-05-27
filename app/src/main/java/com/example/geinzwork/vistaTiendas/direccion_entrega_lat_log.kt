@@ -30,6 +30,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.databinding.ActivityDireccionEntregaLatLogBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarElimaarDireccionBinding
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -94,7 +95,6 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             }
         }
         binding.crear.setOnClickListener {
-
             binding.containerSinUBI.isVisible = false
             binding.linealForm.isVisible = true
             nombreColeccion.isEnabled = true
@@ -587,26 +587,26 @@ class direccion_entrega_lat_log : AppCompatActivity() {
     private fun getLocation(
         cargandoLatLog: ProgressBar,
         obtenerLocalizacion: ImageButton,
-        direccion: EditText, latitudUSer: TextView, longituduser: TextView,
-        completado: (Boolean) -> Unit,
+        direccion: EditText,
+        latitudUSer: TextView,
+        longituduser: TextView,
+        completado: (Boolean) -> Unit
     ) {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 
+        // Si el GPS está desactivado
         if (!isGpsEnabled) {
+            cargandoLatLog.isVisible = false
+            obtenerLocalizacion.isVisible = true
 
-            // Mostrar un diálogo para activar la ubicación
             AlertDialog.Builder(this)
                 .setTitle("Ubicación desactivada")
                 .setMessage("Por favor, active su ubicación para continuar.")
                 .setPositiveButton("Activar") { _, _ ->
-                    cargandoLatLog.isVisible = false
-                    obtenerLocalizacion.isVisible = true
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 }
                 .setNegativeButton("Cancelar") { dialog, _ ->
-                    cargandoLatLog.isVisible = false
-                    obtenerLocalizacion.isVisible = true
                     dialog.dismiss()
                     completado(false)
                 }
@@ -614,19 +614,20 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             return
         }
 
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+        // Verificación de permisos
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 LOCATION_PERMISSION_REQUEST_CODE
             )
+            completado(false) // Avisar que no se pudo completar por falta de permisos
             return
         }
 
+        // Configuración de la solicitud de ubicación
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             interval = 1000
@@ -634,33 +635,48 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             numUpdates = 1
         }
 
+        // Callback para obtener la ubicación
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
+                fusedLocationClient.removeLocationUpdates(this) // Evitar múltiples llamadas
+
                 val location = locationResult.lastLocation
                 if (location != null) {
-                    completado(true)
                     val latitude = location.latitude
                     val longitude = location.longitude
+
                     direccion.setText("$latitude,$longitude")
                     latitudUSer.text = latitude.toString()
                     longituduser.text = longitude.toString()
+
+                    completado(true)
                 } else {
-                    completado(false)
                     Toast.makeText(
                         this@direccion_entrega_lat_log,
                         "No se pudo obtener la ubicación",
                         Toast.LENGTH_SHORT
                     ).show()
+                    completado(false)
                 }
+
+                cargandoLatLog.isVisible = false
+                obtenerLocalizacion.isVisible = true
             }
+
         }
 
+        // Mostrar cargando
+        cargandoLatLog.isVisible = true
+        obtenerLocalizacion.isVisible = false
+
+        // Solicitar ubicación
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
             Looper.getMainLooper()
         )
     }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

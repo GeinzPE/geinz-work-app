@@ -15,28 +15,29 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.geinzwork.adapterViewholder.adapter_metodos_entrega
 import com.example.geinzwork.adapterViewholder.adapter_metodos_pagos
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.crear_publicacion_productos_trabajadores
 import com.example.geinzwork.crear_publicaciones_recientes
+import com.example.geinzwork.dataclass.dataclass_metodos_entrega
 import com.example.geinzwork.dataclass.dataclass_metodos_pagos
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.adapterViewholder.adapterReportes
 import com.geinzz.geinzwork.crear_trabajos_realizados
 import com.geinzz.geinzwork.databinding.ActivityPanelPublicacionTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BotomSheetDialogMetodosPagoBinding
 import com.geinzz.geinzwork.databinding.BottomSheeetMetodoEntregaBinding
 import com.geinzz.geinzwork.databinding.BottomSheetNumeroNombrePagoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
 class panel_publicacion_trabajador : AppCompatActivity() {
     private lateinit var binding: ActivityPanelPublicacionTrabajadorBinding
     private val lista = mutableListOf<dataclass_metodos_pagos>()
+    private val lista_entrega = mutableListOf<dataclass_metodos_entrega>()
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
     private var yape: Boolean = false
@@ -128,7 +129,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         bottoSheet_entrega.entregaProgramada.setOnCheckedChangeListener { _, isChecked ->
             entregaProgramada = isChecked
         }
-
+        obtenerMetodosEntrega(bottoSheet_entrega)
         bottoSheet_entrega.CrearMetodo.setOnClickListener {
             crear_metodoEntrega(
                 delivery,
@@ -147,6 +148,46 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
+    private fun verificarNombreDisponible(
+        collectionReference: CollectionReference,
+        nombreColeccion: EditText,
+        resultado: (Boolean) -> Unit
+    ) {
+        collectionReference.get().addOnSuccessListener { res ->
+            var nombreExistente = false
+
+            for (document in res) {
+                val nombreMetodo = document.getString("nombre_metodo") ?: ""
+                if (nombreMetodo.equals(
+                        nombreColeccion.text.toString().trim(),
+                        ignoreCase = true
+                    )
+                ) {
+                    nombreExistente = true
+                    break
+                }
+            }
+
+            if (nombreExistente) {
+                Toast.makeText(
+                    this,
+                    "Elige otro nombre, este nombre ya existe",
+                    Toast.LENGTH_SHORT
+                ).show()
+                nombreColeccion.error = "Elige otro nombre, este nombre ya existe"
+                nombreColeccion.requestFocus()
+                resultado(false)
+            } else {
+                resultado(true)
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al verificar nombre: ${it.message}", Toast.LENGTH_SHORT)
+                .show()
+            resultado(false)
+        }
+    }
+
+
     private fun crear_metodoEntrega(
         delivery: Boolean,
         coordinar: Boolean,
@@ -158,11 +199,26 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         bottosheetEntrega: BottomSheeetMetodoEntregaBinding
     ) {
         // Validaciones
-        if (delivery && bottosheetEntrega.grupoEnvioGratis.checkedRadioButtonId == -1) {
-            Toast.makeText(this, "Selecciona si el delivery es gratis o no", Toast.LENGTH_SHORT).show()
+        if (delivery == true && bottosheetEntrega.grupoEnvioGratis.checkedRadioButtonId == -1) {
+            Toast.makeText(this, "Selecciona si el delivery es gratis o no", Toast.LENGTH_SHORT)
+                .show()
             return
         }
+        if (bottosheetEntrega.nombreReferenciaED.text.toString().isEmpty()) {
+            bottosheetEntrega.nombreReferenciaED.error =
+                "El nombre del metodo de entrega es obligatorio"
+            bottosheetEntrega.nombreReferenciaED.requestFocus()
+            return
 
+        }
+        if (!(delivery || coordinar || lugaresEntrega || retiroTienda || envioCourier || entregaProgramada)) {
+            Toast.makeText(
+                this,
+                "Selecciona al menos un método de entrega para continuar",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
         if (lugaresEntrega) {
             val textoLugares = bottosheetEntrega.LugaresEntregaED
             val localidadLugares = bottosheetEntrega.localidadMetodoEntregaED
@@ -182,20 +238,23 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 return
             }
         }
-
         if (retiroTienda) {
-            val textoPuntoVenta = bottosheetEntrega.lugarReferenciaPuntoVentaED.text.toString().trim()
-            val localidadPuntoVenta = bottosheetEntrega.localidadEntregaPuntosED.text.toString().trim()
+            val textoPuntoVenta =
+                bottosheetEntrega.lugarReferenciaPuntoVentaED.text.toString().trim()
+            val localidadPuntoVenta =
+                bottosheetEntrega.localidadEntregaPuntosED.text.toString().trim()
             val nombreTienda = bottosheetEntrega.nombreTiendaED.text.toString().trim()
 
             if (textoPuntoVenta.isEmpty()) {
-                bottosheetEntrega.lugarReferenciaPuntoVentaED.error = "Ingresa el punto de venta o tienda"
+                bottosheetEntrega.lugarReferenciaPuntoVentaED.error =
+                    "Ingresa el punto de venta o tienda"
                 bottosheetEntrega.lugarReferenciaPuntoVentaED.requestFocus()
                 return
             }
 
             if (localidadPuntoVenta.isEmpty()) {
-                bottosheetEntrega.localidadEntregaPuntosED.error = "Ingresa la localidad del punto de venta"
+                bottosheetEntrega.localidadEntregaPuntosED.error =
+                    "Ingresa la localidad del punto de venta"
                 bottosheetEntrega.localidadEntregaPuntosED.requestFocus()
                 return
             }
@@ -206,13 +265,11 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 return
             }
         }
-
         val deliver_gratis = when (bottosheetEntrega.grupoEnvioGratis.checkedRadioButtonId) {
             R.id.si -> true
             R.id.no -> false
             else -> false
         }
-
         val hashMap = hashMapOf<String, Any>(
             "delivery" to delivery,
             "coordinar" to coordinar,
@@ -222,11 +279,9 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             "entregaProgramada" to entregaProgramada,
             "nombre_metodo" to nombre_referencia
         )
-
         if (delivery) {
             hashMap["datos_delivery"] = hashMapOf("gratis" to deliver_gratis)
         }
-
         if (lugaresEntrega) {
             val lugarTexto = bottosheetEntrega.LugaresEntregaED.text.toString().trim()
             hashMap["datos_lugares_entrega"] = hashMapOf(
@@ -234,54 +289,123 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 "descripcion" to lugarTexto
             )
         }
-
         if (retiroTienda) {
-            val puntoVentaTexto = bottosheetEntrega.lugarReferenciaPuntoVentaED.text.toString().trim()
+            val puntoVentaTexto =
+                bottosheetEntrega.lugarReferenciaPuntoVentaED.text.toString().trim()
             hashMap["datos_retiro_tienda"] = hashMapOf(
                 "localidad" to bottosheetEntrega.localidadEntregaPuntosED.text.toString(),
                 "referencia" to puntoVentaTexto,
                 "nombre_tienda" to bottosheetEntrega.nombreTiendaED.text.toString()
             )
         }
-
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
             .collection("metodos_entrega")
 
-        bottosheetEntrega.layoutRecicleTexview.isVisible = false
-        bottosheetEntrega.cargandoMetodosPago.isVisible = true
+        val startTime = System.currentTimeMillis()
+        verificarNombreDisponible(db, bottosheetEntrega.nombreReferenciaED) { res ->
+            if (res) {
+                bottosheetEntrega.layoutRecicleTexview.isVisible = false
+                bottosheetEntrega.cargandoMetodosPago.isVisible = true
+                db.add(hashMap).addOnSuccessListener { documentReference ->
+                    val idGenerado = documentReference.id
+                    val hashMap = hashMapOf<String, Any>("id" to idGenerado)
+                    db.document(idGenerado).set(hashMap, SetOptions.merge()).addOnSuccessListener {
+                        val endTime = System.currentTimeMillis() // Fin del proceso
+                        val duration = endTime - startTime
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            bottosheetEntrega.layoutRecicleTexview.isVisible = true
+                            bottosheetEntrega.cargandoMetodosPago.isVisible = false
+                            Toast.makeText(
+                                this,
+                                "Método de entrega creado correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // ✅ LIMPIAR TODOS LOS CAMPOS Y CHECKBOXES
+                            bottosheetEntrega.delivery.isChecked = false
+                            bottosheetEntrega.corrdinar.isChecked = false
+                            bottosheetEntrega.lugaresEntrega.isChecked = false
+                            bottosheetEntrega.retiroTienda.isChecked = false
+                            bottosheetEntrega.envioCourier.isChecked = false
+                            bottosheetEntrega.entregaProgramada.isChecked = false
 
-        db.add(hashMap).addOnSuccessListener { documentReference ->
-            val idGenerado = documentReference.id
-            val hashMap = hashMapOf<String, Any>("id" to idGenerado)
-
-            db.document(idGenerado).set(hashMap, SetOptions.merge()).addOnSuccessListener {
-                Toast.makeText(this, "Método de entrega creado correctamente", Toast.LENGTH_SHORT).show()
-                bottosheetEntrega.cargandoMetodosPago.isVisible = false
-
-                // ✅ LIMPIAR TODOS LOS CAMPOS Y CHECKBOXES
-                bottosheetEntrega.delivery.isChecked = false
-                bottosheetEntrega.corrdinar.isChecked = false
-                bottosheetEntrega.lugaresEntrega.isChecked = false
-                bottosheetEntrega.retiroTienda.isChecked = false
-                bottosheetEntrega.envioCourier.isChecked = false
-                bottosheetEntrega.entregaProgramada.isChecked = false
-
-                bottosheetEntrega.nombreReferenciaED.text?.clear()
-                bottosheetEntrega.grupoEnvioGratis.clearCheck()
-                bottosheetEntrega.LugaresEntregaED.text?.clear()
-                bottosheetEntrega.localidadMetodoEntregaED.text?.clear()
-                bottosheetEntrega.lugarReferenciaPuntoVentaED.text?.clear()
-                bottosheetEntrega.localidadEntregaPuntosED.text?.clear()
-                bottosheetEntrega.nombreTiendaED.text?.clear()
+                            bottosheetEntrega.nombreReferenciaED.text?.clear()
+                            bottosheetEntrega.grupoEnvioGratis.clearCheck()
+                            bottosheetEntrega.LugaresEntregaED.text?.clear()
+                            bottosheetEntrega.localidadMetodoEntregaED.text?.clear()
+                            bottosheetEntrega.lugarReferenciaPuntoVentaED.text?.clear()
+                            bottosheetEntrega.localidadEntregaPuntosED.text?.clear()
+                            bottosheetEntrega.nombreTiendaED.text?.clear()
+                            obtenerMetodosEntrega(bottosheetEntrega)
+                        }, duration)
+                        Log.d(
+                            "TIEMPO_CREACION",
+                            "Tiempo total para crear y actualizar el documento: $duration ms"
+                        )
+                    }
+                }.addOnFailureListener { e ->
+                    Log.d("error_crear", "error al crear una referencia: ${e.message}")
+                    bottosheetEntrega.cargandoMetodosPago.isVisible = false
+                }
             }
-        }.addOnFailureListener { e ->
-            Log.d("error_crear", "error al crear una referencia: ${e.message}")
-            bottosheetEntrega.cargandoMetodosPago.isVisible = false
         }
+
+
     }
 
+    private fun obtenerMetodosEntrega(bottoSheet_entrega: BottomSheeetMetodoEntregaBinding) {
+        lista_entrega.clear()
+        bottoSheet_entrega.cargandoMetodosPago.isVisible = true
+        bottoSheet_entrega.textoSinMetodos.isVisible = false
+        bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = false
+        val tiempoInicio = System.currentTimeMillis()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_entrega")
+        db.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val data = datos.data
+                val delivery = data?.get("delivery") as? Boolean ?: false
+                val coordinar = data?.get("coordinar") as? Boolean ?: false
+                val lugaresEntrega = data?.get("lugaresEntrega") as? Boolean ?: false
+                val retiroTienda = data?.get("retiroTienda") as? Boolean ?: false
+                val envioCourier = data?.get("envioCourier") as? Boolean ?: false
+                val entregaProgramada = data?.get("entregaProgramada") as? Boolean ?: false
+                val nombre_metodo = data?.get("nombre_metodo") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val listaDataclass = dataclass_metodos_entrega(
+                    delivery,
+                    coordinar,
+                    lugaresEntrega,
+                    retiroTienda,
+                    envioCourier,
+                    entregaProgramada,
+                    nombre_metodo, id
+                )
+                lista_entrega.add(listaDataclass)
+
+            }
+            val tiempoFin = System.currentTimeMillis()
+            val delay = (tiempoFin - tiempoInicio)
+            Handler(Looper.getMainLooper()).postDelayed({
+                bottoSheet_entrega.cargandoMetodosPago.isVisible = false
+                if (lista_entrega.isNotEmpty()) {
+                    incializar_recicle_entrega(bottoSheet_entrega)
+                    bottoSheet_entrega.textoSinMetodos.isVisible = false
+                    bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = true
+                } else {
+                    bottoSheet_entrega.textoSinMetodos.isVisible = true
+                    bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = false
+                }
+            }, delay)
+
+
+        }.addOnFailureListener { e ->
+            Log.e("METODOS_ENTREGA", "Error al obtener métodos de entrega", e)
+        }
+    }
 
 
     private fun bottomSheet_metodos_pago() {
@@ -332,49 +456,84 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
     ) {
         val startTime = System.currentTimeMillis()
-        BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible = false
-        BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible = true
+        if (!yape && !plin && !efectivo && !tranferencia) {
+            Toast.makeText(
+                this,
+                "seleciona un metodo de pago para crear la referencia",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        } else {
+            if (BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.text.toString().isEmpty()) {
+                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.error =
+                    "El nombre del metodo de entrega es obligatorio"
+                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.requestFocus()
+                return
+            } else {
+                val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores").collection("trabajadores")
+                    .document(firebaseAuth.uid.toString())
+                    .collection("metodos_pago")
 
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores")
-            .document(firebaseAuth.uid.toString())
-            .collection("metodos_pago")
+                val hashMap = hashMapOf<String, Any>(
+                    "yape" to yape,
+                    "efectivo" to efectivo,
+                    "plin" to plin,
+                    "transferenia" to tranferencia,
+                    "nombre_metodo" to nombre_metodo
+                )
+                verificarNombreDisponible(
+                    db,
+                    BotomSheetDialogMetodosPagoBinding.nombreReferenciaED
+                ) { res ->
+                    if (res) {
+                        BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible = false
+                        BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible = true
+                        db.add(hashMap).addOnSuccessListener { documentRef ->
+                            val id = documentRef.id
+                            val idMap = hashMapOf<String, Any>(
+                                "id" to id
+                            )
+                            documentRef.set(idMap, SetOptions.merge()).addOnSuccessListener {
+                                val endTime = System.currentTimeMillis() // ⏱ Fin de medición
+                                val elapsedTime = endTime - startTime
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible =
+                                        true
+                                    BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible =
+                                        false
+                                    Log.d(
+                                        "TIEMPO_FIRESTORE",
+                                        "Referencia creada en $elapsedTime ms"
+                                    )
+                                    Toast.makeText(
+                                        this,
+                                        "Referencia creada correctamente",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                                    BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked =
+                                        false
+                                    BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked =
+                                        false
+                                    BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
+                                    BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
+                                    BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
+                                    obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
+                                }, elapsedTime)
 
-        val hashMap = hashMapOf<String, Any>(
-            "yape" to yape,
-            "efectivo" to efectivo,
-            "plin" to plin,
-            "transferenia" to tranferencia,
-            "nombre_metodo" to nombre_metodo
-        )
 
-        db.add(hashMap).addOnSuccessListener { documentRef ->
-            val id = documentRef.id
-            val idMap = hashMapOf<String, Any>(
-                "id" to id
-            )
-            documentRef.set(idMap, SetOptions.merge()).addOnSuccessListener {
-                val endTime = System.currentTimeMillis() // ⏱ Fin de medición
-                val elapsedTime = endTime - startTime
-                Handler(Looper.getMainLooper()).postDelayed({
-                    BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible = true
-                    BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible = false
-                    Log.d("TIEMPO_FIRESTORE", "Referencia creada en $elapsedTime ms")
-                    Toast.makeText(this, "Referencia creada correctamente", Toast.LENGTH_SHORT)
-                        .show()
-                    BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
-                    BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
-                    BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
-                    BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
-                    BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
-                    obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
-                }, elapsedTime)
-
+                            }
+                        }.addOnFailureListener { e ->
+                            Log.e("ERROR SUBIR", "Error al subir la referencia: $e")
+                        }
+                    }
+                }
 
             }
-        }.addOnFailureListener { e ->
-            Log.e("ERROR SUBIR", "Error al subir la referencia: $e")
         }
+
+
     }
 
 
@@ -427,6 +586,19 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
     }
 
+    private fun incializar_recicle_entrega(bottoSheet_entrega: BottomSheeetMetodoEntregaBinding) {
+        val recicles = bottoSheet_entrega.recicleViewMetodosEntrega
+        recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
+        recicles.adapter = adapter_metodos_entrega(lista_entrega, { selecionado ->
+            eliminarReferenciaEntregaSelect(
+                selecionado.id.toString(),
+                bottoSheet_entrega
+            )
+        }, { editado ->
+            editarCambiosEntrega(editado.id.toString(), bottoSheet_entrega)
+        })
+    }
+
     private fun inicializarRecicleViewPagos(BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding) {
         val recicles = BotomSheetDialogMetodosPagoBinding.recicleViewMetodosPagos
         recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -436,14 +608,16 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 BotomSheetDialogMetodosPagoBinding
             )
         }, { editado ->
-            editarCambios(editado.id.toString(), BotomSheetDialogMetodosPagoBinding)
+            editarCambiosPAgos(editado.id.toString(), BotomSheetDialogMetodosPagoBinding)
         })
     }
 
-    private fun editarCambios(
+    private fun editarCambiosPAgos(
         selecionado: String,
         BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
     ) {
+
+        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = false
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
@@ -467,6 +641,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = false
                 BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = true
                 BotomSheetDialogMetodosPagoBinding.GuardarCambios.setOnClickListener {
+
                     val hashMap = hashMapOf<String, Any>(
                         "yape" to BotomSheetDialogMetodosPagoBinding.checkYape.isChecked,
                         "efectivo" to BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked,
@@ -499,6 +674,198 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
     }
 
+    private fun editarCambiosEntrega(
+        selecionado: String,
+        bottoSheet_entrega: BottomSheeetMetodoEntregaBinding,
+    ) {
+        bottoSheet_entrega.nombreReferenciaED.isEnabled = false
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_entrega").document(selecionado)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+
+                val data = res.data
+                val delivery = data?.get("delivery") as? Boolean ?: false
+                val coordinar = data?.get("coordinar") as? Boolean ?: false
+                val lugaresEntrega = data?.get("lugaresEntrega") as? Boolean ?: false
+                val retiroTienda = data?.get("retiroTienda") as? Boolean ?: false
+                val envioCourier = data?.get("envioCourier") as? Boolean ?: false
+                val entregaProgramada = data?.get("entregaProgramada") as? Boolean ?: false
+                val nombre_metodo = data?.get("nombre_metodo") as? String ?: ""
+
+                val datosDelivery = data?.get("datos_delivery") as? Map<*, *>
+                val datosRetiroTienda = data?.get("datos_retiro_tienda") as? Map<*, *>
+                val datosLugaresEntrega = data?.get("datos_lugares_entrega") as? Map<*, *>
+
+                bottoSheet_entrega.nombreReferenciaED.setText(nombre_metodo)
+                bottoSheet_entrega.delivery.isChecked = delivery
+                bottoSheet_entrega.corrdinar.isChecked = coordinar
+                bottoSheet_entrega.lugaresEntrega.isChecked = lugaresEntrega
+                bottoSheet_entrega.retiroTienda.isChecked = retiroTienda
+                bottoSheet_entrega.envioCourier.isChecked = envioCourier
+                bottoSheet_entrega.entregaProgramada.isChecked = entregaProgramada
+                if (datosDelivery != null && datosDelivery is Map<*, *>) {
+                    val deliveryGratis = datosDelivery["gratis"] as? Boolean ?: false
+                    if (deliveryGratis) {
+                        bottoSheet_entrega.si.isChecked = true
+                    } else {
+                        bottoSheet_entrega.no.isChecked = true
+                    }
+                }
+                if (datosRetiroTienda != null) {
+                    val localidadRetiro = datosRetiroTienda["localidad"] as? String ?: ""
+                    val nombreTienda = datosRetiroTienda["nombre_tienda"] as? String ?: ""
+                    val referencia = datosRetiroTienda["referencia"] as? String ?: ""
+
+                    bottoSheet_entrega.localidadEntregaPuntosED.setText(localidadRetiro)
+                    bottoSheet_entrega.nombreTiendaED.setText(nombreTienda)
+                    bottoSheet_entrega.lugarReferenciaPuntoVentaED.setText(referencia)
+                } else {
+                    Log.d("Firestore", "El campo 'datos_retiro_tienda' no está presente")
+                }
+                if (datosLugaresEntrega != null) {
+                    val descripcionLugaresEntrega =
+                        datosLugaresEntrega["descripcion"] as? String ?: ""
+                    val localidadLugaresEntrega = datosLugaresEntrega["localidad"] as? String ?: ""
+
+                    bottoSheet_entrega.localidadMetodoEntregaED.setText(localidadLugaresEntrega)
+                    bottoSheet_entrega.LugaresEntregaED.setText(descripcionLugaresEntrega)
+                } else {
+                    Log.d(
+                        "Firestore",
+                        "El campo 'datos_lugares_entrega' no está presente o es inválido"
+                    )
+                }
+                bottoSheet_entrega.CrearMetodo.isVisible = false
+                bottoSheet_entrega.GuardarCambios.isVisible = true
+                bottoSheet_entrega.GuardarCambios.setOnClickListener {
+                    if (bottoSheet_entrega.delivery.isChecked && bottoSheet_entrega.grupoEnvioGratis.checkedRadioButtonId == -1) {
+                        Toast.makeText(
+                            this,
+                            "Selecciona si el delivery es gratis o no",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                        return@setOnClickListener
+                    }
+                    if (!(bottoSheet_entrega.delivery.isChecked || bottoSheet_entrega.corrdinar.isChecked || bottoSheet_entrega.lugaresEntrega.isChecked || bottoSheet_entrega.retiroTienda.isChecked || bottoSheet_entrega.envioCourier.isChecked || bottoSheet_entrega.entregaProgramada.isChecked)) {
+                        Toast.makeText(
+                            this,
+                            "Selecciona al menos un método de entrega para continuar",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@setOnClickListener
+                    }
+                    if (bottoSheet_entrega.lugaresEntrega.isChecked) {
+                        val textoLugares = bottoSheet_entrega.LugaresEntregaED
+                        val localidadLugares = bottoSheet_entrega.localidadMetodoEntregaED
+
+                        val textoLugaresStr = textoLugares.text.toString().trim()
+                        val localidadStr = localidadLugares.text.toString().trim()
+
+                        if (textoLugaresStr.isEmpty()) {
+                            textoLugares.error = "Ingresa los lugares de entrega"
+                            textoLugares.requestFocus()
+                            return@setOnClickListener
+                        }
+
+                        if (localidadStr.isEmpty()) {
+                            localidadLugares.error = "Ingresa una localidad de entrega"
+                            localidadLugares.requestFocus()
+                            return@setOnClickListener
+                        }
+                    }
+                    if (bottoSheet_entrega.retiroTienda.isChecked) {
+                        val textoPuntoVenta =
+                            bottoSheet_entrega.lugarReferenciaPuntoVentaED.text.toString().trim()
+                        val localidadPuntoVenta =
+                            bottoSheet_entrega.localidadEntregaPuntosED.text.toString().trim()
+                        val nombreTienda = bottoSheet_entrega.nombreTiendaED.text.toString().trim()
+
+                        if (textoPuntoVenta.isEmpty()) {
+                            bottoSheet_entrega.lugarReferenciaPuntoVentaED.error =
+                                "Ingresa el punto de venta o tienda"
+                            bottoSheet_entrega.lugarReferenciaPuntoVentaED.requestFocus()
+                            return@setOnClickListener
+                        }
+
+                        if (localidadPuntoVenta.isEmpty()) {
+                            bottoSheet_entrega.localidadEntregaPuntosED.error =
+                                "Ingresa la localidad del punto de venta"
+                            bottoSheet_entrega.localidadEntregaPuntosED.requestFocus()
+                            return@setOnClickListener
+                        }
+
+                        if (nombreTienda.isEmpty()) {
+                            bottoSheet_entrega.nombreTiendaED.error =
+                                "Ingresa el nombre de la tienda"
+                            bottoSheet_entrega.nombreTiendaED.requestFocus()
+                            return@setOnClickListener
+                        }
+                    }
+
+                    val hashMap = hashMapOf<String, Any>(
+                        "delivery" to bottoSheet_entrega.delivery.isChecked,
+                        "coordinar" to bottoSheet_entrega.corrdinar.isChecked,
+                        "lugaresEntrega" to bottoSheet_entrega.lugaresEntrega.isChecked,
+                        "retiroTienda" to bottoSheet_entrega.retiroTienda.isChecked,
+                        "envioCourier" to bottoSheet_entrega.envioCourier.isChecked,
+                        "entregaProgramada" to bottoSheet_entrega.entregaProgramada.isChecked,
+                    )
+                    if (bottoSheet_entrega.delivery.isChecked) {
+                        hashMap["datos_delivery"] = hashMapOf("gratis" to deliver_gratis)
+                    }
+                    if (bottoSheet_entrega.lugaresEntrega.isChecked) {
+                        val lugarTexto = bottoSheet_entrega.LugaresEntregaED.text.toString().trim()
+                        hashMap["datos_lugares_entrega"] = hashMapOf(
+                            "localidad" to bottoSheet_entrega.localidadMetodoEntregaED.text.toString(),
+                            "descripcion" to lugarTexto
+                        )
+                    }else{
+                       bottoSheet_entrega.LugaresEntregaED.setText("")
+                        bottoSheet_entrega.localidadMetodoEntregaED.setText("")
+                    }
+                    if (bottoSheet_entrega.retiroTienda.isChecked) {
+                        val puntoVentaTexto =
+                            bottoSheet_entrega.lugarReferenciaPuntoVentaED.text.toString().trim()
+                        hashMap["datos_retiro_tienda"] = hashMapOf(
+                            "localidad" to bottoSheet_entrega.localidadEntregaPuntosED.text.toString(),
+                            "referencia" to puntoVentaTexto,
+                            "nombre_tienda" to bottoSheet_entrega.nombreTiendaED.text.toString()
+                        )
+                    }else{
+                        bottoSheet_entrega.localidadEntregaPuntosED.setText("")
+                        bottoSheet_entrega.nombreTiendaED.setText("")
+                        bottoSheet_entrega.lugarReferenciaPuntoVentaED.setText("")
+                    }
+                    db.set(hashMap, SetOptions.merge()).addOnSuccessListener {
+                        Toast.makeText(
+                            this,
+                            "Cambios guardados correctamente",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        bottoSheet_entrega.delivery.isChecked = false
+                        bottoSheet_entrega.corrdinar.isChecked = false
+                        bottoSheet_entrega.lugaresEntrega.isChecked = false
+                        bottoSheet_entrega.retiroTienda.isChecked = false
+                        bottoSheet_entrega.envioCourier.isChecked = false
+                        bottoSheet_entrega.entregaProgramada.isChecked = false
+                        bottoSheet_entrega.nombreReferenciaED.setText("")
+                        bottoSheet_entrega.CrearMetodo.isVisible = true
+                        bottoSheet_entrega.GuardarCambios.isVisible = false
+                        obtenerMetodosEntrega(bottoSheet_entrega)
+                    }.addOnFailureListener { e ->
+                        Log.d("error guardado", "error al guardar losd atos $e")
+                    }
+
+
+                }
+            }
+        }
+    }
+
     private fun eliminarReferenciaPagoSelect(
         selecionado: String,
         binding: BotomSheetDialogMetodosPagoBinding
@@ -521,10 +888,48 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                     .addOnSuccessListener {
                         Toast.makeText(
                             context,
-                            "Método de pago eliminado correctamente",
+                            "Método de entrega eliminado correctamente",
                             Toast.LENGTH_SHORT
                         ).show()
                         obtner_Metodos_pagosCreados(binding)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("error_eliminar", "Error al eliminar el método de entrega: $e")
+                    }
+                dialog.dismiss()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss() // solo se cierra el diálogo sin hacer nada
+            }
+            .show()
+    }
+
+    private fun eliminarReferenciaEntregaSelect(
+        selecionado: String,
+        bottoSheet_entrega: BottomSheeetMetodoEntregaBinding
+    ) {
+        val context = bottoSheet_entrega.root.context
+
+        AlertDialog.Builder(context)
+            .setTitle("Eliminar método de entrega")
+            .setMessage("¿Estás seguro de que deseas eliminar este método de entrega?")
+            .setPositiveButton("Sí") { dialog, _ ->
+                val db = FirebaseFirestore.getInstance()
+                    .collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores")
+                    .collection("trabajadores")
+                    .document(firebaseAuth.uid.toString())
+                    .collection("metodos_entrega")
+                    .document(selecionado)
+
+                db.delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(
+                            context,
+                            "Método de entrega eliminado correctamente",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        obtenerMetodosEntrega(bottoSheet_entrega)
                     }
                     .addOnFailureListener { e ->
                         Log.e("error_eliminar", "Error al eliminar el método de pago: $e")
@@ -536,7 +941,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             }
             .show()
     }
-
 
     private fun bottomSheet_numero_nombre_pagos() {
         val binding_bottom = BottomSheetNumeroNombrePagoBinding.inflate(LayoutInflater.from(this))
