@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -25,6 +26,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityDispositivosVinculadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCerraSeccionConfirBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -66,6 +68,12 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                         .document(firebaseAuth.uid.toString()).collection("vinculados")
 
                     db.get().addOnSuccessListener { res ->
+                        val spannableString =
+                            SpannableString("Disposivos vinculados : ${res.size().toString()}")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Disposivos vinculados",
+                            spannableString, binding.TotalDispo
+                        )
                         lista.clear()
                         for (datos in res) {
                             val data = datos.data
@@ -82,7 +90,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 id_dispositivo,
                                 dispositivo,
                                 hora_registro,
-                                fecha_registro, marca, primario,untima_fecha_con,ultima_con
+                                fecha_registro, marca, primario, untima_fecha_con, ultima_con
                             )
                             lista.add(datos)
                         }
@@ -93,14 +101,14 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                             handler.postDelayed({
                                 binding.recicleDispositivos.isVisible = true
                                 binding.LinealCargaDispo.isVisible = false
-                                binding.swipe.isVisible=true
+                                binding.swipe.isVisible = true
                             }, duration)
                             inicializarRecicle()
                         } else {
                             binding.noDispositivo.isVisible = true
                             binding.recicleDispositivos.isVisible = false
                             binding.LinealCargaDispo.isVisible = false
-                            binding.swipe.isVisible=false
+                            binding.swipe.isVisible = false
                         }
 
 
@@ -114,6 +122,12 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                         .document(firebaseAuth.uid.toString()).collection("vinculados")
 
                     db.get().addOnSuccessListener { res ->
+                        val spannableString =
+                            SpannableString("Disposivos vinculados : ${res.size().toString()}")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Disposivos vinculados",
+                            spannableString, binding.TotalDispo
+                        )
                         lista.clear()
                         for (datos in res) {
                             val data = datos.data
@@ -129,7 +143,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 id_dispositivo,
                                 dispositivo,
                                 hora_registro,
-                                fecha_registro, marca, primario,untima_fecha_con,ultima_con
+                                fecha_registro, marca, primario, untima_fecha_con, ultima_con
                             )
                             lista.add(datos)
                         }
@@ -141,14 +155,14 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                             handler.postDelayed({
                                 binding.recicleDispositivos.isVisible = true
                                 binding.LinealCargaDispo.isVisible = false
-                                binding.swipe.isVisible=true
+                                binding.swipe.isVisible = true
                             }, duration)
                             inicializarRecicle()
                         } else {
                             binding.noDispositivo.isVisible = true
                             binding.recicleDispositivos.isVisible = false
                             binding.LinealCargaDispo.isVisible = false
-                            binding.swipe.isVisible=false
+                            binding.swipe.isVisible = false
                         }
                     }
                 }
@@ -157,6 +171,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
             }
         }
     }
+
     private fun confSwipe() {
         binding.swipe.setOnRefreshListener {
             binding.swipe.setColorSchemeResources(R.color.violeta)
@@ -244,7 +259,8 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                         }
 
                         vinculadosRef.get().addOnSuccessListener { documentos ->
-                            val existePrimario = documentos.any { it.getBoolean("primario") == true }
+                            val existePrimario =
+                                documentos.any { it.getBoolean("primario") == true }
 
                             if (id.id_dispo == androidId) {
                                 if (existePrimario) {
@@ -319,7 +335,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
         val view = bottomSheet_verificar.root
         val androidId = obtenerAndroidID(this)
 
-        if (sinExsitir==true) {
+        if (sinExsitir == true) {
             if (id_dispo == androidId) {
                 bottomSheet_verificar.camposprimario.isVisible = true
                 bottomSheet_verificar.camposCerrarSeccion.isVisible = false
@@ -379,8 +395,8 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 val user = resultado.user
                                 val userId = user?.uid
                                 if (firebaseAuth.uid.toString() == userId) {
-                                    bottomSheet_verificar.cerrandoSeccion.isVisible=true
-                                    bottomSheet_verificar.camposCerrarSeccion.isVisible=false
+                                    bottomSheet_verificar.cerrandoSeccion.isVisible = true
+                                    bottomSheet_verificar.camposCerrarSeccion.isVisible = false
                                     encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
                                         val docRef = when (tipo) {
                                             "trabajador" -> FirebaseFirestore.getInstance()
@@ -405,7 +421,8 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
 
                                         docRef.delete()
                                             .addOnSuccessListener {
-                                                bottomSheet_verificar.cerrandoSeccion.isVisible=false
+                                                bottomSheet_verificar.cerrandoSeccion.isVisible =
+                                                    false
                                                 dialog.dismiss() // cerrar el dialog después de borrar
                                                 obtener_dispositivos_vinculados()
                                                 Log.d(

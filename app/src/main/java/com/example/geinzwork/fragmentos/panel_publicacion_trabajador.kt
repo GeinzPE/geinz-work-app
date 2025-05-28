@@ -617,7 +617,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
     ) {
 
-        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = false
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
@@ -640,6 +639,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
                 BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = false
                 BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = true
+                BotomSheetDialogMetodosPagoBinding.nombreReferencia.isEnabled = false
+                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = false
                 BotomSheetDialogMetodosPagoBinding.GuardarCambios.setOnClickListener {
 
                     val hashMap = hashMapOf<String, Any>(
@@ -678,7 +679,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         selecionado: String,
         bottoSheet_entrega: BottomSheeetMetodoEntregaBinding,
     ) {
-        bottoSheet_entrega.nombreReferenciaED.isEnabled = false
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
@@ -699,6 +700,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 val datosRetiroTienda = data?.get("datos_retiro_tienda") as? Map<*, *>
                 val datosLugaresEntrega = data?.get("datos_lugares_entrega") as? Map<*, *>
 
+                bottoSheet_entrega.nombreReferenciaED.isEnabled = false
+                bottoSheet_entrega.nombreReferencia.isEnabled = false
                 bottoSheet_entrega.nombreReferenciaED.setText(nombre_metodo)
                 bottoSheet_entrega.delivery.isChecked = delivery
                 bottoSheet_entrega.corrdinar.isChecked = coordinar
@@ -740,6 +743,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 }
                 bottoSheet_entrega.CrearMetodo.isVisible = false
                 bottoSheet_entrega.GuardarCambios.isVisible = true
+
                 bottoSheet_entrega.GuardarCambios.setOnClickListener {
                     if (bottoSheet_entrega.delivery.isChecked && bottoSheet_entrega.grupoEnvioGratis.checkedRadioButtonId == -1) {
                         Toast.makeText(
@@ -823,8 +827,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                             "localidad" to bottoSheet_entrega.localidadMetodoEntregaED.text.toString(),
                             "descripcion" to lugarTexto
                         )
-                    }else{
-                       bottoSheet_entrega.LugaresEntregaED.setText("")
+                    } else {
+                        bottoSheet_entrega.LugaresEntregaED.setText("")
                         bottoSheet_entrega.localidadMetodoEntregaED.setText("")
                     }
                     if (bottoSheet_entrega.retiroTienda.isChecked) {
@@ -835,7 +839,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                             "referencia" to puntoVentaTexto,
                             "nombre_tienda" to bottoSheet_entrega.nombreTiendaED.text.toString()
                         )
-                    }else{
+                    } else {
                         bottoSheet_entrega.localidadEntregaPuntosED.setText("")
                         bottoSheet_entrega.nombreTiendaED.setText("")
                         bottoSheet_entrega.lugarReferenciaPuntoVentaED.setText("")

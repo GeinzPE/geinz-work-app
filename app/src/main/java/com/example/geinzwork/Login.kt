@@ -59,8 +59,6 @@ class Login : AppCompatActivity() {
                 .addOnSuccessListener { resultado ->
                     val user = resultado.user
                     val userId = user?.uid  // Aquí tienes el ID del usuario
-                    Toast.makeText(this, "Inicio de sesión exitoso. ID: $userId", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, MainActivity::class.java))
                     constantes_vinculados.agregar_vinculado(userId.toString(),this)
                     finish()
                 }

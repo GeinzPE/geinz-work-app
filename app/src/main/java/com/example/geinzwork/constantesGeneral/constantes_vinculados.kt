@@ -111,30 +111,53 @@ object constantes_vinculados {
             if (exi && coleccion != null) {
                 Log.d("DEBUG", "Usuario encontrado, preparando datos para guardar")
 
-                val hashMap = hashMapOf<String, Any>(
-                    "id_dispositivo" to androidId,
-                    "dispositivo" to dispositivo,
-                    "fecha_registro" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
-                    "hora_registro" to mostrarFechaDialog_horaDialog.obtenerHoraActual()
-                )
+                val vinculadoRef = coleccion.document(idRegistrado).collection("vinculados")
+                vinculadoRef.get().addOnSuccessListener { res ->
+                    val total = res.size()
+                    if (total >= 4) {
+                        Log.d("DEBUG", "Ya existen $total dispositivos vinculados. No se puede agregar más.")
+                        Toast.makeText(
+                            context,
+                            "Tiene 4 dispositivos vinculados con esta cuenta",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@addOnSuccessListener
+                    }
 
-                Log.d("DEBUG", "Subiendo datos del dispositivo a Firestore con ID: $androidId")
-                coleccion.document(idRegistrado)
-                    .collection("vinculados")
-                    .document(androidId) // 🔐 Este será el ID del documento
-                    .set(hashMap)
-                    .addOnSuccessListener {
-                        Log.d("DEBUG", "Dispositivo vinculado correctamente con ID: $androidId")
-                        Toast.makeText(context, "Dispositivo vinculado", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("ERROR", "Error al subir dispositivo vinculado", e)
-                    }
+                    // Crear mapa de datos del nuevo dispositivo
+                    val hashMap = hashMapOf<String, Any>(
+                        "id_dispositivo" to androidId,
+                        "dispositivo" to dispositivo,
+                        "fecha_registro" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
+                        "hora_registro" to mostrarFechaDialog_horaDialog.obtenerHoraActual()
+                    )
+
+                    Log.d("DEBUG", "Subiendo datos del dispositivo a Firestore con ID: $androidId")
+                    vinculadoRef.document(androidId).set(hashMap)
+                        .addOnSuccessListener {
+                            Log.d("DEBUG", "Dispositivo vinculado correctamente con ID: $androidId")
+                            Toast.makeText(
+                                context,
+                                "Dispositivo vinculado. Inicio de sesión exitoso",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            val intent = Intent(context, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            context.startActivity(intent)
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("ERROR", "Error al subir dispositivo vinculado", e)
+                            Toast.makeText(context, "Error al vincular el dispositivo", Toast.LENGTH_SHORT).show()
+                        }
+                }
             } else {
                 Log.e("ERROR", "No se encontró el usuario con ID: $idRegistrado")
+                Toast.makeText(context, "No se encontró el usuario", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
 
     fun obtenerAndroidID(context: Context): String {
@@ -222,7 +245,7 @@ object constantes_vinculados {
         }
     }
 
-     fun setar_hora_fecha_ultimaConexion(idRegistrado: String, context: Context) {
+    fun setar_hora_fecha_ultimaConexion(idRegistrado: String, context: Context) {
         val androidId = obtenerAndroidID(context)
         encontrarUser(idRegistrado) { tipo, coleccion ->
             if (coleccion != null) {
@@ -241,7 +264,8 @@ object constantes_vinculados {
                         Log.d(
                             "error_actualizado",
                             "error al actuizar los campos"
-                        ) }
+                        )
+                    }
             }
         }
     }

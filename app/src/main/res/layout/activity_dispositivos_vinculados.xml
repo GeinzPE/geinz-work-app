@@ -45,6 +45,16 @@
                     android:text="Estos son los dispositivos donde has iniciado sesión. Toca uno si quieres cerrar sesión desde ahí.\nSi no inicias sesión antes, no podrás cerrar sesión en ningún dispositivo."
                     android:textSize="15sp" />
 
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:fontFamily="@font/fuente_para_texto_special_gothic"
+                    android:textSize="15sp"
+                    android:id="@+id/TotalDispo"
+                    android:layout_width="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_height="wrap_content" />
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recicle_dispositivos"
                     android:layout_width="match_parent"
