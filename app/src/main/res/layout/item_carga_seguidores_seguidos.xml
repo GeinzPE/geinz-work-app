@@ -127,7 +127,9 @@
             android:layout_height="35dp"
             android:layout_gravity="center"
             android:layout_marginRight="5dp"
+            android:textColor="@color/white"
             android:paddingHorizontal="10dp"
+            android:background="@drawable/bordes_btn_sigueindo_trabajador"
             android:text="Siguiendo"
             android:visibility="gone" />
 

@@ -99,7 +99,7 @@ class cuentaFracment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         firebaseAuth = FirebaseAuth.getInstance()
-        constantes.carga(3000, { mostrarDatos() })
+//        constantes.carga(3000, { mostrarDatos() })
         confSwipe()
         verificarDeDondeEsUsuario(firebaseAuth.uid.toString())
         constantes.obtenerEstado(binding.estado, firebaseAuth.uid.toString())
@@ -125,7 +125,6 @@ class cuentaFracment : Fragment() {
         binding.fotoPortada.setOnClickListener {
             picmedaiFotoPoprtada.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
-
         binding.editarnombre.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
             bottomShettEditar_informaciones(
@@ -144,12 +143,7 @@ class cuentaFracment : Fragment() {
                 binding.apellidoUSer.text.toString()
             )
             dialog.show()
-//            var apellidoUser = binding.apellidoUSer.text.toString()
-//            val vista = Intent(mContex, EditarInfo::class.java)
-//            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-//            vista.putExtra(Variables.tipo, Variables.apellido)
-//            vista.putExtra(Variables.valor, apellidoUser)
-//            startActivity(vista)
+
         }
         binding.editarNumero.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
@@ -159,12 +153,6 @@ class cuentaFracment : Fragment() {
                 binding.numero.text.toString()
             )
             dialog.show()
-//            var telefonouser = binding.numero.text.toString()
-//            val vista = Intent(mContex, EditarInfo::class.java)
-//            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-//            vista.putExtra(Variables.tipo, Variables.numeroT)
-//            vista.putExtra(Variables.valor, telefonouser)
-//            startActivity(vista)
         }
         binding.informacion.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
@@ -179,12 +167,7 @@ class cuentaFracment : Fragment() {
                 binding.descripcion.text.toString()
             )
             dialog.show()
-//            var descripcionUser = binding.descripcion.text.toString()
-//            val vista = Intent(mContex, EditarInfo::class.java)
-//            vista.putExtra(Variables.TipoCuenta, binding.tipoCuenta.text.toString())
-//            vista.putExtra(Variables.tipo, Variables.descripcion)
-//            vista.putExtra(Variables.valor, descripcionUser)
-//            startActivity(vista)
+
         }
         binding.editarNombreUsuario.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
@@ -701,11 +684,21 @@ class cuentaFracment : Fragment() {
 
     @SuppressLint("SuspiciousIndentation")
     private fun leerinfoNormal() {
+        val startTime = System.currentTimeMillis()
+
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.usuarios_db).collection(Variables.usuarios_db)
             .document("${firebaseAuth.uid}")
+
+        var firestoreEndTime = 0L
+        var storageEndTime = 0L
+
         db.get()
             .addOnSuccessListener { documentSnapshot ->
+                firestoreEndTime = System.currentTimeMillis()
+                val firestoreDuration = firestoreEndTime - startTime
+                println("Firestore consulta tomó $firestoreDuration ms")
+
                 if (documentSnapshot.exists()) {
                     val userData = documentSnapshot.data
                     val nombre = userData?.get(Variables.nombre) as? String ?: ""
@@ -752,10 +745,21 @@ class cuentaFracment : Fragment() {
                         null,
                         "perfil", placeholderperfil
                     ) {}
-
                 }
+
+                // Si quieres medir descarga de imagen (Storage), asumo que se hace dentro de `obtenerPerfil`
+                // Si no, aquí no hay código para medir tiempo de Storage.
+
+                // Si no hay descarga adicional, totalDuration es igual a firestoreDuration
+                val totalDuration = System.currentTimeMillis() - startTime
+                println("Total leerinfoNormal tomó $totalDuration ms")
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding.loading.isVisible = false
+                    binding.swipe.isVisible = true
+                }, totalDuration)
             }
     }
+
 
     private fun pasamosToken(collection: String) {
         val muid = "${firebaseAuth.uid}"
@@ -789,13 +793,22 @@ class cuentaFracment : Fragment() {
     }
 
     private fun leerInfo() {
+        val startTime = System.currentTimeMillis()
+
         val collectionid =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
                 .document("${firebaseAuth.uid}")
 
+        var firestoreEndTime = 0L
+        var storageEndTime = 0L
+
         collectionid.get()
             .addOnSuccessListener { documentSnapshot ->
+                firestoreEndTime = System.currentTimeMillis()
+                val firestoreDuration = firestoreEndTime - startTime
+                println("Firestore consulta tomó $firestoreDuration ms")
+
                 if (documentSnapshot.exists()) {
                     val userData = documentSnapshot.data
                     val nombre = userData?.get(Variables.nombre) as? String ?: ""
@@ -826,9 +839,7 @@ class cuentaFracment : Fragment() {
                         Variables.trabajadoresDB
                     )
                     binding.nombreUsuario.text = "$nombre_usuario"
-
                     binding.descripcion.text = descripcion
-
                     binding.nombreUser.text = nombre
                     binding.apellidoUSer.text = apellido
                     binding.fechaNaciminetoUSer.text = fechaNac
@@ -843,7 +854,6 @@ class cuentaFracment : Fragment() {
                     binding.edadUser.text = "${edadUSer} años"
                     binding.tipoCuenta.text = TipoCuenta
 
-
                     val placeholderperfil =
                         ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
                     constatnes_carga_imagenes_general.changer_img(
@@ -855,25 +865,39 @@ class cuentaFracment : Fragment() {
                         "perfil", placeholderperfil
                     ) {}
                 }
-            }
-        val refStorage =
-            FirebaseStorage.getInstance().getReference(Variables.usuarios_db)
-                .child(firebaseAuth.uid.toString()).child(foto_portada)
-        if (refStorage != null) {
-            refStorage.downloadUrl.addOnSuccessListener { uri ->
-                val imgUrl = uri.toString()
-                try {
-                    Glide.with(this)
-                        .load(imgUrl)
-                        .into(binding.fotoPortada)
-                } catch (e: Exception) {
-                    println(e)
+
+                val refStorage =
+                    FirebaseStorage.getInstance().getReference(Variables.usuarios_db)
+                        .child(firebaseAuth.uid.toString()).child(foto_portada)
+                if (refStorage != null) {
+                    refStorage.downloadUrl.addOnSuccessListener { uri ->
+                        storageEndTime = System.currentTimeMillis()
+                        val storageDownloadDuration = storageEndTime - firestoreEndTime
+                        val totalDuration = storageEndTime - startTime
+                        println("Storage descarga tomó $storageDownloadDuration ms")
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            binding.loading.isVisible = false
+                            binding.swipe.isVisible = true
+                        }, totalDuration)
+
+                        val imgUrl = uri.toString()
+                        try {
+                            Glide.with(this)
+                                .load(imgUrl)
+                                .into(binding.fotoPortada)
+                        } catch (e: Exception) {
+                            println(e)
+                        }
+                    }
+                } else {
+                    // Si no hay referencia Storage, igual mostramos totalDuration hasta firestoreEndTime
+                    val totalDuration = firestoreEndTime - startTime
+                    println("Total leerInfo tomó $totalDuration ms (sin Storage)")
                 }
             }
-        }
-
-
     }
+
+
 
 
     private fun subirImagenStorage(uri: Uri, nombreimg: String) {

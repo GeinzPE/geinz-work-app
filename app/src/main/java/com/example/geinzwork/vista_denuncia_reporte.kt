@@ -136,6 +136,8 @@ class vista_denuncia_reporte : AppCompatActivity() {
             binding.cargandoContenido.isVisible = true
             binding.scroolReporesMismoTrabajador.isVisible = false
             binding.chipGroupestados.clearCheck()
+            binding.todosFitlradosReportesReview.isChecked = false // por si ya estaba marcado antes
+            binding.todosFitlradosReportesReview.isChecked = true
 
         }
         binding.tusReportes.setOnClickListener {

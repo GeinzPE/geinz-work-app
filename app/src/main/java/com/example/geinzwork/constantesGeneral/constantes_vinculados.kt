@@ -212,6 +212,7 @@ object constantes_vinculados {
         onStart: () -> Unit,
         onFinish: (dispositivoValido: Boolean) -> Unit
     ) {
+        firebaseAuth=FirebaseAuth.getInstance()
         val androidId = obtenerAndroidID(context)
         onStart() // indica que la verificación empieza
 
@@ -222,7 +223,9 @@ object constantes_vinculados {
                         var dispositivoEncontrado = false
                         for (datos in res) {
                             val id = datos.getString("id_dispositivo")
+
                             if (androidId == id) {
+                                setar_hora_fecha_ultimaConexion(firebaseAuth.uid.toString(),context)
                                 dispositivoEncontrado = true
                                 break
                             }
@@ -230,7 +233,6 @@ object constantes_vinculados {
                         if (!dispositivoEncontrado) {
                             FirebaseAuth.getInstance().signOut()
                             if (context is Activity) {
-                                // context.finishAffinity()  // opcional si quieres cerrar todo
                             }
                         }
                         onFinish(dispositivoEncontrado)

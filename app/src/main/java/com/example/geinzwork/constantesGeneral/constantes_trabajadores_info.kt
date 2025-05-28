@@ -417,6 +417,7 @@ object constantes_trabajadores_info {
         refSeguidores.set(hashMapSeguidores, SetOptions.merge())
             .addOnSuccessListener {
                 println("Seguidor agregado correctamente")
+                println("el valo de actualizar fue $funcion_aplicar")
                 if (funcion_aplicar) {
                     actualizarSeguidres(binding!!, idTrabajadorActual)
                 }
@@ -476,7 +477,7 @@ object constantes_trabajadores_info {
 
         refSeguidores.delete().addOnSuccessListener {
             println("Dejó de seguir correctamente al trabajador")
-            actualizarSeguidres(binding, idTrabajadorActual)
+//            actualizarSeguidres(binding, idTrabajadorActual)
             if (estilo) {
                 binding.dejarDeSeguirOSeguir.text = seguir_TXT
             }

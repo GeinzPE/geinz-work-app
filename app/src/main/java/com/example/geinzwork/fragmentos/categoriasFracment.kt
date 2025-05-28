@@ -60,8 +60,9 @@ class categoriasFracment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         firebaseAuth=FirebaseAuth.getInstance()
-        constantes.carga(1000, { mostrarDatos() })
+//        constantes.carga(1000, { mostrarDatos() })
         confSwipe()
+        obtenerCategorias(binding.loading)
         obtener_trabajadores_nombre()
         (binding.recycleMostrarTrabajadores.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
 
@@ -150,7 +151,11 @@ class categoriasFracment : Fragment() {
         val trabajos = mutableListOf<dataClassTrabajosMostrados>()
         val db = FirebaseFirestore.getInstance().collection(Variables.categoriasDB)
             .document(Variables.categoriasTrabajo)
+
         loadingView.isVisible = true
+
+        val startTime = System.currentTimeMillis() // Tiempo inicio
+
         db.get()
             .addOnSuccessListener { res ->
                 if (res.exists()) {
@@ -158,15 +163,27 @@ class categoriasFracment : Fragment() {
                     categorias?.let { listaCategorias ->
 
                         var count = 0
+                        if (listaCategorias.isEmpty()) {
+
+                            val totalDuration = System.currentTimeMillis() - startTime
+                            println("obtenerCategorias terminó en $totalDuration ms (sin categorías)")
+                            loadingView.isVisible = false
+                            actualizarVisibilidad(false)
+                            return@addOnSuccessListener
+                        }
+
                         for (categoria in listaCategorias) {
-                            constantesSubcategoriaszonasTiendas.obtenerSubcategorias(Variables.subcategoriasTrabajos,
+                            constantesSubcategoriaszonasTiendas.obtenerSubcategorias(
+                                Variables.subcategoriasTrabajos,
                                 categoria,
                                 onSuccess = { subcategorias ->
+
                                     constantesSubcategoriaszonasTiendas.obtenerImagenesCategorias(
                                         Variables.IMG_CategoriasGeneral,
                                         Variables.categroriasTrabajadores,
                                         categoria,
                                         onSuccess = { urlImg ->
+
                                             val data = dataClassTrabajosMostrados(
                                                 categoria,
                                                 urlImg ?: "",
@@ -176,54 +193,77 @@ class categoriasFracment : Fragment() {
 
                                             count++
                                             if (count == listaCategorias.size) {
-                                                inicalizarREciocle(
-                                                    binding.RecicleViewTrabajos,
-                                                    trabajos
-                                                )
-                                                actualizarVisibilidad(true)
+                                                // Aquí terminan todas las cargas
+                                                val totalDuration = System.currentTimeMillis() - startTime
+                                                println("obtenerCategorias completó todo en $totalDuration ms")
+                                                Handler(Looper.getMainLooper()).postDelayed({
+
+                                                    binding.loading.isVisible = false
+                                                    binding.swipe.isVisible = true
+                                                    inicalizarREciocle(
+                                                        binding.RecicleViewTrabajos,
+                                                        trabajos
+                                                    )
+                                                    actualizarVisibilidad(true)
+                                                }, totalDuration)
+
+
                                             }
                                         },
                                         onFailure = { error ->
                                             println("Error al obtener las imágenes para $categoria: ${error.message}")
-                                            count++ // Incrementar el contador en caso de error
+                                            count++
                                             if (count == listaCategorias.size) {
+                                                val totalDuration = System.currentTimeMillis() - startTime
+                                                println("obtenerCategorias completó todo con errores en $totalDuration ms")
+
                                                 inicalizarREciocle(
                                                     binding.RecicleViewTrabajos,
                                                     trabajos
                                                 )
                                                 actualizarVisibilidad(true)
+                                                loadingView.isVisible = false
                                             }
                                         }
                                     )
                                 },
                                 onFailure = { error ->
                                     println("Error al obtener subcategorías para $categoria: ${error.message}")
-                                    // Manejar el error si es necesario
-                                    count++ // Incrementar el contador en caso de error
+                                    count++
                                     if (count == listaCategorias.size) {
-                                        // Si se completan todas las categorías, inicializar el RecyclerView
+                                        val totalDuration = System.currentTimeMillis() - startTime
+                                        println("obtenerCategorias completó todo con errores en $totalDuration ms")
+
                                         inicalizarREciocle(
                                             binding.RecicleViewTrabajos,
                                             trabajos
                                         )
                                         actualizarVisibilidad(true)
+                                        loadingView.isVisible = false
                                     }
                                 }
                             )
                         }
+                    } ?: run {
+                        // Si no hay lista (null)
+                        val totalDuration = System.currentTimeMillis() - startTime
+                        println("No hay categorías, función terminó en $totalDuration ms")
+                        loadingView.isVisible = false
+                        actualizarVisibilidad(false)
                     }
                 } else {
                     println("No se encontró el documento 'categoriasTiendas'")
-                    loadingView.isVisible = false // Ocultar loading en caso de fallo
+                    loadingView.isVisible = false
                     actualizarVisibilidad(false)
                 }
             }
             .addOnFailureListener { exception ->
                 println("Error al obtener el documento 'categoriasTiendas': $exception")
-                loadingView.isVisible = false // Ocultar loading en caso de fallo
+                loadingView.isVisible = false
                 actualizarVisibilidad(false)
             }
     }
+
 
     private fun inicalizarREciocle(
         recicleTrabajos: RecyclerView,

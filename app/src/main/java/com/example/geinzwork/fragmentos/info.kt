@@ -584,7 +584,7 @@ class info : Fragment() {
             },
             seguir = { item ->
                 seguirUsuario(item.id_trabajador)
-                dialog.dismiss()
+
             },
             dejar_seguir = { item ->
                 constantes_trabajadores_info.dejarSeguirTrabajador(
@@ -593,7 +593,7 @@ class info : Fragment() {
                     mContex,
                     false
                 )
-                dialog.dismiss()
+
             },
         )
         binding_bottom_sheet_seguidores.recycleCargarSeguidosSeguidores.layoutManager =
