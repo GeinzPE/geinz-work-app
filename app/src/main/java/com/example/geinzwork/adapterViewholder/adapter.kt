@@ -14,20 +14,28 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
+import com.geinzz.geinzwork.databinding.BottomSheetContactoDirectoBinding
 import com.geinzz.geinzwork.databinding.RecicleTrabajosBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
 
 class adapter(
     private var finish: Boolean,
     private var listaTrabajos: MutableList<dataClassTrabajosd>,
     private val uidString: String,
     private var cantidadMostrado: Int,
-    private var match_parent:Boolean
-    ) : RecyclerView.Adapter<adapter.viewHolder>() {
+    private var match_parent: Boolean
+
+) : RecyclerView.Adapter<adapter.viewHolder>() {
     init {
         listaTrabajos.shuffle()
     }
+
+    private lateinit var dialog: BottomSheetDialog
+    private lateinit var firebaseAuth:FirebaseAuth
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {
         val binding =
@@ -68,8 +76,24 @@ class adapter(
             dataClassTrabajosd: dataClassTrabajosd,
             uidString: String,
         ) {
+            firebaseAuth= FirebaseAuth.getInstance()
+            btnVermas.setOnLongClickListener {
+                if (firebaseAuth.currentUser == null) {
+                    dialog = BottomSheetDialog(itemView.context)
+                    constantesPublicidad.CreacionCuentaBottom_shett(
+                        itemView.context,
+                        dialog
+                    )
+                    dialog.show()
+                }else{
+                    dialog = BottomSheetDialog(itemView.context)
+                    bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
+                    dialog.show()
+                }
+                true
+            }
 
-            if(match_parent){
+            if (match_parent) {
                 val params = btnVermas.layoutParams as ViewGroup.MarginLayoutParams
                 params.width = ViewGroup.LayoutParams.MATCH_PARENT
                 btnVermas.layoutParams = params
@@ -85,6 +109,15 @@ class adapter(
             )
             constantes.setearBanderas(dataClassTrabajosd, itemView.context, nacionalidad)
             Tu_cuentaMostrado(uidString, dataClassTrabajosd)
+        }
+
+        fun bottomSheet_contacto_directo(item_id: String) {
+            val bottom_bindig =
+                BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(itemView.context))
+            val view = bottom_bindig.root
+
+            dialog.setContentView(view)
+
         }
 
         fun promedioEstrellas(dataClassTrabajosd: dataClassTrabajosd): String {
@@ -110,16 +143,21 @@ class adapter(
             calificacion.text =
                 "${promedioEstrellas(dataClassTrabajosd)} (${dataClassTrabajosd.start})"
             localidad.text = dataClassTrabajosd.localidad
-            constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v,plan->
-                when(plan){
-                    Variables.plaA->{
+            constantes_servicios.verificarEstado_vericiacion(
+                binding.verificados,
+                dataClassTrabajosd.id.toString()
+            ) { v, plan ->
+                when (plan) {
+                    Variables.plaA -> {
                         binding.verificados.setImageResource(R.drawable.verificado_a)
 
                     }
-                    Variables.planB->{
+
+                    Variables.planB -> {
                         binding.verificados.setImageResource(R.drawable.icon_verificado)
                     }
-                    Variables.PlanC->{
+
+                    Variables.PlanC -> {
                         binding.verificados.setImageResource(R.drawable.verificado_c)
 
 

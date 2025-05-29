@@ -16,10 +16,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
+import com.geinzz.geinzwork.databinding.BottomSheetContactoDirectoBinding
 import com.geinzz.geinzwork.databinding.ItemAnunciosBinding
 import com.geinzz.geinzwork.databinding.RecicleTrabajosBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import de.hdodenhof.circleimageview.CircleImageView
 
@@ -30,6 +34,8 @@ class adapterCategorias
     private val uidString: String
 
 ) : RecyclerView.Adapter<adapterCategorias.viewHolderCategorias>() {
+    private lateinit var dialog: BottomSheetDialog
+    private lateinit var firebaseAuth:FirebaseAuth
     @SuppressLint("SuspiciousIndentation")
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolderCategorias {
         val binding =
@@ -65,6 +71,7 @@ class adapterCategorias
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun render(dataClassTrabajosd: dataClassTrabajosd, vermas: (dataClassTrabajosd) -> Unit,uidString: String) {
+            firebaseAuth=FirebaseAuth.getInstance()
             setearCampos(dataClassTrabajosd, vermas)
             constantes.obtenerFotoPerfil(
                 dataClassTrabajosd,
@@ -72,6 +79,22 @@ class adapterCategorias
                 imgaenTrabajo,
                 imagenPerfilcicrle
             )
+            btnVermas.setOnLongClickListener {
+                if (firebaseAuth.currentUser == null) {
+                    dialog = BottomSheetDialog(itemView.context)
+                    constantesPublicidad.CreacionCuentaBottom_shett(
+                        itemView.context,
+                        dialog
+                    )
+                    dialog.show()
+                }else{
+                    dialog = BottomSheetDialog(itemView.context)
+                    bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
+                    dialog.show()
+                }
+
+                true
+            }
             constantes.setearBanderas(dataClassTrabajosd, itemView.context, nacionalidad)
             Tu_cuentaMostrado(uidString,dataClassTrabajosd)
             constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v,plan->
@@ -93,6 +116,14 @@ class adapterCategorias
             constantes.obtenerEstado(actividad,dataClassTrabajosd.id.toString())
         }
 
+        fun bottomSheet_contacto_directo(item_id: String) {
+            val bottom_bindig =
+                BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(itemView.context))
+            val view = bottom_bindig.root
+
+            dialog.setContentView(view)
+
+        }
 
         @SuppressLint("SuspiciousIndentation")
         @RequiresApi(Build.VERSION_CODES.O)

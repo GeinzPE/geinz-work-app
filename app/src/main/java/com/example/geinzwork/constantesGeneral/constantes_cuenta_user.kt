@@ -14,6 +14,7 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
 import com.example.geinzwork.vista_denuncia_reporte
+import com.example.geinzwork.vistas_p.onboarding_como_usar_geinz
 import com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar
 import com.geinzz.geinzwork.GenerarQR_trabajador
 import com.geinzz.geinzwork.MainActivity
@@ -98,7 +99,7 @@ object constantes_cuenta_user {
             dialog.dismiss()
         }
         lineal_como_funcion_Geinz.setOnClickListener {
-            context.startActivity(Intent(context, comoUsar::class.java))
+            context.startActivity(Intent(context, onboarding_como_usar_geinz::class.java))
             dialog.dismiss()
         }
         lineaReportes.setOnClickListener {

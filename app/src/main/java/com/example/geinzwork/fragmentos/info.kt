@@ -221,13 +221,8 @@ class info : Fragment() {
             obtenerRedes(mContex, Variables.tk, idTrabajador)
         }
         obtenerPerfil(idTrabajador, img)
-
         confSwipe(idTrabajador, img)
-        constantes_trabajadores_info.verificarSiSiueTrabajador(
-            binding,
-            idTrabajador,
-            mContex,
-            { sige -> },
+        constantes_trabajadores_info.verificarSiSiueTrabajador(binding, idTrabajador, mContex, { sige -> },
             { noti ->
                 Log.d("norificaicon", noti.toString())
                 if (noti) {
@@ -384,6 +379,7 @@ class info : Fragment() {
                 binding_bottom_sheet_seguidores.linealTrabajadores.isVisible = false
             } else {
                 inizialar_seguir_seguidores(
+                    id_Trabajador_actual,
                     listaanunciosEncontrados,
                     binding_bottom_sheet_seguidores
                 )
@@ -495,6 +491,7 @@ class info : Fragment() {
                 val tiempoFin = System.currentTimeMillis()
                 val tiempoTotal = tiempoFin - tiempoInicio
                 inizialar_seguir_seguidores(
+                    id_Trabajador_actual,
                     listaanunciosEncontrados,
                     binding_bottom_sheet_seguidores
                 )
@@ -564,11 +561,12 @@ class info : Fragment() {
 
 
     private fun inizialar_seguir_seguidores(
+        id_trabajador: String,
         lista_seguidores: MutableList<dataclass_seguidores_seguidos>,
         binding_bottom_sheet_seguidores: BottomSheetCargarSeguidoresSeguidosBinding
     ) {
         adapter_seguidores_seguidos = adapter_seguidores_seguidos(
-            lista_seguidores,
+            lista_seguidores, id_trabajador,
             { item ->
                 val vista_t = Intent(mContex, vistaTrabajador::class.java).apply {
                     putExtra(Variables.id, item.id_trabajador)
@@ -583,16 +581,46 @@ class info : Fragment() {
                 dialog.dismiss()
             },
             seguir = { item ->
-                seguirUsuario(item.id_trabajador)
+                if (firebaseAuth.uid.toString() == id_trabajador) {
+                    Toast.makeText(mContex, "los id son iguales ", Toast.LENGTH_SHORT).show()
+                    constantes_trabajadores_info.seguirTrabajadorcategoriasFR(binding,item.id_trabajador!!, false,true)
+                    gola(binding)
+
+                }else{
+                    constantes_trabajadores_info.seguirTrabajadorcategoriasFR(null,item.id_trabajador!!, false,false)
+
+                }
+
 
             },
             dejar_seguir = { item ->
-                constantes_trabajadores_info.dejarSeguirTrabajador(
-                    binding,
-                    item.id_trabajador.toString(),
+                Toast.makeText(
                     mContex,
-                    false
-                )
+                    "${firebaseAuth.uid.toString() == id_trabajador}",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                if (firebaseAuth.uid.toString() == id_trabajador) {
+                    Toast.makeText(mContex, "los id son iguales ", Toast.LENGTH_SHORT).show()
+                    constantes_trabajadores_info.dejarSeguirTrabajador(
+                        binding,
+                        item.id_trabajador.toString(),
+                        mContex,
+                        false,false
+                    )
+                    constantes_trabajadores_info.ver_cantidad_siguiendo(binding, id_trabajador)
+
+                } else {
+                    Toast.makeText(mContex, "no son iguales", Toast.LENGTH_SHORT).show()
+                    constantes_trabajadores_info.dejarSeguirTrabajador(
+                        binding,
+                        item.id_trabajador.toString(),
+                        mContex,
+                        false,false
+                    )
+                    constantes_trabajadores_info.ver_cantidad_siguiendo(binding,  id_trabajador)
+                }
+
 
             },
         )
@@ -603,41 +631,8 @@ class info : Fragment() {
 
     }
 
+    private fun gola(binding: FragmentInfoBinding) {
 
-    fun seguirUsuario(idTrabajador: String?) {
-        if (firebaseAuth.currentUser == null) {
-            val builder = androidx.appcompat.app.AlertDialog.Builder(mContex)
-            builder.setTitle("No estás registrado en Geinz Work")
-            builder.setMessage("Regístrate en Geinz Work para que puedas seguir.")
-            builder.setPositiveButton("Cuenta Simple") { dialog, _ ->
-                // Mostrar diálogo de carga y redirigir a la pantalla de registro
-                constantes.showLoadingDialog(
-                    mContex,
-                    2000,
-                    "Cargando información",
-                    "Espere un momento..."
-                )
-                val intent = Intent(mContex, CuentaFreelancer::class.java).apply {
-                    putExtra("tipoCuenta", "cuentaSimple")
-                    putExtra("Title", "Cuenta Simple")
-                    putExtra("pasos", "Estás a 1/2 pasos")
-                }
-                mContex.startActivity(intent)
-                dialog.dismiss()
-            }
-            builder.setNegativeButton("Cuenta Trabajador") { dialog, _ ->
-                val intent = Intent(mContex, CuentaFreelancer::class.java).apply {
-                    putExtra("tipoCuenta", "cuentaTrabajador")
-                    putExtra("Title", "Cuenta Freelancer")
-                    putExtra("pasos", "Estás a 1/5 pasos")
-                }
-                mContex.startActivity(intent)
-                dialog.dismiss()
-            }
-            builder.create().show()
-        } else {
-            constantes_trabajadores_info.seguirTrabajador(idTrabajador!!, binding, false)
-        }
     }
 
     private fun cancelarContadorVista() {
@@ -899,7 +894,8 @@ class info : Fragment() {
             dialog.dismiss()
         }
         bindingMostrar.cargarConteindo.isVisible = true
-        bindingMostrar.linealGeneralLinea.isVisible = false // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
+        bindingMostrar.linealGeneralLinea.isVisible =
+            false // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
         val titulo = trabajo["titulo"] as? String ?: "Sin título"
         val contenido = trabajo["contenido"] as? String ?: "Sin contenido"
         val idSelecionado = trabajo["id"] as? String ?: ""

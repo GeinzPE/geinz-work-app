@@ -321,7 +321,7 @@ class categoriasFracment : Fragment() {
     ) {
 
         adapter_seguidores_seguidos = adapter_seguidores_seguidos(
-            lista_seguidores,
+            lista_seguidores,"",
             { item ->
                 val vista_t = Intent(mContex, vistaTrabajador::class.java).apply {
                     putExtra(Variables.id, item.id_trabajador)
@@ -381,7 +381,7 @@ class categoriasFracment : Fragment() {
                 }
                 builder.create().show()
             } else {
-                constantes_trabajadores_info.seguirTrabajadorcategoriasFR(idTrabajador!!, false)
+                constantes_trabajadores_info.seguirTrabajadorcategoriasFR(null,idTrabajador!!, false,false)
             }
 
 

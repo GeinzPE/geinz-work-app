@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.geinzwork.DiffUtilClass.difultil_Seguidores_seguidos
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
@@ -29,6 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class adapter_seguidores_seguidos(
     private var lista: List<dataclass_seguidores_seguidos>,
+    private var id_trabajador_clikeado: String,
     private val listener: (dataclass_seguidores_seguidos) -> Unit,
     private val seguir: (dataclass_seguidores_seguidos) -> Unit,
     private val dejar_seguir: (dataclass_seguidores_seguidos) -> Unit
@@ -36,12 +38,13 @@ class adapter_seguidores_seguidos(
     RecyclerView.Adapter<adapter_seguidores_seguidos.viewholderSeguidores_Seguidos>() {
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
-    fun actualizarLista(newList:List<dataclass_seguidores_seguidos>){
-        val difutil=difultil_Seguidores_seguidos(lista,newList)
-        val result=DiffUtil.calculateDiff(difutil)
+    fun actualizarLista(newList: List<dataclass_seguidores_seguidos>) {
+        val difutil = difultil_Seguidores_seguidos(lista, newList)
+        val result = DiffUtil.calculateDiff(difutil)
         lista = newList
         result.dispatchUpdatesTo(this)
     }
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -70,16 +73,21 @@ class adapter_seguidores_seguidos(
             binding.nombreUser.text = item.nombre_trabajador
             binding.nacionalidadUser.text = item.nacionalidad
 
-            constantes_servicios.verificarEstado_vericiacion(binding.verificadoIcono,item.id_trabajador.toString() ){ v, plan->
-                when(plan){
-                    Variables.plaA->{
+            constantes_servicios.verificarEstado_vericiacion(
+                binding.verificadoIcono,
+                item.id_trabajador.toString()
+            ) { v, plan ->
+                when (plan) {
+                    Variables.plaA -> {
                         binding.verificadoIcono.setImageResource(R.drawable.verificado_a)
 
                     }
-                    Variables.planB->{
+
+                    Variables.planB -> {
                         binding.verificadoIcono.setImageResource(R.drawable.icon_verificado)
                     }
-                    Variables.PlanC->{
+
+                    Variables.PlanC -> {
                         binding.verificadoIcono.setImageResource(R.drawable.verificado_c)
 
 
@@ -98,28 +106,25 @@ class adapter_seguidores_seguidos(
                 "perfil", drawable
             ) { cargado ->
             }
-            when (item.nacionalidad) {
-                Variables.Peruano -> {
-                    try {
-                        Glide.with(itemView.context)
-                            .load(R.drawable.bandera_peru)
-                            .into(binding.banderaNacionalidad)
-                    } catch (e: Exception) {
-                        println(e)
-                    }
 
-                }
 
-                Variables.Venezolano -> {
-                    try {
-                        Glide.with(itemView.context)
-                            .load(R.drawable.bandera_venezolana)
-                            .into(binding.banderaNacionalidad)
-                    } catch (e: Exception) {
-                        println(e)
-                    }
-                }
+            val banderaResId = when (item.nacionalidad?.trim()?.lowercase()) {
+                Variables.Peruano.lowercase() -> R.drawable.bandera_peru
+                Variables.Venezolano.lowercase() -> R.drawable.bandera_venezolana
+                else -> R.drawable.logo_geinz_circular
             }
+
+            try {
+                Glide.with(itemView.context)
+                    .load(banderaResId)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(binding.banderaNacionalidad)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+
             binding.listener.setOnClickListener {
                 listener(item)
             }
@@ -131,23 +136,24 @@ class adapter_seguidores_seguidos(
             )
 
             binding.seguir.setOnClickListener {
-                    if (firebaseAuth.currentUser == null) {
-                        dialog = BottomSheetDialog(itemView.context)
-                        constantesPublicidad.CreacionCuentaBottom_shett(
-                            itemView.context,
-                            dialog
-                        )
-                        dialog.show()
-                    } else {
-                        constantes_trabajadores_info.seguirTrabajadorcategoriasFR(item.id_trabajador!!, false)
-                        binding.dejarSeguir.isVisible=true
-                        binding.seguir.isVisible=false
-                    }
+                if (firebaseAuth.currentUser == null) {
+                    dialog = BottomSheetDialog(itemView.context)
+                    constantesPublicidad.CreacionCuentaBottom_shett(
+                        itemView.context,
+                        dialog
+                    )
+                    dialog.show()
+                } else {
+                    seguir(item)
+                    binding.dejarSeguir.isVisible = true
+                    binding.seguir.isVisible = false
+                }
+
             }
             binding.dejarSeguir.setOnClickListener {
                 dejar_seguir(item)
-                binding.seguir.isVisible=true
-                binding.dejarSeguir.isVisible=false
+                binding.seguir.isVisible = true
+                binding.dejarSeguir.isVisible = false
             }
 
             binding.verPerfil.setOnClickListener {
@@ -189,7 +195,6 @@ class adapter_seguidores_seguidos(
 
         db.get().addOnSuccessListener { res ->
             val loSigue = res.any { it.getString("id") == id_user_registrado }
-
             if (loSigue) {
                 binding.dejarSeguir.isVisible = true
                 constantes_trabajadores_info.aplicarEstiloSigueindo(binding.dejarSeguir, context)
@@ -202,8 +207,6 @@ class adapter_seguidores_seguidos(
             Log.e("verificar_seguimiento", "Error al obtener seguidores: ${e.message}")
         }
     }
-
-
 
 
 }

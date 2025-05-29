@@ -735,29 +735,15 @@
                 android:layout_height="wrap_content"
                 android:text="Metodos de pago" />
 
-            <LinearLayout
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/yape"
-                    android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <com.google.android.material.chip.ChipGroup
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="yape" />
+                    android:id="@+id/chips_pagos"/>
 
-                <RadioButton
-                    android:id="@+id/efectivo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Efectivo" />
-
-                <RadioButton
-                    android:id="@+id/plin"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Plin" />
-            </LinearLayout>
+            </HorizontalScrollView>
 
 
             <TextView
@@ -770,36 +756,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <RadioGroup
-                    android:id="@+id/metodos_entrega"
+                <com.google.android.material.chip.ChipGroup
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:id="@+id/chips_entregas"/>
 
-                    <RadioButton
-                        android:id="@+id/delivery"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="delivery" />
-
-                    <RadioButton
-                        android:id="@+id/entrega_domicilio"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="entrega a domicilio" />
-
-                    <RadioButton
-                        android:id="@+id/coordinar_comprador"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="coordinar con el comprador" />
-
-                    <RadioButton
-                        android:id="@+id/lugar_entrega"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Lugar de entrega" />
-                </RadioGroup>
             </HorizontalScrollView>
 
             <LinearLayout

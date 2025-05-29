@@ -160,26 +160,26 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
         binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
-        val radioGroup = binding.metodosEntrega
+//        val radioGroup = binding.metodosEntrega
         val campoLugarEntrega = binding.lugarEntregaTXT
         val linealDeliveryGratis = binding.linealDeliveryGratis
         val radioDeliveryGratis =
             binding.radioDeliveryGratis // <- Asegúrate que está en tu ViewBinding
         obtener_estados_productos()
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            campoLugarEntrega.visibility = if (checkedId == R.id.lugar_entrega) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-
-            if (checkedId == R.id.delivery) {
-                linealDeliveryGratis.visibility = View.VISIBLE
-            } else {
-                linealDeliveryGratis.visibility = View.GONE
-                radioDeliveryGratis.clearCheck() // <-- Limpiamos la selección de "sí" o "no"
-            }
-        }
+//        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+//            campoLugarEntrega.visibility = if (checkedId == R.id.lugar_entrega) {
+//                View.VISIBLE
+//            } else {
+//                View.GONE
+//            }
+//
+//            if (checkedId == R.id.delivery) {
+//                linealDeliveryGratis.visibility = View.VISIBLE
+//            } else {
+//                linealDeliveryGratis.visibility = View.GONE
+//                radioDeliveryGratis.clearCheck() // <-- Limpiamos la selección de "sí" o "no"
+//            }
+//        }
         binding.mostrarPublicacionPara.setOnClickListener {
             dialog = BottomSheetDialog(this)
             mostrar_dialog_para(binding.mostrarPublicacionPara.text.toString()) { selt ->
@@ -225,19 +225,21 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             constantesDatosUsuarioTienda.obtnerLocalidades(binding.agregaUbiED)
 
         }
-        val yapeCheckBox = binding.yape
-        val efectivoCheckBox = binding.efectivo
-        val plinCheckBox = binding.plin
+//        val yapeCheckBox = binding.yape
+//        val efectivoCheckBox = binding.efectivo
+//        val plinCheckBox = binding.plin
 
-        yapeCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            yape = isChecked
-        }
-        efectivoCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            efectivo = isChecked
-        }
-        plinCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            plin = isChecked
-        }
+//        yapeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+//            yape = isChecked
+//        }
+//        efectivoCheckBox.setOnCheckedChangeListener { _, isChecked ->
+//            efectivo = isChecked
+//        }
+//        plinCheckBox.setOnCheckedChangeListener { _, isChecked ->
+//            plin = isChecked
+//        }
+        obtener_metodos_pagos()
+        obtener_metodos_entrega()
     }
 
     fun obtener_hastags_generales(
@@ -358,7 +360,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         bindingBottomSheetCategorias.inputnombre.isVisible = false
                         bindingBottomSheetCategorias.search.setText("")
 
-                        categoriaSeleccionada = null // Ninguna categoría seleccionada porque mostramos todas
+                        categoriaSeleccionada =
+                            null // Ninguna categoría seleccionada porque mostramos todas
 
                         // Mostrar todas las categorías completas
                         setupCategoryRecyclerView(
@@ -371,7 +374,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
                 for (document in querySnapshot) {
                     val categoryName = document.id.trim()
-                    val subcategories = document.get("subcategorias") as? List<String> ?: emptyList()
+                    val subcategories =
+                        document.get("subcategorias") as? List<String> ?: emptyList()
 
                     // Filtrar para no agregar categorías vacías
                     if (categoryName.isNotEmpty() && subcategories.isNotEmpty()) {
@@ -404,14 +408,31 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         }
                         bindingBottomSheetCategorias.chipGroupCategorias.addView(chip)
                     } else {
-                        Log.w("categorias_vacias", "Categoría vacía o sin subcategorías encontrada y omitida: $categoryName")
+                        Log.w(
+                            "categorias_vacias",
+                            "Categoría vacía o sin subcategorías encontrada y omitida: $categoryName"
+                        )
                     }
                 }
 
                 // Añadir el TextWatcher solo una vez, fuera del loop
                 bindingBottomSheetCategorias.search.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                    override fun beforeTextChanged(
+                        s: CharSequence?,
+                        start: Int,
+                        count: Int,
+                        after: Int
+                    ) {
+                    }
+
+                    override fun onTextChanged(
+                        s: CharSequence?,
+                        start: Int,
+                        before: Int,
+                        count: Int
+                    ) {
+                    }
+
                     override fun afterTextChanged(s: Editable?) {
                         val textoBusqueda = s.toString().trim()
                         val categoria = categoriaSeleccionada
@@ -424,11 +445,13 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                             if (subcategoriasFiltradas.isEmpty()) {
                                 // No hay subcategorías filtradas -> mostrar mensaje, ocultar RecyclerView
                                 bindingBottomSheetCategorias.sinResultados.visibility = View.VISIBLE
-                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.GONE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility =
+                                    View.GONE
                             } else {
                                 // Hay resultados -> mostrar RecyclerView, ocultar mensaje
                                 bindingBottomSheetCategorias.sinResultados.visibility = View.GONE
-                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.VISIBLE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility =
+                                    View.VISIBLE
 
                                 val categoriaFiltrada = CategoryWithSubcategories(
                                     category = categoria.category.copy(subcategories = subcategoriasFiltradas),
@@ -442,23 +465,27 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                             }
                         } else {
                             // No hay categoría seleccionada, filtramos todas las categorías y subcategorías
-                            val categoriasFiltradas = categoriesWithSubcategoriesList.map { catWithSub ->
-                                val subcatsFiltradas = catWithSub.category.subcategories.filter {
-                                    it.contains(textoBusqueda, ignoreCase = true)
-                                }
-                                catWithSub.copy(
-                                    category = catWithSub.category.copy(subcategories = subcatsFiltradas)
-                                )
-                            }.filter { it.category.subcategories.isNotEmpty() }
+                            val categoriasFiltradas =
+                                categoriesWithSubcategoriesList.map { catWithSub ->
+                                    val subcatsFiltradas =
+                                        catWithSub.category.subcategories.filter {
+                                            it.contains(textoBusqueda, ignoreCase = true)
+                                        }
+                                    catWithSub.copy(
+                                        category = catWithSub.category.copy(subcategories = subcatsFiltradas)
+                                    )
+                                }.filter { it.category.subcategories.isNotEmpty() }
 
                             if (categoriasFiltradas.isEmpty()) {
                                 // No hay categorías filtradas -> mostrar mensaje, ocultar RecyclerView
                                 bindingBottomSheetCategorias.sinResultados.visibility = View.VISIBLE
-                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.GONE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility =
+                                    View.GONE
                             } else {
                                 // Hay resultados -> mostrar RecyclerView, ocultar mensaje
                                 bindingBottomSheetCategorias.sinResultados.visibility = View.GONE
-                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility = View.VISIBLE
+                                bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories.visibility =
+                                    View.VISIBLE
 
                                 setupCategoryRecyclerView(
                                     bindingBottomSheetCategorias.idItemCategoriaVr.rvSubcategories,
@@ -614,51 +641,51 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         val metodoEntrega: String
 
-        when (binding.metodosEntrega.checkedRadioButtonId) {
-            R.id.delivery -> {
-                isDelivery = true
-                isEntregaDomicilio = false
-                isCoordinarComprador = false
-                metodoEntrega = "Delivery"
+//        when (binding.metodosEntrega.checkedRadioButtonId) {
+//            R.id.delivery -> {
+//                isDelivery = true
+//                isEntregaDomicilio = false
+//                isCoordinarComprador = false
+//                metodoEntrega = "Delivery"
+//
+//
+//            }
+//
+//            R.id.entrega_domicilio -> {
+//                isDelivery = false
+//                isEntregaDomicilio = true
+//                isCoordinarComprador = false
+//                metodoEntrega = "Entrega a domicilio"
+//
+//
+//            }
+//
+//            R.id.coordinar_comprador -> {
+//                isDelivery = false
+//                isEntregaDomicilio = false
+//                isCoordinarComprador = true
+//                metodoEntrega = "Cordinar con el comprado"
+//
+//
+//            }
+//
+//            R.id.lugar_entrega -> {
+//                isDelivery = false
+//                isEntregaDomicilio = false
+//                isCoordinarComprador = false
+//                metodoEntrega = "Lugar entrega"
+//
+//
+//            }
 
-
-            }
-
-            R.id.entrega_domicilio -> {
-                isDelivery = false
-                isEntregaDomicilio = true
-                isCoordinarComprador = false
-                metodoEntrega = "Entrega a domicilio"
-
-
-            }
-
-            R.id.coordinar_comprador -> {
-                isDelivery = false
-                isEntregaDomicilio = false
-                isCoordinarComprador = true
-                metodoEntrega = "Cordinar con el comprado"
-
-
-            }
-
-            R.id.lugar_entrega -> {
-                isDelivery = false
-                isEntregaDomicilio = false
-                isCoordinarComprador = false
-                metodoEntrega = "Lugar entrega"
-
-
-            }
-
-            else -> {
-                // Nada seleccionado aún
-                isDelivery = false
-                isEntregaDomicilio = false
-                isCoordinarComprador = false
-                metodoEntrega = ""
-            }
-        }
+//            else -> {
+//                // Nada seleccionado aún
+//                isDelivery = false
+//                isEntregaDomicilio = false
+//                isCoordinarComprador = false
+//                metodoEntrega = ""
+//            }
+//        }
         val descuentoAplicado = if (descuento) {
             val descuentoCalculado =
                 ((precioProducto.text.toString().toDouble() - precio_descuento_nuevo.text.toString()
@@ -693,7 +720,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "categoria_producto" to binding.catSelcionado.text.toString(),
                 "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
                 "efectivo" to efectivo,
-                "entrega_domicilio" to isEntregaDomicilio,
+//                "entrega_domicilio" to isEntregaDomicilio,
                 "fechaPublicada" to binding.fecha.text.toString(),
                 "horaPublicada" to binding.hora.text.toString(),
                 "garantia" to "${tiempoGarantiaYears.text} $unidadGarantia${
@@ -704,7 +731,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "localidadUser" to localida_user.text.toString(),
                 "lugarEntrega" to lugar_entrega.text.toString(),
                 "marca" to marca_producto.text.toString(),
-                "metodoEntrega" to metodoEntrega,
+//                "metodoEntrega" to metodoEntrega,
                 "envio_gratis" to deliveryGratis,
                 "modelo" to modelo_producto.text.toString(),
                 "hashtags_generales" to hashtagsGenerales,
@@ -847,7 +874,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
         }
     }
-
 
 
     private fun mostrarBottomSheetDescripcion(
@@ -1276,5 +1302,54 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         binding.vistraPreviaDescripcion.text = spannable
 
     }
+
+    private fun obtener_metodos_pagos() {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_pago")
+
+        db.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val nombreMetodo = datos.getString("nombre_metodo")
+                if (!nombreMetodo.isNullOrEmpty()) {
+                    val chip = Chip(this).apply {
+                        text = nombreMetodo
+                        isCheckable = true // importante para permitir selección
+                    }
+
+                    binding.chipsPagos.addView(chip)
+                }
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al cargar métodos de pago", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun obtener_metodos_entrega() {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_entrega")
+
+        db.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val nombreMetodo = datos.getString("nombre_metodo")
+                if (!nombreMetodo.isNullOrEmpty()) {
+                    val chip = Chip(this).apply {
+                        text = nombreMetodo
+                        isCheckable = true // importante para permitir selección
+                    }
+
+                    binding.chipsEntregas.addView(chip)
+                }
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al cargar métodos de entrega", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
 }
