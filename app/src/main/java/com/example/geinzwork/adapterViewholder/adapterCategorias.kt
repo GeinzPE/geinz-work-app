@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.adapterViewholder
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,13 +12,17 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja
+import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomSheetContactoDirectoBinding
 import com.geinzz.geinzwork.databinding.ItemAnunciosBinding
 import com.geinzz.geinzwork.databinding.RecicleTrabajosBinding
@@ -25,6 +30,7 @@ import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import de.hdodenhof.circleimageview.CircleImageView
 
 class adapterCategorias
@@ -35,7 +41,8 @@ class adapterCategorias
 
 ) : RecyclerView.Adapter<adapterCategorias.viewHolderCategorias>() {
     private lateinit var dialog: BottomSheetDialog
-    private lateinit var firebaseAuth:FirebaseAuth
+    private lateinit var firebaseAuth: FirebaseAuth
+
     @SuppressLint("SuspiciousIndentation")
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolderCategorias {
         val binding =
@@ -51,10 +58,11 @@ class adapterCategorias
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: viewHolderCategorias, position: Int) {
         val item = lista[position]
-        holder.render(item, vermas,uidString)
+        holder.render(item, vermas, uidString)
     }
 
-    inner class viewHolderCategorias(private val binding: RecicleTrabajosBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class viewHolderCategorias(private val binding: RecicleTrabajosBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         val name = binding.UserName
         val categoria = binding.categoria
         val btnVermas = binding.btnVermas
@@ -66,12 +74,16 @@ class adapterCategorias
         val nacionalidad = binding.nacionalidad
         val localidad = binding.localidad
         val actividad = binding.acvidad
-        val tuCuenta= binding.tuCuenta
-        val verificado=binding.verificados
+        val tuCuenta = binding.tuCuenta
+        val verificado = binding.verificados
 
         @RequiresApi(Build.VERSION_CODES.O)
-        fun render(dataClassTrabajosd: dataClassTrabajosd, vermas: (dataClassTrabajosd) -> Unit,uidString: String) {
-            firebaseAuth=FirebaseAuth.getInstance()
+        fun render(
+            dataClassTrabajosd: dataClassTrabajosd,
+            vermas: (dataClassTrabajosd) -> Unit,
+            uidString: String
+        ) {
+            firebaseAuth = FirebaseAuth.getInstance()
             setearCampos(dataClassTrabajosd, vermas)
             constantes.obtenerFotoPerfil(
                 dataClassTrabajosd,
@@ -87,7 +99,7 @@ class adapterCategorias
                         dialog
                     )
                     dialog.show()
-                }else{
+                } else {
                     dialog = BottomSheetDialog(itemView.context)
                     bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
                     dialog.show()
@@ -96,31 +108,41 @@ class adapterCategorias
                 true
             }
             constantes.setearBanderas(dataClassTrabajosd, itemView.context, nacionalidad)
-            Tu_cuentaMostrado(uidString,dataClassTrabajosd)
-            constantes_servicios.verificarEstado_vericiacion(binding.verificados,dataClassTrabajosd.id.toString() ){v,plan->
-                when(plan){
-                    Variables.plaA->{
+            Tu_cuentaMostrado(uidString, dataClassTrabajosd)
+            constantes_servicios.verificarEstado_vericiacion(
+                binding.verificados,
+                dataClassTrabajosd.id.toString()
+            ) { v, plan ->
+                when (plan) {
+                    Variables.plaA -> {
                         binding.verificados.setImageResource(R.drawable.verificado_a)
 
                     }
-                    Variables.planB->{
+
+                    Variables.planB -> {
                         binding.verificados.setImageResource(R.drawable.icon_verificado)
                     }
-                    Variables.PlanC->{
+
+                    Variables.PlanC -> {
                         binding.verificados.setImageResource(R.drawable.verificado_c)
 
 
                     }
                 }
             }
-            constantes.obtenerEstado(actividad,dataClassTrabajosd.id.toString())
+            constantes.obtenerEstado(actividad, dataClassTrabajosd.id.toString())
         }
 
         fun bottomSheet_contacto_directo(item_id: String) {
             val bottom_bindig =
                 BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(itemView.context))
             val view = bottom_bindig.root
-
+            constantes_bottom_shet_trabaja.obntener_datos_trabajador(
+                dialog,
+                itemView.context,
+                item_id.toString(),
+                bottom_bindig
+            )
             dialog.setContentView(view)
 
         }
@@ -150,14 +172,14 @@ class adapterCategorias
             }
 
 
-
-
         }
-        fun Tu_cuentaMostrado(uidRegistrado:String,dataClassTrabajosd:dataClassTrabajosd){
-            if(uidRegistrado==dataClassTrabajosd.id.toString()){
-                tuCuenta.isVisible=true
+
+        fun Tu_cuentaMostrado(uidRegistrado: String, dataClassTrabajosd: dataClassTrabajosd) {
+            if (uidRegistrado == dataClassTrabajosd.id.toString()) {
+                tuCuenta.isVisible = true
             }
         }
+
 
     }
 }

@@ -8,10 +8,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
@@ -35,7 +37,7 @@ class adapter(
     }
 
     private lateinit var dialog: BottomSheetDialog
-    private lateinit var firebaseAuth:FirebaseAuth
+    private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {
         val binding =
@@ -76,7 +78,7 @@ class adapter(
             dataClassTrabajosd: dataClassTrabajosd,
             uidString: String,
         ) {
-            firebaseAuth= FirebaseAuth.getInstance()
+            firebaseAuth = FirebaseAuth.getInstance()
             btnVermas.setOnLongClickListener {
                 if (firebaseAuth.currentUser == null) {
                     dialog = BottomSheetDialog(itemView.context)
@@ -85,10 +87,19 @@ class adapter(
                         dialog
                     )
                     dialog.show()
-                }else{
-                    dialog = BottomSheetDialog(itemView.context)
-                    bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
-                    dialog.show()
+                } else {
+                    if (firebaseAuth.uid.toString() == dataClassTrabajosd.id) {
+                        Toast.makeText(
+                            itemView.context,
+                            "Para ver tu perfil, ve a Cuenta > Previsualización.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }else{
+                        dialog = BottomSheetDialog(itemView.context)
+                        bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
+                        dialog.show()
+                    }
+
                 }
                 true
             }
@@ -115,7 +126,12 @@ class adapter(
             val bottom_bindig =
                 BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(itemView.context))
             val view = bottom_bindig.root
-
+            constantes_bottom_shet_trabaja.obntener_datos_trabajador(
+                dialog,
+                itemView.context,
+                item_id.toString(),
+                bottom_bindig
+            )
             dialog.setContentView(view)
 
         }

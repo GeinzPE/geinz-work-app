@@ -189,40 +189,6 @@ object constantes_trabajadores_info {
 
     }
 
-    private fun verificarSeguidor(
-        idTrabajadorActual: String,
-        userCollections: CollectionReference,
-        iduserActual: String,
-        Seguido: (Boolean) -> Unit
-    ) {
-        println("🔍 Verificando si el usuario $iduserActual sigue al trabajador $idTrabajadorActual")
-
-        userCollections.document(idTrabajadorActual).collection("seguidores").get()
-            .addOnSuccessListener { res ->
-                var esSeguidor = false
-
-                for (datos in res) {
-                    val data = datos.data
-                    val idFollo = data?.get("id") as? String ?: ""
-                    println("👤 Comparando seguidor: $idFollo con actual: $iduserActual")
-
-                    if (iduserActual == idFollo) {
-                        println("✅ Usuario $iduserActual *sí* sigue al trabajador $idTrabajadorActual")
-                        esSeguidor = true
-                        break
-                    }
-                }
-
-                if (!esSeguidor) {
-                    println("❌ Usuario $iduserActual *no* sigue al trabajador $idTrabajadorActual")
-                }
-
-                Seguido(esSeguidor)
-            }.addOnFailureListener { e ->
-                println("🚫 Error al encontrar los seguidores del trabajador $idTrabajadorActual: ${e.message}")
-                Seguido(false)
-            }
-    }
 
 
     fun verificarFollow(
@@ -726,6 +692,18 @@ object constantes_trabajadores_info {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
             .collection("seguidores")
+        db.get().addOnSuccessListener { res ->
+            val totalSeguidores = res.size()
+            texView.text = "${totalSeguidores} Seguidores"
+        }.addOnFailureListener { e ->
+            println("error al setear los seguidores $e")
+        }
+    }
+
+    fun contadorSiguiendo(texView: TextView, idTrabajadorActual: String) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
+            .collection("seguidos")
         db.get().addOnSuccessListener { res ->
             val totalSeguidores = res.size()
             texView.text = "${totalSeguidores} Seguidores"
