@@ -1,15 +1,21 @@
 package com.example.geinzwork
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.widget.ArrayAdapter
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter
+import com.geinzz.geinzwork.adapterViewholder.adapterguardados
 import com.geinzz.geinzwork.constantesGeneral.constantesNoticias.firebaseAuth
 import com.geinzz.geinzwork.databinding.ActivityNoticiasTrabajadoresGuardadosBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
@@ -22,7 +28,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     private lateinit var binding: ActivityNoticiasTrabajadoresGuardadosBinding
     private val listaTrabajo = mutableListOf<dataClassTrabajosd>().toMutableList()
     private val listaCategoriasChips = mutableSetOf<String>()
-
+    private val handler = Handler(Looper.getMainLooper())
     private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,11 +42,54 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         obtener_trabajadores_guardados()
+        binding.chipGroupFiltro.check(binding.trabajadoresFiltrado.id)
+        binding.trabajadoresFiltrado.setOnClickListener {
+            val data = arrayOf(
+                "-f-@nombre @categoria @localidad",
+                "-f-@localidad",
+                "-f-@categoria",
+                "-f-#numero de estrellas @categoria"
+            )
+
+            val adapter = ArrayAdapter(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                data
+            )
+
+// Asociar adaptador al AutoCompleteTextView
+            binding.editexFilter.setAdapter(adapter)
+
+// Mostrar sugerencias al escribir al menos un carácter (como '-')
+            binding.editexFilter.threshold = 1
+
+// Al seleccionar una sugerencia, vacía el texto y pon el hint
+            binding.editexFilter.setOnItemClickListener { _, _, position, _ ->
+                val seleccion = adapter.getItem(position).toString()
+
+                // Limpia el texto
+                binding.editexFilter.setText("")
+
+                // Cambia el hint dinámicamente
+                binding.inputnombre.hint = seleccion
+                binding.editexFilter.hint = seleccion
+            }
+
+
+            obtener_trabajadores_guardados()
+        }
+        binding.noticiasFiltrado.setOnClickListener {
+            binding.recicleEncontrados.isVisible = false
+            binding.linealCargando.isVisible = true
+            obtenernoticias_guardados()
+            binding.chipGroupFiltradoTrabajadoreNoticias.isVisible = false
+        }
     }
 
-    private fun obtenernoticias_guardados(){
-        val listaprincipal = mutableListOf<dataclassVerGuardados>()
+    private fun obtenernoticias_guardados() {
+        val tiempoInicio = System.currentTimeMillis() // MARCA DE TIEMPO INICIAL
 
+        val listaprincipal = mutableListOf<dataclassVerGuardados>()
         val db2N = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
@@ -48,60 +97,63 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             .document(firebaseAuth.uid.toString())
             .collection("guardados").document("guardados").collection("noticias")
 
-
         db2N.get().addOnSuccessListener { res ->
             for (datos in res) {
                 val data = datos.data
                 if (data.isNotEmpty()) {
-                    for ((key, value) in data) {
-                        val pendingTasks = data.size
-                        var completedTasks = 0
+                    val pendingTasks = data.size
+                    var completedTasks = 0
+
+                    for ((key, _) in data) {
                         val db2 = FirebaseFirestore.getInstance().collection(Variables.noticias)
                             .document(key)
-                        db2.get()
-                            .addOnSuccessListener { datos ->
-                                if (datos.exists()) {
-                                    val data = datos.data
-                                    val id = data?.get(Variables.id) as? String ?: ""
-                                    val titulo = data?.get(Variables.titulo) as? String ?: ""
-                                    val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
-                                    val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
-                                    val fechaActivacion =
-                                        fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
-                                    val anuncio = dataclassVerGuardados(
-                                        imagen,
-                                        titulo,
-                                        fechaActivacion,
-                                        id
-                                    )
 
-                                    listaprincipal.add(anuncio)
-                                }
+                        db2.get().addOnSuccessListener { datos ->
+                            if (datos.exists()) {
+                                val data = datos.data
+                                val id = data?.get(Variables.id) as? String ?: ""
+                                val titulo = data?.get(Variables.titulo) as? String ?: ""
+                                val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
+                                val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
+                                val fechaActivacion =
+                                    fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
 
-                                completedTasks++
-
-                                if (completedTasks == pendingTasks) {
-                                    if (listaprincipal.isEmpty()) {
-//                                        binding.relativeNoEncontrado.isVisible = true
-//                                        binding.recicelGuardados.isVisible = false
-//                                        binding.texto.isVisible = false
-                                    } else {
-//                                        binding.relativeNoEncontrado.isVisible = false
-//                                        binding.recicelGuardados.isVisible = true
-//                                        binding.texto.isVisible = true
-//                                        inicializarRecile(listaprincipal)
-                                    }
-//                                    binding.loading.isVisible = false
-                                }
+                                val anuncio = dataclassVerGuardados(
+                                    imagen,
+                                    titulo,
+                                    fechaActivacion,
+                                    id
+                                )
+                                listaprincipal.add(anuncio)
                             }
-                    }
 
+                            completedTasks++
+                            if (completedTasks == pendingTasks) {
+                                val tiempoFin = System.currentTimeMillis()
+                                val tiempoTotal = tiempoFin - tiempoInicio
+                                handler.postDelayed({
+                                    if (listaprincipal.isNotEmpty()) {
+                                        inicializarRecile_noticias(listaprincipal)
+                                    }
+                                    binding.recicleEncontrados.isVisible = true
+                                    binding.linealCargando.isVisible = false
+                                }, tiempoTotal)
+
+
+                            }
+                        }
+                    }
                 }
             }
+        }.addOnFailureListener {
+            Log.e("TIEMPO_FIREBASE", "Error al obtener noticias", it)
         }
-            .addOnFailureListener {
+    }
 
-            }
+    private fun inicializarRecile_noticias(listaAnuncios: MutableList<dataclassVerGuardados>) {
+        val recicle = binding.recicleEncontrados
+        recicle.layoutManager = LinearLayoutManager(this)
+        recicle.adapter = adapterguardados(listaAnuncios)
     }
 
     private var totalTrabajadores = 0
@@ -130,6 +182,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     }
 
     private fun guardados(idTrabajador: String) {
+        val tiempoInicio = System.currentTimeMillis()
+
         listaTrabajo.clear()
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
@@ -138,6 +192,13 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
         userCollections.get()
             .addOnSuccessListener { res ->
+                val tiempoFin = System.currentTimeMillis()
+                val duracion = tiempoFin - tiempoInicio
+                Log.d(
+                    "TIEMPO_FIREBASE",
+                    "⏱ Tiempo en obtener datos de $idTrabajador: ${duracion}ms"
+                )
+
                 if (res.exists()) {
                     val userData = res.data
 
@@ -147,7 +208,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                     val caracteristica1 = userData?.get(Variables.caracteristica1) as? String ?: ""
                     val caracteristica2 = userData?.get(Variables.caracteristica2) as? String ?: ""
                     val caracteristica3 = userData?.get(Variables.caracteristica3) as? String ?: ""
-                    val categoriaTrabajoStr = userData?.get(Variables.categoriaTrabajo) as? String ?: ""
+                    val categoriaTrabajoStr =
+                        userData?.get(Variables.categoriaTrabajo) as? String ?: ""
                     val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
                     val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
                     val genero = userData?.get(Variables.genero) as? String ?: ""
@@ -163,39 +225,17 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                     val edadActual = userData?.get(Variables.EdadActual) as? String ?: ""
                     val verificados = userData?.get(Variables.verificado) as? Boolean ?: false
 
-                    // Dividir el String de categorías por comas y limpiar espacios
-
                     val usuario = dataClassTrabajosd(
-                        id,
-                        apellido,
-                        caracteristica1,
-                        caracteristica2,
-                        caracteristica3,
-                        categoriaTrabajoStr, // solo el string completo aquí
-                        fechaNac,
-                        genero,
-                        horario1,
-                        horario2,
-                        nacionalidad,
-                        nombre,
-                        estrellas,
-                        tipoTrabajo,
-                        localidad,
-                        codigoPais,
-                        numero,
-                        img,
-                        activo,
-                        edadActual,
-                        verificados
+                        id, apellido, caracteristica1, caracteristica2, caracteristica3,
+                        categoriaTrabajoStr, fechaNac, genero, horario1, horario2,
+                        nacionalidad, nombre, estrellas, tipoTrabajo, localidad,
+                        codigoPais, numero, img, activo, edadActual, verificados
                     )
 
                     listaTrabajo.add(usuario)
 
-                    val categorias = categoriaTrabajoStr.split(",")
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-
-// Agregar categorías únicas al conjunto
+                    val categorias =
+                        categoriaTrabajoStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                     listaCategoriasChips.addAll(categorias)
 
                     println("la lista agregada es $listaTrabajo")
@@ -203,10 +243,15 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
                 cargados++
                 if (cargados == totalTrabajadores) {
+                    handler.postDelayed({
+                        binding.recicleEncontrados.isVisible = true
+                        binding.linealCargando.isVisible = false
+                        binding.chipGroupFiltradoTrabajadoreNoticias.isVisible = true
+
+                    }, duracion)
                     setear_chisp_filtrado(listaCategoriasChips)
                     inicarlizarRecicle(listaTrabajo)
                 }
-
             }
     }
 
@@ -225,8 +270,6 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             chipGroup.addView(chip)
         }
     }
-
-
 
 
     private fun inicarlizarRecicle(listaTrabajos: MutableList<dataClassTrabajosd>) {
@@ -249,7 +292,6 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                 }
             }
         }
-
 
 
     }
