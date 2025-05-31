@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.ArrayAdapter
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -28,6 +29,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     private lateinit var binding: ActivityNoticiasTrabajadoresGuardadosBinding
     private val listaTrabajo = mutableListOf<dataClassTrabajosd>().toMutableList()
     private val listaCategoriasChips = mutableSetOf<String>()
+    private val lista_categoria_noticias=mutableSetOf<String>()
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var firebaseAuth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,12 +79,16 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
 
             obtener_trabajadores_guardados()
+            binding.linealFiltradoNoticias.isVisible=false
         }
+
         binding.noticiasFiltrado.setOnClickListener {
+            binding.inputnombre.hint = "Busca tus noticias por categoria"
+            binding.editexFilter.hint = "Busca tus noticias por categoria"
             binding.recicleEncontrados.isVisible = false
             binding.linealCargando.isVisible = true
             obtenernoticias_guardados()
-            binding.chipGroupFiltradoTrabajadoreNoticias.isVisible = false
+            binding.linealFitlradoTrabajadores.isVisible = false
         }
     }
 
@@ -99,7 +105,15 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
         db2N.get().addOnSuccessListener { res ->
             for (datos in res) {
+                val idDocumento = datos.id
                 val data = datos.data
+                val id = data?.get(idDocumento) as? String ?: ""
+                val categorias = id.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                lista_categoria_noticias.addAll(categorias)
+
+                setear_chips_filtrado_noticias(lista_categoria_noticias)
                 if (data.isNotEmpty()) {
                     val pendingTasks = data.size
                     var completedTasks = 0
@@ -137,6 +151,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                                     }
                                     binding.recicleEncontrados.isVisible = true
                                     binding.linealCargando.isVisible = false
+                                    binding.linealFiltradoNoticias.isVisible=true
                                 }, tiempoTotal)
 
 
@@ -160,6 +175,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     private var cargados = 0
 
     private fun obtener_trabajadores_guardados() {
+        binding.linealCargando.isVisible = true
+        binding.recicleEncontrados.isVisible = false
         val db2 = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
@@ -172,7 +189,6 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             cargados = 0
             listaCategoriasChips.clear() // Limpia antes de empezar
             listaTrabajo.clear()
-
             for (datos in res) {
                 val data = datos.data
                 val id = data?.get("id_trabajador") as? String ?: ""
@@ -182,9 +198,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     }
 
     private fun guardados(idTrabajador: String) {
-        val tiempoInicio = System.currentTimeMillis()
 
-        listaTrabajo.clear()
+        val tiempoInicio = System.currentTimeMillis()
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
@@ -201,6 +216,9 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
                 if (res.exists()) {
                     val userData = res.data
+                    val categoriaTrabajoStr =
+                        userData?.get(Variables.categoriaTrabajo) as? String ?: ""
+
 
                     val estrellas = userData?.get("estrellas") as? String ?: "0"
                     val nombre = userData?.get(Variables.nombre) as? String ?: ""
@@ -208,8 +226,6 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                     val caracteristica1 = userData?.get(Variables.caracteristica1) as? String ?: ""
                     val caracteristica2 = userData?.get(Variables.caracteristica2) as? String ?: ""
                     val caracteristica3 = userData?.get(Variables.caracteristica3) as? String ?: ""
-                    val categoriaTrabajoStr =
-                        userData?.get(Variables.categoriaTrabajo) as? String ?: ""
                     val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
                     val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
                     val genero = userData?.get(Variables.genero) as? String ?: ""
@@ -234,11 +250,13 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
                     listaTrabajo.add(usuario)
 
-                    val categorias =
-                        categoriaTrabajoStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    val categorias = categoriaTrabajoStr.split(",")
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
                     listaCategoriasChips.addAll(categorias)
 
-                    println("la lista agregada es $listaTrabajo")
+                    println("La lista agregada es $listaTrabajo")
+
                 }
 
                 cargados++
@@ -246,31 +264,173 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                     handler.postDelayed({
                         binding.recicleEncontrados.isVisible = true
                         binding.linealCargando.isVisible = false
-                        binding.chipGroupFiltradoTrabajadoreNoticias.isVisible = true
-
+                        binding.linealFitlradoTrabajadores.isVisible = true
                     }, duracion)
+
                     setear_chisp_filtrado(listaCategoriasChips)
                     inicarlizarRecicle(listaTrabajo)
                 }
             }
     }
 
+    private fun actualizar_guardados(filtrado: String) {
+        binding.linealCargando.isVisible = true
+        binding.recicleEncontrados.isVisible = false
+        val db2 = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("trabajadores")
+
+        db2.get().addOnSuccessListener { res ->
+            totalTrabajadores = res.size()
+            cargados = 0
+            listaCategoriasChips.clear() // Limpia antes de empezar
+            listaTrabajo.clear()
+            for (datos in res) {
+                val data = datos.data
+                val id = data?.get("id_trabajador") as? String ?: ""
+                val tiempoInicio = System.currentTimeMillis()
+
+
+                val userCollections =
+                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                        .document(id)
+
+                userCollections.get()
+                    .addOnSuccessListener { res ->
+                        val tiempoFin = System.currentTimeMillis()
+                        val duracion = tiempoFin - tiempoInicio
+                        Log.d(
+                            "TIEMPO_FIREBASE",
+                            "⏱ Tiempo en obtener datos de $id: ${duracion}ms"
+                        )
+
+                        if (res.exists()) {
+                            val userData = res.data
+                            val categoriaTrabajoStr =
+                                userData?.get(Variables.categoriaTrabajo) as? String ?: ""
+                            Log.d("entradmos", "$categoriaTrabajoStr = $filtrado")
+                            if (filtrado == categoriaTrabajoStr) {
+                                Log.d("entradmos", "estamos bine ")
+                                val estrellas = userData?.get("estrellas") as? String ?: "0"
+                                val nombre = userData?.get(Variables.nombre) as? String ?: ""
+                                val apellido = userData?.get(Variables.apellido) as? String ?: ""
+                                val caracteristica1 =
+                                    userData?.get(Variables.caracteristica1) as? String ?: ""
+                                val caracteristica2 =
+                                    userData?.get(Variables.caracteristica2) as? String ?: ""
+                                val caracteristica3 =
+                                    userData?.get(Variables.caracteristica3) as? String ?: ""
+                                val codigoPais =
+                                    userData?.get(Variables.codigo_pais) as? String ?: ""
+                                val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
+                                val genero = userData?.get(Variables.genero) as? String ?: ""
+                                val horario1 = userData?.get(Variables.horario1) as? String ?: ""
+                                val horario2 = userData?.get(Variables.horario2) as? String ?: ""
+                                val id = userData?.get(Variables.id) as? String ?: ""
+                                val img = userData?.get(Variables.imagenPerfil) as? String ?: ""
+                                val localidad = userData?.get(Variables.localidad) as? String ?: ""
+                                val nacionalidad =
+                                    userData?.get(Variables.nacionalidad) as? String ?: ""
+                                val numero = userData?.get(Variables.numero) as? String ?: ""
+                                val tipoTrabajo =
+                                    userData?.get(Variables.tipoTrabajo) as? String ?: ""
+                                val activo = userData?.get(Variables.activado) as? String ?: ""
+                                val edadActual =
+                                    userData?.get(Variables.EdadActual) as? String ?: ""
+                                val verificados =
+                                    userData?.get(Variables.verificado) as? Boolean ?: false
+
+                                val usuario = dataClassTrabajosd(
+                                    id, apellido, caracteristica1, caracteristica2, caracteristica3,
+                                    categoriaTrabajoStr, fechaNac, genero, horario1, horario2,
+                                    nacionalidad, nombre, estrellas, tipoTrabajo, localidad,
+                                    codigoPais, numero, img, activo, edadActual, verificados
+                                )
+
+                                listaTrabajo.add(usuario)
+
+
+
+                                println("La lista agregada es $listaTrabajo")
+                            }
+                        }
+
+                        cargados++
+                        if (cargados == totalTrabajadores) {
+                            handler.postDelayed({
+                                binding.recicleEncontrados.isVisible = true
+                                binding.linealCargando.isVisible = false
+                                binding.linealFitlradoTrabajadores.isVisible = true
+                            }, duracion)
+
+                            inicarlizarRecicle(listaTrabajo)
+                        }
+                    }
+            }
+        }
+        Log.d("entradmos", "entramos a la fun de actualzuiar")
+        listaTrabajo.clear()
+
+    }
+
 
     private fun setear_chisp_filtrado(categorias: Set<String>) {
         println("la lista chipsssss es $categorias")
-        val chipGroup = binding.chipGroupFiltradoTrabajadoreNoticias
+        val chipGroup = binding.chipGroupFiltradoTrabajadore
         chipGroup.removeAllViews()
         chipGroup.isSingleSelection = true
+
         for (categoria in categorias) {
             val chip = Chip(chipGroup.context).apply {
                 text = categoria
                 isCheckable = true
                 isClickable = true
+                id = View.generateViewId() // Importante para identificar el chip seleccionado
             }
             chipGroup.addView(chip)
         }
+
+        chipGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selectedChip: Chip? = group.findViewById(checkedId)
+            selectedChip?.let {
+                println("Categoría seleccionada: ${it.text}")
+
+                actualizar_guardados(it.text.toString())
+            }
+        }
+
+
     }
 
+    private fun setear_chips_filtrado_noticias(categorias: Set<String>) {
+        println("la lista chipsssss es $categorias")
+        val chipGroup = binding.chipGroupFiltradoNoticia
+        chipGroup.removeAllViews()
+        chipGroup.isSingleSelection = true
+
+        for (categoria in categorias) {
+            val chip = Chip(chipGroup.context).apply {
+                text = categoria
+                isCheckable = true
+                isClickable = true
+                id = View.generateViewId() // Importante para identificar el chip seleccionado
+            }
+            chipGroup.addView(chip)
+        }
+
+        chipGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selectedChip: Chip? = group.findViewById(checkedId)
+            selectedChip?.let {
+                println("Categoría seleccionada: ${it.text}")
+
+
+            }
+        }
+    }
 
     private fun inicarlizarRecicle(listaTrabajos: MutableList<dataClassTrabajosd>) {
         val recicle = binding.recicleEncontrados

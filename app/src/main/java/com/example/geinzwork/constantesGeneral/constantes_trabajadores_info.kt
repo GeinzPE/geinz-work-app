@@ -706,7 +706,7 @@ object constantes_trabajadores_info {
             .collection("seguidos")
         db.get().addOnSuccessListener { res ->
             val totalSeguidores = res.size()
-            texView.text = "${totalSeguidores} Seguidores"
+            texView.text = "${totalSeguidores} Siguiendo"
         }.addOnFailureListener { e ->
             println("error al setear los seguidores $e")
         }

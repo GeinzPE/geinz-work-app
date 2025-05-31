@@ -70,12 +70,33 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <HorizontalScrollView
+                android:visibility="gone"
+                android:id="@+id/lineal_fitlradoTrabajadores"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbars="none">
 
                 <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupFiltradoTrabajadoreNoticias"
+                    android:id="@+id/chipGroupFiltradoTrabajadore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    app:chipSpacing="8dp"
+                    app:chipSpacingHorizontal="8dp"
+                    app:chipSpacingVertical="8dp"
+                    app:singleLine="false" />
+
+            </HorizontalScrollView>
+
+            <HorizontalScrollView
+                android:visibility="gone"
+                android:id="@+id/lineal_filtradoNoticias"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupFiltradoNoticia"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="8dp"

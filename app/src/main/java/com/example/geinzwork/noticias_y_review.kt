@@ -42,19 +42,11 @@ class noticias_y_review : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        val iduser = intent.getStringExtra(Variables.iduser)
         val title = intent.getStringExtra(Variables.title)
         when (title.toString()) {
-            "Noticias Guardadas" -> {
-                obtenerNoticias(iduser.toString())
-                binding.texto.text = "Noticias Guardadas"
-
-            }
-
             "Tus Reseñas" -> {
                 obtener_review()
                 binding.texto.text = "Reseñas de tus clientes"
-
             }
 
             else -> ""
@@ -124,81 +116,6 @@ class noticias_y_review : AppCompatActivity() {
         recicle.adapter = adaptadorReview(listaReview)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun obtenerNoticias(idUSer: String) {
-        val listaprincipal = mutableListOf<dataclassVerGuardados>()
-
-        val db2N = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-            .document(idUSer)
-            .collection(Variables.noticiasGuardadas)
-
-        db2N.get().addOnSuccessListener { res ->
-            for (datos in res) {
-                val data = datos.data
-                if (data.isNotEmpty()) {
-                    for ((key, value) in data) {
-                        val pendingTasks = data.size
-                        var completedTasks = 0
-                        val db2 = FirebaseFirestore.getInstance().collection(Variables.noticias)
-                            .document(key)
-                        db2.get()
-                            .addOnSuccessListener { datos ->
-                                if (datos.exists()) {
-                                    val data = datos.data
-                                    val id = data?.get(Variables.id) as? String ?: ""
-                                    val titulo = data?.get(Variables.titulo) as? String ?: ""
-                                    val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
-                                    val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
-                                    val fechaActivacion =
-                                        fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
-                                    val anuncio = dataclassVerGuardados(
-                                        imagen,
-                                        titulo,
-                                        fechaActivacion,
-                                        id
-                                    )
-
-                                    listaprincipal.add(anuncio)
-                                }
-
-                                completedTasks++
-
-                                if (completedTasks == pendingTasks) {
-                                    if (listaprincipal.isEmpty()) {
-                                        binding.relativeNoEncontrado.isVisible = true
-                                        binding.recicelGuardados.isVisible = false
-                                        binding.texto.isVisible = false
-                                    } else {
-                                        binding.relativeNoEncontrado.isVisible = false
-                                        binding.recicelGuardados.isVisible = true
-                                        binding.texto.isVisible = true
-                                        inicializarRecile(listaprincipal)
-                                    }
-                                    binding.loading.isVisible = false
-                                }
-                            }
-                    }
-
-                }
-            }
-        }
-            .addOnFailureListener {
-                binding.relativeNoEncontrado.isVisible = true
-                binding.recicelGuardados.isVisible = false
-                binding.loading.isVisible = false
-                binding.texto.isVisible = false
-                println("Error al obtener datos: ${it.message}")
-            }
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun inicializarRecile(listaAnuncios: MutableList<dataclassVerGuardados>) {
-        val recicle = binding.recicelGuardados
-        recicle.layoutManager = LinearLayoutManager(this)
-        recicle.adapter = adapterguardados(listaAnuncios)
-    }
 
 
 }

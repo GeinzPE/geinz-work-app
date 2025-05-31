@@ -181,7 +181,6 @@ object constantes_cuenta_user {
 //            val intent = Intent(context, noticias_y_review::class.java)
             val intent = Intent(context, noticias_trabajadores_guardados::class.java)
             intent.putExtra(Variables.iduser, firebaseAuth.uid.toString())
-            intent.putExtra(Variables.title, "Noticias Guardadas")
             context.startActivity(intent)
             dialog.dismiss()
         }
