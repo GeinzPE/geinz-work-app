@@ -10,9 +10,11 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantesNoticias.retornarid
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.BottomSheetContactoDirectoBinding
+import com.geinzz.geinzwork.vistaTiendas.constantesVistaTiendas
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -48,9 +50,12 @@ object constantes_bottom_shet_trabaja {
 
                 binding_bottomSheet.nombreApellido.text = "$nombre $apellido"
 
-                val localidad_nac = SpannableString("Localidad y nacionalidad : ${localidad} | ${nacionalidad}")
+                val localidad_nac =
+                    SpannableString("Localidad y nacionalidad : ${localidad} | ${nacionalidad}")
                 constantestextos_general.setearInformacionboldDescripcion(
-                    "Localidad y nacionalidad", localidad_nac, binding_bottomSheet.localidadNacionaliad
+                    "Localidad y nacionalidad",
+                    localidad_nac,
+                    binding_bottomSheet.localidadNacionaliad
                 )
 
                 val categoria_tra = SpannableString("Categoria de trabajo : ${categoria}")
@@ -60,7 +65,9 @@ object constantes_bottom_shet_trabaja {
 
                 val sub_categoria_tra = SpannableString("Subcategoria de trabajo : ${subcategoria}")
                 constantestextos_general.setearInformacionboldDescripcion(
-                    "Subcategoria de trabajo", sub_categoria_tra, binding_bottomSheet.subcategoriaTrabajador
+                    "Subcategoria de trabajo",
+                    sub_categoria_tra,
+                    binding_bottomSheet.subcategoriaTrabajador
                 )
 
                 val estrellas_total = SpannableString("Total de estrellas : ${estrella}")
@@ -115,8 +122,8 @@ object constantes_bottom_shet_trabaja {
                     val tiempoFin = System.currentTimeMillis() // ⏱ FIN
                     Log.d("TIEMPO_CARGA", "Tiempo total de carga: ${tiempoFin - tiempoInicio} ms")
                     handler.postDelayed({
-                      binding_bottomSheet.vistraPrevia.isVisible=true
-                        binding_bottomSheet.cargarLineal.isVisible=false
+                        binding_bottomSheet.vistraPrevia.isVisible = true
+                        binding_bottomSheet.cargarLineal.isVisible = false
                     }, tiempoFin - tiempoInicio)
                 }
 
@@ -129,6 +136,11 @@ object constantes_bottom_shet_trabaja {
                 binding_bottomSheet.siguiendoBtn.setOnClickListener {
                     dejar_seguir_trabajador(id_trabajador, binding_bottomSheet)
                 }
+                setupGuardarBtn(id_trabajador, binding_bottomSheet)
+                verificar_Seguido(
+                    id_trabajador,
+                    binding_bottomSheet
+                )
             }
         }
     }
@@ -244,8 +256,8 @@ object constantes_bottom_shet_trabaja {
 
         refSeguidores.set(hashMapSeguidores, SetOptions.merge())
             .addOnSuccessListener {
-                binding_bottomSheet.seguir.isVisible=false
-                binding_bottomSheet.siguiendoBtn.isVisible=true
+                binding_bottomSheet.seguir.isVisible = false
+                binding_bottomSheet.siguiendoBtn.isVisible = true
                 constantes_trabajadores_info.contadorSeguidores(
                     binding_bottomSheet.seguidores,
                     idTrabajadorActual
@@ -253,8 +265,8 @@ object constantes_bottom_shet_trabaja {
             }
             .addOnFailureListener {
                 println("Error al seguir trabajador")
-                binding_bottomSheet.seguir.isVisible=true
-                binding_bottomSheet.siguiendoBtn.isVisible=true
+                binding_bottomSheet.seguir.isVisible = true
+                binding_bottomSheet.siguiendoBtn.isVisible = true
             }
 
         // 2. Actualizar en usuarios > seguidos
@@ -300,22 +312,113 @@ object constantes_bottom_shet_trabaja {
             .document(idTrabajadorActual)
 
         refSeguidores.delete().addOnSuccessListener {
-            binding_bottomSheet.seguir.isVisible=true
-            binding_bottomSheet.siguiendoBtn.isVisible=false
+            binding_bottomSheet.seguir.isVisible = true
+            binding_bottomSheet.siguiendoBtn.isVisible = false
             constantes_trabajadores_info.contadorSeguidores(
                 binding_bottomSheet.seguidores,
                 idTrabajadorActual
             )
 
         }.addOnFailureListener { e ->
-            binding_bottomSheet.seguir.isVisible=false
-            binding_bottomSheet.siguiendoBtn.isVisible=true
+            binding_bottomSheet.seguir.isVisible = false
+            binding_bottomSheet.siguiendoBtn.isVisible = true
         }
 
         refSeguidos.delete().addOnSuccessListener {
             println("Trabajador eliminado de seguidos correctamente")
         }.addOnFailureListener { e ->
             println("Hubo un error al eliminar seguido: $e")
+        }
+    }
+
+
+    private fun setupGuardarBtn(
+        idTrabajadorActual: String,
+        binding_bottomSheet: BottomSheetContactoDirectoBinding
+    ) {
+        val docRef = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("trabajadores")
+            .document(idTrabajadorActual)
+
+        docRef.get().addOnSuccessListener { res ->
+            val estaGuardado = res.exists()
+
+            if (estaGuardado) {
+                // Ya está guardado, mostrar animación
+                binding_bottomSheet.save.isVisible = true
+                binding_bottomSheet.save.setAnimation(R.raw.save_animation)
+                binding_bottomSheet.save.playAnimation()
+                binding_bottomSheet.saveImageview.isVisible = false
+            } else {
+                // No está guardado, ocultar animación
+                binding_bottomSheet.save.isVisible = false
+                binding_bottomSheet.saveImageview.isVisible = true
+            }
+
+            // Configurar el botón para alternar
+            binding_bottomSheet.guardar.setOnClickListener {
+                if (estaGuardado) {
+                    // Eliminar (dejar de seguir)
+                    docRef.delete().addOnSuccessListener {
+                        binding_bottomSheet.save.isVisible = false
+                        binding_bottomSheet.saveImageview.isVisible = true
+                    }
+                } else {
+                    // Guardar (seguir)
+                    val hashMap = hashMapOf<String, Any>(
+                        "id_trabajador" to idTrabajadorActual
+                    )
+                    docRef.set(hashMap, SetOptions.merge()).addOnSuccessListener {
+                        binding_bottomSheet.save.isVisible = true
+                        binding_bottomSheet.save.setAnimation(R.raw.save_animation)
+                        binding_bottomSheet.save.playAnimation()
+                        binding_bottomSheet.saveImageview.isVisible = false
+                    }
+                }
+
+                // Reconfigurar el botón después de acción
+                // Llamamos nuevamente a setupGuardarBtn para actualizar el estado
+                setupGuardarBtn(idTrabajadorActual, binding_bottomSheet)
+            }
+        }
+    }
+
+
+    private fun verificar_Seguido(
+        idTrabajadorActual: String,
+        binding_bottomSheet: BottomSheetContactoDirectoBinding
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("trabajadores")
+            .document(idTrabajadorActual)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                binding_bottomSheet.save.isVisible = true
+                binding_bottomSheet.save.setAnimation(R.raw.save_animation)
+                binding_bottomSheet.save.playAnimation()
+                binding_bottomSheet.guardar.setOnClickListener {
+                    dejar_guardado(idTrabajadorActual, binding_bottomSheet)
+                }
+            }
+        }
+    }
+
+    private fun dejar_guardado(
+        idTrabajadorActual: String,
+        binding_bottomSheet: BottomSheetContactoDirectoBinding
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("trabajadores")
+            .document(idTrabajadorActual)
+        db.delete().addOnSuccessListener { res ->
+            binding_bottomSheet.save.isVisible = false
+            binding_bottomSheet.saveImageview.isVisible = true
         }
     }
 

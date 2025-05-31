@@ -170,8 +170,6 @@ class adapterCategorias
             } else {
                 binding.verificados.visibility = View.GONE
             }
-
-
         }
 
         fun Tu_cuentaMostrado(uidRegistrado: String, dataClassTrabajosd: dataClassTrabajosd) {

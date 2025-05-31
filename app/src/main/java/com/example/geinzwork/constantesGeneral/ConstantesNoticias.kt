@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja
 import com.geinzz.geinzwork.adapterViewholder.adaptadorAnuncios
 import com.geinzz.geinzwork.dataclass.dataClassAnuncios
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -770,12 +771,15 @@ object constantesNoticias {
     fun retornarid(context: Context, dataClassAnuncios: dataClassAnuncios) {
         val idPublicaion = dataClassAnuncios.id
         firebaseAuth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance().collection(Variables.noticiasGuardadas)
-            .document(firebaseAuth.uid.toString())
 
-        val db2 = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-            .document(firebaseAuth.uid.toString()).collection(Variables.noticiasGuardadas)
+
+        val db2 = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("noticias")
+
 
         val publicacion = mapOf(
             idPublicaion to "${dataClassAnuncios.categoria}"
@@ -838,6 +842,7 @@ object constantesNoticias {
         idUser: String,
         idPublicaion: String,
     ) {
+
         val db =
             FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idPublicaion)
         val db2 = FirebaseFirestore.getInstance()
@@ -845,7 +850,8 @@ object constantesNoticias {
             .document(Variables.trabajadoresDB)
             .collection(Variables.trabajadoresDB)
             .document(idUser)
-            .collection(Variables.noticiasGuardadas)
+            .collection("guardados").document("guardados").collection("noticias")
+
 
         val referenceToDelete = db2.document(idPublicaion)
         db2.get().addOnSuccessListener { res ->

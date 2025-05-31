@@ -37,6 +37,9 @@
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
         <activity
+            android:name="com.example.geinzwork.noticias_trabajadores_guardados"
+            android:exported="false" />
+        <activity
             android:name="com.example.geinzwork.vistas_p.onboarding_como_usar_geinz"
             android:exported="false" />
         <activity

@@ -13,6 +13,7 @@ import com.example.geinzwork.activity_dispositivos_vinculados
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
+import com.example.geinzwork.noticias_trabajadores_guardados
 import com.example.geinzwork.vista_denuncia_reporte
 import com.example.geinzwork.vistas_p.onboarding_como_usar_geinz
 import com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar
@@ -177,7 +178,8 @@ object constantes_cuenta_user {
             dialog.dismiss()
         }
         container_guardados.setOnClickListener {
-            val intent = Intent(context, noticias_y_review::class.java)
+//            val intent = Intent(context, noticias_y_review::class.java)
+            val intent = Intent(context, noticias_trabajadores_guardados::class.java)
             intent.putExtra(Variables.iduser, firebaseAuth.uid.toString())
             intent.putExtra(Variables.title, "Noticias Guardadas")
             context.startActivity(intent)

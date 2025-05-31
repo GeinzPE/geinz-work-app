@@ -192,12 +192,13 @@ class adaptadorAnuncios(
                     dialog.show()
                 } else {
                     val idUser = firebaseAuth.uid.toString()
-                    val db2 =
-                        FirebaseFirestore.getInstance()
-                            .collection(Variables.trabajadores_usuariosDB)
-                            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                            .document(idUser)
-                            .collection(Variables.noticiasGuardadas)
+                    val db2 = FirebaseFirestore.getInstance()
+                        .collection(Variables.trabajadores_usuariosDB)
+                        .document(Variables.trabajadoresDB)
+                        .collection(Variables.trabajadoresDB)
+                        .document(idUser)
+                        .collection("guardados").document("guardados").collection("noticias")
+
 
                     db2.get().addOnSuccessListener { res ->
                         var isSaved = false
@@ -259,10 +260,14 @@ class adaptadorAnuncios(
             context: Context,
             dataClassAnuncios: dataClassAnuncios,
         ) {
-            val db2 = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+
+            val db2 = FirebaseFirestore.getInstance()
+                .collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB)
+                .collection(Variables.trabajadoresDB)
                 .document(idUser)
-                .collection(Variables.noticiasGuardadas)
+                .collection("guardados").document("guardados").collection("noticias")
+
 
             db2.get().addOnSuccessListener { res ->
                 var isSaved = false

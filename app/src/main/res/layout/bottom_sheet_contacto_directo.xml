@@ -243,18 +243,37 @@
                         android:text="Ver perfil" />
 
 
-                    <ImageButton
+
+
+
+                    <RelativeLayout
+                        android:layout_marginLeft="10dp"
+                        android:layout_gravity="center"
                         android:id="@+id/guardar"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:layout_marginHorizontal="10dp"
                         android:background="@drawable/circle_bakc_preset"
-                        android:maxWidth="20dp"
-                        android:maxHeight="20dp"
-                        android:padding="3dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/save_icon" />
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="15dp">
+
+                        <ImageView
+                            android:layout_centerInParent="true"
+                            android:padding="3dp"
+                            android:id="@+id/save_imageview"
+                            android:layout_width="35dp"
+                            android:layout_height="35dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/save_icon" />
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:layout_centerInParent="true"
+
+                            android:layout_gravity="center"
+                            android:padding="3dp"
+                            android:id="@+id/save"
+                            android:layout_width="35dp"
+                            android:layout_height="35dp" />
+                    </RelativeLayout>
 
 
                 </LinearLayout>
