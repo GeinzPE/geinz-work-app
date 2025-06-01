@@ -447,7 +447,24 @@
                                     android:layout_height="35dp"
                                     android:layout_marginRight="5dp"
                                     android:layout_weight="3"
+                                    android:visibility="gone"
                                     android:text="Seguir Trabajador" />
+
+                                <androidx.appcompat.widget.AppCompatButton
+                                    android:id="@+id/siguiendo_btn"
+                                    style="@style/RoundedButtonTrabajador"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="35dp"
+                                    android:layout_gravity="center"
+                                    android:layout_marginRight="5dp"
+                                    android:layout_weight="3"
+                                    android:background="@drawable/bordes_btn_sigueindo_trabajador"
+                                    android:text="siguiendo "
+                                    android:textColor="@color/white"
+                                    android:visibility="gone" />
+
+
+
 
                                 <androidx.appcompat.widget.AppCompatButton
                                     android:id="@+id/mas_informacion"

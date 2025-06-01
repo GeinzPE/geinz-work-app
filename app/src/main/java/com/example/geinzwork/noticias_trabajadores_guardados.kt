@@ -43,9 +43,22 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
+
+// Modo trabajadores por defecto
         obtener_trabajadores_guardados()
         binding.chipGroupFiltro.check(binding.trabajadoresFiltrado.id)
+        binding.linealFiltradoNoticias.isVisible = false
+        binding.linealFitlradoTrabajadores.isVisible = true
+
         binding.trabajadoresFiltrado.setOnClickListener {
+            // 🔒 Primero oculta todo
+            binding.linealFiltradoNoticias.isVisible = false
+            binding.linealFitlradoTrabajadores.isVisible = false
+            binding.recicleEncontrados.isVisible = false
+            binding.linealCargando.isVisible = true
+
+            binding.chipGroupFiltro.check(binding.trabajadoresFiltrado.id)
+
             val data = arrayOf(
                 "-f-@nombre @categoria @localidad",
                 "-f-@localidad",
@@ -53,43 +66,51 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                 "-f-#numero de estrellas @categoria"
             )
 
-            val adapter = ArrayAdapter(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                data
-            )
-
-// Asociar adaptador al AutoCompleteTextView
+            val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, data)
             binding.editexFilter.setAdapter(adapter)
-
-// Mostrar sugerencias al escribir al menos un carácter (como '-')
             binding.editexFilter.threshold = 1
 
-// Al seleccionar una sugerencia, vacía el texto y pon el hint
             binding.editexFilter.setOnItemClickListener { _, _, position, _ ->
                 val seleccion = adapter.getItem(position).toString()
-
-                // Limpia el texto
                 binding.editexFilter.setText("")
-
-                // Cambia el hint dinámicamente
                 binding.inputnombre.hint = seleccion
                 binding.editexFilter.hint = seleccion
             }
 
+            // Limpia texto e inicializa hint
+            binding.editexFilter.setText("")
+            binding.inputnombre.hint = "Filtra tus trabajadores"
+            binding.editexFilter.hint = "Filtra tus trabajadores"
 
+            // Mostrar solo la sección correcta
+            binding.linealFitlradoTrabajadores.isVisible = true
             obtener_trabajadores_guardados()
-            binding.linealFiltradoNoticias.isVisible=false
+            binding.linealCargando.isVisible = false
+            binding.recicleEncontrados.isVisible = true
         }
 
         binding.noticiasFiltrado.setOnClickListener {
-            binding.inputnombre.hint = "Busca tus noticias por categoria"
-            binding.editexFilter.hint = "Busca tus noticias por categoria"
+            // 🔒 Oculta todo primero
+            binding.linealFiltradoNoticias.isVisible = false
+            binding.linealFitlradoTrabajadores.isVisible = false
             binding.recicleEncontrados.isVisible = false
             binding.linealCargando.isVisible = true
+
+            binding.chipGroupFiltro.check(binding.noticiasFiltrado.id)
+
+            // Limpia texto y muestra hint
+            binding.editexFilter.setText("")
+            binding.inputnombre.hint = "Busca tus noticias por categoría"
+            binding.editexFilter.hint = "Busca tus noticias por categoría"
+
+            // Mostrar solo la sección correcta
+            binding.linealFiltradoNoticias.isVisible = true
             obtenernoticias_guardados()
-            binding.linealFitlradoTrabajadores.isVisible = false
+
+            // Opcional: si quieres mostrar recicle después de cargar, hazlo desde la función
         }
+
+
     }
 
     private fun obtenernoticias_guardados() {

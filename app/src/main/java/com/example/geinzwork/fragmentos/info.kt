@@ -149,42 +149,15 @@ class info : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         firebaseAuth = FirebaseAuth.getInstance()
+        var mostrandoTrabajadores = false
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR).toString()
         val img = arguments?.getString(IMAGEN_PERFIL).toString()
         val nombre = arguments?.getString(NOMBRE).toString()
         val nacionalidad = arguments?.getString(NACIONALIDAD).toString()
         val categoria = arguments?.getString(CATEGORIA).toString()
         obtenertrabajosRecientes(idTrabajador)
-        constantes.carga(3000, { mostrarDatos() })
-
-        val recicle = binding.productosDestacados
-        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
-        recicle.layoutManager = customLayoutManager
-
-        binding.linealSiguiendo.setOnClickListener {
-            dialog = BottomSheetDialog(mContex)
-            BottomSheet_cargarSeguidoresSeguidos(idTrabajador)
-            dialog.show()
-        }
-        binding.linealSeguidores.setOnClickListener {
-            dialog = BottomSheetDialog(mContex)
-            BottomShett_carga_seguidores(idTrabajador)
-            dialog.show()
-        }
-
-        constantes_trabajadores_info.actualizarSeguidres(binding, idTrabajador)
-
+        constantes_trabajadores_info.obtener_Segudores(binding, idTrabajador)
         constantes_trabajadores_info.ver_cantidad_siguiendo(binding, idTrabajador)
-
-
-        binding.qrTrabajador.setOnClickListener {
-            var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
-                putExtra(Variables.info, Variables.info)
-                putExtra(Variables.idTrabajdor, idTrabajador)
-            }
-            startActivity(vista)
-        }
-        binding.popup.setOnClickListener { popup(idTrabajador, nombre, nacionalidad, categoria) }
         obtenerDatosTrabajador(idTrabajador) { categoria ->
             constantes_trabajadores_info.obtenerMejoresTrabajadores(
                 idTrabajador,
@@ -209,20 +182,11 @@ class info : Fragment() {
                 (mContex as? Activity)?.finish()
             }
         }
-
-
-        binding.ig.setOnClickListener {
-            obtenerRedes(mContex, Variables.ig, idTrabajador)
-        }
-        binding.fb.setOnClickListener {
-            obtenerRedes(mContex, Variables.fb, idTrabajador)
-        }
-        binding.tk.setOnClickListener {
-            obtenerRedes(mContex, Variables.tk, idTrabajador)
-        }
+        constantes.carga(3000, { mostrarDatos() })
         obtenerPerfil(idTrabajador, img)
         confSwipe(idTrabajador, img)
-        constantes_trabajadores_info.verificarSiSiueTrabajador(binding, idTrabajador, mContex, { sige -> },
+        constantes_trabajadores_info.verificarSiSiueTrabajador(
+            binding, idTrabajador, mContex, { sige -> },
             { noti ->
                 Log.d("norificaicon", noti.toString())
                 if (noti) {
@@ -241,17 +205,49 @@ class info : Fragment() {
                     )
                 }
             })
-        binding.dejarDeSeguirOSeguir.setOnClickListener {
-            constantes_trabajadores_info.verificarFollow(idTrabajador, binding, mContex)
-        }
 
+        val recicle = binding.productosDestacados
+        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.layoutManager = customLayoutManager
+
+        binding.linealSiguiendo.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            BottomSheet_cargarSeguidoresSeguidos(idTrabajador)
+            dialog.show()
+        }
+        binding.linealSeguidores.setOnClickListener {
+            dialog = BottomSheetDialog(mContex)
+            BottomShett_carga_seguidores(idTrabajador)
+            dialog.show()
+        }
+        binding.qrTrabajador.setOnClickListener {
+            var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
+                putExtra(Variables.info, Variables.info)
+                putExtra(Variables.idTrabajdor, idTrabajador)
+            }
+            startActivity(vista)
+        }
+        binding.popup.setOnClickListener { popup(idTrabajador, nombre, nacionalidad, categoria) }
+        binding.ig.setOnClickListener {
+            obtenerRedes(mContex, Variables.ig, idTrabajador)
+        }
+        binding.fb.setOnClickListener {
+            obtenerRedes(mContex, Variables.fb, idTrabajador)
+        }
+        binding.tk.setOnClickListener {
+            obtenerRedes(mContex, Variables.tk, idTrabajador)
+        }
+        binding.dejarDeSeguirOSeguir.setOnClickListener {
+            constantes_trabajadores_info.seguir_trabajador(idTrabajador, binding, mContex)
+        }
+        binding.siguiendoBtn.setOnClickListener {
+            constantes_trabajadores_info.showCustomUnfollowDialog(binding, mContex, idTrabajador)
+        }
         binding.masInformacion.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
             constantes_trabajadores_info.mostrarDialoDatosUSer(dialog, idTrabajador, mContex, img)
             dialog.show()
         }
-        var mostrandoTrabajadores = false // fuera del click, como propiedad de la clase
-
         binding.mostrarSeguridos.setOnClickListener {
             if (!mostrandoTrabajadores) {
                 // Primera vez: cargar trabajadores
@@ -583,11 +579,21 @@ class info : Fragment() {
             seguir = { item ->
                 if (firebaseAuth.uid.toString() == id_trabajador) {
                     Toast.makeText(mContex, "los id son iguales ", Toast.LENGTH_SHORT).show()
-                    constantes_trabajadores_info.seguirTrabajadorcategoriasFR(binding,item.id_trabajador!!, false,true)
+                    constantes_trabajadores_info.seguirTrabajadorcategoriasFR(
+                        binding,
+                        item.id_trabajador!!,
+                        false,
+                        true
+                    )
                     gola(binding)
 
-                }else{
-                    constantes_trabajadores_info.seguirTrabajadorcategoriasFR(null,item.id_trabajador!!, false,false)
+                } else {
+                    constantes_trabajadores_info.seguirTrabajadorcategoriasFR(
+                        null,
+                        item.id_trabajador!!,
+                        false,
+                        false
+                    )
 
                 }
 
@@ -606,7 +612,7 @@ class info : Fragment() {
                         binding,
                         item.id_trabajador.toString(),
                         mContex,
-                        false,false
+                        false, false
                     )
                     constantes_trabajadores_info.ver_cantidad_siguiendo(binding, id_trabajador)
 
@@ -616,9 +622,9 @@ class info : Fragment() {
                         binding,
                         item.id_trabajador.toString(),
                         mContex,
-                        false,false
+                        false, false
                     )
-                    constantes_trabajadores_info.ver_cantidad_siguiendo(binding,  id_trabajador)
+                    constantes_trabajadores_info.ver_cantidad_siguiendo(binding, id_trabajador)
                 }
 
 
