@@ -7,14 +7,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
+
     android:orientation="vertical"
     tools:context="com.example.geinzwork.noticias_trabajadores_guardados">
 
-    <!-- ViewPager2 DENTRO del scroll -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager2"
+
+    <Button
+        android:id="@+id/trabajadores"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:nestedScrollingEnabled="false" />
+        android:layout_height="wrap_content"
+        android:text="trabajadores" />
+
+    <Button
+        android:id="@+id/noticias"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="trabajadores" />
 
 </LinearLayout>

@@ -1,26 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:animateLayoutChanges="true"
+    android:orientation="vertical">
 
-    tools:context="com.example.geinzwork.fragmentos.guardados.guardado_trabajador">
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/cerrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="8dp" />
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/lineal_general_carga"
+        android:id="@+id/scroll_general"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="10dp"
         android:animateLayoutChanges="true"
         android:visibility="gone">
 
         <LinearLayout
+            android:animateLayoutChanges="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
             android:orientation="vertical">
-
+            <!-- Texto superior -->
             <TextView
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="match_parent"
@@ -39,39 +45,15 @@
                 android:text="Explora y filtra a tus trabajadores favoritos y noticias guardadas"
                 android:textSize="15sp" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/inputnombre"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:visibility="gone"
-                app:boxCornerRadiusBottomEnd="20dp"
-                app:boxCornerRadiusBottomStart="20dp"
-                app:boxCornerRadiusTopEnd="20dp"
-                app:boxCornerRadiusTopStart="20dp"
-                app:endIconMode="clear_text">
-
-                <AutoCompleteTextView
-                    android:id="@+id/editexFilter"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:drawableStart="@drawable/buscar_icon"
-                    android:drawablePadding="5dp"
-                    android:hint="Busca a trabajadores por categoria"
-                    android:imeOptions="actionDone"
-                    android:inputType="text"
-                    android:paddingLeft="10dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
             <HorizontalScrollView
-                android:id="@+id/lineal_fitlradoTrabajadores"
+                android:id="@+id/lineal_filtradoNoticias"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbars="none"
                 android:visibility="gone">
 
                 <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupFiltradoTrabajadore"
+                    android:id="@+id/chipGroupFiltradoNoticia"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:chipSpacing="8dp"
@@ -80,12 +62,13 @@
 
             </HorizontalScrollView>
 
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/encontrados"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="gone" />
+
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -95,7 +78,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:layout_marginTop="50dp"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -107,10 +89,10 @@
             style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:fontFamily="@font/fuente_para_texto_special_gothic"
             android:text="cargando..."
             android:textSize="17sp"
-            android:layout_marginTop="5dp"
             android:textStyle="bold" />
     </LinearLayout>
 
