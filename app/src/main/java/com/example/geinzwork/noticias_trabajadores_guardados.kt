@@ -8,6 +8,10 @@ import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.RelativeLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -57,18 +61,62 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
 
-        binding.trabajadores.setOnClickListener {
+        binding.listenerTrabajadores.setOnClickListener {
             dialog = BottomSheetDialog(this)
             bottomSheet()
             dialog.show()
         }
-        binding.noticias.setOnClickListener {
+        binding.listenerNoticiasGuardadas.setOnClickListener {
             dialog = BottomSheetDialog(this)
             bottomSheet_noticias()
             dialog.show()
         }
+        obtener_cantidad_guardados(
+            "trabajadores",
+            binding.guardadoTrabajadores,
+            binding.cargandoContador, binding.datosTrabajadores
+        )
+
+        obtener_cantidad_guardados(
+            "noticias",
+            binding.guardadoNoticias,
+            binding.cargandoContador2, binding.datosNoticias
+        )
 
     }
+
+    private fun obtener_cantidad_guardados(
+        tipo: String,
+        texview_seteado: TextView,
+        progressBar: ProgressBar,
+        Lineal: LinearLayout
+    ) {
+        val startTime = System.currentTimeMillis()
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("guardados")
+            .document("guardados").collection(tipo)
+
+        db.get().addOnSuccessListener { res ->
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            Log.d("FirestoreTiempo", "Tiempo de respuesta Firestore ($tipo): $duration ms")
+            val cantidad = res.size()
+            texview_seteado.text = "${cantidad} Guardados"
+            Handler(Looper.getMainLooper()).postDelayed({
+                progressBar.isVisible = false
+                Lineal.isVisible = true
+            }, duration)
+
+        }.addOnFailureListener { e ->
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            Log.e("FirestoreTiempo", "Error al obtener datos ($tipo) en $duration ms", e)
+        }
+    }
+
 
     private fun bottomSheet_noticias() {
         val bottomSheet = BottoSheetGuardadoNoticiasBinding.inflate(LayoutInflater.from(this))
@@ -224,6 +272,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         Toast.makeText(this, "llegamos a la funcion de obtner", Toast.LENGTH_SHORT).show()
         bottomSheet.encontrados.isVisible = false
         bottomSheet.linealGeneralCarga.isVisible = false
+        bottomSheet.linealCargando.isVisible=true
         val db2 = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)

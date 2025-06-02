@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
     android:orientation="vertical">
 
-    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-        android:id="@+id/cerrar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="8dp" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_general"
@@ -22,28 +16,17 @@
         android:visibility="gone">
 
         <LinearLayout
-            android:animateLayoutChanges="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
             android:orientation="vertical">
-            <!-- Texto superior -->
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="9dp"
-                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                android:text="Filtra fácilmente tus trabajadores y noticias guardadas"
-                android:textSize="23sp" />
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
+            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+                android:id="@+id/cerrar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="9dp"
-                android:fontFamily="@font/fuente_para_texto_special_gothic"
-                android:text="Explora y filtra a tus trabajadores favoritos y noticias guardadas"
-                android:textSize="15sp" />
+                android:layout_gravity="center"
+                android:padding="8dp" />
 
             <HorizontalScrollView
                 android:id="@+id/lineal_filtradoNoticias"
@@ -96,4 +79,4 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>
