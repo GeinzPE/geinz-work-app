@@ -1,5 +1,6 @@
 package com.example.geinzwork
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +15,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,6 +33,7 @@ import com.geinzz.geinzwork.databinding.BottoSheetGuardadoNoticiasBinding
 import com.geinzz.geinzwork.databinding.BottomSheettGuardaTrabajadorBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclassVerGuardados
+import com.geinzz.geinzwork.vistaTrabajador.ver_detalles_Promociones
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
@@ -41,6 +44,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     private val listaTrabajo = mutableListOf<dataClassTrabajosd>().toMutableList()
     private val lista_categoria_noticias = mutableSetOf<String>()
     private val listaCategoriasChips = mutableSetOf<String>()
+    private val listaprincipal = mutableListOf<dataclassVerGuardados>()
     private var totalTrabajadores = 0
     private var cargados = 0
     private val handler = Handler(Looper.getMainLooper())
@@ -62,14 +66,29 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
 
         binding.listenerTrabajadores.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottomSheet()
-            dialog.show()
+            if (binding.guardadoTrabajadores.text.toString().toInt() == 0) {
+                Toast.makeText(
+                    this,
+                    "No tiene ningun trabajador marcado como guardado",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            } else {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_trabajadores()
+                dialog.show()
+            }
+
         }
         binding.listenerNoticiasGuardadas.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottomSheet_noticias()
-            dialog.show()
+            if (binding.guardadoNoticias.text.toString().toInt() == 0) {
+                Toast.makeText(this, "No tiene ninguna noticia guardada", Toast.LENGTH_SHORT).show()
+            } else {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_noticias()
+                dialog.show()
+            }
+
         }
         obtener_cantidad_guardados(
             "trabajadores",
@@ -104,7 +123,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             val duration = endTime - startTime
             Log.d("FirestoreTiempo", "Tiempo de respuesta Firestore ($tipo): $duration ms")
             val cantidad = res.size()
-            texview_seteado.text = "${cantidad} Guardados"
+            texview_seteado.text = "${cantidad}"
             Handler(Looper.getMainLooper()).postDelayed({
                 progressBar.isVisible = false
                 Lineal.isVisible = true
@@ -127,12 +146,11 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     }
 
     private fun obtenernoticias_guardados(bottomSheet: BottoSheetGuardadoNoticiasBinding) {
-
+        bottomSheet.scrollGeneral.isVisible = false
         bottomSheet.linealCargando.isVisible = true
         bottomSheet.encontrados.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
 
-        val listaprincipal = mutableListOf<dataclassVerGuardados>()
         val db2N = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
@@ -140,7 +158,22 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             .document(firebaseAuth.uid.toString())
             .collection("guardados").document("guardados").collection("noticias")
 
+        listaprincipal.clear()
         db2N.get().addOnSuccessListener { res ->
+            if (res.isEmpty) {
+                bottomSheet.linealCargando.isVisible = false
+                dialog.dismiss()
+                Toast.makeText(this, "No tienes noticias guardadas", Toast.LENGTH_SHORT).show()
+                binding.datosNoticias.isVisible=false
+                binding.cargandoContador2.isVisible=true
+                obtener_cantidad_guardados(
+                    "noticias",
+                    binding.guardadoNoticias,
+                    binding.cargandoContador2, binding.datosNoticias
+                )
+                return@addOnSuccessListener // salir temprano
+            }
+
             for (datos in res) {
                 val idDocumento = datos.id
                 val data = datos.data
@@ -151,6 +184,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                 lista_categoria_noticias.addAll(categorias)
 
                 setear_chips_filtrado_noticias(lista_categoria_noticias, bottomSheet)
+
                 if (data.isNotEmpty()) {
                     val pendingTasks = data.size
                     var completedTasks = 0
@@ -176,6 +210,143 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                                     id
                                 )
                                 listaprincipal.add(anuncio)
+                            }
+
+                            completedTasks++
+                            if (completedTasks == pendingTasks) {
+                                val tiempoFin = System.currentTimeMillis()
+                                val tiempoTotal = tiempoFin - tiempoInicio
+
+                                handler.postDelayed({
+                                    val transition = android.transition.AutoTransition().apply {
+                                        duration = 100
+                                    }
+
+                                    android.transition.TransitionManager.beginDelayedTransition(
+                                        binding.root as ViewGroup,
+                                        transition
+                                    )
+
+                                    if (listaprincipal.isNotEmpty()) {
+                                        inicializarRecile_noticias(listaprincipal, bottomSheet)
+                                        bottomSheet.scrollGeneral.isVisible = true
+                                        bottomSheet.encontrados.isVisible = true
+                                        bottomSheet.linealFiltradoNoticias.isVisible = true
+                                    } else {
+                                        dialog.dismiss()
+                                        Toast.makeText(
+                                            this,
+                                            "No tienes noticias guardadas",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+
+                                    bottomSheet.linealCargando.isVisible = false
+                                }, tiempoTotal)
+                            }
+
+                        }
+                    }
+                }
+            }
+        }.addOnFailureListener { e -> }
+
+    }
+
+    private fun setear_chips_filtrado_noticias(
+        categorias: Set<String>,
+        bottomSheet: BottoSheetGuardadoNoticiasBinding
+    ) {
+
+        val chipGroup = bottomSheet.chipGroupFiltradoNoticia
+        chipGroup.removeAllViews()
+        chipGroup.isSingleSelection = true
+
+        // Agregar el chip "Todos" primero
+        val chipTodos = Chip(chipGroup.context).apply {
+            text = "Todos"
+            isCheckable = true
+            isClickable = true
+            isChecked = true // Marcarlo como seleccionado por defecto
+            id = View.generateViewId()
+        }
+        chipGroup.addView(chipTodos)
+
+        // Agregar el resto de categorías
+        for (categoria in categorias) {
+            val chip = Chip(chipGroup.context).apply {
+                text = categoria
+                isCheckable = true
+                isClickable = true
+                id = View.generateViewId()
+            }
+            chipGroup.addView(chip)
+        }
+
+        // Listener
+        chipGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selectedChip: Chip? = group.findViewById(checkedId)
+            selectedChip?.let {
+                if (it.text.toString() == "Todos") {
+                    obtenernoticias_guardados(bottomSheet)
+                } else {
+                    inicializar_filtrado_noticias(it.text.toString(), bottomSheet)
+                }
+
+            }
+        }
+    }
+
+    private fun inicializar_filtrado_noticias(
+        categorias: String,
+        bottomSheet: BottoSheetGuardadoNoticiasBinding
+    ) {
+        listaprincipal.clear()
+        bottomSheet.scrollGeneral.isVisible = false
+        bottomSheet.linealCargando.isVisible = true
+        bottomSheet.encontrados.isVisible = false
+        val tiempoInicio = System.currentTimeMillis()
+
+
+        val db2N = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("noticias")
+
+        db2N.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val data = datos.data
+                if (data.isNotEmpty()) {
+                    val pendingTasks = data.size
+                    var completedTasks = 0
+
+                    for ((key, _) in data) {
+                        val db2 = FirebaseFirestore.getInstance().collection(Variables.noticias)
+                            .document(key)
+
+                        db2.get().addOnSuccessListener { datos ->
+                            if (datos.exists()) {
+                                val data = datos.data
+                                val CategoriasFiltrado = data?.get("Categoria") as? String ?: ""
+                                val id = data?.get(Variables.id) as? String ?: ""
+                                val titulo = data?.get(Variables.titulo) as? String ?: ""
+                                val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
+                                val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
+                                val fechaActivacion =
+                                    fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
+
+                                val anuncio = dataclassVerGuardados(
+                                    imagen,
+                                    titulo,
+                                    fechaActivacion,
+                                    id
+                                )
+                                if (categorias == CategoriasFiltrado) {
+                                    listaprincipal.add(anuncio)
+                                }
+
                             }
 
                             completedTasks++
@@ -210,55 +381,58 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         }
     }
 
-    private fun setear_chips_filtrado_noticias(
-        categorias: Set<String>,
-        bottomSheet: BottoSheetGuardadoNoticiasBinding
-    ) {
-        val chipGroup = bottomSheet.chipGroupFiltradoNoticia
-        chipGroup.removeAllViews()
-        chipGroup.isSingleSelection = true
-
-        // Agregar el chip "Todos" primero
-        val chipTodos = Chip(chipGroup.context).apply {
-            text = "Todos"
-            isCheckable = true
-            isClickable = true
-            isChecked = true // Marcarlo como seleccionado por defecto
-            id = View.generateViewId()
-        }
-        chipGroup.addView(chipTodos)
-
-        // Agregar el resto de categorías
-        for (categoria in categorias) {
-            val chip = Chip(chipGroup.context).apply {
-                text = categoria
-                isCheckable = true
-                isClickable = true
-                id = View.generateViewId()
-            }
-            chipGroup.addView(chip)
-        }
-
-        // Listener
-        chipGroup.setOnCheckedChangeListener { group, checkedId ->
-            val selectedChip: Chip? = group.findViewById(checkedId)
-            selectedChip?.let {
-                println("Categoría seleccionada: ${it.text}")
-            }
-        }
-    }
-
     private fun inicializarRecile_noticias(
         listaAnuncios: MutableList<dataclassVerGuardados>,
         bottomSheet: BottoSheetGuardadoNoticiasBinding
     ) {
         val recicle = bottomSheet.encontrados
         recicle.layoutManager = LinearLayoutManager(this)
-        recicle.adapter = adapterguardados(listaAnuncios)
+        recicle.adapter = adapterguardados(listaAnuncios, { listener ->
+            var vista = Intent(this, ver_detalles_Promociones::class.java).apply {
+                putExtra(Variables.idAnuncio, listener.idNoticia)
+                putExtra(Variables.entrada, Variables.tipoNoticia)
+            }
+            startActivity(vista)
+
+        }, { longlistener ->
+            val dialog = AlertDialog.Builder(this)
+                .setTitle("Eliminar noticia")
+                .setMessage("¿Estás seguro de que quieres eliminar esta noticia guardada?")
+                .setPositiveButton("Sí") { _, _ ->
+                    eliminar_guardados(longlistener.idNoticia.toString())
+                    obtenernoticias_guardados(bottomSheet)
+                    Log.d("pasamos_id_noticias", "pasamos id ${longlistener.idNoticia}")
+
+
+                }
+                .setNegativeButton("Cancelar", null)
+                .create()
+
+            dialog.show()
+
+        })
+    }
+
+    private fun eliminar_guardados(selecionado: String) {
+        val db2N = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection("noticias")
+            .document(selecionado)
+        db2N.delete().addOnSuccessListener { res ->
+            Toast.makeText(this, "Noticia eliminada correctamente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "tamano de lista ${listaprincipal.size}", Toast.LENGTH_SHORT)
+                .show()
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "error al eliminarlo de guardados", Toast.LENGTH_SHORT).show()
+
+        }
     }
 
 
-    private fun bottomSheet() {
+    private fun bottomSheet_trabajadores() {
         val bottomSheet = BottomSheettGuardaTrabajadorBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
         obtener_trabajadores_guardados(bottomSheet)
@@ -272,7 +446,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         Toast.makeText(this, "llegamos a la funcion de obtner", Toast.LENGTH_SHORT).show()
         bottomSheet.encontrados.isVisible = false
         bottomSheet.linealGeneralCarga.isVisible = false
-        bottomSheet.linealCargando.isVisible=true
+        bottomSheet.linealCargando.isVisible = true
         val db2 = FirebaseFirestore.getInstance()
             .collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
@@ -375,7 +549,6 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         categorias: Set<String>,
         bottomSheet: BottomSheettGuardaTrabajadorBinding
     ) {
-        println("la lista chipsssss es $categorias")
         val chipGroup = bottomSheet.chipGroupFiltradoTrabajadore
         chipGroup.removeAllViews()
         chipGroup.isSingleSelection = true
@@ -403,11 +576,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         chipGroup.setOnCheckedChangeListener { group, checkedId ->
             val selectedChip: Chip? = group.findViewById(checkedId)
             selectedChip?.let {
-                println("Categoría seleccionada: ${it.text}")
                 if (it.text.toString() == "Todos") {
-
                     obtener_trabajadores_guardados(bottomSheet)
-
                 } else {
                     actualizar_guardados(it.text.toString(), bottomSheet)
                 }

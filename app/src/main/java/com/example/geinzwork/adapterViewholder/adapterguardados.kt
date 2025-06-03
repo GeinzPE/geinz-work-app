@@ -11,7 +11,11 @@ import com.geinzz.geinzwork.dataclass.dataclassVerGuardados
 import com.geinzz.geinzwork.vistaTrabajador.ver_detalles_Promociones
 
 
-class adapterguardados(private val lista: MutableList<dataclassVerGuardados>) :
+class adapterguardados(
+    private val lista: MutableList<dataclassVerGuardados>,
+    private val listener: (dataclassVerGuardados) -> Unit,
+    private val long_listner: (dataclassVerGuardados) -> Unit
+) :
     RecyclerView.Adapter<adapterguardados.viewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {
         val binding =
@@ -25,12 +29,16 @@ class adapterguardados(private val lista: MutableList<dataclassVerGuardados>) :
 
     override fun onBindViewHolder(holder: viewHolder, position: Int) {
         val item = lista[position]
-        holder.render(item)
+        holder.render(item, listener, long_listner)
     }
 
     class viewHolder(private val binsding: ItemNoticiasGuardadasBinding) :
         RecyclerView.ViewHolder(binsding.root) {
-        fun render(dataclassVerGuardados: dataclassVerGuardados) {
+        fun render(
+            dataclassVerGuardados: dataclassVerGuardados,
+            listener: (dataclassVerGuardados) -> Unit,
+            long_listner: (dataclassVerGuardados) -> Unit
+        ) {
             try {
                 Glide.with(itemView.context)
                     .load(dataclassVerGuardados.img)
@@ -38,7 +46,13 @@ class adapterguardados(private val lista: MutableList<dataclassVerGuardados>) :
             } catch (e: Exception) {
                 println("error al setear la img")
             }
-            binsding.linealListner.setOnClickListener { mandarDatos(dataclassVerGuardados) }
+            binsding.linealListner.setOnClickListener {
+                listener(dataclassVerGuardados)
+            }
+            binsding.linealListner.setOnLongClickListener {
+                long_listner(dataclassVerGuardados)
+                true
+            }
 
             binsding.titulo.text = dataclassVerGuardados.nombre
             binsding.vencimineto.text = "Vence ${dataclassVerGuardados.fecha}"
@@ -46,8 +60,8 @@ class adapterguardados(private val lista: MutableList<dataclassVerGuardados>) :
 
         private fun mandarDatos(dataclassVerGuardados: dataclassVerGuardados) {
             var vista = Intent(itemView.context, ver_detalles_Promociones::class.java).apply {
-                putExtra(Variables.idAnuncio    , dataclassVerGuardados.idNoticia)
-                putExtra(Variables.entrada,Variables.tipoNoticia)
+                putExtra(Variables.idAnuncio, dataclassVerGuardados.idNoticia)
+                putExtra(Variables.entrada, Variables.tipoNoticia)
             }
             itemView.context.startActivity(vista)
         }

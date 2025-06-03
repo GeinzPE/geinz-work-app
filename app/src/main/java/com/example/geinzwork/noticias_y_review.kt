@@ -4,7 +4,6 @@ package com.geinzz.geinzwork
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -14,16 +13,9 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
-import com.geinzz.geinzwork.adapterViewholder.adapterguardados
-import com.geinzz.geinzwork.constantesGeneral.constantesReviewComplet
 import com.geinzz.geinzwork.databinding.ActivityNoticiasYreviewBinding
 import com.geinzz.geinzwork.dataclass.daclassReview
-import com.geinzz.geinzwork.dataclass.dataclassVerGuardados
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 
 class noticias_y_review : AppCompatActivity() {

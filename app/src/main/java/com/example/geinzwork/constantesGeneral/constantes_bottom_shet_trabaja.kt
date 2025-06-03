@@ -124,6 +124,7 @@ object constantes_bottom_shet_trabaja {
                     handler.postDelayed({
                         binding_bottomSheet.vistraPrevia.isVisible = true
                         binding_bottomSheet.cargarLineal.isVisible = false
+
                     }, tiempoFin - tiempoInicio)
                 }
 
@@ -205,7 +206,6 @@ object constantes_bottom_shet_trabaja {
             }
 
             if (seguidorEncontrado != null) {
-                Toast.makeText(contexto, "El user sí lo sigue normal", Toast.LENGTH_SHORT).show()
                 binding_bottomSheet.siguiendoBtn.isVisible = true
                 binding_bottomSheet.seguir.isVisible = false
 

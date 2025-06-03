@@ -21,36 +21,42 @@
             android:animateLayoutChanges="true"
             android:orientation="vertical">
 
-            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-                android:id="@+id/cerrar"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:padding="8dp" />
+                android:animateLayoutChanges="true"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-            <HorizontalScrollView
-                android:id="@+id/lineal_filtradoNoticias"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:visibility="gone">
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupFiltradoNoticia"
+                <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+                    android:id="@+id/cerrar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:chipSpacing="8dp"
-                    app:chipSpacingVertical="8dp"
-                    app:singleLine="false" />
+                    android:layout_gravity="center"
+                    android:padding="8dp" />
 
-            </HorizontalScrollView>
+                <HorizontalScrollView
+                    android:id="@+id/lineal_filtradoNoticias"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:visibility="gone">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/encontrados"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupFiltradoNoticia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:chipSpacing="8dp"
+                        app:chipSpacingVertical="8dp"
+                        app:singleLine="false" />
 
+                </HorizontalScrollView>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/encontrados"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
