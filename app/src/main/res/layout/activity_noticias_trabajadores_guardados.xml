@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -11,224 +11,236 @@
 
     tools:context="com.example.geinzwork.noticias_trabajadores_guardados">
 
-    <LinearLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        android:orientation="vertical">
-        <!-- Texto superior -->
-        <TextView
-            style="@style/TextoModoOScuroColor"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-            android:text="Filtra fácilmente tus trabajadores y noticias guardadas"
-            android:textSize="23sp" />
-
-        <TextView
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:fontFamily="@font/fuente_para_texto_special_gothic"
-            android:text="Explora y filtra a tus trabajadores favoritos y noticias guardadas"
-            android:textSize="15sp" />
-
-        <LinearLayout
-            android:id="@+id/listener_trabajadores"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:orientation="vertical">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/img_servicio"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/trabajadores_guardados"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-            </RelativeLayout>
+            android:layout_height="wrap_content">
 
             <LinearLayout
-                style="@style/RoundTrabajadoresBG"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
                 android:orientation="vertical">
-
-                <RelativeLayout
+                <!-- Texto superior -->
+                <TextView
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="7dp">
+                    android:layout_marginBottom="9dp"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="Filtra fácilmente tus trabajadores y noticias guardadas"
+                    android:textSize="23sp" />
 
-                    <ProgressBar
-                        android:id="@+id/cargando_contador"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_centerInParent="true" />
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:fontFamily="@font/fuente_para_texto_special_gothic"
+                    android:text="Explora y filtra a tus trabajadores favoritos y noticias guardadas"
+                    android:textSize="15sp" />
+
+                <LinearLayout
+                    android:id="@+id/listener_trabajadores"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/img_servicio"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/trabajadores_guardados"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    </RelativeLayout>
 
                     <LinearLayout
-                        android:id="@+id/datos_trabajadores"
-                        android:layout_width="wrap_content"
+                        style="@style/RoundTrabajadoresBG"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginVertical="10dp"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
+                        android:orientation="vertical">
 
-                        <ImageView
-                            android:id="@+id/guaradar_icon1"
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginRight="10dp"
-                            android:fontFamily="sans-serif"
-                            android:src="@drawable/guardar_yelow"
-                            android:text="0" />
-
-                        <LinearLayout
+                        <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:padding="7dp">
 
-                            <TextView
-                                android:id="@+id/guardado_trabajadores"
-                                style="@style/TextoModoOScuroColor"
+                            <ProgressBar
+                                android:id="@+id/cargando_contador"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_centerInParent="true" />
+
+                            <LinearLayout
+                                android:id="@+id/datos_trabajadores"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_centerVertical="true"
-                                android:layout_marginEnd="8dp"
-                                android:layout_toRightOf="@+id/guaradar_icon1"
-                                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                                android:text="guardadso 50"
-                                android:textAllCaps="true"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:layout_marginVertical="10dp"
+                                android:gravity="center"
+                                android:orientation="horizontal"
+                                android:visibility="gone">
 
-                            <TextView
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
-                                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                                android:text="Guardados"
-                                android:textAllCaps="true"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                                <ImageView
+                                    android:id="@+id/guaradar_icon1"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_marginRight="10dp"
+                                    android:fontFamily="sans-serif"
+                                    android:src="@drawable/guardar_yelow"
+                                    android:text="0" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:id="@+id/guardado_trabajadores"
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerVertical="true"
+                                        android:layout_marginEnd="8dp"
+                                        android:layout_toRightOf="@+id/guaradar_icon1"
+                                        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                        android:text="guardadso 50"
+                                        android:textAllCaps="true"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="8dp"
+                                        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                        android:text="Guardados"
+                                        android:textAllCaps="true"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+
+                        </RelativeLayout>
 
                     </LinearLayout>
+                </LinearLayout>
 
 
-                </RelativeLayout>
-
-            </LinearLayout>
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:id="@+id/listener_noticias_guardadas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:orientation="vertical">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/img_noticias_guardadas"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/noticias_guardadas"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RelativeLayout
-                    style="@style/RoundTrabajadoresBG"
+                <LinearLayout
+                    android:id="@+id/listener_noticias_guardadas"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="7dp">
+                    android:layout_marginBottom="20dp"
+                    android:orientation="vertical">
 
-                    <ProgressBar
-                        android:id="@+id/cargando_contador2"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_centerInParent="true" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/img_noticias_guardadas"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/noticias_guardadas"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    </RelativeLayout>
 
                     <LinearLayout
-                        android:id="@+id/datos_noticias"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginVertical="10dp"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
+                        android:orientation="vertical">
 
-                        <ImageView
-                            android:id="@+id/guaradar_icon2"
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginRight="10dp"
-                            android:fontFamily="sans-serif"
-                            android:src="@drawable/guardar_yelow" />
-
-                        <LinearLayout
+                        <RelativeLayout
+                            style="@style/RoundTrabajadoresBG"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:padding="7dp">
 
-                            <TextView
-                                android:id="@+id/guardadoNoticias"
-                                style="@style/TextoModoOScuroColor"
+                            <ProgressBar
+                                android:id="@+id/cargando_contador2"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_centerInParent="true" />
+
+                            <LinearLayout
+                                android:id="@+id/datos_noticias"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
-                                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                                android:text="0"
-                                android:textAllCaps="true"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:layout_centerVertical="true"
+                                android:layout_marginVertical="10dp"
+                                android:gravity="center"
+                                android:orientation="horizontal"
+                                android:visibility="gone">
 
-                            <TextView
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
-                                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                                android:text="Guardados"
-                                android:textAllCaps="true"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                                <ImageView
+                                    android:id="@+id/guaradar_icon2"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_marginRight="10dp"
+                                    android:fontFamily="sans-serif"
+                                    android:src="@drawable/guardar_yelow" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:id="@+id/guardadoNoticias"
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="8dp"
+                                        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                        android:text="0"
+                                        android:textAllCaps="true"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        style="@style/TextoModoOScuroColor"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="8dp"
+                                        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                        android:text="Guardados"
+                                        android:textAllCaps="true"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+
+                        </RelativeLayout>
 
                     </LinearLayout>
+                </LinearLayout>
 
-
-                </RelativeLayout>
 
             </LinearLayout>
-        </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
-    </LinearLayout>
-
-
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>

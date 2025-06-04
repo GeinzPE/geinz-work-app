@@ -1,6 +1,7 @@
 package com.example.geinzwork
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -56,6 +58,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
     private lateinit var dialog: BottomSheetDialog
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNoticiasTrabajadoresGuardadosBinding.inflate(layoutInflater)
@@ -106,10 +109,38 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             binding.guardadoNoticias,
             binding.cargandoContador2, binding.datosNoticias
         )
+        binding.swipe.isVisible = true
+        confSwipe()
 
     }
 
     //funciones generales
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun confSwipe() {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            binding.datosTrabajadores.isVisible=false
+            binding.cargandoContador.isVisible=true
+            binding.datosNoticias.isVisible = false
+            binding.cargandoContador2.isVisible = true
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.swipe.isRefreshing = false
+
+                obtener_cantidad_guardados(
+                    "trabajadores",
+                    binding.guardadoTrabajadores,
+                    binding.cargandoContador, binding.datosTrabajadores
+                )
+
+                obtener_cantidad_guardados(
+                    "noticias",
+                    binding.guardadoNoticias,
+                    binding.cargandoContador2, binding.datosNoticias
+                )
+            }, 2000)
+        }
+    }
 
     //noticias
     private fun cargarNoticiasGuardadas(
@@ -427,7 +458,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                             val categorias = categoriaTrabajoStr.split(",").map { it.trim() }
                                 .filter { it.isNotEmpty() }
                             listaCategoriasChips.addAll(categorias)
-                        }else if( filtrado!=null && filtrado== categoriaTrabajoStr){
+                        } else if (filtrado != null && filtrado == categoriaTrabajoStr) {
 
                             val estrellas = userData?.get("estrellas") as? String ?: "0"
                             val nombre = userData?.get(Variables.nombre) as? String ?: ""

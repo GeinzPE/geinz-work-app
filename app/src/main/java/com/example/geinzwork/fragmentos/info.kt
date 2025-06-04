@@ -690,7 +690,7 @@ class info : Fragment() {
 
 
             val mensaje =
-                "Hola, estoy interesado en obtener más información sobre el trabajo que vi en Geinz. Gracias."
+                "Hola, estoy interesado en obtener más información sobre el trabajo que vi en Geinz Work. Gracias."
 
             val uri = Uri.parse(
                 "https://api.whatsapp.com/send?phone=$numero&text=${
@@ -1294,6 +1294,7 @@ class info : Fragment() {
                 val tipoTrabajo = data?.get(Variables.tipoTrabajo) as? String ?: ""
                 val localida_user = data?.get(Variables.localidad) as? String ?: ""
                 val fecha_registro = data?.get("fecha_creacion") as? String ?: ""
+                val telefonoUSer = data?.get(Variables.numero) as? String ?: ""
                 val ig = data?.get(Variables.IG) as? String ?: ""
                 val fb = data?.get(Variables.FB) as? String ?: ""
                 val tk = data?.get(Variables.TK) as? String ?: ""
@@ -1305,6 +1306,7 @@ class info : Fragment() {
                     binding.BtnSeguimiento.isVisible = true
                 }
 
+                binding.telefono.text=telefonoUSer
                 binding.localidadUser.text = localida_user
 
 
