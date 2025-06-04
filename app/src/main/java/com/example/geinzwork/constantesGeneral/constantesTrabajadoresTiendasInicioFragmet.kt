@@ -2,23 +2,28 @@ package com.geinzz.geinzwork.constantesGeneral
 
 import android.content.Context
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter
 import com.geinzz.geinzwork.adapterViewholder.adapterCategorias
 import com.geinzz.geinzwork.adapterViewholder.adapterTiendas
+import com.geinzz.geinzwork.databinding.BottomSheetContactoDirectoBinding
 import com.geinzz.geinzwork.databinding.FragmentInicioFracmentBinding
 import com.geinzz.geinzwork.databinding.ItemInicioFragmentUsersBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.geinzz.geinzwork.dataclass.dataclassTiendas
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,6 +32,8 @@ import de.hdodenhof.circleimageview.CircleImageView
 object constantesTrabajadoresTiendasInicioFragmet {
 
     private var img = ""
+    private lateinit var dialog: BottomSheetDialog
+
     private lateinit var firebaseAuth: FirebaseAuth
 
     fun obtenerMejoresTrabajadores(
@@ -269,7 +276,6 @@ object constantesTrabajadoresTiendasInicioFragmet {
     }
 
 
-
     private fun actualizarVisibilidad(
         hayArticulos: Boolean,
         carga: LinearLayoutCompat,
@@ -297,7 +303,9 @@ object constantesTrabajadoresTiendasInicioFragmet {
         recicle.adapter = adapterCategorias(
             listaTrabajos,
             { dataClassTrabajosd -> constantes.vistaTrabajador(contexto, dataClassTrabajosd) },
-            firebaseAuth.uid.toString()
+            firebaseAuth.uid.toString(), { long_listener ->
+                verificar_dialog_seguir_guardar_trabajador(contexto, long_listener.id.toString())
+            }
         )
     }
 
@@ -316,8 +324,48 @@ object constantesTrabajadoresTiendasInicioFragmet {
             onBackPresser,
             listaAleatoria,
             firebaseAuth.uid.toString(),
-            4,false
+            4, false
+        ) { long_listner ->
+            verificar_dialog_seguir_guardar_trabajador(contexto, long_listner.id.toString())
+        }
+    }
+
+    fun verificar_dialog_seguir_guardar_trabajador(contexto: Context, id: String) {
+        if (firebaseAuth.currentUser == null) {
+            dialog = BottomSheetDialog(contexto)
+            constantesPublicidad.CreacionCuentaBottom_shett(
+                contexto,
+                dialog
+            )
+            dialog.show()
+        } else {
+            if (firebaseAuth.uid.toString() == id) {
+                Toast.makeText(
+                    contexto,
+                    "Para ver tu perfil, ve a Cuenta > Previsualización.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                dialog = BottomSheetDialog(contexto)
+                bottomSheet_contacto_directo(id.toString(), contexto)
+                dialog.show()
+            }
+
+        }
+    }
+
+    fun bottomSheet_contacto_directo(item_id: String, contexto: Context) {
+        val bottom_bindig =
+            BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(contexto))
+        val view = bottom_bindig.root
+        constantes_bottom_shet_trabaja.obntener_datos_trabajador(
+            dialog,
+            contexto,
+            item_id.toString(),
+            bottom_bindig
         )
+        dialog.setContentView(view)
+
     }
 
 
@@ -327,7 +375,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
         contexto: Context,
         imagen: CircleImageView,
         linealAnuncioVerificado: LinearLayout,
-        verificadoBoolena:(Boolean)->Unit
+        verificadoBoolena: (Boolean) -> Unit
     ) {
         if (constantes.firebaseAuth.currentUser == null) {
             val placeholderperfil =
@@ -350,7 +398,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
                 for (resultado in res) {
                     val data = resultado.data
                     val id = data?.get("id") as? String
-                    val verificado = data?.get("verificado") as? Boolean?:false
+                    val verificado = data?.get("verificado") as? Boolean ?: false
                     if (id == constantes.firebaseAuth.uid.toString()) {
                         encontrado = true
                         setearimgNombre(
@@ -361,10 +409,10 @@ object constantesTrabajadoresTiendasInicioFragmet {
                             contexto,
                             imagen
                         )
-                        if(verificado==true){
+                        if (verificado == true) {
                             verificadoBoolena(true)
 //                            linealAnuncioVerificado.isVisible=false
-                        }else{
+                        } else {
                             verificadoBoolena(false)
 //                            linealAnuncioVerificado.isVisible=true
                         }
@@ -536,14 +584,14 @@ object constantesTrabajadoresTiendasInicioFragmet {
         circleImageView: CircleImageView,
         CircularProgressIndicator: CircularProgressIndicator, contexto: Context
     ) {
-        Log.d("obtenosimgtrabajdor",id_trabajdor)
+        Log.d("obtenosimgtrabajdor", id_trabajdor)
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id_trabajdor)
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data
                 val img = data?.get("imagenPerfil") as? String ?: ""
-                Log.d("obtenosimgtrabajdor",img)
+                Log.d("obtenosimgtrabajdor", img)
                 constatnes_carga_imagenes_general.changer_img(
                     CircularProgressIndicator,
                     contexto,

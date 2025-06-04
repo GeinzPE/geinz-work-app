@@ -37,8 +37,7 @@ class adapterCategorias
     (
     private var lista: MutableList<dataClassTrabajosd>,
     private val vermas: (dataClassTrabajosd) -> Unit,
-    private val uidString: String
-
+    private val uidString: String, private val long_listener: (dataClassTrabajosd) ->Unit
 ) : RecyclerView.Adapter<adapterCategorias.viewHolderCategorias>() {
     private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
@@ -92,18 +91,7 @@ class adapterCategorias
                 imagenPerfilcicrle
             )
             btnVermas.setOnLongClickListener {
-                if (firebaseAuth.currentUser == null) {
-                    dialog = BottomSheetDialog(itemView.context)
-                    constantesPublicidad.CreacionCuentaBottom_shett(
-                        itemView.context,
-                        dialog
-                    )
-                    dialog.show()
-                } else {
-                    dialog = BottomSheetDialog(itemView.context)
-                    bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
-                    dialog.show()
-                }
+                long_listener(dataClassTrabajosd)
 
                 true
             }
@@ -133,19 +121,7 @@ class adapterCategorias
             constantes.obtenerEstado(actividad, dataClassTrabajosd.id.toString())
         }
 
-        fun bottomSheet_contacto_directo(item_id: String) {
-            val bottom_bindig =
-                BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(itemView.context))
-            val view = bottom_bindig.root
-            constantes_bottom_shet_trabaja.obntener_datos_trabajador(
-                dialog,
-                itemView.context,
-                item_id.toString(),
-                bottom_bindig
-            )
-            dialog.setContentView(view)
 
-        }
 
         @SuppressLint("SuspiciousIndentation")
         @RequiresApi(Build.VERSION_CODES.O)

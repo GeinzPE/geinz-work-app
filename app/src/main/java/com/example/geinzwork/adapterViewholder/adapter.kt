@@ -29,7 +29,8 @@ class adapter(
     private var listaTrabajos: MutableList<dataClassTrabajosd>,
     private val uidString: String,
     private var cantidadMostrado: Int,
-    private var match_parent: Boolean
+    private var match_parent: Boolean,
+    private var long_listener:(dataClassTrabajosd)->Unit
 
 ) : RecyclerView.Adapter<adapter.viewHolder>() {
     init {
@@ -80,27 +81,7 @@ class adapter(
         ) {
             firebaseAuth = FirebaseAuth.getInstance()
             btnVermas.setOnLongClickListener {
-                if (firebaseAuth.currentUser == null) {
-                    dialog = BottomSheetDialog(itemView.context)
-                    constantesPublicidad.CreacionCuentaBottom_shett(
-                        itemView.context,
-                        dialog
-                    )
-                    dialog.show()
-                } else {
-                    if (firebaseAuth.uid.toString() == dataClassTrabajosd.id) {
-                        Toast.makeText(
-                            itemView.context,
-                            "Para ver tu perfil, ve a Cuenta > Previsualización.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }else{
-                        dialog = BottomSheetDialog(itemView.context)
-                        bottomSheet_contacto_directo(dataClassTrabajosd.id.toString())
-                        dialog.show()
-                    }
-
-                }
+                long_listener(dataClassTrabajosd)
                 true
             }
 
@@ -122,19 +103,6 @@ class adapter(
             Tu_cuentaMostrado(uidString, dataClassTrabajosd)
         }
 
-        fun bottomSheet_contacto_directo(item_id: String) {
-            val bottom_bindig =
-                BottomSheetContactoDirectoBinding.inflate(LayoutInflater.from(itemView.context))
-            val view = bottom_bindig.root
-            constantes_bottom_shet_trabaja.obntener_datos_trabajador(
-                dialog,
-                itemView.context,
-                item_id.toString(),
-                bottom_bindig
-            )
-            dialog.setContentView(view)
-
-        }
 
         fun promedioEstrellas(dataClassTrabajosd: dataClassTrabajosd): String {
             val puntaje = dataClassTrabajosd.start.toString().toIntOrNull()

@@ -28,6 +28,8 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter
 import com.geinzz.geinzwork.adapterViewholder.adapterguardados
 import com.geinzz.geinzwork.constantesGeneral.constantesNoticias.firebaseAuth
+import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
+import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet.verificar_dialog_seguir_guardar_trabajador
 import com.geinzz.geinzwork.databinding.ActivityNoticiasTrabajadoresGuardadosBinding
 import com.geinzz.geinzwork.databinding.BottoSheetGuardadoNoticiasBinding
 import com.geinzz.geinzwork.databinding.BottomSheettGuardaTrabajadorBinding
@@ -36,6 +38,7 @@ import com.geinzz.geinzwork.dataclass.dataclassVerGuardados
 import com.geinzz.geinzwork.vistaTrabajador.ver_detalles_Promociones
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.math.abs
@@ -75,7 +78,7 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
             } else {
                 dialog = BottomSheetDialog(this)
-                bottomSheet_trabajadores()
+                bottomSheet_noticias_trabajadores("trabajadores")
                 dialog.show()
             }
 
@@ -85,11 +88,13 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                 Toast.makeText(this, "No tiene ninguna noticia guardada", Toast.LENGTH_SHORT).show()
             } else {
                 dialog = BottomSheetDialog(this)
-                bottomSheet_noticias()
+                bottomSheet_noticias_trabajadores("noticias")
+
                 dialog.show()
             }
 
         }
+
         obtener_cantidad_guardados(
             "trabajadores",
             binding.guardadoTrabajadores,
@@ -104,48 +109,14 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
     }
 
-    private fun obtener_cantidad_guardados(
-        tipo: String,
-        texview_seteado: TextView,
-        progressBar: ProgressBar,
-        Lineal: LinearLayout
+    //funciones generales
+
+    //noticias
+    private fun cargarNoticiasGuardadas(
+        bottomSheet: BottoSheetGuardadoNoticiasBinding,
+        categoriaFiltrar: String? = null
     ) {
-        val startTime = System.currentTimeMillis()
-
-        val db = FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores")
-            .document(firebaseAuth.uid.toString()).collection("guardados")
-            .document("guardados").collection(tipo)
-
-        db.get().addOnSuccessListener { res ->
-            val endTime = System.currentTimeMillis()
-            val duration = endTime - startTime
-            Log.d("FirestoreTiempo", "Tiempo de respuesta Firestore ($tipo): $duration ms")
-            val cantidad = res.size()
-            texview_seteado.text = "${cantidad}"
-            Handler(Looper.getMainLooper()).postDelayed({
-                progressBar.isVisible = false
-                Lineal.isVisible = true
-            }, duration)
-
-        }.addOnFailureListener { e ->
-            val endTime = System.currentTimeMillis()
-            val duration = endTime - startTime
-            Log.e("FirestoreTiempo", "Error al obtener datos ($tipo) en $duration ms", e)
-        }
-    }
-
-
-    private fun bottomSheet_noticias() {
-        val bottomSheet = BottoSheetGuardadoNoticiasBinding.inflate(LayoutInflater.from(this))
-        val view = bottomSheet.root
-        obtenernoticias_guardados(bottomSheet)
-        dialog.setContentView(view)
-        dialog.show()
-    }
-
-    private fun obtenernoticias_guardados(bottomSheet: BottoSheetGuardadoNoticiasBinding) {
+        listaprincipal.clear()
         bottomSheet.scrollGeneral.isVisible = false
         bottomSheet.linealCargando.isVisible = true
         bottomSheet.encontrados.isVisible = false
@@ -158,32 +129,29 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             .document(firebaseAuth.uid.toString())
             .collection("guardados").document("guardados").collection("noticias")
 
-        listaprincipal.clear()
         db2N.get().addOnSuccessListener { res ->
             if (res.isEmpty) {
                 bottomSheet.linealCargando.isVisible = false
                 dialog.dismiss()
                 Toast.makeText(this, "No tienes noticias guardadas", Toast.LENGTH_SHORT).show()
-                binding.datosNoticias.isVisible=false
-                binding.cargandoContador2.isVisible=true
+                binding.datosNoticias.isVisible = false
+                binding.cargandoContador2.isVisible = true
+
                 obtener_cantidad_guardados(
                     "noticias",
                     binding.guardadoNoticias,
-                    binding.cargandoContador2, binding.datosNoticias
+                    binding.cargandoContador2,
+                    binding.datosNoticias
                 )
-                return@addOnSuccessListener // salir temprano
+                return@addOnSuccessListener
             }
 
-            for (datos in res) {
-                val idDocumento = datos.id
-                val data = datos.data
-                val id = data?.get(idDocumento) as? String ?: ""
-                val categorias = id.split(",")
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
+            lista_categoria_noticias.clear()
+            for (document in res) {
+                val data = document.data
+                val id = data?.get(document.id) as? String ?: ""
+                val categorias = id.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                 lista_categoria_noticias.addAll(categorias)
-
-                setear_chips_filtrado_noticias(lista_categoria_noticias, bottomSheet)
 
                 if (data.isNotEmpty()) {
                     val pendingTasks = data.size
@@ -195,11 +163,14 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
                         db2.get().addOnSuccessListener { datos ->
                             if (datos.exists()) {
-                                val data = datos.data
-                                val id = data?.get(Variables.id) as? String ?: ""
-                                val titulo = data?.get(Variables.titulo) as? String ?: ""
-                                val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
-                                val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
+                                val dataNoticia = datos.data
+                                val categoriaNoticia =
+                                    dataNoticia?.get("Categoria") as? String ?: ""
+                                val id = dataNoticia?.get(Variables.id) as? String ?: ""
+                                val titulo = dataNoticia?.get(Variables.titulo) as? String ?: ""
+                                val imagen = dataNoticia?.get(Variables.imagenUrl) as? String ?: ""
+                                val fechaMap =
+                                    dataNoticia?.get(Variables.fechas) as? Map<String, Any>
                                 val fechaActivacion =
                                     fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
 
@@ -209,7 +180,10 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                                     fechaActivacion,
                                     id
                                 )
-                                listaprincipal.add(anuncio)
+
+                                if (categoriaFiltrar == null || categoriaFiltrar == "Todos" || categoriaNoticia == categoriaFiltrar) {
+                                    listaprincipal.add(anuncio)
+                                }
                             }
 
                             completedTasks++
@@ -244,142 +218,25 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                                     bottomSheet.linealCargando.isVisible = false
                                 }, tiempoTotal)
                             }
-
                         }
                     }
                 }
             }
-        }.addOnFailureListener { e -> }
 
-    }
-
-    private fun setear_chips_filtrado_noticias(
-        categorias: Set<String>,
-        bottomSheet: BottoSheetGuardadoNoticiasBinding
-    ) {
-
-        val chipGroup = bottomSheet.chipGroupFiltradoNoticia
-        chipGroup.removeAllViews()
-        chipGroup.isSingleSelection = true
-
-        // Agregar el chip "Todos" primero
-        val chipTodos = Chip(chipGroup.context).apply {
-            text = "Todos"
-            isCheckable = true
-            isClickable = true
-            isChecked = true // Marcarlo como seleccionado por defecto
-            id = View.generateViewId()
-        }
-        chipGroup.addView(chipTodos)
-
-        // Agregar el resto de categorías
-        for (categoria in categorias) {
-            val chip = Chip(chipGroup.context).apply {
-                text = categoria
-                isCheckable = true
-                isClickable = true
-                id = View.generateViewId()
-            }
-            chipGroup.addView(chip)
-        }
-
-        // Listener
-        chipGroup.setOnCheckedChangeListener { group, checkedId ->
-            val selectedChip: Chip? = group.findViewById(checkedId)
-            selectedChip?.let {
-                if (it.text.toString() == "Todos") {
-                    obtenernoticias_guardados(bottomSheet)
-                } else {
-                    inicializar_filtrado_noticias(it.text.toString(), bottomSheet)
-                }
-
-            }
-        }
-    }
-
-    private fun inicializar_filtrado_noticias(
-        categorias: String,
-        bottomSheet: BottoSheetGuardadoNoticiasBinding
-    ) {
-        listaprincipal.clear()
-        bottomSheet.scrollGeneral.isVisible = false
-        bottomSheet.linealCargando.isVisible = true
-        bottomSheet.encontrados.isVisible = false
-        val tiempoInicio = System.currentTimeMillis()
-
-
-        val db2N = FirebaseFirestore.getInstance()
-            .collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB)
-            .collection(Variables.trabajadoresDB)
-            .document(firebaseAuth.uid.toString())
-            .collection("guardados").document("guardados").collection("noticias")
-
-        db2N.get().addOnSuccessListener { res ->
-            for (datos in res) {
-                val data = datos.data
-                if (data.isNotEmpty()) {
-                    val pendingTasks = data.size
-                    var completedTasks = 0
-
-                    for ((key, _) in data) {
-                        val db2 = FirebaseFirestore.getInstance().collection(Variables.noticias)
-                            .document(key)
-
-                        db2.get().addOnSuccessListener { datos ->
-                            if (datos.exists()) {
-                                val data = datos.data
-                                val CategoriasFiltrado = data?.get("Categoria") as? String ?: ""
-                                val id = data?.get(Variables.id) as? String ?: ""
-                                val titulo = data?.get(Variables.titulo) as? String ?: ""
-                                val imagen = data?.get(Variables.imagenUrl) as? String ?: ""
-                                val fechaMap = data?.get(Variables.fechas) as? Map<String, Any>
-                                val fechaActivacion =
-                                    fechaMap?.get(Variables.fecha_activacion) as? String ?: ""
-
-                                val anuncio = dataclassVerGuardados(
-                                    imagen,
-                                    titulo,
-                                    fechaActivacion,
-                                    id
-                                )
-                                if (categorias == CategoriasFiltrado) {
-                                    listaprincipal.add(anuncio)
-                                }
-
-                            }
-
-                            completedTasks++
-                            if (completedTasks == pendingTasks) {
-                                val tiempoFin = System.currentTimeMillis()
-                                val tiempoTotal = tiempoFin - tiempoInicio
-                                handler.postDelayed({
-                                    if (listaprincipal.isNotEmpty()) {
-                                        inicializarRecile_noticias(listaprincipal, bottomSheet)
-                                    }
-                                    val transition = android.transition.AutoTransition().apply {
-                                        duration = 100
-                                    }
-                                    android.transition.TransitionManager.beginDelayedTransition(
-                                        binding.root as ViewGroup,
-                                        transition
-                                    )
-                                    bottomSheet.scrollGeneral.isVisible = true
-                                    bottomSheet.encontrados.isVisible = true
-                                    bottomSheet.linealCargando.isVisible = false
-                                    bottomSheet.linealFiltradoNoticias.isVisible = true
-                                }, tiempoTotal)
-
-
-                            }
-                        }
-                    }
-                }
+            // Solo generar chips si no hay filtro (es decir, solo al cargar por primera vez)
+            if (categoriaFiltrar == null || categoriaFiltrar == "Todos") {
+                setear_chips_general_trabajadores_noticias(
+                    lista_categoria_noticias,
+                    bottomSheet.chipGroupFiltradoNoticia,
+                    "noticias",
+                    bottomSheet
+                )
             }
         }.addOnFailureListener {
-            Log.e("TIEMPO_FIREBASE", "Error al obtener noticias", it)
+            Log.e("FirebaseNoticias", "Error al obtener noticias", it)
         }
     }
+
 
     private fun inicializarRecile_noticias(
         listaAnuncios: MutableList<dataclassVerGuardados>,
@@ -399,8 +256,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                 .setTitle("Eliminar noticia")
                 .setMessage("¿Estás seguro de que quieres eliminar esta noticia guardada?")
                 .setPositiveButton("Sí") { _, _ ->
-                    eliminar_guardados(longlistener.idNoticia.toString())
-                    obtenernoticias_guardados(bottomSheet)
+                    eliminar_guardados(longlistener.idNoticia.toString(), "noticias")
+                    cargarNoticiasGuardadas(bottomSheet)
                     Log.d("pasamos_id_noticias", "pasamos id ${longlistener.idNoticia}")
 
 
@@ -413,36 +270,36 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         })
     }
 
-    private fun eliminar_guardados(selecionado: String) {
-        val db2N = FirebaseFirestore.getInstance()
-            .collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB)
-            .collection(Variables.trabajadoresDB)
-            .document(firebaseAuth.uid.toString())
-            .collection("guardados").document("guardados").collection("noticias")
-            .document(selecionado)
-        db2N.delete().addOnSuccessListener { res ->
-            Toast.makeText(this, "Noticia eliminada correctamente", Toast.LENGTH_SHORT).show()
-            Toast.makeText(this, "tamano de lista ${listaprincipal.size}", Toast.LENGTH_SHORT)
-                .show()
-        }.addOnFailureListener { e ->
-            Toast.makeText(this, "error al eliminarlo de guardados", Toast.LENGTH_SHORT).show()
+    private fun bottomSheet_noticias_trabajadores(tipo: String) {
+        when (tipo) {
+            "noticias" -> {
+                val bottomSheet =
+                    BottoSheetGuardadoNoticiasBinding.inflate(LayoutInflater.from(this))
+                val view = bottomSheet.root
+                cargarNoticiasGuardadas(bottomSheet)
+                dialog.setContentView(view)
+                dialog.show()
+            }
 
+            "trabajadores" -> {
+                val bottomSheet =
+                    BottomSheettGuardaTrabajadorBinding.inflate(LayoutInflater.from(this))
+                val view = bottomSheet.root
+                obtener_trabajadores_guardados(bottomSheet)
+                bottomSheet.encontrados.isNestedScrollingEnabled = false
+                bottomSheet.linealGeneralCarga.isVisible = false
+                dialog.setContentView(view)
+                dialog.show()
+            }
         }
+
     }
 
-
-    private fun bottomSheet_trabajadores() {
-        val bottomSheet = BottomSheettGuardaTrabajadorBinding.inflate(LayoutInflater.from(this))
-        val view = bottomSheet.root
-        obtener_trabajadores_guardados(bottomSheet)
-        bottomSheet.encontrados.isNestedScrollingEnabled = false
-        bottomSheet.linealGeneralCarga.isVisible = false
-        dialog.setContentView(view)
-        dialog.show()
-    }
-
-    private fun obtener_trabajadores_guardados(bottomSheet: BottomSheettGuardaTrabajadorBinding) {
+    //trabajadores
+    private fun obtener_trabajadores_guardados(
+        bottomSheet: BottomSheettGuardaTrabajadorBinding,
+        onEmpty: (() -> Unit)? = null
+    ) {
         Toast.makeText(this, "llegamos a la funcion de obtner", Toast.LENGTH_SHORT).show()
         bottomSheet.encontrados.isVisible = false
         bottomSheet.linealGeneralCarga.isVisible = false
@@ -459,244 +316,222 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
             cargados = 0
             listaCategoriasChips.clear()
             listaTrabajo.clear()
-            for (datos in res) {
-                val data = datos.data
-                val id = data?.get("id_trabajador") as? String ?: ""
-                guardados(id, bottomSheet)
+            if (res.isEmpty) {
+                onEmpty?.invoke()
+                bottomSheet.linealCargando.isVisible = false
+                return@addOnSuccessListener
             }
+            listaTrabajo.clear()
+            cargarTrabajadoresGuardados(null, bottomSheet, onEmpty)
+
         }
     }
 
-    private fun guardados(idTrabajador: String, bottomSheet: BottomSheettGuardaTrabajadorBinding) {
-        bottomSheet.encontrados.isVisible = false
-        bottomSheet.linealGeneralCarga.isVisible = false
-        val tiempoInicio = System.currentTimeMillis()
-        val userCollections =
-            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador)
-
-        userCollections.get()
-            .addOnSuccessListener { res ->
-                val tiempoFin = System.currentTimeMillis()
-                val duracion = tiempoFin - tiempoInicio
-                Log.d(
-                    "TIEMPO_FIREBASE",
-                    "⏱ Tiempo en obtener datos de $idTrabajador: ${duracion}ms"
-                )
-
-                if (res.exists()) {
-                    val userData = res.data
-                    val categoriaTrabajoStr =
-                        userData?.get(Variables.categoriaTrabajo) as? String ?: ""
-                    val estrellas = userData?.get("estrellas") as? String ?: "0"
-                    val nombre = userData?.get(Variables.nombre) as? String ?: ""
-                    val apellido = userData?.get(Variables.apellido) as? String ?: ""
-                    val caracteristica1 = userData?.get(Variables.caracteristica1) as? String ?: ""
-                    val caracteristica2 = userData?.get(Variables.caracteristica2) as? String ?: ""
-                    val caracteristica3 = userData?.get(Variables.caracteristica3) as? String ?: ""
-                    val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
-                    val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
-                    val genero = userData?.get(Variables.genero) as? String ?: ""
-                    val horario1 = userData?.get(Variables.horario1) as? String ?: ""
-                    val horario2 = userData?.get(Variables.horario2) as? String ?: ""
-                    val id = userData?.get(Variables.id) as? String ?: ""
-                    val img = userData?.get(Variables.imagenPerfil) as? String ?: ""
-                    val localidad = userData?.get(Variables.localidad) as? String ?: ""
-                    val nacionalidad = userData?.get(Variables.nacionalidad) as? String ?: ""
-                    val numero = userData?.get(Variables.numero) as? String ?: ""
-                    val tipoTrabajo = userData?.get(Variables.tipoTrabajo) as? String ?: ""
-                    val activo = userData?.get(Variables.activado) as? String ?: ""
-                    val edadActual = userData?.get(Variables.EdadActual) as? String ?: ""
-                    val verificados = userData?.get(Variables.verificado) as? Boolean ?: false
-
-                    val usuario = dataClassTrabajosd(
-                        id, apellido, caracteristica1, caracteristica2, caracteristica3,
-                        categoriaTrabajoStr, fechaNac, genero, horario1, horario2,
-                        nacionalidad, nombre, estrellas, tipoTrabajo, localidad,
-                        codigoPais, numero, img, activo, edadActual, verificados
-                    )
-
-                    listaTrabajo.add(usuario)
-
-                    val categorias = categoriaTrabajoStr.split(",")
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                    listaCategoriasChips.addAll(categorias)
-
-                    println("La lista agregada es $listaTrabajo")
-
-                }
-
-                cargados++
-                if (cargados == totalTrabajadores) {
-                    handler.postDelayed({
-
-                        bottomSheet.encontrados.isVisible = true
-                        bottomSheet.linealCargando.isVisible = false
-                        bottomSheet.linealFitlradoTrabajadores.isVisible =
-                            true
-                        bottomSheet.linealGeneralCarga.isVisible = true
-                    }, duracion)
-
-                    setear_chisp_filtrado(listaCategoriasChips, bottomSheet)
-                    inicarlizarRecicle(listaTrabajo, bottomSheet)
-                }
-            }
-    }
-
-    private fun setear_chisp_filtrado(
-        categorias: Set<String>,
-        bottomSheet: BottomSheettGuardaTrabajadorBinding
+    private fun cargarTrabajadoresGuardados(
+        filtrado: String? = null,
+        bottomSheet: BottomSheettGuardaTrabajadorBinding,
+        onEmpty: (() -> Unit)? = null
     ) {
-        val chipGroup = bottomSheet.chipGroupFiltradoTrabajadore
-        chipGroup.removeAllViews()
-        chipGroup.isSingleSelection = true
-
-
-        val chipTodos = Chip(chipGroup.context).apply {
-            text = "Todos"
-            isCheckable = true
-            isClickable = true
-            isChecked = true
-            id = View.generateViewId()
-        }
-        chipGroup.addView(chipTodos)
-
-        for (categoria in categorias) {
-            val chip = Chip(chipGroup.context).apply {
-                text = categoria
-                isCheckable = true
-                isClickable = true
-                id = View.generateViewId()
-            }
-            chipGroup.addView(chip)
-        }
-
-        chipGroup.setOnCheckedChangeListener { group, checkedId ->
-            val selectedChip: Chip? = group.findViewById(checkedId)
-            selectedChip?.let {
-                if (it.text.toString() == "Todos") {
-                    obtener_trabajadores_guardados(bottomSheet)
-                } else {
-                    actualizar_guardados(it.text.toString(), bottomSheet)
-                }
-            }
-        }
-    }
-
-    private fun actualizar_guardados(
-        filtrado: String,
-        bottomSheet: BottomSheettGuardaTrabajadorBinding
-    ) {
-
         bottomSheet.linealCargando.isVisible = true
         bottomSheet.encontrados.isVisible = false
         bottomSheet.linealGeneralCarga.isVisible = false
-        val db2 = FirebaseFirestore.getInstance()
-            .collection(Variables.trabajadores_usuariosDB)
+
+        Toast.makeText(this, "obtnemos las categorias de filtro $filtrado", Toast.LENGTH_SHORT)
+            .show()
+        val db = FirebaseFirestore.getInstance()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        val guardadosRef = db.collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
             .collection(Variables.trabajadoresDB)
-            .document(firebaseAuth.uid.toString())
-            .collection("guardados").document("guardados").collection("trabajadores")
+            .document(userId)
+            .collection("guardados")
+            .document("guardados")
+            .collection("trabajadores")
 
-        db2.get().addOnSuccessListener { res ->
-            totalTrabajadores = res.size()
-            cargados = 0
-            listaCategoriasChips.clear()
-            listaTrabajo.clear()
-            for (datos in res) {
-                val data = datos.data
-                val id = data?.get("id_trabajador") as? String ?: ""
+        guardadosRef.get().addOnSuccessListener { snapshot ->
+            val totalTrabajadores = snapshot.size()
+            if (totalTrabajadores == 0) {
+                bottomSheet.linealCargando.isVisible = false
+                onEmpty?.invoke()
+                Toast.makeText(
+                    bottomSheet.root.context,
+                    "No tienes trabajadores guardados",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@addOnSuccessListener
+            }
+
+            var cargados = 0
+            val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
+            for (doc in snapshot.documents) {
+                val idTrabajador = doc.getString("id_trabajador") ?: ""
+
                 val tiempoInicio = System.currentTimeMillis()
+                val trabajadorDocRef = db.collection(Variables.trabajadores_usuariosDB)
+                    .document(Variables.trabajadoresDB)
+                    .collection(Variables.trabajadoresDB)
+                    .document(idTrabajador)
 
+                trabajadorDocRef.get().addOnSuccessListener { res ->
+                    val tiempoFin = System.currentTimeMillis()
+                    val duracion = tiempoFin - tiempoInicio
+                    android.util.Log.d(
+                        "TIEMPO_FIREBASE",
+                        "⏱ Tiempo para $idTrabajador: ${duracion}ms"
+                    )
 
-                val userCollections =
-                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                        .document(id)
+                    if (res.exists()) {
+                        val userData = res.data
+                        val categoriaTrabajoStr =
+                            userData?.get(Variables.categoriaTrabajo) as? String ?: ""
 
-                userCollections.get()
-                    .addOnSuccessListener { res ->
-                        val tiempoFin = System.currentTimeMillis()
-                        val duracion = tiempoFin - tiempoInicio
-                        Log.d(
-                            "TIEMPO_FIREBASE",
-                            "⏱ Tiempo en obtener datos de $id: ${duracion}ms"
-                        )
+                        if (filtrado == null) {
+                            Toast.makeText(this, "entrasmoa a la condicionam", Toast.LENGTH_SHORT)
+                                .show()
+                            val estrellas = userData?.get("estrellas") as? String ?: "0"
+                            val nombre = userData?.get(Variables.nombre) as? String ?: ""
+                            val apellido = userData?.get(Variables.apellido) as? String ?: ""
+                            val caracteristica1 =
+                                userData?.get(Variables.caracteristica1) as? String ?: ""
+                            val caracteristica2 =
+                                userData?.get(Variables.caracteristica2) as? String ?: ""
+                            val caracteristica3 =
+                                userData?.get(Variables.caracteristica3) as? String ?: ""
+                            val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
+                            val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
+                            val genero = userData?.get(Variables.genero) as? String ?: ""
+                            val horario1 = userData?.get(Variables.horario1) as? String ?: ""
+                            val horario2 = userData?.get(Variables.horario2) as? String ?: ""
+                            val id = userData?.get(Variables.id) as? String ?: ""
+                            val img = userData?.get(Variables.imagenPerfil) as? String ?: ""
+                            val localidad = userData?.get(Variables.localidad) as? String ?: ""
+                            val nacionalidad =
+                                userData?.get(Variables.nacionalidad) as? String ?: ""
+                            val numero = userData?.get(Variables.numero) as? String ?: ""
+                            val tipoTrabajo = userData?.get(Variables.tipoTrabajo) as? String ?: ""
+                            val activo = userData?.get(Variables.activado) as? String ?: ""
+                            val edadActual = userData?.get(Variables.EdadActual) as? String ?: ""
+                            val verificados =
+                                userData?.get(Variables.verificado) as? Boolean ?: false
 
-                        if (res.exists()) {
-                            val userData = res.data
-                            val categoriaTrabajoStr =
-                                userData?.get(Variables.categoriaTrabajo) as? String ?: ""
-                            Log.d("entradmos", "$categoriaTrabajoStr = $filtrado")
-                            if (filtrado == categoriaTrabajoStr) {
-                                Log.d("entradmos", "estamos bine ")
-                                val estrellas = userData?.get("estrellas") as? String ?: "0"
-                                val nombre = userData?.get(Variables.nombre) as? String ?: ""
-                                val apellido = userData?.get(Variables.apellido) as? String ?: ""
-                                val caracteristica1 =
-                                    userData?.get(Variables.caracteristica1) as? String ?: ""
-                                val caracteristica2 =
-                                    userData?.get(Variables.caracteristica2) as? String ?: ""
-                                val caracteristica3 =
-                                    userData?.get(Variables.caracteristica3) as? String ?: ""
-                                val codigoPais =
-                                    userData?.get(Variables.codigo_pais) as? String ?: ""
-                                val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
-                                val genero = userData?.get(Variables.genero) as? String ?: ""
-                                val horario1 = userData?.get(Variables.horario1) as? String ?: ""
-                                val horario2 = userData?.get(Variables.horario2) as? String ?: ""
-                                val id = userData?.get(Variables.id) as? String ?: ""
-                                val img = userData?.get(Variables.imagenPerfil) as? String ?: ""
-                                val localidad = userData?.get(Variables.localidad) as? String ?: ""
-                                val nacionalidad =
-                                    userData?.get(Variables.nacionalidad) as? String ?: ""
-                                val numero = userData?.get(Variables.numero) as? String ?: ""
-                                val tipoTrabajo =
-                                    userData?.get(Variables.tipoTrabajo) as? String ?: ""
-                                val activo = userData?.get(Variables.activado) as? String ?: ""
-                                val edadActual =
-                                    userData?.get(Variables.EdadActual) as? String ?: ""
-                                val verificados =
-                                    userData?.get(Variables.verificado) as? Boolean ?: false
+                            val usuario = dataClassTrabajosd(
+                                id, apellido, caracteristica1, caracteristica2, caracteristica3,
+                                categoriaTrabajoStr, fechaNac, genero, horario1, horario2,
+                                nacionalidad, nombre, estrellas, tipoTrabajo, localidad,
+                                codigoPais, numero, img, activo, edadActual, verificados
+                            )
+                            listaTrabajo.add(usuario)
 
-                                val usuario = dataClassTrabajosd(
-                                    id, apellido, caracteristica1, caracteristica2, caracteristica3,
-                                    categoriaTrabajoStr, fechaNac, genero, horario1, horario2,
-                                    nacionalidad, nombre, estrellas, tipoTrabajo, localidad,
-                                    codigoPais, numero, img, activo, edadActual, verificados
-                                )
+                            val categorias = categoriaTrabajoStr.split(",").map { it.trim() }
+                                .filter { it.isNotEmpty() }
+                            listaCategoriasChips.addAll(categorias)
+                        }else if( filtrado!=null && filtrado== categoriaTrabajoStr){
 
-                                listaTrabajo.add(usuario)
+                            val estrellas = userData?.get("estrellas") as? String ?: "0"
+                            val nombre = userData?.get(Variables.nombre) as? String ?: ""
+                            val apellido = userData?.get(Variables.apellido) as? String ?: ""
+                            val caracteristica1 =
+                                userData?.get(Variables.caracteristica1) as? String ?: ""
+                            val caracteristica2 =
+                                userData?.get(Variables.caracteristica2) as? String ?: ""
+                            val caracteristica3 =
+                                userData?.get(Variables.caracteristica3) as? String ?: ""
+                            val codigoPais = userData?.get(Variables.codigo_pais) as? String ?: ""
+                            val fechaNac = userData?.get(Variables.fechaNac) as? String ?: ""
+                            val genero = userData?.get(Variables.genero) as? String ?: ""
+                            val horario1 = userData?.get(Variables.horario1) as? String ?: ""
+                            val horario2 = userData?.get(Variables.horario2) as? String ?: ""
+                            val id = userData?.get(Variables.id) as? String ?: ""
+                            val img = userData?.get(Variables.imagenPerfil) as? String ?: ""
+                            val localidad = userData?.get(Variables.localidad) as? String ?: ""
+                            val nacionalidad =
+                                userData?.get(Variables.nacionalidad) as? String ?: ""
+                            val numero = userData?.get(Variables.numero) as? String ?: ""
+                            val tipoTrabajo = userData?.get(Variables.tipoTrabajo) as? String ?: ""
+                            val activo = userData?.get(Variables.activado) as? String ?: ""
+                            val edadActual = userData?.get(Variables.EdadActual) as? String ?: ""
+                            val verificados =
+                                userData?.get(Variables.verificado) as? Boolean ?: false
 
+                            val usuario = dataClassTrabajosd(
+                                id, apellido, caracteristica1, caracteristica2, caracteristica3,
+                                categoriaTrabajoStr, fechaNac, genero, horario1, horario2,
+                                nacionalidad, nombre, estrellas, tipoTrabajo, localidad,
+                                codigoPais, numero, img, activo, edadActual, verificados
+                            )
+                            listaTrabajo.add(usuario)
 
-
-                                println("La lista agregada es $listaTrabajo")
-                            }
-                        }
-
-                        cargados++
-                        if (cargados == totalTrabajadores) {
-                            handler.postDelayed({
-                                bottomSheet.encontrados.isVisible = true
-                                bottomSheet.linealCargando.isVisible = false
-                                bottomSheet.linealFitlradoTrabajadores.isVisible =
-                                    true
-                                bottomSheet.linealGeneralCarga.isVisible =
-                                    true
-
-                            }, duracion)
-
-                            inicarlizarRecicle(listaTrabajo, bottomSheet)
                         }
                     }
-            }
-        }
-        Log.d("entradmos", "entramos a la fun de actualzuiar")
-        listaTrabajo.clear()
 
+                    cargados++
+                    if (cargados == totalTrabajadores) {
+                        handler.post {
+                            if (listaTrabajo.isNotEmpty()) {
+                                inicarlizarRecicle(listaTrabajo, bottomSheet)
+                                bottomSheet.encontrados.isVisible = true
+                                bottomSheet.linealFitlradoTrabajadores.isVisible = true
+                                bottomSheet.linealGeneralCarga.isVisible = true
+                                bottomSheet.linealCargando.isVisible = false
+
+                                // Solo generar chips si no hay filtro
+                                if (filtrado == null) {
+                                    setear_chips_general_trabajadores_noticias(
+                                        listaCategoriasChips,
+                                        bottomSheet.chipGroupFiltradoTrabajadore,
+                                        "trabajadores",
+                                        null,
+                                        bottomSheet
+                                    )
+                                }
+
+                            } else {
+                                onEmpty?.invoke()
+                                Toast.makeText(
+                                    bottomSheet.root.context,
+                                    "No tienes trabajadores guardados",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            bottomSheet.linealCargando.isVisible = false
+                        }
+                    }
+                }.addOnFailureListener {
+                    cargados++
+                    if (cargados == totalTrabajadores) {
+                        handler.post {
+                            if (listaTrabajo.isEmpty()) {
+                                onEmpty?.invoke()
+                                Toast.makeText(
+                                    bottomSheet.root.context,
+                                    "No tienes trabajadores guardados",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            bottomSheet.linealCargando.isVisible = false
+                        }
+                    } else {
+                        Toast.makeText(
+                            bottomSheet.root.context,
+                            "Error al obtener trabajador",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }.addOnFailureListener {
+            bottomSheet.linealCargando.isVisible = false
+            Toast.makeText(
+                bottomSheet.root.context,
+                "Error al obtener trabajadores guardados",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
+
 
     private fun inicarlizarRecicle(
         listaTrabajos: MutableList<dataClassTrabajosd>,
@@ -710,7 +545,28 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                 false,
                 listaTrabajos,
                 firebaseAuth.uid.toString(), listaTrabajos.size, true
-            )
+            ) { longlistener ->
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("Eliminar trabajador")
+                    .setMessage("¿Estás seguro de que quieres eliminar este trabajador guardada?")
+                    .setPositiveButton("Sí") { _, _ ->
+                        eliminar_guardados(longlistener.id.toString(), "trabajadores")
+                        obtener_trabajadores_guardados(bottomSheet) {
+                            dialog.dismiss() // 👈 se cierra si no quedan más trabajadores
+                        }
+                        obtener_cantidad_guardados(
+                            "trabajadores",
+                            binding.guardadoTrabajadores,
+                            binding.cargandoContador, binding.datosTrabajadores
+                        )
+                    }
+
+                    .setNegativeButton("Cancelar", null)
+                    .create()
+
+                dialog.show()
+
+            }
 
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
@@ -725,5 +581,132 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
 
     }
 
+
+    //funciones dobles
+    private fun obtener_cantidad_guardados(
+        tipo: String,
+        texview_seteado: TextView,
+        progressBar: ProgressBar,
+        Lineal: LinearLayout
+    ) {
+        val startTime = System.currentTimeMillis()
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("guardados")
+            .document("guardados").collection(tipo)
+
+        db.get().addOnSuccessListener { res ->
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            Log.d("FirestoreTiempo", "Tiempo de respuesta Firestore ($tipo): $duration ms")
+            val cantidad = res.size()
+            texview_seteado.text = "${cantidad}"
+            Handler(Looper.getMainLooper()).postDelayed({
+                progressBar.isVisible = false
+                Lineal.isVisible = true
+            }, duration)
+
+        }.addOnFailureListener { e ->
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            Log.e("FirestoreTiempo", "Error al obtener datos ($tipo) en $duration ms", e)
+        }
+    }
+
+    private fun setear_chips_general_trabajadores_noticias(
+        categorias: Set<String>,
+        chip_group: ChipGroup,
+        tipo: String,
+        bottomSheet_noticias: BottoSheetGuardadoNoticiasBinding? = null,
+        bottomSheet_trabajadores: BottomSheettGuardaTrabajadorBinding? = null
+    ) {
+        val chipGroup = chip_group
+        chipGroup.removeAllViews()
+        chipGroup.isSingleSelection = true
+
+        val chipTodos = Chip(chipGroup.context).apply {
+            text = "Todos"
+            isCheckable = true
+            isClickable = true
+            isChecked = true
+            id = View.generateViewId()
+        }
+        chipGroup.addView(chipTodos)
+        for (categoria in categorias) {
+            val chip = Chip(chipGroup.context).apply {
+                text = categoria
+                isCheckable = true
+                isClickable = true
+                id = View.generateViewId()
+            }
+            chipGroup.addView(chip)
+        }
+
+        when (tipo) {
+            "noticias" -> {
+                if (bottomSheet_noticias != null) {
+                    chipGroup.setOnCheckedChangeListener { group, checkedId ->
+                        val selectedChip: Chip? = group.findViewById(checkedId)
+                        selectedChip?.let {
+                            if (it.text.toString() == "Todos") {
+                                cargarNoticiasGuardadas(bottomSheet_noticias)
+                            } else {
+                                cargarNoticiasGuardadas(
+                                    bottomSheet_noticias, it.text.toString()
+                                )
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            "trabajadores" -> {
+                if (bottomSheet_trabajadores != null) {
+                    chipGroup.setOnCheckedChangeListener { group, checkedId ->
+                        val selectedChip: Chip? = group.findViewById(checkedId)
+                        selectedChip?.let {
+                            it.isChecked = true // Forzar visual
+
+                            group.post {
+                                if (it.text.toString() == "Todos") {
+                                    obtener_trabajadores_guardados(bottomSheet_trabajadores)
+                                } else {
+                                    listaTrabajo.clear()
+                                    cargarTrabajadoresGuardados(
+                                        it.text.toString(),
+                                        bottomSheet_trabajadores
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
+
+    }
+
+    private fun eliminar_guardados(selecionado: String, collecion: String) {
+        val db2N = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+            .collection("guardados").document("guardados").collection(collecion)
+            .document(selecionado)
+        db2N.delete().addOnSuccessListener { res ->
+            Toast.makeText(this, "Noticia eliminada correctamente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "tamano de lista ${listaprincipal.size}", Toast.LENGTH_SHORT)
+                .show()
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "error al eliminarlo de guardados", Toast.LENGTH_SHORT).show()
+
+        }
+    }
 
 }
