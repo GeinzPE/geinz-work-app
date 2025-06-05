@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_reporte_denuncia_tb
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.dataclass.dataclass_reporte_denuncia_tb
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterReportes
@@ -204,7 +205,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(enviado_recivido)
+                    inicializar_listaReporte(enviado_recivido,enviado_recivido)
                     binding.noEncontrado.isVisible = false
                     binding.filtradoReviewTrabajadores.isVisible = true
                     horizonntalScool.isVisible = true
@@ -268,7 +269,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(enviado_recivido)
+                    inicializar_listaReporte(enviado_recivido,enviado_recivido)
                     binding.noEncontrado.isVisible = false
                     binding.filtradoReviewTrabajadores.isVisible = true
                     binding.cargandoContenido.isVisible = false
@@ -291,10 +292,10 @@ class vista_denuncia_reporte : AppCompatActivity() {
     }
 
 
-    private fun inicializar_listaReporte(enviado_recivido:String) {
+    private fun inicializar_listaReporte(tipo1: String,tipo2:String) {
         val adapter = adapter_reporte_denuncia_tb(lista_reporte) { item ->
             dialog = BottomSheetDialog(this)
-            bottomSheet_datos(enviado_recivido,item.idreporte.toString())
+            bottomSheet_datos(tipo1, tipo2,item.idreporte.toString())
             dialog.show()
 
         }
@@ -303,14 +304,15 @@ class vista_denuncia_reporte : AppCompatActivity() {
         binding.filtradoReviewTrabajadores.adapter = adapter
     }
 
-    private fun bottomSheet_datos(tipo: String, idSelect: String) {
+    private fun bottomSheet_datos(tipo1: String, tipo2:String,idSelect: String) {
         val bottomSheet = BottomSheetInformacionReportesDenunciasBinding.inflate(layoutInflater)
         val view = bottomSheet.root
+
         val db =
             FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
                 .document("trabajadores").collection("trabajadores")
-                .document(firebaseAuth.uid.toString()).collection("reporte").document(tipo)
-                .collection(tipo).document(idSelect)
+                .document(firebaseAuth.uid.toString()).collection("reporte").document(tipo1)
+                .collection(tipo2).document(idSelect)
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data
@@ -358,7 +360,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
         }
 
         bottomSheet.copyId.setOnClickListener {
-            constantestextos_general.copiarTexto_portapapeles(bottomSheet.idReporte,this)
+            constantestextos_general.copiarTexto_portapapeles(bottomSheet.idReporte, this)
 
         }
         dialog.setContentView(view)
@@ -368,56 +370,61 @@ class vista_denuncia_reporte : AppCompatActivity() {
     private fun obtener_denuncias_Review(horizonntalScool: HorizontalScrollView) {
         binding.noEncontrado.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
-        val db = FirebaseFirestore.getInstance().collection("politicas_problemas_verificaciones")
-            .document("denuncia_review").collection("denuncia_review")
+        constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, colleccion ->
+            if (colleccion != null) {
+                val dbUsuario =
+                    colleccion.document(firebaseAuth.uid.toString()).collection("reporte")
+                        .document("enviados").collection("review")
+                dbUsuario.get().addOnSuccessListener { res ->
+                    lista_reporte.clear()
 
-        db.get().addOnSuccessListener { res ->
-            lista_reporte.clear()
+                    for (datos in res) {
+                        val data = datos.data
+                        val id_registrado = data["id_registrado"] as? String ?: ""
+                        val id_usuario_review = data["id_usuario_review"] as? String ?: ""
+                        val id_trabajador = data["id_trabajador"] as? String ?: ""
+                        val id_review = data["id_review"] as? String ?: ""
+                        val incidencia = data["incidencia"] as? String ?: ""
+                        val descripcion = data["descripcion"] as? String ?: ""
+                        val estado = data["estado"] as? String ?: ""
+                        val fecha_envio = data["fecha_envio"] as? String ?: ""
+                        val hora_envio = data["hora_envio"] as? String ?: ""
+                        if (id_registrado == firebaseAuth.uid.toString()) {
+                            val dataclass_reporte = dataclass_reporte_denuncia_tb(
+                                id_usuario_review,
+                                id_trabajador,
+                                id_review,
+                                incidencia,
+                                descripcion,
+                                estado,
+                                "", hora_envio, fecha_envio
+                            )
+                            lista_reporte.add(dataclass_reporte)
+                        }
+                    }
 
-            for (datos in res) {
-                val data = datos.data
-                val id_registrado = data["id_registrado"] as? String ?: ""
-                val id_usuario_review = data["id_usuario_review"] as? String ?: ""
-                val id_trabajador = data["id_trabajador"] as? String ?: ""
-                val id_review = data["id_review"] as? String ?: ""
-                val incidencia = data["incidencia"] as? String ?: ""
-                val descripcion = data["descripcion"] as? String ?: ""
-                val estado = data["estado"] as? String ?: ""
-                val fecha_envio = data["fecha_envio"] as? String ?: ""
-                val hora_envio = data["hora_envio"] as? String ?: ""
-                if (id_registrado == firebaseAuth.uid.toString()) {
-                    val dataclass_reporte = dataclass_reporte_denuncia_tb(
-                        id_usuario_review,
-                        id_trabajador,
-                        id_review,
-                        incidencia,
-                        descripcion,
-                        estado,
-                        "", hora_envio, fecha_envio
+                    if (lista_reporte.isNotEmpty()) {
+                        inicializar_listaReporte("enviados","review")
+                    } else {
+                        binding.noEncontrado.isVisible = true
+                        binding.filtradoReviewTrabajadores.isVisible = false
+                    }
+                    val tiempoFin = System.currentTimeMillis()
+                    val duracion = tiempoFin - tiempoInicio
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        binding.cargandoContenido.isVisible = false
+                        binding.filtradoReviewTrabajadores.isVisible = true
+                        horizonntalScool.isVisible = true
+
+                    }, duracion)
+                    Log.d(
+                        "FirestoreTiempo",
+                        "Tiempo total: $duracion ms (${duracion / 1000.0} segundos)"
                     )
-                    lista_reporte.add(dataclass_reporte)
                 }
             }
-
-            if (lista_reporte.isNotEmpty()) {
-                inicializar_listaReporte("")
-            } else {
-                binding.noEncontrado.isVisible = true
-                binding.filtradoReviewTrabajadores.isVisible = false
-            }
-
-            val tiempoFin = System.currentTimeMillis()
-            val duracion = tiempoFin - tiempoInicio
-            Handler(Looper.getMainLooper()).postDelayed({
-                binding.cargandoContenido.isVisible = false
-                binding.filtradoReviewTrabajadores.isVisible = true
-                horizonntalScool.isVisible = true
-
-            }, duracion)
-            Log.d("FirestoreTiempo", "Tiempo total: $duracion ms (${duracion / 1000.0} segundos)")
-        }.addOnFailureListener { e ->
-            Log.e("FirestoreError", "Error al obtener denuncias: ${e.message}")
         }
+
     }
 
 

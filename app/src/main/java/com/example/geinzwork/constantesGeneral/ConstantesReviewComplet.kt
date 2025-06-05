@@ -407,8 +407,5 @@ object constantesReviewComplet {
         recicle.adapter = adaptadorReview(listaReview, idTrabajdor)
     }
 
-    private fun obtenerReview_trabajador_user_registrado() {
-
-    }
 
 }

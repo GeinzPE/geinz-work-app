@@ -18,6 +18,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.EditarReview
 import com.geinzz.geinzwork.R
@@ -279,15 +280,17 @@ class adaptadorReview(
                         FirebaseFirestore.getInstance()
                             .collection("politicas_problemas_verificaciones")
                             .document("denuncia_review").collection("denuncia_review")
+
                     val hasmap = hashMapOf<String, Any>(
-                        "id_registrado" to firebaseAuth.uid.toString(),
+                        "idUsuario" to firebaseAuth.uid.toString(),
                         "id_review" to item.idUsuarioReview.toString(),
-                        "id_trabajador" to (idtrabajadorClikeado ?: ""),
-                        "id_usuario_review" to item.idUsuarioReview.toString(),
-                        "incidencia" to bottomSheet.tipoIncidencia.text.toString(),
-                        "descripcion" to bottomSheet.DescripcionDelProblemaED.text.toString(),
+                        "idTrabajador" to (idtrabajadorClikeado ?: ""),
+                        "idReporte" to item.idUsuarioReview.toString(),
+                        "Tipo_reporte" to bottomSheet.tipoIncidencia.text.toString(),
+                        "problema" to bottomSheet.DescripcionDelProblemaED.text.toString(),
                         "fecha_envio" to binding.fecha.text.toString(),
-                        "hora_envio" to binding.hora.text.toString()
+                        "hora_envio" to binding.hora.text.toString(),
+                        "estado" to "enviado"
                     )
                     db.add(hasmap).addOnSuccessListener {
                         Toast.makeText(
@@ -296,6 +299,38 @@ class adaptadorReview(
                             Toast.LENGTH_SHORT
                         ).show()
                         dialog.dismiss()
+                        constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, colleccion ->
+                            if (colleccion != null) {
+                                val dbUsuario= colleccion.document(firebaseAuth.uid.toString()).collection("reporte")
+                                    .document("enviados").collection("review")
+                                Toast.makeText(itemView.context,"el tipo enviado fue de $tipo",Toast.LENGTH_SHORT).show()
+                                val hasmap = hashMapOf<String, Any>(
+                                    "idUsuario" to firebaseAuth.uid.toString(),
+                                    "id_review" to item.idUsuarioReview.toString(),
+                                    "idTrabajador" to (idtrabajadorClikeado ?: ""),
+                                    "idReporte" to item.idUsuarioReview.toString(),
+                                    "Tipo_reporte" to bottomSheet.tipoIncidencia.text.toString(),
+                                    "problema" to bottomSheet.DescripcionDelProblemaED.text.toString(),
+                                    "fecha_envio" to binding.fecha.text.toString(),
+                                    "hora_envio" to binding.hora.text.toString(),
+                                    "estado" to "enviado"
+                                )
+                                dbUsuario.add(hasmap).addOnSuccessListener { res ->
+                                    Toast.makeText(
+                                        itemView.context,
+                                        "Se agrego al trabjador normal ref",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }.addOnFailureListener{e->
+                                    Toast.makeText(
+                                        itemView.context,
+                                        "error al agrege $e",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+
+                        }
                     }
                         .addOnFailureListener { e ->
                             Toast.makeText(
