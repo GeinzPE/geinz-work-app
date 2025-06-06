@@ -18,13 +18,14 @@ import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.EditarReview
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
 import com.geinzz.geinzwork.dataclass.daclassReview
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
 object constantesReviewComplet {
-
+    private lateinit var dialog: BottomSheetDialog
     val firebaseAuth = FirebaseAuth.getInstance()
     fun verificarSiExisteReview(
         tipoEditado: String,
@@ -38,34 +39,12 @@ object constantesReviewComplet {
         tipoTrabajo: String
     ) {
         if (firebaseAuth.currentUser == null) {
-            val builder = AlertDialog.Builder(context)
-            builder.setTitle("No estás registrado en Geinz Work")
-            builder.setMessage("Regístrate en Geinz Work para que puedas dejar una reseña al trabajador.")
-            builder.setPositiveButton("Cuenta Simple") { dialog, _ ->
-                constantes.showLoadingDialog(
-                    context,
-                    2000,
-                    "Cargando información",
-                    "Espere un momento..."
-                )
-                val intent = Intent(context, CuentaFreelancer::class.java).apply {
-                    putExtra("tipoCuenta", "cuentaSimple")
-                    putExtra("Title", "Cuenta Simple")
-                    putExtra("pasos", "Estás a 1/2 pasos")
-                }
-                context.startActivity(intent)
-                dialog.dismiss()
-            }
-            builder.setNegativeButton("Cuenta Trabajador") { dialog, _ ->
-                val intent = Intent(context, CuentaFreelancer::class.java).apply {
-                    putExtra("tipoCuenta", "cuentaTrabajador")
-                    putExtra("Title", "Cuenta Freelancer")
-                    putExtra("pasos", "Estás a 1/5 pasos")
-                }
-                context.startActivity(intent)
-                dialog.dismiss()
-            }
-            builder.create().show()
+            dialog = BottomSheetDialog(context)
+            constantesPublicidad.CreacionCuentaBottom_shett(
+                context,
+                dialog
+            )
+            dialog.show()
         } else {
             val dbReview = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers")
@@ -98,7 +77,7 @@ object constantesReviewComplet {
                             putExtra("review", review)
                             putExtra("nuevaReseña", contenidoReview.text.toString())
                             putExtra("cantidadStart", cantidadEstrellas.text.toString())
-                            putExtra("editado_adaptador",true)
+                            putExtra("editado_adaptador", true)
                         }
                         contenidoReview.setText("")
                         cantidadEstrellas.setText("")
@@ -146,7 +125,7 @@ object constantesReviewComplet {
                                     }
                             }
                         }
-                        obtenerUserFirestore(
+                        obtenerUserFirestore(idTrabajador,
                             idUsuario,
                             dbReview,
                             nuevaReview,
@@ -165,7 +144,7 @@ object constantesReviewComplet {
     }
 
 
-    private fun obtenerUserFirestore(
+    private fun obtenerUserFirestore(id_trabajador: String,
         idUSer: String,
         ref: DocumentReference,
         review: String,
@@ -194,7 +173,7 @@ object constantesReviewComplet {
                                 context,
                                 hora,
                                 fecha,
-                                TipoTrabajo
+                                TipoTrabajo,id_trabajador
                             )
                         }
                         setNegativeButton("No") { dialog, _ ->
@@ -215,7 +194,7 @@ object constantesReviewComplet {
                                     ref,
                                     idContainer.orEmpty(),
                                     review,
-                                    cantidad, context, hora, fecha, TipoTrabajo
+                                    cantidad, context, hora, fecha, TipoTrabajo,id_trabajador
                                 )
                             } else {
                                 Log.d("error_review", "Usuario no encontrado")
@@ -235,8 +214,21 @@ object constantesReviewComplet {
         ref: DocumentReference,
         idconteiner: String,
         reseña: String,
-        cantidad: String, context: Context, hora: TextView, fecha: TextView, TipoTrabajo: String
+        cantidad: String,
+        context: Context,
+        hora: TextView,
+        fecha: TextView,
+        TipoTrabajo: String,
+        id_trabajador: String
     ) {
+
+        val dbReview = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(id_trabajador)
+            .collection("review")
+
         val hashMap = hashMapOf(
             Variables.editado to false,
             Variables.TipoTrabajo to TipoTrabajo,
@@ -245,18 +237,24 @@ object constantesReviewComplet {
             Variables.iduserReview to idconteiner,
             Variables.reseña to reseña,
             Variables.cantidad to cantidad,
+        )
 
-            )
-
-        ref.set(hashMap, SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d("reviewGuardada", "reseña guardada exitosamente")
-
+        dbReview.add(hashMap)
+            .addOnSuccessListener { documentReference ->
+                val idGenerado = documentReference.id
+                // Actualizar el documento recién creado con el campo id_review
+                documentReference.update("id_review", idGenerado)
+                    .addOnSuccessListener {
+                        Log.d("reviewGuardada", "Reseña guardada exitosamente con ID.")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("error_update_id", "Error al agregar el ID al documento: $e")
+                    }
             }
             .addOnFailureListener { e ->
-                Log.d("error_review", "\"Error al crear la reseña: $e\"")
-
+                Log.e("error_review", "Error al crear la reseña: $e")
             }
+
 
     }
 
@@ -293,6 +291,7 @@ object constantesReviewComplet {
                     val reseña = data?.get(Variables.reseña) as? String ?: ""
                     val TipoTrabajo = data?.get(Variables.TipoTrabajo) as? String ?: ""
                     val cantidadStr = data?.get(Variables.cantidad) as? String ?: ""
+                    val id_review = data?.get("id_review") as? String ?: ""
                     val cantidad = cantidadStr.toIntOrNull() ?: 0
                     val review = daclassReview(
                         id,
@@ -301,7 +300,7 @@ object constantesReviewComplet {
                         hora,
                         fecha,
                         TipoTrabajo,
-                        editado
+                        editado,id_review
                     )
 
                     when (fitlradoString) {

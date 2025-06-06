@@ -642,7 +642,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 BotomSheetDialogMetodosPagoBinding.nombreReferencia.isEnabled = false
                 BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = false
                 BotomSheetDialogMetodosPagoBinding.GuardarCambios.setOnClickListener {
-
                     val hashMap = hashMapOf<String, Any>(
                         "yape" to BotomSheetDialogMetodosPagoBinding.checkYape.isChecked,
                         "efectivo" to BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked,
@@ -655,11 +654,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                             "Cambios guardados correctamente",
                             Toast.LENGTH_SHORT
                         ).show()
+                        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
+                        BotomSheetDialogMetodosPagoBinding.nombreReferencia.isEnabled = true
+                        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = true
                         BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
                         BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
                         BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
                         BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
-                        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
                         BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = true
                         BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = false
                         obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
@@ -859,6 +860,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                         bottoSheet_entrega.nombreReferenciaED.setText("")
                         bottoSheet_entrega.CrearMetodo.isVisible = true
                         bottoSheet_entrega.GuardarCambios.isVisible = false
+                        bottoSheet_entrega.nombreReferencia.isEnabled=true
+                        bottoSheet_entrega.nombreReferenciaED.isEnabled=true
                         obtenerMetodosEntrega(bottoSheet_entrega)
                     }.addOnFailureListener { e ->
                         Log.d("error guardado", "error al guardar losd atos $e")

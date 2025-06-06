@@ -89,7 +89,7 @@
                             android:layout_alignParentStart="true"
                             android:layout_marginEnd="8dp"
                             android:fontFamily="sans-serif"
-                            android:text="Agrega tu numero de yape,plin,trasnfencia"
+                            android:text="Agrega tu numero de yape,plin,transferencia"
                             android:textAllCaps="true"
                             android:textSize="16sp"
                             android:textStyle="bold" />

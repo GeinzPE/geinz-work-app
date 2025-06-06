@@ -102,6 +102,35 @@ class adapter_reporte_denuncia_tb(
                 spannableStringHoraEnvio,
                 binding.horaEnvio
             )
+            when (item.estado!!.lowercase()) {
+                "enviado" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_enviado)
+                }
+
+                "proceso" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_proceso)
+                }
+
+                "aceptado" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_aceptado)
+                }
+
+                "rechazado" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_rechazado)
+                }
+
+                "archivado" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_archivado)
+                }
+
+                "resuelto" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_resuelto)
+                }
+
+                "cancelado" -> {
+                    estado.setBackgroundResource(R.drawable.reporte_cancelado)
+                }
+            }
             if (item.tipo_enviado_recivido.equals("enviados")) {
                 constantesCarrito.setearDatosUsuarioImgNombre(item.idtrabajador.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
                     // Verificación después de setear
@@ -132,37 +161,7 @@ class adapter_reporte_denuncia_tb(
 
                 }
 
-                when (item.estado!!.lowercase()) {
-                    "enviado" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_enviado)
-                    }
 
-                    "proceso" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_proceso)
-                    }
-
-                    "aceptado" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_aceptado)
-                    }
-
-                    "rechazado" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_rechazado)
-                    }
-
-                    "archivado" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_archivado)
-                    }
-
-                    "resuelto" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_resuelto)
-                    }
-
-                    "cancelado" -> {
-                        estado.setBackgroundResource(R.drawable.reporte_cancelado)
-                    }
-
-
-                }
 
             } else if (item.tipo_enviado_recivido.equals("recivido")) {
                 constantesCarrito.setearDatosUsuarioImgNombre(item.idusuario.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->

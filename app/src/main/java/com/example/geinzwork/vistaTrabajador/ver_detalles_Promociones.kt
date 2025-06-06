@@ -8,6 +8,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.animation.Animation
@@ -332,7 +334,8 @@ class ver_detalles_Promociones : AppCompatActivity() {
 
         bottomSheet = binding.cerrar
         val vistaAnuncios = vistas_anuncios_general()
-
+        binding.progresVarCargado.isVisible = true
+        binding.linealInfoPublicidad.isVisible = false
         // Asignación directa con ViewBinding
         val ubicacionIMG = binding.mapa
         val estado = binding.estado
@@ -343,9 +346,12 @@ class ver_detalles_Promociones : AppCompatActivity() {
         val linealUbicacion = binding.linealUbicacion
 
         if (idNoticia != null) {
+            val startTime = System.currentTimeMillis()
             val db =
                 FirebaseFirestore.getInstance().collection(Variables.noticiasDB).document(idNoticia)
             db.get().addOnSuccessListener { res ->
+                val endTime = System.currentTimeMillis()
+                val duration = endTime - startTime
                 if (res.exists()) {
                     val datos = res.data
                     val fechas = datos?.get(Variables.fechas) as? Map<String, String>
@@ -400,6 +406,10 @@ class ver_detalles_Promociones : AppCompatActivity() {
                         "",
                         esWeb = true
                     )
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        binding.progresVarCargado.isVisible = false
+                        binding.linealInfoPublicidad.isVisible = true
+                    }, duration)
                 } else {
                     println("El documento con ID $idNoticia no existe.")
                 }

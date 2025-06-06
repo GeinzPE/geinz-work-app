@@ -1,11 +1,14 @@
 package com.example.geinzwork
 
-import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.HorizontalScrollView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,17 +16,15 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_reporte_denuncia_tb
-import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.dataclass.dataclass_reporte_denuncia_tb
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.adapterViewholder.adapterReportes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaDenunciaReporteBinding
 import com.geinzz.geinzwork.databinding.BottomSheetInformacionReportesDenunciasBinding
+import com.geinzz.geinzwork.databinding.BottomSheetReportesGeneralBinding
 import com.geinzz.geinzwork.dataclass.dataClassReportes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -46,135 +47,294 @@ class vista_denuncia_reporte : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        obtner_Denuncias_trabajadores(binding.scroolReporesMismoTrabajador, "recivido")
-        binding.grupoReporesUser.setOnCheckedChangeListener { group, checkedId ->
-            when (checkedId) {
-                R.id.TodosFiltrado -> {
-                    obtner_Denuncias_trabajadores(binding.scroolReporesMismoTrabajador, "recivido")
-                }
 
-                R.id.aplelado -> {
-                    buscarFiltrados("recivido", "apelado")
-                }
-
-                R.id.por_apelar -> {
-                    buscarFiltrados("recivido", "por apelar")
-                }
-
-                R.id.apelcaionAceptada -> {
-                    buscarFiltrados("recivido", "apelacion aceptada")
-                }
-
-                R.id.aplecion_rechazada -> {
-                    buscarFiltrados("recivido", "apelacion rechazada")
-                }
-            }
+        binding.listenerDenunciaReview.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottomSheet_open_reportes("review")
+            dialog.show()
+        }
+        binding.listenerReportesATrabajadores.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottomSheet_open_reportes("trabajadores")
+            dialog.show()
+        }
+        binding.listenerTusReportes.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottomSheet_open_reportes("reportes")
+            dialog.show()
         }
 
-        binding.chipGroupestados.setOnCheckedChangeListener { group, checkedId ->
-            when (checkedId) {
-                R.id.todosFitlrados_reportes_review -> {
-                    obtner_Denuncias_trabajadores(binding.linealChipsFiltradoestados, "enviados")
-                }
+        obtener_cantidad_rerportes(
+            "enviados",
+            "enviados",
+            binding.reportesATrbajadores,
+            binding.cargandoContadorDenunciaReview, binding.datosDenunciaReview
+        )
+        obtener_cantidad_rerportes(
+            "recivido",
+            "recivido",
+            binding.tusReportesTxt,
+            binding.cargandoContadorReportesTrabajadores, binding.datosReportesTrabajadores
+        )
+        obtener_cantidad_rerportes(
+            "enviados",
+            "review",
+            binding.guardadoDenunciaReview,
+            binding.cargandoContadorTusReportes, binding.datosTusReportes
+        )
 
-                R.id.enviado -> {
-                    buscarFiltrados("enviados", "enviado")
-                }
-
-                R.id.proceso -> {
-                    buscarFiltrados("enviados", "proceso")
-                }
-
-                R.id.aceptado -> {
-                    buscarFiltrados("enviados", "aceptado")
-                }
-
-                R.id.rechazado -> {
-                    buscarFiltrados("enviados", "rechazado")
-                }
-
-                R.id.archivado -> {
-                    buscarFiltrados("enviados", "archivado")
-                }
-
-                R.id.resuelto -> {
-                    buscarFiltrados("enviados", "resuelto")
-                }
-
-                R.id.cancelado -> {
-                    buscarFiltrados("enviados", "cancelado")
-                }
-            }
-        }
-
-
-
-        binding.trabajadoresReportes.setOnClickListener {
-            // Asegúrate de que primero se limpie y luego se marque el chip deseado
-            binding.grupoReporesUser.clearCheck()
-            binding.chipGroupestados.clearCheck()
-
-            // Marcar el chip "Todos"
-            binding.todosFitlradosReportesReview.isChecked = true
-
-            // Ocultar filtros
-            binding.filtradoReviewTrabajadores.isVisible = false
-            binding.linealChipsFiltradoestados.isVisible = false
-
-            // Mostrar carga y ocultar contenido
-            binding.cargandoContenido.isVisible = true
-            binding.scroolReporesMismoTrabajador.isVisible = false
-
-            // Llamar a la función
-            obtner_Denuncias_trabajadores(binding.linealChipsFiltradoestados, "enviados")
-        }
-
-        binding.reviewReportes.setOnClickListener {
-            binding.linealChipsFiltradoestados.isVisible = false
-            binding.filtradoReviewTrabajadores.isVisible = false
-            obtener_denuncias_Review(binding.linealChipsFiltradoestados)
-            binding.grupoReporesUser.clearCheck()
-            binding.cargandoContenido.isVisible = true
-            binding.scroolReporesMismoTrabajador.isVisible = false
-            binding.chipGroupestados.clearCheck()
-            binding.todosFitlradosReportesReview.isChecked = false // por si ya estaba marcado antes
-            binding.todosFitlradosReportesReview.isChecked = true
-
-        }
-        binding.tusReportes.setOnClickListener {
-            // Limpiar selecciones antes de setear el chip deseado
-            binding.chipGroupestados.clearCheck()
-            binding.grupoReporesUser.clearCheck()
-
-            // Forzar el chequeo del chip "Todos"
-            binding.TodosFiltrado.isChecked = false // por si ya estaba marcado antes
-            binding.TodosFiltrado.isChecked = true
-            binding.linealChipsFiltradoestados.isVisible = false
-
-            // Obtener denuncias
-            obtner_Denuncias_trabajadores(binding.scroolReporesMismoTrabajador, "recivido")
-
-            // Control de visibilidad
-            binding.filtradoReviewTrabajadores.isVisible = false
-            binding.cargandoContenido.isVisible = true
-            binding.linealChipsFiltradoestados.isVisible = false
-        }
 
     }
 
+    private fun obtener_cantidad_rerportes(
+        tipo1: String,
+        tipo2: String,
+        textView: TextView,
+        progressBar: ProgressBar, linearLayout: LinearLayout
+    ) {
+        constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, Coleccion ->
+            if (Coleccion != null) {
+                val startTime = System.currentTimeMillis()
+
+                val db = Coleccion.document(firebaseAuth.uid.toString())
+                    .collection("reporte")
+                    .document(tipo1)
+                    .collection(tipo2)
+
+                db.get().addOnSuccessListener { res ->
+                    val endTime = System.currentTimeMillis()
+                    val duration = endTime - startTime
+                    val size = res.size()
+                    textView.text = size.toString()
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        progressBar.isVisible = false
+                        linearLayout.isVisible = true
+                    }, duration)
+                    Log.d("tiempo", "Tiempo en obtener reportes: ${duration}ms")
+
+                }.addOnFailureListener { e ->
+                    Log.d("error", "Error al obtener la cantidad de reportes")
+                }
+            }
+        }
+    }
+
+
+    private fun bottomSheet_open_reportes(tipo: String) {
+        val bottomSheet =
+            BottomSheetReportesGeneralBinding.inflate(LayoutInflater.from(this))
+        val view = bottomSheet.root
+
+        when (tipo) {
+            "trabajadores" -> {
+                bottomSheet.linealChipsFiltradoestados.isVisible = true
+                bottomSheet.scroolReporesMismoTrabajador.isVisible = false
+                bottomSheet.grupoReporesUser.clearCheck()
+                bottomSheet.chipGroupestados.clearCheck()
+                bottomSheet.todosFitlradosReportesReview.isChecked = true
+                bottomSheet.cargandoContenido.isVisible = true
+                obtner_Denuncias_trabajadores(
+                    bottomSheet,
+                    bottomSheet.linealChipsFiltradoestados,
+                    "enviados"
+                )
+                bottomSheet.chipGroupestados.setOnCheckedChangeListener { group, checkedId ->
+                    when (checkedId) {
+                        R.id.todosFitlrados_reportes_review -> {
+                            obtner_Denuncias_trabajadores(
+                                bottomSheet,
+                                bottomSheet.linealChipsFiltradoestados,
+                                "enviados"
+                            )
+                        }
+
+                        R.id.enviado -> {
+                            buscarFiltrados(bottomSheet, "enviados", "enviado")
+                        }
+
+                        R.id.proceso -> {
+                            buscarFiltrados(bottomSheet, "enviados", "proceso")
+                        }
+
+                        R.id.aceptado -> {
+                            buscarFiltrados(bottomSheet, "enviados", "aceptado")
+                        }
+
+                        R.id.rechazado -> {
+                            buscarFiltrados(bottomSheet, "enviados", "rechazado")
+                        }
+
+                        R.id.archivado -> {
+                            buscarFiltrados(bottomSheet, "enviados", "archivado")
+                        }
+
+                        R.id.resuelto -> {
+                            buscarFiltrados(bottomSheet, "enviados", "resuelto")
+                        }
+
+                        R.id.cancelado -> {
+                            buscarFiltrados(bottomSheet, "enviados", "cancelado")
+                        }
+                    }
+                }
+            }
+
+            "reportes" -> {
+                bottomSheet.scroolReporesMismoTrabajador.isVisible = true
+                bottomSheet.linealChipsFiltradoestados.isVisible = false
+                bottomSheet.chipGroupestados.clearCheck()
+                bottomSheet.grupoReporesUser.clearCheck()
+                bottomSheet.TodosFiltrado.isChecked = false
+                bottomSheet.TodosFiltrado.isChecked = true
+                obtner_Denuncias_trabajadores(
+                    bottomSheet,
+                    bottomSheet.scroolReporesMismoTrabajador,
+                    "recivido"
+                )
+                bottomSheet.cargandoContenido.isVisible = true
+                bottomSheet.grupoReporesUser.setOnCheckedChangeListener { group, checkedId ->
+                    when (checkedId) {
+                        R.id.TodosFiltrado -> {
+                            obtner_Denuncias_trabajadores(
+                                bottomSheet,
+                                bottomSheet.scroolReporesMismoTrabajador,
+                                "recivido"
+                            )
+                        }
+
+                        R.id.aplelado -> {
+                            buscarFiltrados(bottomSheet, "recivido", "apelado")
+                        }
+
+                        R.id.por_apelar -> {
+                            buscarFiltrados(bottomSheet, "recivido", "por apelar")
+                        }
+
+                        R.id.apelcaionAceptada -> {
+                            buscarFiltrados(bottomSheet, "recivido", "apelacion aceptada")
+                        }
+
+                        R.id.aplecion_rechazada -> {
+                            buscarFiltrados(bottomSheet, "recivido", "apelacion rechazada")
+                        }
+                    }
+                }
+
+            }
+
+            "review" -> {
+                bottomSheet.linealChipsFiltradoestados.isVisible = true
+                bottomSheet.scroolReporesMismoTrabajador.isVisible = false
+                obtener_denuncias_Review(bottomSheet, bottomSheet.linealChipsFiltradoestados)
+                bottomSheet.grupoReporesUser.clearCheck()
+                bottomSheet.cargandoContenido.isVisible = true
+                bottomSheet.chipGroupestados.clearCheck()
+                bottomSheet.todosFitlradosReportesReview.isChecked = false
+                bottomSheet.todosFitlradosReportesReview.isChecked = true
+                bottomSheet.chipGroupestados.setOnCheckedChangeListener { group, checkedId ->
+                    when (checkedId) {
+                        R.id.todosFitlrados_reportes_review -> {
+                            bottomSheet.cargandoContenido.isVisible = true
+                            bottomSheet.noEncontrado.isVisible = false
+                            bottomSheet.filtradoReviewTrabajadores.isVisible = false
+                            obtener_denuncias_Review(
+                                bottomSheet,
+                                bottomSheet.linealChipsFiltradoestados
+                            )
+                        }
+
+                        R.id.enviado -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "enviado"
+                            )
+                        }
+
+                        R.id.proceso -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "proceso"
+                            )
+                        }
+
+                        R.id.aceptado -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "aceptado"
+                            )
+                        }
+
+                        R.id.rechazado -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "rechazado"
+                            )
+                        }
+
+                        R.id.archivado -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "archivado"
+                            )
+                        }
+
+                        R.id.resuelto -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "resuelto"
+                            )
+                        }
+
+                        R.id.cancelado -> {
+                            buscarFitlrado_denuncia_review(
+                                bottomSheet,
+                                "enviados",
+                                "review",
+                                "cancelado"
+                            )
+                        }
+                    }
+                }
+            }
+
+            else -> {
+                bottomSheet.scroolReporesMismoTrabajador.isVisible = false
+                bottomSheet.linealChipsFiltradoestados.isVisible = false
+            }
+        }
+
+
+
+        dialog.setContentView(view)
+    }
+
     private fun obtner_Denuncias_trabajadores(
+        bottomSheet: BottomSheetReportesGeneralBinding,
         horizonntalScool: HorizontalScrollView,
         enviado_recivido: String
     ) {
-        binding.cargandoContenido.isVisible = true
-        binding.noEncontrado.isVisible = false
-        binding.filtradoReviewTrabajadores.isVisible = false
+        bottomSheet.cargandoContenido.isVisible = true
+        bottomSheet.noEncontrado.isVisible = false
+        bottomSheet.filtradoReviewTrabajadores.isVisible = false
+        bottomSheet.linealGeneralCarga.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("reporte").document(enviado_recivido)
             .collection(enviado_recivido)
-        binding.noEncontrado.isVisible = false
+        bottomSheet.noEncontrado.isVisible = false
         db.get().addOnSuccessListener { res ->
             lista_reporte.clear()
             for (datos in res) {
@@ -205,39 +365,46 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(enviado_recivido,enviado_recivido)
-                    binding.noEncontrado.isVisible = false
-                    binding.filtradoReviewTrabajadores.isVisible = true
-                    horizonntalScool.isVisible = true
+                    inicializar_listaReporte(bottomSheet, enviado_recivido, enviado_recivido)
+                    bottomSheet.noEncontrado.isVisible = false
+                    bottomSheet.filtradoReviewTrabajadores.isVisible = true
+                    bottomSheet.linealGeneralCarga.isVisible = true
+
                 } else {
-                    binding.noEncontrado.isVisible = true
-                    binding.filtradoReviewTrabajadores.isVisible = false
-                    horizonntalScool.isVisible = false
+                    bottomSheet.noEncontrado.isVisible = true
+                    bottomSheet.filtradoReviewTrabajadores.isVisible = false
+                    bottomSheet.linealGeneralCarga.isVisible = false
+
                 }
-                binding.cargandoContenido.isVisible = false
+                bottomSheet.cargandoContenido.isVisible = false
             }, duracion)
 
             Log.d("FirestoreTiempo", "Tiempo total: $duracion ms (${duracion / 1000.0} segundos)")
         }.addOnFailureListener { e ->
             Log.d("error_econtrado", "Error al encontrar la referencia")
-            binding.cargandoContenido.isVisible = false
-            binding.noEncontrado.isVisible = true
-            binding.filtradoReviewTrabajadores.isVisible = false
+            bottomSheet.cargandoContenido.isVisible = false
+            bottomSheet.noEncontrado.isVisible = true
+            bottomSheet.filtradoReviewTrabajadores.isVisible = false
+            bottomSheet.linealGeneralCarga.isVisible = false
+
             horizonntalScool.isVisible = false
         }
     }
 
     private fun buscarFiltrados(
+        bottomSheet: BottomSheetReportesGeneralBinding,
         enviado_recivido: String, filtradoSelecionado: String
     ) {
-        binding.cargandoContenido.isVisible = true
-        binding.filtradoReviewTrabajadores.isVisible = false
+        bottomSheet.cargandoContenido.isVisible = true
+        bottomSheet.filtradoReviewTrabajadores.isVisible = false
+        bottomSheet.linealGeneralCarga.isVisible = false
+
         val tiempoInicio = System.currentTimeMillis()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("reporte").document(enviado_recivido)
             .collection(enviado_recivido)
-        binding.noEncontrado.isVisible = false
+        bottomSheet.noEncontrado.isVisible = false
         db.get().addOnSuccessListener { res ->
             lista_reporte.clear()
             for (datos in res) {
@@ -269,52 +436,140 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(enviado_recivido,enviado_recivido)
-                    binding.noEncontrado.isVisible = false
-                    binding.filtradoReviewTrabajadores.isVisible = true
-                    binding.cargandoContenido.isVisible = false
+                    inicializar_listaReporte(bottomSheet, enviado_recivido, enviado_recivido)
+                    bottomSheet.noEncontrado.isVisible = false
+                    bottomSheet.filtradoReviewTrabajadores.isVisible = true
+                    bottomSheet.linealGeneralCarga.isVisible = true
+
+                    bottomSheet.cargandoContenido.isVisible = false
 
                 } else {
-                    binding.noEncontrado.isVisible = true
-                    binding.cargandoContenido.isVisible = false
-                    binding.filtradoReviewTrabajadores.isVisible = false
+                    bottomSheet.noEncontrado.isVisible = true
+                    bottomSheet.cargandoContenido.isVisible = false
+                    bottomSheet.filtradoReviewTrabajadores.isVisible = false
+                    bottomSheet.linealGeneralCarga.isVisible = true
+
                 }
-                binding.cargandoContenido.isVisible = false
+                bottomSheet.cargandoContenido.isVisible = false
             }, duracion)
 
             Log.d("FirestoreTiempo", "Tiempo total: $duracion ms (${duracion / 1000.0} segundos)")
         }.addOnFailureListener { e ->
             Log.d("error_econtrado", "Error al encontrar la referencia")
-            binding.cargandoContenido.isVisible = false
-            binding.noEncontrado.isVisible = true
-            binding.filtradoReviewTrabajadores.isVisible = false
+            bottomSheet.cargandoContenido.isVisible = false
+            bottomSheet.noEncontrado.isVisible = true
+            bottomSheet.filtradoReviewTrabajadores.isVisible = false
+            bottomSheet.linealGeneralCarga.isVisible = false
+
+        }
+    }
+
+    private fun buscarFitlrado_denuncia_review(
+        bottomSheet: BottomSheetReportesGeneralBinding,
+        enviado_recivido: String, review: String, filtradoSelecionado: String
+    ) {
+        bottomSheet.cargandoContenido.isVisible = true
+        bottomSheet.filtradoReviewTrabajadores.isVisible = false
+        bottomSheet.linealGeneralCarga.isVisible = false
+
+        val tiempoInicio = System.currentTimeMillis()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("reporte").document(enviado_recivido)
+            .collection(review)
+        bottomSheet.noEncontrado.isVisible = false
+        db.get().addOnSuccessListener { res ->
+            lista_reporte.clear()
+            for (datos in res) {
+                val data = datos.data
+                val id_registrado = data["idUsuario"] as? String ?: ""
+                val id_usuario_review = data["id_review"] as? String ?: ""
+                val id_trabajador = data["idTrabajador"] as? String ?: ""
+                val id_review = data["idReporte"] as? String ?: ""
+                val incidencia = data["Tipo_reporte"] as? String ?: ""
+                val descripcion = data["problema"] as? String ?: ""
+                val estado = data["estado"] as? String ?: ""
+                val fecha_envio = data["fecha_envio"] as? String ?: ""
+                val hora_envio = data["hora_envio"] as? String ?: ""
+                if (estado == filtradoSelecionado) {
+                    val dataclass_reporte = dataclass_reporte_denuncia_tb(
+                        id_usuario_review,
+                        id_trabajador,
+                        id_review,
+                        incidencia,
+                        descripcion,
+                        estado,
+                        "", hora_envio, fecha_envio
+                    )
+                    lista_reporte.add(dataclass_reporte)
+                }
+            }
+
+            val tiempoFin = System.currentTimeMillis()
+            val duracion = tiempoFin - tiempoInicio
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (lista_reporte.isNotEmpty()) {
+                    inicializar_listaReporte(bottomSheet, "enviados", "review")
+                    bottomSheet.noEncontrado.isVisible = false
+                    bottomSheet.filtradoReviewTrabajadores.isVisible = true
+                    bottomSheet.linealGeneralCarga.isVisible = true
+
+                    bottomSheet.cargandoContenido.isVisible = false
+
+                } else {
+                    bottomSheet.noEncontrado.isVisible = true
+                    bottomSheet.cargandoContenido.isVisible = false
+                    bottomSheet.filtradoReviewTrabajadores.isVisible = false
+                    bottomSheet.linealGeneralCarga.isVisible = true
+
+                }
+                bottomSheet.cargandoContenido.isVisible = false
+            }, duracion)
+
+            Log.d("FirestoreTiempo", "Tiempo total: $duracion ms (${duracion / 1000.0} segundos)")
+        }.addOnFailureListener { e ->
+            Log.d("error_econtrado", "Error al encontrar la referencia")
+            bottomSheet.cargandoContenido.isVisible = false
+            bottomSheet.noEncontrado.isVisible = true
+            bottomSheet.filtradoReviewTrabajadores.isVisible = false
+            bottomSheet.linealGeneralCarga.isVisible = false
+
         }
     }
 
 
-    private fun inicializar_listaReporte(tipo1: String,tipo2:String) {
+    private fun inicializar_listaReporte(
+        bottomSheet: BottomSheetReportesGeneralBinding,
+        tipo1: String,
+        tipo2: String
+    ) {
         val adapter = adapter_reporte_denuncia_tb(lista_reporte) { item ->
             dialog = BottomSheetDialog(this)
-            bottomSheet_datos(tipo1, tipo2,item.idreporte.toString())
+            bottomSheet_datos(tipo1, tipo2, item.idreporte.toString())
             dialog.show()
 
         }
-        binding.filtradoReviewTrabajadores.layoutManager =
+        bottomSheet.filtradoReviewTrabajadores.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.filtradoReviewTrabajadores.adapter = adapter
+        bottomSheet.filtradoReviewTrabajadores.adapter = adapter
     }
 
-    private fun bottomSheet_datos(tipo1: String, tipo2:String,idSelect: String) {
+    private fun bottomSheet_datos(tipo1: String, tipo2: String, idSelect: String) {
         val bottomSheet = BottomSheetInformacionReportesDenunciasBinding.inflate(layoutInflater)
         val view = bottomSheet.root
-
+        val startTime = System.currentTimeMillis()
+        bottomSheet.progressvarCargando.isVisible = true
+        bottomSheet.linealCargadoDatos.isVisible = false
         val db =
             FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
                 .document("trabajadores").collection("trabajadores")
                 .document(firebaseAuth.uid.toString()).collection("reporte").document(tipo1)
                 .collection(tipo2).document(idSelect)
         db.get().addOnSuccessListener { res ->
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
             if (res.exists()) {
+
                 val data = res.data
                 val idReporte = data?.get("idReporte") as? String ?: ""
                 val idTrabajador = data?.get("idTrabajador") as? String ?: ""
@@ -324,6 +579,10 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val estado = data?.get("estado") as? String ?: ""
                 val numero_contacto = data?.get("numero_contacto") as? String ?: ""
                 val apelacionMap = data?.get("apelado") as? Map<*, *>
+                Handler(Looper.getMainLooper()).postDelayed({
+                    bottomSheet.progressvarCargando.isVisible = false
+                    bottomSheet.linealCargadoDatos.isVisible = true
+                }, duration)
                 if (apelacionMap != null && apelacionMap.isNotEmpty()) {
                     bottomSheet.linealApelado.isVisible = true
                     val nombre = apelacionMap["nombre"] as? String
@@ -341,7 +600,6 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     bottomSheet.motivoApelado.text = motivo
                 } else {
                     bottomSheet.linealApelado.isVisible = false
-
                 }
                 bottomSheet.idReporte.text = idReporte
                 constantesCarrito.setearDatosUsuarioImgNombre(idUsuario) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
@@ -350,13 +608,19 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
                     bottomSheet.haciaEl.text = "$nombre $apellido"
                 }
-                bottomSheet.numeroContacto.text = numero_contacto
+                if (numero_contacto.isNullOrEmpty()) {
+                    bottomSheet.linealContacto.isVisible = false
+                } else {
+                    bottomSheet.numeroContacto.text = numero_contacto
+                }
                 bottomSheet.motivoReporte.text = Tipo_reporte
                 bottomSheet.incidencia.text = problema
                 bottomSheet.estadoReporte.text = estado
 
 
             }
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "erro al obtner $e", Toast.LENGTH_SHORT).show()
         }
 
         bottomSheet.copyId.setOnClickListener {
@@ -367,8 +631,12 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
     }
 
-    private fun obtener_denuncias_Review(horizonntalScool: HorizontalScrollView) {
-        binding.noEncontrado.isVisible = false
+    private fun obtener_denuncias_Review(
+        bottomSheet: BottomSheetReportesGeneralBinding,
+        horizonntalScool: HorizontalScrollView
+    ) {
+        bottomSheet.linealGeneralCarga.isVisible = false
+        bottomSheet.noEncontrado.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
         constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, colleccion ->
             if (colleccion != null) {
@@ -377,15 +645,14 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         .document("enviados").collection("review")
                 dbUsuario.get().addOnSuccessListener { res ->
                     lista_reporte.clear()
-
                     for (datos in res) {
                         val data = datos.data
                         val id_registrado = data["id_registrado"] as? String ?: ""
-                        val id_usuario_review = data["id_usuario_review"] as? String ?: ""
-                        val id_trabajador = data["id_trabajador"] as? String ?: ""
-                        val id_review = data["id_review"] as? String ?: ""
-                        val incidencia = data["incidencia"] as? String ?: ""
-                        val descripcion = data["descripcion"] as? String ?: ""
+                        val id_usuario_review = data["id_review"] as? String ?: ""
+                        val id_trabajador = data["idTrabajador"] as? String ?: ""
+                        val id_review = data["idReporte"] as? String ?: ""
+                        val incidencia = data["Tipo_reporte"] as? String ?: ""
+                        val descripcion = data["problema"] as? String ?: ""
                         val estado = data["estado"] as? String ?: ""
                         val fecha_envio = data["fecha_envio"] as? String ?: ""
                         val hora_envio = data["hora_envio"] as? String ?: ""
@@ -404,16 +671,20 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     }
 
                     if (lista_reporte.isNotEmpty()) {
-                        inicializar_listaReporte("enviados","review")
+                        inicializar_listaReporte(bottomSheet, "enviados", "review")
                     } else {
-                        binding.noEncontrado.isVisible = true
-                        binding.filtradoReviewTrabajadores.isVisible = false
+                        bottomSheet.noEncontrado.isVisible = true
+                        bottomSheet.linealGeneralCarga.isVisible = true
+                        bottomSheet.filtradoReviewTrabajadores.isVisible = true
+
                     }
                     val tiempoFin = System.currentTimeMillis()
                     val duracion = tiempoFin - tiempoInicio
                     Handler(Looper.getMainLooper()).postDelayed({
-                        binding.cargandoContenido.isVisible = false
-                        binding.filtradoReviewTrabajadores.isVisible = true
+                        bottomSheet.cargandoContenido.isVisible = false
+                        bottomSheet.linealGeneralCarga.isVisible = true
+                        bottomSheet.filtradoReviewTrabajadores.isVisible = true
+
                         horizonntalScool.isVisible = true
 
                     }, duracion)

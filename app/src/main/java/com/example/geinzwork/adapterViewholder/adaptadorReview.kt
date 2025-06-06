@@ -35,6 +35,7 @@ import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class adaptadorReview(
     private val listaReview: MutableList<daclassReview>,
@@ -87,6 +88,7 @@ class adaptadorReview(
                     putExtra(Variables.iduser, uidActual)
                     putExtra(Variables.idTrabajdor, idtrabajadorClikeado)
                     putExtra(Variables.cantidad, daclassReview.cantidaStarts)
+                    putExtra("id_review", daclassReview.id_review)
                     putExtra("review", review.text.toString())
                     putExtra("editado_adaptador", false)
                 }
@@ -282,15 +284,18 @@ class adaptadorReview(
                             .document("denuncia_review").collection("denuncia_review")
 
                     val hasmap = hashMapOf<String, Any>(
-                        "idUsuario" to firebaseAuth.uid.toString(),
-                        "id_review" to item.idUsuarioReview.toString(),
-                        "idTrabajador" to (idtrabajadorClikeado ?: ""),
-                        "idReporte" to item.idUsuarioReview.toString(),
-                        "Tipo_reporte" to bottomSheet.tipoIncidencia.text.toString(),
-                        "problema" to bottomSheet.DescripcionDelProblemaED.text.toString(),
-                        "fecha_envio" to binding.fecha.text.toString(),
-                        "hora_envio" to binding.hora.text.toString(),
-                        "estado" to "enviado"
+                        "contenido" to item.review.toString(), // contenido de la reseña
+                        "cantidad_estrellas" to item.cantidaStarts.toString(), // estrellas dadas
+                        "idUsuario_review" to item.idUsuarioReview.toString(), // usuario que escribió la reseña
+                        "id_review" to item.id_review.toString(), // ID de la reseña
+                        "id_registrado" to firebaseAuth.uid.toString(), // UID del usuario que está reportando
+                        "idTrabajador_campo" to (idtrabajadorClikeado ?: ""), // trabajador al que se hizo la reseña
+                        "idReporte" to item.id_review.toString(), // este campo se repite, revisar si es necesario
+                        "Tipo_reporte" to bottomSheet.tipoIncidencia.text.toString(), // tipo de problema (spam, abuso, etc.)
+                        "problema" to bottomSheet.DescripcionDelProblemaED.text.toString(), // descripción del problema
+                        "fecha_envio" to binding.fecha.text.toString(), // fecha del reporte
+                        "hora_envio" to binding.hora.text.toString(), // hora del reporte
+                        "estado" to "enviado" // estado inicial del reporte
                     )
                     db.add(hasmap).addOnSuccessListener {
                         Toast.makeText(
@@ -301,27 +306,39 @@ class adaptadorReview(
                         dialog.dismiss()
                         constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, colleccion ->
                             if (colleccion != null) {
-                                val dbUsuario= colleccion.document(firebaseAuth.uid.toString()).collection("reporte")
+                                val dbUsuario = colleccion.document(firebaseAuth.uid.toString())
+                                    .collection("reporte")
                                     .document("enviados").collection("review")
-                                Toast.makeText(itemView.context,"el tipo enviado fue de $tipo",Toast.LENGTH_SHORT).show()
+                                    .document(item.id_review.toString())
+                                Toast.makeText(
+                                    itemView.context,
+                                    "el tipo enviado fue de $tipo",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 val hasmap = hashMapOf<String, Any>(
-                                    "idUsuario" to firebaseAuth.uid.toString(),
-                                    "id_review" to item.idUsuarioReview.toString(),
-                                    "idTrabajador" to (idtrabajadorClikeado ?: ""),
-                                    "idReporte" to item.idUsuarioReview.toString(),
-                                    "Tipo_reporte" to bottomSheet.tipoIncidencia.text.toString(),
-                                    "problema" to bottomSheet.DescripcionDelProblemaED.text.toString(),
-                                    "fecha_envio" to binding.fecha.text.toString(),
-                                    "hora_envio" to binding.hora.text.toString(),
-                                    "estado" to "enviado"
+                                    "contenido" to item.review.toString(), // contenido de la reseña
+                                    "cantidad_estrellas" to item.cantidaStarts.toString(), // estrellas dadas
+                                    "idUsuario_review" to item.idUsuarioReview.toString(), // usuario que escribió la reseña
+                                    "id_review" to item.id_review.toString(), // ID de la reseña
+                                    "id_registrado" to firebaseAuth.uid.toString(), // UID del usuario que está reportando
+                                    "idTrabajador_campo" to (idtrabajadorClikeado ?: ""), // trabajador al que se hizo la reseña
+                                    "idReporte" to item.id_review.toString(), // este campo se repite, revisar si es necesario
+                                    "Tipo_reporte" to bottomSheet.tipoIncidencia.text.toString(), // tipo de problema (spam, abuso, etc.)
+                                    "problema" to bottomSheet.DescripcionDelProblemaED.text.toString(), // descripción del problema
+                                    "fecha_envio" to binding.fecha.text.toString(), // fecha del reporte
+                                    "hora_envio" to binding.hora.text.toString(), // hora del reporte
+                                    "estado" to "enviado" // estado inicial del reporte
                                 )
-                                dbUsuario.add(hasmap).addOnSuccessListener { res ->
+                                dbUsuario.set(
+                                    hasmap,
+                                    SetOptions.merge()
+                                ).addOnSuccessListener { res ->
                                     Toast.makeText(
                                         itemView.context,
                                         "Se agrego al trabjador normal ref",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                }.addOnFailureListener{e->
+                                }.addOnFailureListener { e ->
                                     Toast.makeText(
                                         itemView.context,
                                         "error al agrege $e",
@@ -347,29 +364,33 @@ class adaptadorReview(
         }
 
         private fun verificar_denunciaExistente(idclikeado: String, existe: (Boolean) -> Unit) {
-            val db = FirebaseFirestore.getInstance()
-                .collection("politicas_problemas_verificaciones")
-                .document("denuncia_review")
-                .collection("denuncia_review")
+            val firebaseAuth: FirebaseAuth
+            firebaseAuth = FirebaseAuth.getInstance()
+            constantes_vinculados.encotrar_user(firebaseAuth.uid.toString(), { tipo, collecion ->
+                if (collecion != null) {
+                    collecion.document(firebaseAuth.uid.toString()).collection("reporte")
+                        .document("enviados").collection("review").get()
+                        .addOnSuccessListener { res ->
+                            var encontrada = false
 
-            db.get().addOnSuccessListener { res ->
-                var encontrada = false
+                            for (datos in res) {
+                                val id_review = datos.getString("idReporte") ?: ""
+                                val id_registrado = datos.getString("idUsuario") ?: ""
 
-                for (datos in res) {
-                    val id_review = datos.getString("id_review") ?: ""
-                    val id_registrado = datos.getString("id_registrado") ?: ""
+                                if (idclikeado == id_review && id_registrado == firebaseAuth.uid.toString()) {
+                                    encontrada = true
+                                    break
+                                }
+                            }
 
-                    if (idclikeado == id_review && id_registrado == firebaseAuth.uid.toString()) {
-                        encontrada = true
-                        break
-                    }
+                            existe(encontrada)
+                        }.addOnFailureListener { e ->
+                            println("Error al obtener datos: ${e.message}")
+                            existe(false)
+                        }
                 }
 
-                existe(encontrada)
-            }.addOnFailureListener {
-                println("Error al obtener datos: ${it.message}")
-                existe(false)
-            }
+            })
 
 
         }

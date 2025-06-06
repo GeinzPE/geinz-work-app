@@ -7,5 +7,6 @@ data class daclassReview(
     val hora: String?,
     val fecha: String?,
     val TipoTrabajo: String?,
-    val editado: Boolean?
+    val editado: Boolean?,
+    val id_review:String
 )

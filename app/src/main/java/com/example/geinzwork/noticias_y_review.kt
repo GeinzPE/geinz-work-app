@@ -61,6 +61,7 @@ class noticias_y_review : AppCompatActivity() {
                 val reseña = data?.get(Variables.reseña) as? String ?: ""
                 val TipoTrabajo = data?.get(Variables.TipoTrabajo) as? String ?: ""
                 val cantidad = data?.get(Variables.cantidad) as? String ?: ""
+                val id_review = data?.get("id_review") as? String ?: ""
                 Log.d("el id de los campos son ",id)
                 val review = daclassReview(
                     id,
@@ -69,7 +70,7 @@ class noticias_y_review : AppCompatActivity() {
                     hora,
                     fecha,
                     TipoTrabajo,
-                    editado
+                    editado,id_review
                 )
                 listaReview.add(review)
                 if (listaReview.isNotEmpty()) {

@@ -37,7 +37,8 @@ class EditarReview : AppCompatActivity() {
 
         val TipoEditado = intent.getStringExtra(Variables.TipoEditado).toString()
         val iduser = intent.getStringExtra(Variables.iduser).toString()
-        seterReviewAnterior(iduser)
+        val review_id = intent.getStringExtra("id_review").toString()
+        seterReviewAnterior(iduser, review_id)
         val nuevaReseview = intent.getStringExtra(Variables.nuevaReseña)
         val editado_adaptador = intent.getBooleanExtra("editado_adaptador", false)
         if (!nuevaReseview.isNullOrEmpty()) {
@@ -55,7 +56,7 @@ class EditarReview : AppCompatActivity() {
                     val idUserNewReview = intent.getStringExtra(Variables.iduser).toString()
                     actualizarReview(
                         idUserNewReview,
-                        Variables.trabajadores_usuariosDB,
+                        Variables.trabajadores_usuariosDB,review_id
                     )
                     Log.d("pasmos_datos", "${idUserNewReview} ${Variables.trabajadores_usuariosDB}")
                 }
@@ -72,18 +73,17 @@ class EditarReview : AppCompatActivity() {
                     val idUserNewReview = intent.getStringExtra(Variables.iduser).toString()
                     actualizarReview(
                         idUserNewReview,
-                        Variables.trabajadores_usuariosDB,
+                        Variables.trabajadores_usuariosDB,review_id
                     )
-                    Log.d("pasmos_datos", "${idUserNewReview} ${Variables.trabajadores_usuariosDB}")
+                    Log.d("pasmos_datos", "${review_id} ${Variables.trabajadores_usuariosDB}")
 
                 }
             }
         }
     }
 
-    private fun seterReviewAnterior(idUser: String) {
+    private fun seterReviewAnterior(idUser: String, id_review: String) {
         val cantidad = intent.getStringExtra(Variables.cantidad).toString()
-        val imgPerfil = intent.getStringExtra(Variables.imgPerfil).toString()
         val nombre = intent.getStringExtra(Variables.nombre).toString()
         val review = intent.getStringExtra(Variables.review).toString()
 
@@ -144,7 +144,7 @@ class EditarReview : AppCompatActivity() {
     }
 
 
-    private fun actualizarReview(idUser: String, collectionFirebase: String) {
+    private fun actualizarReview(idUser: String, collectionFirebase: String, id_review: String) {
         val idTrabajador = intent.getStringExtra(Variables.idTrabajdor).toString()
         val dbReview = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")
@@ -152,7 +152,7 @@ class EditarReview : AppCompatActivity() {
             .collection("trabajadores")
             .document(idTrabajador)
             .collection("review")
-            .document(idUser)
+            .document(id_review)
 
         val firestoreDocument = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")

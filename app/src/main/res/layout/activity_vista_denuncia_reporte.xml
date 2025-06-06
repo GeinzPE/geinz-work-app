@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:layout_marginTop="10dp"
     android:animateLayoutChanges="true"
+    style="@style/fondo"
     android:orientation="vertical"
     tools:context="com.example.geinzwork.vista_denuncia_reporte">
 
@@ -32,306 +33,304 @@
                 android:textStyle="bold" />
 
             <TextView
+
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_marginBottom="10dp"
                 android:fontFamily="@font/fuente_para_texto_special_gothic"
                 android:text="En esta sección podrás ver todos los reportes o denuncias que hayas realizado, ya sea hacia trabajadores o reseñas inapropiadas. Desde aquí puedes hacer seguimiento del estado de cada reporte y verificar si ha sido revisado por nuestro equipo." />
 
             <LinearLayout
-                android:id="@+id/lineal_filtros_chips"
+                android:id="@+id/listener_denuncia_review"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:orientation="vertical">
 
-                <HorizontalScrollView
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/denuncia_hacia_review"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    style="@style/RoundTrabajadoresBG"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none">
+                    android:orientation="vertical">
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupFiltro"
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:checkableBehavior="single"
-                        app:selectionRequired="true"
-                        app:singleSelection="true">
+                        android:padding="7dp">
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/tus_reportes"
+                        <ProgressBar
+                            android:id="@+id/cargando_contador_denuncia_review"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true" />
+
+                        <LinearLayout
+                            android:id="@+id/datos_denuncia_review"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:checked="true"
-                            android:text="Tus reportes"
-                            app:chipIcon="@drawable/reporte_user"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
+                            android:layout_centerVertical="true"
+                            android:layout_marginVertical="10dp"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/trabajadores_reportes"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Reportes a trabajadores"
-                            app:chipIcon="@drawable/advertencia_icon"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
+                            <ImageView
+                                
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginRight="10dp"
+                                android:fontFamily="sans-serif"
+                                android:src="@drawable/encontrado_icon"
+                                android:text="0" />
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/review_reportes"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Denuncia hacia reseñas"
-                            app:chipIcon="@drawable/start_icon_dravalbe"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
 
-                    </com.google.android.material.chip.ChipGroup>
+                                <TextView
+                                    android:id="@+id/guardado_denuncia_review"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
+                                    android:layout_marginEnd="8dp"
+                                    android:layout_toRightOf="@+id/guaradar_icon1"
+                                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                    android:textAllCaps="true"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
 
-                </HorizontalScrollView>
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="8dp"
+                                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                    android:text="Encontrados"
+                                    android:textAllCaps="true"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
 
-
-                <HorizontalScrollView
-                    android:id="@+id/linealChipsFiltradoestados"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none"
-                    android:visibility="gone">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupestados"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:checkableBehavior="single"
-                        app:selectionRequired="true"
-                        app:singleSelection="true">
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/todosFitlrados_reportes_review"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:checked="true"
-                            android:text="Todos"
-                            app:chipIcon="@drawable/reporte_todos"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/enviado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Enviado"
-                            app:chipIcon="@drawable/reporte_enviado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/proceso"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Proceso"
-                            app:chipIcon="@drawable/reporte_proceso"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
+                        </LinearLayout>
 
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/aceptado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Aceptado"
-                            app:chipIcon="@drawable/reporte_aceptado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
+                    </RelativeLayout>
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/rechazado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Rechazado"
-                            app:chipIcon="@drawable/reporte_rechazado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/archivado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Archivado"
-                            app:chipIcon="@drawable/reporte_archivado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/resuelto"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Resuelto"
-                            app:chipIcon="@drawable/reporte_resuelto"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/cancelado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Cancelado"
-                            app:chipIcon="@drawable/reporte_cancelado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-                    </com.google.android.material.chip.ChipGroup>
-
-                </HorizontalScrollView>
-
-                <HorizontalScrollView
-                    android:id="@+id/scrool_repores_mismo_trabajador"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none"
-                    android:visibility="gone">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/grupo_repores_user"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:checkableBehavior="single"
-                        app:selectionRequired="true"
-                        app:singleSelection="true">
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/TodosFiltrado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:checked="true"
-                            android:text="Todos"
-                            app:chipIcon="@drawable/reporte_todos"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/aplelado"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Apelado"
-                            app:chipIcon="@drawable/reporte_enviado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/por_apelar"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Por aplear"
-                            app:chipIcon="@drawable/reporte_proceso"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/apelcaionAceptada"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Apelacion aceptada"
-                            app:chipIcon="@drawable/reporte_aceptado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/aplecion_rechazada"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checkable="true"
-                            android:text="Apelacion rechazada"
-                            app:chipIcon="@drawable/reporte_rechazado"
-                            app:chipIconVisible="true"
-                            app:iconEndPadding="4dp"
-                            app:iconStartPadding="4dp" />
-
-                    </com.google.android.material.chip.ChipGroup>
-
-                </HorizontalScrollView>
-
+                </LinearLayout>
             </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/filtrado_review_trabajadores"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                tools:listitem="@layout/itme_denuncia_trabajador" />
-
             <LinearLayout
-                android:id="@+id/cargando_contenido"
+                android:id="@+id/listener_reportes_a_trabajadores"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:orientation="vertical">
 
-                <ProgressBar
-                    android:layout_width="50dp"
-                    android:layout_height="50dp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
+                    <com.google.android.material.imageview.ShapeableImageView
+                        
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/reportes_trabajadores"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    style="@style/RoundTrabajadoresBG"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Cargando contenido...."
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical">
 
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="7dp">
+
+                        <ProgressBar
+                            android:id="@+id/cargando_contador_reportes_trabajadores"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true" />
+
+                        <LinearLayout
+                            android:id="@+id/datos_reportes_trabajadores"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginVertical="10dp"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <ImageView
+                                
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginRight="10dp"
+                                android:fontFamily="sans-serif"
+                                android:src="@drawable/encontrado_icon"
+                                android:text="0" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/reportes_a_trbajadores"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
+                                    android:layout_marginEnd="8dp"
+                                    android:layout_toRightOf="@+id/guaradar_icon1"
+                                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                    android:textAllCaps="true"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="8dp"
+                                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                    android:text="Encontrados"
+                                    android:textAllCaps="true"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+
+                    </RelativeLayout>
+
+                </LinearLayout>
             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/listener_tus_reportes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/tus_reportes"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    style="@style/RoundTrabajadoresBG"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="7dp">
+
+                        <ProgressBar
+                            android:id="@+id/cargando_contador_tus_reportes"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true" />
+
+                        <LinearLayout
+                            android:id="@+id/datos_tus_reportes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginVertical="10dp"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <ImageView
+                                
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginRight="10dp"
+                                android:fontFamily="sans-serif"
+                                android:src="@drawable/encontrado_icon"
+                                android:text="0" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tus_reportes_txt"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
+                                    android:layout_marginEnd="8dp"
+                                    android:layout_toRightOf="@+id/guaradar_icon1"
+                                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                    android:text="guardadso 50"
+                                    android:textAllCaps="true"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="8dp"
+                                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                                    android:text="Encontrados"
+                                    android:textAllCaps="true"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
 
-    <LinearLayout
-        android:id="@+id/no_encontrado"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
 
-        <TextView
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="No se encontro denuncias o reportes"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-    </LinearLayout>
 </LinearLayout>
