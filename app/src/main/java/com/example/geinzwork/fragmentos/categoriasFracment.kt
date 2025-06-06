@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.GridLayoutManager
@@ -78,14 +79,20 @@ class categoriasFracment : Fragment() {
                     binding.recycleMostrarTrabajadores.isVisible = false
                     binding.linealNoSeEncontraron.isVisible = false
                     binding.cargaTrabajadores.isVisible = false
+
+                    // Mostrar los títulos otra vez si no se está buscando
+                    binding.titulosTextos.isVisible = true
+
                 } else {
-                    // Inicia búsqueda: muestra el progressbar y oculta todo lo demás
+                    // Oculta visualmente los títulos, pero mantiene su espacio (no afecta el focus del EditText)
+                    binding.titulosTextos.isVisible = false
+
+
                     binding.cargaTrabajadores.isVisible = true
                     binding.RecicleViewTrabajos.isVisible = false
                     binding.recycleMostrarTrabajadores.isVisible = false
                     binding.linealNoSeEncontraron.isVisible = false
 
-                    // Simula un "cargando"
                     val resultadosFiltrados = if (textoBusqueda == "#todos") {
                         listaanunciosEncontrados
                     } else {
@@ -94,7 +101,6 @@ class categoriasFracment : Fragment() {
                         }
                     }
 
-                    // Espera a que RecyclerView esté listo para evitar errores por animaciones
                     binding.recycleMostrarTrabajadores.post {
                         adapter_seguidores_seguidos.actualizarLista(resultadosFiltrados)
                         binding.cargaTrabajadores.isVisible = false
@@ -106,6 +112,7 @@ class categoriasFracment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+
 
 
     }

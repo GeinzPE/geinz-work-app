@@ -27,13 +27,14 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <LinearLayout
+                    <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     app:layout_scrollFlags="scroll|enterAlways">
 
                     <TextView
+                        android:id="@+id/titulo_texto_primario"
                         style="@style/TextoTitulos"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -46,6 +47,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/titulos_textos"
                         style="@style/TextoModoOScuroColor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

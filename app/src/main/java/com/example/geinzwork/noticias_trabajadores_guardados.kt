@@ -290,7 +290,11 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
                     eliminar_guardados(longlistener.idNoticia.toString(), "noticias")
                     cargarNoticiasGuardadas(bottomSheet)
                     Log.d("pasamos_id_noticias", "pasamos id ${longlistener.idNoticia}")
-
+                    obtener_cantidad_guardados(
+                        "noticias",
+                        binding.guardadoNoticias,
+                        binding.cargandoContador2, binding.datosNoticias
+                    )
 
                 }
                 .setNegativeButton("Cancelar", null)
@@ -620,6 +624,8 @@ class noticias_trabajadores_guardados : AppCompatActivity() {
         progressBar: ProgressBar,
         Lineal: LinearLayout
     ) {
+        Toast.makeText(this,"se actulizo los camps",Toast.LENGTH_SHORT).show()
+
         val startTime = System.currentTimeMillis()
 
         val db = FirebaseFirestore.getInstance()

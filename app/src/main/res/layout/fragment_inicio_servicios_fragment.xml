@@ -35,7 +35,7 @@
             <org.imaginativeworld.whynotimagecarousel.ImageCarousel
                 android:id="@+id/carrusel_publicidad_baner"
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="240dp"
                 android:layout_marginVertical="10dp"
                 android:layout_marginTop="16dp"
                 app:autoWidthFixing="false"
@@ -60,7 +60,6 @@
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
                     android:fontFamily="@font/uni_sans"
                     android:text="¡Prueba Geinz Tienda Gratis por un Mes!"
                     android:textSize="15sp" />
