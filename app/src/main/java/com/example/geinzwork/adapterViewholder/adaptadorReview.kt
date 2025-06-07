@@ -111,7 +111,7 @@ class adaptadorReview(
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        verificar_denunciaExistente(daclassReview.idUsuarioReview.toString()) { existe ->
+                        verificar_denunciaExistente(daclassReview.id_review.toString()) { existe ->
                             if (existe) {
                                 Toast.makeText(
                                     itemView.context,
@@ -364,6 +364,7 @@ class adaptadorReview(
         }
 
         private fun verificar_denunciaExistente(idclikeado: String, existe: (Boolean) -> Unit) {
+            Toast.makeText(itemView.context,"el valor pasasdo fue de $idclikeado",Toast.LENGTH_SHORT).show()
             val firebaseAuth: FirebaseAuth
             firebaseAuth = FirebaseAuth.getInstance()
             constantes_vinculados.encotrar_user(firebaseAuth.uid.toString(), { tipo, collecion ->
@@ -375,7 +376,7 @@ class adaptadorReview(
 
                             for (datos in res) {
                                 val id_review = datos.getString("idReporte") ?: ""
-                                val id_registrado = datos.getString("idUsuario") ?: ""
+                                val id_registrado = datos.getString("id_registrado") ?: ""
 
                                 if (idclikeado == id_review && id_registrado == firebaseAuth.uid.toString()) {
                                     encontrada = true

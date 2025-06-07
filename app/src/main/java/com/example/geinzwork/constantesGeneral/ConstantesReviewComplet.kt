@@ -40,111 +40,125 @@ object constantesReviewComplet {
     ) {
         if (firebaseAuth.currentUser == null) {
             dialog = BottomSheetDialog(context)
-            constantesPublicidad.CreacionCuentaBottom_shett(
-                context,
-                dialog
-            )
+            constantesPublicidad.CreacionCuentaBottom_shett(context, dialog)
             dialog.show()
-        } else {
-            val dbReview = FirebaseFirestore.getInstance()
-                .collection("Trabajadores_Usuarios_Drivers")
-                .document("trabajadores")
-                .collection("trabajadores")
-                .document(idTrabajador)
-                .collection("review")
-                .document(idUsuario)
+            return
+        }
 
-            dbReview.get().addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val cantidad = document.getString(Variables.cantidad) ?: ""
-                    val review = document.getString(Variables.reseña) ?: ""
-                    val builder = AlertDialog.Builder(context)
-                    builder.setTitle("Tienes una reseña registrada")
-                    builder.setMessage("¿Deseas editar la reseña que dejaste anteriormente?")
-                    builder.setPositiveButton("Sí") { dialog, _ ->
-                        constantes.showLoadingDialog(
-                            context,
-                            2000,
-                            "Espere un momento",
-                            "Espere un momento..."
-                        )
-                        val intent = Intent(context, EditarReview::class.java).apply {
-                            putExtra("TipoEditado", tipoEditado)
-                            putExtra("idReview", idUsuario)
-                            putExtra(Variables.iduser, idUsuario)
-                            putExtra(Variables.idTrabajdor, idTrabajador)
-                            putExtra(Variables.cantidad, cantidad)
-                            putExtra("review", review)
-                            putExtra("nuevaReseña", contenidoReview.text.toString())
-                            putExtra("cantidadStart", cantidadEstrellas.text.toString())
-                            putExtra("editado_adaptador", true)
-                        }
-                        contenidoReview.setText("")
-                        cantidadEstrellas.setText("")
-                        context.startActivity(intent)
+        val db = FirebaseFirestore.getInstance()
+        val dbReview = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(idTrabajador)
+            .collection("review")
+            .document(idUsuario)
+
+        val dbReview_realizado = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(idTrabajador)
+            .collection("review")
+
+        dbReview_realizado.get().addOnSuccessListener { res ->
+            var yaExisteReview = false
+
+            for (datos in res) {
+                val data = datos.data
+                val iduserReview = data["iduserReview"] as? String ?: ""
+                if (iduserReview == idUsuario) {
+                    yaExisteReview = true
+                    val cantidad = data[Variables.cantidad] as? String ?: ""
+                    val id_review = data["id_review"] as? String ?: ""
+                    val review = data[Variables.reseña] as? String ?: ""
+                    val estrellasStr = cantidadEstrellas.text.toString()
+                    val estrellas = estrellasStr.toIntOrNull()
+                    if (estrellas == null || estrellas !in 0..5) {
+                        cantidadEstrellas.requestFocus()
+                        cantidadEstrellas.error = "La cantidad de estrellas debe estar entre 0 y 5"
+                        return@addOnSuccessListener
                     }
-                    builder.setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
-                    builder.create().show()
-                } else {
-                    val nuevaReview = contenidoReview.text.toString()
-                    val estrellas = cantidadEstrellas.text.toString()
-                    if (nuevaReview.isEmpty() || estrellas.isEmpty()) {
-                        Toast.makeText(context, "Ingrese una reseña y cantidad", Toast.LENGTH_SHORT)
-                            .show()
-                    } else if (estrellas.toInt() !in 0..5) {
-                        Toast.makeText(
-                            context,
-                            "Solo se permite como máximo 5 estrellas",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        val estrellasInt = estrellas.toInt()
-                        val dbTrabajadores = FirebaseFirestore.getInstance()
-                            .collection("Trabajadores_Usuarios_Drivers")
-                            .document("trabajadores")
-                            .collection("trabajadores")
-                            .document(idTrabajador)
-
-                        dbTrabajadores.get().addOnSuccessListener { trabajador ->
-                            if (trabajador.exists()) {
-                                val estrellasAnteriores =
-                                    trabajador.getString("estrellas")?.toIntOrNull() ?: 0
-                                val sumaEstrellas = estrellasAnteriores + estrellasInt
-                                val hashMap = mapOf("estrellas" to sumaEstrellas.toString())
-                                dbTrabajadores.set(hashMap, SetOptions.merge())
-                                    .addOnSuccessListener {
-                                        Toast.makeText(
-                                            context,
-                                            "Reseña guardada exitosamente",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                    .addOnFailureListener {
-                                        Log.d("error_review", "Error al guardar la reseña")
-
-                                    }
+                    AlertDialog.Builder(context)
+                        .setTitle("Tienes una reseña registrada")
+                        .setMessage("¿Deseas editar la reseña que dejaste anteriormente?")
+                        .setPositiveButton("Sí") { _, _ ->
+                            constantes.showLoadingDialog(context, 2000, "Espere un momento", "Espere un momento...")
+                            val intent = Intent(context, EditarReview::class.java).apply {
+                                putExtra("TipoEditado", tipoEditado)
+                                putExtra("id_review", id_review)
+                                putExtra(Variables.iduser, idUsuario)
+                                putExtra(Variables.idTrabajdor, idTrabajador)
+                                putExtra(Variables.cantidad, cantidad)
+                                putExtra("review", review)
+                                putExtra("nuevaReseña", contenidoReview.text.toString())
+                                putExtra("cantidadStart", cantidadEstrellas.text.toString())
+                                putExtra("editado_adaptador", true)
                             }
+                            contenidoReview.setText("")
+                            cantidadEstrellas.setText("")
+                            context.startActivity(intent)
                         }
-                        obtenerUserFirestore(idTrabajador,
-                            idUsuario,
-                            dbReview,
-                            nuevaReview,
-                            estrellas,
-                            context,
-                            hora,
-                            fecha,
-                            tipoTrabajo
-                        )
+                        .setNegativeButton("No", null)
+                        .show()
+                    break
+                }
+            }
+
+            if (!yaExisteReview) {
+                val nuevaReview = contenidoReview.text.toString()
+                val estrellasStr = cantidadEstrellas.text.toString()
+
+                if (nuevaReview.isEmpty() || estrellasStr.isEmpty()) {
+                    Toast.makeText(context, "Ingrese una reseña y cantidad", Toast.LENGTH_SHORT).show()
+                    return@addOnSuccessListener
+                }
+
+                val estrellas = estrellasStr.toIntOrNull()
+                if (estrellas == null || estrellas !in 0..5) {
+                    cantidadEstrellas.requestFocus()
+                    cantidadEstrellas.error = "La cantidad de estrellas debe estar entre 0 y 5"
+                    return@addOnSuccessListener
+                }
+
+                val dbTrabajadores = db.collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores")
+                    .collection("trabajadores")
+                    .document(idTrabajador)
+
+                dbTrabajadores.get().addOnSuccessListener { trabajador ->
+                    if (trabajador.exists()) {
+                        val estrellasAnteriores = trabajador.getString("estrellas")?.toIntOrNull() ?: 0
+                        val sumaEstrellas = estrellasAnteriores + estrellas
+                        val hashMap = mapOf("estrellas" to sumaEstrellas.toString())
+                        dbTrabajadores.set(hashMap, SetOptions.merge())
+                            .addOnSuccessListener {
+                                Toast.makeText(context, "Reseña guardada exitosamente", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener {
+                                Log.e("error_review", "Error al guardar la reseña", it)
+                            }
                     }
                 }
-            }.addOnFailureListener {
-                Log.e("verificarSiExisteReview", "Error al obtener la reseña: ${it.message}")
+
+                obtenerUserFirestore(
+                    idTrabajador,
+                    idUsuario,
+                    dbReview,
+                    nuevaReview,
+                    estrellasStr,
+                    context,
+                    hora,
+                    fecha,
+                    tipoTrabajo
+                )
             }
         }
     }
 
 
-    private fun obtenerUserFirestore(id_trabajador: String,
+
+
+    private fun obtenerUserFirestore(
+        id_trabajador: String,
         idUSer: String,
         ref: DocumentReference,
         review: String,
@@ -173,7 +187,7 @@ object constantesReviewComplet {
                                 context,
                                 hora,
                                 fecha,
-                                TipoTrabajo,id_trabajador
+                                TipoTrabajo, id_trabajador
                             )
                         }
                         setNegativeButton("No") { dialog, _ ->
@@ -194,7 +208,7 @@ object constantesReviewComplet {
                                     ref,
                                     idContainer.orEmpty(),
                                     review,
-                                    cantidad, context, hora, fecha, TipoTrabajo,id_trabajador
+                                    cantidad, context, hora, fecha, TipoTrabajo, id_trabajador
                                 )
                             } else {
                                 Log.d("error_review", "Usuario no encontrado")
@@ -300,7 +314,7 @@ object constantesReviewComplet {
                         hora,
                         fecha,
                         TipoTrabajo,
-                        editado,id_review
+                        editado, id_review
                     )
 
                     when (fitlradoString) {

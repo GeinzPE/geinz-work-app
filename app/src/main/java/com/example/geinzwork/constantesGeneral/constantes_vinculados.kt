@@ -7,12 +7,12 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
 import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+
 import com.google.firebase.firestore.SetOptions
 
 object constantes_vinculados {
@@ -256,8 +256,7 @@ object constantes_vinculados {
                     "untima_fecha_con" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
                 )
                 coleccion.document(idRegistrado).collection("vinculados").document(androidId).set(
-                    hashMap,
-                    SetOptions.merge()
+                    hashMap, SetOptions.merge()
                 ).addOnSuccessListener { res ->
                     Log.d("campo_actualizado", "campos actualizados correctamente")
                 }

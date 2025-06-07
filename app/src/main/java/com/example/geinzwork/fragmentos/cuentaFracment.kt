@@ -589,10 +589,7 @@ class cuentaFracment : Fragment() {
         }
     }
 
-    private fun mostrarDatos() {
-        binding.loading.isVisible = false
-        binding.swipe.isVisible = true
-    }
+
 
     private fun verificarEstado_vericiacion(id: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
@@ -864,6 +861,11 @@ class cuentaFracment : Fragment() {
                         null,
                         "perfil", placeholderperfil
                     ) {}
+
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        binding.loading.isVisible = false
+                        binding.swipe.isVisible = true
+                    }, firestoreDuration)
                 }
 
                 val refStorage =
@@ -871,15 +873,6 @@ class cuentaFracment : Fragment() {
                         .child(firebaseAuth.uid.toString()).child(foto_portada)
                 if (refStorage != null) {
                     refStorage.downloadUrl.addOnSuccessListener { uri ->
-                        storageEndTime = System.currentTimeMillis()
-                        val storageDownloadDuration = storageEndTime - firestoreEndTime
-                        val totalDuration = storageEndTime - startTime
-                        println("Storage descarga tomó $storageDownloadDuration ms")
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            binding.loading.isVisible = false
-                            binding.swipe.isVisible = true
-                        }, totalDuration)
-
                         val imgUrl = uri.toString()
                         try {
                             Glide.with(this)

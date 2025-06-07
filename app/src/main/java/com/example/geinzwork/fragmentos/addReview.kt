@@ -56,14 +56,15 @@ class addReview : Fragment() {
         if (firebaseAuth.uid.toString() == idTrabajador) {
             binding.lottieAnimationView.isVisible = true
             binding.tvErrorMessage.isVisible = true
-            binding.container.isVisible=false
+            binding.container.isVisible = false
         } else {
             binding.lottieAnimationView.isVisible = false
             binding.tvErrorMessage.isVisible = false
 
             constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
             if (idTrabajador.toString() == firebaseAuth.uid.toString()) {
-                Toast.makeText(mContex, "no puedes dejarte reseñas a ti mismo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(mContex, "no puedes dejarte reseñas a ti mismo", Toast.LENGTH_SHORT)
+                    .show()
                 binding.contenidoReseview.isEnabled = false
                 binding.cantidadStarts.isEnabled = false
                 binding.piblicarReview.isEnabled = false
@@ -71,17 +72,31 @@ class addReview : Fragment() {
                 val tipo = Variables.CuentaFreelancer
                 val iduser = firebaseAuth.uid.toString()
                 binding.piblicarReview.setOnClickListener {
-                    constantesReviewComplet.verificarSiExisteReview(
-                        tipo,
-                        idTrabajador.toString(),
-                        iduser,
-                        mContex,
-                        binding.contenidoReseview,
-                        binding.cantidadStarts,
-                        binding.hora,
-                        binding.fecha,
-                        binding.tipoTrabajoED.text.toString()
-                    )
+                    Toast.makeText(mContex, "se realizo cliek ", Toast.LENGTH_SHORT).show()
+                    if (binding.contenidoReseview.text.isEmpty()) {
+                        binding.contenidoReseview.error = "La reseña es obligatoria"
+                        binding.contenidoReseview.requestFocus()
+                    } else if (binding.tipoTrabajoED.text.isEmpty()) {
+                        binding.tipoTrabajoED.error = "La descripción es obligatoria"
+                        binding.tipoTrabajoED.requestFocus()
+                    } else if (binding.cantidadStarts.text.isEmpty()) {
+                        binding.cantidadStarts.error = "La cantidad de estrellas es obligatoria"
+                        binding.cantidadStarts.requestFocus()
+                    } else {
+                        Toast.makeText(context, "pasamos toda la validadocineselse ", Toast.LENGTH_SHORT).show()
+                        constantesReviewComplet.verificarSiExisteReview(
+                            tipo,
+                            idTrabajador.toString(),
+                            iduser,
+                            mContex,
+                            binding.contenidoReseview,
+                            binding.cantidadStarts,
+                            binding.hora,
+                            binding.fecha,
+                            binding.tipoTrabajoED.text.toString()
+                        )
+                    }
+
                 }
             }
         }
