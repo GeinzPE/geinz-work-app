@@ -3,6 +3,8 @@ package com.geinzz.geinzwork
 
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -13,6 +15,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
+import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.databinding.ActivityNoticiasYreviewBinding
 import com.geinzz.geinzwork.dataclass.daclassReview
 import com.google.firebase.auth.FirebaseAuth
@@ -43,61 +46,80 @@ class noticias_y_review : AppCompatActivity() {
 
             else -> ""
         }
+        confSwipe()
+    }
+
+    private fun confSwipe() {
+        binding.swipe.setOnRefreshListener {
+            binding.swipe.setColorSchemeResources(R.color.violeta)
+            obtener_review()
+            binding.loading.isVisible = true
+            binding.swipe.isRefreshing = false
+            binding.noEncontrado.isVisible = false
+            binding.scrollReview.isVisible = false
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.loading.isVisible = false
+            }, 2000)
+        }
     }
 
     private fun obtener_review() {
+        binding.swipe.isVisible = true
+        binding.scrollReview.isVisible = false
         firebaseAuth = FirebaseAuth.getInstance()
         val listaReview = mutableListOf<daclassReview>()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("review")
-        db.get().addOnSuccessListener { res ->
-            for (datos in res) {
-                val data = datos.data
-                val editado = data?.get(Variables.editado) as? Boolean ?: false
-                val id = data?.get(Variables.iduserReview) as? String ?: ""
-                val fecha = data?.get(Variables.fecha) as? String ?: ""
-                val hora = data?.get(Variables.hora) as? String ?: ""
-                val reseña = data?.get(Variables.reseña) as? String ?: ""
-                val TipoTrabajo = data?.get(Variables.TipoTrabajo) as? String ?: ""
-                val cantidad = data?.get(Variables.cantidad) as? String ?: ""
-                val id_review = data?.get("id_review") as? String ?: ""
-                Log.d("el id de los campos son ",id)
-                val review = daclassReview(
-                    id,
-                    cantidad,
-                    reseña,
-                    hora,
-                    fecha,
-                    TipoTrabajo,
-                    editado,id_review
-                )
-                listaReview.add(review)
-                if (listaReview.isNotEmpty()) {
-                    // No hay reseñas disponibles
-                    // Aquí podrías mostrar un mensaje indicando que no hay reseñas disponibles
-                    binding.loading.isVisible = false
-                    binding.texto.isVisible = true
-                    binding.recicelGuardados.isVisible = true
-                    binding.relativeNoEncontrado.isVisible = false
-                    inicalizarRecicle(listaReview)
-                } else {
-                    // Mostrar las reseñas en el RecyclerView
-                    binding.recicelGuardados.isVisible = false
-                    binding.loading.isVisible = false
-                    binding.relativeNoEncontrado.isVisible = true
-                    binding.texto.isVisible = false
-                }
-            }
 
+        db.get().addOnSuccessListener { res ->
+            if (res.isEmpty) {
+                // No hay documentos en la colección review
+                binding.noEncontrado.isVisible = true
+                binding.texto.isVisible = false
+                binding.recicelGuardados.isVisible = false
+                binding.loading.isVisible = false
+            } else {
+                for (datos in res) {
+                    val data = datos.data
+                    val editado = data[Variables.editado] as? Boolean ?: false
+                    val id = data[Variables.iduserReview] as? String ?: ""
+                    val fecha = data[Variables.fecha] as? String ?: ""
+                    val hora = data[Variables.hora] as? String ?: ""
+                    val reseña = data[Variables.reseña] as? String ?: ""
+                    val TipoTrabajo = data[Variables.TipoTrabajo] as? String ?: ""
+                    val cantidad = data[Variables.cantidad] as? String ?: ""
+                    val id_review = data["id_review"] as? String ?: ""
+
+                    val review = daclassReview(
+                        id,
+                        cantidad,
+                        reseña,
+                        hora,
+                        fecha,
+                        TipoTrabajo,
+                        editado,
+                        id_review
+                    )
+                    listaReview.add(review)
+                }
+
+                // Mostrar las reseñas
+                binding.scrollReview.isVisible = true
+                binding.loading.isVisible = false
+                binding.texto.isVisible = true
+                binding.recicelGuardados.isVisible = true
+                binding.noEncontrado.isVisible = false
+                inicalizarRecicle(listaReview)
+            }
         }.addOnFailureListener { e ->
-            Log.d("idNull", "No se encontro review $e")
+            Log.d("idNull", "No se encontró review: $e")
+            binding.scrollReview.isVisible = false
+            binding.noEncontrado.isVisible = true
             binding.texto.isVisible = false
-            binding.relativeNoEncontrado.isVisible = true
             binding.recicelGuardados.isVisible = false
             binding.loading.isVisible = false
         }
-
     }
 
 
@@ -108,7 +130,6 @@ class noticias_y_review : AppCompatActivity() {
         recicle.layoutManager = LinearLayoutManager(this)
         recicle.adapter = adaptadorReview(listaReview)
     }
-
 
 
 }

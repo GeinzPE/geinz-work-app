@@ -24,6 +24,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_agregar_estadisticas_publicaiones
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.oferta_principales_geinz
@@ -123,7 +124,19 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                     val id_trabajadores_productos_clikeados =
                         deepLink.getQueryParameter("idProducto")
 
+
+                    val id_trabajador_publicacion =
+                        deepLink.getQueryParameter("idTrabajadorRec")
+                    val id_publicacion_trabajo_realizado =
+                        deepLink.getQueryParameter("idpublicacionRec")
+
                     when {
+
+                        id_trabajador_publicacion != null && id_publicacion_trabajo_realizado != null -> obtener_trabajo_realizado_info(
+                            id_trabajador_publicacion,
+                            id_publicacion_trabajo_realizado
+                        )
+
                         idPublicidadPrimaria != null && idAnuncio != null -> openPublicidadPrimaria(
                             idPublicidadPrimaria,
                             idAnuncio
@@ -410,6 +423,15 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         val intent = Intent(this, vistas_anuncios_general::class.java).apply {
             putExtra("docuemnto", idPublicidadPrimaria)
             putExtra("anuncio", idAnuncio)
+        }
+        startActivity(intent)
+
+    }
+
+    private fun obtener_trabajo_realizado_info(idTrabajadorRec: String, idpublicacion: String) {
+        val intent = Intent(this, vistaTrabajador::class.java).apply {
+            putExtra(Variables.id, idTrabajadorRec)
+            putExtra("id_publicacion", idpublicacion)
         }
         startActivity(intent)
 

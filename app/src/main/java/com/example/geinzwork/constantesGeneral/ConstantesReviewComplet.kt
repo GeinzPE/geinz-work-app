@@ -289,8 +289,6 @@ object constantesReviewComplet {
             val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
                 .document("trabajadores").collection("trabajadores")
                 .document(idTrabajdor).collection("review")
-            println("id del user desde review $idTrabajdor")
-
             db.get().addOnSuccessListener { res ->
                 val reviewsParaMostrar = mutableListOf<daclassReview>()
                 var pendingVerifications = 0
@@ -316,6 +314,7 @@ object constantesReviewComplet {
                         TipoTrabajo,
                         editado, id_review
                     )
+
 
                     when (fitlradoString) {
                         "uno_tres" -> {

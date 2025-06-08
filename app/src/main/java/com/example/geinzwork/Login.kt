@@ -86,13 +86,20 @@ class Login : AppCompatActivity() {
                                 val uid = doc.getString("id") ?: doc.id
                                 verificarDispositivosYLogin(uid, correo, contraseña, "usuarios")
                             } else {
-                                Toast.makeText(this, "Correo no registrado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Correo no registrado", Toast.LENGTH_SHORT)
+                                    .show()
                             }
                         }
                 }
             }
     }
-    private fun verificarDispositivosYLogin(uid: String, correo: String, contraseña: String, tipo: String) {
+
+    private fun verificarDispositivosYLogin(
+        uid: String,
+        correo: String,
+        contraseña: String,
+        tipo: String
+    ) {
         val db = FirebaseFirestore.getInstance()
 
         db.collection("Trabajadores_Usuarios_Drivers")
@@ -103,8 +110,13 @@ class Login : AppCompatActivity() {
             .get()
             .addOnSuccessListener { vinculados ->
                 if (vinculados.size() >= 4) {
-                    Toast.makeText(this, "Tiene 4 dispositivos vinculados con esta cuenta", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Tiene 4 dispositivos vinculados con esta cuenta",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
+               
                     val dialog = AlertDialog.Builder(this)
                         .setTitle("Iniciando sesión")
                         .setMessage("Espere un momento...")
@@ -113,26 +125,30 @@ class Login : AppCompatActivity() {
 
                     dialog.show()
                     val startTime = System.currentTimeMillis()
+
                     firebaseAuth.signInWithEmailAndPassword(correo, contraseña)
                         .addOnSuccessListener { resultado ->
                             val endTime = System.currentTimeMillis()
                             val duration = endTime - startTime
+
                             Handler(Looper.getMainLooper()).postDelayed({
                                 dialog.dismiss()
-
                             }, duration)
+
                             val user = resultado.user
                             constantes_vinculados.agregar_vinculado(user!!.uid, this)
-
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(this, "Error al iniciar sesión: ${e.message}", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            Toast.makeText(
+                                this,
+                                "Error al iniciar sesión: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                 }
             }
     }
-
-
 
 
     private fun verificarSeccion() {

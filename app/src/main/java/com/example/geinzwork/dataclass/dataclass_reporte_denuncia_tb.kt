@@ -9,5 +9,6 @@ data class dataclass_reporte_denuncia_tb(
     val estado: String?,
     val tipo_enviado_recivido: String?,
     val fechaEnvio: String?,
-    val horaEnvio: String?
+    val horaEnvio: String?,
+    val idUsuario_review: String?
 )

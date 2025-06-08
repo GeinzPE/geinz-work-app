@@ -49,13 +49,14 @@ class review : Fragment() {
 
     private fun confSwipe(idTrabajador: String) {
         binding.swipe.setOnRefreshListener {
-            binding.loading.isVisible=true
-            binding.relativeReview.isVisible=false
+            binding.loading.isVisible = true
+            binding.relativeReview.isVisible = false
+            binding.loading.isVisible = true
+            binding.frameSinReview.isVisible = false
             binding.swipe.setColorSchemeResources(R.color.violeta)
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.swipe.isRefreshing = false
-                binding.loading.isVisible=false
-                binding.relativeReview.isVisible=true
+                binding.relativeReview.isVisible = true
                 verificarSihayReviews(idTrabajador.toString())
                 obtenerPorcentajeEstrellasUser(idTrabajador.toString())
                 promedioEstrellas(idTrabajador.toString())
@@ -74,8 +75,8 @@ class review : Fragment() {
         confSwipe(idTrabajador.toString())
 
         binding.todos.setOnClickListener {
-            binding.reyclerviewReview.isVisible=false
-            binding.cargaContenido.isVisible=true
+            binding.reyclerviewReview.isVisible = false
+            binding.cargaContenido.isVisible = true
             constantesReviewComplet.obtenerReview(
                 binding.SinReview,
                 binding.reyclerviewReview,
@@ -87,9 +88,8 @@ class review : Fragment() {
 
         }
         binding.filtradoVerificado.setOnClickListener {
-
-            binding.reyclerviewReview.isVisible=false
-            binding.cargaContenido.isVisible=true
+            binding.reyclerviewReview.isVisible = false
+            binding.cargaContenido.isVisible = true
             constantesReviewComplet.obtenerReview(
                 binding.SinReview,
                 binding.reyclerviewReview,
@@ -99,10 +99,9 @@ class review : Fragment() {
                 mContex, "verificado"
             )
         }
-
         binding.unoATres.setOnClickListener {
-            binding.reyclerviewReview.isVisible=false
-            binding.cargaContenido.isVisible=true
+            binding.reyclerviewReview.isVisible = false
+            binding.cargaContenido.isVisible = true
             constantesReviewComplet.obtenerReview(
                 binding.SinReview,
                 binding.reyclerviewReview,
@@ -112,7 +111,6 @@ class review : Fragment() {
                 mContex, "uno_tres"
             )
         }
-
         binding.cuatroACinco.setOnClickListener {
             binding.reyclerviewReview.isVisible = false
             binding.cargaContenido.isVisible = true
@@ -125,18 +123,18 @@ class review : Fragment() {
                 mContex, "cuatro_cinco"
             )
         }
-            binding.tuReview.setOnClickListener {
-                binding.reyclerviewReview.isVisible=false
-                binding.cargaContenido.isVisible=true
-                constantesReviewComplet.obtenerReview(
-                    binding.SinReview,
-                    binding.reyclerviewReview,
-                    binding.cargaContenido,
-                    idTrabajador,
-                    binding.reyclerviewReview,
-                    mContex, "tu_review"
-                )
-            }
+        binding.tuReview.setOnClickListener {
+            binding.reyclerviewReview.isVisible = false
+            binding.cargaContenido.isVisible = true
+            constantesReviewComplet.obtenerReview(
+                binding.SinReview,
+                binding.reyclerviewReview,
+                binding.cargaContenido,
+                idTrabajador,
+                binding.reyclerviewReview,
+                mContex, "tu_review"
+            )
+        }
     }
 
     private fun mostrarDatos() {
@@ -170,11 +168,15 @@ class review : Fragment() {
         dbReview.get()
             .addOnSuccessListener { res ->
                 if (res.isEmpty) {
-                    // No hay reseñas
+                    // No hay reseñab
+                    binding.swipe.isVisible = true
+                    binding.scrollReview.isVisible = false
                     binding.frameSinReview.isVisible = true
                     binding.loading.isVisible = false
                 } else {
                     // Hay reseñas
+                    binding.swipe.isVisible = true
+                    binding.scrollReview.isVisible = true
                     obtnerReview(idTrabajador)
                     binding.loading.isVisible = false
                 }

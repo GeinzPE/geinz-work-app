@@ -10,9 +10,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constantes_valores
+import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_reporte_denuncia_tb
 import com.geinzz.geinzwork.R
@@ -74,7 +76,10 @@ class adapter_reporte_denuncia_tb(
 
             }
             copy_id.setOnClickListener {
-                constantestextos_general.copiarTexto_portapapeles(binding.idDenuncia,itemView.context)
+                constantestextos_general.copiarTexto_portapapeles(
+                    binding.idDenuncia,
+                    itemView.context
+                )
 
             }
             val spannableString = SpannableString("Problema : ${item.problema}")
@@ -158,9 +163,19 @@ class adapter_reporte_denuncia_tb(
                     ) { cargado ->
 
                     }
+                    binding.layoutRp.setOnLongClickListener {
+                        enviar_cancelar_archivado(
+
+                            itemView.context,
+                            "enviados",
+                            "enviados",
+                            item.idreporte.toString()
+                        )
+                        true
+                    }
+
 
                 }
-
 
 
             } else if (item.tipo_enviado_recivido.equals("recivido")) {
@@ -216,12 +231,11 @@ class adapter_reporte_denuncia_tb(
 
                 }
             } else {
-                constantesCarrito.setearDatosUsuarioImgNombre(item.idreporte.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                Toast.makeText(itemView.context, "entramos a las review", Toast.LENGTH_SHORT).show()
+                constantesCarrito.setearDatosUsuarioImgNombre(item.idUsuario_review.toString()) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
                     // Verificación después de setear
                     binding.nombreTrabajador.text = nombre
                     val nombreYaCargado = binding.nombreTrabajador.text.toString() == nombre
-                    val nombreValido =
-                        nombre.toString().isNotBlank()
 
                     if (nombreYaCargado) {
                         binding.cargaContenido.isVisible = false
@@ -239,15 +253,93 @@ class adapter_reporte_denuncia_tb(
                         null,
                         "perfil",
                         constantes_valores.getDrawableMiIcono(itemView.context)
-                    ) { cargado ->
+                    ) { cargado -> }
+                    binding.layoutRp.setOnLongClickListener {
+                        enviar_cancelar_archivado(
 
-
+                            itemView.context,
+                            "enviados",
+                            "review",
+                            item.idreporte.toString()
+                        )
+                        true
                     }
+
                 }
             }
 
 
         }
+
+        private fun enviar_cancelar_archivado(
+
+            context: Context,
+            doc1: String,
+            doc2: String,
+            seleccionado: String
+        ) {
+            val builder = AlertDialog.Builder(context)
+            builder.setTitle("Confirmar acción")
+            builder.setMessage("¿Deseas archivar o cancelar el reporte?")
+
+            // Botón positivo - Archivar
+            builder.setPositiveButton("Archivar Reporte") { dialog, _ ->
+                cancelar_reporte("archivado", doc1, doc2, seleccionado)
+                Toast.makeText(context, "Reporte archivado", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+
+            }
+
+            // Botón negativo - Cancelar
+            builder.setNegativeButton("Cancelar Reporte") { dialog, _ ->
+                cancelar_reporte("cancelado", doc1, doc2, seleccionado)
+                Toast.makeText(context, "Reporte cancelado", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+
+            }
+
+            // Botón neutral - Cerrar sin acción
+            builder.setNeutralButton("Cerrar") { dialog, _ ->
+                dialog.dismiss()
+
+            }
+
+            val dialog = builder.create()
+            dialog.show()
+        }
+
+
+        private fun cancelar_reporte(
+            tipo_cambiado: String,
+            doc1: String,
+            doc2: String,
+            seleccionado: String
+        ) {
+            firebaseAuth = FirebaseAuth.getInstance()
+            constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, collection ->
+                if (collection != null) {
+                    val reporteRef = collection
+                        .document(firebaseAuth.uid.toString())
+                        .collection("reporte")
+                        .document(doc1)
+                        .collection(doc2)
+                        .document(seleccionado)
+
+                    val hashMap = hashMapOf<String, Any>(
+                        "estado" to tipo_cambiado
+                    )
+
+                    reporteRef.set(hashMap, SetOptions.merge())
+                        .addOnSuccessListener {
+                            Log.d("Reporte", "Estado actualizado correctamente.")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Reporte", "Error al actualizar el estado", e)
+                        }
+                }
+            }
+        }
+
 
         @RequiresApi(Build.VERSION_CODES.O)
         private fun habilitarBottomSheet(

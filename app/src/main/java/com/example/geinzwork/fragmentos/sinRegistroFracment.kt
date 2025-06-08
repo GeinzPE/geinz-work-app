@@ -37,7 +37,7 @@ class sinRegistroFracment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.inicarSeccion.setOnClickListener {
+        binding.iniciarSeccion.setOnClickListener {
             startActivity(Intent( mcontex,Login::class.java))
         }
         binding.Registrarme.setOnClickListener {

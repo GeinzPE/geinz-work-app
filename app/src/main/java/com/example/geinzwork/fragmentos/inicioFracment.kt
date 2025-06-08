@@ -50,7 +50,6 @@ import com.geinzz.geinzwork.databinding.ItemProductsTrabajadoresPrincipalBinding
 import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
 import com.geinzz.geinzwork.dataclass.dataClassCategoriasInicio
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
-import com.geinzz.geinzwork.problemas_soporte_politicas.verificacion_cuenta_trabajador
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
@@ -111,7 +110,7 @@ class inicioFracment : Fragment() {
                         dialogBuilder.setTitle("Sesión cerrada")
                         dialogBuilder.setMessage("Tu cuenta fue cerrada desde otro dispositivo. Si no fuiste tú, por favor contáctate con Geinz Work.")
                         dialogBuilder.setCancelable(false)
-
+                        binding.linealAnuncioVerificado.isVisible = false
                         dialogBuilder.setPositiveButton("Contactar con Geinz Work") { dialog, _ ->
 
                             dialog.dismiss()

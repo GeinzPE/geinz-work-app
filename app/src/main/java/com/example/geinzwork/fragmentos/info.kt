@@ -109,7 +109,7 @@ class info : Fragment() {
         private const val NOMBRE = Variables.nombre
         private const val NACIONALIDAD = "nacionalidad"
         private const val CATEGORIA = "categoria"
-
+        private const val id_publicaciones = ""
 
         fun newInstance(
             idTrabajador: String,
@@ -117,6 +117,7 @@ class info : Fragment() {
             nombreUSer: String,
             nacionalidad: String,
             categoria: String,
+            id_publicacion: String,
         ): info {
             val fragment = info()
             val args = Bundle()
@@ -125,6 +126,7 @@ class info : Fragment() {
             args.putString(NOMBRE, nombreUSer)
             args.putString(NACIONALIDAD, nacionalidad)
             args.putString(CATEGORIA, categoria)
+            args.putString(id_publicaciones, id_publicacion)
             fragment.arguments = args
             return fragment
         }
@@ -151,10 +153,12 @@ class info : Fragment() {
         firebaseAuth = FirebaseAuth.getInstance()
         var mostrandoTrabajadores = false
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR).toString()
-        val img = arguments?.getString(IMAGEN_PERFIL).toString()
+        val img_perfil_user = arguments?.getString(IMAGEN_PERFIL).toString()
         val nombre = arguments?.getString(NOMBRE).toString()
         val nacionalidad = arguments?.getString(NACIONALIDAD).toString()
         val categoria = arguments?.getString(CATEGORIA).toString()
+        val id_publicacion = arguments?.getString(id_publicaciones).toString()
+
         obtenertrabajosRecientes(idTrabajador)
         constantes_trabajadores_info.obtener_Segudores(binding, idTrabajador)
         constantes_trabajadores_info.ver_cantidad_siguiendo(binding, idTrabajador)
@@ -183,8 +187,8 @@ class info : Fragment() {
             }
         }
         constantes.carga(3000, { mostrarDatos() })
-        obtenerPerfil(idTrabajador, img)
-        confSwipe(idTrabajador, img)
+        obtenerPerfil(idTrabajador)
+        confSwipe(idTrabajador, img_perfil_user)
         constantes_trabajadores_info.verificarSiSiueTrabajador(
             binding, idTrabajador, mContex, { sige -> },
             { noti ->
@@ -245,7 +249,12 @@ class info : Fragment() {
         }
         binding.masInformacion.setOnClickListener {
             dialog = BottomSheetDialog(mContex)
-            constantes_trabajadores_info.mostrarDialoDatosUSer(dialog, idTrabajador, mContex, img)
+            constantes_trabajadores_info.mostrarDialoDatosUSer(
+                dialog,
+                idTrabajador,
+                mContex,
+                img_perfil_user
+            )
             dialog.show()
         }
         binding.mostrarSeguridos.setOnClickListener {
@@ -292,6 +301,20 @@ class info : Fragment() {
                 }
             }
         }
+        if (!id_publicacion.isNullOrEmpty()) {
+            dialog = BottomSheetDialog(mContex)
+            showBottomShetDialogPublicacionesMasRecientes(
+                idTrabajador,
+                id_publicacion
+            )
+            dialog.show()
+        } else {
+            Toast.makeText(mContex, "ID de publicación no válido", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    private fun obtener_img_trabajador(id_user: String) {
 
     }
 
@@ -652,7 +675,7 @@ class info : Fragment() {
             binding.swipe.setColorSchemeResources(R.color.violeta)
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.swipe.isRefreshing = false
-                obtenerPerfil(idTrabajador, img)
+                obtenerPerfil(idTrabajador)
                 obtenertrabajosRecientes(idTrabajador)
                 obtenerDatosTrabajador(idTrabajador) {}
             }, 2000)
@@ -732,7 +755,7 @@ class info : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SuspiciousIndentation")
-    private fun obtenerPerfil(id: String, img: String) {
+    private fun obtenerPerfil(id: String) {
         val placeholderPortada =
             ContextCompat.getDrawable(mContex, R.drawable.sin_foto_portada_con_marca)
         val placeholder = ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
@@ -755,15 +778,22 @@ class info : Fragment() {
 
         constantes.obtenerEstado(binding.estado, id)
 
-        constatnes_carga_imagenes_general.changer_img(
-            binding.progressCargaImagen,
-            mContex,
-            img,
-            binding.imgPerfilUser,
-            null,
-            "perfil", placeholder
-        ) {}
-
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(id)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img = data?.get("imagenPerfil") as? String ?: ""
+                constatnes_carga_imagenes_general.changer_img(
+                    binding.progressCargaImagen,
+                    mContex,
+                    img,
+                    binding.imgPerfilUser,
+                    null,
+                    "perfil", placeholder
+                ) {}
+            }
+        }
 
     }
 
@@ -1013,6 +1043,8 @@ class info : Fragment() {
             .collection("trabajadores").document(idTrabajador)
             .collection("trabajos_realizados").document(idTrajoReciente)
 
+        Log.d("enviado_datos","$idTrabajador $idTrajoReciente")
+
         db.get().addOnSuccessListener { res ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotalMs = tiempoFin - tiempoInicio
@@ -1105,6 +1137,18 @@ class info : Fragment() {
                     bindingMostrar,
                     idTrajoReciente
                 )
+
+                constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    bindingMostrar.compartirIcon.setOnClickListener {
+                        crear_dinamick_link_publicaciones_receentes_sin_vr(
+                            idTrabajador,
+                            idTrajoReciente,
+                            "Mira esta publicacion relizada por $nombre $apellido",
+                            "$titulo"
+                        )
+                        dialog.dismiss()
+                    }
+                }
             }
         }.addOnFailureListener {
             println("Error al obtener los datos: ${it.message}")
@@ -1306,7 +1350,7 @@ class info : Fragment() {
                     binding.BtnSeguimiento.isVisible = true
                 }
 
-                binding.telefono.text=telefonoUSer
+                binding.telefono.text = telefonoUSer
                 binding.localidadUser.text = localida_user
 
 
@@ -1590,6 +1634,71 @@ class info : Fragment() {
         }
     }
 
+    private fun crear_dinamick_link_publicaciones_receentes_sin_vr(
+        idTrabajador: String,
+        id_publicacion: String,
+        titulo_dinamick: String,
+        texto_dinamick: String
+    ) {
+        val userCollections =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(idTrabajador).collection("trabajos_realizados")
+                .document(id_publicacion)
+        userCollections.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img_url = data?.get("img_url") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
+                Firebase.dynamicLinks.shortLinkAsync {
+                    link =
+                        Uri.parse("https://geinzapp.page.link/?idTrabajadorRec=${idTrabajador}&idpublicacionRec=${id_publicacion}")
+                    domainUriPrefix = "https://geinzapp.page.link"
+                    androidParameters("com.geinzz.geinzwork") {
+                        minimumVersion = 125
+                    }
+                    iosParameters("com.geinzz.ios") {
+                        appStoreId = "123456789"
+                        minimumVersion = "1.0.1"
+                    }
+                    googleAnalyticsParameters {
+                        source = "orkut"
+                        medium = "social"
+                        campaign = "geinzz-promo"
+                    }
+                    itunesConnectAnalyticsParameters {
+                        providerToken = "123456"
+                        campaignToken = "geinzz-promo"
+                    }
+                    socialMetaTagParameters {
+                        title = titulo_dinamick
+                        description = texto_dinamick
+                        imageUrl = Uri.parse(img_url)
+                    }
+                }.addOnSuccessListener { shortDynamicLink ->
+                    val shortLink = shortDynamicLink.shortLink
+                    val invitationLink = shortLink.toString()
+
+                    val sendIntent: Intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, invitationLink)
+                        type = "text/plain"
+                    }
+                    mContex.startActivity(Intent.createChooser(sendIntent, null))
+                }.addOnFailureListener {
+                    println("Hubo un error con los links dinámicos: $it")
+                }
+
+            } else {
+                println("El anuncio no existe.")
+            }
+        }.addOnFailureListener { exception ->
+            println("Error al obtener el anuncio: ${exception.message}")
+        }
+    }
+
+
     private fun showPermissionDialog(context: Context, phoneNumber: String) {
         if (ContextCompat.checkSelfPermission(
                 context,
@@ -1788,6 +1897,8 @@ class info : Fragment() {
                 }
             }
 
+
+
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
                 inicializarTrabajosRealizados(bindingMostrarTRabajos)
@@ -1807,8 +1918,6 @@ class info : Fragment() {
                     false
                 bindingMostrarTRabajos.cargaProductosPromoTrabajos.textoCambiarTrabajosOPublicaciones.text =
                     "No se encontro mas publicaciones recientes"
-
-
             }
         }.addOnFailureListener { e ->
             println("error al encontrar $e")

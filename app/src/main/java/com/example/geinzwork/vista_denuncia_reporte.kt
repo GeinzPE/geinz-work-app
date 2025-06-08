@@ -355,7 +355,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     Tipo_reporte,
                     problema,
                     estado,
-                    enviado_recivido, fecha_envio, hora_envio
+                    enviado_recivido, fecha_envio, hora_envio,""
                 )
                 lista_reporte.add(dataclass_reporte)
             }
@@ -365,7 +365,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(bottomSheet, enviado_recivido, enviado_recivido)
+                    inicializar_listaReporte(bottomSheet, enviado_recivido, enviado_recivido, "")
                     bottomSheet.noEncontrado.isVisible = false
                     bottomSheet.filtradoReviewTrabajadores.isVisible = true
                     bottomSheet.linealGeneralCarga.isVisible = true
@@ -425,7 +425,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         Tipo_reporte,
                         problema,
                         estado,
-                        enviado_recivido, fecha_envio, hora_envio
+                        enviado_recivido, fecha_envio, hora_envio,""
                     )
                     lista_reporte.add(dataclass_reporte)
                 }
@@ -436,7 +436,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(bottomSheet, enviado_recivido, enviado_recivido)
+                    inicializar_listaReporte(bottomSheet, enviado_recivido, enviado_recivido, "")
                     bottomSheet.noEncontrado.isVisible = false
                     bottomSheet.filtradoReviewTrabajadores.isVisible = true
                     bottomSheet.linealGeneralCarga.isVisible = true
@@ -499,7 +499,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         incidencia,
                         descripcion,
                         estado,
-                        "", hora_envio, fecha_envio
+                        "", hora_envio, fecha_envio,""
                     )
                     lista_reporte.add(dataclass_reporte)
                 }
@@ -509,7 +509,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
             val duracion = tiempoFin - tiempoInicio
             Handler(Looper.getMainLooper()).postDelayed({
                 if (lista_reporte.isNotEmpty()) {
-                    inicializar_listaReporte(bottomSheet, "enviados", "review")
+                    inicializar_listaReporte(bottomSheet, "enviados", "review", "review")
                     bottomSheet.noEncontrado.isVisible = false
                     bottomSheet.filtradoReviewTrabajadores.isVisible = true
                     bottomSheet.linealGeneralCarga.isVisible = true
@@ -541,11 +541,12 @@ class vista_denuncia_reporte : AppCompatActivity() {
     private fun inicializar_listaReporte(
         bottomSheet: BottomSheetReportesGeneralBinding,
         tipo1: String,
-        tipo2: String
+        tipo2: String,
+        tipo_bottomSheet: String
     ) {
         val adapter = adapter_reporte_denuncia_tb(lista_reporte) { item ->
             dialog = BottomSheetDialog(this)
-            bottomSheet_datos(tipo1, tipo2, item.idreporte.toString())
+            bottomSheet_datos(tipo1, tipo2, item.idreporte.toString(), tipo_bottomSheet)
             dialog.show()
 
         }
@@ -554,7 +555,12 @@ class vista_denuncia_reporte : AppCompatActivity() {
         bottomSheet.filtradoReviewTrabajadores.adapter = adapter
     }
 
-    private fun bottomSheet_datos(tipo1: String, tipo2: String, idSelect: String) {
+    private fun bottomSheet_datos(
+        tipo1: String,
+        tipo2: String,
+        idSelect: String,
+        tipo_bottomSheet: String
+    ) {
         val bottomSheet = BottomSheetInformacionReportesDenunciasBinding.inflate(layoutInflater)
         val view = bottomSheet.root
         val startTime = System.currentTimeMillis()
@@ -579,6 +585,26 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val estado = data?.get("estado") as? String ?: ""
                 val numero_contacto = data?.get("numero_contacto") as? String ?: ""
                 val apelacionMap = data?.get("apelado") as? Map<*, *>
+                if (tipo_bottomSheet == "review") {
+                    val idUsuarioReview = data?.get("idUsuario_review") as? String ?: ""
+                    val idREgistrad = data?.get("id_registrado") as? String ?: ""
+                    constantesCarrito.setearDatosUsuarioImgNombre(idREgistrad) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                        bottomSheet.enviadoPor.text = "$nombre $apellido"
+                    }
+                    constantesCarrito.setearDatosUsuarioImgNombre(idUsuarioReview) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                        bottomSheet.haciaEl.text = "$nombre $apellido"
+                    }
+                } else {
+                    constantesCarrito.setearDatosUsuarioImgNombre(idUsuario) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                        bottomSheet.enviadoPor.text = "$nombre $apellido"
+                    }
+                    constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                        bottomSheet.haciaEl.text = "$nombre $apellido"
+                    }
+                }
+
+
+
                 Handler(Looper.getMainLooper()).postDelayed({
                     bottomSheet.progressvarCargando.isVisible = false
                     bottomSheet.linealCargadoDatos.isVisible = true
@@ -602,12 +628,8 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     bottomSheet.linealApelado.isVisible = false
                 }
                 bottomSheet.idReporte.text = idReporte
-                constantesCarrito.setearDatosUsuarioImgNombre(idUsuario) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
-                    bottomSheet.enviadoPor.text = "$nombre $apellido"
-                }
-                constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
-                    bottomSheet.haciaEl.text = "$nombre $apellido"
-                }
+
+
                 if (numero_contacto.isNullOrEmpty()) {
                     bottomSheet.linealContacto.isVisible = false
                 } else {
@@ -654,6 +676,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         val incidencia = data["Tipo_reporte"] as? String ?: ""
                         val descripcion = data["problema"] as? String ?: ""
                         val estado = data["estado"] as? String ?: ""
+                        val idUsuario_review = data["idUsuario_review"] as? String ?: ""
                         val fecha_envio = data["fecha_envio"] as? String ?: ""
                         val hora_envio = data["hora_envio"] as? String ?: ""
                         if (id_registrado == firebaseAuth.uid.toString()) {
@@ -664,14 +687,14 @@ class vista_denuncia_reporte : AppCompatActivity() {
                                 incidencia,
                                 descripcion,
                                 estado,
-                                "", hora_envio, fecha_envio
+                                "", hora_envio, fecha_envio,idUsuario_review
                             )
                             lista_reporte.add(dataclass_reporte)
                         }
                     }
 
                     if (lista_reporte.isNotEmpty()) {
-                        inicializar_listaReporte(bottomSheet, "enviados", "review")
+                        inicializar_listaReporte(bottomSheet, "enviados", "review","review")
                     } else {
                         bottomSheet.noEncontrado.isVisible = true
                         bottomSheet.linealGeneralCarga.isVisible = true

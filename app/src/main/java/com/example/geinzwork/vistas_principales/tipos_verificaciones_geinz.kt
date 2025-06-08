@@ -90,7 +90,6 @@ class tipos_verificaciones_geinz : AppCompatActivity() {
     private fun finishOnboarding() {
         val sharedPref = getSharedPreferences("onboarding", MODE_PRIVATE)
         sharedPref.edit().putBoolean("finished", true).apply()
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
+        onBackPressed()
     }
 }

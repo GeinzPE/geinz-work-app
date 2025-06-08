@@ -44,6 +44,7 @@ class vistaTrabajador : AppCompatActivity() {
         val nombreUSer = intent.getStringExtra(Variables.nombreUSer) ?: ""
         val nacionalidad = intent.getStringExtra(Variables.nacionalidad) ?: ""
         val categoria = intent.getStringExtra(Variables.categoria) ?: ""
+        val id_publicacion = intent.getStringExtra("id_publicacion") ?: ""
         val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).toString().trim()
         val viewPage = binding.fracmentoID
         val tableLayour = binding.tabLayout
@@ -65,7 +66,7 @@ class vistaTrabajador : AppCompatActivity() {
                         imgPerfil,
                         nombreUSer,
                         nacionalidad,
-                        categoria
+                        categoria,id_publicacion
                     ), "Informacion del usuario"
                 )
                 adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
@@ -81,7 +82,7 @@ class vistaTrabajador : AppCompatActivity() {
                         imgPerfil,
                         nombreUSer,
                         nacionalidad,
-                        categoria
+                        categoria,id_publicacion
                     ), "Informacion del usuario"
                 )
                 adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
