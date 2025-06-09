@@ -4,9 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -23,6 +25,7 @@ import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclass_metodos_entrega
 import com.example.geinzwork.dataclass.dataclass_metodos_pagos
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.crear_trabajos_realizados
 import com.geinzz.geinzwork.databinding.ActivityPanelPublicacionTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BotomSheetDialogMetodosPagoBinding
@@ -86,6 +89,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
 
     }
+
 
     private fun bottomSheet_metodo_entrega() {
         val bottoSheet_entrega = BottomSheeetMetodoEntregaBinding.inflate(LayoutInflater.from(this))
@@ -860,8 +864,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                         bottoSheet_entrega.nombreReferenciaED.setText("")
                         bottoSheet_entrega.CrearMetodo.isVisible = true
                         bottoSheet_entrega.GuardarCambios.isVisible = false
-                        bottoSheet_entrega.nombreReferencia.isEnabled=true
-                        bottoSheet_entrega.nombreReferenciaED.isEnabled=true
+                        bottoSheet_entrega.nombreReferencia.isEnabled = true
+                        bottoSheet_entrega.nombreReferenciaED.isEnabled = true
                         obtenerMetodosEntrega(bottoSheet_entrega)
                     }.addOnFailureListener { e ->
                         Log.d("error guardado", "error al guardar losd atos $e")
@@ -983,8 +987,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 binding_bottom.metodoPlin.numeroYapePlinCuentaED, binding_bottom
             ) { existe ->
                 if (!existe) {
-                    binding_bottom.metodoYape.linealcamposnombreEtc.isVisible = true
-                    binding_bottom.metodoYape.cargaContenido.isVisible = false
+                    binding_bottom.metodoPlin.linealcamposnombreEtc.isVisible = true
+                    binding_bottom.metodoPlin.cargaContenido.isVisible = false
                 }
             }
         }
@@ -1003,8 +1007,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 binding_bottom.metodoTransferencia.numeroYapePlinCuentaED, binding_bottom
             ) { existe ->
                 if (!existe) {
-                    binding_bottom.metodoYape.linealcamposnombreEtc.isVisible = true
-                    binding_bottom.metodoYape.cargaContenido.isVisible = false
+                    binding_bottom.metodoTransferencia.linealcamposnombreEtc.isVisible = true
+                    binding_bottom.metodoTransferencia.cargaContenido.isVisible = false
                 }
             }
         }
@@ -1119,12 +1123,40 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         binding.traajosRecientes.tituloServico.text = "Trabajos Recientes"
         binding.publicaciones.tituloServico.text = "Publicaciones"
         binding.productosVenta.tituloServico.text = "Productos en venta"
-        binding.traajosRecientes.fechaActivotxt.text = "Publicaciones activas"
-        binding.traajosRecientes.fechatxtVenimiento.text = "Publicaciones restantes"
-        binding.productosVenta.fechaActivotxt.text = "Publicaciones activas"
-        binding.productosVenta.fechatxtVenimiento.text = "Publicaciones restantes"
-        binding.publicaciones.fechaActivotxt.text = "Publicaciones activas"
-        binding.publicaciones.fechatxtVenimiento.text = "Publicaciones restantes"
+//        binding.traajosRecientes.fechatxtVenimiento.text = "Publicaciones restantes"
+//        binding.productosVenta.fechaActivotxt.text = "Publicaciones activas"
+//        binding.productosVenta.fechatxtVenimiento.text = "Publicaciones restantes"
+//        binding.publicaciones.fechaActivotxt.text = "Publicaciones activas"
+//        binding.publicaciones.fechatxtVenimiento.text = "Publicaciones restantes"
+
+        obtenerTrabajosRecientes("trabajos_realizados", { valor ->
+            val trabajos_activos =
+                SpannableString("Trabajos activos : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Trabajos activos",
+                trabajos_activos, binding.traajosRecientes.activos
+            )
+        })
+        obtenerTrabajosRecientes("publicaciones_trabajos", { valor ->
+            val activas_trabajos =
+                SpannableString("Publicaciones activas : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Publicaciones activas",
+                activas_trabajos, binding.publicaciones.activos
+            )
+        })
+
+
+
+        obtenerTrabajosRecientes("productos_venta", { valor ->
+            val productos_activos =
+                SpannableString("Productos activos : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Productos activos",
+                productos_activos, binding.productosVenta.activos
+            )
+        })
+
 
         val imageView = binding.traajosRecientes.imgServicio
         imageView.setImageResource(R.drawable.crea_publicaciones)
@@ -1132,6 +1164,8 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         imageView2.setImageResource(R.drawable.agregar_trabajos)
         val imageView3 = binding.productosVenta.imgServicio
         imageView3.setImageResource(R.drawable.agrega_productos_perfil)
+
+
 
         imageView.setOnClickListener {
             var vista = Intent(this, crear_trabajos_realizados::class.java).apply {
@@ -1156,6 +1190,22 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             startActivity(vista)
         }
 
+    }
+
+    private fun obtenerTrabajosRecientes(col: String, callback: (String) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection(col)
+
+        db.get().addOnSuccessListener { res ->
+            val cantidadPublicadas = res.size()
+            callback(cantidadPublicadas.toString())
+        }.addOnFailureListener {
+            callback("No se encontraron")
+        }
     }
 
 

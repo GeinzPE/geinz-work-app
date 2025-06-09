@@ -186,7 +186,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:checkable="true"
-                            android:text="Por aplear"
+                            android:text="Por apelar"
                             app:chipIcon="@drawable/reporte_proceso"
                             app:chipIconVisible="true"
                             app:iconEndPadding="4dp"
@@ -229,11 +229,11 @@
             </LinearLayout>
 
             <RelativeLayout
-                android:visibility="gone"
-                android:layout_marginTop="100dp"
                 android:id="@+id/no_encontrado"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_marginTop="100dp"
+                android:visibility="gone">
 
                 <TextView
                     style="@style/TextoModoOScuroColor"
@@ -261,8 +261,7 @@
         android:layout_marginTop="20dp"
         android:gravity="center"
 
-        android:orientation="vertical"
-      >
+        android:orientation="vertical">
 
         <ProgressBar
             android:layout_width="50dp"

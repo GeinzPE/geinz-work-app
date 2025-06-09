@@ -24,9 +24,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.geinzwork.adapterViewholder.adapter_direccion_lat_log
 import com.example.geinzwork.dataclass.dataClass_ubicacion_user
+import com.example.geinzwork.dataclass.dataclas_direcion_lat_log
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.adapterViewholder.adapterTrabajosMostrados
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityDireccionEntregaLatLogBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarElimaarDireccionBinding
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -44,6 +49,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var binding: ActivityDireccionEntregaLatLogBinding
     private lateinit var dialog: BottomSheetDialog
+    private val ubicaciones_lista = mutableListOf<dataclas_direcion_lat_log>()
     private lateinit var firebaseAuth: FirebaseAuth
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
     private val handler = Handler(Looper.getMainLooper())
@@ -131,35 +137,25 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         }
 
 
-
-
-        binding.listaUbicaciones.setOnItemClickListener { parent, view, position, id ->
-            val ubicacion = parent.getItemAtPosition(position) as dataClass_ubicacion_user
-            dialog = BottomSheetDialog(this)
-            BottomSheetEditar_eliminar(ubicacion)
-            dialog.show()
-
-        }
-
     }
 
     private fun confSwipe() {
         binding.swipe.setOnRefreshListener {
-            binding.linealCargandoDirecciones.isVisible = false
-            binding.crear.isVisible=false
+            binding.linealCargandoDirecciones.isVisible = true
+            binding.crear.isVisible = false
             binding.netScrollView.isVisible = false
+            binding.swipe.isRefreshing = false
             binding.swipe.setColorSchemeResources(R.color.violeta)
-            obtenerUbicaciones(firebaseAuth.uid.toString())
             Handler(Looper.getMainLooper()).postDelayed({
+                obtenerUbicaciones(firebaseAuth.uid.toString())
                 binding.swipe.isRefreshing = false
-                binding.linealCargandoDirecciones.isVisible = false
                 binding.netScrollView.isVisible = true
-                binding.crear.isVisible=true
+                binding.crear.isVisible = true
             }, 2000)
         }
     }
 
-    private fun BottomSheetEditar_eliminar(ubicacion: dataClass_ubicacion_user) {
+    private fun BottomSheetEditar_eliminar(ubicacion: dataclas_direcion_lat_log) {
         val bindingBottomSheet =
             BottomSheetEditarElimaarDireccionBinding.inflate(LayoutInflater.from(this))
         val view = bindingBottomSheet.root
@@ -169,7 +165,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             bindingBottomSheet.infoCasa,
             bindingBottomSheet.infoRef
         )
-        bindingBottomSheet.nombreColeccionED.setText(ubicacion.nombreC)
+        bindingBottomSheet.nombreColeccionED.setText(ubicacion.nombreRef)
         bindingBottomSheet.nombreColeccionED.isEnabled = false
         bindingBottomSheet.direccion.setText("${ubicacion.lat},${ubicacion.log}")
         bindingBottomSheet.latitudUSer.text = ubicacion.lat
@@ -192,7 +188,6 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             )
         }
         bindingBottomSheet.editar.setOnClickListener {
-
             editar_ubicacion(
                 bindingBottomSheet,
                 firebaseAuth.uid.toString(),
@@ -383,6 +378,10 @@ class direccion_entrega_lat_log : AppCompatActivity() {
     }
 
     private fun obtenerUbicaciones(id: String) {
+        ubicaciones_lista.clear()
+        binding.swipe.isVisible = false
+        binding.netScrollView.isVisible = false
+        binding.linealCargandoDirecciones.isVisible = true
         val tiempoInicio = System.currentTimeMillis()
 
         val instance = FirebaseFirestore.getInstance()
@@ -391,28 +390,35 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         val dbUsuario = instance.collection("Trabajadores_Usuarios_Drivers")
             .document("usuarios").collection("usuarios").document(id)
 
-        // Flag para saber si se encontró al menos 1 ubicación
+
         var encontrado = false
 
         dbTrabajador.collection("ubicacion").get().addOnSuccessListener { result ->
             if (!result.isEmpty) {
                 encontrado = true
-                val ubicaciones = mutableListOf<dataClass_ubicacion_user>()
+
                 for (document in result) {
-                    val ubicacion = dataClass_ubicacion_user(
-                        document.getString("log") ?: "No disponible",
-                        document.getString("lat") ?: "No disponible",
-                        document.getString("direccion") ?: "No disponible",
+                    val ubicacion = dataclas_direcion_lat_log(
+                        document.getString("icono") ?: "",
+                        document.getString("nombre") ?: "No disponible",
+                        document.getString("fecha") ?: "No disponible",
+                        document.getString("hora") ?: "No disponible",
                         document.getString("id") ?: "No disponible",
-                        document.getString("referencia") ?: "No disponible",
-                        document.getString("nombre") ?: "No disponible"
+                        document.getString("lat") ?: "No disponible",
+                        document.getString("log") ?: "No disponible",
+                        document.getString("direccion") ?: "No disponible",
+                        document.getString("referencia") ?: "No disponible"
                     )
-                    ubicaciones.add(ubicacion)
+
+                    ubicaciones_lista.add(ubicacion)
                 }
 
-                mostrarUbicaciones(ubicaciones)
+                mostrarUbicaciones(ubicaciones_lista)
+                binding.swipe.isVisible = true
+                binding.netScrollView.isVisible = true
                 binding.collectionEcontrado.text = "trabajadores"
                 binding.containerSinUBI.isVisible = false
+                binding.linealCargandoDirecciones.isVisible = false
 
                 val tiempoFinal = System.currentTimeMillis()
                 mostrarDatos(tiempoFinal - tiempoInicio)
@@ -424,26 +430,36 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                         encontrado = true
                         val ubicaciones = mutableListOf<dataClass_ubicacion_user>()
                         for (document in result2) {
-                            val ubicacion = dataClass_ubicacion_user(
-                                document.getString("log") ?: "No disponible",
-                                document.getString("lat") ?: "No disponible",
-                                document.getString("direccion") ?: "No disponible",
+                            val ubicacion = dataclas_direcion_lat_log(
+                                document.getString("icono") ?: "",
+                                document.getString("nombre") ?: "No disponible",
+                                document.getString("fecha") ?: "No disponible",
+                                document.getString("hora") ?: "No disponible",
                                 document.getString("id") ?: "No disponible",
-                                document.getString("referencia") ?: "No disponible",
-                                document.getString("nombre") ?: "No disponible"
+                                document.getString("lat") ?: "No disponible",
+                                document.getString("log") ?: "No disponible",
+                                document.getString("direccion") ?: "No disponible",
+                                document.getString("referencia") ?: "No disponible"
                             )
-                            ubicaciones.add(ubicacion)
+
+                            ubicaciones_lista.add(ubicacion)
                         }
 
-                        mostrarUbicaciones(ubicaciones)
+                        mostrarUbicaciones(ubicaciones_lista)
                         binding.collectionEcontrado.text = "usuarios"
                         binding.containerSinUBI.isVisible = false
+                        binding.linealCargandoDirecciones.isVisible = false
+                        binding.swipe.isVisible = true
+                        binding.netScrollView.isVisible = true
 
                         val tiempoFinal = System.currentTimeMillis()
                         mostrarDatos(tiempoFinal - tiempoInicio)
 
                     } else {
                         // No encontró ubicaciones en ninguno
+                        binding.linealCargandoDirecciones.isVisible = false
+                        binding.swipe.isVisible = false
+                        binding.netScrollView.isVisible = false
                         binding.containerSinUBI.isVisible = true
 
                         val tiempoFinal = System.currentTimeMillis()
@@ -451,7 +467,10 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                     }
                 }.addOnFailureListener { e ->
                     Log.d("econtrado", "Error al buscar en usuarios: ${e.message}")
+                    binding.swipe.isVisible = false
+                    binding.netScrollView.isVisible = false
                     binding.containerSinUBI.isVisible = true
+                    binding.linealCargandoDirecciones.isVisible = false
 
                     val tiempoFinal = System.currentTimeMillis()
                     mostrarDatos(tiempoFinal - tiempoInicio)
@@ -460,6 +479,9 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         }.addOnFailureListener { e ->
             Log.d("econtrado", "Error al buscar en trabajadores: ${e.message}")
             binding.containerSinUBI.isVisible = true
+            binding.linealCargandoDirecciones.isVisible = false
+            binding.swipe.isVisible = false
+            binding.netScrollView.isVisible = false
 
             val tiempoFinal = System.currentTimeMillis()
             mostrarDatos(tiempoFinal - tiempoInicio)
@@ -472,7 +494,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             binding.netScrollView.isVisible = true
             binding.linealCargandoDirecciones.isVisible = false
             binding.crear.isVisible = true
-            binding.swipe.isVisible=true
+            binding.swipe.isVisible = true
         }, tiempo)
     }
 
@@ -481,16 +503,24 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         binding.linealCargandoDirecciones.isVisible = true
         binding.crear.isVisible = false
         binding.netScrollView.isVisible = false
-        binding.swipe.isVisible=false
+        binding.swipe.isVisible = false
     }
 
-    private fun mostrarUbicaciones(ubicaciones: List<dataClass_ubicacion_user>) {
+    private fun mostrarUbicaciones(ubicaciones: MutableList<dataclas_direcion_lat_log>) {
         if (ubicaciones.isEmpty()) {
             binding.listaUbicaciones.isVisible = false
         } else {
-            val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, ubicaciones)
-            binding.listaUbicaciones.adapter = adapter
+            val recicle = binding.listaUbicaciones
+            recicle.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+            recicle.adapter = adapter_direccion_lat_log(ubicaciones) { editar_eliminar ->
+                dialog = BottomSheetDialog(this)
+                BottomSheetEditar_eliminar(editar_eliminar)
+                dialog.show()
+            }
             binding.listaUbicaciones.isVisible = true
+//            val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, ubicaciones)
+//            binding.listaUbicaciones.adapter = adapter
+//            binding.listaUbicaciones.isVisible = true
         }
     }
 
@@ -545,7 +575,9 @@ class direccion_entrega_lat_log : AppCompatActivity() {
             "log" to binding.longituduser.text.toString(),
             "lat" to binding.latitudUSer.text.toString(),
             "direccion" to binding.direccionCasaED.text.toString(),
-            "referencia" to binding.referenciaED.text.toString()
+            "referencia" to binding.referenciaED.text.toString(),
+            "hora" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+            "fecha" to mostrarFechaDialog_horaDialog.obtenerFechaActual()
         )
         val tiempoInicio = System.currentTimeMillis()
         db.add(hashMap)

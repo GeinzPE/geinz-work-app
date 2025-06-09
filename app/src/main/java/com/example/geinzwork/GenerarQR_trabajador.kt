@@ -1,20 +1,13 @@
 package com.geinzz.geinzwork
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -22,17 +15,12 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
-import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.databinding.ActivityGenerarQrTrabajadorBinding
-import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.dynamiclinks.androidParameters
@@ -48,13 +36,9 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
-import com.google.zxing.integration.android.IntentIntegrator
-import com.google.zxing.integration.android.IntentResult
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
 import kotlin.math.max
 
 
@@ -62,6 +46,8 @@ class GenerarQR_trabajador : AppCompatActivity() {
     private lateinit var binding: ActivityGenerarQrTrabajadorBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private val REQUEST_WRITE_STORAGE_PERMISSION = 1
+
+    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGenerarQrTrabajadorBinding.inflate(layoutInflater)
@@ -75,170 +61,118 @@ class GenerarQR_trabajador : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         val info = intent.getStringExtra(Variables.info).toString()
         val idTrabajdor = intent.getStringExtra(Variables.idTrabajdor).toString()
+        val db = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+
+        val db2 = FirebaseFirestore.getInstance()
+            .collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB)
+            .collection(Variables.trabajadoresDB)
+            .document(idTrabajdor)
         when (info) {
+
             Variables.info -> {
-                val db = FirebaseFirestore.getInstance()
-                    .collection(Variables.trabajadores_usuariosDB)
-                    .document(Variables.trabajadoresDB)
-                    .collection(Variables.trabajadoresDB)
-                    .document(idTrabajdor)
-                db.get().addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val data = document.data
-                        if (data?.containsKey("QR_trabajador") == true) {
-                            val img = data.get("QR_trabajador") as? String
-                            val nombre = data?.get(Variables.nombre) as? String
-                            val apellido = data?.get(Variables.apellido) as? String
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                binding.loading.isVisible = false
-                                binding.nombreTrabajador.text = "${nombre} ${apellido}"
-                                binding.nombreTrabajador.isVisible = true
-                                binding.linealImgQr.isVisible = true
-                                binding.textoGeinz.isVisible = true
-                                binding.linealCompartirDescargar.isVisible = true
-                                binding.contenedorSinQr.isVisible = false
-                            }, 1000)
+                db2.get().addOnSuccessListener { res ->
+                    if (res.exists()) {
+                        val data = res.data
+                        val nombre = data?.get(Variables.nombre) as? String
+                        val apellido = data?.get(Variables.apellido) as? String
+                        binding.nombreTrabajador.text = "${nombre} ${apellido}"
 
-                            constatnes_carga_imagenes_general.changer_img(
-                                binding.progressCargaImagen,
-                                this,
-                                img.toString(),
-                                null,
-                                binding.imageView,
-                                "portada",
-                                null
-                            ){}
+                        // Generar QR después de obtener los datos
+                        val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
+                        val backgroundColor = ContextCompat.getColor(this, R.color.white)
 
-                            println("la img del ql es $img")
+                        val qrCode = generateQRCode(
+                            text = idTrabajdor,
+                            size = 900,
+                            qrColor = qrColor,
+                            backgroundColor = backgroundColor
+                        )
 
+                        qrCode?.let {
+                            binding.imageView.setImageBitmap(it)
+                        }
 
-                            binding.compartir.setOnClickListener {
-                                createAndShareDynamicLink(idTrabajdor)
-                            }
-                            binding.descargarQR.setOnClickListener {
-                                val rootView = this.window.decorView.rootView
-                                takeScreenshot(rootView)
-                                saveToGallery()
+                        binding.linealImgQr.isVisible = true
+                        binding.nombreTrabajador.isVisible = true
+                        binding.generarQR.isVisible = false
+                        binding.linealCompartirDescargar.isVisible = true
+                        binding.textoOculto.isVisible = false
+                        binding.textoGeinz.isVisible = true
+                        binding.loading.isVisible = false
+                    }
 
-                            }
+                    binding.descargarQR.setOnClickListener {
+                        val rootView = this.window.decorView.rootView
+                        takeScreenshot(rootView)
+                        saveToGallery()
 
-                        } else {
-                            binding.loading.isVisible = false
-                            binding.contenedorSinQr.isVisible = true
-                            binding.linealImgQr.isVisible = false
-                            binding.textoGeinz.isVisible = true
-                            binding.linealCompartirDescargar.isVisible = false
+                    }
+
+                    binding.compartir.setOnClickListener {
+                        binding.compartir.setOnClickListener {
+                            createAndShareDynamicLink(idTrabajdor)
+                        }
+                    }
+                }
+
+            }
+
+            else -> {
+                db.get().addOnSuccessListener { res ->
+                    if (res.exists()) {
+                        val data = res.data
+                        val nombre = data?.get(Variables.nombre) as? String
+                        val apellido = data?.get(Variables.apellido) as? String
+                        binding.nombreTrabajador.text = "${nombre} ${apellido}"
+
+                        // Generar QR después de obtener los datos
+                        val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
+                        val backgroundColor = ContextCompat.getColor(this, R.color.white)
+
+                        val qrCode = generateQRCode(
+                            text = firebaseAuth.uid.toString(),
+                            size = 900,
+                            qrColor = qrColor,
+                            backgroundColor = backgroundColor
+                        )
+
+                        qrCode?.let {
+                            binding.imageView.setImageBitmap(it)
+                        }
+
+                        // Mostrar y ocultar elementos de UI
+                        binding.linealImgQr.isVisible = true
+                        binding.nombreTrabajador.isVisible = true
+                        binding.generarQR.isVisible = false
+                        binding.linealCompartirDescargar.isVisible = true
+                        binding.textoOculto.isVisible = false
+                        binding.textoGeinz.isVisible = true
+                        binding.loading.isVisible = false
+                    }
+
+                    binding.descargarQR.setOnClickListener {
+                        val rootView = this.window.decorView.rootView
+                        takeScreenshot(rootView)
+                        saveToGallery()
+
+                    }
+
+                    binding.compartir.setOnClickListener {
+                        binding.compartir.setOnClickListener {
+                            createAndShareDynamicLink(idTrabajdor)
                         }
                     }
                 }
             }
-            else -> {
-                val db = FirebaseFirestore.getInstance()
-                    .collection(Variables.trabajadores_usuariosDB)
-                    .document(Variables.trabajadoresDB)
-                    .collection(Variables.trabajadoresDB)
-                    .document(firebaseAuth.uid.toString())
-
-                db.get().addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            binding.loading.isVisible = false
-                            val data = document.data
-                            if (data?.containsKey("QR_trabajador") == true) {
-                                val img = data.get("QR_trabajador") as? String
-                                val nombre = data?.get(Variables.nombre) as? String
-                                val apellido = data?.get(Variables.apellido) as? String
-                                binding.nombreTrabajador.text = "${nombre} ${apellido}"
-                                binding.nombreTrabajador.isVisible = true
-                                    constatnes_carga_imagenes_general.changer_img(
-                                        binding.progressCargaImagen,
-                                        this,
-                                        img.toString(),
-                                        null,
-                                        binding.imageView,
-                                        "portada",
-                                        null
-                                    ){}
-
-
-                                binding.textoOculto.isVisible = false
-                                binding.generarQR.isVisible = false
-                                binding.linealCompartirDescargar.isVisible = true
-                                binding.linealImgQr.isVisible = true
-                                binding.textoGeinz.isVisible = true
-
-                            } else {
-                                binding.textoOculto.isVisible = true
-                                binding.generarQR.isVisible = true
-                                binding.linealCompartirDescargar.isVisible = false
-                                binding.linealImgQr.isVisible = false
-                                binding.textoGeinz.isVisible = false
-                                Toast.makeText(
-                                    this,
-                                    "Genera tu QR GRATIS",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                            binding.loading.isVisible = false
-                        }, 1000)
-
-
-                    } else {
-                        Toast.makeText(
-                            this,
-                            "Genera tu QR GRATIS",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }.addOnFailureListener { exception ->
-                    Toast.makeText(
-                        this,
-                        "Error al obtener el documento: ${exception.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                binding.generarQR.setOnClickListener {
-                    binding.linealImgQr.isVisible = true
-                    binding.nombreTrabajador.isVisible = true
-
-                    val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
-                    val backgroundColor = ContextCompat.getColor(this, R.color.white)
-
-                    val qrCode = generateQRCode(
-                        "${firebaseAuth.uid.toString()}",
-                        400,
-                        400,
-                        qrColor,
-                        backgroundColor
-                    )
-
-                    qrCode?.let {
-                        binding.imageView.setImageBitmap(it)
-                    }
-
-                    binding.generarQR.isVisible = false
-                    binding.linealCompartirDescargar.isVisible = true
-                    binding.textoOculto.isVisible = false
-                    binding.textoGeinz.isVisible = true
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        uploadQRCodeToFirebase(binding.imageView)
-                    }, 5000) // 5000 ms = 5 segundos
-                }
-                binding.descargarQR.setOnClickListener {
-                    val rootView = this.window.decorView.rootView
-                    takeScreenshot(rootView)
-                    saveToGallery()
-
-                }
-
-                binding.compartir.setOnClickListener {
-                    binding.compartir.setOnClickListener {
-                        createAndShareDynamicLink(idTrabajdor)
-                    }
-                }
-            }
         }
+
+
+
 
     }
 
@@ -367,42 +301,28 @@ class GenerarQR_trabajador : AppCompatActivity() {
 
     private fun generateQRCode(
         text: String,
-        width: Int,
-        height: Int,
+        size: Int,
         qrColor: Int,
         backgroundColor: Int
     ): Bitmap? {
         return try {
-            val db = FirebaseFirestore.getInstance()
-                .collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB)
-                .collection(Variables.trabajadoresDB)
-                .document(firebaseAuth.uid.toString())
-            db.get().addOnSuccessListener { res ->
-                if (res.exists()) {
-                    val data = res.data
-                    val nombre = data?.get(Variables.nombre) as? String
-                    val apellido = data?.get(Variables.apellido) as? String
-                    binding.nombreTrabajador.text = "${nombre} ${apellido}"
-                }
-            }
-            val newSize = max(width, height) // Escoge el tamaño más grande entre width y height
-            val bitMatrix: BitMatrix =
-                MultiFormatWriter().encode(text, BarcodeFormat.QR_CODE, newSize, newSize)
-            val qrBitmap = Bitmap.createBitmap(newSize, newSize, Bitmap.Config.RGB_565)
+            val bitMatrix = MultiFormatWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
+            val pixels = IntArray(size * size)
 
-            for (x in 0 until newSize) {
-                for (y in 0 until newSize) {
-                    qrBitmap.setPixel(x, y, if (bitMatrix[x, y]) qrColor else backgroundColor)
+            for (y in 0 until size) {
+                for (x in 0 until size) {
+                    val color = if (bitMatrix[x, y]) qrColor else backgroundColor
+                    pixels[y * size + x] = color
                 }
             }
 
-            qrBitmap
+            Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
     }
+
 
     private fun takeScreenshot(view: View): Bitmap {
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)

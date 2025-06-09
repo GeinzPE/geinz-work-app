@@ -29,7 +29,10 @@ import com.google.firebase.firestore.SetOptions
 
 class adapter_reporte_denuncia_tb(
     private val lista: MutableList<dataclass_reporte_denuncia_tb>,
-    private val bottomSheet_listener: (dataclass_reporte_denuncia_tb) -> Unit
+    private val bottomSheet_listener: (dataclass_reporte_denuncia_tb) -> Unit,
+    private val apelar: (dataclass_reporte_denuncia_tb) -> Unit,
+    private val archivar_cancelar_review: (dataclass_reporte_denuncia_tb) -> Unit,
+    private val archivar_cancelar_reportes: (dataclass_reporte_denuncia_tb) -> Unit
 ) :
     RecyclerView.Adapter<adapter_reporte_denuncia_tb.ViewHolderReporte>() {
     private lateinit var dialog: BottomSheetDialog
@@ -70,17 +73,14 @@ class adapter_reporte_denuncia_tb(
             tipo_reporte.text = item.tipoReporte
             val copy_id = binding.copyId
             binding.apelar.setOnClickListener {
-                dialog = BottomSheetDialog(itemView.context)
-                habilitarBottomSheet(item, itemView.context, dialog, binding)
-                dialog.show()
-
+                apelar(item)
             }
+
             copy_id.setOnClickListener {
                 constantestextos_general.copiarTexto_portapapeles(
                     binding.idDenuncia,
                     itemView.context
                 )
-
             }
             val spannableString = SpannableString("Problema : ${item.problema}")
             constantestextos_general.setearInformacionboldDescripcion(
@@ -164,13 +164,8 @@ class adapter_reporte_denuncia_tb(
 
                     }
                     binding.layoutRp.setOnLongClickListener {
-                        enviar_cancelar_archivado(
+                        archivar_cancelar_reportes(item)
 
-                            itemView.context,
-                            "enviados",
-                            "enviados",
-                            item.idreporte.toString()
-                        )
                         true
                     }
 
@@ -255,13 +250,8 @@ class adapter_reporte_denuncia_tb(
                         constantes_valores.getDrawableMiIcono(itemView.context)
                     ) { cargado -> }
                     binding.layoutRp.setOnLongClickListener {
-                        enviar_cancelar_archivado(
+                        archivar_cancelar_review(item)
 
-                            itemView.context,
-                            "enviados",
-                            "review",
-                            item.idreporte.toString()
-                        )
                         true
                     }
 
@@ -270,168 +260,5 @@ class adapter_reporte_denuncia_tb(
 
 
         }
-
-        private fun enviar_cancelar_archivado(
-
-            context: Context,
-            doc1: String,
-            doc2: String,
-            seleccionado: String
-        ) {
-            val builder = AlertDialog.Builder(context)
-            builder.setTitle("Confirmar acción")
-            builder.setMessage("¿Deseas archivar o cancelar el reporte?")
-
-            // Botón positivo - Archivar
-            builder.setPositiveButton("Archivar Reporte") { dialog, _ ->
-                cancelar_reporte("archivado", doc1, doc2, seleccionado)
-                Toast.makeText(context, "Reporte archivado", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-
-            }
-
-            // Botón negativo - Cancelar
-            builder.setNegativeButton("Cancelar Reporte") { dialog, _ ->
-                cancelar_reporte("cancelado", doc1, doc2, seleccionado)
-                Toast.makeText(context, "Reporte cancelado", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-
-            }
-
-            // Botón neutral - Cerrar sin acción
-            builder.setNeutralButton("Cerrar") { dialog, _ ->
-                dialog.dismiss()
-
-            }
-
-            val dialog = builder.create()
-            dialog.show()
-        }
-
-
-        private fun cancelar_reporte(
-            tipo_cambiado: String,
-            doc1: String,
-            doc2: String,
-            seleccionado: String
-        ) {
-            firebaseAuth = FirebaseAuth.getInstance()
-            constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, collection ->
-                if (collection != null) {
-                    val reporteRef = collection
-                        .document(firebaseAuth.uid.toString())
-                        .collection("reporte")
-                        .document(doc1)
-                        .collection(doc2)
-                        .document(seleccionado)
-
-                    val hashMap = hashMapOf<String, Any>(
-                        "estado" to tipo_cambiado
-                    )
-
-                    reporteRef.set(hashMap, SetOptions.merge())
-                        .addOnSuccessListener {
-                            Log.d("Reporte", "Estado actualizado correctamente.")
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e("Reporte", "Error al actualizar el estado", e)
-                        }
-                }
-            }
-        }
-
-
-        @RequiresApi(Build.VERSION_CODES.O)
-        private fun habilitarBottomSheet(
-            dataclass_reporte_denuncia_tb: dataclass_reporte_denuncia_tb,
-            context: Context,
-            dialog: BottomSheetDialog,
-            binding_principal: ItmeDenunciaTrabajadorBinding
-
-        ) {
-            firebaseAuth = FirebaseAuth.getInstance()
-            val binding = BottomSheetAplarReporteBinding.inflate(LayoutInflater.from(context))
-
-            binding.btnCancel.setOnClickListener {
-                dialog.dismiss()
-            }
-            constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
-                binding.nombreED.setText(nombre)
-                binding.apellidosED.setText(apellido)
-                binding.telefonoed.setText(numero)
-            }
-            binding.idApelacioProblema.text = dataclass_reporte_denuncia_tb.idreporte
-
-            constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
-
-            binding.btnApply.setOnClickListener {
-                val nombre = binding.nombreED.text.toString().trim()
-                val apellido = binding.apellidosED.text.toString().trim()
-                val telefono = binding.telefonoed.text.toString().trim()
-                val motivo = binding.motivoED.text.toString().trim()
-                val detalles = binding.dellatesED.text.toString().trim()
-
-                if (nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || motivo.isEmpty() || detalles.isEmpty()) {
-                    Toast.makeText(
-                        context,
-                        "Complete todo los campos para enviar",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    val db =
-                        FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                            .document("trabajadores").collection("trabajadores")
-                            .document(firebaseAuth.uid.toString())
-                            .collection("reporte").document("recivido").collection("recivido")
-                            .document(dataclass_reporte_denuncia_tb.idreporte.toString())
-                    val hasmap =
-                        hashMapOf<String, Any>(
-                            "idReporte" to dataclass_reporte_denuncia_tb.idreporte.toString(),
-                            "fecha_envio" to binding.fecha.text.toString(),
-                            "hora_envio" to binding.hora.text.toString(),
-                            "nombre" to nombre,
-                            "apellido" to apellido,
-                            "numero" to telefono,
-                            "motivo" to motivo,
-                            "detalle" to detalles
-                        )
-                    val datos_apelados = hashMapOf<String, Any>(
-                        "apelado" to hasmap
-                    )
-                    db.set(datos_apelados, SetOptions.merge()).addOnSuccessListener { res ->
-                        Toast.makeText(
-                            itemView.context,
-                            "apelacion enviada correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        db.get().addOnSuccessListener { res ->
-
-                            val hashmapEstado = hashMapOf<String, Any>(
-                                "estado" to "apelado"
-                            )
-                            db.set(hashmapEstado, SetOptions.merge()).addOnSuccessListener { res ->
-                                Log.d("estado_cambiado", "estado cambiado correctamente")
-                                binding_principal.apelar.isVisible = false
-                                binding_principal.colorReview.setBackgroundResource(R.drawable.reporte_enviado)
-                                dialog.dismiss()
-                            }.addOnFailureListener { e ->
-                                Log.d("error_cambiarEstado", "error al cambiar el estado")
-                            }
-                        }
-
-                    }.addOnFailureListener { e ->
-                        Toast.makeText(
-                            itemView.context,
-                            "error al enviar la apelacion",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                }
-
-            }
-            dialog.setContentView(binding.root)
-        }
-
     }
 }

@@ -1,5 +1,7 @@
 package com.example.geinzwork
 
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,6 +13,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -23,12 +27,14 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaDenunciaReporteBinding
+import com.geinzz.geinzwork.databinding.BottomSheetAplarReporteBinding
 import com.geinzz.geinzwork.databinding.BottomSheetInformacionReportesDenunciasBinding
 import com.geinzz.geinzwork.databinding.BottomSheetReportesGeneralBinding
 import com.geinzz.geinzwork.dataclass.dataClassReportes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class vista_denuncia_reporte : AppCompatActivity() {
     private lateinit var binding: ActivityVistaDenunciaReporteBinding
@@ -36,6 +42,8 @@ class vista_denuncia_reporte : AppCompatActivity() {
     private val lista = mutableListOf<dataClassReportes>()
     private lateinit var dialog: BottomSheetDialog
     private val lista_reporte = mutableListOf<dataclass_reporte_denuncia_tb>()
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -120,6 +128,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun bottomSheet_open_reportes(tipo: String) {
         val bottomSheet =
             BottomSheetReportesGeneralBinding.inflate(LayoutInflater.from(this))
@@ -186,12 +195,13 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 bottomSheet.grupoReporesUser.clearCheck()
                 bottomSheet.TodosFiltrado.isChecked = false
                 bottomSheet.TodosFiltrado.isChecked = true
+                bottomSheet.cargandoContenido.isVisible = true
                 obtner_Denuncias_trabajadores(
                     bottomSheet,
                     bottomSheet.scroolReporesMismoTrabajador,
                     "recivido"
                 )
-                bottomSheet.cargandoContenido.isVisible = true
+
                 bottomSheet.grupoReporesUser.setOnCheckedChangeListener { group, checkedId ->
                     when (checkedId) {
                         R.id.TodosFiltrado -> {
@@ -320,11 +330,14 @@ class vista_denuncia_reporte : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun obtner_Denuncias_trabajadores(
         bottomSheet: BottomSheetReportesGeneralBinding,
         horizonntalScool: HorizontalScrollView,
         enviado_recivido: String
     ) {
+        bottomSheet.TodosFiltrado.isChecked = true
+        bottomSheet.todosFitlradosReportesReview.isChecked = true
         bottomSheet.cargandoContenido.isVisible = true
         bottomSheet.noEncontrado.isVisible = false
         bottomSheet.filtradoReviewTrabajadores.isVisible = false
@@ -355,7 +368,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     Tipo_reporte,
                     problema,
                     estado,
-                    enviado_recivido, fecha_envio, hora_envio,""
+                    enviado_recivido, fecha_envio, hora_envio, ""
                 )
                 lista_reporte.add(dataclass_reporte)
             }
@@ -369,12 +382,10 @@ class vista_denuncia_reporte : AppCompatActivity() {
                     bottomSheet.noEncontrado.isVisible = false
                     bottomSheet.filtradoReviewTrabajadores.isVisible = true
                     bottomSheet.linealGeneralCarga.isVisible = true
-
                 } else {
                     bottomSheet.noEncontrado.isVisible = true
                     bottomSheet.filtradoReviewTrabajadores.isVisible = false
-                    bottomSheet.linealGeneralCarga.isVisible = false
-
+                    bottomSheet.linealGeneralCarga.isVisible = true
                 }
                 bottomSheet.cargandoContenido.isVisible = false
             }, duracion)
@@ -385,12 +396,13 @@ class vista_denuncia_reporte : AppCompatActivity() {
             bottomSheet.cargandoContenido.isVisible = false
             bottomSheet.noEncontrado.isVisible = true
             bottomSheet.filtradoReviewTrabajadores.isVisible = false
-            bottomSheet.linealGeneralCarga.isVisible = false
+            bottomSheet.linealGeneralCarga.isVisible = true
 
             horizonntalScool.isVisible = false
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun buscarFiltrados(
         bottomSheet: BottomSheetReportesGeneralBinding,
         enviado_recivido: String, filtradoSelecionado: String
@@ -425,7 +437,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         Tipo_reporte,
                         problema,
                         estado,
-                        enviado_recivido, fecha_envio, hora_envio,""
+                        enviado_recivido, fecha_envio, hora_envio, ""
                     )
                     lista_reporte.add(dataclass_reporte)
                 }
@@ -464,6 +476,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun buscarFitlrado_denuncia_review(
         bottomSheet: BottomSheetReportesGeneralBinding,
         enviado_recivido: String, review: String, filtradoSelecionado: String
@@ -491,6 +504,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val estado = data["estado"] as? String ?: ""
                 val fecha_envio = data["fecha_envio"] as? String ?: ""
                 val hora_envio = data["hora_envio"] as? String ?: ""
+                val idUsuario_review = data["idUsuario_review"] as? String ?: ""
                 if (estado == filtradoSelecionado) {
                     val dataclass_reporte = dataclass_reporte_denuncia_tb(
                         id_usuario_review,
@@ -499,7 +513,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                         incidencia,
                         descripcion,
                         estado,
-                        "", hora_envio, fecha_envio,""
+                        "", hora_envio, fecha_envio, idUsuario_review
                     )
                     lista_reporte.add(dataclass_reporte)
                 }
@@ -538,21 +552,219 @@ class vista_denuncia_reporte : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun inicializar_listaReporte(
         bottomSheet: BottomSheetReportesGeneralBinding,
         tipo1: String,
         tipo2: String,
         tipo_bottomSheet: String
     ) {
-        val adapter = adapter_reporte_denuncia_tb(lista_reporte) { item ->
+        val adapter = adapter_reporte_denuncia_tb(lista_reporte, { item ->
             dialog = BottomSheetDialog(this)
             bottomSheet_datos(tipo1, tipo2, item.idreporte.toString(), tipo_bottomSheet)
             dialog.show()
-
-        }
+        }, { apelar ->
+            dialog = BottomSheetDialog(this)
+            habilitarBottomSheet_apelacion(apelar.idreporte.toString(), this, dialog, bottomSheet)
+            dialog.show()
+        }, { a_c_review ->
+            enviar_cancelar_archivado(
+                bottomSheet,
+                this,
+                "enviados",
+                "review",
+                a_c_review.idreporte.toString()
+            )
+        }, { a_c_reportes ->
+            enviar_cancelar_archivado(
+                bottomSheet,
+                this,
+                "enviados",
+                "enviados",
+                a_c_reportes.idreporte.toString()
+            )
+        })
         bottomSheet.filtradoReviewTrabajadores.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         bottomSheet.filtradoReviewTrabajadores.adapter = adapter
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun enviar_cancelar_archivado(
+        bottomSheet: BottomSheetReportesGeneralBinding,
+        context: Context,
+        doc1: String,
+        doc2: String,
+        seleccionado: String
+    ) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Confirmar acción")
+        builder.setMessage("¿Deseas archivar o cancelar el reporte?")
+
+        // Botón positivo - Archivar
+        builder.setPositiveButton("Archivar Reporte") { dialog, _ ->
+            cancelar_reporte(bottomSheet, "archivado", doc1, doc2, seleccionado)
+            Toast.makeText(context, "Reporte archivado", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+
+        }
+
+        // Botón negativo - Cancelar
+        builder.setNegativeButton("Cancelar Reporte") { dialog, _ ->
+            cancelar_reporte(bottomSheet, "cancelado", doc1, doc2, seleccionado)
+            Toast.makeText(context, "Reporte cancelado", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+
+        }
+
+        // Botón neutral - Cerrar sin acción
+        builder.setNeutralButton("Cerrar") { dialog, _ ->
+            dialog.dismiss()
+
+        }
+
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun cancelar_reporte(
+        bottomSheet: BottomSheetReportesGeneralBinding,
+        tipo_cambiado: String,
+        doc1: String,
+        doc2: String,
+        seleccionado: String
+    ) {
+        firebaseAuth = FirebaseAuth.getInstance()
+        constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, collection ->
+            if (collection != null) {
+                val reporteRef = collection
+                    .document(firebaseAuth.uid.toString())
+                    .collection("reporte")
+                    .document(doc1)
+                    .collection(doc2)
+                    .document(seleccionado)
+
+                val hashMap = hashMapOf<String, Any>(
+                    "estado" to tipo_cambiado
+                )
+
+                reporteRef.set(hashMap, SetOptions.merge())
+                    .addOnSuccessListener {
+                        if (doc2 == "enviados") {
+                            obtner_Denuncias_trabajadores(
+                                bottomSheet,
+                                bottomSheet.linealChipsFiltradoestados,
+                                "enviados"
+                            )
+                        } else if (doc2 == "review") {
+                            obtener_denuncias_Review(
+                                bottomSheet,
+                                bottomSheet.linealChipsFiltradoestados
+                            )
+                        }
+                        Log.d("Reporte", "Estado actualizado correctamente.")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Reporte", "Error al actualizar el estado", e)
+                    }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun habilitarBottomSheet_apelacion(
+        id_reporte: String,
+        context: Context,
+        dialog: BottomSheetDialog,
+        bottomSheet: BottomSheetReportesGeneralBinding,
+    ) {
+        firebaseAuth = FirebaseAuth.getInstance()
+        val binding = BottomSheetAplarReporteBinding.inflate(LayoutInflater.from(context))
+
+        binding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
+            binding.nombreED.setText(nombre)
+            binding.apellidosED.setText(apellido)
+            binding.telefonoed.setText(numero)
+        }
+        binding.idApelacioProblema.text = id_reporte
+
+        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
+
+        binding.btnApply.setOnClickListener {
+            val nombre = binding.nombreED.text.toString().trim()
+            val apellido = binding.apellidosED.text.toString().trim()
+            val telefono = binding.telefonoed.text.toString().trim()
+            val motivo = binding.motivoED.text.toString().trim()
+            val detalles = binding.dellatesED.text.toString().trim()
+
+            if (nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || motivo.isEmpty() || detalles.isEmpty()) {
+                Toast.makeText(
+                    context,
+                    "Complete todo los campos para enviar",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                val db =
+                    FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(firebaseAuth.uid.toString())
+                        .collection("reporte").document("recivido").collection("recivido")
+                        .document(id_reporte)
+                val hasmap =
+                    hashMapOf<String, Any>(
+                        "idReporte" to id_reporte,
+                        "fecha_envio" to binding.fecha.text.toString(),
+                        "hora_envio" to binding.hora.text.toString(),
+                        "nombre" to nombre,
+                        "apellido" to apellido,
+                        "numero" to telefono,
+                        "motivo" to motivo,
+                        "detalle" to detalles
+                    )
+                val datos_apelados = hashMapOf<String, Any>(
+                    "apelado" to hasmap
+                )
+                db.set(datos_apelados, SetOptions.merge()).addOnSuccessListener { res ->
+                    Toast.makeText(
+                        this,
+                        "apelacion enviada correctamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    db.get().addOnSuccessListener { res ->
+                        obtner_Denuncias_trabajadores(
+                            bottomSheet,
+                            bottomSheet.scroolReporesMismoTrabajador,
+                            "recivido"
+                        )
+                        val hashmapEstado = hashMapOf<String, Any>(
+                            "estado" to "apelado"
+                        )
+                        db.set(hashmapEstado, SetOptions.merge()).addOnSuccessListener { res ->
+                            Log.d("estado_cambiado", "estado cambiado correctamente")
+
+                            dialog.dismiss()
+                        }.addOnFailureListener { e ->
+                            Log.d("error_cambiarEstado", "error al cambiar el estado")
+                        }
+                    }
+
+                }.addOnFailureListener { e ->
+                    Toast.makeText(
+                        this,
+                        "error al enviar la apelacion",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            }
+
+        }
+        dialog.setContentView(binding.root)
     }
 
     private fun bottomSheet_datos(
@@ -653,12 +865,16 @@ class vista_denuncia_reporte : AppCompatActivity() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun obtener_denuncias_Review(
         bottomSheet: BottomSheetReportesGeneralBinding,
         horizonntalScool: HorizontalScrollView
     ) {
-        bottomSheet.linealGeneralCarga.isVisible = false
+        bottomSheet.todosFitlradosReportesReview.isChecked = true
+        bottomSheet.cargandoContenido.isVisible = true
         bottomSheet.noEncontrado.isVisible = false
+        bottomSheet.filtradoReviewTrabajadores.isVisible = false
+        bottomSheet.linealGeneralCarga.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
         constantes_vinculados.encotrar_user(firebaseAuth.uid.toString()) { tipo, colleccion ->
             if (colleccion != null) {
@@ -687,14 +903,14 @@ class vista_denuncia_reporte : AppCompatActivity() {
                                 incidencia,
                                 descripcion,
                                 estado,
-                                "", hora_envio, fecha_envio,idUsuario_review
+                                "", hora_envio, fecha_envio, idUsuario_review
                             )
                             lista_reporte.add(dataclass_reporte)
                         }
                     }
 
                     if (lista_reporte.isNotEmpty()) {
-                        inicializar_listaReporte(bottomSheet, "enviados", "review","review")
+                        inicializar_listaReporte(bottomSheet, "enviados", "review", "review")
                     } else {
                         bottomSheet.noEncontrado.isVisible = true
                         bottomSheet.linealGeneralCarga.isVisible = true

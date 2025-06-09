@@ -136,7 +136,8 @@ class probleas_usuarios_formulario : AppCompatActivity() {
 
                 val dbreporteEnviado =
                     FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                        .document("trabajadores").collection("trabajadores").document(firebaseAuth.uid.toString())
+                        .document("trabajadores").collection("trabajadores")
+                        .document(firebaseAuth.uid.toString())
                         .collection("reporte").document("enviados").collection("enviados")
 
                 val dbreporteRecivido =
@@ -156,7 +157,7 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                     Variables.apellidoUsuario to apellidoUsuario,
                     Variables.problema to problema,
                     Variables.numero_contacto to numeroContacto,
-                    "estado" to "enviado"
+                    "estado" to "por apelar"
                 )
 
                 dbreporteEnviado.add(hasmap).addOnSuccessListener { documentReference ->

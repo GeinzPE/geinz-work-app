@@ -90,7 +90,7 @@
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/fechaActivotxt"
+                        android:id="@+id/activos"
                         style="@style/TextoModoOScuroColor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -114,14 +114,14 @@
                         style="@style/TextoModoOScuroColor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_toRightOf="@+id/fechatxtVenimiento"
+                        android:layout_toRightOf="@+id/restantes"
                         android:fontFamily="sans-serif"
                         android:textAllCaps="true"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/fechatxtVenimiento"
+                        android:id="@+id/restantes"
                         style="@style/TextoModoOScuroColor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

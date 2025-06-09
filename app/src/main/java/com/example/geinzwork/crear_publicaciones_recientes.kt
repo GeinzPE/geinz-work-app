@@ -8,12 +8,14 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -49,6 +51,27 @@ class crear_publicaciones_recientes : AppCompatActivity() {
     private lateinit var dialog: BottomSheetDialog
     private val imagenesSeleccionadas = mutableListOf<Uri>()
     private lateinit var adapter: adapter_agregar_imagenes_panel_publicaciones
+    private val imageViews by lazy {
+        listOf(binding.img1, binding.img2, binding.img3, binding.img4, binding.img5)
+    }
+    private var currentImageIndex = 0
+
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            // Establece la imagen seleccionada
+            imageViews[currentImageIndex].setImageURI(it)
+
+            // Si hay otra ImageView disponible, la hacemos visible
+            if (currentImageIndex + 1 < imageViews.size) {
+                imageViews[currentImageIndex + 1].visibility = View.VISIBLE
+            }
+
+            // Hacer scroll automático al final
+            binding.horizontalScrollView.post {
+                binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,9 +85,27 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
+        binding.horizontalScrollView.post {
+            binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+        }
+        // Ocultar todas las imágenes inicialmente
+        imageViews.forEach { it.visibility = View.GONE }
+
+        // Mostrar la primera imagen al inicio
+        imageViews[0].visibility = View.VISIBLE
+
+        // Configurar los clics para seleccionar imágenes
+        imageViews.forEachIndexed { index, imageView ->
+            imageView.setOnClickListener {
+                currentImageIndex = index
+                pickImage.launch("image/*")
+            }
+        }
+
+
         binding.agregarHastagsED.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            obtener_hastags_generales(this,hashtagsGenerales,dialog)
+            obtener_hastags_generales(this, hashtagsGenerales, dialog)
             dialog.show()
         }
         binding.mostrarPublicacionPara.setOnClickListener {
@@ -125,14 +166,18 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             val itemID = item.itemId
             if (itemID == 1) {
                 startActivity(Intent(this, ver_publicaciones_vista_verificados::class.java))
-            } else{
+            } else {
 
             }
             return@setOnMenuItemClickListener true
         }
     }
 
-    fun obtener_hastags_generales(contex:Context,hashtagsGenerales:MutableList<String>,dialog: BottomSheetDialog) {
+    fun obtener_hastags_generales(
+        contex: Context,
+        hashtagsGenerales: MutableList<String>,
+        dialog: BottomSheetDialog
+    ) {
         val bindig_BottomSheet =
             BottomSheetHastagsFiltradosBinding.inflate(LayoutInflater.from(contex))
         val view = bindig_BottomSheet.root
@@ -501,8 +546,6 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             ).show()
         }
     }
-
-
 
 
 }
