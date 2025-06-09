@@ -1,8 +1,10 @@
 package com.example.geinzwork
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -53,10 +55,12 @@ import com.geinzz.geinzwork.databinding.BottomSheetHastagsFiltradosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetPublicacionesParaBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
 import kotlin.math.roundToInt
 
 class crear_publicacion_productos_trabajadores : AppCompatActivity() {
@@ -73,6 +77,10 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var efectivo: Boolean = false
     private var img1_uir1: Uri? = null
 
+    private val imageViews by lazy {
+        listOf(binding.img1, binding.img2, binding.img3, binding.img4, binding.img5)
+    }
+    private var currentImageIndex = 0
 
     private val viewModel: MiViewModel by viewModels()
     private val img1Launcher =
@@ -87,6 +95,23 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             } else {
                 Toast.makeText(this, getString(R.string.ImgNoSeleccionada), Toast.LENGTH_SHORT)
                     .show()
+            }
+        }
+    private val pickImage =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                // Establece la imagen seleccionada
+                imageViews[currentImageIndex].setImageURI(it)
+
+                // Si hay otra ImageView disponible, la hacemos visible
+                if (currentImageIndex + 1 < imageViews.size) {
+                    imageViews[currentImageIndex + 1].visibility = View.VISIBLE
+                }
+
+                // Hacer scroll automático al final
+                binding.horizontalScrollView.post {
+                    binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+                }
             }
         }
 
@@ -138,7 +163,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             dialog.show()
         }
 
-
         binding.radioGrupPlazoRG.setOnCheckedChangeListener { _, checkedId ->
             unidadGarantia = when (checkedId) {
                 R.id.meses -> {
@@ -157,6 +181,20 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
         }
 
+        binding.horizontalScrollView.post {
+            binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+        }
+        imageViews.forEach { it.visibility = View.GONE }
+
+        imageViews[0].visibility = View.VISIBLE
+
+        // Configurar los clics para seleccionar imágenes
+        imageViews.forEachIndexed { index, imageView ->
+            imageView.setOnClickListener {
+                currentImageIndex = index
+                pickImage.launch("image/*")
+            }
+        }
 
         constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
         binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
@@ -166,20 +204,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val radioDeliveryGratis =
             binding.radioDeliveryGratis // <- Asegúrate que está en tu ViewBinding
         obtener_estados_productos()
-//        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-//            campoLugarEntrega.visibility = if (checkedId == R.id.lugar_entrega) {
-//                View.VISIBLE
-//            } else {
-//                View.GONE
-//            }
-//
-//            if (checkedId == R.id.delivery) {
-//                linealDeliveryGratis.visibility = View.VISIBLE
-//            } else {
-//                linealDeliveryGratis.visibility = View.GONE
-//                radioDeliveryGratis.clearCheck() // <-- Limpiamos la selección de "sí" o "no"
-//            }
-//        }
         binding.mostrarPublicacionPara.setOnClickListener {
             dialog = BottomSheetDialog(this)
             mostrar_dialog_para(binding.mostrarPublicacionPara.text.toString()) { selt ->
@@ -225,21 +249,10 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             constantesDatosUsuarioTienda.obtnerLocalidades(binding.agregaUbiED)
 
         }
-//        val yapeCheckBox = binding.yape
-//        val efectivoCheckBox = binding.efectivo
-//        val plinCheckBox = binding.plin
-
-//        yapeCheckBox.setOnCheckedChangeListener { _, isChecked ->
-//            yape = isChecked
-//        }
-//        efectivoCheckBox.setOnCheckedChangeListener { _, isChecked ->
-//            efectivo = isChecked
-//        }
-//        plinCheckBox.setOnCheckedChangeListener { _, isChecked ->
-//            plin = isChecked
-//        }
         obtener_metodos_pagos()
         obtener_metodos_entrega()
+
+
     }
 
     fun obtener_hastags_generales(
@@ -620,7 +633,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val grupoEnvioGratis = binding.radioDeliveryGratis
 
 
-// Variables booleanas para subir al backend o guardarlas
         var deliveryGratis = false
 
 
@@ -634,58 +646,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
         }
 
-
-        val isDelivery: Boolean
-        val isEntregaDomicilio: Boolean
-        val isCoordinarComprador: Boolean
-
-        val metodoEntrega: String
-
-//        when (binding.metodosEntrega.checkedRadioButtonId) {
-//            R.id.delivery -> {
-//                isDelivery = true
-//                isEntregaDomicilio = false
-//                isCoordinarComprador = false
-//                metodoEntrega = "Delivery"
-//
-//
-//            }
-//
-//            R.id.entrega_domicilio -> {
-//                isDelivery = false
-//                isEntregaDomicilio = true
-//                isCoordinarComprador = false
-//                metodoEntrega = "Entrega a domicilio"
-//
-//
-//            }
-//
-//            R.id.coordinar_comprador -> {
-//                isDelivery = false
-//                isEntregaDomicilio = false
-//                isCoordinarComprador = true
-//                metodoEntrega = "Cordinar con el comprado"
-//
-//
-//            }
-//
-//            R.id.lugar_entrega -> {
-//                isDelivery = false
-//                isEntregaDomicilio = false
-//                isCoordinarComprador = false
-//                metodoEntrega = "Lugar entrega"
-//
-//
-//            }
-
-//            else -> {
-//                // Nada seleccionado aún
-//                isDelivery = false
-//                isEntregaDomicilio = false
-//                isCoordinarComprador = false
-//                metodoEntrega = ""
-//            }
-//        }
         val descuentoAplicado = if (descuento) {
             val descuentoCalculado =
                 ((precioProducto.text.toString().toDouble() - precio_descuento_nuevo.text.toString()
@@ -719,7 +679,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "descuento" to binding.siHayDescuento.isChecked,
                 "categoria_producto" to binding.catSelcionado.text.toString(),
                 "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
-                "efectivo" to efectivo,
+//                "efectivo" to efectivo,
 //                "entrega_domicilio" to isEntregaDomicilio,
                 "fechaPublicada" to binding.fecha.text.toString(),
                 "horaPublicada" to binding.hora.text.toString(),
@@ -731,18 +691,19 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 "localidadUser" to localida_user.text.toString(),
                 "lugarEntrega" to lugar_entrega.text.toString(),
                 "marca" to marca_producto.text.toString(),
-//                "metodoEntrega" to metodoEntrega,
-                "envio_gratis" to deliveryGratis,
+                "metodoEntrega" to binding.metodoEntregaSelect.text.toString(),
+                "metodoPago" to binding.metodoPagoSelect.text.toString(),
+//                "envio_gratis" to deliveryGratis,
                 "modelo" to modelo_producto.text.toString(),
                 "hashtags_generales" to hashtagsGenerales,
                 "nombre" to nombre_producto.text.toString(),
-                "plin" to plin,
+//                "plin" to plin,
                 "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
                 "precioDelivery" to 5,
                 "precio_descuento" to (precio_descuento_nuevo.text.toString().toDoubleOrNull()
                     ?: 0.0),
                 "stok" to stok_producto.text.toString(),
-                "yape" to yape,
+//                "yape" to yape,
                 "visivilidad" to mostra_para.text.toString(),
                 "descripcion_titulo" to tituloMap,
                 "descripcion_texto" to texto_map,
@@ -761,15 +722,12 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         .addOnSuccessListener { res ->
                             println("id subido correcamte")
                         }
-
+                    guardar_img_storage(productId)
                 }.addOnFailureListener { e ->
                     Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
                 }
             }
-
         })
-
-
     }
 
     private fun subir_imgCaracteristica(productId: String) {
@@ -801,6 +759,39 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             Log.d("Upload", "No se subió imagen porque Uri es nulo o vacío")
         }
     }
+
+    private fun obtenerImagenesValidas(): List<ShapeableImageView> {
+        val placeholder = ContextCompat.getDrawable(this, R.drawable.img_perfil)
+        return imageViews.filter { imageView ->
+            imageView.drawable != null &&
+                    imageView.drawable.constantState != placeholder?.constantState
+        }
+    }
+
+    private fun guardar_img_storage(id_publicacion: String) {
+        val imagenesValidas = obtenerImagenesValidas()
+
+        imagenesValidas.forEachIndexed { index, imageView ->
+            val bitmap = (imageView.drawable as BitmapDrawable).bitmap
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val data = baos.toByteArray()
+
+            val nombreArchivo = "imagen_$index.jpg"
+            val storageRef = FirebaseStorage.getInstance().reference
+                .child("usuarios/${firebaseAuth.uid.toString()}/productos_venta/$id_publicacion/$nombreArchivo")
+
+            storageRef.putBytes(data)
+                .addOnSuccessListener {
+                    Log.d("Storage", "Imagen subida con éxito: $nombreArchivo")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Storage", "Error al subir imagen $nombreArchivo: ${e.message}")
+                }
+        }
+
+    }
+
 
     private fun validarCampos(): Boolean {
         val titulo_producto = binding.tituloPublicacionPrED
@@ -1311,21 +1302,37 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .collection("metodos_pago")
 
         db.get().addOnSuccessListener { res ->
+            binding.chipsPagos.removeAllViews() // limpia chips previos si hay
+
             for (datos in res) {
                 val nombreMetodo = datos.getString("nombre_metodo")
-                if (!nombreMetodo.isNullOrEmpty()) {
+                val id = datos.getString("id") // el ID que quieres mostrar
+                if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
                     val chip = Chip(this).apply {
                         text = nombreMetodo
-                        isCheckable = true // importante para permitir selección
+                        isCheckable = true
+                        tag = id // guardamos el ID como tag del chip
                     }
 
                     binding.chipsPagos.addView(chip)
+                }
+            }
+
+            // Escucha de selección
+            binding.chipsPagos.setOnCheckedStateChangeListener { group, checkedIds ->
+                if (checkedIds.isNotEmpty()) {
+                    val selectedChip = group.findViewById<Chip>(checkedIds[0])
+                    val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
+                    Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.metodoPagoSelect.text = idSeleccionado.toString()
                 }
             }
         }.addOnFailureListener {
             Toast.makeText(this, "Error al cargar métodos de pago", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun obtener_metodos_entrega() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -1335,17 +1342,34 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .collection("metodos_entrega")
 
         db.get().addOnSuccessListener { res ->
+            binding.chipsEntregas.removeAllViews() // Limpiar chips anteriores
+
             for (datos in res) {
                 val nombreMetodo = datos.getString("nombre_metodo")
-                if (!nombreMetodo.isNullOrEmpty()) {
+                val id = datos.getString("id") // Asegúrate de que este campo exista en Firestore
+
+                if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
                     val chip = Chip(this).apply {
                         text = nombreMetodo
-                        isCheckable = true // importante para permitir selección
+                        isCheckable = true
+                        tag = id // Guardamos el ID como tag
                     }
 
                     binding.chipsEntregas.addView(chip)
                 }
             }
+
+            // Listener para mostrar el ID seleccionado
+            binding.chipsEntregas.setOnCheckedStateChangeListener { group, checkedIds ->
+                if (checkedIds.isNotEmpty()) {
+                    val selectedChip = group.findViewById<Chip>(checkedIds[0])
+                    val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
+                    Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.metodoEntregaSelect.text = idSeleccionado.toString()
+                }
+            }
+
         }.addOnFailureListener {
             Toast.makeText(this, "Error al cargar métodos de entrega", Toast.LENGTH_SHORT).show()
         }

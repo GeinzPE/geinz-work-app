@@ -1123,11 +1123,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         binding.traajosRecientes.tituloServico.text = "Trabajos Recientes"
         binding.publicaciones.tituloServico.text = "Publicaciones"
         binding.productosVenta.tituloServico.text = "Productos en venta"
-//        binding.traajosRecientes.fechatxtVenimiento.text = "Publicaciones restantes"
-//        binding.productosVenta.fechaActivotxt.text = "Publicaciones activas"
-//        binding.productosVenta.fechatxtVenimiento.text = "Publicaciones restantes"
-//        binding.publicaciones.fechaActivotxt.text = "Publicaciones activas"
-//        binding.publicaciones.fechatxtVenimiento.text = "Publicaciones restantes"
 
         obtenerTrabajosRecientes("trabajos_realizados", { valor ->
             val trabajos_activos =

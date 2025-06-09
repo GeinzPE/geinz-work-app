@@ -198,14 +198,73 @@
             </LinearLayout>
 
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/imagen_trabajo"
+            <HorizontalScrollView
+                android:id="@+id/horizontalScrollView"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_margin="10dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/sin_foto_portada_con_marca"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+                android:layout_height="wrap_content"
+                android:fillViewport="true"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/layout_imagenes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img_1"
+                        android:layout_width="300dp"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_perfil"
+                        android:visibility="visible"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img_2"
+                        android:layout_width="300dp"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_perfil"
+                        android:visibility="gone"
+                        android:layout_marginStart="8dp"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img_3"
+                        android:layout_width="300dp"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_perfil"
+                        android:visibility="gone"
+                        android:layout_marginStart="8dp"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img_4"
+                        android:layout_width="300dp"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_perfil"
+                        android:visibility="gone"
+                        android:layout_marginStart="8dp"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img_5"
+                        android:layout_width="300dp"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_perfil"
+                        android:visibility="gone"
+                        android:layout_marginStart="8dp"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+                    <!-- Puedes agregar más si quieres -->
+
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/titulo_publicaciontext"

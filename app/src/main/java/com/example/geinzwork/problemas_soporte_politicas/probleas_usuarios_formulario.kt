@@ -146,7 +146,7 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                         .collection("reporte").document("recivido").collection("recivido")
 
 
-                val hasmap = hashMapOf<String, Any>(
+                val hashMap = hashMapOf<String, Any>(
                     Variables.Trabajador to nombreTrabajador,
                     Variables.idTrabajador to idTrabajador,
                     Variables.Tipo_reporte to binding.problemas.text.toString(),
@@ -156,11 +156,11 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                     Variables.nombreUsuario to nombreUsuario,
                     Variables.apellidoUsuario to apellidoUsuario,
                     Variables.problema to problema,
-                    Variables.numero_contacto to numeroContacto,
-                    "estado" to "por apelar"
+                    Variables.numero_contacto to numeroContacto
                 )
 
-                dbreporteEnviado.add(hasmap).addOnSuccessListener { documentReference ->
+                hashMap["estado"] = "enviado"
+                dbreporteEnviado.add(hashMap).addOnSuccessListener { documentReference ->
                     val reporteId = documentReference.id
                     dbreporteEnviado.document(reporteId).update(Variables.idReporte, reporteId)
                         .addOnSuccessListener {
@@ -210,7 +210,8 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                             ).show()
                         }
                 }
-                dbreporteRecivido.add(hasmap).addOnSuccessListener { documentReference ->
+                hashMap["estado"] = "por apelar"
+                dbreporteRecivido.add(hashMap).addOnSuccessListener { documentReference ->
                     val reporteId = documentReference.id
                     dbreporteRecivido.document(reporteId).update(Variables.idReporte, reporteId)
                         .addOnSuccessListener {

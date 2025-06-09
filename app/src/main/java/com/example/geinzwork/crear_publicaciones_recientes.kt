@@ -2,6 +2,8 @@ package com.example.geinzwork
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -37,9 +40,11 @@ import com.geinzz.geinzwork.ver_publicaciones
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
 
 class crear_publicaciones_recientes : AppCompatActivity() {
     private val hashtagsGenerales = mutableListOf<String>()
@@ -56,22 +61,23 @@ class crear_publicaciones_recientes : AppCompatActivity() {
     }
     private var currentImageIndex = 0
 
-    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            // Establece la imagen seleccionada
-            imageViews[currentImageIndex].setImageURI(it)
+    private val pickImage =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                // Establece la imagen seleccionada
+                imageViews[currentImageIndex].setImageURI(it)
 
-            // Si hay otra ImageView disponible, la hacemos visible
-            if (currentImageIndex + 1 < imageViews.size) {
-                imageViews[currentImageIndex + 1].visibility = View.VISIBLE
-            }
+                // Si hay otra ImageView disponible, la hacemos visible
+                if (currentImageIndex + 1 < imageViews.size) {
+                    imageViews[currentImageIndex + 1].visibility = View.VISIBLE
+                }
 
-            // Hacer scroll automático al final
-            binding.horizontalScrollView.post {
-                binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+                // Hacer scroll automático al final
+                binding.horizontalScrollView.post {
+                    binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+                }
             }
         }
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -457,7 +463,6 @@ class crear_publicaciones_recientes : AppCompatActivity() {
 
     private fun verificarCamposRequeridos(): Boolean {
         var todosValidos = true
-
         val titulo = binding.tituloPublicacionED
         val descripcionServiciosED = binding.descripcionServiciosED
         val agregarHastagsED = binding.agregarHastagsED
@@ -468,21 +473,25 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         // Validar campos vacíos
         if (titulo.text.toString().isBlank()) {
             titulo.error = "El campo título está vacío"
+            titulo.requestFocus()
             todosValidos = false
         }
 
         if (descripcionServiciosED.text.toString().isBlank()) {
             descripcionServiciosED.error = "Agregue una descripción para su trabajo"
+            descripcionServiciosED.requestFocus()
             todosValidos = false
         }
 
         if (agregarHastagsED.text.toString().isBlank()) {
             agregarHastagsED.error = "Debe ingresar al menos un hashtag"
+            agregarHastagsED.requestFocus()
             todosValidos = false
         }
 
         if (agregarHastagsCategoriasED.text.toString().isBlank()) {
             agregarHastagsCategoriasED.error = "Debe ingresar al menos una categoría"
+            agregarHastagsCategoriasED.requestFocus()
             todosValidos = false
         }
 
@@ -491,14 +500,25 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             binding.agregaUbi.isVisible = true
             if (ubicacionED.text.toString().isBlank()) {
                 ubicacionED.error = "Debe ingresar una ubicación"
+                ubicacionED.requestFocus()
                 todosValidos = false
             }
         } else {
             binding.agregaUbi.isVisible = false
         }
+        val placeholderDrawable = ContextCompat.getDrawable(this, R.drawable.img_perfil)
+        val alMenosUnaImagenSeteada = imageViews.any { imageView ->
+            imageView.drawable != null &&
+                    imageView.drawable.constantState != placeholderDrawable?.constantState
+        }
+        if (!alMenosUnaImagenSeteada) {
+            Toast.makeText(this, "Agrega una imagen minimo", Toast.LENGTH_SHORT).show()
+            todosValidos = false
+        }
 
         return todosValidos
     }
+
 
     private fun agregamopsPublicacion(id_trabajador: String) {
 
@@ -532,12 +552,12 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         db.add(hasmap).addOnSuccessListener { documentRef ->
             val newId = documentRef.id
             documentRef.update("id", newId)
-
             Toast.makeText(
                 this@crear_publicaciones_recientes,
                 "Trabajo publicado",
                 Toast.LENGTH_SHORT
             ).show()
+            guardar_img_storage(newId)
         }.addOnFailureListener { e ->
             Toast.makeText(
                 this@crear_publicaciones_recientes,
@@ -547,5 +567,36 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         }
     }
 
+    private fun obtenerImagenesValidas(): List<ShapeableImageView> {
+        val placeholder = ContextCompat.getDrawable(this, R.drawable.img_perfil)
+        return imageViews.filter { imageView ->
+            imageView.drawable != null &&
+                    imageView.drawable.constantState != placeholder?.constantState
+        }
+    }
+
+    private fun guardar_img_storage(id_publicacion: String) {
+        val imagenesValidas = obtenerImagenesValidas()
+
+        imagenesValidas.forEachIndexed { index, imageView ->
+            val bitmap = (imageView.drawable as BitmapDrawable).bitmap
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val data = baos.toByteArray()
+
+            val nombreArchivo = "imagen_$index.jpg"
+            val storageRef = FirebaseStorage.getInstance().reference
+                .child("usuarios/${firebaseAuth.uid.toString()}/publicaciones/$id_publicacion/$nombreArchivo")
+
+            storageRef.putBytes(data)
+                .addOnSuccessListener {
+                    Log.d("Storage", "Imagen subida con éxito: $nombreArchivo")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Storage", "Error al subir imagen $nombreArchivo: ${e.message}")
+                }
+        }
+
+    }
 
 }
