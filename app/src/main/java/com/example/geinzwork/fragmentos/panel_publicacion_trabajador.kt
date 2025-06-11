@@ -75,7 +75,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             dialog.show()
         }
 
-
         binding.panelMetoods.metodosPago.setOnClickListener {
             dialog = BottomSheetDialog(this)
             bottomSheet_metodos_pago()

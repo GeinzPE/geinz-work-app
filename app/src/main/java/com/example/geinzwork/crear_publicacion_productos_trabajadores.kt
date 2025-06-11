@@ -311,6 +311,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             return@setOnMenuItemClickListener true
         }
     }
+
     fun logearCampos() {
         val campos = listOf(
             "tituloPublicacionPrED" to binding.tituloPublicacionPrED.text.isNotBlank(),
@@ -333,10 +334,13 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "agregaUbicaciones && agregaUbiED" to (binding.agregaUbicaciones.isChecked && binding.agregaUbiED.text.isNotBlank()),
             "imagenesValidas" to (obtenerImagenesValidas().isNotEmpty()),
 
-        )
+            )
 
         for ((nombreCampo, estaLleno) in campos) {
-            Log.d("CamposVerificacion", "$nombreCampo está ${if (estaLleno) "LLENO o VÁLIDO" else "VACÍO o INVÁLIDO"}")
+            Log.d(
+                "CamposVerificacion",
+                "$nombreCampo está ${if (estaLleno) "LLENO o VÁLIDO" else "VACÍO o INVÁLIDO"}"
+            )
         }
     }
 
@@ -964,7 +968,30 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             db.document(productId).set(hasmap, SetOptions.merge())
                 .addOnSuccessListener {
                     Toast.makeText(this, "Producto subido correctamente", Toast.LENGTH_SHORT).show()
-                    // Aquí podrías limpiar los campos si deseas
+                    val dbProductos_publicados =
+                        FirebaseFirestore.getInstance().collection("productos_publicaciones")
+                            .document("producto").collection("producto").document(productId)
+                    val hasmap_producto = hashMapOf<String, Any>(
+                        "id" to productId,
+                        "cantidad_porcentaje_descuento" to descuentoAplicado,
+                        "img" to "",
+                        "titulo" to titulo_producto.text.toString(),
+                        "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
+                        "precio_descuento" to (precio_descuento_nuevo.text.toString()
+                            .toDoubleOrNull() ?: 0.0),
+                        "metodoEntrega" to binding.metodoEntregaSelect.text.toString(),
+                        "localidadUser" to localida_user.text.toString()
+                    )
+                    dbProductos_publicados.set(hasmap_producto, SetOptions.merge())
+                        .addOnSuccessListener {
+                            Toast.makeText(
+                                this,
+                                "se agrego a la otra coleccion",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }.addOnFailureListener { e ->
+                            Log.d("erro_agregar", "error ala agregar la referencia")
+                        }
                 }
             guardar_img_storage(productId)
         }.addOnFailureListener {
@@ -972,6 +999,9 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
     }
 
+    private fun agregar_productos_publicaciones(id_publicado: String) {
+
+    }
 
     private fun subir_imgCaracteristica(productId: String) {
         val storageRef = FirebaseStorage.getInstance().reference
@@ -1109,7 +1139,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
 
 
-        if (titulo!=null && titulo.trim().isNotEmpty()) {
+        if (titulo != null && titulo.trim().isNotEmpty()) {
             Log.d("DEBUGsss", "Mostrar vista previa")
             mostrarVistaPrevia(bindingSheet)
         } else {
