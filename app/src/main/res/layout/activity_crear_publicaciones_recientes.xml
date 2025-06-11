@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    style="@style/fondo"
     android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.crear_publicaciones_recientes">
 
@@ -73,7 +74,7 @@
                     android:layout_centerInParent="true"
                     android:layout_gravity="center"
                     android:fontFamily="@font/anton_regular"
-                    android:text="Crea tus trabajos recientes"
+                    android:text="Crea tus publicaciones de trabajo"
                     android:textAllCaps="true"
                     android:textSize="20sp" />
 
@@ -89,7 +90,7 @@
 
 
             <TextView
-                style="@style/descripcionColor"
+                style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -97,105 +98,6 @@
                 android:text="¡Crea tus publicaciones y muestra a todos tus trabajos recientes! Comparte las tareas que has realizado últimamente a través de Geinz."
                 android:textSize="12sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Plan : "
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/plan"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="***"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Total de publicaciones:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/TotalPublicaciones"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Publicaciones realizadas:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/Publicaciones_realizadas"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Publicaciones disponibles:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/Publicaciones_disponibles"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/hora"
-                    style="@style/descripcionColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="****"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/fecha"
-                    style="@style/descripcionColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="****"
-                    android:textSize="12sp" />
-            </LinearLayout>
 
             <HorizontalScrollView
                 android:id="@+id/horizontalScrollView"
@@ -216,7 +118,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="visible"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
@@ -225,7 +127,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -235,7 +137,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -245,7 +147,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -255,7 +157,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -444,11 +346,12 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
+
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="17dp"
-                android:layout_marginBottom="5dp"
+                android:layout_marginBottom="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -467,6 +370,7 @@
 
 
             <TextView
+                android:visibility="gone"
                 style="@style/descripcionColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -477,6 +381,7 @@
                 android:textSize="12sp" />
 
             <CheckBox
+                android:visibility="gone"
                 android:id="@+id/Acepto"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"

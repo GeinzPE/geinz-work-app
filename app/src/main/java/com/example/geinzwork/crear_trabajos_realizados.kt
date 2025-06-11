@@ -16,6 +16,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -24,6 +25,7 @@ import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.dataclass.MiViewModel
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearTrabajosRealizadosBinding
 import com.geinzz.geinzwork.hora.ImageDialogFragmentURI
 import com.geinzz.geinzwork.publicaciones_trabajadores.agregar_redes
@@ -37,25 +39,18 @@ import java.io.ByteArrayOutputStream
 class crear_trabajos_realizados : AppCompatActivity() {
     private lateinit var binding: ActivityCrearTrabajosRealizadosBinding
     private lateinit var firebaseAuth: FirebaseAuth
-    private var Imagen_Trabajo: Uri? = null
-    private var uriPasada: Uri? = null
     private val imageViews by lazy {
         listOf(binding.img1, binding.img2, binding.img3, binding.img4, binding.img5)
     }
-    private val viewModel: MiViewModel by viewModels()
     private var currentImageIndex = 0
     private val pickImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
-                // Establece la imagen seleccionada
                 imageViews[currentImageIndex].setImageURI(it)
 
-                // Si hay otra ImageView disponible, la hacemos visible
                 if (currentImageIndex + 1 < imageViews.size) {
                     imageViews[currentImageIndex + 1].visibility = View.VISIBLE
                 }
-
-                // Hacer scroll automático al final
                 binding.horizontalScrollView.post {
                     binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
                 }
@@ -74,43 +69,43 @@ class crear_trabajos_realizados : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
+//        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
         binding.popup.setOnClickListener {
             popup()
         }
-        val plan = intent.getStringExtra(Variables.plan).toString()
-        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-            .document(firebaseAuth.uid.toString())
-            .collection(Variables.trabajos_realizados)
-
-        db.get().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val count = task.result?.size() ?: 0
-                if (count >= 1) {
-                    binding.PublicacionesRealizadas.text = count.toString()
-                    val total = binding.TotalPublicaciones.text.toString()
-                    val restante = total.toInt() - count
-                    binding.PublicacionesDisponibles.text = restante.toString()
-                } else {
-                    println("Error al obtener la cantidad de publicaciones")
-                }
-
-            } else {
-                println("Error al obtener la cantidad de publicaciones")
-            }
-        }
-        when (plan) {
-            "B" -> {
-                binding.plan.text = "B"
-                binding.TotalPublicaciones.text = "10"
-            }
-
-            "C" -> {
-                binding.plan.text = "C"
-                binding.TotalPublicaciones.text = "20"
-            }
-        }
+//        val plan = intent.getStringExtra(Variables.plan).toString()
+//        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+//            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+//            .document(firebaseAuth.uid.toString())
+//            .collection(Variables.trabajos_realizados)
+//
+//        db.get().addOnCompleteListener { task ->
+//            if (task.isSuccessful) {
+//                val count = task.result?.size() ?: 0
+//                if (count >= 1) {
+//                    binding.PublicacionesRealizadas.text = count.toString()
+//                    val total = binding.TotalPublicaciones.text.toString()
+//                    val restante = total.toInt() - count
+//                    binding.PublicacionesDisponibles.text = restante.toString()
+//                } else {
+//                    println("Error al obtener la cantidad de publicaciones")
+//                }
+//
+//            } else {
+//                println("Error al obtener la cantidad de publicaciones")
+//            }
+//        }
+//        when (plan) {
+//            "B" -> {
+//                binding.plan.text = "B"
+//                binding.TotalPublicaciones.text = "10"
+//            }
+//
+//            "C" -> {
+//                binding.plan.text = "C"
+//                binding.TotalPublicaciones.text = "20"
+//            }
+//        }
         binding.publicar.setOnClickListener {
             crearPublicacion(firebaseAuth.uid.toString())
         }
@@ -128,47 +123,80 @@ class crear_trabajos_realizados : AppCompatActivity() {
                 pickImage.launch("image/*")
             }
         }
-
-
     }
+
+    override fun onBackPressed() {
+
+        val hayContenido = binding.tituloPublicacionED.text.isNotBlank() ||
+                binding.descripcionServiciosED.text.isNotBlank() ||
+                obtenerImagenesValidas().isNotEmpty()
+
+        if (hayContenido) {
+            AlertDialog.Builder(this)
+                .setTitle("¿Cancelar publicación?")
+                .setMessage("Si sales ahora, se perderá lo que hayas escrito. ¿Deseas continuar?")
+                .setPositiveButton("Sí") { dialog, _ ->
+                    dialog.dismiss()
+                    super.onBackPressed()
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    private fun resetearImagenes() {
+        val drawablePorDefecto = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)
+
+        imageViews.forEachIndexed { index, imageView ->
+            imageView.setImageDrawable(drawablePorDefecto)
+            imageView.visibility = if (index == 0) View.VISIBLE else View.GONE
+        }
+
+        currentImageIndex = 0
+    }
+
 
     private fun crearPublicacion(id: String) {
         val titulo = binding.tituloPublicacionED
         val descripcion = binding.descripcionServiciosED
-        val hora = binding.hora
-        val fecha = binding.fecha
-        val totalPublicaciones = binding.TotalPublicaciones.text.toString()
-        val publicaionesRealizadas = binding.PublicacionesRealizadas.text.toString()
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
             .collection(Variables.trabajos_realizados)
-        if (!binding.Acepto.isChecked) {
+        if (titulo.text.isNullOrEmpty()) {
+            titulo.error = "Ingresa un titulo"
+            titulo.requestFocus()
+        } else if (descripcion.text.isNullOrEmpty()) {
+            descripcion.error = "Ingresa una descripcion"
+            descripcion.requestFocus()
+        } else if (obtenerImagenesValidas().isEmpty()) {
+            Toast.makeText(
+                this,
+                "Debe agregar al menos una imagen",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        } else if (!binding.Acepto.isChecked) {
             Toast.makeText(
                 this,
                 "Acepta que realizas la publicación.",
                 Toast.LENGTH_SHORT
             ).show()
-        } else if (totalPublicaciones.toInt() == publicaionesRealizadas.toInt()) {
-            Toast.makeText(
-                this,
-                "Alcanzaste tu máximo de publicaciones mensuales. Adquiere un nuevo plan o contáctate con Geinz.",
-                Toast.LENGTH_SHORT
-            ).show()
-        } else if (titulo.text.isNullOrEmpty()) {
-            Toast.makeText(this, "La publicacion necesita un titulo", Toast.LENGTH_SHORT).show()
-        } else if (descripcion.text.isNullOrEmpty()) {
-            Toast.makeText(this, "La publicacion necesita una descripcion", Toast.LENGTH_SHORT)
-                .show()
+
         } else {
             binding.scroll.isVisible = false
             binding.progressBarContainer.isVisible = true
+
             val newDocRef = db.document()
 
             val hasmap = hashMapOf<String, Any>(
                 Variables.titulo to titulo.text.toString(),
                 Variables.descripcion to descripcion.text.toString(),
-                Variables.hora to hora.text.toString(),
-                Variables.fecha to fecha.text.toString(),
+                Variables.hora to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+                Variables.fecha to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
                 Variables.id to newDocRef.id
             )
 
@@ -182,8 +210,11 @@ class crear_trabajos_realizados : AppCompatActivity() {
                     binding.progressBarContainer.isVisible = false
                     binding.scroll.isVisible = true
                     guardar_img_storage(id)
-                    onBackPressed()
-                }    .addOnFailureListener {
+                    resetearImagenes()
+                    binding.tituloPublicacionED.setText("")
+                    binding.descripcionServiciosED.setText("")
+                    binding.Acepto.isChecked = false
+                }.addOnFailureListener {
                     Toast.makeText(
                         this,
                         "Error al crear la publicacion",
@@ -213,7 +244,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
     }
 
     private fun obtenerImagenesValidas(): List<ShapeableImageView> {
-        val placeholder = ContextCompat.getDrawable(this, R.drawable.img_perfil)
+        val placeholder = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)
         return imageViews.filter { imageView ->
             imageView.drawable != null &&
                     imageView.drawable.constantState != placeholder?.constantState

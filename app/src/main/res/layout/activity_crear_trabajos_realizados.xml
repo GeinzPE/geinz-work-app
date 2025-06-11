@@ -73,7 +73,7 @@
                     android:layout_centerInParent="true"
                     android:layout_gravity="center"
                     android:fontFamily="@font/anton_regular"
-                    android:text="Crea tus publicaciones"
+                    android:text="Publica tus trabajos realizados"
                     android:textAllCaps="true"
                     android:textSize="20sp" />
 
@@ -97,105 +97,6 @@
                 android:text="¡Crea tus publicaciones y muestra a todos tus trabajos recientes! Comparte las tareas que has realizado últimamente a través de Geinz."
                 android:textSize="12sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Plan : "
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/plan"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="***"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Total de publicaciones:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/TotalPublicaciones"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Publicaciones realizadas:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/Publicaciones_realizadas"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Publicaciones disponibles:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/Publicaciones_disponibles"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <TextView
-                    style="@style/descripcionColor"
-                    android:id="@+id/hora"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="****"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    style="@style/descripcionColor"
-                    android:id="@+id/fecha"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="****"
-                    android:textSize="12sp"/>
-            </LinearLayout>
 
 
             <HorizontalScrollView
@@ -217,7 +118,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="visible"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
@@ -226,7 +127,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -236,7 +137,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -246,7 +147,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
@@ -256,7 +157,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
                         android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />

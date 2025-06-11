@@ -22,6 +22,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -29,6 +30,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -40,6 +42,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.anidacion_categorias_productovrprivate
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja.handler
 import com.example.geinzwork.dataclass.CategoryWithSubcategories
 import com.example.geinzwork.dataclass.MiViewModel
 import com.example.geinzwork.dataclass.dataclas_anidacion_productos_vr
@@ -47,6 +50,7 @@ import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearPublicacionProductosTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.BottomSheetAplarReporteBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCategoriasPrVrBinding
@@ -196,13 +200,43 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
         }
 
-        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
-        binding.publicar.setOnClickListener { crear_publicacion_producto(firebaseAuth.uid.toString()) }
-//        val radioGroup = binding.metodosEntrega
-        val campoLugarEntrega = binding.lugarEntregaTXT
-        val linealDeliveryGratis = binding.linealDeliveryGratis
-        val radioDeliveryGratis =
-            binding.radioDeliveryGratis // <- Asegúrate que está en tu ViewBinding
+        binding.publicar.setOnClickListener {
+            val placeholderCaracteristica =
+                ContextCompat.getDrawable(this, R.drawable.agregar_imagen_cuadrado)
+
+            if (!validar_campos()) {
+                Toast.makeText(
+                    this,
+                    "Por favor, completa todos los campos obligatorios",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val imagenesValidas = obtenerImagenesValidas()
+            if (imagenesValidas.isEmpty()) {
+                Toast.makeText(
+                    this,
+                    "Debe agregar al menos una imagen del producto",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val imgCaracteristica = binding.imgSubir.drawable
+            if (imgCaracteristica == null || imgCaracteristica.constantState == placeholderCaracteristica?.constantState) {
+                Toast.makeText(
+                    this,
+                    "Debe agregar una imagen a tus características",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            // Si todo está bien, se publica el producto
+            publicar_producto()
+        }
+
         obtener_estados_productos()
         binding.mostrarPublicacionPara.setOnClickListener {
             dialog = BottomSheetDialog(this)
@@ -224,8 +258,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         binding.siHayGarantia.setOnCheckedChangeListener { _, isChecked ->
             binding.linealGarantia.visibility = if (isChecked) {
                 binding.hayGarantiaProductoED.setText("")
+                binding.radioGrupPlazoRG.clearCheck()
                 View.VISIBLE
-
             } else {
                 View.GONE
             }
@@ -255,6 +289,56 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
     }
 
+    override fun onBackPressed() {
+        val placeholder = ContextCompat.getDrawable(this, R.drawable.agregar_imagen_cuadrado)
+
+        val precioTexto = binding.precioProductoED.text.toString()
+        val precioValido = precioTexto.toIntOrNull()?.let { it > 0 } == true
+
+        val stokTexto = binding.stokED.text.toString()
+        val stokValido = stokTexto.toIntOrNull()?.let { it > 0 } == true
+
+        val hayContenido =
+            binding.tituloPublicacionPrED.text.isNotBlank() ||
+                    binding.modeloProductoED.text.isNotBlank() ||
+                    binding.marcaProductoED.text.isNotBlank() ||
+                    binding.subcategoriaProducto.text.isNotBlank() ||
+                    binding.nombreProductoED.text.isNotBlank() ||
+                    stokValido ||
+                    binding.condicionPrED.text.isNotBlank() ||
+                    precioValido ||
+                    binding.agregarHastagsED.text.isNotBlank() ||
+                    binding.masInformacionED.text.isNotBlank() ||
+                    binding.metodoPagoSelect.text.isNotBlank() ||
+                    binding.metodoEntregaSelect.text.isNotBlank() ||
+                    binding.catSelcionado.text.isNotBlank() ||
+                    binding.vistraPreviaDescripciontitulo.text.isNotBlank() ||
+                    binding.vistraPreviaDescripcion.text.isNotBlank() ||
+                    (binding.siHayDescuento.isChecked && binding.precioNuevoDescuentoPrED.text.isNotBlank()) ||
+                    (binding.siHayGarantia.isChecked && binding.hayGarantiaProductoED.text.isNotBlank()) ||
+                    (binding.agregaUbicaciones.isChecked && binding.agregaUbiED.text.isNotBlank()) ||
+                    obtenerImagenesValidas().isNotEmpty() ||
+                    (binding.imgSubir.drawable != null &&
+                            binding.imgSubir.drawable.constantState != placeholder?.constantState)
+
+        if (hayContenido) {
+            AlertDialog.Builder(this)
+                .setTitle("¿Cancelar publicación?")
+                .setMessage("Si sales ahora, se perderá lo que hayas escrito. ¿Deseas continuar?")
+                .setPositiveButton("Sí") { dialog, _ ->
+                    dialog.dismiss()
+                    super.onBackPressed()
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+
     fun obtener_hastags_generales(
         contex: Context,
         hashtagsGenerales: MutableList<String>,
@@ -268,21 +352,20 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val tiempoInicio = System.currentTimeMillis()
 
         val db = FirebaseFirestore.getInstance().collection("hastags_generales")
-            .document("hashtags_productos")
+            .document("hashtags_publicaciones")
 
         val chipGroup = bindig_BottomSheet.chipGrupHastagsP
 
         db.get().addOnSuccessListener { documentSnapshot ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
-            Toast.makeText(
-                this,
-                "Hashtags generales cargados en $tiempoTotal ms",
-                Toast.LENGTH_SHORT
-            ).show()
+            handler.postDelayed({
+                bindig_BottomSheet.netScroolViewHashtag.isVisible = true
+                bindig_BottomSheet.cargandoHastag.isVisible = false
+            }, tiempoTotal)
 
             if (documentSnapshot.exists()) {
-                val hashtags = documentSnapshot.get("hashtags_productos_array") as? List<String>
+                val hashtags = documentSnapshot.get("hashtags_publicaciones_array") as? List<String>
                 if (hashtags != null) {
                     chipGroup.removeAllViews()
                     hashtagsGenerales.clear()
@@ -611,8 +694,138 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun validar_campos(): Boolean {
+        var esValido = true
 
-    private fun crear_publicacion_producto(id_trabajador: String) {
+        val titulo_producto = binding.tituloPublicacionPrED
+        val modelo_producto = binding.modeloProductoED
+        val marca_producto = binding.marcaProductoED
+        val categoria_producto = binding.subcategoriaProducto
+        val nombre_producto = binding.nombreProductoED
+        val stok_producto = binding.stokED
+        val condicion_producto = binding.condicionPrED
+        val precioProducto = binding.precioProductoED
+        val agregarhastags = binding.agregarHastagsED
+        val mas_info = binding.masInformacionED
+        val metodoPago = binding.metodoPagoSelect
+        val metodo_entrega = binding.metodoEntregaSelect
+        val categoria_Selecionada = binding.catSelcionado
+
+        val vista_previa_descripcion_titulo = binding.vistraPreviaDescripciontitulo
+        val vista_previa_descripcion = binding.vistraPreviaDescripcion
+
+        val siHayDescuento = binding.siHayDescuento
+        val precio_descuento = binding.precioNuevoDescuentoPrED
+        val garantia = binding.siHayGarantia
+        val hay_garantia = binding.hayGarantiaProductoED
+        val ubicacion = binding.agregaUbicaciones
+        val ubicacion_prd = binding.agregaUbiED
+
+        val categoriasSinMarcaNiModelo = listOf(
+            "Juguetes y juegos",
+            "Arte y antigüedades",
+            "Hobbies y actividades",
+            "Ropa, calzado y accesorios",
+            "Muebles",
+            "Hogar y jardín",
+            "Construcción y materiales"
+        )
+        val categoriaSeleccionadaText = categoria_Selecionada.text.toString().trim()
+
+        fun validarCampoVacio(campo: EditText, mensaje: String) {
+            if (campo.text.toString().isBlank()) {
+                campo.error = mensaje
+                esValido = false
+            }
+        }
+
+        validarCampoVacio(titulo_producto, "Ingrese un título")
+        validarCampoVacio(categoria_producto, "Seleccione una categoría")
+        validarCampoVacio(nombre_producto, "Ingrese el nombre del producto")
+        validarCampoVacio(condicion_producto, "Ingrese la condición del producto")
+        validarCampoVacio(agregarhastags, "Seleccione al menos un hashtag")
+        validarCampoVacio(mas_info, "Ingrese información adicional")
+
+        if (metodoPago.text.toString().isBlank()) {
+            Toast.makeText(this, "Seleccione un método de pago", Toast.LENGTH_SHORT).show()
+            esValido = false
+        }
+
+        if (vista_previa_descripcion_titulo.text.toString().isBlank() ||
+            vista_previa_descripcion.text.toString().isBlank()
+        ) {
+            Toast.makeText(this, "Agrega una característica", Toast.LENGTH_SHORT).show()
+            esValido = false
+        }
+
+        if (metodo_entrega.text.toString().isBlank()) {
+            Toast.makeText(this, "Seleccione un método de entrega", Toast.LENGTH_SHORT).show()
+            esValido = false
+        }
+
+        // Validar marca y modelo si la categoría lo requiere
+        if (categoriaSeleccionadaText.isNotEmpty() &&
+            !categoriasSinMarcaNiModelo.contains(categoriaSeleccionadaText)
+        ) {
+            validarCampoVacio(marca_producto, "Ingrese la marca")
+            validarCampoVacio(modelo_producto, "Ingrese el modelo")
+        }
+
+        // Validar descuento
+        if (siHayDescuento.isChecked) {
+            validarCampoVacio(precio_descuento, "Ingrese el precio con descuento")
+            val precioOriginal = precioProducto.text.toString().toDoubleOrNull()
+            val precioConDescuento = precio_descuento.text.toString().toDoubleOrNull()
+
+            if (precioOriginal != null && precioConDescuento != null) {
+                if (precioConDescuento >= precioOriginal) {
+                    Toast.makeText(
+                        this,
+                        "El precio con descuento debe ser menor al precio original",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    precio_descuento.error = "Cambiar el valor"
+                    precio_descuento.requestFocus()
+                    esValido = false
+                }
+            } else {
+                Toast.makeText(this, "Precios inválidos", Toast.LENGTH_SHORT).show()
+                esValido = false
+            }
+        }
+
+        // Validar garantía
+        if (garantia.isChecked) {
+            validarCampoVacio(hay_garantia, "Ingrese la información de la garantía")
+        }
+
+        // Validar ubicación si es requerida
+        if (ubicacion.isChecked) {
+            validarCampoVacio(ubicacion_prd, "Ingrese la ubicación del producto")
+        }
+
+        // Validar stock
+        val stock = stok_producto.text.toString().toIntOrNull()
+        if (stock == null || stock <= 0) {
+            stok_producto.error = "El stock debe ser mayor a 0"
+            stok_producto.requestFocus()
+
+            esValido = false
+        }
+
+        // Validar precio original
+        val precio = precioProducto.text.toString().toIntOrNull()
+        if (precio == null || precio <= 0) {
+            precioProducto.error = "El precio debe ser mayor a 0"
+            precioProducto.requestFocus()
+            esValido = false
+        }
+
+        return esValido
+    }
+
+
+    private fun publicar_producto() {
         val titulo_producto = binding.tituloPublicacionPrED
         val modelo_producto = binding.modeloProductoED
         val nombre_producto = binding.nombreProductoED
@@ -625,110 +838,90 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val marca_producto = binding.marcaProductoED
         val localida_user = binding.agregaUbiED
         val mostra_para = binding.mostrarPublicacionPara
-        val lugar_entrega = binding.lugarEntregaED
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(id_trabajador)
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
             .collection("productos_venta")
-
-        val grupoEnvioGratis = binding.radioDeliveryGratis
-
-
-        var deliveryGratis = false
-
-
-        when (grupoEnvioGratis.checkedRadioButtonId) {
-            R.id.delivery_gratis_si -> {
-                deliveryGratis = true
-            }
-
-            R.id.delivery_gratis_no -> {
-                deliveryGratis = false
-            }
-        }
 
         val descuentoAplicado = if (descuento) {
             val descuentoCalculado =
                 ((precioProducto.text.toString().toDouble() - precio_descuento_nuevo.text.toString()
-                    .toDouble()) / precioProducto.text.toString().toDouble()) * 100
-            descuentoCalculado.roundToInt() // Redondeamos el valor a un Int
+                    .toDouble()) /
+                        precioProducto.text.toString().toDouble()) * 100
+            descuentoCalculado.roundToInt()
         } else {
             0
         }
+
         val hashtagsGenerales = binding.agregarHastagsED.text.toString()
             .split(",")
             .map { it.trim() }
             .filter { it.isNotBlank() }
-        viewModel.datosDescripcion.observe(this, Observer { datos ->
 
+        val datos = viewModel.datosDescripcion.value
 
-            val tituloMap = mapOf(
-                "titulo_descripcion" to datos.titulo_descripcion,
-                "titulo_valor_style" to datos.valor_boldtexto_titulo,
-                "titulo_mayus" to datos.minusmayus_titulo
-            )
-            val texto_map = mapOf(
-                "texto_descripcion" to datos.descripcion_texto,
-                "texto_valor_style" to datos.valor_boldtexto_texto,
-                "texto_mayus" to datos.minusmayus_titulo_texto
-            )
+        if (datos == null) {
+            Toast.makeText(this, "Faltan datos de descripción", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-            val hasMap = hashMapOf<String, Any>(
-                "titulo" to titulo_producto.text.toString(),
-                "cantidad_porcentaje_descuento" to descuentoAplicado.toInt(),
-                "condicion_producto" to condicion_producto.text.toString(),
-                "descuento" to binding.siHayDescuento.isChecked,
-                "categoria_producto" to binding.catSelcionado.text.toString(),
-                "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
-//                "efectivo" to efectivo,
-//                "entrega_domicilio" to isEntregaDomicilio,
-                "fechaPublicada" to binding.fecha.text.toString(),
-                "horaPublicada" to binding.hora.text.toString(),
-                "garantia" to "${tiempoGarantiaYears.text} $unidadGarantia${
-                    if (tiempoGarantiaYears.text.toString()
-                            .toIntOrNull() != 1
-                    ) if (unidadGarantia == "mes") "es" else "s" else ""
-                }",
-                "localidadUser" to localida_user.text.toString(),
-                "lugarEntrega" to lugar_entrega.text.toString(),
-                "marca" to marca_producto.text.toString(),
-                "metodoEntrega" to binding.metodoEntregaSelect.text.toString(),
-                "metodoPago" to binding.metodoPagoSelect.text.toString(),
-//                "envio_gratis" to deliveryGratis,
-                "modelo" to modelo_producto.text.toString(),
-                "hashtags_generales" to hashtagsGenerales,
-                "nombre" to nombre_producto.text.toString(),
-//                "plin" to plin,
-                "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
-                "precioDelivery" to 5,
-                "precio_descuento" to (precio_descuento_nuevo.text.toString().toDoubleOrNull()
-                    ?: 0.0),
-                "stok" to stok_producto.text.toString(),
-//                "yape" to yape,
-                "visivilidad" to mostra_para.text.toString(),
-                "descripcion_titulo" to tituloMap,
-                "descripcion_texto" to texto_map,
-                "descripcion_texto_lista" to datos.listaEncontrados,
-                "mas_informacio" to binding.masInformacionED.text.toString()
-            )
-            if (validarCampos()) {
-                db.add(hasMap).addOnSuccessListener { res ->
-                    // Obtener el id del documento recién creado
-                    val productId = res.id
-                    val hasmap = hashMapOf<String, Any>(
-                        "id" to productId
-                    )
-                    subir_imgCaracteristica(productId)
-                    db.document(productId).set(hasmap, SetOptions.merge())
-                        .addOnSuccessListener { res ->
-                            println("id subido correcamte")
-                        }
-                    guardar_img_storage(productId)
-                }.addOnFailureListener { e ->
-                    Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
+        val tituloMap = mapOf(
+            "titulo_descripcion" to datos.titulo_descripcion,
+            "titulo_valor_style" to datos.valor_boldtexto_titulo,
+            "titulo_mayus" to datos.minusmayus_titulo
+        )
+        val texto_map = mapOf(
+            "texto_descripcion" to datos.descripcion_texto,
+            "texto_valor_style" to datos.valor_boldtexto_texto,
+            "texto_mayus" to datos.minusmayus_titulo_texto
+        )
+
+        val hasMap = hashMapOf<String, Any>(
+            "titulo" to titulo_producto.text.toString(),
+            "cantidad_porcentaje_descuento" to descuentoAplicado,
+            "condicion_producto" to condicion_producto.text.toString(),
+            "categoria_producto" to binding.catSelcionado.text.toString(),
+            "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
+            "fechaPublicada" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
+            "horaPublicada" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+            "garantia" to "${tiempoGarantiaYears.text} $unidadGarantia${
+                if (tiempoGarantiaYears.text.toString().toIntOrNull() != 1)
+                    if (unidadGarantia == "mes") "es" else "s" else ""
+            }",
+            "localidadUser" to localida_user.text.toString(),
+            "marca" to marca_producto.text.toString(),
+            "metodoEntrega" to binding.metodoEntregaSelect.text.toString(),
+            "metodoPago" to binding.metodoPagoSelect.text.toString(),
+            "modelo" to modelo_producto.text.toString(),
+            "hashtags_generales" to hashtagsGenerales,
+            "nombre" to nombre_producto.text.toString(),
+            "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
+            "precioDelivery" to 5,
+            "precio_descuento" to (precio_descuento_nuevo.text.toString().toDoubleOrNull() ?: 0.0),
+            "stok" to stok_producto.text.toString(),
+            "visivilidad" to mostra_para.text.toString(),
+            "descripcion_titulo" to tituloMap,
+            "descripcion_texto" to texto_map,
+            "descripcion_texto_lista" to datos.listaEncontrados,
+            "mas_informacio" to binding.masInformacionED.text.toString()
+        )
+
+        db.add(hasMap).addOnSuccessListener { res ->
+            val productId = res.id
+            val hasmap = hashMapOf<String, Any>("id" to productId)
+            subir_imgCaracteristica(productId)
+            db.document(productId).set(hasmap, SetOptions.merge())
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Producto subido correctamente", Toast.LENGTH_SHORT).show()
+                    // Aquí podrías limpiar los campos si deseas
                 }
-            }
-        })
+            guardar_img_storage(productId)
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
+        }
     }
+
 
     private fun subir_imgCaracteristica(productId: String) {
         val storageRef = FirebaseStorage.getInstance().reference
@@ -761,12 +954,12 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     }
 
     private fun obtenerImagenesValidas(): List<ShapeableImageView> {
-        val placeholder = ContextCompat.getDrawable(this, R.drawable.img_perfil)
+        val placeholder = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)
         return imageViews.filter { imageView ->
-            imageView.drawable != null &&
-                    imageView.drawable.constantState != placeholder?.constantState
+            imageView.drawable != null && imageView.drawable.constantState != placeholder?.constantState
         }
     }
+
 
     private fun guardar_img_storage(id_publicacion: String) {
         val imagenesValidas = obtenerImagenesValidas()
@@ -790,66 +983,27 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 }
         }
 
+        val imgPrincipal = binding.imgSubir
+        if (imgPrincipal.visibility == View.VISIBLE && imgPrincipal.drawable != null) {
+            val bitmap = (imgPrincipal.drawable as BitmapDrawable).bitmap
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val data = baos.toByteArray()
+
+            val nombreArchivo = "imagen_caracteristica.jpg"
+            val storageRef = FirebaseStorage.getInstance().reference
+                .child("usuarios/${firebaseAuth.uid.toString()}/productos_venta/$id_publicacion/$nombreArchivo")
+
+            storageRef.putBytes(data)
+                .addOnSuccessListener {
+                    Log.d("Storage", "Imagen principal subida con éxito: $nombreArchivo")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Storage", "Error al subir imagen principal: ${e.message}")
+                }
+        }
     }
 
-
-    private fun validarCampos(): Boolean {
-        val titulo_producto = binding.tituloPublicacionPrED
-        val stok_producto = binding.stokED
-        val condicion_producto = binding.condicionPrED
-        val precioProducto = binding.precioProductoED
-        val precio_descuento_nuevo = binding.precioNuevoDescuentoPrED
-        val hastags = binding.agregarHastagsED
-        val mostra_para = binding.mostrarPublicacionPara
-        val subcategoria_producto = binding.subcategoriaProducto
-
-        var valido = true
-
-        if (titulo_producto.text.toString().isBlank()) {
-            titulo_producto.error = "Ingrese el nombre del producto"
-            valido = false
-        }
-
-
-        if (subcategoria_producto.text.toString().isBlank()) {
-            titulo_producto.error = "Selecciona una categoría de producto"
-            valido = false
-        }
-        if (hastags.text.toString().isBlank()) {
-            titulo_producto.error = "Ingrese # "
-            valido = false
-        }
-
-        if (stok_producto.text.toString().isBlank()) {
-            stok_producto.error = "Ingrese la cantidad de stock disponible"
-            valido = false
-        }
-
-        if (condicion_producto.text.toString().isBlank()) {
-            condicion_producto.error = "Indique la condición del producto (nuevo, usado, etc.)"
-            valido = false
-        }
-
-
-        if (precioProducto.text.toString().isBlank()) {
-            precioProducto.error = "Ingrese el precio del producto"
-            valido = false
-        }
-
-        if (precio_descuento_nuevo.text.toString().isBlank()) {
-            precio_descuento_nuevo.error = "Ingrese el precio con descuento, si aplica"
-            valido = false
-        }
-
-        if (mostra_para.text.toString().isBlank()) {
-            mostra_para.error =
-                "Indique para quién está destinada la publicación (todos, seguidores, etc.)"
-            valido = false
-        }
-
-        return valido
-
-    }
 
     private fun obtener_estados_productos() {
         val db =
@@ -990,17 +1144,28 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
 
         bindingSheet.guardarCambios.setOnClickListener {
-            guardar_cabmios_descripcion(bindingSheet)
+            val titulo = bindingSheet.tituloProductoED.text.toString().trim()
+            val descripcion = bindingSheet.AgregaDescipcionProductoED.text.toString().trim()
 
-            if (mostrarVistaPrevia) {
-                binding.imgSubir.isVisible = true
-                binding.linealVistaPreviaApartado.isVisible = true
-                binding.subir.isVisible = false
-                binding.camposEditar.isVisible = true
+            if (titulo.isEmpty()) {
+                bindingSheet.tituloProductoED.error = "Ingrese un título para tu descripción"
+                bindingSheet.tituloProductoED.requestFocus()
+            } else if (descripcion.isEmpty()) {
+                bindingSheet.AgregaDescipcionProductoED.error = "Ingrese una descripción"
+                bindingSheet.AgregaDescipcionProductoED.requestFocus()
+            } else {
+                guardar_cabmios_descripcion(bindingSheet)
+
+                if (mostrarVistaPrevia) {
+                    binding.imgSubir.isVisible = true
+                    binding.linealVistaPreviaApartado.isVisible = true
+                    binding.subir.isVisible = false
+                    binding.camposEditar.isVisible = true
+                }
             }
         }
 
-        // Initial updates to preview
+
         actualizarTextoFormateado(bindingSheet)
         actualizarVistaPreviaConNegritas(bindingSheet)
         dialog.setContentView(view)

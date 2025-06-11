@@ -100,10 +100,15 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                 }
             }
         }
-        binding.crear.setOnClickListener {
+        binding.crearButtom.setOnClickListener {
+            binding.crearButtom.isVisible=false
+            binding.crear.isVisible=true
             binding.containerSinUBI.isVisible = false
             binding.linealForm.isVisible = true
             nombreColeccion.isEnabled = true
+        }
+
+        binding.crear.setOnClickListener {
             val nombreColeccion = nombreColeccion.text.toString()
             val direccion = binding.direccion.text.toString()
             val direccionCasa = binding.direccionCasaED.text.toString()
@@ -123,8 +128,8 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                     agregaDireccionUsuario(firebaseAuth.uid.toString())
                 }
             } else {
-
-                binding.crear.text = "crear"
+                binding.crearButtom.isVisible=false
+                binding.crear.text = "Crear"
                 binding.nombreColeccionED.setText("")
                 binding.direccion.setText("")
                 binding.direccionCasaED.setText("")
@@ -132,8 +137,6 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                 binding.latitudUSer.text = ""
                 binding.longituduser.text = ""
             }
-
-
         }
 
 
@@ -150,7 +153,8 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                 obtenerUbicaciones(firebaseAuth.uid.toString())
                 binding.swipe.isRefreshing = false
                 binding.netScrollView.isVisible = true
-                binding.crear.isVisible = true
+                binding.crear.isVisible = false
+                binding.crearButtom.isVisible=true
             }, 2000)
         }
     }
@@ -379,6 +383,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
 
     private fun obtenerUbicaciones(id: String) {
         ubicaciones_lista.clear()
+        binding.crearButtom.isVisible=false
         binding.swipe.isVisible = false
         binding.netScrollView.isVisible = false
         binding.linealCargandoDirecciones.isVisible = true
@@ -493,12 +498,14 @@ class direccion_entrega_lat_log : AppCompatActivity() {
         handler.postDelayed({
             binding.netScrollView.isVisible = true
             binding.linealCargandoDirecciones.isVisible = false
-            binding.crear.isVisible = true
+            binding.crearButtom.isVisible=true
+            binding.crear.isVisible = false
             binding.swipe.isVisible = true
         }, tiempo)
     }
 
     private fun ocultar_datos(texto_mostrado: String) {
+        binding.crearButtom.isVisible=false
         binding.textCambiarTextoCargando.text = texto_mostrado
         binding.linealCargandoDirecciones.isVisible = true
         binding.crear.isVisible = false
@@ -604,6 +611,7 @@ class direccion_entrega_lat_log : AppCompatActivity() {
                 binding.nombreColeccionED.setText("")
                 binding.direccionCasaED.setText("")
                 binding.referenciaED.setText("")
+                binding.direccion.setText("")
                 binding.linealForm.isVisible = false
             }
             .addOnFailureListener { e ->

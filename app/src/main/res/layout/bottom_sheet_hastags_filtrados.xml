@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    >
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/cerrar"
@@ -13,97 +13,92 @@
         android:layout_gravity="center"
         android:padding="8dp" />
 
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:layout_below="@+id/cerrar"
         tools:ignore="MissingConstraints">
 
         <LinearLayout
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="5dp"
             android:orientation="vertical"
             tools:ignore="MissingConstraints">
 
-            <TextView
-                style="@style/titulo_texto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginVertical="10dp"
-                android:text="Hashtag generales"
-                android:textSize="20sp" />
+            <LinearLayout
+                android:animateLayoutChanges="true"
+                android:id="@+id/net_scrool_view_hashtag"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/fuente_para_texto_special_gothic"
-                android:text="@string/texto_bottom_sheet_hastags_filtrado"
-                android:textSize="13sp" />
+                <TextView
+                    style="@style/titulo_texto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginVertical="10dp"
+                    android:text="Hashtag generales"
+                    android:textSize="20sp" />
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/fuente_para_texto_special_gothic"
+                    android:text="@string/texto_bottom_sheet_hastags_filtrado"
+                    android:textSize="13sp" />
 
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGrup_hastagsP"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" />
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGrup_hastagsP"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/fuente_para_texto_special_gothic"
-                android:text="@string/texto_agregar_bottomSheet_hastags"
-                android:textSize="13sp" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/agregar_campos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounder_btn_vtrajador"
+                    android:paddingHorizontal="10dp"
+                    android:text="Agregar hastags"
+                    android:textColor="@color/white" />
+            </LinearLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/agregarHashtag"
+
+            <LinearLayout
+                android:id="@+id/cargando_hastag"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
+                android:layout_gravity="center"
+                android:layout_marginVertical="50dp"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                <EditText
-                    android:id="@+id/agregarHashtagED"
+                <ProgressBar
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
                     style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Agregar hashtag"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/agregar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-
-                android:layout_weight="1"
-                android:background="@drawable/rounder_btn_vtrajador"
-                android:text="Publicar"
-                android:textColor="@color/white" />
-
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/agregar_campos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounder_btn_vtrajador"
-                android:text="Agregar hastags"
-                android:textColor="@color/white" />
-
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cargando hashtag..."
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
 
-</LinearLayout>
+</RelativeLayout>

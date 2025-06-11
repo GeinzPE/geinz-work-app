@@ -315,6 +315,23 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/crear_buttom"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:visibility="gone"
+        android:background="@drawable/round_agregar_alt_log">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/icono_mas_agregar_plus" />
+
+    </RelativeLayout>
     <com.google.android.material.button.MaterialButton
         android:id="@+id/crear"
         style="@style/RoundedButton"
@@ -324,7 +341,7 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="20dp"
         android:layout_weight="1"
-        android:text="Crear nuevo"
+        android:text="crear"
         android:textSize="14sp"
         android:visibility="gone"
         app:iconGravity="textEnd" />

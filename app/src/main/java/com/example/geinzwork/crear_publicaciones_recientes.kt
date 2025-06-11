@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -27,10 +28,12 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_agregar_imagenes_panel_publicaciones
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja.handler
 import com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.Seleccion_de_Trabajo
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearPublicacionesRecientesBinding
 import com.geinzz.geinzwork.databinding.BottomSheetHastagsFiltradosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetPublicacionesParaBinding
@@ -47,6 +50,7 @@ import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
 
 class crear_publicaciones_recientes : AppCompatActivity() {
+
     private val hashtagsGenerales = mutableListOf<String>()
     val db = FirebaseFirestore.getInstance()
     private val hashtagsCategoria = mutableListOf<String>()
@@ -127,8 +131,6 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             obtenerHastags_cada_cat(binding.complete.text.toString())
             dialog.show()
         }
-        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
-
 
         obtenerCategorias(binding.complete)
         setearCategoriaDefecto_trabajador(firebaseAuth.uid.toString())
@@ -147,11 +149,16 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         iniciarRecycler()
         binding.publicar.setOnClickListener {
             if (verificarCamposRequeridos()) {
-                Toast.makeText(
-                    this@crear_publicaciones_recientes,
-                    "Todo correcto, publicamos todos",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val imagenesValidas = obtenerImagenesValidas()
+                if (imagenesValidas.isEmpty()) {
+                    Toast.makeText(
+                        this@crear_publicaciones_recientes,
+                        "Debe agregar al menos una imagen",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+
                 agregamopsPublicacion(firebaseAuth.uid.toString())
             } else {
                 Toast.makeText(
@@ -162,6 +169,30 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             }
         }
 
+    }
+
+    override fun onBackPressed() {
+        val hayContenido = binding.tituloPublicacionED.text.isNotBlank() ||
+                binding.descripcionServiciosED.text.isNotBlank() ||
+                binding.agregarHastagsED.text.isNotBlank() ||
+                binding.agregarHastagsCategoriasED.text.isNotBlank() ||
+                obtenerImagenesValidas().isNotEmpty()
+
+        if (hayContenido) {
+            AlertDialog.Builder(this)
+                .setTitle("¿Cancelar publicación?")
+                .setMessage("Si sales ahora, se perderá lo que hayas escrito. ¿Deseas continuar?")
+                .setPositiveButton("Sí") { dialog, _ ->
+                    dialog.dismiss()
+                    super.onBackPressed()
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     private fun popup() {
@@ -199,11 +230,10 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         db.get().addOnSuccessListener { documentSnapshot ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
-            Toast.makeText(
-                this,
-                "Hashtags generales cargados en $tiempoTotal ms",
-                Toast.LENGTH_SHORT
-            ).show()
+            handler.postDelayed({
+                bindig_BottomSheet.netScroolViewHashtag.isVisible = true
+                bindig_BottomSheet.cargandoHastag.isVisible = false
+            }, tiempoTotal)
 
             if (documentSnapshot.exists()) {
                 val hashtags = documentSnapshot.get("hashtags_publicaciones_array") as? List<String>
@@ -276,7 +306,10 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         subcategoriasRef.get().addOnSuccessListener { documentSnapshot ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
-            Toast.makeText(this, "Hashtags cargados en $tiempoTotal ms", Toast.LENGTH_SHORT).show()
+            handler.postDelayed({
+                bindig_BottomSheet.netScroolViewHashtag.isVisible = true
+                bindig_BottomSheet.cargandoHastag.isVisible = false
+            }, tiempoTotal)
 
             if (documentSnapshot.exists()) {
                 val hashtags = documentSnapshot.get("hashtags_array") as? List<String>
@@ -540,14 +573,16 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         val hasmap = hashMapOf(
             "categoria" to binding.complete.text.toString(),
             "contenido" to binding.descripcionServiciosED.text.toString(),
-            "fecha_rec" to binding.fecha.text.toString(),
-            "hora_rec" to binding.hora.text.toString(),
+            "fecha_rec" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
+            "hora_rec" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
             "titulo" to binding.tituloPublicacionED.text.toString(),
             "hashtags_generales" to hashtagsGenerales,
             "hashtags_trabajos_publicados" to hashtagscategorias,
             "visivilidad" to binding.mostrarPublicacionPara.text.toString(),
             "ubicacion" to binding.agregaUbiED.text.toString()
         )
+
+
 
         db.add(hasmap).addOnSuccessListener { documentRef ->
             val newId = documentRef.id
@@ -557,7 +592,14 @@ class crear_publicaciones_recientes : AppCompatActivity() {
                 "Trabajo publicado",
                 Toast.LENGTH_SHORT
             ).show()
+            binding.tituloPublicacionED.setText("")
+            binding.descripcionServiciosED.setText("")
+            binding.agregarHastagsED.setText("")
+            binding.agregarHastagsCategoriasED.setText("")
+            binding.agregaUbiED.setText("")
+            binding.mostrarPublicacionPara.text="Todos"
             guardar_img_storage(newId)
+            resetearImagenes()
         }.addOnFailureListener { e ->
             Toast.makeText(
                 this@crear_publicaciones_recientes,
@@ -567,8 +609,19 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         }
     }
 
+    private fun resetearImagenes() {
+        val drawablePorDefecto = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)
+
+        imageViews.forEachIndexed { index, imageView ->
+            imageView.setImageDrawable(drawablePorDefecto)
+            imageView.visibility = if (index == 0) View.VISIBLE else View.GONE
+        }
+
+        currentImageIndex = 0
+    }
+
     private fun obtenerImagenesValidas(): List<ShapeableImageView> {
-        val placeholder = ContextCompat.getDrawable(this, R.drawable.img_perfil)
+        val placeholder = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)
         return imageViews.filter { imageView ->
             imageView.drawable != null &&
                     imageView.drawable.constantState != placeholder?.constantState

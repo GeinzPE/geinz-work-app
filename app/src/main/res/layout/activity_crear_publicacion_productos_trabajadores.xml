@@ -92,120 +92,12 @@
 
 
             <TextView
-                style="@style/descripcionColor"
+                style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="10dp"
                 android:text="¡Crea tus publicaciones y muestra a todos tus trabajos recientes! Comparte las tareas que has realizado últimamente a través de Geinz."
                 android:textSize="12sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Plan : "
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/plan"
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="***"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Total de publicaciones:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/TotalPublicaciones"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Publicaciones realizadas:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/Publicaciones_realizadas"
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Publicaciones disponibles:"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/Publicaciones_disponibles"
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/hora"
-                    style="@style/descripcionColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="****"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/fecha"
-                    style="@style/descripcionColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="****"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
 
             <HorizontalScrollView
                 android:id="@+id/horizontalScrollView"
@@ -226,7 +118,7 @@
                         android:layout_width="300dp"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
+                        android:src="@drawable/agregar_imagen"
                         android:visibility="visible"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
@@ -234,40 +126,40 @@
                         android:id="@+id/img_2"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
-                        android:visibility="gone"
                         android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_imagen"
+                        android:visibility="gone"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_3"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
-                        android:visibility="gone"
                         android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_imagen"
+                        android:visibility="gone"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_4"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
-                        android:visibility="gone"
                         android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_imagen"
+                        android:visibility="gone"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_5"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_perfil"
-                        android:visibility="gone"
                         android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agregar_imagen"
+                        android:visibility="gone"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <!-- Puedes agregar más si quieres -->
@@ -302,13 +194,13 @@
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:visibility="gone" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/listenerCategoriaProducto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
@@ -382,7 +274,6 @@
                     android:id="@+id/modelo_producto"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
@@ -428,6 +319,7 @@
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginVertical="10dp"
                 android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
                 android:text="Productos y condicion"
                 android:textSize="20sp"
@@ -437,7 +329,6 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 android:layout_marginBottom="10dp"
                 android:hint="Condicion del producto">
 
@@ -453,8 +344,8 @@
                 style="@style/RoundTrabajadoresBG"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
                 android:orientation="vertical"
+                android:padding="10dp"
                 android:visibility="gone">
 
                 <TextView
@@ -488,6 +379,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
+                    android:layout_marginBottom="10dp"
                     android:text="NOTA: Puedes agregar una imagen referencial para que tenga un apartado de caracteriticas mas atractivo" />
 
                 <com.google.android.material.imageview.ShapeableImageView
@@ -495,28 +387,31 @@
                     android:layout_width="match_parent"
                     android:layout_height="400dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/sin_foto_portada_con_marca"
+                    android:src="@drawable/agregar_imagen_cuadrado"
                     android:visibility="gone"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
             </LinearLayout>
+
             <Button
                 android:id="@+id/subir"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Agregar Caracteristicas" />
+
             <Button
-                android:visibility="gone"
                 android:id="@+id/campos_Editar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Editar campos"/>
+                android:text="Editar campos"
+                android:visibility="gone" />
 
             <TextView
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
 
                 android:layout_height="wrap_content"
+                android:layout_marginVertical="10dp"
                 android:text="Precios y descuentos"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -558,7 +453,7 @@
 
                 <Switch
                     android:id="@+id/siHayDescuento"
-                    android:layout_width="40dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
@@ -608,7 +503,7 @@
 
                 <Switch
                     android:id="@+id/siHayGarantia"
-                    android:layout_width="40dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
@@ -730,6 +625,8 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    style="@style/TextoModoOScuroColor"
+
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="5dp"
@@ -770,6 +667,7 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -777,134 +675,89 @@
 
                 <TextView
                     android:id="@+id/mostrar_publicacion_para"
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-
                     android:text="Todos" />
             </LinearLayout>
 
             <TextView
-                style="@style/descripcionColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:text="@string/nota_crea_publicaciones_recientes"
-                android:textSize="12sp" />
-
-            <TextView
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Metodos de pago" />
+                android:layout_weight="1"
+                android:text="Metodos de pago y entrega"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/metodo_pago_select"/>
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <com.google.android.material.chip.ChipGroup
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:singleSelection="true"
-                    app:selectionRequired="true"
-                    android:id="@+id/chips_pagos"/>
-
-            </HorizontalScrollView>
-
-
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Metodo de entrega" />
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/metodo_entrega_select"/>
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.google.android.material.chip.ChipGroup
-                    app:singleSelection="true"
-                    app:selectionRequired="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/chips_entregas"/>
-
-            </HorizontalScrollView>
 
             <LinearLayout
-                android:id="@+id/lineal_delivery_gratis"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:layout_marginTop="5dp"
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delivery gratis?" />
+                    android:text="Metodos de pago" />
 
-                <RadioGroup
-                    android:id="@+id/radio_delivery_gratis"
+                <TextView
+                    android:id="@+id/metodo_pago_select"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:scrollbars="none">
 
-                    <RadioButton
-                        android:id="@+id/delivery_gratis_si"
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chips_pagos"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="si" />
+                        app:selectionRequired="true"
+                        app:singleSelection="true" />
 
-                    <RadioButton
-                        android:id="@+id/delivery_gratis_no"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="no" />
+                </HorizontalScrollView>
 
-                </RadioGroup>
             </LinearLayout>
 
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/lugar_entregaTXT"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="vertical">
 
-                android:visibility="gone"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/lugar_entregaED"
+                <TextView
                     style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Metodo de entrega" />
+
+                <TextView
+                    android:id="@+id/metodo_entrega_select"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <HorizontalScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Lugar de entrega"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chips_entregas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:selectionRequired="true"
+                        app:singleSelection="true" />
 
+                </HorizontalScrollView>
+            </LinearLayout>
 
-            <CheckBox
-                android:id="@+id/Acepto"
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:text="Acepto" />
 
             <LinearLayout
                 android:layout_width="match_parent"
