@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -23,12 +22,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
-import com.example.geinzwork.dataclass.MiViewModel
-import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearTrabajosRealizadosBinding
-import com.geinzz.geinzwork.hora.ImageDialogFragmentURI
-import com.geinzz.geinzwork.publicaciones_trabajadores.agregar_redes
+
 import com.geinzz.geinzwork.publicaciones_trabajadores.voleta_estado_verificacion
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
@@ -73,39 +70,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
         binding.popup.setOnClickListener {
             popup()
         }
-//        val plan = intent.getStringExtra(Variables.plan).toString()
-//        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-//            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-//            .document(firebaseAuth.uid.toString())
-//            .collection(Variables.trabajos_realizados)
-//
-//        db.get().addOnCompleteListener { task ->
-//            if (task.isSuccessful) {
-//                val count = task.result?.size() ?: 0
-//                if (count >= 1) {
-//                    binding.PublicacionesRealizadas.text = count.toString()
-//                    val total = binding.TotalPublicaciones.text.toString()
-//                    val restante = total.toInt() - count
-//                    binding.PublicacionesDisponibles.text = restante.toString()
-//                } else {
-//                    println("Error al obtener la cantidad de publicaciones")
-//                }
-//
-//            } else {
-//                println("Error al obtener la cantidad de publicaciones")
-//            }
-//        }
-//        when (plan) {
-//            "B" -> {
-//                binding.plan.text = "B"
-//                binding.TotalPublicaciones.text = "10"
-//            }
-//
-//            "C" -> {
-//                binding.plan.text = "C"
-//                binding.TotalPublicaciones.text = "20"
-//            }
-//        }
+
         binding.publicar.setOnClickListener {
             crearPublicacion(firebaseAuth.uid.toString())
         }
@@ -227,8 +192,10 @@ class crear_trabajos_realizados : AppCompatActivity() {
     fun popup() {
         val popup = PopupMenu(this, binding.popup)
         popup.menu.add(Menu.NONE, 1, 1, "Estado de pago y verificacion")
-        popup.menu.add(Menu.NONE, 2, 2, "Ver Publicaciones")
-        popup.menu.add(Menu.NONE, 3, 3, "Agregar redes sociales")
+        popup.menu.add(Menu.NONE, 2, 2, "Trabajos publicados")
+        popup.menu.add(Menu.NONE, 3, 3, "Trabajos Archivados")
+        popup.menu.add(Menu.NONE, 3, 3, "Trabajos Eliminados")
+
         popup.show()
         popup.setOnMenuItemClickListener { item ->
             val itemID = item.itemId
@@ -236,8 +203,6 @@ class crear_trabajos_realizados : AppCompatActivity() {
                 startActivity(Intent(this, voleta_estado_verificacion::class.java))
             } else if (itemID == 2) {
                 startActivity(Intent(this, ver_publicaciones::class.java))
-            } else if (itemID == 3) {
-                startActivity(Intent(this, agregar_redes::class.java))
             }
             return@setOnMenuItemClickListener true
         }

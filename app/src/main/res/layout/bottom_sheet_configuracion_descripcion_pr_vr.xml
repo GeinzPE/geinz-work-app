@@ -51,6 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
+                android:layout_marginBottom="10dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
@@ -92,34 +93,50 @@
                 android:id="@+id/include_agregar_textos_cuales"
                 layout="@layout/include_agrega_productos_rb_vr_radio_texto" />
 
-
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:id="@+id/previewTextTitulo"
+            <LinearLayout
+                android:id="@+id/lineal_vistaPrevia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:padding="10dp"
-                android:text="Vista previa"
-                android:textSize="16sp" />
+                android:layout_marginHorizontal="10dp"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:id="@+id/textoDescripcion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:padding="10dp"
-                android:text="Vista previa"
-                android:textSize="16sp" />
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="Vista previa de la caracteristica"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/previewTextTitulo"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="Vista previa"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:id="@+id/textoDescripcion"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="15dp"
+                    android:text="Vista previa"
+                    android:textSize="15sp"/>
 
 
-            <Button
-                android:id="@+id/guardar_cambios"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="guardar cambios" />
-
+                <Button
+                    android:id="@+id/guardar_cambios"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="guardar cambios" />
+            </LinearLayout>
 
 
         </LinearLayout>

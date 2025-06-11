@@ -18,9 +18,9 @@ import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesVistaVerificadosBinding
+import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionesVerificadosBinding
-import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
-import com.geinzz.geinzwork.publicaciones_trabajadores.agregar_redes
+
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -47,12 +47,29 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         obtener_publicaciones_realizadas(firebaseAuth.uid.toString())
         adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
-            eliminarPublicacion(item)
-        }, { item ->
             dialog = BottomSheetDialog(this)
-            editar_publicaciones(item.id_publicacion.toString())
+            bottomSheet_editar_eliminar_Arhivar_estadi(item)
             dialog.show()
         })
+    }
+
+    private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados_verificados) {
+        val bottoSheet = BottomSheetCamposTrPdPBinding.inflate(LayoutInflater.from(this))
+        val view = bottoSheet.root
+        val eliminar = bottoSheet.eliminar
+        val estadisticas = bottoSheet.estadisticas
+        val editar = bottoSheet.editar
+        val archivar = bottoSheet.archivar
+
+        eliminar.setOnClickListener {
+            eliminarPublicacion(item)
+
+        }
+        editar.setOnClickListener {
+            editar_publicaciones(item.id_publicacion.toString())
+        }
+
+        dialog.setContentView(view)
     }
 
     private fun eliminarPublicacion(item: dataclas_trabajos_ralizados_verificados) {

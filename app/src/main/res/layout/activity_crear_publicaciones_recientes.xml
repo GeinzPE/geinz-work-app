@@ -79,6 +79,7 @@
                     android:textSize="20sp" />
 
                 <ImageView
+                    android:layout_centerVertical="true"
                     android:id="@+id/popup"
                     android:layout_width="30dp"
                     android:layout_height="30dp"

@@ -1,6 +1,7 @@
 package com.example.geinzwork
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -20,9 +21,11 @@ import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -47,6 +50,8 @@ import com.example.geinzwork.dataclass.CategoryWithSubcategories
 import com.example.geinzwork.dataclass.MiViewModel
 import com.example.geinzwork.dataclass.dataclas_anidacion_productos_vr
 import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
+import com.example.geinzwork.vistaTrabajador.ver_productos_publicados
+import com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
@@ -131,7 +136,9 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        // ✅ Mostrar imagen si ya hay una seleccionada
+        binding.popup.setOnClickListener {
+            popup()
+        }
         img1_uir1?.let {
             binding.imgSubir.setImageURI(it)
         }
@@ -285,9 +292,54 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
         obtener_metodos_pagos()
         obtener_metodos_entrega()
+        logearCampos()
 
 
     }
+
+    private fun popup() {
+        val popup = PopupMenu(this, binding.popup)
+        popup.menu.add(Menu.NONE, 1, 1, "Ver Publicaciones")
+        popup.show()
+        popup.setOnMenuItemClickListener { item ->
+            val itemID = item.itemId
+            if (itemID == 1) {
+                startActivity(Intent(this, ver_productos_publicados::class.java))
+            } else {
+
+            }
+            return@setOnMenuItemClickListener true
+        }
+    }
+    fun logearCampos() {
+        val campos = listOf(
+            "tituloPublicacionPrED" to binding.tituloPublicacionPrED.text.isNotBlank(),
+            "modeloProductoED" to binding.modeloProductoED.text.isNotBlank(),
+            "marcaProductoED" to binding.marcaProductoED.text.isNotBlank(),
+            "subcategoriaProducto" to binding.subcategoriaProducto.text.isNotBlank(),
+            "nombreProductoED" to binding.nombreProductoED.text.isNotBlank(),
+
+            "condicionPrED" to binding.condicionPrED.text.isNotBlank(),
+
+            "agregarHastagsED" to binding.agregarHastagsED.text.isNotBlank(),
+            "masInformacionED" to binding.masInformacionED.text.isNotBlank(),
+            "metodoPagoSelect" to binding.metodoPagoSelect.text.isNotBlank(),
+            "metodoEntregaSelect" to binding.metodoEntregaSelect.text.isNotBlank(),
+            "catSelcionado" to binding.catSelcionado.text.isNotBlank(),
+            "vistraPreviaDescripciontitulo" to binding.vistraPreviaDescripciontitulo.text.isNotBlank(),
+            "vistraPreviaDescripcion" to binding.vistraPreviaDescripcion.text.isNotBlank(),
+            "siHayDescuento && precioNuevoDescuentoPrED" to (binding.siHayDescuento.isChecked && binding.precioNuevoDescuentoPrED.text.isNotBlank()),
+            "siHayGarantia && hayGarantiaProductoED" to (binding.siHayGarantia.isChecked && binding.hayGarantiaProductoED.text.isNotBlank()),
+            "agregaUbicaciones && agregaUbiED" to (binding.agregaUbicaciones.isChecked && binding.agregaUbiED.text.isNotBlank()),
+            "imagenesValidas" to (obtenerImagenesValidas().isNotEmpty()),
+
+        )
+
+        for ((nombreCampo, estaLleno) in campos) {
+            Log.d("CamposVerificacion", "$nombreCampo está ${if (estaLleno) "LLENO o VÁLIDO" else "VACÍO o INVÁLIDO"}")
+        }
+    }
+
 
     override fun onBackPressed() {
         val placeholder = ContextCompat.getDrawable(this, R.drawable.agregar_imagen_cuadrado)
@@ -312,8 +364,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                     binding.metodoPagoSelect.text.isNotBlank() ||
                     binding.metodoEntregaSelect.text.isNotBlank() ||
                     binding.catSelcionado.text.isNotBlank() ||
-                    binding.vistraPreviaDescripciontitulo.text.isNotBlank() ||
-                    binding.vistraPreviaDescripcion.text.isNotBlank() ||
                     (binding.siHayDescuento.isChecked && binding.precioNuevoDescuentoPrED.text.isNotBlank()) ||
                     (binding.siHayGarantia.isChecked && binding.hayGarantiaProductoED.text.isNotBlank()) ||
                     (binding.agregaUbicaciones.isChecked && binding.agregaUbiED.text.isNotBlank()) ||
@@ -1020,6 +1070,28 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
     }
 
+    fun mostrarVistaPrevia(bindingSheet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        bindingSheet.linealVistaPrevia.apply {
+            if (!isVisible) {
+                alpha = 0f
+                isVisible = true
+                animate()
+                    .alpha(1f)
+                    .setDuration(300)
+                    .start()
+            }
+        }
+    }
+
+    fun ocultarVistaPrevia(bindingSheet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        bindingSheet.linealVistaPrevia.animate()
+            .alpha(0f)
+            .setDuration(200)
+            .withEndAction {
+                bindingSheet.linealVistaPrevia.isVisible = false
+            }.start()
+    }
+
 
     private fun mostrarBottomSheetDescripcion(
         titulo: String? = null,
@@ -1035,6 +1107,15 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             BottomSheetConfiguracionDescripcionPrVrBinding.inflate(LayoutInflater.from(this))
         val view = bindingSheet.root
 
+
+
+        if (titulo!=null && titulo.trim().isNotEmpty()) {
+            Log.d("DEBUGsss", "Mostrar vista previa")
+            mostrarVistaPrevia(bindingSheet)
+        } else {
+            Log.d("DEBUGsss", "Ocultar vista previa")
+            ocultarVistaPrevia(bindingSheet)
+        }
         // Prellenar campos si hay datos
         bindingSheet.tituloProductoED.setText(titulo ?: "")
         bindingSheet.AgregaDescipcionProductoED.setText(texto_des ?: "")
@@ -1096,10 +1177,25 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             }
         }
 
-        // Listeners shared (keep these as they are)
-        bindingSheet.tituloProductoED.addTextChangedListener {
-            actualizarTextoFormateado(bindingSheet)
-        }
+
+
+
+        bindingSheet.tituloProductoED.addTextChangedListener(object : TextWatcher {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val texto = s?.toString()?.trim()
+                if (!texto.isNullOrEmpty()) {
+                    mostrarVistaPrevia(bindingSheet)
+                    actualizarTextoFormateado(bindingSheet)
+                } else {
+                    ocultarVistaPrevia(bindingSheet)
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+
 
         bindingSheet.AgregaDescipcionProductoED.addTextChangedListener {
             bindingSheet.textoDescripcion.text = it.toString()

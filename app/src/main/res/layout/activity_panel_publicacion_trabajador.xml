@@ -13,7 +13,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp">
+        android:layout_margin="10dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -48,12 +48,104 @@
             <include
                 android:id="@+id/productos_venta"
                 layout="@layout/include_panel_publicaciones" />
+
+            <LinearLayout
+                android:id="@+id/agregar_redes_sociales"
+                style="@style/RoundTrabajadoresBG"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/img_redes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/agrega_redes_sociales"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="7dp">
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_marginEnd="8dp"
+                            android:fontFamily="sans-serif"
+                            android:text="AGREGA TUS REDES SOCIALES COMO FACEBOOK, INSTAGRAM Y TIKTOK"
+                            android:textAllCaps="true"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:paddingHorizontal="7dp">
+
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_marginEnd="8dp"
+                                    android:layout_marginBottom="10dp"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif"
+                                    android:maxLines="4"
+                                    android:text="Mostrar tus redes sociales genera confianza y puede abrirte más oportunidades laborales dentro de Geinz Work."
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+
+                            </RelativeLayout>
+
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/metodo_numero_nombre"
                 style="@style/RoundTrabajadoresBG"
                 android:layout_width="match_parent"
-                android:layout_margin="10dp"
                 android:layout_height="wrap_content"
+                android:layout_margin="10dp"
                 android:orientation="vertical">
 
                 <RelativeLayout
@@ -137,10 +229,10 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+
             <include
                 android:id="@+id/panel_metoods"
                 layout="@layout/include_panel_publi_vertical" />
-
 
 
         </LinearLayout>

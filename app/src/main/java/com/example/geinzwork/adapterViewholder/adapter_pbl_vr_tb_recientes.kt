@@ -12,8 +12,7 @@ import com.geinzz.geinzwork.databinding.ItemProductosTiendasBinding
 
 class adapter_pbl_vr_tb_recientes(
     private val lista_publicaciones_vista_trabajos_recientes: MutableList<dataclas_trabajos_ralizados_verificados>,
-    private val eliminarItem: (dataclas_trabajos_ralizados_verificados) -> Unit,
-    private val editar_item: (dataclas_trabajos_ralizados_verificados) -> Unit
+    private val editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados_verificados) -> Unit,
 ) : RecyclerView.Adapter<adapter_pbl_vr_tb_recientes.adapter_publicaciones_verificados_trabajos_recientesHolder>() {
 
 
@@ -35,15 +34,14 @@ class adapter_pbl_vr_tb_recientes(
         position: Int
     ) {
         val item = lista_publicaciones_vista_trabajos_recientes[position]
-        holder.render(item, eliminarItem, editar_item)
+        holder.render(item, editar_eliminar_estadi_archivar)
     }
 
     inner class adapter_publicaciones_verificados_trabajos_recientesHolder(private val binding: ItemProductosTiendasBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun render(
             item: dataclas_trabajos_ralizados_verificados,
-            eliminarItem: (dataclas_trabajos_ralizados_verificados) -> Unit,
-            editarItem: (dataclas_trabajos_ralizados_verificados) -> Unit,
+            editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados_verificados) -> Unit,
         ) {
             binding.precioProducto.isVisible = false
             binding.tituloProducto.text = item.titulo
@@ -61,13 +59,11 @@ class adapter_pbl_vr_tb_recientes(
                 "portada", placeholderperfil
             ) {}
 
-            binding.linealPublicacionesEditDelete.isVisible = true
-            binding.borrarItem.setOnClickListener {
-                eliminarItem(item)
+            binding.listenerPadre.setOnLongClickListener {
+                editar_eliminar_estadi_archivar(item)
+                true
             }
-            binding.editar.setOnClickListener {
-                editarItem(item)
-            }
+
             binding.linealvistaCompartidasPublicacion.isVisible = true
             binding.cantidadView.text = item.vista.toString()
             binding.cantidadCompartida.text = item.compartidas.toString()

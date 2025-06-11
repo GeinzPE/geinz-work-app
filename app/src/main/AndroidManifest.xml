@@ -37,6 +37,9 @@
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
         <activity
+            android:name="com.example.geinzwork.vistaTrabajador.ver_productos_publicados"
+            android:exported="false" />
+        <activity
             android:name="com.example.geinzwork.vistas_principales.tu_trabajo_habla_porti"
             android:exported="false" />
         <activity

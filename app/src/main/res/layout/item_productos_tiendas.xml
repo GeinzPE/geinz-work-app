@@ -11,9 +11,10 @@
         tools:ignore="MissingConstraints">
 
         <LinearLayout
+            android:id="@+id/listener_padre"
             style="@style/RoundTrabajadoresBG"
             android:layout_width="match_parent"
-            android:layout_height="110dp"
+            android:layout_height="100dp"
             android:layout_margin="10dp"
             android:orientation="horizontal"
             tools:ignore="MissingConstraints">
@@ -183,42 +184,41 @@
             </LinearLayout>
 
 
-            <LinearLayout
-                android:id="@+id/linealPublicaciones_edit_delete"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginRight="10dp"
-                android:orientation="vertical"
-                android:visibility="gone">
+<!--            <LinearLayout-->
+<!--                android:id="@+id/linealPublicaciones_edit_delete"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_marginRight="10dp"-->
+<!--                android:orientation="vertical"-->
+<!--                android:visibility="">-->
 
-                <ImageButton
-                    android:id="@+id/borrarItem"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@drawable/borrar_producto_icon"
-                    android:maxWidth="20dp"
-                    android:maxHeight="20dp"
-                    android:padding="5dp"
-                    android:scaleType="fitCenter"
-                    app:layout_collapseMode="pin" />
-
-                <ImageButton
-                    android:id="@+id/editar"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@drawable/editar_icon"
-                    android:maxWidth="20dp"
-                    android:maxHeight="20dp"
-                    android:padding="5dp"
-                    android:scaleType="fitCenter"
-                    app:layout_collapseMode="pin" />
-            </LinearLayout>
+<!--                <ImageButton-->
+<!--                    android:id="@+id/borrarItem"-->
+<!--                    android:layout_width="30dp"-->
+<!--                    android:layout_height="30dp"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:layout_marginTop="15dp"-->
+<!--                    android:layout_marginBottom="10dp"-->
+<!--                    android:background="@drawable/borrar_producto_icon"-->
+<!--                    android:maxWidth="20dp"-->
+<!--                    android:maxHeight="20dp"-->
+<!--                    android:padding="5dp"-->
+<!--                    android:scaleType="fitCenter"-->
+<!--                    app:layout_collapseMode="pin" />-->
+<!--                <ImageButton-->
+<!--                    android:id="@+id/editar"-->
+<!--                    android:layout_width="30dp"-->
+<!--                    android:layout_height="30dp"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:layout_marginTop="10dp"-->
+<!--                    android:layout_marginBottom="10dp"-->
+<!--                    android:background="@drawable/editar_icon"-->
+<!--                    android:maxWidth="20dp"-->
+<!--                    android:maxHeight="20dp"-->
+<!--                    android:padding="5dp"-->
+<!--                    android:scaleType="fitCenter"-->
+<!--                    app:layout_collapseMode="pin" />-->
+<!--            </LinearLayout>-->
         </LinearLayout>
     </RelativeLayout>
 

@@ -1,47 +1,41 @@
-package com.geinzz.geinzwork.adapterViewholder
+package com.example.geinzwork.adapterViewholder
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ItemProductosTiendasBinding
-import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 
-class publicaciones_ralizadas(
-    private val listaTrabajos_realizados: MutableList<dataclas_trabajos_ralizados>,
-    private val editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados) -> Unit,
-
-    ) :
-
-    RecyclerView.Adapter<publicaciones_ralizadas.viewHolder>() {
+class adapter_publicaciones_venta(
+    private val lista_publicaciones_venta: MutableList<dataclas_trabajos_ralizados_verificados>,
+    private val editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados_verificados) -> Unit
+) : RecyclerView.Adapter<adapter_publicaciones_venta.ViewHolder_publi_venta>() {
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder_publi_venta {
         val binding =
             ItemProductosTiendasBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return viewHolder(binding)
+        return ViewHolder_publi_venta(binding)
     }
 
     override fun getItemCount(): Int {
-        return listaTrabajos_realizados.size
+        return lista_publicaciones_venta.size
     }
 
-    override fun onBindViewHolder(holder: viewHolder, position: Int) {
-        val item = listaTrabajos_realizados[position]
+    override fun onBindViewHolder(holder: ViewHolder_publi_venta, position: Int) {
+        val item = lista_publicaciones_venta[position]
         holder.render(item, editar_eliminar_estadi_archivar)
     }
 
-    class viewHolder(private val binding: ItemProductosTiendasBinding) :
+    inner class ViewHolder_publi_venta(private val binding: ItemProductosTiendasBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun render(
-            item: dataclas_trabajos_ralizados,
-            editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados) -> Unit,
+            item: dataclas_trabajos_ralizados_verificados,
+            editarEliminarEstadiArchivar: (dataclas_trabajos_ralizados_verificados) -> Unit
         ) {
             binding.precioProducto.isVisible = false
             binding.tituloProducto.text = item.titulo
@@ -64,6 +58,11 @@ class publicaciones_ralizadas(
                 true
             }
 
+//            binding.linealvistaCompartidasPublicacion.isVisible = true
+//            binding.cantidadView.text = item.vista.toString()
+//            binding.cantidadCompartida.text = item.compartidas.toString()
+//            binding.cantidadClicks.text = item.cliks.toString()
+            TODO("Not yet implemented")
         }
 
     }

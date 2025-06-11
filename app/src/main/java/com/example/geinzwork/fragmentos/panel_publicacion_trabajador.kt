@@ -1,5 +1,6 @@
 package com.example.geinzwork.fragmentos
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -30,6 +31,7 @@ import com.geinzz.geinzwork.crear_trabajos_realizados
 import com.geinzz.geinzwork.databinding.ActivityPanelPublicacionTrabajadorBinding
 import com.geinzz.geinzwork.databinding.BotomSheetDialogMetodosPagoBinding
 import com.geinzz.geinzwork.databinding.BottomSheeetMetodoEntregaBinding
+import com.geinzz.geinzwork.databinding.BottomSheetAgregarRedesBinding
 import com.geinzz.geinzwork.databinding.BottomSheetNumeroNombrePagoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -87,7 +89,73 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             dialog.show()
         }
 
+        binding.agregarRedesSociales.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottomSheet_agregar_redes()
+            dialog.show()
+        }
 
+    }
+
+    private fun bottomSheet_agregar_redes() {
+        val binding_bottom = BottomSheetAgregarRedesBinding.inflate(LayoutInflater.from(this))
+        val view = binding_bottom.root
+
+        firebaseAuth = FirebaseAuth.getInstance()
+        binding_bottom.Enviar.setOnClickListener {
+            agregarRedes(firebaseAuth.uid.toString(), binding_bottom)
+        }
+        binding_bottom.limpiarFB.setOnClickListener {
+            binding_bottom.fbEd.setText("")
+        }
+        binding_bottom.limpiarIG.setOnClickListener {
+            binding_bottom.igED.setText("")
+        }
+        binding_bottom.limpiarTK.setOnClickListener {
+            binding_bottom.tkED.setText("")
+        }
+        obtnerDatos(firebaseAuth.uid.toString(), binding_bottom)
+
+
+        dialog.setContentView(view)
+    }
+
+    private fun obtnerDatos(id: String, botto_sheet_redes: BottomSheetAgregarRedesBinding) {
+        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val ig = data?.get(Variables.IG) as? String ?: ""
+                val fb = data?.get(Variables.FB) as? String ?: ""
+                val tk = data?.get(Variables.TK) as? String ?: ""
+                botto_sheet_redes.igED.setText(ig)
+                botto_sheet_redes.fbEd.setText(fb)
+                botto_sheet_redes.tkED.setText(tk)
+            } else {
+                Log.d(TAG, "El documento no existe")
+            }
+        }.addOnFailureListener { e ->
+            Log.e(TAG, "Error al obtener datos: ${e.message}", e)
+        }
+    }
+
+
+    private fun agregarRedes(id: String, botto_sheet_redes: BottomSheetAgregarRedesBinding) {
+        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
+        val hasmap = hashMapOf<String, Any>(
+            Variables.IG to botto_sheet_redes.igED.text.toString(),
+            Variables.FB to botto_sheet_redes.fbEd.text.toString(),
+            Variables.TK to botto_sheet_redes.tkED.text.toString()
+        )
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(
+                this,
+                "Redes agregadas o editadas correctamente",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
 

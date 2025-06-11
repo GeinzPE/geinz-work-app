@@ -16,8 +16,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.adapterViewholder.publicaciones_ralizadas
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesBinding
+import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionBinding
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -29,6 +31,7 @@ class ver_publicaciones : AppCompatActivity() {
     private lateinit var firebaseAuth: FirebaseAuth
     private var listAdapter = mutableListOf<dataclas_trabajos_ralizados>()
     private lateinit var adapter: publicaciones_ralizadas
+    private lateinit var dialog: BottomSheetDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +45,12 @@ class ver_publicaciones : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         adapter = publicaciones_ralizadas(listAdapter, { item ->
-            eliminarPublicacion(item)
-        }, { item ->
-            editarPublicacion(item)
+            dialog = BottomSheetDialog(
+                this
+            )
+            bottomSheet_editar_eliminar_Arhivar_estadi(item)
+            dialog.show()
+
         })
 
         obtenerPublicaciones(
@@ -59,6 +65,26 @@ class ver_publicaciones : AppCompatActivity() {
             onBackPressed()
         }
     }
+
+    private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados) {
+        val bottoSheet = BottomSheetCamposTrPdPBinding.inflate(LayoutInflater.from(this))
+        val view = bottoSheet.root
+        val eliminar = bottoSheet.eliminar
+        val estadisticas = bottoSheet.estadisticas
+        val editar = bottoSheet.editar
+        val archivar = bottoSheet.archivar
+
+        eliminar.setOnClickListener {
+            eliminarPublicacion(item)
+
+        }
+        editar.setOnClickListener {
+//            editar_publicaciones(item.id_publicacion.toString())
+        }
+
+        dialog.setContentView(view)
+    }
+
 
     private fun editarPublicacion(item: dataclas_trabajos_ralizados) {
         val bindingBottomShet =
@@ -91,7 +117,7 @@ class ver_publicaciones : AppCompatActivity() {
             null,
             bindingBottomShet.imagenTrabajo,
             "portada", placeholderperfil
-        ){}
+        ) {}
         bindingBottomShet.tituloPublicacionED.setText(item.titulo)
         bindingBottomShet.descripcionServiciosED.setText(item.contenido)
 
