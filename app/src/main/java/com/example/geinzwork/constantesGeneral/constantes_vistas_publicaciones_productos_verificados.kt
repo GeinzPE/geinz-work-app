@@ -51,7 +51,7 @@ object constantes_vistas_publicaciones_productos_verificados {
 
             for (datos in res) {
                 val data = datos.data
-                val imgProducto = data["img_principal"] as? String ?: ""
+                val imgProducto = data["img_url"] as? String ?: ""
                 val descuentoActivo = data["descuento"] as? Boolean ?: false
                 val id = data["id"] as? String ?: ""
                 val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0

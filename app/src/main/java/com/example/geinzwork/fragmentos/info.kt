@@ -1045,7 +1045,8 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador)
-            .collection("trabajos_realizados").document("publicados").collection("publicados").document(idTrajoReciente)
+            .collection("trabajos_realizados").document("publicados").collection("publicados")
+            .document(idTrajoReciente)
 
         Log.d("enviado_datos", "$idTrabajador $idTrajoReciente")
 
@@ -1582,7 +1583,8 @@ class info : Fragment() {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("publicaciones_trabajos")
+                .document(idTrabajador).collection("publicaciones_trabajos").document("publicados")
+                .collection("publicados")
                 .document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -1646,7 +1648,8 @@ class info : Fragment() {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("trabajos_realizados")
+                .document(idTrabajador).collection("trabajos_realizados").document("publicados")
+                .collection("publicados")
                 .document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {

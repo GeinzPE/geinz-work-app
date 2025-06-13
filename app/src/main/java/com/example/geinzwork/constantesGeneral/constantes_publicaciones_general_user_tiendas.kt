@@ -16,6 +16,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -127,7 +128,7 @@ object constantes_publicaciones_general_user_tiendas {
 
             for (datos in res) {
                 val data = datos.data
-                val imgProducto = data["img_principal"] as? String ?: ""
+                val imgProducto = data["img_url"] as? String ?: ""
                 val descuentoActivo = data["descuento"] as? Boolean ?: false
                 val id = data["id"] as? String ?: ""
                 val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
@@ -223,7 +224,7 @@ object constantes_publicaciones_general_user_tiendas {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("publicaciones_trabajos").document(productoClikado)
+                .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
             bindingProductosTrabajadores.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -246,7 +247,8 @@ object constantes_publicaciones_general_user_tiendas {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(productoClikado)
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -288,12 +290,13 @@ object constantes_publicaciones_general_user_tiendas {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("productos_venta").document("publicados").collection("publicados")
+                .document(idTrabajador).collection("productos_venta").document("publicados")
+                .collection("publicados")
                 .document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data
-                val img_url = data?.get("img_principal") as? String ?: ""
+                val img_url = data?.get("img_url") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
                 Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
                 if (img_url.isNotEmpty()) {
@@ -362,7 +365,7 @@ object constantes_publicaciones_general_user_tiendas {
         db.get().addOnSuccessListener { res ->
             listaProductosUSer.clear()
             for (datos in res) {
-                val imgProducto = datos["img_principal"] as? String ?: ""
+                val imgProducto = datos["img_url"] as? String ?: ""
                 val descuentoActivo = datos["descuento"] as? Boolean ?: false
                 val id = datos["id"] as? String ?: ""
                 val cantidadDescuento = datos["cantidad_porcentaje_descuento"] as? Number ?: 0
@@ -866,6 +869,26 @@ object constantes_publicaciones_general_user_tiendas {
 
                 bindingMostrar.textoTrabajosRealzados.text = contenido
                 bindingMostrar.tituloTrabajosRealizados.text = titulo
+                val db = FirebaseFirestore.getInstance()
+                    .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+                    .collection("trabajadores").document(idTrabajador)
+                    .collection("publicaciones_trabajos").document("publicados").collection("publicados").document(item.id.toString())
+                constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    bindingMostrar.compartirIcon.setOnClickListener {
+                        constantesPublicidad.agregarCantidadClickAnuncios(
+                            db,
+                            "",
+                            "compartir"
+                        )
+                        crear_dinamick_link_prblicaciones_trabajador(
+                            context,
+                            idTrabajador,
+                            item.id.toString(),
+                            "Mira esta publicacion relizada por $nombre $apellido",
+                            "${titulo}"
+                        )
+                    }}
+
 
                 // Configurar el carrusel de imágenes si hay imágenes disponibles
                 if (listaImg.isNotEmpty()) {
@@ -918,6 +941,70 @@ object constantes_publicaciones_general_user_tiendas {
 
 
     }
+     fun crear_dinamick_link_prblicaciones_trabajador(
+        contex: Context,
+        idTrabajador: String,
+        id_publicacion: String,
+        titulo_dinamick: String,
+        texto_dinamick: String
+    ) {
+        val userCollections =
+            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(idTrabajador).collection("publicaciones_trabajos").document("publicados").collection("publicados")
+                .document(id_publicacion)
+        userCollections.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img_url = data?.get("img_url") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
+                Firebase.dynamicLinks.shortLinkAsync {
+                    link =
+                        Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
+                    domainUriPrefix = "https://geinzapp.page.link"
+                    androidParameters("com.geinzz.geinzwork") {
+                        minimumVersion = 125
+                    }
+                    iosParameters("com.geinzz.ios") {
+                        appStoreId = "123456789"
+                        minimumVersion = "1.0.1"
+                    }
+                    googleAnalyticsParameters {
+                        source = "orkut"
+                        medium = "social"
+                        campaign = "geinzz-promo"
+                    }
+                    itunesConnectAnalyticsParameters {
+                        providerToken = "123456"
+                        campaignToken = "geinzz-promo"
+                    }
+                    socialMetaTagParameters {
+                        title = titulo_dinamick
+                        description = texto_dinamick
+                        imageUrl = Uri.parse(img_url)
+                    }
+                }.addOnSuccessListener { shortDynamicLink ->
+                    val shortLink = shortDynamicLink.shortLink
+                    val invitationLink = shortLink.toString()
+
+                    val sendIntent: Intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, invitationLink)
+                        type = "text/plain"
+                    }
+                    contex.startActivity(Intent.createChooser(sendIntent, null))
+                }.addOnFailureListener {
+                    println("Hubo un error con los links dinámicos: $it")
+                }
+
+            } else {
+                println("El anuncio no existe.")
+            }
+        }.addOnFailureListener { exception ->
+            println("Error al obtener el anuncio: ${exception.message}")
+        }
+    }
 
     fun obtenerMasTrabajosRealiazdos(
         context: Context,
@@ -929,6 +1016,7 @@ object constantes_publicaciones_general_user_tiendas {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados")
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = true
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
             "Trabajos recientes"

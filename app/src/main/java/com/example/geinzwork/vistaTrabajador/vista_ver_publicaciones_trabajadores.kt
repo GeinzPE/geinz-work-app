@@ -22,6 +22,7 @@ import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaVerPublicacionesTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
@@ -65,15 +66,17 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("publicaciones_trabajos").document(id_publicacion_clikeada)
+                .collection("publicaciones_trabajos").document("publicados")
+                .collection("publicados").document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
                     "",
                     "compartir"
                 )
-                crear_dinamick_link(
-                    idTrabajador,
+                constantes_publicaciones_general_user_tiendas.crear_dinamick_link_prblicaciones_trabajador(
+                    this,
+                            idTrabajador,
                     id_publicacion_clikeada,
                     "Mira esta publicacion relizada por $nombre $apellido",
                     "${binding.titulo.text}"
@@ -144,69 +147,6 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
 
     }
 
-    private fun crear_dinamick_link(
-        idTrabajador: String,
-        id_publicacion: String,
-        titulo_dinamick: String,
-        texto_dinamick: String
-    ) {
-        val userCollections =
-            FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("publicaciones_trabajos")
-                .document(id_publicacion)
-        userCollections.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data
-                val img_url = data?.get("img_url") as? String ?: ""
-                val titulo = data?.get("titulo") as? String ?: ""
-                Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
-                Firebase.dynamicLinks.shortLinkAsync {
-                    link =
-                        Uri.parse("https://geinzapp.page.link/?idTrabajadorVeri=${idTrabajador}&idpublicacion=${id_publicacion}")
-                    domainUriPrefix = "https://geinzapp.page.link"
-                    androidParameters("com.geinzz.geinzwork") {
-                        minimumVersion = 125
-                    }
-                    iosParameters("com.geinzz.ios") {
-                        appStoreId = "123456789"
-                        minimumVersion = "1.0.1"
-                    }
-                    googleAnalyticsParameters {
-                        source = "orkut"
-                        medium = "social"
-                        campaign = "geinzz-promo"
-                    }
-                    itunesConnectAnalyticsParameters {
-                        providerToken = "123456"
-                        campaignToken = "geinzz-promo"
-                    }
-                    socialMetaTagParameters {
-                        title = titulo_dinamick
-                        description = texto_dinamick
-                        imageUrl = Uri.parse(img_url)
-                    }
-                }.addOnSuccessListener { shortDynamicLink ->
-                    val shortLink = shortDynamicLink.shortLink
-                    val invitationLink = shortLink.toString()
-
-                    val sendIntent: Intent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, invitationLink)
-                        type = "text/plain"
-                    }
-                    startActivity(Intent.createChooser(sendIntent, null))
-                }.addOnFailureListener {
-                    println("Hubo un error con los links dinámicos: $it")
-                }
-
-            } else {
-                println("El anuncio no existe.")
-            }
-        }.addOnFailureListener { exception ->
-            println("Error al obtener el anuncio: ${exception.message}")
-        }
-    }
 
     private fun obtener_publicacion_actual(idTrabajador: String, idpublicaicon: String) {
         val tiempoInicio = System.currentTimeMillis()
@@ -214,7 +154,8 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("publicaciones_trabajos").document(idpublicaicon)
+            .collection("publicaciones_trabajos").document("publicados").collection("publicados")
+            .document(idpublicaicon)
 
         db.get().addOnSuccessListener { res ->
             val tiempoFin = System.currentTimeMillis()

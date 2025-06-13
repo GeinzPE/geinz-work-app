@@ -806,12 +806,19 @@ class inicioFracment : Fragment() {
         val documentosFirestore = mutableListOf<DocumentSnapshot>()
         val idTrabajadoresPorDocumento = mutableListOf<String>()
 
-        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
-            .document("verificaciones").collection("activos")
+        val db = FirebaseFirestore.getInstance()
+            .collection("solicitudes_servicios")
+            .document("verificaciones")
+            .collection("activos")
 
         db.get().addOnSuccessListener { res ->
             val trabajadores = res.documents
-            if (trabajadores.isEmpty()) return@addOnSuccessListener
+            if (trabajadores.isEmpty()) {
+                binding.carrucelPublicacionesRecientes.isVisible = false
+                binding.linealNoEncontrado.isVisible = true
+                binding.noEncontrado.text = "No se encontraron publicaciones"
+                return@addOnSuccessListener
+            }
 
             var trabajadoresProcesados = 0
 
@@ -825,48 +832,67 @@ class inicioFracment : Fragment() {
                     .collection("trabajadores")
                     .document(id_trabajador_actual)
                     .collection("publicaciones_trabajos")
+                    .document("publicados")
+                    .collection("publicados")
 
                 dbUsers.get().addOnSuccessListener { productos ->
                     if (!productos.isEmpty) {
                         val aleatorio = productos.documents.random()
                         val img_producto = aleatorio.get("img_url") as? String ?: ""
+                        Log.d("la_img_encontrada", img_producto)
+
                         lista.add(CarouselItem(img_producto))
                         documentosFirestore.add(aleatorio)
-                        idTrabajadoresPorDocumento.add(id_trabajador_actual) // Asociamos ID con documento
-                    } else {
-                        binding.carrucelPublicacionesRecientes.isVisible = false
-                        binding.linealNoEncontrado.isVisible = true
-                        binding.noEncontrado.text = "No se encontraron publicaciones"
+                        idTrabajadoresPorDocumento.add(id_trabajador_actual)
                     }
 
                     trabajadoresProcesados++
+
                     if (trabajadoresProcesados == trabajadores.size) {
-                        configurarCarruselPublicaicones_ralziadas(
-                            lista,
-                            documentosFirestore,
-                            idTrabajadoresPorDocumento
-                        )
+                        if (lista.isNotEmpty()) {
+                            binding.carrucelPublicacionesRecientes.isVisible = true
+                            binding.linealNoEncontrado.isVisible = false
+                            configurarCarruselPublicaicones_ralziadas(
+                                lista,
+                                documentosFirestore,
+                                idTrabajadoresPorDocumento
+                            )
+                        } else {
+                            binding.carrucelPublicacionesRecientes.isVisible = false
+                            binding.linealNoEncontrado.isVisible = true
+                            binding.noEncontrado.text = "No se encontraron publicaciones"
+                        }
                     }
 
                 }.addOnFailureListener {
-                    binding.carrucelPublicacionesRecientes.isVisible = false
-                    binding.linealNoEncontrado.isVisible = true
-                    binding.noEncontrado.text = "No se encontraron publicaciones"
                     trabajadoresProcesados++
+
                     if (trabajadoresProcesados == trabajadores.size) {
-                        configurarCarruselPublicaicones_ralziadas(
-                            lista,
-                            documentosFirestore,
-                            idTrabajadoresPorDocumento
-                        )
+                        if (lista.isNotEmpty()) {
+                            binding.carrucelPublicacionesRecientes.isVisible = true
+                            binding.linealNoEncontrado.isVisible = false
+                            configurarCarruselPublicaicones_ralziadas(
+                                lista,
+                                documentosFirestore,
+                                idTrabajadoresPorDocumento
+                            )
+                        } else {
+                            binding.carrucelPublicacionesRecientes.isVisible = false
+                            binding.linealNoEncontrado.isVisible = true
+                            binding.noEncontrado.text = "No se encontraron publicaciones"
+                        }
                     }
                 }
             }
 
         }.addOnFailureListener { e ->
             Log.e("ProductosVerificados", "Error al obtener documentos", e)
+            binding.carrucelPublicacionesRecientes.isVisible = false
+            binding.linealNoEncontrado.isVisible = true
+            binding.noEncontrado.text = "No se encontraron publicaciones"
         }
     }
+
 
     private fun obtenerProductos_trabajadores() {
         val lista = mutableListOf<CarouselItem>()
@@ -878,7 +904,12 @@ class inicioFracment : Fragment() {
 
         db.get().addOnSuccessListener { res ->
             val trabajadores = res.documents
-            if (trabajadores.isEmpty()) return@addOnSuccessListener
+            if (trabajadores.isEmpty()) {
+                binding.carrucelProductosTrabajdores.isVisible = false
+                binding.linealNoEncontradoProductos.isVisible = true
+                binding.noEncontradoProducto.text = "No se encontraron productos"
+                return@addOnSuccessListener
+            }
 
             var trabajadoresProcesados = 0
 
@@ -891,41 +922,58 @@ class inicioFracment : Fragment() {
                     .collection("trabajadores")
                     .document(id_trabajador)
                     .collection("productos_venta")
+                    .document("publicados")
+                    .collection("publicados")
 
                 dbUsers.get().addOnSuccessListener { productos ->
                     if (!productos.isEmpty) {
                         val aleatorio = productos.documents.random()
-                        val img_producto = aleatorio.get("img_principal") as? String ?: ""
+                        val img_producto = aleatorio.get("img_url") as? String ?: ""
+
                         lista.add(CarouselItem(img_producto))
                         documentosFirestore.add(aleatorio)
                         idTrabajadoresPorDocumento.add(id_trabajador)
-                    } else {
-                        binding.carrucelProductosTrabajdores.isVisible = false
-                        binding.linealNoEncontradoProductos.isVisible = true
-                        binding.noEncontradoProducto.text = "No se encontraron productos"
                     }
 
                     trabajadoresProcesados++
+
                     if (trabajadoresProcesados == trabajadores.size) {
-                        // Todos los trabajadores han sido procesados, ahora se setea el carrusel
-                        configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                        if (lista.isNotEmpty()) {
+                            binding.carrucelProductosTrabajdores.isVisible = true
+                            binding.linealNoEncontradoProductos.isVisible = false
+                            configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                        } else {
+                            binding.carrucelProductosTrabajdores.isVisible = false
+                            binding.linealNoEncontradoProductos.isVisible = true
+                            binding.noEncontradoProducto.text = "No se encontraron productos"
+                        }
                     }
 
                 }.addOnFailureListener {
-                    binding.carrucelProductosTrabajdores.isVisible = false
-                    binding.linealNoEncontradoProductos.isVisible = true
-                    binding.noEncontradoProducto.text = "No se encontraron productos"
                     trabajadoresProcesados++
+
                     if (trabajadoresProcesados == trabajadores.size) {
-                        configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                        if (lista.isNotEmpty()) {
+                            binding.carrucelProductosTrabajdores.isVisible = true
+                            binding.linealNoEncontradoProductos.isVisible = false
+                            configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                        } else {
+                            binding.carrucelProductosTrabajdores.isVisible = false
+                            binding.linealNoEncontradoProductos.isVisible = true
+                            binding.noEncontradoProducto.text = "No se encontraron productos"
+                        }
                     }
                 }
             }
 
         }.addOnFailureListener { e ->
             Log.e("ProductosVerificados", "Error al obtener documentos", e)
+            binding.carrucelProductosTrabajdores.isVisible = false
+            binding.linealNoEncontradoProductos.isVisible = true
+            binding.noEncontradoProducto.text = "No se encontraron productos"
         }
     }
+
 
     private fun configurarCarrusel(
         id_trabajador: List<String>,
@@ -954,8 +1002,11 @@ class inicioFracment : Fragment() {
                 val doc = documentos[position]
                 val id_trabajador = id_trabajador[position]
                 val titulo: String = doc.get("nombre") as? String ?: ""
-                val descripcion: String = doc.get("descripcion") as? String ?: ""
-                val img_producto: String = doc.get("img_principal") as? String ?: ""
+                val descripcionTitulo = doc["descripcion_titulo"] as? Map<String, Any> ?: emptyMap()
+                val tituloDescripcion = descripcionTitulo["titulo_descripcion"] as? String ?: ""
+
+
+                val img_producto: String = doc.get("img_url") as? String ?: ""
                 val precio: Number = doc.get("precio") as? Number ?: 0
                 val descuento_porcentajeProducto: Number =
                     doc.get("cantidad_porcentaje_descuento") as? Number ?: 0
@@ -991,7 +1042,7 @@ class inicioFracment : Fragment() {
                 }
 
                 currentBinding.tituloProducto.text = titulo
-                currentBinding.descripcionProducto.text = descripcion
+                currentBinding.descripcionProducto.text = tituloDescripcion
 
                 if (descuentoBoolean) {
                     constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
@@ -1052,6 +1103,21 @@ class inicioFracment : Fragment() {
         documentos: List<DocumentSnapshot>,
         idTrabajadores: List<String>,
     ) {
+        Log.d("DEBUG_CARRUSEL", "Lista CarouselItem (tamaño: ${lista.size}):")
+        lista.forEachIndexed { index, item ->
+            Log.d("DEBUG_CARRUSEL", "[$index] imageUrl: ${item.imageUrl}")
+        }
+
+        Log.d("DEBUG_CARRUSEL", "Lista Documentos Firestore (tamaño: ${documentos.size}):")
+        documentos.forEachIndexed { index, doc ->
+            Log.d("DEBUG_CARRUSEL", "[$index] ID Publicación: ${doc.getString("id")}, Contenido: ${doc.getString("contenido")}")
+        }
+
+        Log.d("DEBUG_CARRUSEL", "Lista ID de Trabajadores (tamaño: ${idTrabajadores.size}):")
+        idTrabajadores.forEachIndexed { index, id ->
+            Log.d("DEBUG_CARRUSEL", "[$index] ID trabajador: $id")
+        }
+
         binding.carrucelPublicacionesRecientes.registerLifecycle(lifecycle)
         binding.carrucelPublicacionesRecientes.carouselListener = object : CarouselListener {
             override fun onCreateViewHolder(
@@ -1074,7 +1140,6 @@ class inicioFracment : Fragment() {
                     binding as ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
                 val doc = documentos[position]
                 val id_trabajador = idTrabajadores[position] // <- Ahora sí es el correcto
-
                 val contenidoPublicacion: String = doc.get("contenido") as? String ?: ""
                 val img_url: String = doc.get("img_url") as? String ?: ""
                 val id: String = doc.get("id") as? String ?: ""

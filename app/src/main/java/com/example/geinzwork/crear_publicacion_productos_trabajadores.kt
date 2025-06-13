@@ -974,6 +974,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         FirebaseFirestore.getInstance().collection("productos_publicaciones")
                             .document("producto").collection("producto").document(productId)
                     val hasmap_producto = hashMapOf<String, Any>(
+                        "id_trabajador" to firebaseAuth.uid.toString(),
                         "id" to productId,
                         "cantidad_porcentaje_descuento" to descuentoAplicado,
                         "img" to "",
@@ -1001,9 +1002,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
     }
 
-    private fun agregar_productos_publicaciones(id_publicado: String) {
-
-    }
 
     private fun subir_imgCaracteristica(productId: String) {
         val storageRef = FirebaseStorage.getInstance().reference
@@ -1050,7 +1048,9 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("productos_venta")
             .document("publicados").collection("publicados").document(id_publicacion)
-
+        val dbProductos_publicados =
+            FirebaseFirestore.getInstance().collection("productos_publicaciones")
+                .document("producto").collection("producto").document(id_publicacion)
         imagenesValidas.forEachIndexed { index, imageView ->
             val bitmap = (imageView.drawable as BitmapDrawable).bitmap
             val baos = ByteArrayOutputStream()
@@ -1073,6 +1073,14 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                                 .addOnSuccessListener {
                                     Log.d("Firestore", "URLs de imágenes actualizadas con éxito.")
                                 }
+                            dbProductos_publicados.update(firestoreData).addOnSuccessListener {
+                                Log.d("Firestore", "URLs de imágenes actualizadas con éxito.2")
+                            }.addOnFailureListener { e ->
+                                Log.e(
+                                    "Firestore",
+                                    "Error al actualizar Firestore: ${e.message}"
+                                )
+                            }
                                 .addOnFailureListener { e ->
                                     Log.e(
                                         "Firestore",
@@ -1100,18 +1108,9 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
             storageRef.putBytes(data)
                 .addOnSuccessListener {
-                    storageRef.downloadUrl.addOnSuccessListener { uri ->
-                        db.update("img_principal", uri.toString())
-                            .addOnSuccessListener {
-                                Log.d("Firestore", "URL de imagen principal guardada con éxito.")
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e(
-                                    "Firestore",
-                                    "Error al guardar imagen principal: ${e.message}"
-                                )
-                            }
-                    }
+                    Log.d("Firestore", "URL de imagen principal guardada con éxito.")
+                
+
                 }
                 .addOnFailureListener { e ->
                     Log.e("Storage", "Error al subir imagen principal: ${e.message}")

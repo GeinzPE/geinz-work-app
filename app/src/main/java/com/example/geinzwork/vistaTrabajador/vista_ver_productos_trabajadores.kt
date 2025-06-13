@@ -71,7 +71,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("publicaciones_trabajos").document(id_publicacion_clikeada)
+                .collection("publicaciones_trabajos").document("publicados").collection("publicados").document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -171,12 +171,12 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("productos_venta")
-                .document(id_publicacion)
+                .document(idTrabajador).collection("productos_venta").document("publicados").collection("publicados").
+                document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data
-                val img_url = data?.get("img_principal") as? String ?: ""
+                val img_url = data?.get("img_url") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
                 Log.d("idpublicacones", "$id_publicacion ,$idTrabajador ,$img_url")
                 if (img_url.isNotEmpty()) {
@@ -384,7 +384,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
 
         obtner_img_descripcion(idTrabajador,productoClikado)
 
@@ -648,7 +648,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         listaImg.clear()
 
         // Obtener las imágenes del mapa `data`
-        val imgPrincipal = data["img_principal"] as? String ?: ""
+        val imgPrincipal = data["img_url"] as? String ?: ""
         val img_url2 = data["img_url2"] as? String ?: ""
         val img_url3 = data["img_url3"] as? String ?: ""
         val img_url4 = data["img_url4"] as? String ?: ""

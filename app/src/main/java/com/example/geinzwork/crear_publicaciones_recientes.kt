@@ -588,6 +588,7 @@ class crear_publicaciones_recientes : AppCompatActivity() {
                 FirebaseFirestore.getInstance().collection("productos_publicaciones")
                     .document("publicaciones").collection("publicaciones").document(newId)
             val hasmap = hashMapOf<String, Any>(
+                "id_trabajador" to firebaseAuth.uid.toString(),
                 "categoria" to binding.complete.text.toString(),
                 "titulo" to binding.tituloPublicacionED.text.toString(),
                 "fecha_rec" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
@@ -651,6 +652,10 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             .document(firebaseAuth.uid.toString()).collection("publicaciones_trabajos")
             .document("publicados").collection("publicados").document(id_publicacion)
 
+        val db_publicados_publicaciones =
+            FirebaseFirestore.getInstance().collection("productos_publicaciones")
+                .document("publicaciones").collection("publicaciones").document(id_publicacion)
+
         val urlsMap = mutableMapOf<String, Any>()
         val totalImagenes = imagenesValidas.size
         var contadorSubidas = 0
@@ -681,6 +686,18 @@ class crear_publicaciones_recientes : AppCompatActivity() {
                                         "Firestore",
                                         "URLs de imágenes guardadas en Firestore correctamente."
                                     )
+                                    db_publicados_publicaciones.update(urlsMap)
+                                        .addOnSuccessListener { res ->
+                                            Log.d(
+                                                "Firestore",
+                                                "URLs de imágenes guardadas en Firestore correctamente.2"
+                                            )
+                                        }.addOnFailureListener { e ->
+                                        Log.e(
+                                            "Firestore",
+                                            "Error al guardar URLs en Firestore: ${e.message}"
+                                        )
+                                    }
                                 }
                                 .addOnFailureListener { e ->
                                     Log.e(
