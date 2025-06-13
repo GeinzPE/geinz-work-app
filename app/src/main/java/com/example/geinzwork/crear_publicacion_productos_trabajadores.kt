@@ -299,7 +299,9 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
     private fun popup() {
         val popup = PopupMenu(this, binding.popup)
-        popup.menu.add(Menu.NONE, 1, 1, "Ver Publicaciones")
+        popup.menu.add(Menu.NONE, 1, 1, "Productos publicados")
+        popup.menu.add(Menu.NONE, 2, 2, "Productos Archivados")
+        popup.menu.add(Menu.NONE, 3, 3, "Productos Eliminados")
         popup.show()
         popup.setOnMenuItemClickListener { item ->
             val itemID = item.itemId
@@ -896,7 +898,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
-            .collection("productos_venta")
+            .collection("productos_venta").document("publicados").collection("publicados")
 
         val descuentoAplicado = if (descuento) {
             val descuentoCalculado =
@@ -1043,6 +1045,11 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
     private fun guardar_img_storage(id_publicacion: String) {
         val imagenesValidas = obtenerImagenesValidas()
+        val firestoreData = hashMapOf<String, Any>()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("productos_venta")
+            .document("publicados").collection("publicados").document(id_publicacion)
 
         imagenesValidas.forEachIndexed { index, imageView ->
             val bitmap = (imageView.drawable as BitmapDrawable).bitmap
@@ -1056,7 +1063,24 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
             storageRef.putBytes(data)
                 .addOnSuccessListener {
-                    Log.d("Storage", "Imagen subida con éxito: $nombreArchivo")
+                    storageRef.downloadUrl.addOnSuccessListener { uri ->
+                        val campoNombre = if (index == 0) "img_url" else "img_url${index + 1}"
+                        firestoreData[campoNombre] = uri.toString()
+
+                        // Actualizar Firestore cuando todas las imágenes estén listas
+                        if (firestoreData.size == imagenesValidas.size) {
+                            db.update(firestoreData)
+                                .addOnSuccessListener {
+                                    Log.d("Firestore", "URLs de imágenes actualizadas con éxito.")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e(
+                                        "Firestore",
+                                        "Error al actualizar Firestore: ${e.message}"
+                                    )
+                                }
+                        }
+                    }
                 }
                 .addOnFailureListener { e ->
                     Log.e("Storage", "Error al subir imagen $nombreArchivo: ${e.message}")
@@ -1076,7 +1100,18 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
             storageRef.putBytes(data)
                 .addOnSuccessListener {
-                    Log.d("Storage", "Imagen principal subida con éxito: $nombreArchivo")
+                    storageRef.downloadUrl.addOnSuccessListener { uri ->
+                        db.update("img_principal", uri.toString())
+                            .addOnSuccessListener {
+                                Log.d("Firestore", "URL de imagen principal guardada con éxito.")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(
+                                    "Firestore",
+                                    "Error al guardar imagen principal: ${e.message}"
+                                )
+                            }
+                    }
                 }
                 .addOnFailureListener { e ->
                     Log.e("Storage", "Error al subir imagen principal: ${e.message}")

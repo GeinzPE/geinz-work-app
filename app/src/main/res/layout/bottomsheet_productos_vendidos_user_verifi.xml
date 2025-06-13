@@ -164,7 +164,6 @@
 
                     <TextView
                         android:id="@+id/tvReadMore"
-
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:visibility="gone" />
@@ -190,6 +189,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/comprar"
@@ -295,7 +295,7 @@
 
                     <LinearLayout
                         android:id="@+id/linealTextos_descripcion"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:orientation="vertical"

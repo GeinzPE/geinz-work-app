@@ -1191,7 +1191,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         binding.publicaciones.tituloServico.text = "Publicaciones"
         binding.productosVenta.tituloServico.text = "Productos en venta"
 
-        obtenerTrabajosRecientes("trabajos_realizados", { valor ->
+        obtenerTrabajosRecientes("trabajos_realizados", "publicados", { valor ->
             val trabajos_activos =
                 SpannableString("Trabajos activos : ${valor}")
             constantestextos_general.setearInformacionboldDescripcion(
@@ -1199,7 +1199,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 trabajos_activos, binding.traajosRecientes.activos
             )
         })
-        obtenerTrabajosRecientes("publicaciones_trabajos", { valor ->
+        obtenerTrabajosRecientes("publicaciones_trabajos", "publicados", { valor ->
             val activas_trabajos =
                 SpannableString("Publicaciones activas : ${valor}")
             constantestextos_general.setearInformacionboldDescripcion(
@@ -1210,7 +1210,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
 
 
-        obtenerTrabajosRecientes("productos_venta", { valor ->
+        obtenerTrabajosRecientes("productos_venta", "publicados", { valor ->
             val productos_activos =
                 SpannableString("Productos activos : ${valor}")
             constantestextos_general.setearInformacionboldDescripcion(
@@ -1254,13 +1254,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     }
 
-    private fun obtenerTrabajosRecientes(col: String, callback: (String) -> Unit) {
+    private fun obtenerTrabajosRecientes(col1: String, col: String, callback: (String) -> Unit) {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores")
             .collection("trabajadores")
             .document(firebaseAuth.uid.toString())
-            .collection(col)
+            .collection(col1).document(col).collection(col)
 
         db.get().addOnSuccessListener { res ->
             val cantidadPublicadas = res.size()

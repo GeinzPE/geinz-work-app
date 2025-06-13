@@ -62,55 +62,116 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val archivar = bottoSheet.archivar
 
         eliminar.setOnClickListener {
-            eliminarPublicacion(item)
+            archivar_eliminar_publicacion(item.id_publicacion.toString(),"eliminados")
 
         }
         editar.setOnClickListener {
             editar_publicaciones(item.id_publicacion.toString())
         }
+        archivar.setOnClickListener {
+            archivar_eliminar_publicacion(item.id_publicacion.toString(),"archivados")
+        }
 
         dialog.setContentView(view)
     }
 
-    private fun eliminarPublicacion(item: dataclas_trabajos_ralizados_verificados) {
-        AlertDialog.Builder(this)
-            .setTitle("Eliminar publicación")
-            .setMessage("¿Estás seguro de que quieres eliminar esta publicación?")
-            .setPositiveButton("Sí") { dialog, which ->
-                // El usuario confirmó, eliminar la publicación
-                val db =
-                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                        .document(firebaseAuth.uid.toString())
-                        .collection("publicaciones_trabajos")
-                        .document(item.id_publicacion.toString())
-                db.delete().addOnSuccessListener {
-                    Toast.makeText(
-                        this,
-                        "Publicación eliminada correctamente",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    obtener_publicaciones_realizadas(firebaseAuth.uid.toString())
-                }.addOnFailureListener {
-                    Toast.makeText(
-                        this,
-                        "Ocurrió un error al eliminar la publicación",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-            .setNegativeButton("No") { dialog, which ->
-                // El usuario canceló, cerrar el diálogo
-                dialog.dismiss()
-            }
-            .show()
+//    private fun eliminarPublicacion(item: dataclas_trabajos_ralizados_verificados) {
+//        AlertDialog.Builder(this)
+//            .setTitle("Eliminar publicación")
+//            .setMessage("¿Estás seguro de que quieres eliminar esta publicación?")
+//            .setPositiveButton("Sí") { dialog, which ->
+//                // El usuario confirmó, eliminar la publicación
+//                val db =
+//                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+//                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+//                        .document(firebaseAuth.uid.toString())
+//                        .collection("publicaciones_trabajos")
+//                        .document(item.id_publicacion.toString())
+//                db.delete().addOnSuccessListener {
+//                    Toast.makeText(
+//                        this,
+//                        "Publicación eliminada correctamente",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                    obtener_publicaciones_realizadas(firebaseAuth.uid.toString())
+//                }.addOnFailureListener {
+//                    Toast.makeText(
+//                        this,
+//                        "Ocurrió un error al eliminar la publicación",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                }
+//            }
+//            .setNegativeButton("No") { dialog, which ->
+//                // El usuario canceló, cerrar el diálogo
+//                dialog.dismiss()
+//            }
+//            .show()
+//
+//    }
 
+    private fun archivar_eliminar_publicacion(idSeleccionado: String, tipo: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados").document(idSeleccionado)
+
+        refPublicacion.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+
+                val categoria = data?.get("categoria") as? String ?: ""
+                val contenido = data?.get("contenido") as? String ?: ""
+                val fechaRec = data?.get("fecha_rec") as? String ?: ""
+                val horaRec = data?.get("hora_rec") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                val visibilidad = data?.get("visivilidad") as? String ?: ""
+                val ubicacion = data?.get("ubicacion") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+
+                val hashtagsGenerales = data?.get("hashtags_generales") as? List<String> ?: emptyList()
+                val hashtagsTrabajosPublicados = data?.get("hashtags_trabajos_publicados") as? List<String> ?: emptyList()
+
+                // Creamos el hashmap con los datos para guardar en otra colección (archivados o publicados)
+                val hashMap = hashMapOf(
+                    "categoria" to categoria,
+                    "contenido" to contenido,
+                    "fecha_rec" to fechaRec,
+                    "hora_rec" to horaRec,
+                    "titulo" to titulo,
+                    "visivilidad" to visibilidad,
+                    "ubicacion" to ubicacion,
+                    "id" to id,
+                    "hashtags_generales" to hashtagsGenerales,
+                    "hashtags_trabajos_publicados" to hashtagsTrabajosPublicados
+                )
+
+                // Aquí decides si archivar o publicar de nuevo según `tipo`
+
+                val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores").collection("trabajadores")
+                    .document(uid).collection("publicaciones_trabajos")
+                    .document(tipo).collection(tipo).document(idSeleccionado)
+
+                refDestino.set(hashMap).addOnSuccessListener {
+                    refPublicacion.delete().addOnSuccessListener {
+                        Toast.makeText(this, "Publicación movida a $tipo", Toast.LENGTH_SHORT).show()
+
+                }
+            }}
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al obtener datos: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
     }
+
 
     private fun obtener_publicaciones_realizadas(id: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
-            .collection("publicaciones_trabajos")
+            .collection("publicaciones_trabajos").document("publicados").collection("publicados")
         binding.loading.isVisible = true
         binding.linealNoCuenta.isVisible = false
         binding.recicleViewTrabajos.isVisible = false

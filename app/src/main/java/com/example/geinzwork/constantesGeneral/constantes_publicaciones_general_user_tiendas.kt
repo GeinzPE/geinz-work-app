@@ -73,42 +73,43 @@ object constantes_publicaciones_general_user_tiendas {
     ) {
 
 
-            val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(id)
-                .collection(Variables.trabajos_realizados)
-            binding.linealProductosPublicados.isVisible = true
-            obtenerARticulosComprasVerificado(binding, context, id)
-            lista.clear()
+        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+            .document(id)
+            .collection(Variables.trabajos_realizados).document("publicados")
+            .collection("publicados")
+        binding.linealProductosPublicados.isVisible = true
+        obtenerARticulosComprasVerificado(binding, context, id)
+        lista.clear()
 
-            db.get().addOnSuccessListener { res ->
-                val listaTemporal = mutableListOf<dataclas_trabajos_ralizados>()
-                for (datos in res) {
-                    val data = datos.data
-                    val trabajoRealizado = dataclas_trabajos_ralizados(
-                        data?.get(Variables.imageUrl) as? String ?: "",
-                        data?.get(Variables.titulo) as? String ?: "",
-                        data?.get(Variables.descripcion) as? String ?: "",
-                        data?.get(Variables.fecha) as? String ?: "",
-                        data?.get(Variables.hora) as? String ?: "",
-                        data?.get(Variables.id) as? String ?: ""
-                    )
-                    listaTemporal.add(trabajoRealizado)
-                }
-
-                // Mezclar los elementos de la lista de manera aleatoria
-                listaTemporal.shuffle()
-                // Tomar hasta 5 elementos aleatorios
-                lista.addAll(listaTemporal.take(5))
-
-                if (lista.isEmpty()) {
-                    binding.noSeEncontroPublicaciones.isVisible = true
-                } else {
-                    binding.noSeEncontroPublicaciones.isVisible = false
-                    inicializarRecicle(binding.TrabajosRealizados, adapter, context)
-                    adapter.notifyDataSetChanged() // Notificar cambios en la lista
-                }
+        db.get().addOnSuccessListener { res ->
+            val listaTemporal = mutableListOf<dataclas_trabajos_ralizados>()
+            for (datos in res) {
+                val data = datos.data
+                val trabajoRealizado = dataclas_trabajos_ralizados(
+                    data?.get("img_url") as? String ?: "",
+                    data?.get(Variables.titulo) as? String ?: "",
+                    data?.get(Variables.descripcion) as? String ?: "",
+                    data?.get(Variables.fecha) as? String ?: "",
+                    data?.get(Variables.hora) as? String ?: "",
+                    data?.get(Variables.id) as? String ?: ""
+                )
+                listaTemporal.add(trabajoRealizado)
             }
+
+            // Mezclar los elementos de la lista de manera aleatoria
+            listaTemporal.shuffle()
+            // Tomar hasta 5 elementos aleatorios
+            lista.addAll(listaTemporal.take(5))
+
+            if (lista.isEmpty()) {
+                binding.noSeEncontroPublicaciones.isVisible = true
+            } else {
+                binding.noSeEncontroPublicaciones.isVisible = false
+                inicializarRecicle(binding.TrabajosRealizados, adapter, context)
+                adapter.notifyDataSetChanged()
+            }
+        }
 
     }
 
@@ -119,7 +120,7 @@ object constantes_publicaciones_general_user_tiendas {
     ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
+            .collection("productos_venta").document("publicados").collection("publicados")
 
         db.get().addOnSuccessListener { res ->
             val listaTemporal = mutableListOf<dataclas_item_preview_art_comprar>()
@@ -245,7 +246,7 @@ object constantes_publicaciones_general_user_tiendas {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -287,7 +288,7 @@ object constantes_publicaciones_general_user_tiendas {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("productos_venta")
+                .document(idTrabajador).collection("productos_venta").document("publicados").collection("publicados")
                 .document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -354,6 +355,7 @@ object constantes_publicaciones_general_user_tiendas {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("productos_venta")
+            .document("publicados").collection("publicados")
         bindingProductosVencidodos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = true
         bindingProductosVencidodos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
             "Productos"
@@ -431,20 +433,25 @@ object constantes_publicaciones_general_user_tiendas {
                     val data = res.data
                     val nombre_trabajador = data?.get("nombre") as? String ?: ""
                     val verificado = data?.get("verificado") as? Boolean ?: false
-                    constantes_servicios.verificarEstado_vericiacion(bindingProductosTrabajadores.iconoVerificado,idTrabajador ){ v, plan->
-                        when(plan){
-                            Variables.plaA->{
+                    constantes_servicios.verificarEstado_vericiacion(
+                        bindingProductosTrabajadores.iconoVerificado,
+                        idTrabajador
+                    ) { v, plan ->
+                        when (plan) {
+                            Variables.plaA -> {
                                 bindingProductosTrabajadores.iconoVerificado.setImageResource(R.drawable.verificado_a)
                                 bindingProductosTrabajadores.nombreTrabajador.text =
                                     "Vendido por : $nombre_trabajador"
 
                             }
-                            Variables.planB->{
+
+                            Variables.planB -> {
                                 bindingProductosTrabajadores.iconoVerificado.setImageResource(R.drawable.icon_verificado)
                                 bindingProductosTrabajadores.nombreTrabajador.text =
                                     "Vendido por : $nombre_trabajador"
                             }
-                            Variables.PlanC->{
+
+                            Variables.PlanC -> {
                                 bindingProductosTrabajadores.iconoVerificado.setImageResource(R.drawable.verificado_c)
                                 bindingProductosTrabajadores.nombreTrabajador.text =
                                     "Vendido por : $nombre_trabajador"
@@ -494,17 +501,19 @@ object constantes_publicaciones_general_user_tiendas {
             if (plin) metodosPago.add("Plin")
             if (efectivo) metodosPago.add("Efectivo")
 
-            obtner_img_descripcion(context,idTrabajador,id,bindingProductosTrabajadores)
+            obtner_img_descripcion(context, idTrabajador, id, bindingProductosTrabajadores)
             bindingProductosTrabajadores.camposProductosUserVerificados.metodosPago.text =
                 metodosPago.joinToString(", ")
             bindingProductosTrabajadores.marcaProducto.text = marca
 
-            if(marca.isNotEmpty() && modelo.isNotEmpty()){
+            if (marca.isNotEmpty() && modelo.isNotEmpty()) {
                 bindingProductosTrabajadores.camposProductosUserVerificados.marca.text = marca
                 bindingProductosTrabajadores.camposProductosUserVerificados.modelo.text = modelo
-                bindingProductosTrabajadores.camposProductosUserVerificados.linealMarcaModelo.isVisible=true
-            }else{
-                bindingProductosTrabajadores.camposProductosUserVerificados.linealMarcaModelo.isVisible=false
+                bindingProductosTrabajadores.camposProductosUserVerificados.linealMarcaModelo.isVisible =
+                    true
+            } else {
+                bindingProductosTrabajadores.camposProductosUserVerificados.linealMarcaModelo.isVisible =
+                    false
 
             }
             if (entrega_domicilio) {
@@ -634,15 +643,21 @@ object constantes_publicaciones_general_user_tiendas {
             onComplete(false)
         }
     }
-    private fun obtner_img_descripcion(context: Context,id_trabajador: String, producto_id: String, bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding) {
+
+    private fun obtner_img_descripcion(
+        context: Context,
+        id_trabajador: String,
+        producto_id: String,
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+    ) {
         val storageRef = FirebaseStorage.getInstance().reference
 
-        val fileName = "caracteristica_producto"
+        val fileName = "imagen_caracteristica.jpg"
 
         val rutaImagen = storageRef
             .child("usuarios")
             .child(id_trabajador)
-            .child("productos_publicados")
+            .child("productos_venta")
             .child(producto_id)
             .child(fileName)
 
@@ -650,8 +665,8 @@ object constantes_publicaciones_general_user_tiendas {
             .addOnSuccessListener { uri ->
                 val urlImagen = uri.toString()
                 Log.d("DownloadURL", "URL de la imagen: $urlImagen")
-                if(urlImagen.isNotEmpty()){
-                    bindingProductosTrabajadores.relativeImgContainer.isVisible=true
+                if (urlImagen.isNotEmpty()) {
+                    bindingProductosTrabajadores.relativeImgContainer.isVisible = true
                     constatnes_carga_imagenes_general.changer_img(
                         bindingProductosTrabajadores.progreesIndicator,
                         context,
@@ -663,8 +678,8 @@ object constantes_publicaciones_general_user_tiendas {
                     ) { completado ->
 
                     }
-                }else{
-                    bindingProductosTrabajadores.relativeImgContainer.isVisible=false
+                } else {
+                    bindingProductosTrabajadores.relativeImgContainer.isVisible = false
                 }
 
             }
@@ -673,6 +688,7 @@ object constantes_publicaciones_general_user_tiendas {
             }
 
     }
+
     private fun inizializarCarruceBindig(
         context: Context,
         idTrabajador: String,
@@ -704,7 +720,8 @@ object constantes_publicaciones_general_user_tiendas {
         bindingProductosVencidodos.netScrollView.isVisible = false
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(productoClikado)
         listaProductosUSer.clear()
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -753,7 +770,7 @@ object constantes_publicaciones_general_user_tiendas {
         listaImg.clear()
 
         // Obtener las imágenes del mapa `data`
-        val imgPrincipal = data["img_principal"] as? String ?: ""
+        val imgPrincipal = data["img_url"] as? String ?: ""
         val img_url2 = data["img_url2"] as? String ?: ""
         val img_url3 = data["img_url3"] as? String ?: ""
         val img_url4 = data["img_url4"] as? String ?: ""
@@ -986,7 +1003,8 @@ object constantes_publicaciones_general_user_tiendas {
     ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(idProducto)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(idProducto)
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {

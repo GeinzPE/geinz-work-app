@@ -40,6 +40,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
 
@@ -191,7 +192,9 @@ class crear_publicaciones_recientes : AppCompatActivity() {
 
     private fun popup() {
         val popup = PopupMenu(this, binding.popup)
-        popup.menu.add(Menu.NONE, 1, 1, "Ver Publicaciones")
+        popup.menu.add(Menu.NONE, 1, 1, "Publicaciones publicadas")
+        popup.menu.add(Menu.NONE, 2, 2, "Publicaciones Archivadas")
+        popup.menu.add(Menu.NONE, 3, 3, "Publicaciones Eliminadas")
         popup.show()
         popup.setOnMenuItemClickListener { item ->
             val itemID = item.itemId
@@ -551,7 +554,8 @@ class crear_publicaciones_recientes : AppCompatActivity() {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id_trabajador)
-            .collection("publicaciones_trabajos")
+            .collection("publicaciones_trabajos").document("publicados").collection("publicados")
+
 
         val hashtagsGenerales = binding.agregarHastagsED.text.toString()
             .split(",")
@@ -577,10 +581,27 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         )
 
 
-
         db.add(hasmap).addOnSuccessListener { documentRef ->
             val newId = documentRef.id
             documentRef.update("id", newId)
+            val db_publicados_publicaciones =
+                FirebaseFirestore.getInstance().collection("productos_publicaciones")
+                    .document("publicaciones").collection("publicaciones").document(newId)
+            val hasmap = hashMapOf<String, Any>(
+                "categoria" to binding.complete.text.toString(),
+                "titulo" to binding.tituloPublicacionED.text.toString(),
+                "fecha_rec" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
+                "hora_rec" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+                "hashtags_generales" to hashtagsGenerales,
+                "hashtags_trabajos_publicados" to hashtagscategorias,
+                "contenido" to binding.descripcionServiciosED.text.toString(),
+            )
+            db_publicados_publicaciones.set(hasmap, SetOptions.merge())
+                .addOnSuccessListener { res ->
+                    Log.d("publicado_corecto", "publicado correcteamnte ")
+                }.addOnSuccessListener { e ->
+                    Log.d("publicado_corecto", "error al publicar $e")
+                }
             Toast.makeText(
                 this@crear_publicaciones_recientes,
                 "Trabajo publicado",
@@ -591,9 +612,10 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             binding.agregarHastagsED.setText("")
             binding.agregarHastagsCategoriasED.setText("")
             binding.agregaUbiED.setText("")
-            binding.mostrarPublicacionPara.text="Todos"
+            binding.mostrarPublicacionPara.text = "Todos"
             guardar_img_storage(newId)
             resetearImagenes()
+
         }.addOnFailureListener { e ->
             Toast.makeText(
                 this@crear_publicaciones_recientes,
@@ -624,6 +646,14 @@ class crear_publicaciones_recientes : AppCompatActivity() {
 
     private fun guardar_img_storage(id_publicacion: String) {
         val imagenesValidas = obtenerImagenesValidas()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados").document(id_publicacion)
+
+        val urlsMap = mutableMapOf<String, Any>()
+        val totalImagenes = imagenesValidas.size
+        var contadorSubidas = 0
 
         imagenesValidas.forEachIndexed { index, imageView ->
             val bitmap = (imageView.drawable as BitmapDrawable).bitmap
@@ -631,19 +661,42 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val data = baos.toByteArray()
 
-            val nombreArchivo = "imagen_$index.jpg"
+            val nombreArchivo = "$index.jpg"
             val storageRef = FirebaseStorage.getInstance().reference
-                .child("usuarios/${firebaseAuth.uid.toString()}/publicaciones/$id_publicacion/$nombreArchivo")
+                .child("usuarios/${firebaseAuth.uid}/publicaciones/$id_publicacion/$nombreArchivo")
 
             storageRef.putBytes(data)
                 .addOnSuccessListener {
-                    Log.d("Storage", "Imagen subida con éxito: $nombreArchivo")
+                    // Obtener la URL de descarga
+                    storageRef.downloadUrl.addOnSuccessListener { uri ->
+                        val key = if (index == 0) "img_url" else "img_url${index + 1}"
+                        urlsMap[key] = uri.toString()
+                        contadorSubidas++
+
+                        // Cuando todas las imágenes estén subidas, actualizar Firestore
+                        if (contadorSubidas == totalImagenes) {
+                            db.update(urlsMap)
+                                .addOnSuccessListener {
+                                    Log.d(
+                                        "Firestore",
+                                        "URLs de imágenes guardadas en Firestore correctamente."
+                                    )
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e(
+                                        "Firestore",
+                                        "Error al guardar URLs en Firestore: ${e.message}"
+                                    )
+                                }
+                        }
+                    }
                 }
                 .addOnFailureListener { e ->
                     Log.e("Storage", "Error al subir imagen $nombreArchivo: ${e.message}")
+                    contadorSubidas++ // Avanzar igual para no colgarse si falla una
                 }
         }
-
     }
+
 
 }

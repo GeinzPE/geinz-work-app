@@ -43,7 +43,7 @@ object constantes_vistas_publicaciones_productos_verificados {
     ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
+            .collection("productos_venta").document("publicados").collection("publicados")
 
         val listaTemporal = mutableListOf<dataclas_item_preview_art_comprar>()
 
@@ -145,16 +145,21 @@ object constantes_vistas_publicaciones_productos_verificados {
                     ItemPerfilTrabajadorBinding.cargadoImg,
                     context
                 )
-                constantes_servicios.verificarEstado_vericiacion(ItemPerfilTrabajadorBinding.verificado,idTrabajador ){ v, plan->
-                    when(plan){
-                        Variables.plaA->{
+                constantes_servicios.verificarEstado_vericiacion(
+                    ItemPerfilTrabajadorBinding.verificado,
+                    idTrabajador
+                ) { v, plan ->
+                    when (plan) {
+                        Variables.plaA -> {
                             ItemPerfilTrabajadorBinding.verificado.setImageResource(R.drawable.verificado_a)
 
                         }
-                        Variables.planB->{
+
+                        Variables.planB -> {
                             ItemPerfilTrabajadorBinding.verificado.setImageResource(R.drawable.icon_verificado)
                         }
-                        Variables.PlanC->{
+
+                        Variables.PlanC -> {
                             ItemPerfilTrabajadorBinding.verificado.setImageResource(R.drawable.verificado_c)
 
 
@@ -237,6 +242,7 @@ object constantes_vistas_publicaciones_productos_verificados {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados")
 
         val trabajos = mutableListOf<Map<String, Any>>()
         val datosTrabajos = mutableListOf<Map<String, Any>>()

@@ -314,9 +314,6 @@ class info : Fragment() {
 
     }
 
-    private fun obtener_img_trabajador(id_user: String) {
-
-    }
 
     private fun agregarNotificacionTrabajador(
         valor: Boolean,
@@ -804,7 +801,7 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador)
-            .collection("publicaciones_trabajos")
+            .collection("publicaciones_trabajos").document("publicados").collection("publicados")
 
         db.get().addOnSuccessListener { res ->
             val trabajos = mutableListOf<Map<String, Any>>() // Lista temporal
@@ -815,6 +812,7 @@ class info : Fragment() {
                 val img_url2 = data?.get("img_url2") as? String ?: ""
                 val img_url3 = data?.get("img_url3") as? String ?: ""
                 val img_url4 = data?.get("img_url4") as? String ?: ""
+                val img_url5 = data?.get("img_url4") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
                 val contenido = data?.get("contenido") as? String ?: ""
                 val fecha_rec = data?.get("fecha_rec") as? String ?: ""
@@ -823,7 +821,13 @@ class info : Fragment() {
 
                 // Lista de imágenes filtrando vacíos
                 val listaImg =
-                    listOf(img_url, img_url2, img_url3, img_url4).filter { it.isNotEmpty() }
+                    listOf(
+                        img_url,
+                        img_url2,
+                        img_url3,
+                        img_url4,
+                        img_url5
+                    ).filter { it.isNotEmpty() }
 
                 println("Obtenemos las imágenes de lista img $listaImg")
 
@@ -1041,9 +1045,9 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador)
-            .collection("trabajos_realizados").document(idTrajoReciente)
+            .collection("trabajos_realizados").document("publicados").collection("publicados").document(idTrajoReciente)
 
-        Log.d("enviado_datos","$idTrabajador $idTrajoReciente")
+        Log.d("enviado_datos", "$idTrabajador $idTrajoReciente")
 
         db.get().addOnSuccessListener { res ->
             val tiempoFin = System.currentTimeMillis()
@@ -1055,8 +1059,7 @@ class info : Fragment() {
                 val contenido = data?.get("descripcion") as? String ?: "Sin contenido"
                 val fecha_rec = data?.get("fecha_rec") as? String ?: ""
                 val hora_rec = data?.get("hora_rec") as? String ?: ""
-
-                val img_url = data?.get("imageUrl") as? String ?: ""
+                val img_url = data?.get("img_url") as? String ?: ""
                 val img_url2 = data?.get("img_url2") as? String ?: ""
                 val img_url3 = data?.get("img_url3") as? String ?: ""
                 val img_url4 = data?.get("img_url4") as? String ?: ""
@@ -1859,6 +1862,7 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("trabajos_realizados")
+            .document("publicados").collection("publicados")
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = true
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
             "Publicaciones recientes"
@@ -1868,7 +1872,7 @@ class info : Fragment() {
 
             for (datos in res) {
                 val data = datos.data
-                val img_url = data?.get("imageUrl") as? String ?: ""
+                val img_url = data?.get("img_url") as? String ?: ""
                 val titulo = data?.get("titulo") as? String ?: ""
                 val contenido = data?.get("descripcion") as? String ?: ""
                 val id = data?.get("id") as? String ?: ""

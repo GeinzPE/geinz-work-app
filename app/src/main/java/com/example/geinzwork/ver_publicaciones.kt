@@ -75,14 +75,68 @@ class ver_publicaciones : AppCompatActivity() {
         val archivar = bottoSheet.archivar
 
         eliminar.setOnClickListener {
-            eliminarPublicacion(item)
+            eliminar_archivar(item.id_publicacion.toString(),"eliminados")
 
         }
         editar.setOnClickListener {
 //            editar_publicaciones(item.id_publicacion.toString())
         }
+        archivar.setOnClickListener {
+            eliminar_archivar(item.id_publicacion.toString(),"archivados")
+        }
 
         dialog.setContentView(view)
+    }
+
+
+    private fun eliminar_archivar(idSeleccionado: String, tipo: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        // Referencia al documento original
+        val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("trabajos_realizados")
+            .document("publicados").collection("publicados").document(idSeleccionado)
+
+        // Obtener los datos del documento
+        refOrigen.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data ?: return@addOnSuccessListener
+
+                // Creamos el HashMap con los campos esperados
+                val hashMap = hashMapOf<String, Any>(
+                    Variables.titulo to (data[Variables.titulo] ?: ""),
+                    Variables.descripcion to (data[Variables.descripcion] ?: ""),
+                    Variables.hora to (data[Variables.hora] ?: ""),
+                    Variables.fecha to (data[Variables.fecha] ?: ""),
+                    Variables.id to (data[Variables.id] ?: "")
+                )
+
+                // Determinar la nueva colección destino
+                val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores").collection("trabajadores")
+                    .document(uid).collection("trabajos_realizados")
+                    .document(tipo).collection(tipo).document(idSeleccionado)
+
+                // Mover el documento
+                refDestino.set(hashMap).addOnSuccessListener {
+                    // Eliminar el documento original
+                    refOrigen.delete().addOnSuccessListener {
+                        Toast.makeText(this, "Trabajo movido a $tipo", Toast.LENGTH_SHORT).show()
+                    }.addOnFailureListener {
+                        Toast.makeText(this, "Error al eliminar: ${it.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Error al mover: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
+
+            } else {
+                Toast.makeText(this, "El documento no existe", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al obtener datos: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
 
@@ -214,7 +268,7 @@ class ver_publicaciones : AppCompatActivity() {
     ) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
-            .collection(Variables.trabajos_realizados)
+            .collection(Variables.trabajos_realizados).document("publicados").collection("publicados")
 
         binding.loading.isVisible = true
         lineal_no_cuenta.isVisible = false

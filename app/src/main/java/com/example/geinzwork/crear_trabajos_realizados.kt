@@ -130,7 +130,8 @@ class crear_trabajos_realizados : AppCompatActivity() {
         val descripcion = binding.descripcionServiciosED
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
-            .collection(Variables.trabajos_realizados)
+            .collection(Variables.trabajos_realizados).document("publicados")
+            .collection("publicados")
         if (titulo.text.isNullOrEmpty()) {
             titulo.error = "Ingresa un titulo"
             titulo.requestFocus()
@@ -174,7 +175,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
                     ).show()
                     binding.progressBarContainer.isVisible = false
                     binding.scroll.isVisible = true
-                    guardar_img_storage(id)
+                    guardar_img_storage(newDocRef.id)
                     resetearImagenes()
                     binding.tituloPublicacionED.setText("")
                     binding.descripcionServiciosED.setText("")
@@ -191,16 +192,17 @@ class crear_trabajos_realizados : AppCompatActivity() {
 
     fun popup() {
         val popup = PopupMenu(this, binding.popup)
-        popup.menu.add(Menu.NONE, 1, 1, "Estado de pago y verificacion")
-        popup.menu.add(Menu.NONE, 2, 2, "Trabajos publicados")
-        popup.menu.add(Menu.NONE, 3, 3, "Trabajos Archivados")
+//        popup.menu.add(Menu.NONE, 1, 1, "Estado de pago y verificacion")
+        popup.menu.add(Menu.NONE, 1, 1, "Trabajos publicados")
+        popup.menu.add(Menu.NONE, 2, 2, "Trabajos Archivados")
         popup.menu.add(Menu.NONE, 3, 3, "Trabajos Eliminados")
 
         popup.show()
         popup.setOnMenuItemClickListener { item ->
             val itemID = item.itemId
             if (itemID == 1) {
-                startActivity(Intent(this, voleta_estado_verificacion::class.java))
+//                startActivity(Intent(this, voleta_estado_verificacion::class.java))
+                startActivity(Intent(this, ver_publicaciones::class.java))
             } else if (itemID == 2) {
                 startActivity(Intent(this, ver_publicaciones::class.java))
             }
@@ -218,6 +220,12 @@ class crear_trabajos_realizados : AppCompatActivity() {
 
     private fun guardar_img_storage(id_publicacion: String) {
         val imagenesValidas = obtenerImagenesValidas()
+        val firestoreData = hashMapOf<String, Any>()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("trabajos_realizados")
+            .document("publicados").collection("publicados")
+            .document(id_publicacion)
 
         imagenesValidas.forEachIndexed { index, imageView ->
             val bitmap = (imageView.drawable as BitmapDrawable).bitmap
@@ -232,12 +240,28 @@ class crear_trabajos_realizados : AppCompatActivity() {
             storageRef.putBytes(data)
                 .addOnSuccessListener {
                     Log.d("Storage", "Imagen subida con éxito: $nombreArchivo")
+
+                    // Obtener URL de descarga
+                    storageRef.downloadUrl.addOnSuccessListener { uri ->
+                        val campoNombre = if (index == 0) "img_url" else "img_url${index + 1}"
+                        firestoreData[campoNombre] = uri.toString()
+
+                        // Guardar URLs en Firestore cuando todas estén listas
+                        if (firestoreData.size == imagenesValidas.size) {
+                            db.update(firestoreData)
+                                .addOnSuccessListener {
+                                    Log.d("Firestore", "URLs de imágenes guardadas correctamente.")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("Firestore", "Error al guardar URLs: ${e.message}")
+                                }
+                        }
+                    }
                 }
                 .addOnFailureListener { e ->
                     Log.e("Storage", "Error al subir imagen $nombreArchivo: ${e.message}")
                 }
         }
-
     }
 
 
