@@ -31,11 +31,13 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaVerProductosTrabajadoresBinding
 import com.geinzz.geinzwork.databinding.BottomsheetProductosVendidosUserVerifiBinding
 import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.firebase.Firebase
 import com.google.firebase.dynamiclinks.androidParameters
 import com.google.firebase.dynamiclinks.dynamicLinks
@@ -357,7 +359,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                 if (urlImagen.isNotEmpty()) {
                     binding.relativeImgContainer.isVisible = true
                     constatnes_carga_imagenes_general.changer_img(
-                        binding.progreesIndicator,
+                        binding.progreesIndicator ,
                         this,
                         urlImagen,
                         null,
@@ -429,7 +431,6 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val efectivo = data?.get("efectivo") as? Boolean ?: false
                         val yape = data?.get("yape") as? Boolean ?: false
                         val mas_informacio = data?.get("mas_informacio") as? String ?: ""
-                        val envio_gratis = data?.get("envio_gratis") as? Boolean ?: false
                         val metodoPago = data?.get("metodoPago") as? String ?: ""
                         val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
                         // Obtener valores del mapa de título
@@ -464,26 +465,31 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                             descripcionTextoMap?.get("texto_mayus") as? String ?: ""
 
 
-                        val metodosPago = mutableListOf<String>()
-                        if (yape) metodosPago.add("Yape")
-                        if (plin) metodosPago.add("Plin")
-                        if (efectivo) metodosPago.add("Efectivo")
 
-                        obtener_metodosPaog(idTrabajador, metodoPago) { metodos_encontrados ->
+                        constantes_publicaciones_general_user_tiendas.obtener_metodosPaog(
+                            idTrabajador,
+                            metodoPago
+                        ) { metodos_encontrados ->
                             binding.camposProductosUserVerificados.metodosPago.text =
                                 metodos_encontrados
                         }
-                        obtener_metodoEntrega(idTrabajador,metodoEntrega){metodo_entrega->
-                            binding.camposProductosUserVerificados.metodoEntrega.text = metodo_entrega
-
-                        }
+                        obtener_metodoEntrega(
+                            idTrabajador, metodoEntrega,
+                            callback = { metodo_entrega ->
+                                binding.camposProductosUserVerificados.metodoEntrega.text =
+                                    metodo_entrega
+                            },
+                            evio_gratis = { delivery_gratis ->
+                                if (delivery_gratis) {
+                                    binding.envioGratis.isVisible = true
+                                } else {
+                                    binding.envioGratis.isVisible = false
+                                }
+                            }
+                        )
 
                         binding.masInfomacion.text = mas_informacio
-                        if (envio_gratis) {
-                            binding.envioGratis.isVisible = true
-                        } else {
-                            binding.envioGratis.isVisible = false
-                        }
+
                         if (descuento) {
                             constantestextos_general.marcarDescuentoTxt(binding.camposProductosUserVerificados.precioAntiguo)
                             constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
@@ -646,67 +652,6 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         }.addOnFailureListener {
             binding.cargandoContenido.isVisible = false
             Log.e("obtenerCampos_producto", "Error al obtener el documento: ${it.message}")
-        }
-    }
-
-    private fun obtener_metodoEntrega(
-        idTrabajador: String,
-        metodoEntrega: String,
-        callback: (String) -> Unit
-    ) {
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("metodos_entrega").document(metodoEntrega)
-
-        db.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data
-
-                val metodosDisponibles = mutableListOf<String>()
-
-                // Revisa solo los campos booleanos directamente en el documento
-                if (data?.get("delivery") as? Boolean == true) metodosDisponibles.add("Delivery")
-                if (data?.get("entregaProgramada") as? Boolean == true) metodosDisponibles.add("Entrega Programada")
-                if (data?.get("envioCourier") as? Boolean == true) metodosDisponibles.add("Envío Courier")
-                if (data?.get("lugaresEntrega") as? Boolean == true) metodosDisponibles.add("Lugares de Entrega")
-                if (data?.get("retiroTienda") as? Boolean == true) metodosDisponibles.add("Retiro en Tienda")
-                if (data?.get("coordinar") as? Boolean == true) metodosDisponibles.add("Coordinar")
-
-                val resultadoTexto = metodosDisponibles.joinToString(", ")
-                callback(resultadoTexto)
-            } else {
-                callback("") // Documento no existe
-            }
-        }.addOnFailureListener {
-            callback("") // Error al obtener datos
-        }
-    }
-
-
-    fun obtener_metodosPaog(id_trabajador: String, id_metodo: String, callback: (String) -> Unit) {
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(id_trabajador)
-            .collection("metodos_pago").document(id_metodo)
-
-        db.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data
-
-                val metodosDisponibles = mutableListOf<String>()
-
-                if (data?.get("efectivo") as? Boolean == true) metodosDisponibles.add("Efectivo")
-                if (data?.get("plin") as? Boolean == true) metodosDisponibles.add("Plin")
-                if (data?.get("yape") as? Boolean == true) metodosDisponibles.add("Yape")
-                if (data?.get("transferenia") as? Boolean == true) metodosDisponibles.add("Transferencia")
-                if (data?.get("nombre_metodo") as? Boolean == true) metodosDisponibles.add("Otro")
-
-                val resultadoTexto = metodosDisponibles.joinToString(", ")
-                callback(resultadoTexto)
-            } else {
-                callback("") // Documento no existe
-            }
-        }.addOnFailureListener {
-            callback("") // Error al obtener datos
         }
     }
 

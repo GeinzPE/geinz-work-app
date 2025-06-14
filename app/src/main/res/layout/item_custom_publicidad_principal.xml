@@ -41,7 +41,7 @@
                     android:src="@drawable/agregar_perfil_img_geinz"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
-                <com.google.android.material.progressindicator.CircularProgressIndicator
+                <ProgressBar
                     android:id="@+id/progress_carga_imagen_fondo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -16,6 +16,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -51,6 +53,7 @@ import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.model.mutation.ArrayTransformOperation.Union
 import com.google.firebase.storage.FirebaseStorage
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -224,7 +227,8 @@ object constantes_publicaciones_general_user_tiendas {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
+                .collection("productos_venta").document("publicados").collection("publicados")
+                .document(productoClikado)
             bindingProductosTrabajadores.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -470,43 +474,48 @@ object constantes_publicaciones_general_user_tiendas {
             val precio = data["precio"] as? Number ?: 0
             val precioDescuento = data["precio_descuento"] as? Number ?: 0
             val totalProducto = data["total_producto"] as? Number ?: 0
+            val categoria = data["categoria_producto"] as? String ?: ""
+            val condicionProducto = data["condicion_producto"] as? String ?: ""
+            val descripcion = data["descripcion"] as? String ?: ""
+            val modelo = data["modelo"] as? String ?: ""
+            val descuento = data["descuento"] as? Boolean ?: false
+            val garantia = data["garantia"] as? String ?: ""
+            val id = data["id"] as? String ?: ""
+            val fechaPublicada = data["fechaPublicada"] as? String ?: ""
+            val marca = data["marca"] as? String ?: ""
+            val nombre = data["nombre"] as? String ?: ""
+            val mas_informacio = data["mas_informacio"] as? String ?: ""
+            val stok = data["stok"] as? String ?: ""
+            val cantidad_porcentaje_descuento =
+                data["cantidad_porcentaje_descuento"] as? Number ?: 0
+            val metodoPago = data?.get("metodoPago") as? String ?: ""
+            val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
 
             constantestextos_general.extender_acortar_texto(
                 bindingProductosTrabajadores.camposProductosUserVerificados.descripcion,
                 bindingProductosTrabajadores.camposProductosUserVerificados.tvReadMore
             )
-
-            val categoria = data["categoria_producto"] as? String ?: ""
-            val condicionProducto = data["condicion_producto"] as? String ?: ""
-            val descripcion = data["descripcion"] as? String ?: ""
-
-
-            val modelo = data["modelo"] as? String ?: ""
-            val descuento = data["descuento"] as? Boolean ?: false
-            val efectivo = data["efectivo"] as? Boolean ?: false
-            val entrega_domicilio = data["entrega_domicilio"] as? Boolean ?: false
-            val envio_gratis = data["envio_gratis"] as? Boolean ?: false
-            val garantia = data["garantia"] as? String ?: ""
-            val id = data["id"] as? String ?: ""
-            val fechaPublicada = data["fechaPublicada"] as? String ?: ""
-
-            val lugarDeEntrega = data["lugarEntrega"] as? String ?: ""
-            val marca = data["marca"] as? String ?: ""
-            val nombre = data["nombre"] as? String ?: ""
-            val mas_informacio = data["mas_informacio"] as? String ?: ""
-            val plin = data["plin"] as? Boolean ?: false
-            val stok = data["stok"] as? String ?: ""
-            val yape = data["yape"] as? Boolean ?: false
-            val cantidad_porcentaje_descuento =
-                data["cantidad_porcentaje_descuento"] as? Number ?: 0
-            val metodosPago = mutableListOf<String>()
-            if (yape) metodosPago.add("Yape")
-            if (plin) metodosPago.add("Plin")
-            if (efectivo) metodosPago.add("Efectivo")
-
             obtner_img_descripcion(context, idTrabajador, id, bindingProductosTrabajadores)
-            bindingProductosTrabajadores.camposProductosUserVerificados.metodosPago.text =
-                metodosPago.joinToString(", ")
+            obtener_metodosPaog(idTrabajador, metodoPago) { metodos_encontrados ->
+                bindingProductosTrabajadores.camposProductosUserVerificados.metodosPago.text =
+                    metodos_encontrados
+            }
+            obtener_metodoEntrega(
+                idTrabajador, metodoEntrega,
+                callback = { metodo_entrega ->
+                    bindingProductosTrabajadores.camposProductosUserVerificados.metodoEntrega.text =
+                        metodo_entrega
+                },
+                evio_gratis = { delivery_gratis ->
+                    if (delivery_gratis) {
+                        bindingProductosTrabajadores.envioGratis.isVisible = true
+                    } else {
+                        bindingProductosTrabajadores.envioGratis.isVisible = false
+                    }
+                }
+            )
+
+
             bindingProductosTrabajadores.marcaProducto.text = marca
 
             if (marca.isNotEmpty() && modelo.isNotEmpty()) {
@@ -527,11 +536,7 @@ object constantes_publicaciones_general_user_tiendas {
 //                    "no"
 //            }
             bindingProductosTrabajadores.masInfomacion.text = mas_informacio
-            if (envio_gratis) {
-                bindingProductosTrabajadores.envioGratis.isVisible = true
-            } else {
-                bindingProductosTrabajadores.envioGratis.isVisible = false
-            }
+
             if (descuento) {
                 constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                     precioDescuento,
@@ -646,6 +651,137 @@ object constantes_publicaciones_general_user_tiendas {
             onComplete(false)
         }
     }
+
+    fun obtener_metodoEntrega(
+        idTrabajador: String,
+        metodoEntrega: String,
+        callback: (String) -> Unit,
+        evio_gratis: (Boolean) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("metodos_entrega").document(metodoEntrega)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val metodosDisponibles = mutableListOf<String>()
+
+                val delivery = data?.get("delivery") as? Boolean ?: false
+                val entregaProgramada = data?.get("entregaProgramada") as? Boolean ?: false
+                val envioCourier = data?.get("envioCourier") as? Boolean ?: false
+                val lugaresEntrega = data?.get("lugaresEntrega") as? Boolean ?: false
+                val retiroTienda = data?.get("retiroTienda") as? Boolean ?: false
+                val coordinar = data?.get("coordinar") as? Boolean ?: false
+
+                if (delivery) metodosDisponibles.add("Delivery")
+                if (entregaProgramada) metodosDisponibles.add("Entrega Programada")
+                if (envioCourier) metodosDisponibles.add("Envío Courier")
+                if (lugaresEntrega) metodosDisponibles.add("Lugares de Entrega")
+                if (retiroTienda) metodosDisponibles.add("Retiro en Tienda")
+                if (coordinar) metodosDisponibles.add("Coordinar")
+
+                val resultadoTexto = metodosDisponibles.joinToString(", ")
+
+                if (delivery) {
+                    val datosDelivery = data?.get("datos_delivery") as? Map<*, *>
+                    val esGratis = datosDelivery?.get("gratis") as? Boolean ?: false
+                    evio_gratis(esGratis)
+                }
+
+                callback(resultadoTexto)
+            } else {
+                callback("") // Documento no existe
+            }
+        }.addOnFailureListener {
+            callback("") // Error al obtener datos
+        }
+    }
+
+
+    fun obtener_metodos_entrega_campos(
+        linearLayout: LinearLayout,
+        progressBar: ProgressBar,
+        idTrabajador: String,
+        metodoEntrega: String,
+        datosExtra: (
+            descripcionLugar: String,
+            localidadLugar: String,
+            nombreTienda: String,
+            referenciaTienda: String,
+            localidadTienda: String,
+
+        ) -> Unit
+    ) {
+        progressBar.isVisible = true
+        linearLayout.isVisible=false
+        val tiempoInicio = System.currentTimeMillis()
+
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("metodos_entrega").document(metodoEntrega)
+
+        db.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotal = tiempoFin - tiempoInicio
+            progressBar.isVisible = false
+            linearLayout.isVisible=true
+            if (res.exists()) {
+                val data = res.data
+
+                val datosLugares = data?.get("datos_lugares_entrega") as? Map<*, *>
+                val descripcionLugar = datosLugares?.get("descripcion") as? String ?: ""
+                val localidadLugar = datosLugares?.get("localidad") as? String ?: ""
+
+                val datosTienda = data?.get("datos_retiro_tienda") as? Map<*, *>
+                val nombreTienda = datosTienda?.get("nombre_tienda") as? String ?: ""
+                val referenciaTienda = datosTienda?.get("referencia") as? String ?: ""
+                val localidadTienda = datosTienda?.get("localidad") as? String ?: ""
+
+                datosExtra(descripcionLugar, localidadLugar, nombreTienda, referenciaTienda, localidadTienda)
+            } else {
+                datosExtra("", "", "", "", "")
+            }
+        }.addOnFailureListener {
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotal = tiempoFin - tiempoInicio
+            progressBar.isVisible = false
+            linearLayout.isVisible=false
+            datosExtra("", "", "", "", "")
+        }
+    }
+
+
+
+
+
+    fun obtener_metodosPaog(id_trabajador: String, id_metodo: String, callback: (String) -> Unit) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(id_trabajador)
+            .collection("metodos_pago").document(id_metodo)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+
+                val metodosDisponibles = mutableListOf<String>()
+
+                if (data?.get("efectivo") as? Boolean == true) metodosDisponibles.add("Efectivo")
+                if (data?.get("plin") as? Boolean == true) metodosDisponibles.add("Plin")
+                if (data?.get("yape") as? Boolean == true) metodosDisponibles.add("Yape")
+                if (data?.get("transferenia") as? Boolean == true) metodosDisponibles.add("Transferencia")
+                if (data?.get("nombre_metodo") as? Boolean == true) metodosDisponibles.add("Otro")
+
+                val resultadoTexto = metodosDisponibles.joinToString(", ")
+                callback(resultadoTexto)
+            } else {
+                callback("") // Documento no existe
+            }
+        }.addOnFailureListener {
+            callback("") // Error al obtener datos
+        }
+    }
+
 
     private fun obtner_img_descripcion(
         context: Context,
@@ -872,7 +1008,8 @@ object constantes_publicaciones_general_user_tiendas {
                 val db = FirebaseFirestore.getInstance()
                     .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                     .collection("trabajadores").document(idTrabajador)
-                    .collection("publicaciones_trabajos").document("publicados").collection("publicados").document(item.id.toString())
+                    .collection("publicaciones_trabajos").document("publicados")
+                    .collection("publicados").document(item.id.toString())
                 constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
                     bindingMostrar.compartirIcon.setOnClickListener {
                         constantesPublicidad.agregarCantidadClickAnuncios(
@@ -887,7 +1024,8 @@ object constantes_publicaciones_general_user_tiendas {
                             "Mira esta publicacion relizada por $nombre $apellido",
                             "${titulo}"
                         )
-                    }}
+                    }
+                }
 
 
                 // Configurar el carrusel de imágenes si hay imágenes disponibles
@@ -941,7 +1079,8 @@ object constantes_publicaciones_general_user_tiendas {
 
 
     }
-     fun crear_dinamick_link_prblicaciones_trabajador(
+
+    fun crear_dinamick_link_prblicaciones_trabajador(
         contex: Context,
         idTrabajador: String,
         id_publicacion: String,
@@ -951,7 +1090,8 @@ object constantes_publicaciones_general_user_tiendas {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("publicaciones_trabajos").document("publicados").collection("publicados")
+                .document(idTrabajador).collection("publicaciones_trabajos").document("publicados")
+                .collection("publicados")
                 .document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {

@@ -40,6 +40,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantesSubcategoriaszonasTiendas
 import com.geinzz.geinzwork.constantesGeneral.constantesTrabajadoresTiendasInicioFragmet
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.conteoUser
@@ -1004,15 +1005,13 @@ class inicioFracment : Fragment() {
                 val titulo: String = doc.get("nombre") as? String ?: ""
                 val descripcionTitulo = doc["descripcion_titulo"] as? Map<String, Any> ?: emptyMap()
                 val tituloDescripcion = descripcionTitulo["titulo_descripcion"] as? String ?: ""
-
-
                 val img_producto: String = doc.get("img_url") as? String ?: ""
                 val precio: Number = doc.get("precio") as? Number ?: 0
                 val descuento_porcentajeProducto: Number =
                     doc.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 val descuentoBoolean: Boolean = doc.get("descuento") as? Boolean ?: false
                 val precio_descuento: Number = doc.get("precio_descuento") as? Number ?: 0
-                val envioGratis: Boolean = doc.get("envio_gratis") as? Boolean ?: false
+                val metodoEntrega: String= doc.get("metodoEntrega") as? String ?: ""
                 val id: String = doc.get("id") as? String ?: ""
 
                 constantes_servicios.verificarEstado_vericiacion(
@@ -1064,9 +1063,18 @@ class inicioFracment : Fragment() {
                     currentBinding.precioDescuento.isVisible = false
                     currentBinding.descuentoPorcentaje.isVisible = false
                 }
-                if (envioGratis) {
-                    currentBinding.envioGratis.isVisible = true
-                }
+                obtener_metodoEntrega(
+                    id_trabajador, metodoEntrega,
+                    callback = { metodo_entrega ->
+                    },
+                    evio_gratis = { delivery_gratis ->
+                        if (delivery_gratis) {
+                            currentBinding.envioGratis.isVisible = true
+                        } else {
+                            currentBinding.envioGratis.isVisible = false
+                        }
+                    }
+                )
 
 
                 currentBinding.cargarContenido.postDelayed({

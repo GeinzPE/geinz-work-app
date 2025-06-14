@@ -945,6 +945,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 if (tiempoGarantiaYears.text.toString().toIntOrNull() != 1)
                     if (unidadGarantia == "mes") "es" else "s" else ""
             }",
+            "descuento" to descuento,
             "localidadUser" to localida_user.text.toString(),
             "marca" to marca_producto.text.toString(),
             "metodoEntrega" to binding.metodoEntregaSelect.text.toString(),

@@ -15,7 +15,7 @@
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <ProgressBar
         android:id="@+id/progress_carga_imagen"
         android:layout_width="30dp"
         android:layout_height="30dp"

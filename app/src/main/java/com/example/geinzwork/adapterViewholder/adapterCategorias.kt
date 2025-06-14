@@ -2,36 +2,21 @@ package com.geinzz.geinzwork.adapterViewholder
 
 import android.annotation.SuppressLint
 import android.os.Build
-import android.text.SpannableString
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.Variables
-import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja
-import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
-import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
-import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
-import com.geinzz.geinzwork.databinding.BottomSheetContactoDirectoBinding
-import com.geinzz.geinzwork.databinding.ItemAnunciosBinding
 import com.geinzz.geinzwork.databinding.RecicleTrabajosBinding
 import com.geinzz.geinzwork.dataclass.dataClassTrabajosd
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
-import de.hdodenhof.circleimageview.CircleImageView
+
 
 class adapterCategorias
     (

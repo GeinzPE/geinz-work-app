@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
+import android.widget.ProgressBar
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -16,7 +17,7 @@ import com.bumptech.glide.request.target.Target // Importa Target de Glide
 
 object constatnes_carga_imagenes_general {
     fun changer_img(
-        progressBar: CircularProgressIndicator,
+        progressBar: ProgressBar,
         context: Context,
         url: String,
         circle_img: CircleImageView? = null,

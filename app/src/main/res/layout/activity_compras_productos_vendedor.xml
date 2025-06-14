@@ -6,6 +6,7 @@
     style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor">
 
     <LinearLayout
@@ -13,6 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:animateLayoutChanges="true"
         android:orientation="vertical">
 
         <ProgressBar
@@ -37,6 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
+        android:animateLayoutChanges="true"
         android:visibility="gone">
 
         <LinearLayout
@@ -101,135 +104,6 @@
             <include
                 android:id="@+id/MetodoEntregaProducto"
                 layout="@layout/include_texto_horizontal_general" />
-
-            <LinearLayout
-                android:id="@+id/linealMetodoEntrega"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="10dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    style="@style/TextoTitulos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:text="Metodo Entrega"
-                    android:textSize="16sp" />
-
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:text="Geinz se encargará de la entrega del producto utilizando la referencia
-primaria y secundaria proporcionada en el formulario de envío."
-                    android:textSize="14sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <RelativeLayout
-                        android:id="@+id/linealRecicleCargandoRerf"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1">
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/ver_lugares_entrega"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:visibility="gone" />
-
-                        <LinearLayout
-                            android:id="@+id/linealCargandoRef"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <ProgressBar
-                                android:id="@+id/cargandoRef"
-                                android:layout_width="50dp"
-                                android:layout_height="50dp"
-                                android:layout_gravity="center" />
-
-                            <TextView
-                                android:id="@+id/cargandoText"
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:layout_marginTop="10dp"
-                                android:text="Cargando referencias.."
-                                android:textSize="15sp" />
-
-                        </LinearLayout>
-
-                    </RelativeLayout>
-
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/crea_direccion"
-                        style="@style/RoundedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:layout_marginRight="5dp"
-                        android:layout_weight="1"
-                        android:text="Crear Direccion nueva"
-                        android:textSize="14sp"
-                        app:iconGravity="textEnd" />
-                </LinearLayout>
-
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/direccionEntrega"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginTop="10dp"
-                    android:clickable="false"
-                    android:focusable="false"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
-
-                    <EditText
-                        android:id="@+id/direccionEntregaED"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:focusable="false"
-                        android:hint="Direccion de entrega "
-                        android:inputType="text"
-                        android:paddingLeft="10dp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/ReferenciaEntrega"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="5dp"
-                    android:clickable="false"
-                    android:focusable="false"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
-
-                    <EditText
-                        android:id="@+id/ReferenciaEntregaED"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:focusable="false"
-                        android:hint="Referencia de entrega "
-                        android:inputType="text"
-                        android:paddingLeft="10dp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
 
 
             <TextView
@@ -323,41 +197,6 @@ primaria y secundaria proporcionada en el formulario de envío."
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:orientation="vertical">
-
-                <TextView
-                    style="@style/TextoTitulos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:text="Descripcion del producto"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/descripcionProducto"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="3"
-                    android:text="@string/cat" />
-
-                <TextView
-                    android:id="@+id/tvReadMore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-
-                    android:text="Leer más"
-                    android:textColor="#027EB5"
-                    android:textSize="12sp"
-                    android:textStyle="normal"
-                    android:visibility="gone" />
-            </LinearLayout>
-
 
             <TextView
                 style="@style/TextoTitulos"
@@ -447,12 +286,304 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:paddingLeft="10dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextoTitulos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Seleciona el metodo de entrega disponible"
+                    android:textSize="16sp" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <RadioGroup
+                        android:id="@+id/metodo_entrega_select"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/cordinar"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Coordinar"
+                            android:visibility="gone" />
+
+                        <RadioButton
+                            android:id="@+id/delivery"
+
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Delivery"
+                            android:visibility="gone" />
+
+                        <RadioButton
+                            android:id="@+id/entrega_programada"
+
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Entrega programada"
+                            android:visibility="gone" />
+
+                        <RadioButton
+                            android:id="@+id/envio_courier"
+
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Envio courier (agencia)"
+                            android:visibility="gone" />
+
+                        <RadioButton
+                            android:id="@+id/lugar_entrega"
+
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lugar de entrega"
+                            android:visibility="gone" />
+
+                        <RadioButton
+                            android:id="@+id/retiro_tienda"
+
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Retiro en tienda"
+                            android:visibility="gone" />
+                    </RadioGroup>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/linealMetodoEntrega"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="10dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/titulometodo_entrega_select"
+                    style="@style/TextoTitulos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Metodo entrega Selecionado"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/textometodo_entrega_select"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:textSize="14sp" />
+
+
+                <LinearLayout
+                    android:id="@+id/lineal_delivery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <RelativeLayout
+                            android:id="@+id/linealRecicleCargandoRerf"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1">
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/ver_lugares_entrega"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:visibility="gone" />
+
+                            <LinearLayout
+                                android:id="@+id/linealCargandoRef"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <ProgressBar
+                                    android:id="@+id/cargandoRef"
+                                    android:layout_width="50dp"
+                                    android:layout_height="50dp"
+                                    android:layout_gravity="center" />
+
+                                <TextView
+                                    android:id="@+id/cargandoText"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="10dp"
+                                    android:text="Cargando referencias.."
+                                    android:textSize="15sp" />
+
+                            </LinearLayout>
+
+                        </RelativeLayout>
+
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/crea_direccion"
+                            style="@style/RoundedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="60dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_weight="1"
+                            android:text="Crear Direccion nueva"
+                            android:textSize="14sp"
+                            app:iconGravity="textEnd" />
+                    </LinearLayout>
+
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/direccionEntrega"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="10dp"
+                        android:clickable="false"
+                        android:focusable="false"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
+
+                        <EditText
+                            android:id="@+id/direccionEntregaED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:focusable="false"
+                            android:hint="Direccion de entrega "
+                            android:inputType="text"
+                            android:paddingLeft="10dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/ReferenciaEntrega"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="5dp"
+                        android:clickable="false"
+                        android:focusable="false"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
+
+                        <EditText
+                            android:id="@+id/ReferenciaEntregaED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:focusable="false"
+                            android:hint="Referencia de entrega "
+                            android:inputType="text"
+                            android:paddingLeft="10dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/lineal_datos_lugar_entrega"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ProgressBar
+
+                        android:id="@+id/progress_carga1"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_gravity="center" />
+                    <LinearLayout
+                        android:id="@+id/metod1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/descripcion"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:id="@+id/localidad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/lineal_datos_retiro_tienda"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ProgressBar
+                        android:id="@+id/progress_carga2"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_gravity="center" />
+
+                    <LinearLayout
+                        android:id="@+id/metod2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/localidad_tienda"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:id="@+id/nombre_tienda"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:id="@+id/referencia"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
+
             <TextView
                 style="@style/TextoTitulos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:text="Metodos del pago aceptados"
+                android:text="Metodos de pago aceptados"
                 android:textSize="16sp" />
 
             <TextView
@@ -492,6 +623,14 @@ primaria y secundaria proporcionada en el formulario de envío."
                     android:layout_height="wrap_content"
                     android:text="efectivo"
                     android:visibility="gone" />
+
+                <RadioButton
+                    android:id="@+id/metodoTransferencia"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Transferencia"
+                    android:visibility="gone" />
+
 
             </RadioGroup>
 

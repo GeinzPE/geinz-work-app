@@ -16,6 +16,8 @@
             android:layout_height="wrap_content"
             android:text="@string/cat"/>
         <TextView
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textAllCaps="true"
             style="@style/TextoModoOScuroColor"
             android:id="@+id/textoNumero2"

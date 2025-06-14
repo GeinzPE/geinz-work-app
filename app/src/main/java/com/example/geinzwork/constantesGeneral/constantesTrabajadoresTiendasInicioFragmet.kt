@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
@@ -370,7 +371,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
 
 
     fun obtenerNombre_imgPerfil(
-        progressbar: CircularProgressIndicator,
+        progressbar: ProgressBar,
         TextView: TextView,
         contexto: Context,
         imagen: CircleImageView,
@@ -449,7 +450,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
     }
 
     private fun setearimgNombre(
-        progressbar: CircularProgressIndicator,
+        progressbar: ProgressBar,
         referencia: String,
         id: String,
         TextView: TextView,
@@ -582,7 +583,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
     fun obtnerIMG_trabajador(
         id_trabajdor: String,
         circleImageView: CircleImageView,
-        CircularProgressIndicator: CircularProgressIndicator, contexto: Context
+        CircularProgressIndicator: ProgressBar, contexto: Context
     ) {
         Log.d("obtenosimgtrabajdor", id_trabajdor)
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")

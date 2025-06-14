@@ -3,7 +3,9 @@ package com.example.geinzwork.fragmentos.productosPublicadosVista
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.SpannableString
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -19,6 +21,8 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter_radioButton_envios
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityComprasProductosVendedorBinding
 import com.geinzz.geinzwork.dataclass.dataclassradiobtn
@@ -58,6 +62,9 @@ class compras_productos_vendedor : AppCompatActivity() {
         binding.totalcancelar.textoNumero1.text = "Total a cancelar :"
         binding.MetodoEntregaProducto.textoNumero1.text = "Metodo de entrega :"
         binding.codigoGeneradoCompra.text = constantesCarrito.generarCodigoPedido()
+
+
+
         obtnerDireciones(
             firebaseAuth.uid.toString(),
             listaLugaresEntrega,
@@ -177,7 +184,7 @@ class compras_productos_vendedor : AppCompatActivity() {
         }
 
         // Verificación del método de pago
-        if (!binding.metodoYape.isChecked && !binding.metodoPlin.isChecked && !binding.metodoEfectivo.isChecked) {
+        if (!binding.metodoYape.isChecked && !binding.metodoPlin.isChecked && !binding.metodoEfectivo.isChecked && !binding.metodoTransferencia.isChecked) {
             Toast.makeText(binding.root.context, "Seleccione un método de pago", Toast.LENGTH_SHORT)
                 .show()
             camposValidos = false
@@ -244,12 +251,12 @@ class compras_productos_vendedor : AppCompatActivity() {
                     if (lista.isEmpty()) {
                         RecyclerView.isVisible = false
                         btnCrearDirecion.isVisible = true
-                        binding.linealCargandoRef.isVisible=false
+                        binding.linealCargandoRef.isVisible = false
                         cargado(false)
 
                     } else {
                         RecyclerView.isVisible = true
-                        binding.linealCargandoRef.isVisible=false
+                        binding.linealCargandoRef.isVisible = false
                         btnCrearDirecion.isVisible = false
                         cargado(true)
                     }
@@ -258,12 +265,12 @@ class compras_productos_vendedor : AppCompatActivity() {
                         context, "Error al buscar en usuarios: ${e.message}", Toast.LENGTH_SHORT
                     ).show()
                     cargado(false)
-                    binding.linealCargandoRef.isVisible=false
+                    binding.linealCargandoRef.isVisible = false
                 }
             } else {
                 RecyclerView.isVisible = true
                 btnCrearDirecion.isVisible = false
-                binding.linealCargandoRef.isVisible=false
+                binding.linealCargandoRef.isVisible = false
                 cargado(true)
             }
         }.addOnFailureListener { e ->
@@ -271,7 +278,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                 context, "Error al buscar en trabajadores: ${e.message}", Toast.LENGTH_SHORT
             ).show()
             cargado(false)
-            binding.linealCargandoRef.isVisible=false
+            binding.linealCargandoRef.isVisible = false
         }
     }
 
@@ -286,14 +293,14 @@ class compras_productos_vendedor : AppCompatActivity() {
                 binding.TexviewIDRefDire.text = ubicacionSeleccionada.id
             },
             onCrearDireccionClick = {
-                    if (firebaseAuth.currentUser == null) {
-                        dialog = BottomSheetDialog(this)
-                        constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
-                        dialog.show()
-                    }else{
-                        startActivity(Intent(this, direccion_entrega_lat_log::class.java))
-                        finish()
-                    }
+                if (firebaseAuth.currentUser == null) {
+                    dialog = BottomSheetDialog(this)
+                    constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
+                    dialog.show()
+                } else {
+                    startActivity(Intent(this, direccion_entrega_lat_log::class.java))
+                    finish()
+                }
 
                 println("Se hizo clic en 'Crear dirección'")
             }
@@ -311,7 +318,8 @@ class compras_productos_vendedor : AppCompatActivity() {
     ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(idProducto)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(idProducto)
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 Log.d(
@@ -326,28 +334,20 @@ class compras_productos_vendedor : AppCompatActivity() {
                 val precioDescuento = data?.get("precio_descuento") as? Number ?: 0
                 val totalProducto = data?.get("total_producto") as? Number ?: 0
 
-                val categoria = data?.get("categoria") as? String ?: ""
+                val categoria = data?.get("categoria_producto") as? String ?: ""
                 val condicionProducto = data?.get("condicion_producto") as? String ?: ""
-                val descripcion = data?.get("descripcion") as? String ?: ""
 
 
                 val modelo = data?.get("modelo") as? String ?: ""
                 val descuento = data?.get("descuento") as? Boolean ?: false
-                val efectivo = data?.get("efectivo") as? Boolean ?: false
-                val entrega_domicilio = data?.get("entrega_domicilio") as? Boolean ?: true
-
                 val garantia = data?.get("garantia") as? String ?: ""
                 val id = data?.get("id") as? String ?: ""
                 val fechaPublicada = data?.get("fechaPublicada") as? String ?: ""
                 val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
-
-
-                val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
+                val metodoPago = data?.get("metodoPago") as? String ?: ""
                 val marca = data?.get("marca") as? String ?: ""
                 val nombre = data?.get("nombre") as? String ?: ""
-                val plin = data?.get("plin") as? Boolean ?: false
                 val stok = data?.get("stok") as? String ?: ""
-                val yape = data?.get("yape") as? Boolean ?: false
                 val envio_gratis = data?.get("envio_gratis") as? Boolean ?: false
                 val precioDelivery = data?.get("precioDelivery") as? Number ?: 0
                 val cantidad_porcentaje_descuento =
@@ -356,45 +356,175 @@ class compras_productos_vendedor : AppCompatActivity() {
                     "DatosProducto",
                     "Categoría: $categoria, Marca: $marca, Modelo: $modelo, Stock: $stok, Garantía: $garantia"
                 )
+                binding.delivery.setOnClickListener {
+                    binding.linealDelivery.isVisible = true
+                    binding.linealDatosLugarEntrega.isVisible = false
+                    binding.linealDatosRetiroTienda.isVisible = false
+                    binding.linealMetodoEntrega.isVisible = true
+                    binding.titulometodoEntregaSelect.text = "Delivery"
+                    binding.textometodoEntregaSelect.text =
+                        "Geinz se encargará de la entrega del producto utilizando la referencia\n" +
+                                "primaria y secundaria proporcionada en el formulario de envío."
+                }
+                binding.cordinar.setOnClickListener {
+                    binding.linealDelivery.isVisible = false
+                    binding.linealDatosLugarEntrega.isVisible = false
+                    binding.linealDatosRetiroTienda.isVisible = false
+                    binding.linealMetodoEntrega.isVisible = true
+                    binding.titulometodoEntregaSelect.text = "Coordinar con el vendedor"
+                    binding.textometodoEntregaSelect.text =
+                        "Ponte en contacto con el vendedor para acordar los detalles de la compra realizada a través de Geinz Work."
+                }
+
+                binding.entregaProgramada.setOnClickListener {
+                    binding.linealDelivery.isVisible = false
+                    binding.linealDatosLugarEntrega.isVisible = false
+                    binding.linealDatosRetiroTienda.isVisible = false
+                    binding.linealMetodoEntrega.isVisible = true
+                    binding.titulometodoEntregaSelect.text = "Entrega programada"
+                    binding.textometodoEntregaSelect.text =
+                        "Acorda con el vendedor la fecha y hora de entrega. Si realizaste un pago anticipado, se validará antes de la entrega."
+                }
+
+                binding.envioCourier.setOnClickListener {
+                    binding.linealDelivery.isVisible = false
+                    binding.linealDatosLugarEntrega.isVisible = false
+                    binding.linealDatosRetiroTienda.isVisible = false
+                    binding.linealMetodoEntrega.isVisible = true
+                    binding.titulometodoEntregaSelect.text = "Envío por agencia"
+                    binding.textometodoEntregaSelect.text =
+                        "Coordina con el vendedor el envío mediante agencia de transporte. Se verificará el pago si fue realizado por adelantado."
+                }
+
+                binding.lugarEntrega.setOnClickListener {
+                    binding.linealDelivery.isVisible = false
+                    binding.linealDatosLugarEntrega.isVisible = true
+                    binding.linealDatosRetiroTienda.isVisible = false
+                    binding.linealMetodoEntrega.isVisible = true
+                    binding.titulometodoEntregaSelect.text = "Punto de encuentro"
+                    binding.textometodoEntregaSelect.text =
+                        "Elige un lugar de entrega acordado con el vendedor. En caso de pago adelantado, se validará antes de la entrega."
+
+                    constantes_publicaciones_general_user_tiendas.obtener_metodos_entrega_campos(
+                        binding.metod1,
+                        binding.progressCarga1,
+                        idTrabajador,
+                        metodoEntrega
+                    ) { descripcion, localidad, _, _, _ ->
+
+                        val nombreTienda =
+                            SpannableString("Lugares de entrega : $descripcion ")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Lugares de entrega ",
+                            nombreTienda, binding.descripcion
+                        )
+                        val ref =
+                            SpannableString("Localidad : $localidad ")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Localidad ",
+                            ref, binding.localidad
+                        )
+
+                    }
+                }
+
+                binding.retiroTienda.setOnClickListener {
+                    binding.linealDelivery.isVisible = false
+                    binding.linealMetodoEntrega.isVisible = true
+                    binding.linealDatosLugarEntrega.isVisible = false
+                    binding.linealDatosRetiroTienda.isVisible = true
+                    binding.titulometodoEntregaSelect.text = "Retiro en tienda"
+                    binding.textometodoEntregaSelect.text =
+                        "Acércate al establecimiento del vendedor para retirar tu producto. Se validará el pago si fue realizado previamente."
+
+
+                    constantes_publicaciones_general_user_tiendas.obtener_metodos_entrega_campos(
+                        binding.metod2,
+                        binding.progressCarga2,
+                        idTrabajador,
+                        metodoEntrega,
+                    ) { _, _, nombre, referencia, localidad ->
+                        val nombreTienda =
+                            SpannableString("Nombre de Tienda : $nombre")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Nombre de Tienda ",
+                            nombreTienda, binding.nombreTienda
+                        )
+                        val ref =
+                            SpannableString("Referencia : $referencia ")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Referencia ",
+                            ref, binding.referencia
+                        )
+                        val localidad =
+                            SpannableString("Localidad :$localidad")
+                        constantestextos_general.setearInformacionboldDescripcion(
+                            "Localidad ",
+                            localidad, binding.localidadTienda
+                        )
+
+                    }
+                }
 
                 binding.precioDelivery.textoNumero2.text
-                // Manejo del precio de delivery
-                if (envio_gratis) {
-                    binding.precioDelivery.textoNumero2.text = "Envío Gratis"
-                    binding.precioDelivery.textoNumero2.setTextColor(
-                        ContextCompat.getColor(
-                            this,
-                            R.color.verde
-                        )
-                    )
-                    val precioFinal = if (descuento) precioDescuento else precio
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-                        precioFinal,
-                        binding.totalcancelar.textoNumero2
-                    )
-                    incrementarCantidad(precioFinal,stok.toInt())
-                } else {
-                    val precioBase = if (descuento) precioDescuento else precio
-                    val precioFinalDelivery = precioBase.toDouble() + precioDelivery.toDouble()
+                obtener_metodoEntrega(
+                    idTrabajador, metodoEntrega,
+                    callback = { metodo_entrega ->
+                        binding.MetodoEntregaProducto.textoNumero2.text = metodo_entrega
+                        Log.d("metodos_entrega", metodo_entrega)
 
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-                        precioDelivery,
-                        binding.precioDelivery.textoNumero2
-                    )
+                        val metodosLista = metodo_entrega.split(",").map { it.trim() }
 
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-                        precioFinalDelivery,
-                        binding.totalcancelar.textoNumero2
-                    )
-                    incrementarCantidad(precioFinalDelivery,stok.toInt())
-                }
-                if (metodoEntrega == "delivery") {
-                    binding.linealMetodoEntrega.isVisible = true
 
-                } else {
-                    binding.precioDelivery.textoNumero2.text="S/ 0.00"
-                    binding.linealMetodoEntrega.isVisible = false
-                }
+                        // Mostrar solo los botones correspondientes
+                        binding.cordinar.visibility =
+                            if ("Coordinar" in metodosLista) View.VISIBLE else View.GONE
+                        binding.delivery.visibility =
+                            if ("Delivery" in metodosLista) View.VISIBLE else View.GONE
+                        binding.entregaProgramada.visibility =
+                            if ("Entrega Programada" in metodosLista) View.VISIBLE else View.GONE
+                        binding.envioCourier.visibility =
+                            if ("Envío Courier" in metodosLista) View.VISIBLE else View.GONE
+                        binding.lugarEntrega.visibility =
+                            if ("Lugares de Entrega" in metodosLista) View.VISIBLE else View.GONE
+                        binding.retiroTienda.visibility =
+                            if ("Retiro en Tienda" in metodosLista) View.VISIBLE else View.GONE
+                    },
+                    evio_gratis = { delivery_gratis ->
+                        if (delivery_gratis) {
+                            binding.precioDelivery.textoNumero2.text = "Envío Gratis"
+                            binding.precioDelivery.textoNumero2.setTextColor(
+                                ContextCompat.getColor(
+                                    this,
+                                    R.color.verde
+                                )
+                            )
+                            val precioFinal = if (descuento) precioDescuento else precio
+                            constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                                precioFinal,
+                                binding.totalcancelar.textoNumero2
+                            )
+                            incrementarCantidad(precioFinal, stok.toInt())
+                        } else {
+                            val precioBase = if (descuento) precioDescuento else precio
+                            val precioFinalDelivery =
+                                precioBase.toDouble() + precioDelivery.toDouble()
+
+                            constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                                precioDelivery,
+                                binding.precioDelivery.textoNumero2
+                            )
+
+                            constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                                precioFinalDelivery,
+                                binding.totalcancelar.textoNumero2
+                            )
+                            incrementarCantidad(precioFinalDelivery, stok.toInt())
+                        }
+                    }
+                )
+
+
 
                 if (descuento) {
                     binding.precioproducto.AntiguoPrecio.isVisible = true
@@ -423,65 +553,60 @@ class compras_productos_vendedor : AppCompatActivity() {
                 binding.StokDiponible.textoNumero2.text = "$stok UND"
                 binding.garantiaProducto.textoNumero2.text = garantia
                 binding.condicionProducto.textoNumero2.text = condicionProducto
-                binding.MetodoEntregaProducto.textoNumero2.text = metodoEntrega
-                binding.descripcionProducto.text = descripcion
-                constantestextos_general.extender_acortar_texto(
-                    binding.descripcionProducto,
-                    binding.tvReadMore
-                )
+
+
                 constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
                     val nombreCompleto = "${nombre ?: ""} ${apellido ?: ""}".trim()
                     binding.nombresCompletosED.setText(nombreCompleto)
                     binding.NumeroDeContactoED.setText(numero ?: "")
                 }
 
+                constantes_publicaciones_general_user_tiendas.obtener_metodosPaog(
+                    idTrabajador,
+                    metodoPago
+                ) { metodosEncontradosString ->
+                    Log.d("metood_pagos", "los metood son $metodosEncontradosString")
+                    val metodosEncontrados = metodosEncontradosString
+                        .split(",")
+                        .map { it.trim() }  // Eliminar espacios
 
-                val cantidadTrue = listOf(yape, plin, efectivo).count { it }
+                    // Ocultar todos primero
+                    binding.metodoYape.isVisible = false
+                    binding.metodoPlin.isVisible = false
+                    binding.metodoEfectivo.isVisible = false
+                    binding.metodoTransferencia.isVisible = false
 
-                when (cantidadTrue) {
-                    3 -> {
-                        binding.metodoYape.isVisible = true
-                        binding.metodoPlin.isVisible = true
-                        binding.metodoEfectivo.isVisible = true
-                    }
-
-                    2 -> {
-                        when {
-                            yape && plin -> {
-                                binding.metodoYape.isVisible = true
-                                binding.metodoPlin.isVisible = true
-                            }
-
-                            yape && efectivo -> {
-                                binding.metodoYape.isVisible = true
-                                binding.metodoEfectivo.isVisible = true
-                            }
-
-                            plin && efectivo -> {
-                                binding.metodoPlin.isVisible = true
-                                binding.metodoEfectivo.isVisible = true
-                            }
+                    // Mostrar los que se encuentren
+                    metodosEncontrados.forEach { metodo ->
+                        when (metodo) {
+                            "Yape" -> binding.metodoYape.isVisible = true
+                            "Plin" -> binding.metodoPlin.isVisible = true
+                            "Efectivo" -> binding.metodoEfectivo.isVisible = true
+                            "Transferencia" -> binding.metodoTransferencia.isVisible = true
                         }
                     }
 
-                    1 -> {
-                        when {
-                            yape -> {
-                                binding.metodoYape.isVisible = true
-                            }
+                    // Lógica opcional según cantidad
+                    val cantidadTrue = metodosEncontrados.size
+                    when (cantidadTrue) {
+                        3 -> {
+                            // Animaciones u otra lógica
+                        }
 
-                            plin -> {
-                                binding.metodoPlin.isVisible = true
-                            }
+                        2 -> {
+                            // Otras acciones
+                        }
 
-                            efectivo -> {
-                                binding.metodoEfectivo.isVisible = true
-                            }
+                        1 -> {
+                            // Algo más
+                        }
+
+                        0 -> {
+                            Log.d("Métodos", "Ningún método de pago está activo")
                         }
                     }
-
-                    0 -> println("Ningún método de pago está activo")
                 }
+
                 cargado(true)
             } else {
                 cargado(false)
@@ -494,7 +619,7 @@ class compras_productos_vendedor : AppCompatActivity() {
 
     }
 
-    private fun incrementarCantidad(TotalCancelar:Number,cantidadStok:Int) {
+    private fun incrementarCantidad(TotalCancelar: Number, cantidadStok: Int) {
         var numeroCantidad = binding.cantidad.text.toString().toInt()
         val mas = binding.mas
         val menos = binding.menos
@@ -510,7 +635,11 @@ class compras_productos_vendedor : AppCompatActivity() {
                 val totalPAgarPorCantidad = numeroCantidad * totalPAga.toDouble()
                 binding.totalcancelar.textoNumero2.text = "S/ %.2f".format(totalPAgarPorCantidad)
             } else {
-                Toast.makeText(binding.root.context, "No puede exceder el stock disponible", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    binding.root.context,
+                    "No puede exceder el stock disponible",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 

@@ -39,7 +39,7 @@
                         android:layout_height="50dp"
                         android:src="@drawable/img_perfil" />
 
-                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                    <ProgressBar
                         android:id="@+id/cargaProgresIndicator"
                         android:layout_width="20dp"
                         android:layout_height="20dp"

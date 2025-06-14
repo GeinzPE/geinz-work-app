@@ -326,7 +326,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">
 
-                            <com.google.android.material.progressindicator.CircularProgressIndicator
+                            <ProgressBar
                                 android:layout_width="wrap_content"
                                 android:id="@+id/progrees_indicator"
                                 android:layout_centerInParent="true"
