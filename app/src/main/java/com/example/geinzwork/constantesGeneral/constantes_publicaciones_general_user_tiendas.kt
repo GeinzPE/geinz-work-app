@@ -519,13 +519,13 @@ object constantes_publicaciones_general_user_tiendas {
                     false
 
             }
-            if (entrega_domicilio) {
-                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
-                    "si"
-            } else {
-                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
-                    "no"
-            }
+////            if (entrega_domicilio) {
+////                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
+////                    "si"
+//            } else {
+//                bindingProductosTrabajadores.camposProductosUserVerificados.entregaDomicilio.text =
+//                    "no"
+//            }
             bindingProductosTrabajadores.masInfomacion.text = mas_informacio
             if (envio_gratis) {
                 bindingProductosTrabajadores.envioGratis.isVisible = true

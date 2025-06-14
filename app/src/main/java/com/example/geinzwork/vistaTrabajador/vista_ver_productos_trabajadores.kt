@@ -71,7 +71,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("publicaciones_trabajos").document("publicados").collection("publicados").document(id_publicacion_clikeada)
+                .collection("publicaciones_trabajos").document("publicados")
+                .collection("publicados").document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -171,8 +172,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         val userCollections =
             FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
                 .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-                .document(idTrabajador).collection("productos_venta").document("publicados").collection("publicados").
-                document(id_publicacion)
+                .document(idTrabajador).collection("productos_venta").document("publicados")
+                .collection("publicados").document(id_publicacion)
         userCollections.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data
@@ -353,8 +354,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
             .addOnSuccessListener { uri ->
                 val urlImagen = uri.toString()
                 Log.d("DownloadURL", "URL de la imagen: $urlImagen")
-                if(urlImagen.isNotEmpty()){
-                    binding.relativeImgContainer.isVisible=true
+                if (urlImagen.isNotEmpty()) {
+                    binding.relativeImgContainer.isVisible = true
                     constatnes_carga_imagenes_general.changer_img(
                         binding.progreesIndicator,
                         this,
@@ -366,8 +367,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                     ) { completado ->
 
                     }
-                }else{
-                    binding.relativeImgContainer.isVisible=false
+                } else {
+                    binding.relativeImgContainer.isVisible = false
                 }
 
             }
@@ -384,9 +385,10 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(productoClikado)
 
-        obtner_img_descripcion(idTrabajador,productoClikado)
+        obtner_img_descripcion(idTrabajador, productoClikado)
 
 
         db.get().addOnSuccessListener { res ->
@@ -428,6 +430,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val yape = data?.get("yape") as? Boolean ?: false
                         val mas_informacio = data?.get("mas_informacio") as? String ?: ""
                         val envio_gratis = data?.get("envio_gratis") as? Boolean ?: false
+                        val metodoPago = data?.get("metodoPago") as? String ?: ""
+                        val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
                         // Obtener valores del mapa de título
                         val descripcionTextoMap = data?.get("descripcion_texto") as? Map<*, *>
                         val descripcionTituloMap = data?.get("descripcion_titulo") as? Map<*, *>
@@ -458,18 +462,22 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
                         val mayusMinusDescripcion =
                             descripcionTextoMap?.get("texto_mayus") as? String ?: ""
-                        if (entrega_domicilio) {
-                            binding.camposProductosUserVerificados.entregaDomicilio.text = "si"
-                        } else {
-                            binding.camposProductosUserVerificados.entregaDomicilio.text = "no"
-                        }
+
+
                         val metodosPago = mutableListOf<String>()
                         if (yape) metodosPago.add("Yape")
                         if (plin) metodosPago.add("Plin")
                         if (efectivo) metodosPago.add("Efectivo")
 
-                        binding.camposProductosUserVerificados.metodosPago.text =
-                            metodosPago.joinToString(", ")
+                        obtener_metodosPaog(idTrabajador, metodoPago) { metodos_encontrados ->
+                            binding.camposProductosUserVerificados.metodosPago.text =
+                                metodos_encontrados
+                        }
+                        obtener_metodoEntrega(idTrabajador,metodoEntrega){metodo_entrega->
+                            binding.camposProductosUserVerificados.metodoEntrega.text = metodo_entrega
+
+                        }
+
                         binding.masInfomacion.text = mas_informacio
                         if (envio_gratis) {
                             binding.envioGratis.isVisible = true
@@ -591,12 +599,14 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         }
                         binding.marcaProducto.text = marca
 
-                        if(marca.isNotEmpty() && modelo.isNotEmpty()){
+                        if (marca.isNotEmpty() && modelo.isNotEmpty()) {
                             binding.camposProductosUserVerificados.marca.text = marca
                             binding.camposProductosUserVerificados.modelo.text = modelo
-                            binding.camposProductosUserVerificados.linealMarcaModelo.isVisible=true
-                        }else{
-                            binding.camposProductosUserVerificados.linealMarcaModelo.isVisible=false
+                            binding.camposProductosUserVerificados.linealMarcaModelo.isVisible =
+                                true
+                        } else {
+                            binding.camposProductosUserVerificados.linealMarcaModelo.isVisible =
+                                false
 
                         }
 
@@ -638,6 +648,68 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
             Log.e("obtenerCampos_producto", "Error al obtener el documento: ${it.message}")
         }
     }
+
+    private fun obtener_metodoEntrega(
+        idTrabajador: String,
+        metodoEntrega: String,
+        callback: (String) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("metodos_entrega").document(metodoEntrega)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+
+                val metodosDisponibles = mutableListOf<String>()
+
+                // Revisa solo los campos booleanos directamente en el documento
+                if (data?.get("delivery") as? Boolean == true) metodosDisponibles.add("Delivery")
+                if (data?.get("entregaProgramada") as? Boolean == true) metodosDisponibles.add("Entrega Programada")
+                if (data?.get("envioCourier") as? Boolean == true) metodosDisponibles.add("Envío Courier")
+                if (data?.get("lugaresEntrega") as? Boolean == true) metodosDisponibles.add("Lugares de Entrega")
+                if (data?.get("retiroTienda") as? Boolean == true) metodosDisponibles.add("Retiro en Tienda")
+                if (data?.get("coordinar") as? Boolean == true) metodosDisponibles.add("Coordinar")
+
+                val resultadoTexto = metodosDisponibles.joinToString(", ")
+                callback(resultadoTexto)
+            } else {
+                callback("") // Documento no existe
+            }
+        }.addOnFailureListener {
+            callback("") // Error al obtener datos
+        }
+    }
+
+
+    fun obtener_metodosPaog(id_trabajador: String, id_metodo: String, callback: (String) -> Unit) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(id_trabajador)
+            .collection("metodos_pago").document(id_metodo)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+
+                val metodosDisponibles = mutableListOf<String>()
+
+                if (data?.get("efectivo") as? Boolean == true) metodosDisponibles.add("Efectivo")
+                if (data?.get("plin") as? Boolean == true) metodosDisponibles.add("Plin")
+                if (data?.get("yape") as? Boolean == true) metodosDisponibles.add("Yape")
+                if (data?.get("transferenia") as? Boolean == true) metodosDisponibles.add("Transferencia")
+                if (data?.get("nombre_metodo") as? Boolean == true) metodosDisponibles.add("Otro")
+
+                val resultadoTexto = metodosDisponibles.joinToString(", ")
+                callback(resultadoTexto)
+            } else {
+                callback("") // Documento no existe
+            }
+        }.addOnFailureListener {
+            callback("") // Error al obtener datos
+        }
+    }
+
 
     fun inizializarImgProductosclikeado(
         context: Context,

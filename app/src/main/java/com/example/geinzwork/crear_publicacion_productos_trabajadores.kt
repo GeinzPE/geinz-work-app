@@ -977,7 +977,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         "id_trabajador" to firebaseAuth.uid.toString(),
                         "id" to productId,
                         "cantidad_porcentaje_descuento" to descuentoAplicado,
-                        "img" to "",
+
                         "titulo" to titulo_producto.text.toString(),
                         "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
                         "precio_descuento" to (precio_descuento_nuevo.text.toString()
