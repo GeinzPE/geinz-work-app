@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.text.SpannableStringBuilder
@@ -46,12 +47,15 @@ import com.google.firebase.dynamiclinks.iosParameters
 import com.google.firebase.dynamiclinks.itunesConnectAnalyticsParameters
 import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
 class vista_ver_productos_trabajadores : AppCompatActivity() {
     val listaImg = mutableListOf<dataclassMostarImgProductosVendedor>()
     private lateinit var binding: ActivityVistaVerProductosTrabajadoresBinding
+    private val tiempoParaContarVista: Long = 20000
+    private var vistaTimer: CountDownTimer? = null
     var isCamposVisible = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,6 +167,15 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
     }
 
+    private fun iniciarContadorVista(db: DocumentReference) {
+        vistaTimer = object : CountDownTimer(tiempoParaContarVista, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
+            }
+        }.start()
+    }
 
     private fun crear_dinamick_link(
         contex: Context,
@@ -389,9 +402,9 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta").document("publicados").collection("publicados")
             .document(productoClikado)
-
+        constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
         obtner_img_descripcion(idTrabajador, productoClikado)
-
+        iniciarContadorVista(db)
 
         db.get().addOnSuccessListener { res ->
             val endTime = System.currentTimeMillis()
@@ -466,13 +479,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
 
 
-                        constantes_publicaciones_general_user_tiendas.obtener_metodosPaog(
-                            idTrabajador,
-                            metodoPago
-                        ) { metodos_encontrados ->
-                            binding.camposProductosUserVerificados.metodosPago.text =
-                                metodos_encontrados
-                        }
+                         
                         obtener_metodoEntrega(
                             idTrabajador, metodoEntrega,
                             callback = { metodo_entrega ->

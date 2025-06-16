@@ -18,6 +18,7 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.adapterViewholder.publicaciones_ralizadas
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionBinding
@@ -48,12 +49,13 @@ class ver_publicaciones : AppCompatActivity() {
             dialog = BottomSheetDialog(
                 this
             )
-            bottomSheet_editar_eliminar_Arhivar_estadi(item)
+            bottomSheet_editar_eliminar_Arhivar_estadi(item, "publicados")
             dialog.show()
 
         })
 
         obtenerPublicaciones(
+            "publicados",
             firebaseAuth.uid.toString(),
             listAdapter,
             binding.recicleViewTrabajos,
@@ -61,12 +63,59 @@ class ver_publicaciones : AppCompatActivity() {
             adapter,
             binding.linealNoCuenta,
         )
-        binding.CreaPublicacion.setOnClickListener {
-            onBackPressed()
+        binding.todos.setOnClickListener {
+            obtenerPublicaciones(
+                "publicados",
+                firebaseAuth.uid.toString(),
+                listAdapter,
+                binding.recicleViewTrabajos,
+                this,
+                adapter,
+                binding.linealNoCuenta,
+            )
         }
+        binding.chipPublicados.setOnClickListener {
+            obtenerPublicaciones(
+                "publicados",
+                firebaseAuth.uid.toString(),
+                listAdapter,
+                binding.recicleViewTrabajos,
+                this,
+                adapter,
+                binding.linealNoCuenta,
+            )
+        }
+        binding.chipEliminados.setOnClickListener {
+            obtenerPublicaciones(
+                "eliminados",
+                firebaseAuth.uid.toString(),
+                listAdapter,
+                binding.recicleViewTrabajos,
+                this,
+                adapter,
+                binding.linealNoCuenta,
+            )
+        }
+        binding.chipArchivados.setOnClickListener {
+            obtenerPublicaciones(
+                "archivados",
+                firebaseAuth.uid.toString(),
+                listAdapter,
+                binding.recicleViewTrabajos,
+                this,
+                adapter,
+                binding.linealNoCuenta,
+            )
+        }
+
     }
 
-    private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados) {
+
+    private fun bottomSheet_editar_eliminar_Arhivar_estadi(
+        item: dataclas_trabajos_ralizados,
+        tipo: String
+    ) {
+
         val bottoSheet = BottomSheetCamposTrPdPBinding.inflate(LayoutInflater.from(this))
         val view = bottoSheet.root
         val eliminar = bottoSheet.eliminar
@@ -74,58 +123,128 @@ class ver_publicaciones : AppCompatActivity() {
         val editar = bottoSheet.editar
         val archivar = bottoSheet.archivar
 
+        bottoSheet.idPublicacion.text = item.id_publicacion.toString()
+        bottoSheet.copiarId.setOnClickListener {
+            constantestextos_general.copiarTexto_portapapeles(
+                bottoSheet.idPublicacion,
+                this
+            )
+        }
+        var tipo_encontrado = ""
+        if (binding.chipEliminados.isChecked) {
+            Toast.makeText(this, "eliminado", Toast.LENGTH_SHORT).show()
+            bottoSheet.linealIconosPrincipal.isVisible = false
+            bottoSheet.eliminarPermanente.isVisible = true
+            bottoSheet.regresar.isVisible = true
+            tipo_encontrado = "eliminados"
+
+        } else if (binding.chipArchivados.isChecked) {
+            Toast.makeText(this, "archiavdo", Toast.LENGTH_SHORT).show()
+            bottoSheet.linealIconosPrincipal.isVisible = false
+            bottoSheet.eliminarPermanente.isVisible = false
+            bottoSheet.regresar.isVisible = true
+            tipo_encontrado = "archivados"
+        }
+
         eliminar.setOnClickListener {
-            eliminar_archivar(item.id_publicacion.toString(),"eliminados")
+            eliminar_archivar(item.id_publicacion.toString(), "eliminados")
+            dialog.dismiss()
+        }
+
+        editar.setOnClickListener {
+            editarPublicacion(item, tipo)
+            dialog.dismiss()
 
         }
-        editar.setOnClickListener {
-//            editar_publicaciones(item.id_publicacion.toString())
-        }
         archivar.setOnClickListener {
-            eliminar_archivar(item.id_publicacion.toString(),"archivados")
+            eliminar_archivar(item.id_publicacion.toString(), "archivados")
+            dialog.dismiss()
+
         }
+        bottoSheet.eliminarPermanente.setOnClickListener {
+            val firestore = FirebaseFirestore.getInstance()
+            val uid = firebaseAuth.uid.toString()
+            val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(uid).collection("trabajos_realizados")
+                .document("eliminados").collection("eliminados")
+                .document(item.id_publicacion.toString())
+            refOrigen.delete().addOnSuccessListener { res ->
+                Toast.makeText(this, "publicacion eliminado correctamente", Toast.LENGTH_SHORT)
+                    .show()
+                obtenerPublicaciones(
+                    "eliminados",
+                    firebaseAuth.uid.toString(),
+                    listAdapter,
+                    binding.recicleViewTrabajos,
+                    this,
+                    adapter,
+                    binding.linealNoCuenta,
+                )
+            }.addOnFailureListener { e ->
+                Toast.makeText(this, "Error al eliminar la publicacion", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            dialog.dismiss()
+        }
+        bottoSheet.regresar.setOnClickListener {
+            activar_publicacion(tipo_encontrado, bottoSheet.idPublicacion.text.toString())
+        }
+        estadisticas.isVisible = false
 
         dialog.setContentView(view)
     }
 
-
-    private fun eliminar_archivar(idSeleccionado: String, tipo: String) {
+    private fun activar_publicacion(tipo: String, idPublicacion: String) {
         val firestore = FirebaseFirestore.getInstance()
         val uid = firebaseAuth.uid.toString()
 
-        // Referencia al documento original
         val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(uid).collection("trabajos_realizados")
-            .document("publicados").collection("publicados").document(idSeleccionado)
+            .document(tipo).collection(tipo).document(idPublicacion)
 
-        // Obtener los datos del documento
         refOrigen.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val data = res.data ?: return@addOnSuccessListener
 
-                // Creamos el HashMap con los campos esperados
-                val hashMap = hashMapOf<String, Any>(
-                    Variables.titulo to (data[Variables.titulo] ?: ""),
-                    Variables.descripcion to (data[Variables.descripcion] ?: ""),
-                    Variables.hora to (data[Variables.hora] ?: ""),
-                    Variables.fecha to (data[Variables.fecha] ?: ""),
-                    Variables.id to (data[Variables.id] ?: "")
-                )
+                val hashMap = hashMapOf<String, Any>()
 
-                // Determinar la nueva colección destino
+                hashMap[Variables.titulo] = data[Variables.titulo] ?: ""
+                hashMap[Variables.descripcion] = data[Variables.descripcion] ?: ""
+                hashMap[Variables.hora] = data[Variables.hora] ?: ""
+                hashMap[Variables.fecha] = data[Variables.fecha] ?: ""
+                hashMap[Variables.id] = data[Variables.id] ?: ""
+
+                for ((key, value) in data) {
+                    if (key.startsWith("img_url") && value is String) {
+                        hashMap[key] = value
+                    }
+                }
+
                 val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
                     .document("trabajadores").collection("trabajadores")
                     .document(uid).collection("trabajos_realizados")
-                    .document(tipo).collection(tipo).document(idSeleccionado)
+                    .document("publicados").collection("publicados").document(idPublicacion)
 
-                // Mover el documento
                 refDestino.set(hashMap).addOnSuccessListener {
-                    // Eliminar el documento original
                     refOrigen.delete().addOnSuccessListener {
-                        Toast.makeText(this, "Trabajo movido a $tipo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Trabajo movido correctamente", Toast.LENGTH_SHORT).show()
+                        binding.linealNoCuenta.isVisible = false
+                        binding.recicleViewTrabajos.isVisible = false
+                        obtenerPublicaciones(
+                            tipo,
+                            firebaseAuth.uid.toString(),
+                            listAdapter,
+                            binding.recicleViewTrabajos,
+                            this,
+                            adapter,
+                            binding.linealNoCuenta,
+                        )
+                        dialog.dismiss()
                     }.addOnFailureListener {
-                        Toast.makeText(this, "Error al eliminar: ${it.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Error al eliminar: ${it.message}", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }.addOnFailureListener {
                     Toast.makeText(this, "Error al mover: ${it.message}", Toast.LENGTH_SHORT).show()
@@ -140,7 +259,72 @@ class ver_publicaciones : AppCompatActivity() {
     }
 
 
-    private fun editarPublicacion(item: dataclas_trabajos_ralizados) {
+    private fun eliminar_archivar(idSeleccionado: String, tipo: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("trabajos_realizados")
+            .document("publicados").collection("publicados").document(idSeleccionado)
+
+        refOrigen.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data ?: return@addOnSuccessListener
+
+                val hashMap = hashMapOf<String, Any>()
+
+                // Copiar campos comunes
+                hashMap[Variables.titulo] = data[Variables.titulo] ?: ""
+                hashMap[Variables.descripcion] = data[Variables.descripcion] ?: ""
+                hashMap[Variables.hora] = data[Variables.hora] ?: ""
+                hashMap[Variables.fecha] = data[Variables.fecha] ?: ""
+                hashMap[Variables.id] = data[Variables.id] ?: ""
+
+                // Extraer todas las claves que empiecen con "img_url"
+                for ((key, value) in data) {
+                    if (key.startsWith("img_url") && value is String) {
+                        hashMap[key] = value
+                    }
+                }
+
+                val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                    .document("trabajadores").collection("trabajadores")
+                    .document(uid).collection("trabajos_realizados")
+                    .document(tipo).collection(tipo).document(idSeleccionado)
+
+                refDestino.set(hashMap).addOnSuccessListener {
+                    refOrigen.delete().addOnSuccessListener {
+                        Toast.makeText(this, "Trabajo movido a $tipo", Toast.LENGTH_SHORT).show()
+                        binding.linealNoCuenta.isVisible = false
+                        binding.recicleViewTrabajos.isVisible = false
+                        obtenerPublicaciones(
+                            "publicados",
+                            firebaseAuth.uid.toString(),
+                            listAdapter,
+                            binding.recicleViewTrabajos,
+                            this,
+                            adapter,
+                            binding.linealNoCuenta,
+                        )
+                    }.addOnFailureListener {
+                        Toast.makeText(this, "Error al eliminar: ${it.message}", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Error al mover: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
+
+            } else {
+                Toast.makeText(this, "El documento no existe", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al obtener datos: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun editarPublicacion(item: dataclas_trabajos_ralizados, tipo: String) {
         val bindingBottomShet =
             BottomSheetEditarPublicacionBinding.inflate(LayoutInflater.from(this))
         val view = bindingBottomShet.root
@@ -151,27 +335,24 @@ class ver_publicaciones : AppCompatActivity() {
         bindingBottomShet.cerrar.setOnClickListener {
             dialog.dismiss()
         }
-
+        bindingBottomShet.idPublicacion.text = item.id_publicacion.toString()
         bindingBottomShet.editar.setOnClickListener {
-            editar_info(
-                dialog,
-                item.id_publicacion.toString(),
-                bindingBottomShet.tituloPublicacionED.text.toString(),
-                bindingBottomShet.descripcionServiciosED.text.toString()
-            )
+            if (bindingBottomShet.tituloPublicacionED.text.isEmpty()) {
+                bindingBottomShet.tituloPublicacionED.error = "Ingrese un titulo"
+                bindingBottomShet.tituloPublicacionED.requestFocus()
+            } else if (bindingBottomShet.descripcionServiciosED.text.isEmpty()) {
+                bindingBottomShet.descripcionServiciosED.error = "Ingrese una descripcion"
+                bindingBottomShet.descripcionServiciosED.requestFocus()
+            } else {
+                editar_info(
+                    dialog,
+                    item.id_publicacion.toString(),
+                    bindingBottomShet.tituloPublicacionED.text.toString(),
+                    bindingBottomShet.descripcionServiciosED.text.toString(), tipo
+                )
+            }
 
         }
-
-
-        val placeholderperfil = ContextCompat.getDrawable(this, R.drawable.cargando_img)
-        constatnes_carga_imagenes_general.changer_img(
-            bindingBottomShet.progressCargaImagen,
-            this,
-            item.img.toString(),
-            null,
-            bindingBottomShet.imagenTrabajo,
-            "portada", placeholderperfil
-        ) {}
         bindingBottomShet.tituloPublicacionED.setText(item.titulo)
         bindingBottomShet.descripcionServiciosED.setText(item.contenido)
 
@@ -180,13 +361,14 @@ class ver_publicaciones : AppCompatActivity() {
 
     private fun editar_info(
         bindingBottomShet: BottomSheetDialog,
-        idPublicacion: String, nuevoTitulo: String, nuevaDescripcion: String
+        idPublicacion: String, nuevoTitulo: String, nuevaDescripcion: String, tipo: String
     ) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB)
             .collection(Variables.trabajadoresDB)
             .document(firebaseAuth.uid.toString())
-            .collection(Variables.trabajos_realizados)
+            .collection(Variables.trabajos_realizados).document(tipo)
+            .collection(tipo)
             .document(idPublicacion)
         val updates = hashMapOf<String, Any>(
             Variables.titulo to nuevoTitulo,
@@ -195,7 +377,10 @@ class ver_publicaciones : AppCompatActivity() {
         db.update(updates)
             .addOnSuccessListener {
                 Toast.makeText(this, "Campos actualizados correctamente", Toast.LENGTH_SHORT).show()
+
+                bindingBottomShet.dismiss()
                 obtenerPublicaciones(
+                    "publicados",
                     firebaseAuth.uid.toString(),
                     listAdapter,
                     binding.recicleViewTrabajos,
@@ -203,7 +388,6 @@ class ver_publicaciones : AppCompatActivity() {
                     adapter,
                     binding.linealNoCuenta,
                 )
-                bindingBottomShet.dismiss()
             }
 
             .addOnFailureListener { e ->
@@ -215,50 +399,9 @@ class ver_publicaciones : AppCompatActivity() {
             }
     }
 
-    private fun eliminarPublicacion(item: dataclas_trabajos_ralizados) {
-        AlertDialog.Builder(this)
-            .setTitle("Eliminar publicación")
-            .setMessage("¿Estás seguro de que quieres eliminar esta publicación?")
-            .setPositiveButton("Sí") { dialog, which ->
-                // El usuario confirmó, eliminar la publicación
-                val db =
-                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                        .document(Variables.trabajadoresDB)
-                        .collection(Variables.trabajadoresDB)
-                        .document(firebaseAuth.uid.toString())
-                        .collection(Variables.trabajos_realizados)
-                        .document(item.id_publicacion.toString())
-                db.delete().addOnSuccessListener {
-                    Toast.makeText(
-                        this,
-                        "Publicación eliminada correctamente",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    obtenerPublicaciones(
-                        firebaseAuth.uid.toString(),
-                        listAdapter,
-                        binding.recicleViewTrabajos,
-                        this,
-                        adapter,
-                        binding.linealNoCuenta,
-                    )
-                }.addOnFailureListener {
-                    Toast.makeText(
-                        this,
-                        "Ocurrió un error al eliminar la publicación",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-            .setNegativeButton("No") { dialog, which ->
-                // El usuario canceló, cerrar el diálogo
-                dialog.dismiss()
-            }
-            .show()
-    }
-
 
     fun obtenerPublicaciones(
+        filtrado: String,
         id: String,
         lista: MutableList<dataclas_trabajos_ralizados>,
         recicleTrabajosRealizados: RecyclerView,
@@ -268,16 +411,16 @@ class ver_publicaciones : AppCompatActivity() {
     ) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
-            .collection(Variables.trabajos_realizados).document("publicados").collection("publicados")
-
-        binding.loading.isVisible = true
+            .collection(Variables.trabajos_realizados).document(filtrado)
+            .collection(filtrado)
         lineal_no_cuenta.isVisible = false
         recicleTrabajosRealizados.isVisible = false
+        binding.linealEncontrados.isVisible = true
 
         db.get().addOnSuccessListener { result ->
             lista.clear()
             if (result.isEmpty) {
-                binding.loading.isVisible = false
+                binding.linealEncontrados.isVisible = false
                 lineal_no_cuenta.isVisible = true
             } else {
                 for (datos in result) {
@@ -293,26 +436,26 @@ class ver_publicaciones : AppCompatActivity() {
                     lista.add(trabajoRealizado)
                 }
                 if (lista.isEmpty()) {
-                    binding.loading.isVisible = false
+                    binding.linealEncontrados.isVisible = false
                     lineal_no_cuenta.isVisible = true
                 } else {
-                    binding.loading.isVisible = false
+                    binding.linealEncontrados.isVisible = false
                     lineal_no_cuenta.isVisible = false
                     recicleTrabajosRealizados.isVisible = true
                     inicializarRecicle(recicleTrabajosRealizados, adapter, context)
-                    binding.linealappLayout.isVisible = true
+
                     adapter.notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
                 }
             }
         }.addOnFailureListener {
-            binding.loading.isVisible = false
+            binding.linealEncontrados.isVisible = false
             lineal_no_cuenta.isVisible = true
         }
     }
 
     private fun inicializarRecicle(
         recycle: RecyclerView,
-        adapter: publicaciones_ralizadas, // Cambiado a publicaciones_ralizadas
+        adapter: publicaciones_ralizadas,
         context: Context
     ) {
         recycle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)

@@ -3,52 +3,35 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    style="@style/fondo"
     android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.crear_publicaciones_recientes">
 
-    <FrameLayout
-        android:id="@+id/progressBarContainer"
+    <LinearLayout
+        android:id="@+id/lineal_publicando"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- Fondo oscuro -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#80000000" />
+        <ProgressBar
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginBottom="10dp" />
 
-
-        <!-- ProgressBar centrado -->
-        <RelativeLayout
+        <TextView
+            style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center">
+            android:text="Creando publicacion"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/progressBar"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:fontFamily="@font/roboto_medium"
-                android:text="Creando Publicacion..."
-                android:textColor="@color/white"
-                android:textSize="15sp" />
-        </RelativeLayout>
-
-    </FrameLayout>
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
@@ -79,11 +62,11 @@
                     android:textSize="20sp" />
 
                 <ImageView
-                    android:layout_centerVertical="true"
                     android:id="@+id/popup"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
                     android:layout_marginLeft="10dp"
                     android:src="@drawable/baseline_more_vert_24"
                     tools:ignore="InvalidId" />
@@ -127,40 +110,40 @@
                         android:id="@+id/img_2"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
+                        android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
-                        android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_3"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
+                        android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
-                        android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_4"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
+                        android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
-                        android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_5"
                         android:layout_width="300dp"
                         android:layout_height="200dp"
+                        android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
                         android:visibility="gone"
-                        android:layout_marginStart="8dp"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
                     <!-- Puedes agregar más si quieres -->
@@ -172,17 +155,16 @@
                 android:id="@+id/btn_agregar_imagen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:text="Agregar otra imagen"
-                android:visibility="gone"
-                android:layout_marginTop="16dp"/>
-
+                android:visibility="gone" />
 
 
             <androidx.recyclerview.widget.RecyclerView
-                android:visibility="gone"
                 android:id="@+id/recycle_img"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/titulo_publicaciontext"
@@ -371,7 +353,6 @@
 
 
             <TextView
-                android:visibility="gone"
                 style="@style/descripcionColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -379,16 +360,17 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:text="@string/nota_crea_publicaciones_recientes"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:visibility="gone" />
 
             <CheckBox
-                android:visibility="gone"
                 android:id="@+id/Acepto"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
-                android:text="Acepto" />
+                android:text="Acepto"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:layout_width="match_parent"

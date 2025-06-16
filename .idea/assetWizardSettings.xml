@@ -338,7 +338,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/folder/baseline_folder_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/visibility/outline_visibility_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -349,7 +349,7 @@
                         <option name="values">
                           <map>
                             <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="archivado_icon_drawable" />
+                            <entry key="outputName" value="icon_ver_estadistica" />
                             <entry key="sourceFile" value="C:\Users\Benjamin\AndroidStudioProjects\GeinzWork" />
                           </map>
                         </option>

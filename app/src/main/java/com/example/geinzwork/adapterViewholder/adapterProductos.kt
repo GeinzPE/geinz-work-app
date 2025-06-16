@@ -32,7 +32,7 @@ class adapterProductos(
         val imgProducto=binding.imgProducto
         val tituloProducto=binding.tituloProducto
         val descripcionProducto=binding.descripcionProducto
-        val precioProducto=binding.precioProducto
+//        val precioProducto=binding.precioProducto
         val Vermas=binding.Editar
         fun render(dataclassArticulos: dataclassArticulos,vermas: (dataclassArticulos) -> Unit){
             try {
@@ -47,7 +47,7 @@ class adapterProductos(
             }
             tituloProducto.text=dataclassArticulos.nombreART
             descripcionProducto.text=dataclassArticulos.descripcion
-            precioProducto.text=dataclassArticulos.precio
+//            precioProducto.text=dataclassArticulos.precio
         }
     }
 }

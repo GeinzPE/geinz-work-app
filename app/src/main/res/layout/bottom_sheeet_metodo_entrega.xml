@@ -44,24 +44,23 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/nombre_referencia"
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp">
 
                     <EditText
                         android:id="@+id/nombre_referenciaED"
-                        style="@style/TextoModoOScuroColor"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:hint="Nombre de metodo de entrega"
-                        android:inputType="text"
+                        android:inputType="textMultiLine"
                         android:paddingLeft="10dp" />
-
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <LinearLayout
@@ -130,44 +129,43 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
+
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/localidad_metodo_entrega"
                             android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:layout_marginTop="10dp"
+                            android:layout_height="wrap_content"
                             app:boxCornerRadiusBottomEnd="8dp"
                             app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
                             app:boxCornerRadiusTopStart="8dp">
 
                             <EditText
                                 android:id="@+id/localidad_metodo_entregaED"
-                                style="@style/TextoModoOScuroColor"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:hint="Localidad del lugar de entrega "
-                                android:inputType="textEmailAddress"
+                                android:inputType="textMultiLine"
                                 android:paddingLeft="10dp" />
-
                         </com.google.android.material.textfield.TextInputLayout>
+
+
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/Lugares_entrega"
                             android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:layout_marginTop="10dp"
+                            android:layout_height="wrap_content"
                             app:boxCornerRadiusBottomEnd="8dp"
                             app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
                             app:boxCornerRadiusTopStart="8dp">
 
                             <EditText
                                 android:id="@+id/Lugares_entregaED"
-                                style="@style/TextoModoOScuroColor"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:hint="Ingrese los lugares de entrega"
-                                android:inputType="textEmailAddress"
+                                android:inputType="textMultiLine"
                                 android:paddingLeft="10dp" />
-
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
@@ -189,61 +187,59 @@
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/localidad_entrega_puntos"
                             android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:layout_marginTop="10dp"
+                            android:layout_height="wrap_content"
                             app:boxCornerRadiusBottomEnd="8dp"
                             app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
                             app:boxCornerRadiusTopStart="8dp">
 
                             <EditText
                                 android:id="@+id/localidad_entrega_puntosED"
-                                style="@style/TextoModoOScuroColor"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:hint="Localidad del lugar del punto de venta o tienda "
-                                android:inputType="textEmailAddress"
+                                android:inputType="textMultiLine"
                                 android:paddingLeft="10dp" />
-
                         </com.google.android.material.textfield.TextInputLayout>
+
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/lugar_referencia_punto_venta"
                             android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:layout_marginTop="10dp"
+                            android:layout_height="wrap_content"
                             app:boxCornerRadiusBottomEnd="8dp"
                             app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
                             app:boxCornerRadiusTopStart="8dp">
 
                             <EditText
                                 android:id="@+id/lugar_referencia_punto_ventaED"
-                                style="@style/TextoModoOScuroColor"
+
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:hint="Referencia de punto de venta o tienda"
-                                android:inputType="textEmailAddress"
+                                android:inputType="textMultiLine"
                                 android:paddingLeft="10dp" />
-
                         </com.google.android.material.textfield.TextInputLayout>
+
+
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/nombre_tienda"
                             android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:layout_marginTop="10dp"
+                            android:layout_height="wrap_content"
                             app:boxCornerRadiusBottomEnd="8dp"
                             app:boxCornerRadiusBottomStart="8dp"
+                            app:boxCornerRadiusTopEnd="8dp"
                             app:boxCornerRadiusTopStart="8dp">
 
                             <EditText
                                 android:id="@+id/nombre_tiendaED"
-                                style="@style/TextoModoOScuroColor"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:hint="Nombre de la tienda Fisica"
-                                android:inputType="textEmailAddress"
+                                android:inputType="textMultiLine"
                                 android:paddingLeft="10dp" />
-
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>

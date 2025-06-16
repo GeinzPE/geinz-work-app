@@ -371,7 +371,6 @@ object constantesPublicidad {
                 }
             }
 
-
         }
     }
 

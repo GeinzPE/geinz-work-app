@@ -9,47 +9,29 @@
     android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.crear_publicacion_productos_trabajadores">
 
-    <FrameLayout
-        android:id="@+id/progressBarContainer"
+    <LinearLayout
+        android:id="@+id/lineal_publicando"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- Fondo oscuro -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#80000000" />
+        <ProgressBar
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginBottom="10dp" />
 
-
-        <!-- ProgressBar centrado -->
-        <RelativeLayout
+        <TextView
+            style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center">
+            android:text="Creando publicacion"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true" />
-
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/progressBar"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:fontFamily="@font/roboto_medium"
-                android:text="Creando Publicacion..."
-                android:textColor="@color/white"
-                android:textSize="15sp" />
-        </RelativeLayout>
-
-    </FrameLayout>
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"

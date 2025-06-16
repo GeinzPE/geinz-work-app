@@ -4,6 +4,7 @@ package com.example.geinzwork.vistaTrabajador
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -34,6 +35,7 @@ import com.google.firebase.dynamiclinks.iosParameters
 import com.google.firebase.dynamiclinks.itunesConnectAnalyticsParameters
 import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -41,7 +43,8 @@ import org.imaginativeworld.whynotimagecarousel.utils.setImage
 
 class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
     private lateinit var binding: ActivityVistaVerPublicacionesTrabajadoresBinding
-
+    private val tiempoParaContarVista: Long = 20000
+    private var vistaTimer: CountDownTimer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -147,20 +150,30 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
 
     }
 
+    private fun iniciarContadorVista(db: DocumentReference) {
+        vistaTimer = object : CountDownTimer(tiempoParaContarVista, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
+            }
+        }.start()
+    }
 
     private fun obtener_publicacion_actual(idTrabajador: String, idpublicaicon: String) {
         val tiempoInicio = System.currentTimeMillis()
         binding.contenidoCargado.isVisible = false
 
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("publicaciones_trabajos").document("publicados").collection("publicados")
             .document(idpublicaicon)
-
+        constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
         db.get().addOnSuccessListener { res ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotalMs = tiempoFin - tiempoInicio
-
+            iniciarContadorVista(db)
             if (res.exists()) {
                 val data = res.data
                 val titulo = data?.get("titulo") as? String ?: ""

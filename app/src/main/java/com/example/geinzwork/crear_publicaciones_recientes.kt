@@ -66,12 +66,11 @@ class crear_publicaciones_recientes : AppCompatActivity() {
                 // Establece la imagen seleccionada
                 imageViews[currentImageIndex].setImageURI(it)
 
-                // Si hay otra ImageView disponible, la hacemos visible
+
                 if (currentImageIndex + 1 < imageViews.size) {
                     imageViews[currentImageIndex + 1].visibility = View.VISIBLE
                 }
 
-                // Hacer scroll automático al final
                 binding.horizontalScrollView.post {
                     binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
                 }
@@ -551,7 +550,8 @@ class crear_publicaciones_recientes : AppCompatActivity() {
 
 
     private fun agregamopsPublicacion(id_trabajador: String) {
-
+        binding.linealPublicando.isVisible = true
+        binding.scroll.isVisible = false
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(id_trabajador)
             .collection("publicaciones_trabajos").document("publicados").collection("publicados")
@@ -599,25 +599,33 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             )
             db_publicados_publicaciones.set(hasmap, SetOptions.merge())
                 .addOnSuccessListener { res ->
-                    Log.d("publicado_corecto", "publicado correcteamnte ")
-                }.addOnSuccessListener { e ->
+                    Toast.makeText(
+                        this@crear_publicaciones_recientes,
+                        "Trabajo publicado correctamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    binding.tituloPublicacionED.setText("")
+                    binding.descripcionServiciosED.setText("")
+                    binding.agregarHastagsED.setText("")
+                    binding.agregarHastagsCategoriasED.setText("")
+                    binding.agregaUbiED.setText("")
+                    binding.mostrarPublicacionPara.text = "Todos"
+                    guardar_img_storage(newId)
+                    resetearImagenes()
+                    binding.linealPublicando.isVisible = false
+                    binding.scroll.isVisible=true
+
+                }.addOnFailureListener { e ->
                     Log.d("publicado_corecto", "error al publicar $e")
+                    binding.linealPublicando.isVisible = false
+                    binding.scroll.isVisible=true
+
                 }
-            Toast.makeText(
-                this@crear_publicaciones_recientes,
-                "Trabajo publicado",
-                Toast.LENGTH_SHORT
-            ).show()
-            binding.tituloPublicacionED.setText("")
-            binding.descripcionServiciosED.setText("")
-            binding.agregarHastagsED.setText("")
-            binding.agregarHastagsCategoriasED.setText("")
-            binding.agregaUbiED.setText("")
-            binding.mostrarPublicacionPara.text = "Todos"
-            guardar_img_storage(newId)
-            resetearImagenes()
+
 
         }.addOnFailureListener { e ->
+            binding.linealPublicando.isVisible = false
+            binding.scroll.isVisible=true
             Toast.makeText(
                 this@crear_publicaciones_recientes,
                 "Error al subir la noticia",
@@ -693,11 +701,11 @@ class crear_publicaciones_recientes : AppCompatActivity() {
                                                 "URLs de imágenes guardadas en Firestore correctamente.2"
                                             )
                                         }.addOnFailureListener { e ->
-                                        Log.e(
-                                            "Firestore",
-                                            "Error al guardar URLs en Firestore: ${e.message}"
-                                        )
-                                    }
+                                            Log.e(
+                                                "Firestore",
+                                                "Error al guardar URLs en Firestore: ${e.message}"
+                                            )
+                                        }
                                 }
                                 .addOnFailureListener { e ->
                                     Log.e(

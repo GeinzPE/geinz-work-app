@@ -20,6 +20,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesVistaVerificadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionesVerificadosBinding
+import com.geinzz.geinzwork.databinding.BottomSheetMinimoMaxFiltradoBinding
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -51,6 +52,21 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             bottomSheet_editar_eliminar_Arhivar_estadi(item)
             dialog.show()
         })
+        binding.masClicks.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottom_sheet_chips()
+            dialog.show()
+        }
+        binding.masVistas.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottom_sheet_chips()
+            dialog.show()
+        }
+        binding.masCompartidas.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottom_sheet_chips()
+            dialog.show()
+        }
     }
 
     private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados_verificados) {
@@ -62,53 +78,19 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val archivar = bottoSheet.archivar
 
         eliminar.setOnClickListener {
-            archivar_eliminar_publicacion(item.id_publicacion.toString(),"eliminados")
+            archivar_eliminar_publicacion(item.id_publicacion.toString(), "eliminados")
 
         }
         editar.setOnClickListener {
             editar_publicaciones(item.id_publicacion.toString())
         }
         archivar.setOnClickListener {
-            archivar_eliminar_publicacion(item.id_publicacion.toString(),"archivados")
+            archivar_eliminar_publicacion(item.id_publicacion.toString(), "archivados")
         }
 
         dialog.setContentView(view)
     }
 
-//    private fun eliminarPublicacion(item: dataclas_trabajos_ralizados_verificados) {
-//        AlertDialog.Builder(this)
-//            .setTitle("Eliminar publicación")
-//            .setMessage("¿Estás seguro de que quieres eliminar esta publicación?")
-//            .setPositiveButton("Sí") { dialog, which ->
-//                // El usuario confirmó, eliminar la publicación
-//                val db =
-//                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-//                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-//                        .document(firebaseAuth.uid.toString())
-//                        .collection("publicaciones_trabajos")
-//                        .document(item.id_publicacion.toString())
-//                db.delete().addOnSuccessListener {
-//                    Toast.makeText(
-//                        this,
-//                        "Publicación eliminada correctamente",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                    obtener_publicaciones_realizadas(firebaseAuth.uid.toString())
-//                }.addOnFailureListener {
-//                    Toast.makeText(
-//                        this,
-//                        "Ocurrió un error al eliminar la publicación",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                }
-//            }
-//            .setNegativeButton("No") { dialog, which ->
-//                // El usuario canceló, cerrar el diálogo
-//                dialog.dismiss()
-//            }
-//            .show()
-//
-//    }
 
     private fun archivar_eliminar_publicacion(idSeleccionado: String, tipo: String) {
         val firestore = FirebaseFirestore.getInstance()
@@ -132,8 +114,10 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 val ubicacion = data?.get("ubicacion") as? String ?: ""
                 val id = data?.get("id") as? String ?: ""
 
-                val hashtagsGenerales = data?.get("hashtags_generales") as? List<String> ?: emptyList()
-                val hashtagsTrabajosPublicados = data?.get("hashtags_trabajos_publicados") as? List<String> ?: emptyList()
+                val hashtagsGenerales =
+                    data?.get("hashtags_generales") as? List<String> ?: emptyList()
+                val hashtagsTrabajosPublicados =
+                    data?.get("hashtags_trabajos_publicados") as? List<String> ?: emptyList()
 
                 // Creamos el hashmap con los datos para guardar en otra colección (archivados o publicados)
                 val hashMap = hashMapOf(
@@ -158,13 +142,24 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
                 refDestino.set(hashMap).addOnSuccessListener {
                     refPublicacion.delete().addOnSuccessListener {
-                        Toast.makeText(this, "Publicación movida a $tipo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Publicación movida a $tipo", Toast.LENGTH_SHORT)
+                            .show()
 
+                    }
                 }
-            }}
+            }
         }.addOnFailureListener {
             Toast.makeText(this, "Error al obtener datos: ${it.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun bottom_sheet_chips() {
+        val BottomChips = BottomSheetMinimoMaxFiltradoBinding.inflate(LayoutInflater.from(this))
+        val view = BottomChips.root
+        BottomChips.Filtrar.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.setContentView(view)
     }
 
 
@@ -172,7 +167,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
             .collection("publicaciones_trabajos").document("publicados").collection("publicados")
-        binding.loading.isVisible = true
+//        binding.loading.isVisible = true
         binding.linealNoCuenta.isVisible = false
         binding.recicleViewTrabajos.isVisible = false
         lista.clear()
@@ -195,14 +190,13 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
             }
             if (lista.isEmpty()) {
-                binding.loading.isVisible = false
+//                binding.loading.isVisible = false
                 binding.linealNoCuenta.isVisible = true
             } else {
-                binding.loading.isVisible = false
+//                binding.loading.isVisible = false
                 binding.linealNoCuenta.isVisible = false
                 binding.recicleViewTrabajos.isVisible = true
                 inicializarRecicle(binding.recicleViewTrabajos, adapter, this)
-                binding.linealappLayout.isVisible = true
                 adapter.notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
             }
 

@@ -78,7 +78,7 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("com.google.firebase:firebase-messaging")
-    implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.android.material:material:1.11.0")
     implementation("me.relex:circleindicator:2.1.6")
     implementation("org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.0")
     implementation("id.zelory:compressor:3.0.1")

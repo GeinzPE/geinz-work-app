@@ -43,10 +43,10 @@ class adapter_pbl_vr_tb_recientes(
             item: dataclas_trabajos_ralizados_verificados,
             editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados_verificados) -> Unit,
         ) {
-            binding.precioProducto.isVisible = false
+//            binding.precioProducto.isVisible = false
             binding.tituloProducto.text = item.titulo
             binding.descripcionProducto.text = item.contenido
-            binding.pen.isVisible = false
+//            binding.pen.isVisible = false
 
             val placeholderperfil =
                 ContextCompat.getDrawable(itemView.context, R.drawable.cargando_img_geinz_500)

@@ -67,9 +67,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
 //        constantesCarrito.obtnerfechaHora(binding.hora, binding.fecha)
-        binding.popup.setOnClickListener {
-            popup()
-        }
+
 
         binding.publicar.setOnClickListener {
             crearPublicacion(firebaseAuth.uid.toString())
@@ -154,7 +152,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
 
         } else {
             binding.scroll.isVisible = false
-            binding.progressBarContainer.isVisible = true
+            binding.linealPublicando.isVisible = true
 
             val newDocRef = db.document()
 
@@ -173,7 +171,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
                         "Publicacion creada exitosamente",
                         Toast.LENGTH_SHORT
                     ).show()
-                    binding.progressBarContainer.isVisible = false
+                    binding.linealPublicando.isVisible = false
                     binding.scroll.isVisible = true
                     guardar_img_storage(newDocRef.id)
                     resetearImagenes()
@@ -190,25 +188,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
         }
     }
 
-    fun popup() {
-        val popup = PopupMenu(this, binding.popup)
-//        popup.menu.add(Menu.NONE, 1, 1, "Estado de pago y verificacion")
-        popup.menu.add(Menu.NONE, 1, 1, "Trabajos publicados")
-        popup.menu.add(Menu.NONE, 2, 2, "Trabajos Archivados")
-        popup.menu.add(Menu.NONE, 3, 3, "Trabajos Eliminados")
 
-        popup.show()
-        popup.setOnMenuItemClickListener { item ->
-            val itemID = item.itemId
-            if (itemID == 1) {
-//                startActivity(Intent(this, voleta_estado_verificacion::class.java))
-                startActivity(Intent(this, ver_publicaciones::class.java))
-            } else if (itemID == 2) {
-                startActivity(Intent(this, ver_publicaciones::class.java))
-            }
-            return@setOnMenuItemClickListener true
-        }
-    }
 
     private fun obtenerImagenesValidas(): List<ShapeableImageView> {
         val placeholder = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)

@@ -53,7 +53,6 @@ import com.google.firebase.dynamiclinks.shortLinkAsync
 import com.google.firebase.dynamiclinks.socialMetaTagParameters
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.model.mutation.ArrayTransformOperation.Union
 import com.google.firebase.storage.FirebaseStorage
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -207,6 +206,9 @@ object constantes_publicaciones_general_user_tiendas {
         bindingProductosTrabajadores.cerrar.setOnClickListener {
             dialog.dismiss()
         }
+
+        val tiempoApertura = System.currentTimeMillis()
+
         bindingProductosTrabajadores.cargaProductosPromoTrabajos.verTodosTrabajos.setOnClickListener {
             val intent =
                 Intent(context, ver_mas_productos_publicados_trabajadores::class.java).apply {
@@ -229,6 +231,16 @@ object constantes_publicaciones_general_user_tiendas {
                 .collection("trabajadores").document(idTrabajador)
                 .collection("productos_venta").document("publicados").collection("publicados")
                 .document(productoClikado)
+            dialog.setOnDismissListener {
+                val tiempoCierre = System.currentTimeMillis()
+                val tiempoAbiertoSegundos = (tiempoCierre - tiempoApertura) / 1000
+                if (tiempoAbiertoSegundos > 20) {
+                    constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
+                }
+                Toast.makeText(context, "se cerro en $tiempoAbiertoSegundos", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
             bindingProductosTrabajadores.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -272,7 +284,7 @@ object constantes_publicaciones_general_user_tiendas {
                     context,
                     idTrabajador,
                     productoClikado,
-                    bindingProductosTrabajadores
+                    bindingProductosTrabajadores, dialog
                 )
 
             } else {
@@ -357,8 +369,12 @@ object constantes_publicaciones_general_user_tiendas {
         context: Context,
         idTrabajador: String,
         idProducto: String,
-        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
+        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding,
+        dialog_p: BottomSheetDialog
     ) {
+        val tiempoApertura = System.currentTimeMillis()
+//        Toast.makeText(context, "obtemos el productio obtneido$idProducto", Toast.LENGTH_SHORT)
+//            .show()
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("productos_venta")
@@ -367,6 +383,7 @@ object constantes_publicaciones_general_user_tiendas {
         bindingProductosVencidodos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
             "Productos"
         db.get().addOnSuccessListener { res ->
+
             listaProductosUSer.clear()
             for (datos in res) {
                 val imgProducto = datos["img_url"] as? String ?: ""
@@ -395,7 +412,7 @@ object constantes_publicaciones_general_user_tiendas {
                     context,
                     idTrabajador,
                     listaProductosUSer,
-                    bindingProductosVencidodos
+                    bindingProductosVencidodos, dialog_p
                 )
                 bindingProductosVencidodos.cargaProductosPromoTrabajos.cargandoContenido.isVisible =
                     false
@@ -711,10 +728,10 @@ object constantes_publicaciones_general_user_tiendas {
             referenciaTienda: String,
             localidadTienda: String,
 
-        ) -> Unit
+            ) -> Unit
     ) {
         progressBar.isVisible = true
-        linearLayout.isVisible=false
+        linearLayout.isVisible = false
         val tiempoInicio = System.currentTimeMillis()
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -725,7 +742,7 @@ object constantes_publicaciones_general_user_tiendas {
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
             progressBar.isVisible = false
-            linearLayout.isVisible=true
+            linearLayout.isVisible = true
             if (res.exists()) {
                 val data = res.data
 
@@ -738,7 +755,13 @@ object constantes_publicaciones_general_user_tiendas {
                 val referenciaTienda = datosTienda?.get("referencia") as? String ?: ""
                 val localidadTienda = datosTienda?.get("localidad") as? String ?: ""
 
-                datosExtra(descripcionLugar, localidadLugar, nombreTienda, referenciaTienda, localidadTienda)
+                datosExtra(
+                    descripcionLugar,
+                    localidadLugar,
+                    nombreTienda,
+                    referenciaTienda,
+                    localidadTienda
+                )
             } else {
                 datosExtra("", "", "", "", "")
             }
@@ -746,13 +769,10 @@ object constantes_publicaciones_general_user_tiendas {
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
             progressBar.isVisible = false
-            linearLayout.isVisible=false
+            linearLayout.isVisible = false
             datosExtra("", "", "", "", "")
         }
     }
-
-
-
 
 
     fun obtener_metodosPaog(id_trabajador: String, id_metodo: String, callback: (String) -> Unit) {
@@ -832,7 +852,8 @@ object constantes_publicaciones_general_user_tiendas {
         context: Context,
         idTrabajador: String,
         lista_productosVentaUSer: MutableList<dataclas_item_preview_art_comprar>,
-        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding
+        bindingProductosTrabajadores: BottomsheetProductosVendidosUserVerifiBinding,
+        dialog: BottomSheetDialog
     ) {
         val recicle = bindingProductosTrabajadores.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -842,7 +863,7 @@ object constantes_publicaciones_general_user_tiendas {
                 context,
                 idTrabajador,
                 item.id.toString(),
-                bindingProductosTrabajadores
+                bindingProductosTrabajadores, dialog
             )
         }
         recicle.adapter = adapter
@@ -853,8 +874,11 @@ object constantes_publicaciones_general_user_tiendas {
         context: Context,
         idTrabajador: String,
         productoClikado: String,
-        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding
+        bindingProductosVencidodos: BottomsheetProductosVendidosUserVerifiBinding,
+        dialog_p: BottomSheetDialog,
     ) {
+        val tiempoApertura = System.currentTimeMillis()
+        Toast.makeText(context, "$productoClikado", Toast.LENGTH_SHORT).show()
         bindingProductosVencidodos.progressCarga.isVisible = true
         bindingProductosVencidodos.netScrollView.isVisible = false
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -863,6 +887,33 @@ object constantes_publicaciones_general_user_tiendas {
             .document(productoClikado)
         listaProductosUSer.clear()
         db.get().addOnSuccessListener { res ->
+            dialog_p.setOnDismissListener {
+                val tiempoCierre = System.currentTimeMillis()
+                val tiempoAbiertoSegundos = (tiempoCierre - tiempoApertura) / 1000
+                if (tiempoAbiertoSegundos > 20) {
+                    constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
+                }
+                Toast.makeText(context, "se cerro en $tiempoAbiertoSegundos", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
+                bindingProductosVencidodos.compartirIcon.setOnClickListener {
+                    constantesPublicidad.agregarCantidadClickAnuncios(
+                        db,
+                        "",
+                        "compartir"
+                    )
+                    crear_dinamick_link(
+                        context,
+                        idTrabajador,
+                        productoClikado,
+                        "Mira este producto publicado por $nombre $apellido",
+                        "${bindingProductosVencidodos.nombreProducto.text}"
+                    )
+                }
+            }
+
             if (res.exists()) {
                 val data = res.data ?: emptyMap()
                 bindingProductosVencidodos.progressCarga.isVisible = true
@@ -886,7 +937,7 @@ object constantes_publicaciones_general_user_tiendas {
                     context,
                     idTrabajador,
                     productoClikado,
-                    bindingProductosVencidodos
+                    bindingProductosVencidodos, dialog_p
                 )
             } else {
 
@@ -952,6 +1003,7 @@ object constantes_publicaciones_general_user_tiendas {
         lifecycle: Lifecycle,
         item: dataclass_adapter_promociones, dialog: BottomSheetDialog
     ) {
+        val tiempoApertura = System.currentTimeMillis()
         val tiempoInicio = System.currentTimeMillis()
         val bindingMostrar =
             BottomSheetMostarTrabajosRecientesBinding.inflate(LayoutInflater.from(context))
@@ -1005,15 +1057,20 @@ object constantes_publicaciones_general_user_tiendas {
 
                 bindingMostrar.textoTrabajosRealzados.text = contenido
                 bindingMostrar.tituloTrabajosRealizados.text = titulo
-                val db = FirebaseFirestore.getInstance()
-                    .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
-                    .collection("trabajadores").document(idTrabajador)
-                    .collection("publicaciones_trabajos").document("publicados")
-                    .collection("publicados").document(item.id.toString())
                 constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+                    dialog.setOnDismissListener {
+                        val tiempoCierre = System.currentTimeMillis()
+                        val tiempoAbiertoSegundos = (tiempoCierre - tiempoApertura) / 1000
+                        if (tiempoAbiertoSegundos > 20) {
+                            constantesPublicidad.agregarCantidadClickAnuncios( trabajo.document(item.id.toString()), "", Variables.vistas)
+                        }
+                        Toast.makeText(context, "se cerro en $tiempoAbiertoSegundos", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    constantesPublicidad.agregarCantidadClickAnuncios( trabajo.document(item.id.toString()), "", "click")
                     bindingMostrar.compartirIcon.setOnClickListener {
                         constantesPublicidad.agregarCantidadClickAnuncios(
-                            db,
+                            trabajo.document(item.id.toString()),
                             "",
                             "compartir"
                         )
@@ -1022,11 +1079,10 @@ object constantes_publicaciones_general_user_tiendas {
                             idTrabajador,
                             item.id.toString(),
                             "Mira esta publicacion relizada por $nombre $apellido",
-                            "${titulo}"
+                            "${item.titulo_promo}"
                         )
                     }
                 }
-
 
                 // Configurar el carrusel de imágenes si hay imágenes disponibles
                 if (listaImg.isNotEmpty()) {
@@ -1072,7 +1128,7 @@ object constantes_publicaciones_general_user_tiendas {
                     bindingMostrar,
                     idSelecionado,
                     listaMas_promo,
-                    lifecycle
+                    lifecycle,dialog
                 )
             }
         }
@@ -1151,7 +1207,7 @@ object constantes_publicaciones_general_user_tiendas {
         idTrabajador: String,
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
         idSelecionado: String,
-        listaMas_promo: MutableList<dataclass_adapter_promociones>, lifecycle: Lifecycle
+        listaMas_promo: MutableList<dataclass_adapter_promociones>, lifecycle: Lifecycle,dialog_p: BottomSheetDialog
     ) {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
@@ -1197,10 +1253,11 @@ object constantes_publicaciones_general_user_tiendas {
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
                 inicializarTrabajosRealizados(
+                    idTrabajador,
                     bindingMostrarTRabajos,
                     context,
                     listaMas_promo,
-                    lifecycle
+                    lifecycle,dialog_p
                 )
                 bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
                     false
@@ -1389,10 +1446,11 @@ object constantes_publicaciones_general_user_tiendas {
     }
 
     private fun inicializarTrabajosRealizados(
+        idTrabajador: String,
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
         context: Context,
         listaMas_promo: MutableList<dataclass_adapter_promociones>,
-        lifecycle: Lifecycle
+        lifecycle: Lifecycle,dialog_p: BottomSheetDialog
     ) {
         val recicle = bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -1400,17 +1458,26 @@ object constantes_publicaciones_general_user_tiendas {
             false,
             listaMas_promo
         ) { item ->
-            cagrarDatosNuevamente(item, bindingMostrarTRabajos, listaMas_promo, lifecycle)
+            cagrarDatosNuevamente(
+                idTrabajador, context,
+                item,
+                bindingMostrarTRabajos,
+                listaMas_promo,
+                lifecycle,dialog_p
+            )
         }
 
     }
 
     fun cagrarDatosNuevamente(
+        idTrabajador: String,
+        context: Context,
         item: dataclass_adapter_promociones,
         bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
         listaMas_promo: MutableList<dataclass_adapter_promociones>,
-        lifecycle: Lifecycle
+        lifecycle: Lifecycle,dialog_p: BottomSheetDialog
     ) {
+        val tiempoApertura = System.currentTimeMillis()
         bindingMostrarTRabajos.cargarConteindo.isVisible = true // Mostrar el ProgressBar
         bindingMostrarTRabajos.scollView.isVisible = false
 
@@ -1421,6 +1488,39 @@ object constantes_publicaciones_general_user_tiendas {
         bindingMostrarTRabajos.textoTrabajosRealzados.text = item.texto_promo
         bindingMostrarTRabajos.tituloTrabajosRealizados.text = item.titulo_promo
         println("El item seleccionado fue el ${item.id}")
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador)
+            .collection("publicaciones_trabajos").document("publicados")
+            .collection("publicados").document(item.id.toString())
+
+        constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+            dialog_p.setOnDismissListener {
+                val tiempoCierre = System.currentTimeMillis()
+                val tiempoAbiertoSegundos = (tiempoCierre - tiempoApertura) / 1000
+                if (tiempoAbiertoSegundos > 20) {
+                    constantesPublicidad.agregarCantidadClickAnuncios(db, "", Variables.vistas)
+                }
+                Toast.makeText(context, "se cerro en $tiempoAbiertoSegundos", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
+            bindingMostrarTRabajos.compartirIcon.setOnClickListener {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    "compartir"
+                )
+                crear_dinamick_link_prblicaciones_trabajador(
+                    context,
+                    idTrabajador,
+                    item.id.toString(),
+                    "Mira esta publicacion relizada por $nombre $apellido",
+                    "${item.titulo_promo}"
+                )
+            }
+        }
 
         // Filtrar la lista excluyendo el item seleccionado
         val nuevaLista = listaMas_promo.filter { it.id != item.id }.toMutableList()
@@ -1434,7 +1534,14 @@ object constantes_publicaciones_general_user_tiendas {
                 false,
                 nuevaLista
             ) { nuevoItem ->
-                cagrarDatosNuevamente(nuevoItem, bindingMostrarTRabajos, listaMas_promo, lifecycle)
+                cagrarDatosNuevamente(
+                    idTrabajador,
+                    context,
+                    nuevoItem,
+                    bindingMostrarTRabajos,
+                    listaMas_promo,
+                    lifecycle,dialog_p
+                )
             }
         val listaImg =
             listOf(item.img, item.img2, item.img3, item.img4)

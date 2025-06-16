@@ -882,6 +882,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
 
     private fun publicar_producto() {
+        binding.linealPublicando.isVisible=true
+        binding.scroll.isVisible=false
         val titulo_producto = binding.tituloPublicacionPrED
         val modelo_producto = binding.modeloProductoED
         val nombre_producto = binding.nombreProductoED
@@ -988,6 +990,37 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                     )
                     dbProductos_publicados.set(hasmap_producto, SetOptions.merge())
                         .addOnSuccessListener {
+                            binding.tituloPublicacionPrED.setText("")
+                            binding.subcategoriaProducto.setText("")
+                            binding.marcaProductoED.setText("")
+                            binding.modeloProductoED.setText("")
+                            binding.nombreProductoED.setText("")
+                            binding.condicionPrED.setText("")
+                            binding.precioProductoED.setText("0")
+                            binding.siHayDescuento.isChecked = false
+                            binding.siHayGarantia.isChecked = false
+                            binding.agregarHastagsED.setText("")
+                            binding.masInformacionED.setText("")
+                            binding.agregaUbicaciones.isChecked = false
+                            binding.metodoPagoSelect.text = ""
+                            binding.chipsPagos.clearCheck()
+                            binding.metodoEntregaSelect.text = ""
+                            binding.vistraPreviaDescripciontitulo.text=""
+                            binding.vistraPreviaDescripcion.text=""
+                            binding.subir.isVisible=true
+                            binding.camposEditar.isVisible=false
+                            binding.linealVistaPreviaApartado.isVisible=false
+                            binding.linealGarantia.isVisible=false
+                            binding.hayGarantiaProductoED.setText("")
+                            binding.precioNuevoDescuentoPrED.setText("0")
+                            binding.precioNuevoDescuentoPr.isVisible=false
+                            binding.radioGrupPlazoRG.clearCheck()
+                            binding.chipsEntregas.clearCheck()
+                            binding.catSelcionado.text=""
+                            binding.stokED.setText("0")
+                            resetearImagenes()
+                            binding.linealPublicando.isVisible=false
+                            binding.scroll.isVisible=true
                             Toast.makeText(
                                 this,
                                 "se agrego a la otra coleccion",
@@ -1001,6 +1034,21 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }.addOnFailureListener {
             Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun resetearImagenes() {
+        val placeholderCaracteristica =
+            ContextCompat.getDrawable(this, R.drawable.agregar_imagen_cuadrado)
+        binding.imgSubir.setImageDrawable(placeholderCaracteristica)
+
+        val drawablePorDefecto = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)
+
+        imageViews.forEachIndexed { index, imageView ->
+            imageView.setImageDrawable(drawablePorDefecto)
+            imageView.visibility = if (index == 0) View.VISIBLE else View.GONE
+        }
+
+        currentImageIndex = 0
     }
 
 
@@ -1110,7 +1158,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             storageRef.putBytes(data)
                 .addOnSuccessListener {
                     Log.d("Firestore", "URL de imagen principal guardada con éxito.")
-                
+
 
                 }
                 .addOnFailureListener { e ->

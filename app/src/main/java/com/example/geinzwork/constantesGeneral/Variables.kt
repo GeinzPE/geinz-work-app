@@ -158,7 +158,7 @@ object Variables {
 
     //VARIABLES CONSTANTES_PULICACIONES
     const val trabajos_realizados = "trabajos_realizados"
-    const val imageUrl="imageUrl"
+    const val imageUrl="img_url"
     const val hora="hora"
     const val fecha="fecha"
 

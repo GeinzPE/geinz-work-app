@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@color/colorFondo"
     android:orientation="vertical">
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
@@ -29,30 +28,38 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
-        android:text="Administra tus publicaciones: Aquí puedes editar o eliminar las publicaciones que has realizado anteriormente."
+        android:text="Puedes editar solo el título y el contenido de la publicación. Si ocurre algún error o inconveniente, no olvides copiar el ID de tu publicación para que Geinz Work pueda ayudarte."
         android:textSize="12sp" />
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp">
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/imagen_trabajo"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_margin="10dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/portada_agregar_geinz"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Id Publicacion : "
+            android:textSize="15sp" />
 
-        <ProgressBar
-            android:id="@+id/progress_carga_imagen"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_centerInParent="true"
-            android:indeterminate="true"
-            android:visibility="gone" />
-    </RelativeLayout>
+        <TextView
+            android:id="@+id/id_publicacion"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/copiar_id"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/baseline_content_copy_24" />
+    </LinearLayout>
 
 
     <com.google.android.material.textfield.TextInputLayout

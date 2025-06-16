@@ -189,6 +189,22 @@ class compras_productos_vendedor : AppCompatActivity() {
                 .show()
             camposValidos = false
         }
+        if (!binding.delivery.isChecked && !binding.cordinar.isChecked && !binding.entregaProgramada.isChecked && !binding.envioCourier.isChecked && !binding.lugarEntrega.isChecked && !binding.retiroTienda.isChecked) {
+            Toast.makeText(
+                binding.root.context,
+                "Seleccione un método de entrega",
+                Toast.LENGTH_SHORT
+            ).show()
+            camposValidos = false
+        }
+        if (binding.delivery.isChecked && binding.direccionEntregaED.text.isEmpty() && binding.ReferenciaEntregaED.text.isEmpty()) {
+            Toast.makeText(
+                binding.root.context,
+                "Selecione una direccion creada",
+                Toast.LENGTH_SHORT
+            ).show()
+            camposValidos = false
+        }
 
         // Si todos los campos están correctos, mostrar mensaje de confirmación
         if (camposValidos) {
@@ -548,8 +564,21 @@ class compras_productos_vendedor : AppCompatActivity() {
 
 
                 binding.categoriaProductos.textoNumero2.text = categoria
-                binding.marcaProducto.textoNumero2.text = marca
-                binding.modeloProducto.textoNumero2.text = modelo
+                if (marca.isNotEmpty()) {
+                    binding.marcaProducto.textoNumero2.text = marca
+
+                } else {
+                    binding.marcaProducto.linealCampos.isVisible = false
+
+                }
+
+                if (modelo.isNotEmpty()) {
+                    binding.modeloProducto.textoNumero2.text = modelo
+                } else {
+                    binding.modeloProducto.linealCampos.isVisible = false
+                }
+
+
                 binding.StokDiponible.textoNumero2.text = "$stok UND"
                 binding.garantiaProducto.textoNumero2.text = garantia
                 binding.condicionProducto.textoNumero2.text = condicionProducto

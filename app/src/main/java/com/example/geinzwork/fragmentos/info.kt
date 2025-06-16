@@ -51,6 +51,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.crear_dinamick_link_prblicaciones_trabajador
 import com.geinzz.geinzwork.constantesGeneral.constantes_redes
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
@@ -891,22 +892,16 @@ class info : Fragment() {
                             val trabajo = datosTrabajos[position]
                             val listaImg = trabajo["listaImg"] as? List<String> ?: emptyList()
                             val id = trabajo["id"] as? String ?: ""
-                            constantesPublicidad.agregarCantidadClickAnuncios(
-                                db.document(id),
-                                "",
-                                "click"
-                            )
-                            iniciarContadorVista(db.document(id))
+
                             dialog = BottomSheetDialog(mContex)
                             showBottomShetDialogAnuncios(
-                                db.document(id),
                                 idTrabajador,
                                 trabajo,
                                 listaImg
                             )
-                            dialog.setOnDismissListener {
-                                cancelarContadorVista()
-                            }
+//                            dialog.setOnDismissListener {
+//                                cancelarContadorVista()
+//                            }
 
                             dialog.show()
                         }
@@ -921,11 +916,12 @@ class info : Fragment() {
 
 
     private fun showBottomShetDialogAnuncios(
-        documentReference: DocumentReference,
         idTrabajador: String,
         trabajo: Map<String, Any>,
         listaImg: List<String>
     ) {
+        Toast.makeText(context, "abrimos dialogo 1", Toast.LENGTH_SHORT).show()
+        val tiempoApertura = System.currentTimeMillis()
         val bindingMostrar =
             BottomSheetMostarTrabajosRecientesBinding.inflate(LayoutInflater.from(mContex))
         dialog.setContentView(bindingMostrar.root)
@@ -933,6 +929,7 @@ class info : Fragment() {
         bindingMostrar.cerrar.setOnClickListener {
             dialog.dismiss()
         }
+
         bindingMostrar.cargarConteindo.isVisible = true
         bindingMostrar.linealGeneralLinea.isVisible =
             false // Obtener valores del mapa, asegurando que se conviertan a String si es necesario
@@ -941,10 +938,30 @@ class info : Fragment() {
         val idSelecionado = trabajo["id"] as? String ?: ""
         val fecha_rec = trabajo["fecha_rec"] as? String ?: ""
         val hora_rec = trabajo["hora_rec"] as? String ?: ""
+
+        Toast.makeText(context, "abrimos dialogo 1 $idSelecionado", Toast.LENGTH_SHORT).show()
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados").document(idSelecionado)
+        dialog.setOnDismissListener {
+            val tiempoCierre = System.currentTimeMillis()
+            val tiempoAbiertoSegundos = (tiempoCierre - tiempoApertura) / 1000
+            if (tiempoAbiertoSegundos > 20) {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    Variables.vistas
+                )
+            }
+            Toast.makeText(context, "se cerro en $tiempoAbiertoSegundos", Toast.LENGTH_SHORT)
+                .show()
+        }
+        constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
         constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
             bindingMostrar.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
-                    documentReference,
+                    db,
                     "",
                     "compartir"
                 )
@@ -954,11 +971,8 @@ class info : Fragment() {
                     "Mira esta publicacion relizada por $nombre $apellido",
                     "$titulo"
                 )
-                dialog.dismiss()
             }
         }
-
-
 
 
         bindingMostrar.tituloNombreTrabajador.text =
@@ -1162,8 +1176,45 @@ class info : Fragment() {
 
     fun cagrarDatosNuevamente(
         item: dataclass_adapter_promociones,
-        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding
+        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
+        idTrabajador: String,
     ) {
+        val tiempoApertura = System.currentTimeMillis()
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
+            .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados").document(item.id.toString())
+        Toast.makeText(mContex, "${item.id}", Toast.LENGTH_SHORT).show()
+        constantesCarrito.setearDatosUsuarioImgNombre(idTrabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+            dialog.setOnDismissListener {
+                val tiempoCierre = System.currentTimeMillis()
+                val tiempoAbiertoSegundos = (tiempoCierre - tiempoApertura) / 1000
+                if (tiempoAbiertoSegundos > 20) {
+                    constantesPublicidad.agregarCantidadClickAnuncios(
+                        db,
+                        "",
+                        Variables.vistas
+                    )
+                }
+                Toast.makeText(context, "se cerro en $tiempoAbiertoSegundos", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
+            bindingMostrarTRabajos.compartirIcon.setOnClickListener {
+                constantesPublicidad.agregarCantidadClickAnuncios(
+                    db,
+                    "",
+                    "compartir"
+                )
+                crear_dinamick_link_prblicaciones_trabajador(
+                    mContex,
+                    idTrabajador,
+                    item.id.toString(),
+                    "Mira esta publicacion relizada por $nombre $apellido",
+                    "${item.titulo_promo}"
+                )
+            }
+        }
         bindingMostrarTRabajos.cargarConteindo.isVisible = true // Mostrar el ProgressBar
         bindingMostrarTRabajos.scollView.isVisible = false
 
@@ -1187,7 +1238,7 @@ class info : Fragment() {
                 false,
                 nuevaLista
             ) { nuevoItem ->
-                cagrarDatosNuevamente(nuevoItem, bindingMostrarTRabajos)
+                cagrarDatosNuevamente(nuevoItem, bindingMostrarTRabajos, idTrabajador)
             }
         val listaImg =
             listOf(item.img, item.img2, item.img3, item.img4)
@@ -1788,6 +1839,7 @@ class info : Fragment() {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
             .collection("trabajadores").document(idTrabajador).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados")
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cargandoContenido.isVisible = true
         bindingMostrarTRabajos.cargaProductosPromoTrabajos.cambiarTextoTrabajosRealziadosTrabajosRecientes.text =
             "Trabajos recientes"
@@ -1832,7 +1884,8 @@ class info : Fragment() {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
                 // Ocultar el texto después del mismo tiempo que tomó cargar los datos
                 Handler(Looper.getMainLooper()).postDelayed({
-                    inicializarTrabajosRealizados(bindingMostrarTRabajos)
+                    inicializarTrabajosRealizados(bindingMostrarTRabajos, idTrabajador)
+
                     bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
                         false
                     bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
@@ -1908,7 +1961,7 @@ class info : Fragment() {
 
             if (listaMas_promo.isNotEmpty()) {
                 listaMas_promo.shuffle() // Mezclar los datos antes de mostrarlos
-                inicializarTrabajosRealizados(bindingMostrarTRabajos)
+                inicializarTrabajosRealizados(bindingMostrarTRabajos, idTrabajador)
                 bindingMostrarTRabajos.cargaProductosPromoTrabajos.linealNoSeEncontraron.isVisible =
                     false
                 bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados.isVisible =
@@ -1932,14 +1985,18 @@ class info : Fragment() {
     }
 
 
-    private fun inicializarTrabajosRealizados(bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding) {
+    private fun inicializarTrabajosRealizados(
+        bindingMostrarTRabajos: BottomSheetMostarTrabajosRecientesBinding,
+        idTrabajador: String,
+
+        ) {
         val recicle = bindingMostrarTRabajos.cargaProductosPromoTrabajos.masTrabajosRealiados
         recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.adapter = adapter_trabajos_realizados_trabajador(
             false,
             listaMas_promo
         ) { item ->
-            cagrarDatosNuevamente(item, bindingMostrarTRabajos)
+            cagrarDatosNuevamente(item, bindingMostrarTRabajos, idTrabajador)
         }
 
     }

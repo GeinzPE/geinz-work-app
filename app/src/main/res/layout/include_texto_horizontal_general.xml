@@ -3,6 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
     <LinearLayout
+        android:id="@+id/lineal_campos"
         android:layout_marginVertical="5dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

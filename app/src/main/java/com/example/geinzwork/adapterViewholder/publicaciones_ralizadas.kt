@@ -43,10 +43,10 @@ class publicaciones_ralizadas(
             item: dataclas_trabajos_ralizados,
             editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados) -> Unit,
         ) {
-            binding.precioProducto.isVisible = false
+//            binding.precioProducto.isVisible = false
             binding.tituloProducto.text = item.titulo
             binding.descripcionProducto.text = item.contenido
-            binding.pen.isVisible = false
+//            binding.pen.isVisible = false
 
             val placeholderperfil =
                 ContextCompat.getDrawable(itemView.context, R.drawable.cargando_img_geinz_500)

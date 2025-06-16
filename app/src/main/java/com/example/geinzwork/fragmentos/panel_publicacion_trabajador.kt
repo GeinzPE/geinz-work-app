@@ -9,6 +9,8 @@ import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_metodos_entrega
 import com.example.geinzwork.adapterViewholder.adapter_metodos_pagos
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja.handler
 import com.example.geinzwork.crear_publicacion_productos_trabajadores
 import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclass_metodos_entrega
@@ -33,6 +36,7 @@ import com.geinzz.geinzwork.databinding.BotomSheetDialogMetodosPagoBinding
 import com.geinzz.geinzwork.databinding.BottomSheeetMetodoEntregaBinding
 import com.geinzz.geinzwork.databinding.BottomSheetAgregarRedesBinding
 import com.geinzz.geinzwork.databinding.BottomSheetNumeroNombrePagoBinding
+import com.geinzz.geinzwork.ver_publicaciones
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -1191,15 +1195,50 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         binding.publicaciones.tituloServico.text = "Publicaciones"
         binding.productosVenta.tituloServico.text = "Productos en venta"
 
-        obtenerTrabajosRecientes("trabajos_realizados", "publicados", { valor ->
+        obtenerTrabajosRecientes(
+            binding.traajosRecientes.cargaDatos,
+            binding.traajosRecientes.linealCargaDatos,
+            "trabajos_realizados",
+            "publicados",
+            { valor ->
+                val trabajos_activos =
+                    SpannableString("Trabajos activos : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Trabajos activos",
+                    trabajos_activos, binding.traajosRecientes.activos
+                )
+            })
+
+        obtenerTrabajosRecientes( binding.traajosRecientes.cargaDatos,
+            binding.traajosRecientes.linealCargaDatos,"trabajos_realizados", "archivados", { valor ->
             val trabajos_activos =
-                SpannableString("Trabajos activos : ${valor}")
+                SpannableString("Trabajos archivados : ${valor}")
             constantestextos_general.setearInformacionboldDescripcion(
-                "Trabajos activos",
-                trabajos_activos, binding.traajosRecientes.activos
+                "Trabajos archivados",
+                trabajos_activos, binding.traajosRecientes.archivadas
             )
         })
-        obtenerTrabajosRecientes("publicaciones_trabajos", "publicados", { valor ->
+
+
+        obtenerTrabajosRecientes( binding.traajosRecientes.cargaDatos,
+            binding.traajosRecientes.linealCargaDatos,"trabajos_realizados", "eliminados", { valor ->
+            val trabajos_activos =
+                SpannableString("Trabajos eliminados : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Trabajos eliminados",
+                trabajos_activos, binding.traajosRecientes.eliminadas
+            )
+        })
+        binding.traajosRecientes.verTodos.setOnClickListener {
+            startActivity(Intent(this, ver_publicaciones::class.java))
+        }
+
+
+
+
+
+        obtenerTrabajosRecientes( binding.publicaciones.cargaDatos,
+            binding.publicaciones.linealCargaDatos,"publicaciones_trabajos", "publicados", { valor ->
             val activas_trabajos =
                 SpannableString("Publicaciones activas : ${valor}")
             constantestextos_general.setearInformacionboldDescripcion(
@@ -1208,14 +1247,56 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             )
         })
 
+        obtenerTrabajosRecientes( binding.publicaciones.cargaDatos,
+            binding.publicaciones.linealCargaDatos,"publicaciones_trabajos", "archivados", { valor ->
+            val trabajos_activos =
+                SpannableString("Publicaciones archivados : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Publicaciones archivados",
+                trabajos_activos, binding.publicaciones.archivadas
+            )
+        })
 
 
-        obtenerTrabajosRecientes("productos_venta", "publicados", { valor ->
+        obtenerTrabajosRecientes( binding.publicaciones.cargaDatos,
+            binding.publicaciones.linealCargaDatos,"publicaciones_trabajos", "eliminados", { valor ->
+            val trabajos_activos =
+                SpannableString("Publicaciones eliminados : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Publicaciones eliminados",
+                trabajos_activos, binding.publicaciones.eliminadas
+            )
+        })
+
+
+        obtenerTrabajosRecientes( binding.productosVenta.cargaDatos,
+            binding.productosVenta.linealCargaDatos,"productos_venta", "publicados", { valor ->
             val productos_activos =
                 SpannableString("Productos activos : ${valor}")
             constantestextos_general.setearInformacionboldDescripcion(
                 "Productos activos",
                 productos_activos, binding.productosVenta.activos
+            )
+        })
+
+
+        obtenerTrabajosRecientes( binding.productosVenta.cargaDatos,
+            binding.productosVenta.linealCargaDatos,"productos_venta", "archivados", { valor ->
+            val trabajos_activos =
+                SpannableString("Productos archivados : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Productos archivados",
+                trabajos_activos, binding.productosVenta.archivadas
+            )
+        })
+
+        obtenerTrabajosRecientes( binding.productosVenta.cargaDatos,
+            binding.productosVenta.linealCargaDatos,"productos_venta", "eliminados", { valor ->
+            val trabajos_activos =
+                SpannableString("Productos eliminados : ${valor}")
+            constantestextos_general.setearInformacionboldDescripcion(
+                "Productos eliminados",
+                trabajos_activos, binding.productosVenta.eliminadas
             )
         })
 
@@ -1254,18 +1335,49 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     }
 
-    private fun obtenerTrabajosRecientes(col1: String, col: String, callback: (String) -> Unit) {
+    private val handler = Handler(Looper.getMainLooper())
+
+    private fun obtenerTrabajosRecientes(
+        progressbar: ProgressBar,
+        lineal: LinearLayout,
+        col1: String,
+        col: String,
+        callback: (String) -> Unit
+    ) {
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores")
             .collection("trabajadores")
             .document(firebaseAuth.uid.toString())
-            .collection(col1).document(col).collection(col)
+            .collection(col1)
+            .document(col)
+            .collection(col)
+
+        val startTime = System.currentTimeMillis()
 
         db.get().addOnSuccessListener { res ->
+            val endTime = System.currentTimeMillis()
+            val tiempo = endTime - startTime
+            Log.d("FirestoreTiempo", "Demoró ${tiempo}ms en obtener los datos")
+
+            handler.postDelayed({
+                progressbar.isVisible = false
+                lineal.isVisible = true
+            }, tiempo)
+
             val cantidadPublicadas = res.size()
             callback(cantidadPublicadas.toString())
-        }.addOnFailureListener {
+        }.addOnFailureListener { e ->
+            val endTime = System.currentTimeMillis()
+            val tiempo = endTime - startTime
+            Log.e("FirestoreTiempo", "Error: ${e.message}. Demoró ${tiempo}ms")
+
+            // Ocultar el progressbar de todos modos en caso de error
+            handler.post {
+                progressbar.isVisible = false
+                lineal.isVisible = true
+            }
+
             callback("No se encontraron")
         }
     }

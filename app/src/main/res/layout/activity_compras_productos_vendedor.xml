@@ -320,7 +320,6 @@
 
                         <RadioButton
                             android:id="@+id/delivery"
-
                             style="@style/TextoModoOScuroColor"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
