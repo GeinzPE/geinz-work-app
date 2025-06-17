@@ -7,13 +7,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados">
 
+    <LinearLayout
+
+        android:id="@+id/lineal_encontrados"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"/>
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cargando publicaciones"/>
+    </LinearLayout>
     <androidx.core.widget.NestedScrollView
+        android:animateLayoutChanges="true"
+
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:animateLayoutChanges="true"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -38,6 +65,16 @@
                     android:text="Edita o elimina tus publicaciones"
                     android:textSize="20sp" />
 
+                <TextView
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/max"/>
+                <TextView
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/min"/>
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

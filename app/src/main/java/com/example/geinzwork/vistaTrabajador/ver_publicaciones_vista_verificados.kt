@@ -2,6 +2,8 @@ package com.example.geinzwork.vistaTrabajador
 
 import android.content.Context
 import android.os.Bundle
+import android.text.SpannableString
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +19,7 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesVistaVerificadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionesVerificadosBinding
@@ -53,21 +56,150 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             dialog.show()
         })
         binding.masClicks.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottom_sheet_chips()
-            dialog.show()
+            binding.linealEncontrados.isVisible = true
+            binding.recicleViewTrabajos.isVisible = false
+            obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
+
+                dialog = BottomSheetDialog(this)
+                bottom_sheet_chips(max, min) { minC, maxC ->
+                    filtrar_publicaciones(minC, maxC, "estadisticas_click")
+
+                }
+                dialog.show()
+            }
+
         }
         binding.masVistas.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottom_sheet_chips()
-            dialog.show()
+            binding.linealEncontrados.isVisible = true
+            binding.recicleViewTrabajos.isVisible = false
+            obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
+                dialog = BottomSheetDialog(this)
+                bottom_sheet_chips(max, min) { minC, maxC ->
+                    filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
+                }
+                dialog.show()
+            }
         }
         binding.masCompartidas.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottom_sheet_chips()
-            dialog.show()
+            binding.linealEncontrados.isVisible = true
+            binding.recicleViewTrabajos.isVisible = false
+            obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
+
+                dialog = BottomSheetDialog(this)
+                bottom_sheet_chips(max, min) { minC, maxC ->
+                    filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
+                }
+                dialog.show()
+            }
+        }
+
+    }
+
+    private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
+        Toast.makeText(
+            this@ver_publicaciones_vista_verificados,
+            "Filtramos por el mínimo de $min y el máximo de $max",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+        val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados")
+
+        refPublicacion.get().addOnSuccessListener { res ->
+            lista.clear() // Asegúrate de limpiar la lista antes de agregar nuevos datos
+
+            for (datos in res) {
+                val data = datos.data
+
+                val cliks = (data[filtado_pasado] as? Number)?.toInt() ?: continue
+
+                // ✅ Aplicar el filtro
+                if (cliks in min..max) {
+                    val img_url = data["img_url"] as? String ?: ""
+                    val titulo = data["titulo"] as? String ?: ""
+                    val contenido = data["contenido"] as? String ?: ""
+                    val hora_rec = data["hora_rec"] as? String ?: ""
+                    val fecha_rec = data["fecha_rec"] as? String ?: ""
+                    val id = data["id"] as? String ?: ""
+                    val cliks = data["estadisticas_click"] as? Number ?: 0
+                    val vista = data["estadisticas_vistas"] as? Number ?: 0
+                    val compartidas = data["estadisticas_compartir"] as? Number ?: 0
+
+                    val publicacion = dataclas_trabajos_ralizados_verificados(
+                        img_url,
+                        titulo,
+                        contenido,
+                        hora_rec,
+                        fecha_rec,
+                        id,
+                        vista,
+                        compartidas,
+                        cliks
+                    )
+                    lista.add(publicacion)
+                }
+            }
+
+            if (lista.isEmpty()) {
+                binding.linealNoCuenta.isVisible = true
+                binding.recicleViewTrabajos.isVisible = false
+                binding.linealEncontrados.isVisible = false
+            } else {
+                binding.linealNoCuenta.isVisible = false
+                binding.linealEncontrados.isVisible = false
+                binding.recicleViewTrabajos.isVisible = true
+                binding.max.text = max.toString()
+                binding.min.text = min.toString()
+                inicializarRecicle(binding.recicleViewTrabajos, adapter, this)
+                adapter.notifyDataSetChanged()
+            }
         }
     }
+
+
+    private fun obtener_mayor_menor_cantidad_campos(
+        campoFiltrado: String,
+        max_min: (String, String) -> Unit
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+        val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("publicaciones_trabajos")
+            .document("publicados").collection("publicados")
+
+        refPublicacion.get().addOnSuccessListener { res ->
+            var valorMaximo: Int? = null
+            var valorMinimo: Int? = null
+
+            for (datos in res) {
+                val data = datos.data
+                val campo = (data[campoFiltrado] as? Number)?.toInt() ?: continue
+
+                if (valorMaximo == null || campo > valorMaximo) {
+                    valorMaximo = campo
+                }
+                if (valorMinimo == null || campo < valorMinimo) {
+                    valorMinimo = campo
+                }
+            }
+
+            if (valorMaximo != null && valorMinimo != null) {
+                max_min(valorMaximo.toString(), valorMinimo.toString())
+                Log.d("Valores", "Máximo: $valorMaximo - Mínimo: $valorMinimo")
+                // Aquí puedes usar los valores como enteros
+            } else {
+                Log.d("Valores", "No se encontraron datos válidos para el campo: $campoFiltrado")
+            }
+        }.addOnFailureListener {
+            Log.e("Firestore", "Error al obtener documentos: ${it.message}")
+        }
+    }
+
 
     private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados_verificados) {
         val bottoSheet = BottomSheetCamposTrPdPBinding.inflate(LayoutInflater.from(this))
@@ -76,17 +208,46 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val estadisticas = bottoSheet.estadisticas
         val editar = bottoSheet.editar
         val archivar = bottoSheet.archivar
+        if (binding.masClicks.isChecked) {
+            archivar.setOnClickListener {
+                dialog.dismiss()
+                archivar_eliminar_publicaciones(
+                    item.id_publicacion.toString(),
+                    "publicados",
+                    "archivados", "mascliks"
+                )
+            }
+        }
+        if (binding.masVistas.isChecked) {
 
-        eliminar.setOnClickListener {
-            archivar_eliminar_publicacion(item.id_publicacion.toString(), "eliminados")
+        }
+        if (binding.masCompartidas.isChecked) {
 
         }
-        editar.setOnClickListener {
-            editar_publicaciones(item.id_publicacion.toString())
+        if (binding.todos.isChecked) {
+            eliminar.setOnClickListener {
+                dialog.dismiss()
+                archivar_eliminar_publicaciones(
+                    item.id_publicacion.toString(),
+                    "publicados",
+                    "eliminados", "todos"
+                )
+
+            }
+            editar.setOnClickListener {
+                editar_publicaciones(item.id_publicacion.toString())
+            }
+            archivar.setOnClickListener {
+                dialog.dismiss()
+                archivar_eliminar_publicaciones(
+
+                    item.id_publicacion.toString(),
+                    "publicados",
+                    "archivados", "todos"
+                )
+            }
         }
-        archivar.setOnClickListener {
-            archivar_eliminar_publicacion(item.id_publicacion.toString(), "archivados")
-        }
+
 
         dialog.setContentView(view)
     }
@@ -153,12 +314,170 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         }
     }
 
-    private fun bottom_sheet_chips() {
-        val BottomChips = BottomSheetMinimoMaxFiltradoBinding.inflate(LayoutInflater.from(this))
-        val view = BottomChips.root
-        BottomChips.Filtrar.setOnClickListener {
-            dialog.dismiss()
+
+    private fun archivar_eliminar_publicaciones(
+        id_publicacion: String,
+        tipo1: String,
+        tipo2: String, funciones: String
+    ) {
+        binding.linealEncontrados.isVisible = true
+        binding.recicleViewTrabajos.isVisible = false
+        val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+            .document(firebaseAuth.uid.toString())
+            .collection("publicaciones_trabajos").document(tipo1).collection(tipo1)
+            .document(id_publicacion)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data ?: return@addOnSuccessListener
+
+                val categoria = data?.get("categoria") as? String ?: ""
+                val contenido = data?.get("contenido") as? String ?: ""
+                val estadisticas_click = data?.get("estadisticas_click") as? Number ?: 0
+                val estadisticas_compartir = data?.get("estadisticas_compartir") as? Number ?: 0
+                val estadisticas_vistas = data?.get("estadisticas_vistas") as? Number ?: 0
+                val fecha_rec = data?.get("fecha_rec") as? String ?: ""
+                val hora_rec = data?.get("hora_rec") as? String ?: ""
+                val titulo = data?.get("titulo") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val ubicacion = data?.get("ubicacion") as? String ?: ""
+                val visibilidad = data?.get("visivilidad") as? String ?: ""
+                val hashtags_generales =
+                    data?.get("hashtags_generales") as? List<String> ?: emptyList()
+                val hashtags_trabajos_publicados =
+                    data?.get("hashtags_trabajos_publicados") as? List<String> ?: emptyList()
+
+                val hashMap = hashMapOf<String, Any>(
+                    "id" to id,
+                    "categoria" to categoria,
+                    "contenido" to contenido,
+                    "estadisticas_click" to estadisticas_click,
+                    "estadisticas_compartir" to estadisticas_compartir,
+                    "estadisticas_vistas" to estadisticas_vistas,
+                    "fecha_rec" to fecha_rec,
+                    "hora_rec" to hora_rec,
+                    "titulo" to titulo,
+                    "ubicacion" to ubicacion,
+                    "visivilidad" to visibilidad,
+                    "hashtags_generales" to hashtags_generales,
+                    "hashtags_trabajos_publicados" to hashtags_trabajos_publicados
+                )
+                for ((key, value) in data) {
+                    if (key.startsWith("img_url") && value is String) {
+                        hashMap[key] = value
+                    }
+                }
+                val db2 =
+                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                        .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                        .document(firebaseAuth.uid.toString())
+                        .collection("publicaciones_trabajos").document(tipo2).collection(tipo2)
+                        .document(id_publicacion)
+                db2.set(hashMap).addOnSuccessListener { res ->
+                    Toast.makeText(this, "movido correctamente", Toast.LENGTH_SHORT).show()
+                    binding.linealEncontrados.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = true
+                    when (funciones) {
+                        "todos" -> {
+                            obtener_publicaciones_realizadas(firebaseAuth.uid.toString())
+                        }
+
+                        "mascliks" -> {
+                            filtrar_publicaciones(
+                                binding.min.text.toString().toInt(),
+                                binding.max.text.toString().toInt(),
+                                "estadisticas_click"
+                            )
+                        }
+                    }
+
+                    db.delete().addOnFailureListener { res ->
+                        Log.d("elminadoSucces", "eliminado correctaemte")
+                    }
+                }.addOnFailureListener { e ->
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleViewTrabajos.isVisible = false
+                    Toast.makeText(this, "Hubo uin error al mover ", Toast.LENGTH_SHORT).show()
+                }
+                // Aquí puedes usar `hashMap` para archivar, mover, actualizar o lo que necesites
+                Log.d("HASHMAP_FINAL", hashMap.toString())
+            }
+        }.addOnFailureListener {
+            binding.linealEncontrados.isVisible = true
+            binding.recicleViewTrabajos.isVisible = false
+            Log.e("Firestore", "Error al obtener la publicación: ${it.message}")
         }
+    }
+
+
+    private fun bottom_sheet_chips(
+        max: String,
+        min: String,
+        maximo_min: (Int, Int) -> Unit
+    ) {
+        val bottomChips = BottomSheetMinimoMaxFiltradoBinding.inflate(LayoutInflater.from(this))
+        val view = bottomChips.root
+
+        // Mostrar valores de referencia
+        constantestextos_general.setearInformacionboldDescripcion(
+            "Valor mínimo", SpannableString("Valor mínimo: $min"), bottomChips.minimo
+        )
+
+        constantestextos_general.setearInformacionboldDescripcion(
+            "Valor máximo", SpannableString("Valor máximo: $max"), bottomChips.maximo
+        )
+
+        bottomChips.Filtrar.setOnClickListener {
+            val valorMinUsuario = bottomChips.minED.text.toString().toIntOrNull()
+            val valorMaxUsuario = bottomChips.maxED.text.toString().toIntOrNull()
+            val minPermitido = min.toIntOrNull()
+            val maxPermitido = max.toIntOrNull()
+
+            if (valorMinUsuario == null || valorMaxUsuario == null) {
+                Toast.makeText(
+                    this,
+                    "Por favor completa ambos campos correctamente",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (minPermitido == null || maxPermitido == null) {
+                Toast.makeText(
+                    this,
+                    "Error interno al procesar los valores permitidos",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            when {
+                valorMinUsuario < minPermitido -> {
+                    bottomChips.minED.error = "Debe ser mayor o igual a $minPermitido"
+                    bottomChips.minED.requestFocus()
+                }
+
+                valorMaxUsuario > maxPermitido -> {
+                    bottomChips.maxED.error = "Debe ser menor o igual a $maxPermitido"
+                    bottomChips.maxED.requestFocus()
+                }
+
+                valorMaxUsuario <= valorMinUsuario -> {
+                    bottomChips.maxED.error = "El valor máximo debe ser mayor al mínimo"
+                    bottomChips.maxED.requestFocus()
+                }
+
+                else -> {
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleViewTrabajos.isVisible = false
+                    maximo_min(valorMinUsuario, valorMaxUsuario)
+                    Toast.makeText(this, "Todo bien, filtrando...", Toast.LENGTH_SHORT).show()
+
+                }
+            }
+        }
+
         dialog.setContentView(view)
     }
 

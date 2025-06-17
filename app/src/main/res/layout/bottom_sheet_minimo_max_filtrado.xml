@@ -19,22 +19,42 @@
             android:padding="8dp" />
 
         <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
+            android:text="Ingresa el rango mínimo y máximo de clics para filtrar tus publicaciones. Geinz se encargará de mostrar solo aquellas que estén dentro del rango que especifiques."
+
+            android:textSize="17sp" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/TextoModoOScuroColor"
-            android:textSize="17sp"
+            android:orientation="horizontal">
 
-            android:text="Ingresa el rango mínimo y máximo de clics para filtrar tus publicaciones. Geinz se encargará de mostrar solo aquellas que estén dentro del rango que especifiques." />
+            <TextView
+                android:id="@+id/minimo"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:text="minimo de vistras 40"
+                android:textSize="14sp" />
 
-        <TextView
-            android:layout_marginLeft="10dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="10dp"
-            style="@style/TextoModoOScuroColor"
-            android:textSize="14sp"
-            android:text="Maximo de vistras 40" />
+            <TextView
+                android:id="@+id/maximo"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:text="Maximo de vistras 40"
+                android:textSize="14sp" />
+        </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -58,7 +78,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Minimo"
-                    android:inputType="textMultiLine"
+                    android:inputType="number"
                     android:paddingLeft="10dp" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -80,7 +100,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Maximo"
-                    android:inputType="textMultiLine"
+                    android:inputType="number"
                     android:paddingLeft="10dp" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -88,10 +108,10 @@
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatButton
-            android:layout_marginLeft="10dp"
             android:id="@+id/Filtrar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
             android:layout_weight="1"
