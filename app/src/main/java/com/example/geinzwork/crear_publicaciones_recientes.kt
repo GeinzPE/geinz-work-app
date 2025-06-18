@@ -191,20 +191,41 @@ class crear_publicaciones_recientes : AppCompatActivity() {
 
     private fun popup() {
         val popup = PopupMenu(this, binding.popup)
-        popup.menu.add(Menu.NONE, 1, 1, "Publicaciones publicadas")
-        popup.menu.add(Menu.NONE, 2, 2, "Publicaciones Archivadas")
-        popup.menu.add(Menu.NONE, 3, 3, "Publicaciones Eliminadas")
-        popup.show()
-        popup.setOnMenuItemClickListener { item ->
-            val itemID = item.itemId
-            if (itemID == 1) {
-                startActivity(Intent(this, ver_publicaciones_vista_verificados::class.java))
-            } else {
 
+        // Agregar opciones al menú
+        popup.menu.add(Menu.NONE, 1, 1, "Publicaciones publicadas")
+        popup.menu.add(Menu.NONE, 2, 2, "Publicaciones archivadas")
+        popup.menu.add(Menu.NONE, 3, 3, "Publicaciones eliminadas")
+
+        // Mostrar el popup
+        popup.show()
+
+        // Manejar clics en los ítems del menú
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> {
+                    val intent = Intent(this, ver_publicaciones_vista_verificados::class.java)
+                    intent.putExtra("tipo", "publicadas") // Puedes diferenciar así
+                    startActivity(intent)
+                    true
+                }
+                2 -> {
+                    val intent = Intent(this, ver_publicaciones_vista_verificados::class.java)
+                    intent.putExtra("tipo", "archivadas")
+                    startActivity(intent)
+                    true
+                }
+                3 -> {
+                    val intent = Intent(this, ver_publicaciones_vista_verificados::class.java)
+                    intent.putExtra("tipo", "eliminadas")
+                    startActivity(intent)
+                    true
+                }
+                else -> true
             }
-            return@setOnMenuItemClickListener true
         }
     }
+
 
     fun obtener_hastags_generales(
         contex: Context,

@@ -34,13 +34,11 @@
     </LinearLayout>
     <androidx.core.widget.NestedScrollView
         android:animateLayoutChanges="true"
-
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
             android:animateLayoutChanges="true"
-
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -76,6 +74,7 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/min"/>
                 <HorizontalScrollView
+                    android:id="@+id/lineal_chips"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:scrollbars="none">
@@ -136,38 +135,39 @@
                 tools:ignore="MissingConstraints" />
 
 
-            <LinearLayout
-                android:id="@+id/lineal_no_cuenta"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:visibility="gone">
 
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:src="@drawable/icon_sin_anuncios" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:text="No cuentas con publicaciones crea una nueva" />
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/Crea_publicacion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:background="@drawable/rounder_btn_vtrajador"
-                    android:paddingHorizontal="10dp"
-                    android:text="Crea tu publicacion"
-                    android:textColor="@color/white" />
-            </LinearLayout>
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
+    <LinearLayout
+        android:id="@+id/lineal_no_cuenta"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
 
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:src="@drawable/icon_sin_anuncios" />
+
+        <TextView
+            android:id="@+id/texto_sin_encontrar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="No cuentas con publicaciones crea una nueva" />
+
+        <!--                <androidx.appcompat.widget.AppCompatButton-->
+        <!--                    android:id="@+id/Crea_publicacion"-->
+        <!--                    android:layout_width="wrap_content"-->
+        <!--                    android:layout_height="wrap_content"-->
+        <!--                    android:layout_marginLeft="10dp"-->
+        <!--                    android:background="@drawable/rounder_btn_vtrajador"-->
+        <!--                    android:paddingHorizontal="10dp"-->
+        <!--                    android:text="Crea tu publicacion"-->
+        <!--                    android:textColor="@color/white" />-->
+    </LinearLayout>
 </RelativeLayout>
