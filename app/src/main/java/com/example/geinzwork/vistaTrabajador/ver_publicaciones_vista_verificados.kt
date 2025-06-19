@@ -88,7 +88,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         dialog = BottomSheetDialog(this)
                         bottom_sheet_chips(max, min) { minC, maxC ->
                             filtrar_publicaciones(minC, maxC, "estadisticas_click")
-
                         }
                         dialog.show()
                     }
@@ -112,7 +111,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
                         dialog = BottomSheetDialog(this)
                         bottom_sheet_chips(max, min) { minC, maxC ->
-                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
+                            filtrar_publicaciones(minC, maxC, "estadisticas_compartir")
                         }
                         dialog.show()
                     }
@@ -196,7 +195,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
                         dialog = BottomSheetDialog(this)
                         bottom_sheet_chips(max, min) { minC, maxC ->
-                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
+                            filtrar_publicaciones(minC, maxC, "estadisticas_compartir")
                         }
                         dialog.show()
                     }
@@ -367,7 +366,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             bottoSheet.linealIconosPrincipal.isVisible = true
             vista_previa.setOnClickListener {
                 dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString())
+                vista_previa_publicaciones(item.id_publicacion.toString(),"publicados")
             }
             if (binding.masClicks.isChecked) {
                 editar.setOnClickListener {
@@ -413,6 +412,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
             }
             if (binding.masVistas.isChecked) {
+
                 editar.setOnClickListener {
                     Toast.makeText(
                         this,
@@ -497,6 +497,10 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 }
             }
             if (binding.todos.isChecked) {
+                vista_previa.setOnClickListener {
+                    dialog.dismiss()
+                    vista_previa_publicaciones(item.id_publicacion.toString(),"publicados")
+                }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
@@ -572,6 +576,10 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 editar.setOnClickListener {
                     editar_publicaciones(item.id_publicacion.toString(), "privado")
                 }
+                vista_previa.setOnClickListener {
+                    dialog.dismiss()
+                    vista_previa_publicaciones(item.id_publicacion.toString(),"privado")
+                }
             }
             if (binding.soloSeguidores.isChecked) {
                 bottoSheet.privado.isVisible = true
@@ -611,6 +619,10 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "privado", "solo_seguidores"
                     )
                 }
+                vista_previa.setOnClickListener {
+                    dialog.dismiss()
+                    vista_previa_publicaciones(item.id_publicacion.toString(),"solo_seguidores")
+                }
                 editar.setOnClickListener {
                     editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
@@ -634,7 +646,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 //            }
             vista_previa.setOnClickListener {
                 dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString())
+                vista_previa_publicaciones(item.id_publicacion.toString(),"archivados")
             }
         } else if (dato_pasado.equals("eliminadas")) {
             bottoSheet.regresar.isVisible = true
@@ -654,7 +666,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 //            }
             vista_previa.setOnClickListener {
                 dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString())
+                vista_previa_publicaciones(item.id_publicacion.toString(),"eliminados")
             }
         }
 
@@ -690,11 +702,12 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
-    private fun vista_previa_publicaciones(id_publicacion: String) {
+    private fun vista_previa_publicaciones(id_publicacion: String,tipo1:String) {
         val vista =
             Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
                 putExtra("id_trabajador", firebaseAuth.uid.toString())
                     .putExtra("id_publicacion", id_publicacion)
+                    .putExtra("tipo_ubicado", tipo1)
             }
         startActivity(vista)
     }

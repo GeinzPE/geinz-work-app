@@ -3,6 +3,9 @@ package com.example.geinzwork.vistaTrabajador
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -20,6 +23,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityVerProductosPublicadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
+import com.geinzz.geinzwork.databinding.BottomSheetMinimoMaxFiltradoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -58,7 +62,6 @@ class ver_productos_publicados : AppCompatActivity() {
 
                 binding.todos.setOnClickListener {
                     binding.linealEncontrados.isVisible = false
-
                     obtener_productos("publicados", "No se encontraron publicaciones")
 
 
@@ -66,38 +69,37 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.masClicks.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-//                    obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
-//                        dialog = BottomSheetDialog(this)
-//                        bottom_sheet_chips(max, min) { minC, maxC ->
-//                            filtrar_publicaciones(minC, maxC, "estadisticas_click")
-//
-//                        }
-//                        dialog.show()
-//                    }
+                    obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
+                        dialog = BottomSheetDialog(this)
+                        bottom_sheet_chips(max, min) { minC, maxC ->
+                            filtrar_publicaciones(minC, maxC, "estadisticas_click")
+                        }
+                        dialog.show()
+                    }
 
                 }
                 binding.masVistas.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-//                    obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
-//                        dialog = BottomSheetDialog(this)
-//                        bottom_sheet_chips(max, min) { minC, maxC ->
-//                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
-//                        }
-//                        dialog.show()
-//                    }
+                    obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
+                        dialog = BottomSheetDialog(this)
+                        bottom_sheet_chips(max, min) { minC, maxC ->
+                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
+                        }
+                        dialog.show()
+                    }
                 }
                 binding.masCompartidas.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-//                    obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
-//
-//                        dialog = BottomSheetDialog(this)
-//                        bottom_sheet_chips(max, min) { minC, maxC ->
-//                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
-//                        }
-//                        dialog.show()
-//                    }
+                    obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
+
+                        dialog = BottomSheetDialog(this)
+                        bottom_sheet_chips(max, min) { minC, maxC ->
+                            filtrar_publicaciones(minC, maxC, "estadisticas_compartir")
+                        }
+                        dialog.show()
+                    }
                 }
                 binding.privado.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
@@ -133,38 +135,38 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.masClicks.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-//                    obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
-//                        dialog = BottomSheetDialog(this)
-//                        bottom_sheet_chips(max, min) { minC, maxC ->
-//                            filtrar_publicaciones(minC, maxC, "estadisticas_click")
-//
-//                        }
-//                        dialog.show()
-//                    }
+                    obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
+                        dialog = BottomSheetDialog(this)
+                        bottom_sheet_chips(max, min) { minC, maxC ->
+                            filtrar_publicaciones(minC, maxC, "estadisticas_click")
+
+                        }
+                        dialog.show()
+                    }
 
                 }
                 binding.masVistas.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-//                    obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
-//                        dialog = BottomSheetDialog(this)
-//                        bottom_sheet_chips(max, min) { minC, maxC ->
-//                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
-//                        }
-//                        dialog.show()
-//                    }
+                    obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
+                        dialog = BottomSheetDialog(this)
+                        bottom_sheet_chips(max, min) { minC, maxC ->
+                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
+                        }
+                        dialog.show()
+                    }
                 }
                 binding.masCompartidas.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-//                    obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
-//
-//                        dialog = BottomSheetDialog(this)
-//                        bottom_sheet_chips(max, min) { minC, maxC ->
-//                            filtrar_publicaciones(minC, maxC, "estadisticas_vistas")
-//                        }
-//                        dialog.show()
-//                    }
+                    obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
+
+                        dialog = BottomSheetDialog(this)
+                        bottom_sheet_chips(max, min) { minC, maxC ->
+                            filtrar_publicaciones(minC, maxC, "estadisticas_compartir")
+                        }
+                        dialog.show()
+                    }
                 }
                 binding.privado.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
@@ -184,6 +186,190 @@ class ver_productos_publicados : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
+        lista.clear()
+        Toast.makeText(
+            this@ver_productos_publicados,
+            "Filtramos por el mínimo de $min y el máximo de $max",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+        val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("productos_venta")
+            .document("publicados").collection("publicados")
+
+        refPublicacion.get().addOnSuccessListener { res ->
+            // Asegúrate de limpiar la lista antes de agregar nuevos datos
+
+            for (datos in res) {
+                val data = datos.data
+
+                val cliks = (data[filtado_pasado] as? Number)?.toInt() ?: continue
+
+                // ✅ Aplicar el filtro
+                if (cliks in min..max) {
+                    val img_url = data["img_url"] as? String ?: ""
+                    val titulo = data["titulo"] as? String ?: ""
+                    val contenido = data["contenido"] as? String ?: ""
+                    val hora_rec = data["hora_rec"] as? String ?: ""
+                    val fecha_rec = data["fecha_rec"] as? String ?: ""
+                    val id = data["id"] as? String ?: ""
+                    val cliks = data["estadisticas_click"] as? Number ?: 0
+                    val vista = data["estadisticas_vistas"] as? Number ?: 0
+                    val compartidas = data["estadisticas_compartir"] as? Number ?: 0
+
+                    val publicacion = dataclas_trabajos_ralizados_verificados(
+                        img_url,
+                        titulo,
+                        contenido,
+                        hora_rec,
+                        fecha_rec,
+                        id,
+                        vista,
+                        compartidas,
+                        cliks
+                    )
+                    lista.add(publicacion)
+                }
+            }
+
+            if (lista.isEmpty()) {
+                binding.linealNoCuenta.isVisible = true
+                binding.recicleProductos.isVisible = false
+                binding.linealEncontrados.isVisible = false
+            } else {
+                binding.linealNoCuenta.isVisible = false
+                binding.linealEncontrados.isVisible = false
+                binding.recicleProductos.isVisible = true
+                binding.max.text = max.toString()
+                binding.min.text = min.toString()
+                inicializarRecicle(binding.recicleProductos, adapter, this)
+                adapter.notifyDataSetChanged()
+            }
+        }
+    }
+
+    private fun bottom_sheet_chips(
+        max: String,
+        min: String,
+        maximo_min: (Int, Int) -> Unit
+    ) {
+        val bottomChips = BottomSheetMinimoMaxFiltradoBinding.inflate(LayoutInflater.from(this))
+        val view = bottomChips.root
+
+        // Mostrar valores de referencia
+        constantestextos_general.setearInformacionboldDescripcion(
+            "Valor mínimo", SpannableString("Valor mínimo: $min"), bottomChips.minimo
+        )
+
+        constantestextos_general.setearInformacionboldDescripcion(
+            "Valor máximo", SpannableString("Valor máximo: $max"), bottomChips.maximo
+        )
+
+        bottomChips.Filtrar.setOnClickListener {
+            val valorMinUsuario = bottomChips.minED.text.toString().toIntOrNull()
+            val valorMaxUsuario = bottomChips.maxED.text.toString().toIntOrNull()
+            val minPermitido = min.toIntOrNull()
+            val maxPermitido = max.toIntOrNull()
+
+            if (valorMinUsuario == null || valorMaxUsuario == null) {
+                Toast.makeText(
+                    this,
+                    "Por favor completa ambos campos correctamente",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (minPermitido == null || maxPermitido == null) {
+                Toast.makeText(
+                    this,
+                    "Error interno al procesar los valores permitidos",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            when {
+                valorMinUsuario < minPermitido -> {
+                    bottomChips.minED.error = "Debe ser mayor o igual a $minPermitido"
+                    bottomChips.minED.requestFocus()
+                }
+
+                valorMaxUsuario > maxPermitido -> {
+                    bottomChips.maxED.error = "Debe ser menor o igual a $maxPermitido"
+                    bottomChips.maxED.requestFocus()
+                }
+
+                valorMaxUsuario <= valorMinUsuario -> {
+                    bottomChips.maxED.error = "El valor máximo debe ser mayor al mínimo"
+                    bottomChips.maxED.requestFocus()
+                }
+
+                else -> {
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleProductos.isVisible = false
+                    maximo_min(valorMinUsuario, valorMaxUsuario)
+                    Toast.makeText(this, "Todo bien, filtrando...", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        dialog.setContentView(view)
+    }
+
+    private fun obtener_mayor_menor_cantidad_campos(
+        campoFiltrado: String,
+        max_min: (String, String) -> Unit
+    ) {
+        binding.linealNoCuenta.isVisible = false
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+        val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("productos_venta")
+            .document("publicados").collection("publicados")
+
+        refPublicacion.get().addOnSuccessListener { res ->
+            var valorMaximo: Int? = null
+            var valorMinimo: Int? = null
+
+            for (datos in res) {
+                val data = datos.data
+                val campo = (data[campoFiltrado] as? Number)?.toInt() ?: continue
+
+                if (valorMaximo == null || campo > valorMaximo) {
+                    valorMaximo = campo
+                }
+                if (valorMinimo == null || campo < valorMinimo) {
+                    valorMinimo = campo
+                }
+            }
+
+            if (valorMaximo != null && valorMinimo != null) {
+                max_min(valorMaximo.toString(), valorMinimo.toString())
+                Log.d("Valores", "Máximo: $valorMaximo - Mínimo: $valorMinimo")
+                // Aquí puedes usar los valores como enteros
+            } else {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding.linealNoCuenta.isVisible = true
+                    binding.textoSinEncontrar.text = "Sin datos para filtrar"
+                    binding.linealEncontrados.isVisible = false
+                    Log.d(
+                        "Valores",
+                        "No se encontraron datos válidos para el campo: $campoFiltrado"
+                    )
+                }, 1500) // 2000 ms = 2 segundos
+            }
+        }.addOnFailureListener {
+            Log.e("Firestore", "Error al obtener documentos: ${it.message}")
+        }
     }
 
     private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados_verificados) {
@@ -208,48 +394,55 @@ class ver_productos_publicados : AppCompatActivity() {
         if (dato_pasado.equals("publicadas")) {
             bottoSheet.linealIconosPrincipal.isVisible = true
             if (binding.masClicks.isChecked) {
-//                editar.setOnClickListener {
-//                    Toast.makeText(
-//                        this,
-//                        "solo puedes editar caundo estas en TODOS",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                }
-//                eliminar.setOnClickListener {
-//                    dialog.dismiss()
-//                    eliminar_publicacion_Archivar(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "eliminados"
-//                    )
-//
-//                }
-//                archivar.setOnClickListener {
-//                    dialog.dismiss()
-//                    eliminar_publicacion_Archivar(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "archivados"
-//                    )
-//                }
-//                privado.setOnClickListener {
-//                    dialog.dismiss()
-//                    eliminar_publicacion_Archivar(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "privado"
-//                    )
-//
-//                }
-//                solo_seguidores.setOnClickListener {
-//                    dialog.dismiss()
-//                    eliminar_publicacion_Archivar(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "solo_seguidores"
-//                    )
-//
-//                }
+                editar.setOnClickListener {
+                    Toast.makeText(
+                        this,
+                        "solo puedes editar caundo estas en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                eliminar.setOnClickListener {
+                    dialog.dismiss()
+
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "eliminados", "mascliks"
+                    )
+
+                }
+                archivar.setOnClickListener {
+                    dialog.dismiss()
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "archivados", "mascliks"
+                    )
+                }
+                privado.setOnClickListener {
+                    dialog.dismiss()
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "mascliks"
+                    )
+
+                }
+                solo_seguidores.setOnClickListener {
+                    dialog.dismiss()
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "mascliks"
+                    )
+                }
+                vista_previa.setOnClickListener{
+                    Toast.makeText(
+                        this,
+                        "solo puedes ver la vista previa en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
 
             }
             if (binding.masVistas.isChecked) {
@@ -262,36 +455,44 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "eliminados", "masvistas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "eliminados", "masvistas"
+                    )
 
                 }
                 archivar.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "archivados", "masvistas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "archivados", "masvistas"
+                    )
                 }
                 privado.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "privado", "masvistas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "masvistas"
+                    )
+
                 }
                 solo_seguidores.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "solo_seguidores", "masvistas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "masvistas"
+                    )
+                }
+                vista_previa.setOnClickListener{
+                    Toast.makeText(
+                        this,
+                        "solo puedes ver la vista previa en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             if (binding.masCompartidas.isChecked) {
@@ -304,36 +505,44 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "eliminados", "mascompartidas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "eliminados", "mascompartidas"
+                    )
 
                 }
                 archivar.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "archivados", "mascompartidas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "archivados", "mascompartidas"
+                    )
                 }
                 privado.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "privado", "mascompartidas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "mascompartidas"
+                    )
+
                 }
                 solo_seguidores.setOnClickListener {
                     dialog.dismiss()
-//                    archivar_eliminar_publicaciones(
-//                        item.id_publicacion.toString(),
-//                        "publicados",
-//                        "solo_seguidores", "mascompartidas"
-//                    )
+                    eliminar_publicacion_Archivar(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "mascompartidas"
+                    )
+                }
+                vista_previa.setOnClickListener{
+                    Toast.makeText(
+                        this,
+                        "solo puedes ver la vista previa en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
@@ -341,7 +550,7 @@ class ver_productos_publicados : AppCompatActivity() {
             if (binding.todos.isChecked) {
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
-                    vista_previa_publicaciones(item.id_publicacion.toString())
+                    vista_previa_publicaciones(item.id_publicacion.toString(), "publicados")
                 }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
@@ -387,6 +596,11 @@ class ver_productos_publicados : AppCompatActivity() {
                     activar_publicacion("privado", item.id_publicacion.toString(), "privado")
                     binding.recicleProductos.isVisible = false
                     dialog.dismiss()
+                }
+
+                vista_previa.setOnClickListener {
+                    dialog.dismiss()
+                    vista_previa_publicaciones(item.id_publicacion.toString(), "privado")
                 }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
@@ -457,6 +671,10 @@ class ver_productos_publicados : AppCompatActivity() {
                     )
 
                 }
+                vista_previa.setOnClickListener {
+                    dialog.dismiss()
+                    vista_previa_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
+                }
                 editar.setOnClickListener {
 //                    editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
@@ -478,10 +696,6 @@ class ver_productos_publicados : AppCompatActivity() {
 //            editar.setOnClickListener {
 //                editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
 //            }
-            vista_previa.setOnClickListener {
-                dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString())
-            }
         } else if (dato_pasado.equals("eliminadas")) {
             bottoSheet.regresar.isVisible = true
             privado.isVisible = false
@@ -496,10 +710,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 dialog.dismiss()
             }
 
-            vista_previa.setOnClickListener {
-                dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString())
-            }
+
         }
 
 
@@ -516,7 +727,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 .document("eliminados").collection("eliminados")
                 .document(item.id_publicacion.toString())
             refOrigen.delete().addOnSuccessListener { res ->
-                obtener_productos("eliminados","No se encontraron datos")
+                obtener_productos("eliminados", "No se encontraron datos")
                 Toast.makeText(this, "publicacion eliminado correctamente", Toast.LENGTH_SHORT)
                     .show()
 
@@ -576,6 +787,9 @@ class ver_productos_publicados : AppCompatActivity() {
                 val textoDescripcion = descripcionTexto?.get("texto_descripcion") ?: ""
                 val textoMayus = descripcionTexto?.get("texto_mayus") ?: ""
                 val textoValorStyle = descripcionTexto?.get("texto_valor_style") ?: ""
+                val estadisticas_click = data?.get("estadisticas_click") as? Number ?: 0
+                val estadisticas_compartir = data?.get("estadisticas_compartir") as? Number ?: 0
+                val estadisticas_vistas = data?.get("estadisticas_vistas") as? Number ?: 0
 
                 val descripcionTextoLista =
                     data?.get("descripcion_texto_lista") as? List<String> ?: emptyList()
@@ -595,6 +809,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 val hasMap = hashMapOf<String, Any>(
                     "id" to idPublicacion,
                     "titulo" to titulo,
+
                     "cantidad_porcentaje_descuento" to cantidadPorcentajeDescuento,
                     "condicion_producto" to condicionProducto,
                     "categoria_producto" to categoriaProducto,
@@ -617,7 +832,10 @@ class ver_productos_publicados : AppCompatActivity() {
                     "descripcion_titulo" to tituloMap,
                     "descripcion_texto" to texto_map,
                     "descripcion_texto_lista" to descripcionTextoLista,
-                    "mas_informacio" to masInformacion
+                    "mas_informacio" to masInformacion,
+                    "estadisticas_click" to estadisticas_click,
+                    "estadisticas_compartir" to estadisticas_compartir,
+                    "estadisticas_vistas" to estadisticas_vistas,
                 )
                 for ((key, value) in data) {
                     if (key.startsWith("img_url") && value is String) {
@@ -674,11 +892,13 @@ class ver_productos_publicados : AppCompatActivity() {
         }
     }
 
-    private fun vista_previa_publicaciones(id_publicacion: String) {
+    private fun vista_previa_publicaciones(id_publicacion: String, tipo1: String) {
+        Log.d("obtenemos_datos intent", "obtenemos datos $id_publicacion")
         val vista =
             Intent(this, vista_ver_productos_trabajadores::class.java).apply {
                 putExtra("id_trabajador", firebaseAuth.uid.toString())
                     .putExtra("id_publicacion", id_publicacion)
+                    .putExtra("tipo_ubicado", tipo1)
             }
         startActivity(vista)
     }
@@ -740,6 +960,9 @@ class ver_productos_publicados : AppCompatActivity() {
                 val textoDescripcion = descripcionTexto?.get("texto_descripcion") ?: ""
                 val textoMayus = descripcionTexto?.get("texto_mayus") ?: ""
                 val textoValorStyle = descripcionTexto?.get("texto_valor_style") ?: ""
+                val estadisticas_click = data?.get("estadisticas_click") as? Number ?: 0
+                val estadisticas_compartir = data?.get("estadisticas_compartir") as? Number ?: 0
+                val estadisticas_vistas = data?.get("estadisticas_vistas") as? Number ?: 0
 
                 val descripcionTextoLista =
                     data?.get("descripcion_texto_lista") as? List<String> ?: emptyList()
@@ -781,7 +1004,10 @@ class ver_productos_publicados : AppCompatActivity() {
                     "descripcion_titulo" to tituloMap,
                     "descripcion_texto" to texto_map,
                     "descripcion_texto_lista" to descripcionTextoLista,
-                    "mas_informacio" to masInformacion
+                    "mas_informacio" to masInformacion,
+                    "estadisticas_click" to estadisticas_click,
+                    "estadisticas_compartir" to estadisticas_compartir,
+                    "estadisticas_vistas" to estadisticas_vistas,
                 )
                 for ((key, value) in data) {
                     if (key.startsWith("img_url") && value is String) {
@@ -801,27 +1027,27 @@ class ver_productos_publicados : AppCompatActivity() {
                         }
 
                         "mascliks" -> {
-//                                obtener_productos(
-//                                    binding.min.text.toString().toInt(),
-//                                    binding.max.text.toString().toInt(),
-//                                    "estadisticas_click"
-//                                )
+                                filtrar_publicaciones(
+                                    binding.min.text.toString().toInt(),
+                                    binding.max.text.toString().toInt(),
+                                    "estadisticas_click"
+                                )
                         }
 
                         "masvistas" -> {
-//                                obtener_productos(
-//                                    binding.min.text.toString().toInt(),
-//                                    binding.max.text.toString().toInt(),
-//                                    "estadisticas_vistas"
-//                                )
+                            filtrar_publicaciones(
+                                binding.min.text.toString().toInt(),
+                                binding.max.text.toString().toInt(),
+                                "estadisticas_vistas"
+                            )
                         }
 
                         "mascompartidas" -> {
-//                                obtener_productos(
-//                                    binding.min.text.toString().toInt(),
-//                                    binding.max.text.toString().toInt(),
-//                                    "estadisticas_compartir"
-//                                )
+                            filtrar_publicaciones(
+                                binding.min.text.toString().toInt(),
+                                binding.max.text.toString().toInt(),
+                                "estadisticas_compartir"
+                            )
                         }
 
                         "privado" -> {

@@ -58,7 +58,8 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         }
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
-        obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada)
+        val tipo_ubicado = intent.getStringExtra("tipo_ubicado").toString()
+        obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada,tipo_ubicado)
         Log.d("obtemosidStrabjaosd", "$idTrabajador, $id_publicacion_clikeada")
 
         binding.retroceder.setOnClickListener {
@@ -69,8 +70,8 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("publicaciones_trabajos").document("publicados")
-                .collection("publicados").document(id_publicacion_clikeada)
+                .collection("publicaciones_trabajos").document(tipo_ubicado)
+                .collection(tipo_ubicado).document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -160,14 +161,14 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         }.start()
     }
 
-    private fun obtener_publicacion_actual(idTrabajador: String, idpublicaicon: String) {
+    private fun obtener_publicacion_actual(idTrabajador: String, idpublicaicon: String,tipo:String) {
         val tiempoInicio = System.currentTimeMillis()
         binding.contenidoCargado.isVisible = false
 
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("publicaciones_trabajos").document("publicados").collection("publicados")
+            .collection("publicaciones_trabajos").document(tipo).collection(tipo)
             .document(idpublicaicon)
         constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
         db.get().addOnSuccessListener { res ->

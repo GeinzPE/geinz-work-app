@@ -58,7 +58,16 @@
                     android:fontFamily="@font/anton_regular"
                     android:text="Edita o elimina tus publicaciones"
                     android:textSize="20sp" />
-
+                <TextView
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/max"/>
+                <TextView
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/min"/>
                 <HorizontalScrollView
                     android:id="@+id/lineal_chips"
                     android:layout_width="match_parent"
@@ -128,6 +137,7 @@
 
 
             <androidx.recyclerview.widget.RecyclerView
+                android:visibility="gone"
                 android:id="@+id/recicle_productos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />

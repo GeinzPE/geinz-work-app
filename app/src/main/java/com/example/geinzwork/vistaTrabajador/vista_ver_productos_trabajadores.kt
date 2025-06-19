@@ -70,7 +70,10 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         }
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
-        obtenerCampos_producto(idTrabajador, id_publicacion_clikeada)
+        val tipo_ubicado = intent.getStringExtra("tipo_ubicado").toString()
+
+        obtenerCampos_producto(idTrabajador, id_publicacion_clikeada, tipo_ubicado)
+
         binding.retroceder.setOnClickListener {
             onBackPressed()
         }
@@ -78,8 +81,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
                 .collection("Trabajadores_Usuarios_Drivers").document("trabajadores")
                 .collection("trabajadores").document(idTrabajador)
-                .collection("publicaciones_trabajos").document("publicados")
-                .collection("publicados").document(id_publicacion_clikeada)
+                .collection("productos_venta").document(tipo_ubicado)
+                .collection(tipo_ubicado).document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
                 constantesPublicidad.agregarCantidadClickAnuncios(
                     db,
@@ -373,7 +376,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                 if (urlImagen.isNotEmpty()) {
                     binding.relativeImgContainer.isVisible = true
                     constatnes_carga_imagenes_general.changer_img(
-                        binding.progreesIndicator ,
+                        binding.progreesIndicator,
                         this,
                         urlImagen,
                         null,
@@ -395,13 +398,17 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
     }
 
 
-    private fun obtenerCampos_producto(idTrabajador: String, productoClikado: String) {
+    private fun obtenerCampos_producto(
+        idTrabajador: String,
+        productoClikado: String,
+        tipo_obtenido: String
+    ) {
         val startTime = System.currentTimeMillis()
         binding.containerDatos.isVisible = false
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document("publicados").collection("publicados")
+            .collection("productos_venta").document(tipo_obtenido).collection(tipo_obtenido)
             .document(productoClikado)
         constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
         obtner_img_descripcion(idTrabajador, productoClikado)

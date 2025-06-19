@@ -1097,6 +1097,7 @@ class inicioFracment : Fragment() {
                         Intent(mContex, vista_ver_productos_trabajadores::class.java).apply {
                             putExtra("id_trabajador", id_trabajador)
                                 .putExtra("id_publicacion", id)
+                                .putExtra("tipo_ubicado", "publicados")
                         }
                     startActivity(vista)
                 }
@@ -1196,6 +1197,7 @@ class inicioFracment : Fragment() {
                         Intent(mContex, vista_ver_publicaciones_trabajadores::class.java).apply {
                             putExtra("id_trabajador", id_trabajador)
                                 .putExtra("id_publicacion", id)
+                                .putExtra("tipo_ubicado", "publicados")
                         }
                     startActivity(vista)
                 }

@@ -368,6 +368,7 @@ class ver_toto_publicaciones_trabajador : AppCompatActivity() {
                 val vista = Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
                     putExtra("id_trabajador", item.idTrabajador)
                     putExtra("id_publicacion", item.id)
+                    putExtra("id_publicacion", "publicados")
                 }
                 startActivity(vista)
             }
