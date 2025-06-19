@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -7,13 +7,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.vistaTrabajador.ver_productos_publicados">
 
+    <LinearLayout
+        android:id="@+id/lineal_encontrados"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"/>
+        <TextView
+            android:id="@+id/texto_dinamico_progrees"
+            style="@style/TextoModoOScuroColor"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cargando publicaciones"/>
+    </LinearLayout>
     <androidx.core.widget.NestedScrollView
+        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <LinearLayout
+            android:animateLayoutChanges="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -35,6 +60,7 @@
                     android:textSize="20sp" />
 
                 <HorizontalScrollView
+                    android:id="@+id/lineal_chips"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:scrollbars="none">
@@ -42,18 +68,22 @@
                     <com.google.android.material.chip.ChipGroup
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:selectionRequired="true"
                         app:singleSelection="true">
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/todos"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:checked="true"
                             android:text="Todos" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/mas_clicks"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:checkable="true"
                             android:text="Mas clicks"
                             app:chipIcon="@drawable/clicks_icon_webp" />
 
@@ -61,6 +91,7 @@
                             android:id="@+id/mas_Vistas"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:checkable="true"
                             android:text="Mas vistas"
                             app:chipIcon="@drawable/vistar_icon_webp" />
 
@@ -68,10 +99,31 @@
                             android:id="@+id/mas_compartidas"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:checkable="true"
                             android:text="Mas compartidas"
                             app:chipIcon="@drawable/compartir_icon_webp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/privado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Publicaciones privadas"
+                            app:chipIcon="@drawable/publicacion_privado_webp" />
+
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/solo_seguidores"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Publicaciones solo para seguidores"
+                            app:chipIcon="@drawable/publicacion_seguidos_webp" />
                     </com.google.android.material.chip.ChipGroup>
+
                 </HorizontalScrollView>
+
+
             </LinearLayout>
 
 
@@ -82,5 +134,34 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <LinearLayout
+        android:id="@+id/lineal_no_cuenta"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
 
-</LinearLayout>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:src="@drawable/icon_sin_anuncios" />
+
+        <TextView
+            android:id="@+id/texto_sin_encontrar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="No cuentas con publicaciones crea una nueva" />
+
+        <!--                <androidx.appcompat.widget.AppCompatButton-->
+        <!--                    android:id="@+id/Crea_publicacion"-->
+        <!--                    android:layout_width="wrap_content"-->
+        <!--                    android:layout_height="wrap_content"-->
+        <!--                    android:layout_marginLeft="10dp"-->
+        <!--                    android:background="@drawable/rounder_btn_vtrajador"-->
+        <!--                    android:paddingHorizontal="10dp"-->
+        <!--                    android:text="Crea tu publicacion"-->
+        <!--                    android:textColor="@color/white" />-->
+    </LinearLayout>
+</RelativeLayout>

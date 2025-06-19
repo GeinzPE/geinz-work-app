@@ -33,6 +33,7 @@ import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodosPaog
 import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVistaVerProductosTrabajadoresBinding
@@ -479,7 +480,11 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
 
 
-                         
+                        obtener_metodosPaog(idTrabajador, metodoPago) { metodos_encontrados ->
+                            binding.camposProductosUserVerificados.metodosPago.text =
+                                metodos_encontrados
+                        }
+
                         obtener_metodoEntrega(
                             idTrabajador, metodoEntrega,
                             callback = { metodo_entrega ->

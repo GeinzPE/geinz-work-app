@@ -1,6 +1,7 @@
 package com.example.geinzwork.vistaTrabajador
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -352,6 +353,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val solo_seguidores = bottoSheet.soloSeguidores
         val privado = bottoSheet.privado
         val archivar = bottoSheet.archivar
+        val vista_previa = bottoSheet.vistaPrevia
         bottoSheet.idPublicacion.text = item.id_publicacion.toString()
         bottoSheet.copiarId.setOnClickListener {
             constantestextos_general.copiarTexto_portapapeles(
@@ -359,9 +361,14 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 this
             )
         }
+
         val dato_pasado = intent.getStringExtra("tipo").toString()
         if (dato_pasado.equals("publicadas")) {
             bottoSheet.linealIconosPrincipal.isVisible = true
+            vista_previa.setOnClickListener {
+                dialog.dismiss()
+                vista_previa_publicaciones(item.id_publicacion.toString())
+            }
             if (binding.masClicks.isChecked) {
                 editar.setOnClickListener {
                     Toast.makeText(
@@ -403,6 +410,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "solo_seguidores", "mascliks"
                     )
                 }
+
             }
             if (binding.masVistas.isChecked) {
                 editar.setOnClickListener {
@@ -621,6 +629,13 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 binding.recicleViewTrabajos.isVisible = false
                 dialog.dismiss()
             }
+//            editar.setOnClickListener {
+//                editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
+//            }
+            vista_previa.setOnClickListener {
+                dialog.dismiss()
+                vista_previa_publicaciones(item.id_publicacion.toString())
+            }
         } else if (dato_pasado.equals("eliminadas")) {
             bottoSheet.regresar.isVisible = true
             privado.isVisible = false
@@ -633,6 +648,13 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 activar_publicacion("eliminados", item.id_publicacion.toString(), "eliminados")
                 binding.recicleViewTrabajos.isVisible = false
                 dialog.dismiss()
+            }
+//            editar.setOnClickListener {
+//                editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
+//            }
+            vista_previa.setOnClickListener {
+                dialog.dismiss()
+                vista_previa_publicaciones(item.id_publicacion.toString())
             }
         }
 
@@ -668,6 +690,14 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
+    private fun vista_previa_publicaciones(id_publicacion: String) {
+        val vista =
+            Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
+                putExtra("id_trabajador", firebaseAuth.uid.toString())
+                    .putExtra("id_publicacion", id_publicacion)
+            }
+        startActivity(vista)
+    }
 
     private fun activar_publicacion(tipo: String, idPublicacion: String, tipo_fun: String) {
         val firestore = FirebaseFirestore.getInstance()
