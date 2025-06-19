@@ -2,6 +2,8 @@ package com.example.geinzwork.vistaTrabajador
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,10 +18,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_pbl_vr_tb_recientes
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_hastags_generales
 import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
+import com.geinzz.geinzwork.constantesGeneral.filtradoLocalidadElementos
+import com.geinzz.geinzwork.constantesGeneral.filtradoLocalidadElementos.listaFiltrado
+import com.geinzz.geinzwork.constantesGeneral.filtradoLocalidadElementos.obtenerLocalidadUser
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesVistaVerificadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionesVerificadosBinding
@@ -37,6 +43,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
     private val hashtagsGenerales = mutableListOf<String>()
+    private val hashtagsCategoria = mutableListOf<String>()
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -77,7 +84,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
-
                         dialog = BottomSheetDialog(this)
                         bottom_sheet_chips(max, min) { minC, maxC ->
                             filtrar_publicaciones(minC, maxC, "estadisticas_click")
@@ -109,6 +115,27 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         }
                         dialog.show()
                     }
+                }
+                binding.privado.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleViewTrabajos.isVisible = false
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "privado",
+                        "No se encontraron datos Publicados"
+                    )
+
+
+                }
+                binding.soloSeguidores.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleViewTrabajos.isVisible = false
+
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "solo_seguidores",
+                        "No se encontraron datos Publicados"
+                    )
                 }
             }
 
@@ -141,7 +168,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
-
                         dialog = BottomSheetDialog(this)
                         bottom_sheet_chips(max, min) { minC, maxC ->
                             filtrar_publicaciones(minC, maxC, "estadisticas_click")
@@ -174,6 +200,27 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         dialog.show()
                     }
                 }
+                binding.privado.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleViewTrabajos.isVisible = false
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "privado",
+                        "No se encontraron datos Publicados"
+                    )
+
+
+                }
+                binding.soloSeguidores.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.recicleViewTrabajos.isVisible = false
+
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "solo_seguidores",
+                        "No se encontraron datos Publicados"
+                    )
+                }
             }
         }
 
@@ -181,6 +228,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
     }
 
     private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
+        lista.clear()
         Toast.makeText(
             this@ver_publicaciones_vista_verificados,
             "Filtramos por el mínimo de $min y el máximo de $max",
@@ -195,7 +243,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             .document("publicados").collection("publicados")
 
         refPublicacion.get().addOnSuccessListener { res ->
-            lista.clear() // Asegúrate de limpiar la lista antes de agregar nuevos datos
+            // Asegúrate de limpiar la lista antes de agregar nuevos datos
 
             for (datos in res) {
                 val data = datos.data
@@ -250,6 +298,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         campoFiltrado: String,
         max_min: (String, String) -> Unit
     ) {
+        binding.linealNoCuenta.isVisible = false
         val firestore = FirebaseFirestore.getInstance()
         val uid = firebaseAuth.uid.toString()
         val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
@@ -278,7 +327,15 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 Log.d("Valores", "Máximo: $valorMaximo - Mínimo: $valorMinimo")
                 // Aquí puedes usar los valores como enteros
             } else {
-                Log.d("Valores", "No se encontraron datos válidos para el campo: $campoFiltrado")
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding.linealNoCuenta.isVisible = true
+                    binding.textoSinEncontrar.text = "Sin datos para filtrar"
+                    binding.linealEncontrados.isVisible = false
+                    Log.d(
+                        "Valores",
+                        "No se encontraron datos válidos para el campo: $campoFiltrado"
+                    )
+                }, 1500) // 2000 ms = 2 segundos
             }
         }.addOnFailureListener {
             Log.e("Firestore", "Error al obtener documentos: ${it.message}")
@@ -292,12 +349,36 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val eliminar = bottoSheet.eliminar
         val estadisticas = bottoSheet.estadisticas
         val editar = bottoSheet.editar
+        val solo_seguidores = bottoSheet.soloSeguidores
+        val privado = bottoSheet.privado
         val archivar = bottoSheet.archivar
         bottoSheet.idPublicacion.text = item.id_publicacion.toString()
+        bottoSheet.copiarId.setOnClickListener {
+            constantestextos_general.copiarTexto_portapapeles(
+                bottoSheet.idPublicacion,
+                this
+            )
+        }
         val dato_pasado = intent.getStringExtra("tipo").toString()
         if (dato_pasado.equals("publicadas")) {
             bottoSheet.linealIconosPrincipal.isVisible = true
             if (binding.masClicks.isChecked) {
+                editar.setOnClickListener {
+                    Toast.makeText(
+                        this,
+                        "solo puedes editar caundo estas en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                eliminar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "eliminados", "mascliks"
+                    )
+
+                }
                 archivar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
@@ -306,8 +387,40 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "archivados", "mascliks"
                     )
                 }
+                privado.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "mascliks"
+                    )
+                }
+                solo_seguidores.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "mascliks"
+                    )
+                }
             }
             if (binding.masVistas.isChecked) {
+                editar.setOnClickListener {
+                    Toast.makeText(
+                        this,
+                        "solo puedes editar caundo estas en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                eliminar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "eliminados", "masvistas"
+                    )
+
+                }
                 archivar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
@@ -316,14 +429,62 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "archivados", "masvistas"
                     )
                 }
+                privado.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "masvistas"
+                    )
+                }
+                solo_seguidores.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "masvistas"
+                    )
+                }
             }
             if (binding.masCompartidas.isChecked) {
+                editar.setOnClickListener {
+                    Toast.makeText(
+                        this,
+                        "solo puedes editar caundo estas en TODOS",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                eliminar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "eliminados", "mascompartidas"
+                    )
+
+                }
                 archivar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
                         item.id_publicacion.toString(),
                         "publicados",
                         "archivados", "mascompartidas"
+                    )
+                }
+                privado.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "mascompartidas"
+                    )
+                }
+                solo_seguidores.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "mascompartidas"
                     )
                 }
             }
@@ -338,7 +499,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
                 }
                 editar.setOnClickListener {
-                    editar_publicaciones(item.id_publicacion.toString())
+                    editar_publicaciones(item.id_publicacion.toString(), "publicados")
                 }
                 archivar.setOnClickListener {
                     dialog.dismiss()
@@ -348,25 +509,139 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "archivados", "todos"
                     )
                 }
+                privado.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "privado", "todos"
+                    )
+                }
+                solo_seguidores.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "solo_seguidores", "todos"
+                    )
+                }
+            }
+            if (binding.privado.isChecked) {
+                bottoSheet.privado.isVisible = false
+                bottoSheet.soloSeguidores.isVisible = true
+                bottoSheet.regresar.isVisible = true
+                bottoSheet.regresar.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    activar_publicacion("privado", item.id_publicacion.toString(), "privado")
+                    binding.recicleViewTrabajos.isVisible = false
+                    dialog.dismiss()
+                }
+                eliminar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "privado",
+                        "eliminados", "privado"
+                    )
+
+                }
+                archivar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "privado",
+                        "archivados", "privado"
+                    )
+                }
+                solo_seguidores.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "privado",
+                        "solo_seguidores", "privado"
+                    )
+                }
+                editar.setOnClickListener {
+                    editar_publicaciones(item.id_publicacion.toString(), "privado")
+                }
+            }
+            if (binding.soloSeguidores.isChecked) {
+                bottoSheet.privado.isVisible = true
+                bottoSheet.soloSeguidores.isVisible = false
+                bottoSheet.regresar.isVisible = true
+                bottoSheet.regresar.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    activar_publicacion(
+                        "solo_seguidores",
+                        item.id_publicacion.toString(),
+                        "solo_seguidores"
+                    )
+                    binding.recicleViewTrabajos.isVisible = false
+                    dialog.dismiss()
+                }
+                eliminar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "solo_seguidores",
+                        "eliminados", "solo_seguidores"
+                    )
+                }
+                archivar.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "solo_seguidores",
+                        "archivados", "solo_seguidores"
+                    )
+                }
+                privado.setOnClickListener {
+                    dialog.dismiss()
+                    archivar_eliminar_publicaciones(
+                        item.id_publicacion.toString(),
+                        "solo_seguidores",
+                        "privado", "solo_seguidores"
+                    )
+                }
+                editar.setOnClickListener {
+                    editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
+                }
+
             }
         } else if (dato_pasado.equals("archivadas")) {
             bottoSheet.regresar.isVisible = true
             bottoSheet.eliminarPermanente.isVisible = false
             bottoSheet.linealIconosPrincipal.isVisible = false
+            privado.isVisible = false
+            solo_seguidores.isVisible = false
             bottoSheet.regresar.setOnClickListener {
-                activar_publicacion("archivados", item.id_publicacion.toString())
+                binding.linealEncontrados.isVisible = true
+                binding.textoDinamicoProgrees.text = "Actualizando contenido..."
+                activar_publicacion("archivados", item.id_publicacion.toString(), "archivados")
+                binding.recicleViewTrabajos.isVisible = false
+                dialog.dismiss()
             }
         } else if (dato_pasado.equals("eliminadas")) {
             bottoSheet.regresar.isVisible = true
+            privado.isVisible = false
+            solo_seguidores.isVisible = false
             bottoSheet.eliminarPermanente.isVisible = true
             bottoSheet.linealIconosPrincipal.isVisible = false
             bottoSheet.regresar.setOnClickListener {
-                activar_publicacion("eliminados", item.id_publicacion.toString())
+                binding.linealEncontrados.isVisible = true
+                binding.textoDinamicoProgrees.text = "Actualizando contenido..."
+                activar_publicacion("eliminados", item.id_publicacion.toString(), "eliminados")
+                binding.recicleViewTrabajos.isVisible = false
+                dialog.dismiss()
             }
         }
 
 
         bottoSheet.eliminarPermanente.setOnClickListener {
+            binding.linealEncontrados.isVisible = true
+            binding.textoDinamicoProgrees.text = "Actualizando contenido..."
+            binding.recicleViewTrabajos.isVisible = false
+            dialog.dismiss()
             val firestore = FirebaseFirestore.getInstance()
             val uid = firebaseAuth.uid.toString()
             val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
@@ -382,6 +657,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     "eliminados",
                     "No se encontraron datos eliminados"
                 )
+                binding.linealEncontrados.isVisible = false
             }.addOnFailureListener { e ->
                 Toast.makeText(this, "Error al eliminar la publicacion", Toast.LENGTH_SHORT)
                     .show()
@@ -393,7 +669,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
     }
 
 
-    private fun activar_publicacion(tipo: String, idPublicacion: String) {
+    private fun activar_publicacion(tipo: String, idPublicacion: String, tipo_fun: String) {
         val firestore = FirebaseFirestore.getInstance()
         val uid = firebaseAuth.uid.toString()
         val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
@@ -446,14 +722,46 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     .document("publicados").collection("publicados").document(idPublicacion)
                 refDestino.set(hashMap).addOnSuccessListener {
                     refOrigen.delete().addOnSuccessListener {
-                        Toast.makeText(this, "Publicacion movido correctamente", Toast.LENGTH_SHORT)
-                            .show()
-                        obtener_publicaciones_realizadas(
-                            firebaseAuth.uid.toString(),
-                            "archivados",
-                            "No se encontraron datos archivados"
+                        Toast.makeText(
+                            this,
+                            "Publicacion m ovido correctamente",
+                            Toast.LENGTH_SHORT
                         )
-                        dialog.dismiss()
+                            .show()
+                        binding.linealEncontrados.isVisible = false
+                        when (tipo_fun) {
+                            "privado" -> {
+                                obtener_publicaciones_realizadas(
+                                    firebaseAuth.uid.toString(),
+                                    "privado", "No se encontraron datos"
+                                )
+                            }
+
+                            "solo_seguidores" -> {
+                                obtener_publicaciones_realizadas(
+                                    firebaseAuth.uid.toString(),
+                                    "solo_seguidores", "No se encontraron datos"
+                                )
+                            }
+
+                            "archivados" -> {
+                                obtener_publicaciones_realizadas(
+                                    firebaseAuth.uid.toString(),
+                                    tipo,
+                                    "No se encontraron datos "
+                                )
+                            }
+
+                            "eliminados" -> {
+                                obtener_publicaciones_realizadas(
+                                    firebaseAuth.uid.toString(),
+                                    tipo,
+                                    "No se encontraron datos "
+                                )
+                            }
+                        }
+
+
                     }.addOnFailureListener { e ->
                         Log.d("erro_pasado", "error al pasar la publicaon")
                     }
@@ -471,68 +779,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         }
 
     }
-
-    private fun archivar_eliminar_publicacion(idSeleccionado: String, tipo: String) {
-        val firestore = FirebaseFirestore.getInstance()
-        val uid = firebaseAuth.uid.toString()
-
-        val refPublicacion = firestore.collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores")
-            .document(uid).collection("publicaciones_trabajos")
-            .document("publicados").collection("publicados").document(idSeleccionado)
-
-        refPublicacion.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data
-
-                val categoria = data?.get("categoria") as? String ?: ""
-                val contenido = data?.get("contenido") as? String ?: ""
-                val fechaRec = data?.get("fecha_rec") as? String ?: ""
-                val horaRec = data?.get("hora_rec") as? String ?: ""
-                val titulo = data?.get("titulo") as? String ?: ""
-                val visibilidad = data?.get("visivilidad") as? String ?: ""
-                val ubicacion = data?.get("ubicacion") as? String ?: ""
-                val id = data?.get("id") as? String ?: ""
-
-                val hashtagsGenerales =
-                    data?.get("hashtags_generales") as? List<String> ?: emptyList()
-                val hashtagsTrabajosPublicados =
-                    data?.get("hashtags_trabajos_publicados") as? List<String> ?: emptyList()
-
-                // Creamos el hashmap con los datos para guardar en otra colección (archivados o publicados)
-                val hashMap = hashMapOf(
-                    "categoria" to categoria,
-                    "contenido" to contenido,
-                    "fecha_rec" to fechaRec,
-                    "hora_rec" to horaRec,
-                    "titulo" to titulo,
-                    "visivilidad" to visibilidad,
-                    "ubicacion" to ubicacion,
-                    "id" to id,
-                    "hashtags_generales" to hashtagsGenerales,
-                    "hashtags_trabajos_publicados" to hashtagsTrabajosPublicados
-                )
-
-                // Aquí decides si archivar o publicar de nuevo según `tipo`
-
-                val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
-                    .document("trabajadores").collection("trabajadores")
-                    .document(uid).collection("publicaciones_trabajos")
-                    .document(tipo).collection(tipo).document(idSeleccionado)
-
-                refDestino.set(hashMap).addOnSuccessListener {
-                    refPublicacion.delete().addOnSuccessListener {
-                        Toast.makeText(this, "Publicación movida a $tipo", Toast.LENGTH_SHORT)
-                            .show()
-
-                    }
-                }
-            }
-        }.addOnFailureListener {
-            Toast.makeText(this, "Error al obtener datos: ${it.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
 
     private fun archivar_eliminar_publicaciones(
         id_publicacion: String,
@@ -628,6 +874,20 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                                 "estadisticas_compartir"
                             )
                         }
+
+                        "privado" -> {
+                            obtener_publicaciones_realizadas(
+                                firebaseAuth.uid.toString(),
+                                "privado", "No se encontraron datos"
+                            )
+                        }
+
+                        "solo_seguidores" -> {
+                            obtener_publicaciones_realizadas(
+                                firebaseAuth.uid.toString(),
+                                "solo_seguidores", "No se encontraron datos"
+                            )
+                        }
                     }
 
                     db.delete().addOnFailureListener { res ->
@@ -711,7 +971,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     binding.recicleViewTrabajos.isVisible = false
                     maximo_min(valorMinUsuario, valorMaxUsuario)
                     Toast.makeText(this, "Todo bien, filtrando...", Toast.LENGTH_SHORT).show()
-
+                    dialog.dismiss()
                 }
             }
         }
@@ -725,12 +985,14 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         tipo: String,
         texto_sin_encontrar: String
     ) {
+
+        binding.linealNoCuenta.isVisible = false
+        binding.recicleViewTrabajos.isVisible = false
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
             .collection("publicaciones_trabajos").document(tipo).collection(tipo)
 //        binding.loading.isVisible = true
-        binding.linealNoCuenta.isVisible = false
-        binding.recicleViewTrabajos.isVisible = false
+
         lista.clear()
         db.get().addOnSuccessListener { res ->
             for (datos in res) {
@@ -754,10 +1016,12 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 //                binding.loading.isVisible = false
                 binding.textoSinEncontrar.text = texto_sin_encontrar
                 binding.linealNoCuenta.isVisible = true
+                binding.linealEncontrados.isVisible = false
             } else {
 //                binding.loading.isVisible = false
                 binding.linealNoCuenta.isVisible = false
                 binding.recicleViewTrabajos.isVisible = true
+                binding.linealEncontrados.isVisible = false
                 inicializarRecicle(binding.recicleViewTrabajos, adapter, this)
                 adapter.notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
             }
@@ -777,17 +1041,34 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
     }
 
 
-    private fun editar_publicaciones(id_publicacion: String) {
+    private fun editar_publicaciones(id_publicacion: String, tipo: String) {
         val crea_class = crear_publicaciones_recientes()
         val binding_bottomShet =
             BottomSheetEditarPublicacionesVerificadosBinding.inflate(LayoutInflater.from(this))
         val view = binding_bottomShet.root
+
         binding_bottomShet.cerrar.setOnClickListener { dialog.dismiss() }
+
+        binding_bottomShet.idPublicacion.text = id_publicacion
+        binding_bottomShet.copiarId.setOnClickListener {
+            constantestextos_general.copiarTexto_portapapeles(
+                binding_bottomShet.idPublicacion,
+                this
+            )
+        }
+        val tiempoInicio = System.currentTimeMillis()
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
-            .collection("publicaciones_trabajos").document(id_publicacion)
+            .collection("publicaciones_trabajos").document(tipo)
+            .collection(tipo).document(id_publicacion)
+
         db.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotal = tiempoFin - tiempoInicio
+            Log.d("FirestoreTiempo", "Tiempo en obtener datos: $tiempoTotal ms")
+
             if (res.exists()) {
                 val data = res.data
                 val categoria = data?.get("categoria") as? String ?: ""
@@ -805,83 +1086,219 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 binding_bottomShet.complete.setText(categoria)
                 binding_bottomShet.descripcionServiciosED.setText(contenido)
                 binding_bottomShet.tituloPublicacionED.setText(titulo)
-                binding_bottomShet.agregarHastagsED.setText(
-                    hashtags_generales.joinToString(
-                        ", "
-                    )
-                )
+                binding_bottomShet.agregarHastagsED.setText(hashtags_generales.joinToString(", "))
                 binding_bottomShet.agregarHastagsCategoriasED.setText(
                     trabajos_publicados_hastags.joinToString(
                         ", "
                     )
                 )
+                binding_bottomShet.agregarHastagsED.setOnClickListener {
+                    Toast.makeText(this, "hacemos clij en agrega", Toast.LENGTH_SHORT).show()
+                    dialog = BottomSheetDialog(this)
+                    constantes_hastags_generales.obtener_hastags_generales(
+                        this,
+                        hashtagsGenerales,
+                        dialog,
+                        binding_bottomShet.agregarHastagsED
+                    )
+                    dialog.show()
+                }
+
+                binding_bottomShet.agregarHastagsCategoriasED.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    constantes_hastags_generales.obtenerHastags_cada_cat(
+                        binding_bottomShet.complete.text.toString(),
+                        dialog,
+                        this,
+                        hashtagsCategoria,
+                        binding_bottomShet.agregarHastagsCategoriasED
+                    )
+                    dialog.show()
+                }
 
                 if (ubicacion.isNotEmpty()) {
                     binding_bottomShet.agregaUbicaciones.isChecked = true
-                    binding_bottomShet.agregaUbi.isVisible = true
-                    binding_bottomShet.agregaUbiED.setText(ubicacion)
+                    binding_bottomShet.ubicacionAuto.isVisible = true
+                    binding_bottomShet.ubicacionAutoP.isVisible = true
+                    binding_bottomShet.ubicacionAuto.setText(ubicacion)
+                    obtenerLocalidadUser { localidad ->
+
+                        listaFiltrado(binding_bottomShet.ubicacionAuto)
+                    }
                 } else {
+                    obtenerLocalidadUser { localidad ->
+                        binding_bottomShet.ubicacionAuto.setText(localidad.toString())
+                        listaFiltrado(binding_bottomShet.ubicacionAuto)
+                    }
+                    binding_bottomShet.ubicacionAutoP.isVisible = false
                     binding_bottomShet.agregaUbicaciones.isChecked = false
-                    binding_bottomShet.agregaUbi.isVisible = false
-                }
-                when (visivilidad.lowercase()) {
-                    "todos" -> binding_bottomShet.Todos.isChecked = true
-                    "seguidores" -> binding_bottomShet.seguidores.isChecked = true
-                    "privado" -> binding_bottomShet.privado.isChecked = true
+                    binding_bottomShet.ubicacionAuto.isVisible = false
                 }
 
-                binding_bottomShet.grupoVisibilidad.setOnCheckedChangeListener { _, checkedId ->
-                    val texto = when (checkedId) {
-                        R.id.Todos -> "Todos"
-                        R.id.seguidores -> "Seguidores"
-                        R.id.privado -> "Privado"
-                        else -> ""
-                    }
-                    binding_bottomShet.mostrarPublicacionPara.text = texto
-                }
+
 
                 binding_bottomShet.agregaUbicaciones.setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        binding_bottomShet.agregaUbi.isVisible = true
+                        binding_bottomShet.ubicacionAutoP.isVisible = true
+                        binding_bottomShet.ubicacionAuto.isVisible = true
+                        binding_bottomShet.ubicacionAuto.setText(ubicacion)
+
                     } else {
-                        binding_bottomShet.agregaUbi.isVisible = false
-                        binding_bottomShet.agregaUbiED.setText("")
+                        binding_bottomShet.ubicacionAuto.setText("")
+                        binding_bottomShet.ubicacionAutoP.isVisible = false
+                        binding_bottomShet.ubicacionAuto.isVisible = false
                     }
                 }
 
                 binding_bottomShet.editar.setOnClickListener {
-                    subirCambiosRealziados(
-                        id_publicacion,
-                        binding_bottomShet,
-                        dialog
-                    )
-                }
+                    if (validar_campos(binding_bottomShet)) {
+                        subirCambiosRealziados(
+                            id_publicacion,
+                            binding_bottomShet,
+                            dialog, tipo
+                        )
 
+
+                    }
+
+                }
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding_bottomShet.netScrollView.isVisible = true
+                    binding_bottomShet.cargandoContenido.isVisible = false
+
+                }, tiempoTotal) // 2000 ms = 2 segundos
+            }
+        }.addOnFailureListener {
+            Log.e("FirestoreTiempo", "Error al obtener datos: ${it.message}")
+        }
+
+        dialog.setContentView(view)
+    }
+
+    private fun validar_campos(binding_bottomShet: BottomSheetEditarPublicacionesVerificadosBinding): Boolean {
+        var esValido = true
+
+        val tituloTrabajo = binding_bottomShet.tituloPublicacionED.text.toString().trim()
+        val descripcion = binding_bottomShet.descripcionServiciosED.text.toString().trim()
+        val agregarHashtags = binding_bottomShet.agregarHastagsED.text.toString().trim()
+        val agregarHashtagsCat =
+            binding_bottomShet.agregarHastagsCategoriasED.text.toString().trim()
+        val categoria = binding_bottomShet.complete.text.toString().trim()
+        val ubicacion = binding_bottomShet.ubicacionAuto.text.toString().trim()
+
+        // Validar título
+        if (tituloTrabajo.isEmpty()) {
+            binding_bottomShet.tituloPublicacionED.error = "Este campo es obligatorio"
+            binding_bottomShet.tituloPublicacionED.requestFocus()
+            esValido = false
+        }
+
+        // Validar descripción
+        if (descripcion.isEmpty()) {
+            binding_bottomShet.descripcionServiciosED.error = "Este campo es obligatorio"
+            binding_bottomShet.descripcionServiciosED.requestFocus()
+            esValido = false
+        }
+
+        // Validar hashtags generales
+        if (agregarHashtags.isEmpty()) {
+            binding_bottomShet.agregarHastagsED.error = "Este campo es obligatorio"
+            binding_bottomShet.agregarHastagsED.requestFocus()
+            esValido = false
+        }
+
+        // Validar hashtags por categoría
+        if (agregarHashtagsCat.isEmpty()) {
+            binding_bottomShet.agregarHastagsCategoriasED.error = "Este campo es obligatorio"
+            binding_bottomShet.agregarHastagsCategoriasED.requestFocus()
+            esValido = false
+        }
+
+        // Validar categoría
+        if (categoria.isEmpty()) {
+            binding_bottomShet.complete.error = "Seleccione una categoría"
+            binding_bottomShet.complete.requestFocus()
+            esValido = false
+        }
+
+        if (binding_bottomShet.agregaUbicaciones.isChecked) {
+            if (ubicacion.isEmpty()) {
+                binding_bottomShet.ubicacionAuto.error = "Seleccione una ubicación"
+                binding_bottomShet.ubicacionAuto.requestFocus()
+
+                esValido = false
+            } else if (ubicacion == "General") {
+                binding_bottomShet.ubicacionAuto.requestFocus()
+                binding_bottomShet.ubicacionAuto.error = "No puede seleccionar 'General'"
+                Toast.makeText(
+                    binding_bottomShet.root.context,
+                    "No puede seleccionar 'General' como ubicación",
+                    Toast.LENGTH_SHORT
+                ).show()
+                esValido = false
             }
         }
-        dialog.setContentView(view)
+
+
+        return esValido
     }
 
     private fun subirCambiosRealziados(
         id_publicacion: String,
         binding_bottomShet: BottomSheetEditarPublicacionesVerificadosBinding,
-        dialog: BottomSheetDialog
+        dialog: BottomSheetDialog, tipo: String
     ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
-            .collection("publicaciones_trabajos").document(id_publicacion)
+            .collection("publicaciones_trabajos").document(tipo)
+            .collection(tipo).document(id_publicacion)
 
+        val hashtagsGenerales = binding_bottomShet.agregarHastagsED.text.toString()
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+
+        val hashtagscategorias = binding_bottomShet.agregarHastagsCategoriasED.text.toString()
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
         val hasmap = hashMapOf(
+            "hashtags_generales" to hashtagsGenerales,
+            "hashtags_trabajos_publicados" to hashtagscategorias,
             "contenido" to binding_bottomShet.descripcionServiciosED.text.toString(),
             "titulo" to binding_bottomShet.tituloPublicacionED.text.toString(),
-            "visivilidad" to binding_bottomShet.mostrarPublicacionPara.text.toString(),
-            "ubicacion" to binding_bottomShet.agregaUbiED.text.toString()
+            "ubicacion" to binding_bottomShet.ubicacionAuto.text.toString()
         )
+
         db.set(hasmap, SetOptions.merge()).addOnSuccessListener { res ->
-            Toast.makeText(this, "Campos actualizados correctamente", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
-//            obtener_publicaciones_realizadas(firebaseAuth.uid.toString(),"")
+            Toast.makeText(this, "Campos actualizados correctamente", Toast.LENGTH_SHORT).show()
+            binding.linealEncontrados.isVisible = true
+
+            when (tipo) {
+                "privado" -> {
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "privado", "No se encontraron datos"
+                    )
+                }
+
+                "publicados" -> {
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "publicados", "No se encontraron datos"
+                    )
+                }
+
+                "solo_seguidores" -> {
+                    obtener_publicaciones_realizadas(
+                        firebaseAuth.uid.toString(),
+                        "solo_seguidores", "No se encontraron datos"
+                    )
+                }
+            }
+
         }
             .addOnFailureListener { e ->
                 Toast.makeText(

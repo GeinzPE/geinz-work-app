@@ -147,6 +147,7 @@
                         android:id="@+id/archivar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
                         android:orientation="vertical"
                         tools:ignore="MissingConstraints">
 
@@ -177,15 +178,84 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/privado"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginRight="10dp"
                         android:orientation="vertical"
                         tools:ignore="MissingConstraints">
 
 
                         <LinearLayout
-                            android:id="@+id/estadisticas"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="5dp">
+
+                            <ImageView
+                                android:layout_width="70dp"
+                                android:layout_height="70dp"
+                                android:src="@drawable/publicacion_bottom_privada_webp" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                                android:text="Ocultar (publicaciones privadas)"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/solo_Seguidores"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:orientation="vertical"
+                        tools:ignore="MissingConstraints">
+
+
+                        <LinearLayout
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="5dp">
+
+                            <ImageView
+                                android:layout_width="70dp"
+                                android:layout_height="70dp"
+                                android:src="@drawable/publicacion_bottom_seguidos_webp" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                                android:text="Solo para seguidores"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:id="@+id/estadisticas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:orientation="vertical"
+                        tools:ignore="MissingConstraints">
+
+
+                        <LinearLayout
                             style="@style/RoundTrabajadoresBG"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -209,6 +279,7 @@
                         </LinearLayout>
 
                     </LinearLayout>
+
 
                 </LinearLayout>
 

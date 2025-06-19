@@ -1,31 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    style="@style/fondo"
     android:animateLayoutChanges="true"
     android:orientation="vertical">
 
-    <androidx.core.widget.NestedScrollView
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/cerrar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:padding="8dp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/netScroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/cerrar"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-                android:id="@+id/cerrar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp" />
 
             <TextView
+                style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edita tus publicaciones" />
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:fontFamily="@font/anton_regular"
+                android:text="Edita tu publicaciones realizadas"
+                android:textSize="20sp" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="Puedes editar solo el título y el contenido de la publicación. Si ocurre algún error o inconveniente, no olvides copiar el ID de tu publicación para que Geinz Work pueda ayudarte."
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Id Publicacion : "
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/id_publicacion"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textSize="15sp" />
+
+                <ImageView
+                    android:id="@+id/copiar_id"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/baseline_content_copy_24" />
+            </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/titulo_publicaciontext"
@@ -90,7 +136,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
                     android:clickable="true"
-                    android:enabled="false"
                     android:focusable="false"
                     android:gravity="top|start"
                     android:hint="Agrega Hashtag generales"
@@ -99,6 +144,7 @@
                     android:minLines="5"
                     android:padding="10dp"
                     android:scrollbars="vertical" />
+
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -138,7 +184,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
                     android:clickable="true"
-                    android:enabled="false"
                     android:focusable="false"
                     android:gravity="top|start"
                     android:hint="Agrega Hashtag categorias"
@@ -150,6 +195,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
+
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
@@ -157,6 +203,8 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/agregar_ubiEd"
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="5dp"
@@ -170,85 +218,58 @@
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/agregaUbi"
+                android:id="@+id/ubicacionAutoP"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
-                android:visibility="gone"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
+                android:layout_marginBottom="20dp"
+                android:hint="Selecciona su categoría">
 
-                <EditText
-                    android:id="@+id/agregaUbiED"
-                    style="@style/TextoModoOScuroColor"
+                <AutoCompleteTextView
+                    android:id="@+id/ubicacionAuto"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="Ubicacion"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
-
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:layout_marginTop="17dp"
-                android:layout_marginBottom="5dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Publicacion para :" />
-
-                <TextView
-                    android:id="@+id/mostrar_publicacion_para"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
-                    android:text="Todos" />
-            </LinearLayout>
-
-            <RadioGroup
-                android:id="@+id/grupoVisibilidad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/Todos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Todos" />
-
-                <RadioButton
-                    android:id="@+id/seguidores"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Solo Seguidores" />
-
-                <RadioButton
-                    android:id="@+id/privado"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Privado" />
-            </RadioGroup>
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/editar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="10dp"
                 android:layout_weight="1"
                 android:background="@drawable/rounder_btn_vtrajador"
+                android:padding="5dp"
                 android:text="Guardar Cambios"
                 android:textColor="@color/white" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <LinearLayout
+        android:id="@+id/cargando_contenido"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/cerrar"
+        android:layout_marginVertical="50dp"
 
-</LinearLayout>
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:layout_width="60dp"
+            android:layout_height="60dp" />
+
+        <TextView
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:text="Cargando Contenido..."
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</RelativeLayout>

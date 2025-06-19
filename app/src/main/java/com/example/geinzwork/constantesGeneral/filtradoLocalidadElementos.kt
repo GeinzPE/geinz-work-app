@@ -58,7 +58,6 @@ object filtradoLocalidadElementos {
         }
 
         btnApply.setOnClickListener {
-
             val seleccion = autoCompleteCategory.text.toString()
             Toast.makeText(
                 context,

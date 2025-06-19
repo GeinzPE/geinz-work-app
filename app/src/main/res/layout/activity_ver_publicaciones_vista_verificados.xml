@@ -11,7 +11,6 @@
     tools:context="com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados">
 
     <LinearLayout
-
         android:id="@+id/lineal_encontrados"
         android:layout_centerInParent="true"
         android:visibility="gone"
@@ -25,6 +24,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"/>
         <TextView
+            android:id="@+id/texto_dinamico_progrees"
             style="@style/TextoModoOScuroColor"
             android:textSize="15sp"
             android:textStyle="bold"
@@ -45,7 +45,7 @@
 
 
             <LinearLayout
-                style="@style/fondo"
+
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -116,6 +116,23 @@
                             android:checkable="true"
                             android:text="Mas compartidas"
                             app:chipIcon="@drawable/compartir_icon_webp" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/privado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Publicaciones privadas"
+                            app:chipIcon="@drawable/publicacion_privado_webp" />
+
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/solo_seguidores"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:text="Publicaciones solo para seguidores"
+                            app:chipIcon="@drawable/publicacion_seguidos_webp" />
                     </com.google.android.material.chip.ChipGroup>
 
                 </HorizontalScrollView>
