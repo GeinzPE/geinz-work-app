@@ -364,10 +364,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         val dato_pasado = intent.getStringExtra("tipo").toString()
         if (dato_pasado.equals("publicadas")) {
             bottoSheet.linealIconosPrincipal.isVisible = true
-            vista_previa.setOnClickListener {
-                dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString(),"publicados")
-            }
+
             if (binding.masClicks.isChecked) {
                 editar.setOnClickListener {
                     Toast.makeText(
@@ -508,7 +505,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "publicados",
                         "eliminados", "todos"
                     )
-
                 }
                 editar.setOnClickListener {
                     editar_publicaciones(item.id_publicacion.toString(), "publicados")
@@ -555,7 +551,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "privado",
                         "eliminados", "privado"
                     )
-
                 }
                 archivar.setOnClickListener {
                     dialog.dismiss()
@@ -626,8 +621,9 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 editar.setOnClickListener {
                     editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
-
             }
+
+
         } else if (dato_pasado.equals("archivadas")) {
             bottoSheet.regresar.isVisible = true
             bottoSheet.eliminarPermanente.isVisible = false
@@ -641,9 +637,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 binding.recicleViewTrabajos.isVisible = false
                 dialog.dismiss()
             }
-//            editar.setOnClickListener {
-//                editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
-//            }
             vista_previa.setOnClickListener {
                 dialog.dismiss()
                 vista_previa_publicaciones(item.id_publicacion.toString(),"archivados")
@@ -661,9 +654,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 binding.recicleViewTrabajos.isVisible = false
                 dialog.dismiss()
             }
-//            editar.setOnClickListener {
-//                editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
-//            }
             vista_previa.setOnClickListener {
                 dialog.dismiss()
                 vista_previa_publicaciones(item.id_publicacion.toString(),"eliminados")
@@ -708,6 +698,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 putExtra("id_trabajador", firebaseAuth.uid.toString())
                     .putExtra("id_publicacion", id_publicacion)
                     .putExtra("tipo_ubicado", tipo1)
+
             }
         startActivity(vista)
     }

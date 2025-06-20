@@ -59,7 +59,7 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         val idTrabajador = intent.getStringExtra("id_trabajador").toString()
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
         val tipo_ubicado = intent.getStringExtra("tipo_ubicado").toString()
-        obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada,tipo_ubicado)
+        obtener_publicacion_actual(idTrabajador, id_publicacion_clikeada, tipo_ubicado)
         Log.d("obtemosidStrabjaosd", "$idTrabajador, $id_publicacion_clikeada")
 
         binding.retroceder.setOnClickListener {
@@ -73,18 +73,23 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
                 .collection("publicaciones_trabajos").document(tipo_ubicado)
                 .collection(tipo_ubicado).document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
-                constantesPublicidad.agregarCantidadClickAnuncios(
-                    db,
-                    "",
-                    "compartir"
-                )
-                constantes_publicaciones_general_user_tiendas.crear_dinamick_link_prblicaciones_trabajador(
-                    this,
-                            idTrabajador,
-                    id_publicacion_clikeada,
-                    "Mira esta publicacion relizada por $nombre $apellido",
-                    "${binding.titulo.text}"
-                )
+                if (tipo_ubicado == "archivados" || tipo_ubicado == "solo_seguidores" || tipo_ubicado == "privado") {
+                    Toast.makeText(this, "la publicacion no esta activa", Toast.LENGTH_SHORT).show()
+                } else {
+                    constantesPublicidad.agregarCantidadClickAnuncios(
+                        db,
+                        "",
+                        "compartir"
+                    )
+                    constantes_publicaciones_general_user_tiendas.crear_dinamick_link_prblicaciones_trabajador(
+                        this,
+                        idTrabajador,
+                        id_publicacion_clikeada,
+                        "Mira esta publicacion relizada por $nombre $apellido",
+                        "${binding.titulo.text}"
+                    )
+                }
+
             }
         }
 
@@ -161,20 +166,28 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
         }.start()
     }
 
-    private fun obtener_publicacion_actual(idTrabajador: String, idpublicaicon: String,tipo:String) {
+    private fun obtener_publicacion_actual(
+        idTrabajador: String,
+        idpublicaicon: String,
+        tipo: String
+    ) {
         val tiempoInicio = System.currentTimeMillis()
         binding.contenidoCargado.isVisible = false
-
-
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("publicaciones_trabajos").document(tipo).collection(tipo)
             .document(idpublicaicon)
-        constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
         db.get().addOnSuccessListener { res ->
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotalMs = tiempoFin - tiempoInicio
-            iniciarContadorVista(db)
+            if (tipo != "archivados" && tipo != "solo_seguidores" && tipo != "privado") {
+                iniciarContadorVista(db)
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
+            }else{
+                Toast.makeText(this,"no se agrego los cliks ni vistas",Toast.LENGTH_SHORT).show()
+            }
+
+
             if (res.exists()) {
                 val data = res.data
                 val titulo = data?.get("titulo") as? String ?: ""
@@ -224,7 +237,8 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
                                 item: CarouselItem,
                                 position: Int,
                             ) {
-                                val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
+                                val currentBinding =
+                                    binding as ItemCustomFixedSizeLayout2Binding
                                 currentBinding.imageView.apply {
                                     setImage(item, R.drawable.ic_wb_cloudy_with_padding)
                                     minimumScale = 1f
