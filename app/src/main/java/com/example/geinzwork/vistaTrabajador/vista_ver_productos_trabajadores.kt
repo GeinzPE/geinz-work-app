@@ -72,7 +72,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         val id_publicacion_clikeada = intent.getStringExtra("id_publicacion").toString()
         val tipo_ubicado = intent.getStringExtra("tipo_ubicado").toString()
 
-        obtenerCampos_producto(idTrabajador, id_publicacion_clikeada, tipo_ubicado)
+        obtenerCampos_producto(idTrabajador, id_publicacion_clikeada, tipo_ubicado, tipo_ubicado)
 
         binding.retroceder.setOnClickListener {
             onBackPressed()
@@ -84,18 +84,23 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                 .collection("productos_venta").document(tipo_ubicado)
                 .collection(tipo_ubicado).document(id_publicacion_clikeada)
             binding.compartirIcon.setOnClickListener {
-                constantesPublicidad.agregarCantidadClickAnuncios(
-                    db,
-                    "",
-                    "compartir"
-                )
-                crear_dinamick_link(
-                    this,
-                    idTrabajador,
-                    id_publicacion_clikeada,
-                    "Mira este producto publicado por $nombre $apellido",
-                    "${binding.nombreProducto.text}"
-                )
+                if (tipo_ubicado == "archivados" || tipo_ubicado == "solo_seguidores" || tipo_ubicado == "privado") {
+                    Toast.makeText(this, "la publicacion no esta activa", Toast.LENGTH_SHORT).show()
+                } else {
+                    constantesPublicidad.agregarCantidadClickAnuncios(
+                        db,
+                        "",
+                        "compartir"
+                    )
+                    crear_dinamick_link(
+                        this,
+                        idTrabajador,
+                        id_publicacion_clikeada,
+                        "Mira este producto publicado por $nombre $apellido",
+                        "${binding.nombreProducto.text}"
+                    )
+                }
+
             }
         }
         binding.ocultarCamposDePublicidad.setOnClickListener {
@@ -401,7 +406,8 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
     private fun obtenerCampos_producto(
         idTrabajador: String,
         productoClikado: String,
-        tipo_obtenido: String
+        tipo_obtenido: String,
+        tipo: String
     ) {
         val startTime = System.currentTimeMillis()
         binding.containerDatos.isVisible = false
@@ -417,6 +423,12 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
         db.get().addOnSuccessListener { res ->
             val endTime = System.currentTimeMillis()
             val totalTime = endTime - startTime
+            if (tipo != "archivados" && tipo != "solo_seguidores" && tipo != "privado") {
+                iniciarContadorVista(db)
+                constantesPublicidad.agregarCantidadClickAnuncios(db, "", "click")
+            } else {
+                Toast.makeText(this, "no se agrego los cliks ni vistas", Toast.LENGTH_SHORT).show()
+            }
             val tiempoMinimoCarga = 800L
             val esperaExtra =
                 if (totalTime < tiempoMinimoCarga) (tiempoMinimoCarga - totalTime) else 0L

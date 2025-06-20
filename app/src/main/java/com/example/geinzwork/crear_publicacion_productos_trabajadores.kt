@@ -66,6 +66,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
@@ -906,8 +907,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
 
     private fun publicar_producto() {
-        binding.linealPublicando.isVisible=true
-        binding.scroll.isVisible=false
+        binding.linealPublicando.isVisible = true
+        binding.scroll.isVisible = false
         val titulo_producto = binding.tituloPublicacionPrED
         val modelo_producto = binding.modeloProductoED
         val nombre_producto = binding.nombreProductoED
@@ -990,6 +991,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "mas_informacio" to binding.masInformacionED.text.toString()
         )
 
+
+
         db.add(hasMap).addOnSuccessListener { res ->
             val productId = res.id
             val hasmap = hashMapOf<String, Any>("id" to productId)
@@ -1010,10 +1013,24 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                         "precio_descuento" to (precio_descuento_nuevo.text.toString()
                             .toDoubleOrNull() ?: 0.0),
                         "metodoEntrega" to binding.metodoEntregaSelect.text.toString(),
+                        "metodoPago" to binding.metodoPagoSelect.text.toString(),
                         "localidadUser" to localida_user.text.toString()
                     )
                     dbProductos_publicados.set(hasmap_producto, SetOptions.merge())
                         .addOnSuccessListener {
+                            registrarPublicacionActiva(
+                                binding.metodoEntregaSelect.text.toString(),
+                                "publicados",
+                                "metodos_entrega", productId
+                            )
+                            registrarPublicacionActiva(
+                                binding.metodoPagoSelect.text.toString(),
+                                "publicados",
+                                "metodos_pago",
+                                productId
+                            )
+
+
                             binding.tituloPublicacionPrED.setText("")
                             binding.subcategoriaProducto.setText("")
                             binding.marcaProductoED.setText("")
@@ -1029,22 +1046,22 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                             binding.metodoPagoSelect.text = ""
                             binding.chipsPagos.clearCheck()
                             binding.metodoEntregaSelect.text = ""
-                            binding.vistraPreviaDescripciontitulo.text=""
-                            binding.vistraPreviaDescripcion.text=""
-                            binding.subir.isVisible=true
-                            binding.camposEditar.isVisible=false
-                            binding.linealVistaPreviaApartado.isVisible=false
-                            binding.linealGarantia.isVisible=false
+                            binding.vistraPreviaDescripciontitulo.text = ""
+                            binding.vistraPreviaDescripcion.text = ""
+                            binding.subir.isVisible = true
+                            binding.camposEditar.isVisible = false
+                            binding.linealVistaPreviaApartado.isVisible = false
+                            binding.linealGarantia.isVisible = false
                             binding.hayGarantiaProductoED.setText("")
                             binding.precioNuevoDescuentoPrED.setText("0")
-                            binding.precioNuevoDescuentoPr.isVisible=false
+                            binding.precioNuevoDescuentoPr.isVisible = false
                             binding.radioGrupPlazoRG.clearCheck()
                             binding.chipsEntregas.clearCheck()
-                            binding.catSelcionado.text=""
+                            binding.catSelcionado.text = ""
                             binding.stokED.setText("0")
                             resetearImagenes()
-                            binding.linealPublicando.isVisible=false
-                            binding.scroll.isVisible=true
+                            binding.linealPublicando.isVisible = false
+                            binding.scroll.isVisible = true
                             Toast.makeText(
                                 this,
                                 "se agrego a la otra coleccion",
@@ -1059,6 +1076,59 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             Toast.makeText(this, "Error al agregar el producto", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+    fun registrarPublicacionActiva(
+        identrega_pago: String,
+        tipo: String,
+        metodo_pago_entrega: String,
+        id_publicacion: String
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        val ref = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(uid)
+            .collection(metodo_pago_entrega)
+            .document(identrega_pago)
+
+        // Crear la estructura para añadir al mapa
+        val data = mapOf(
+            "publicaciones_activas.$id_publicacion" to mapOf(
+                "tipo" to "$tipo,productos_publicaciones",
+                "id_publicacion" to id_publicacion,
+                "activo" to true
+            )
+        )
+
+        // Usamos update con notación de punto para agregar al mapa sin borrar lo anterior
+        ref.update(data)
+            .addOnSuccessListener {
+                Log.d("Firestore", "Publicación $id_publicacion añadida al mapa correctamente.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Fallo al hacer update, intentando set: ${e.message}")
+
+                val initData = mapOf(
+                    "publicaciones_activas" to mapOf(
+                        id_publicacion to mapOf(
+                            "tipo" to tipo
+                        )
+                    )
+                )
+
+                ref.set(initData, SetOptions.merge())
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "Mapa creado con publicación $id_publicacion.")
+                    }
+                    .addOnFailureListener { ex ->
+                        Log.e("Firestore", "Error final: ${ex.message}")
+                    }
+            }
+    }
+
 
     private fun resetearImagenes() {
         val placeholderCaracteristica =
@@ -1117,77 +1187,104 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private fun guardar_img_storage(id_publicacion: String) {
         val imagenesValidas = obtenerImagenesValidas()
         val firestoreData = hashMapOf<String, Any>()
+        var contadorSubidas = 0
+
+        val totalImagenes = imagenesValidas.size
+        Log.d("IMAGENES", "Total de imágenes para subir: $totalImagenes")
+
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("productos_venta")
             .document("publicados").collection("publicados").document(id_publicacion)
-        val dbProductos_publicados =
-            FirebaseFirestore.getInstance().collection("productos_publicaciones")
-                .document("producto").collection("producto").document(id_publicacion)
+
+        val dbProductos_publicados = FirebaseFirestore.getInstance()
+            .collection("productos_publicaciones")
+            .document("producto").collection("producto")
+            .document(id_publicacion)
+
         imagenesValidas.forEachIndexed { index, imageView ->
-            val bitmap = (imageView.drawable as BitmapDrawable).bitmap
+            val bitmap = (imageView.drawable as? BitmapDrawable)?.bitmap
+            if (bitmap == null) {
+                Log.e("IMAGENES", "Bitmap en índice $index es null. Imagen inválida.")
+                return@forEachIndexed
+            }
+
             val baos = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val data = baos.toByteArray()
 
             val nombreArchivo = "imagen_$index.jpg"
             val storageRef = FirebaseStorage.getInstance().reference
-                .child("usuarios/${firebaseAuth.uid.toString()}/productos_venta/$id_publicacion/$nombreArchivo")
+                .child("usuarios/${firebaseAuth.uid}/productos_venta/$id_publicacion/$nombreArchivo")
 
             storageRef.putBytes(data)
                 .addOnSuccessListener {
+                    Log.d("IMAGENES", "Imagen $index subida correctamente.")
                     storageRef.downloadUrl.addOnSuccessListener { uri ->
                         val campoNombre = if (index == 0) "img_url" else "img_url${index + 1}"
                         firestoreData[campoNombre] = uri.toString()
+                        Log.d("IMAGENES", "URL obtenida para $campoNombre: $uri")
 
-                        // Actualizar Firestore cuando todas las imágenes estén listas
-                        if (firestoreData.size == imagenesValidas.size) {
+                        contadorSubidas++
+                        if (contadorSubidas == totalImagenes) {
+                            Log.d("IMAGENES", "Todas las URLs listas. Subiendo a Firestore...")
                             db.update(firestoreData)
                                 .addOnSuccessListener {
-                                    Log.d("Firestore", "URLs de imágenes actualizadas con éxito.")
+                                    Log.d("Firestore", "URLs actualizadas en productos_venta.")
                                 }
-                            dbProductos_publicados.update(firestoreData).addOnSuccessListener {
-                                Log.d("Firestore", "URLs de imágenes actualizadas con éxito.2")
-                            }.addOnFailureListener { e ->
-                                Log.e(
-                                    "Firestore",
-                                    "Error al actualizar Firestore: ${e.message}"
-                                )
-                            }
                                 .addOnFailureListener { e ->
                                     Log.e(
                                         "Firestore",
-                                        "Error al actualizar Firestore: ${e.message}"
+                                        "Error en update productos_venta: ${e.message}"
+                                    )
+                                }
+
+                            dbProductos_publicados.update(firestoreData)
+                                .addOnSuccessListener {
+                                    Log.d(
+                                        "Firestore",
+                                        "URLs actualizadas en productos_publicaciones."
+                                    )
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e(
+                                        "Firestore",
+                                        "Error en update productos_publicaciones: ${e.message}"
                                     )
                                 }
                         }
+                    }.addOnFailureListener { e ->
+                        Log.e("Storage", "Error al obtener URL $index: ${e.message}")
                     }
                 }
                 .addOnFailureListener { e ->
-                    Log.e("Storage", "Error al subir imagen $nombreArchivo: ${e.message}")
+                    Log.e("Storage", "Error al subir imagen $index: ${e.message}")
                 }
         }
 
+        // Imagen principal separada
         val imgPrincipal = binding.imgSubir
         if (imgPrincipal.visibility == View.VISIBLE && imgPrincipal.drawable != null) {
-            val bitmap = (imgPrincipal.drawable as BitmapDrawable).bitmap
-            val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-            val data = baos.toByteArray()
+            val bitmap = (imgPrincipal.drawable as? BitmapDrawable)?.bitmap
+            if (bitmap != null) {
+                val baos = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+                val data = baos.toByteArray()
 
-            val nombreArchivo = "imagen_caracteristica.jpg"
-            val storageRef = FirebaseStorage.getInstance().reference
-                .child("usuarios/${firebaseAuth.uid.toString()}/productos_venta/$id_publicacion/$nombreArchivo")
+                val nombreArchivo = "imagen_caracteristica.jpg"
+                val storageRef = FirebaseStorage.getInstance().reference
+                    .child("usuarios/${firebaseAuth.uid}/productos_venta/$id_publicacion/$nombreArchivo")
 
-            storageRef.putBytes(data)
-                .addOnSuccessListener {
-                    Log.d("Firestore", "URL de imagen principal guardada con éxito.")
-
-
-                }
-                .addOnFailureListener { e ->
-                    Log.e("Storage", "Error al subir imagen principal: ${e.message}")
-                }
+                storageRef.putBytes(data)
+                    .addOnSuccessListener {
+                        Log.d("Principal", "Imagen principal subida correctamente.")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Principal", "Error al subir imagen principal: ${e.message}")
+                    }
+            } else {
+                Log.e("Principal", "Bitmap imagen principal es null")
+            }
         }
     }
 

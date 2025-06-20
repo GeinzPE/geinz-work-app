@@ -1189,6 +1189,11 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        setear_datos_includes()
+    }
+
     private fun setear_datos_includes() {
         val plan = intent.getStringExtra(Variables.plan)
         binding.traajosRecientes.tituloServico.text = "Trabajos Recientes"

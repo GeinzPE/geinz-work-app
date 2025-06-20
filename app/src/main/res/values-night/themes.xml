@@ -125,7 +125,7 @@
 
     <style name="Theme.ApiSclasScrenn" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/violetaQR</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/qr_geinz_sin_fondo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_screen</item>
         <item name="postSplashScreenTheme">@style/Base.Theme.GeinzWork</item>
     </style>
 

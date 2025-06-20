@@ -1,8 +1,13 @@
 package com.geinzz.geinzwork
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -14,18 +19,26 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
+import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.adapterViewholder.publicaciones_ralizadas
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityVerPublicacionesBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarPublicacionBinding
+import com.geinzz.geinzwork.databinding.BottomSheetMostarTrabajosRecientesBinding
+import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout2Binding
 import com.geinzz.geinzwork.dataclass.dataclas_trabajos_ralizados
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
+import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
+import org.imaginativeworld.whynotimagecarousel.utils.setImage
 
 class ver_publicaciones : AppCompatActivity() {
     private lateinit var binding: ActivityVerPublicacionesBinding
@@ -122,6 +135,9 @@ class ver_publicaciones : AppCompatActivity() {
         val estadisticas = bottoSheet.estadisticas
         val editar = bottoSheet.editar
         val archivar = bottoSheet.archivar
+        bottoSheet.vistaPrevia.isVisible = false
+        bottoSheet.privado.isVisible = false
+        bottoSheet.soloSeguidores.isVisible = false
 
         bottoSheet.idPublicacion.text = item.id_publicacion.toString()
         bottoSheet.copiarId.setOnClickListener {
@@ -229,7 +245,8 @@ class ver_publicaciones : AppCompatActivity() {
 
                 refDestino.set(hashMap).addOnSuccessListener {
                     refOrigen.delete().addOnSuccessListener {
-                        Toast.makeText(this, "Trabajo movido correctamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Trabajo movido correctamente", Toast.LENGTH_SHORT)
+                            .show()
                         binding.linealNoCuenta.isVisible = false
                         binding.recicleViewTrabajos.isVisible = false
                         obtenerPublicaciones(
