@@ -23,271 +23,279 @@
                 android:layout_gravity="center"
                 android:padding="8dp" />
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                android:text="Metodos de entrega para tus productos"
-                android:textSize="30sp" />
-
-            <TextView
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Selecciona tus métodos de entrega preferidos para agilizar la publicación de productos en Geinz Work."
-                android:textSize="15sp" />
-
             <LinearLayout
+                android:id="@+id/linealMetodoPago"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/nombre_referencia"
-                    android:layout_width="match_parent"
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    android:layout_marginBottom="5dp"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="Metodos de entrega para tus productos"
+                    android:textSize="30sp" />
 
-                    <EditText
-                        android:id="@+id/nombre_referenciaED"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:hint="Nombre de metodo de entrega"
-                        android:inputType="textMultiLine"
-                        android:paddingLeft="10dp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Selecciona tus métodos de entrega preferidos para agilizar la publicación de productos en Geinz Work."
+                    android:textSize="15sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <CheckBox
-                        android:id="@+id/delivery"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Delivery" />
 
-                    <LinearLayout
-                        android:id="@+id/linealEnvio_gratis"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/nombre_referencia"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        >
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
 
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
+                        <EditText
+                            android:id="@+id/nombre_referenciaED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="Nombre de metodo de entrega"
+                            android:inputType="textMultiLine"
+                            android:paddingLeft="10dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <CheckBox
+                            android:id="@+id/delivery"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Delivery gratis?"
-                            android:textSize="15sp" />
+                            android:text="Delivery" />
 
-                        <RadioGroup
-                            android:id="@+id/grupo_envio_gratis"
+                        <LinearLayout
+                            android:id="@+id/linealEnvio_gratis"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            >
 
-                            <RadioButton
-                                android:id="@+id/si"
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="si" />
+                                android:text="Delivery gratis?"
+                                android:textSize="15sp" />
 
-                            <RadioButton
-                                android:id="@+id/no"
-                                android:layout_width="wrap_content"
+                            <RadioGroup
+                                android:id="@+id/grupo_envio_gratis"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="no" />
-                        </RadioGroup>
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/si"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="si" />
+
+                                <RadioButton
+                                    android:id="@+id/no"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="no" />
+                            </RadioGroup>
+                        </LinearLayout>
+
+
+                        <CheckBox
+                            android:id="@+id/corrdinar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="coordinar con el vendedor" />
+
+                        <CheckBox
+                            android:id="@+id/lugares_entrega"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lugares de entrega" />
+
+                        <LinearLayout
+                            android:visibility="gone"
+                            android:id="@+id/lineal_lugares_entrega"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/localidad_metodo_entrega"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/localidad_metodo_entregaED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:hint="Localidad del lugar de entrega "
+                                    android:inputType="textMultiLine"
+                                    android:paddingLeft="10dp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/Lugares_entrega"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/Lugares_entregaED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:hint="Ingrese los lugares de entrega"
+                                    android:inputType="textMultiLine"
+                                    android:paddingLeft="10dp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+
+                        <CheckBox
+                            android:id="@+id/retiro_tienda"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Retiro en tienda o punto de venta" />
+
+                        <LinearLayout
+                            android:visibility="gone"
+                            android:id="@+id/puntos_venta"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/localidad_entrega_puntos"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/localidad_entrega_puntosED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:hint="Localidad del lugar del punto de venta o tienda "
+                                    android:inputType="textMultiLine"
+                                    android:paddingLeft="10dp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/lugar_referencia_punto_venta"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/lugar_referencia_punto_ventaED"
+
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:hint="Referencia de punto de venta o tienda"
+                                    android:inputType="textMultiLine"
+                                    android:paddingLeft="10dp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/nombre_tienda"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp">
+
+                                <EditText
+                                    android:id="@+id/nombre_tiendaED"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:hint="Nombre de la tienda Fisica"
+                                    android:inputType="textMultiLine"
+                                    android:paddingLeft="10dp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <CheckBox
+                            android:id="@+id/envio_courier"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Envío por empresa de mensajería" />
+
+                        <CheckBox
+                            android:id="@+id/entrega_programada"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Entrega programada por el cliente" />
+
                     </LinearLayout>
 
 
-                    <CheckBox
-                        android:id="@+id/corrdinar"
-                        android:layout_width="wrap_content"
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/Crear_metodo"
+                        android:layout_width="200dp"
                         android:layout_height="wrap_content"
-                        android:text="coordinar con el vendedor" />
+                        android:layout_gravity="center"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@drawable/btn_login"
+                        android:text="Crear metodo de entrega"
+                        android:textColor="@color/white"
+                        android:textSize="15sp" />
 
-                    <CheckBox
-                        android:id="@+id/lugares_entrega"
-                        android:layout_width="wrap_content"
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/Guardar_cambios"
+                        android:layout_width="200dp"
                         android:layout_height="wrap_content"
-                        android:text="Lugares de entrega" />
+                        android:layout_gravity="center"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@drawable/btn_login"
+                        android:text="Guardar cambios"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:visibility="gone" />
 
-                    <LinearLayout
-                        android:visibility="gone"
-                        android:id="@+id/lineal_lugares_entrega"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/localidad_metodo_entrega"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxCornerRadiusBottomEnd="8dp"
-                            app:boxCornerRadiusBottomStart="8dp"
-                            app:boxCornerRadiusTopEnd="8dp"
-                            app:boxCornerRadiusTopStart="8dp">
-
-                            <EditText
-                                android:id="@+id/localidad_metodo_entregaED"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:hint="Localidad del lugar de entrega "
-                                android:inputType="textMultiLine"
-                                android:paddingLeft="10dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/Lugares_entrega"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxCornerRadiusBottomEnd="8dp"
-                            app:boxCornerRadiusBottomStart="8dp"
-                            app:boxCornerRadiusTopEnd="8dp"
-                            app:boxCornerRadiusTopStart="8dp">
-
-                            <EditText
-                                android:id="@+id/Lugares_entregaED"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:hint="Ingrese los lugares de entrega"
-                                android:inputType="textMultiLine"
-                                android:paddingLeft="10dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                    </LinearLayout>
-
-
-                    <CheckBox
-                        android:id="@+id/retiro_tienda"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Retiro en tienda o punto de venta" />
-
-                    <LinearLayout
-                        android:visibility="gone"
-                        android:id="@+id/puntos_venta"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/localidad_entrega_puntos"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxCornerRadiusBottomEnd="8dp"
-                            app:boxCornerRadiusBottomStart="8dp"
-                            app:boxCornerRadiusTopEnd="8dp"
-                            app:boxCornerRadiusTopStart="8dp">
-
-                            <EditText
-                                android:id="@+id/localidad_entrega_puntosED"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:hint="Localidad del lugar del punto de venta o tienda "
-                                android:inputType="textMultiLine"
-                                android:paddingLeft="10dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/lugar_referencia_punto_venta"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxCornerRadiusBottomEnd="8dp"
-                            app:boxCornerRadiusBottomStart="8dp"
-                            app:boxCornerRadiusTopEnd="8dp"
-                            app:boxCornerRadiusTopStart="8dp">
-
-                            <EditText
-                                android:id="@+id/lugar_referencia_punto_ventaED"
-
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:hint="Referencia de punto de venta o tienda"
-                                android:inputType="textMultiLine"
-                                android:paddingLeft="10dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/nombre_tienda"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxCornerRadiusBottomEnd="8dp"
-                            app:boxCornerRadiusBottomStart="8dp"
-                            app:boxCornerRadiusTopEnd="8dp"
-                            app:boxCornerRadiusTopStart="8dp">
-
-                            <EditText
-                                android:id="@+id/nombre_tiendaED"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:hint="Nombre de la tienda Fisica"
-                                android:inputType="textMultiLine"
-                                android:paddingLeft="10dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                    </LinearLayout>
-
-                    <CheckBox
-                        android:id="@+id/envio_courier"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Envío por empresa de mensajería" />
-
-                    <CheckBox
-                        android:id="@+id/entrega_programada"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Entrega programada por el cliente" />
 
                 </LinearLayout>
-
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/Crear_metodo"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp"
-                    android:background="@drawable/btn_login"
-                    android:text="Crear metodo de entrega"
-                    android:textColor="@color/white"
-                    android:textSize="15sp" />
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/Guardar_cambios"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp"
-                    android:background="@drawable/btn_login"
-                    android:text="Guardar cambios"
-                    android:textColor="@color/white"
-                    android:textSize="15sp"
-                    android:visibility="gone" />
-
-
             </LinearLayout>
 
+
             <TextView
+                android:id="@+id/textoSelecionaMetodoEntrega"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

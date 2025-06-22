@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_agregar_imagenes_panel_publicaciones
 import com.example.geinzwork.constantesGeneral.Variables
@@ -43,7 +44,19 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
+
 import java.io.ByteArrayOutputStream
+
+import com.google.firebase.ai.ai
+
+import com.google.firebase.ai.type.GenerativeBackend
+
+
+import kotlinx.coroutines.tasks.await
+import androidx.lifecycle.lifecycleScope
+import com.google.firebase.Firebase
+import kotlinx.coroutines.launch
+
 
 class crear_publicaciones_recientes : AppCompatActivity() {
 
@@ -89,6 +102,46 @@ class crear_publicaciones_recientes : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+
+        binding.agregar.setOnClickListener {
+            lifecycleScope.launch {
+                val model = Firebase.ai(backend = GenerativeBackend.googleAI())
+                    .generativeModel("gemini-2.5-flash")
+
+                val textoAnterior = binding.tituloPublicacionED.text.toString().trim()
+
+                if (textoAnterior.isNotEmpty()) {
+                    try {
+                        val prompt = """
+                    Mejora el siguiente texto para que sea un título más atractivo, profesional y breve para una publicación en una app.
+                    Devuélveme solo 5 propuesta con un ".", sin explicaciones ni texto adicional:
+
+                    "$textoAnterior"
+                """.trimIndent()
+
+                        val inicio = System.currentTimeMillis()
+
+                        val result = model.generateContent(prompt)
+
+                        val fin = System.currentTimeMillis()
+                        val tiempoMs = fin - inicio
+                        val tiempoSegundos = tiempoMs / 1000.0
+
+                        Log.d("Gemini", "Tiempo de respuesta: $tiempoMs ms (${String.format("%.2f", tiempoSegundos)} segundos)")
+
+                        binding.tituloPublicacionED.setText(result.text.toString())
+
+                    } catch (e: Exception) {
+                        Log.e("Gemini", "Error al generar título: ${e.message}")
+                    }
+                } else {
+                    Log.w("Gemini", "El texto original está vacío.")
+                }
+            }
+        }
+
+
         firebaseAuth = FirebaseAuth.getInstance()
         binding.horizontalScrollView.post {
             binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
@@ -176,6 +229,8 @@ class crear_publicaciones_recientes : AppCompatActivity() {
         }
 
     }
+
+
 
     override fun onBackPressed() {
         val hayContenido = binding.tituloPublicacionED.text.isNotBlank() ||

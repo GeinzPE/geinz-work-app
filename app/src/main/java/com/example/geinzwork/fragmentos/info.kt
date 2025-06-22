@@ -1411,7 +1411,7 @@ class info : Fragment() {
 
 
                 verificarEstado_verificacion(fb, ig, tk, idUSer)
-                binding.nombre.text = nombre.toUpperCase()
+                binding.nombre.text = nombre.uppercase()
                 binding.categoriaTipoTrabajo.text = "$tipoTrabajo | $categoriaTrabajo"
                 categoria_trabajadorReturn("$categoriaTrabajo")
                 binding.nombreUsuario.text = "@$nombre_usaurio"

@@ -392,7 +392,7 @@ class ver_promociones : AppCompatActivity() {
                 binding.filtradoCategorias.isVisible = true
                 binding.recicleView.isVisible = false
                 binding.prograsvar.isVisible = true
-                filtraResultado(item.nombreCategoria.toString().toLowerCase())
+                filtraResultado(item.nombreCategoria.toString().lowercase())
             }
 
 

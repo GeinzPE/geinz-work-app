@@ -23,7 +23,7 @@ class GraciasRegistro : AppCompatActivity() {
             insets
         }
 
-        val nombreUSercap = intent.getStringExtra(Variables.nombreUsuario).toString().toUpperCase()
+        val nombreUSercap = intent.getStringExtra(Variables.nombreUsuario).toString().uppercase()
 
 
         binding.userNameCuenta.text = nombreUSercap

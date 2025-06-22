@@ -22,106 +22,114 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:padding="8dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="30sp"
-                android:layout_marginBottom="5dp"
-                style="@style/TextoModoOScuroColor"
-                android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                android:text="Metodos de pago" />
-
-            <TextView
-                android:textSize="15sp"
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NOTA:Los metodos de pago establecidos se modificaran para tus productos " />
-
             <LinearLayout
+                android:id="@+id/linealMetodoPago"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/nombre_referencia"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    android:textSize="30sp"
+                    android:layout_marginBottom="5dp"
+                    style="@style/TextoModoOScuroColor"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="Metodos de pago" />
 
-                <EditText
-                    android:id="@+id/nombre_referenciaED"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Nombre de metodo de pago"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
+                <TextView
+                    android:textSize="15sp"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NOTA:Los metodos de pago establecidos se modificaran para tus productos " />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <CheckBox
-                        android:id="@+id/check_yape"
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/nombre_referencia"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Yape" />
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp">
 
-                    <CheckBox
-                        android:id="@+id/check_plin"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Plin" />
+                        <EditText
+                            android:id="@+id/nombre_referenciaED"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="Nombre de metodo de pago"
+                            android:inputType="textMultiLine"
+                            android:paddingLeft="10dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <CheckBox
-                        android:id="@+id/check_efectivo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Efectivo" />
 
-                    <CheckBox
-                        android:id="@+id/check_transferencia"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Transferencia Bancaria" />
+                        android:orientation="vertical">
+
+                        <CheckBox
+                            android:id="@+id/check_yape"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Yape" />
+
+                        <CheckBox
+                            android:id="@+id/check_plin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Plin" />
+
+                        <CheckBox
+                            android:id="@+id/check_efectivo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Efectivo" />
+
+                        <CheckBox
+                            android:id="@+id/check_transferencia"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Transferencia Bancaria" />
+                    </LinearLayout>
+
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/Crear_metodo"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@drawable/btn_login"
+                        android:text="Crear metodo de pago"
+                        android:textColor="@color/white"
+                        android:textSize="15sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/Guardar_cambios"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:visibility="gone"
+                        android:background="@drawable/btn_login"
+                        android:text="Guardar cambios"
+                        android:textColor="@color/white"
+                        android:textSize="15sp" />
+
+
                 </LinearLayout>
-
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/Crear_metodo"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp"
-                    android:background="@drawable/btn_login"
-                    android:text="Crear metodo de pago"
-                    android:textColor="@color/white"
-                    android:textSize="15sp" />
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/Guardar_cambios"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp"
-                    android:visibility="gone"
-                    android:background="@drawable/btn_login"
-                    android:text="Guardar cambios"
-                    android:textColor="@color/white"
-                    android:textSize="15sp" />
-
-
             </LinearLayout>
 
+
             <TextView
+                android:id="@+id/textoSelecionaMetodoPago"
                 android:textSize="20sp"
                 style="@style/TextoModoOScuroColor"
                 android:fontFamily="@font/titulo_roboto_extra_bold_fuente"

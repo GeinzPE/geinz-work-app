@@ -591,7 +591,7 @@ object constantes_trabajadores_info {
 
                 }
 
-                bindingBottomSheett.nombre.text = nombre.toUpperCase()
+                bindingBottomSheett.nombre.text = nombre.uppercase()
                 bindingBottomSheett.categoriaTipoTrabajo.text = "$tipoTrabajo | $categoriaTrabajo"
 
 

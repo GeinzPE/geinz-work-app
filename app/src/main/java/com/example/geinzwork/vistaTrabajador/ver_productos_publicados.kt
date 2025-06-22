@@ -436,7 +436,7 @@ class ver_productos_publicados : AppCompatActivity() {
                         "solo_seguidores", "mascliks"
                     )
                 }
-                vista_previa.setOnClickListener{
+                vista_previa.setOnClickListener {
                     Toast.makeText(
                         this,
                         "solo puedes ver la vista previa en TODOS",
@@ -487,7 +487,7 @@ class ver_productos_publicados : AppCompatActivity() {
                         "solo_seguidores", "masvistas"
                     )
                 }
-                vista_previa.setOnClickListener{
+                vista_previa.setOnClickListener {
                     Toast.makeText(
                         this,
                         "solo puedes ver la vista previa en TODOS",
@@ -537,7 +537,7 @@ class ver_productos_publicados : AppCompatActivity() {
                         "solo_seguidores", "mascompartidas"
                     )
                 }
-                vista_previa.setOnClickListener{
+                vista_previa.setOnClickListener {
                     Toast.makeText(
                         this,
                         "solo puedes ver la vista previa en TODOS",
@@ -1009,6 +1009,7 @@ class ver_productos_publicados : AppCompatActivity() {
                     "estadisticas_compartir" to estadisticas_compartir,
                     "estadisticas_vistas" to estadisticas_vistas,
                 )
+
                 for ((key, value) in data) {
                     if (key.startsWith("img_url") && value is String) {
                         hasMap[key] = value
@@ -1017,6 +1018,9 @@ class ver_productos_publicados : AppCompatActivity() {
                 refEliminado.set(hasMap, SetOptions.merge()).addOnSuccessListener { res ->
                     Toast.makeText(this, "agregeado correctamente a eliminados", Toast.LENGTH_SHORT)
                         .show()
+                    cambiar_datos_archivar_eliminar_ocultar_archivar(tipo2,metodoEntrega,"metodos_entrega")
+                    cambiar_datos_archivar_eliminar_ocultar_archivar(tipo2,metodoPago,"metodos_pago")
+
                     binding.linealEncontrados.isVisible = false
                     binding.recicleProductos.isVisible = true
                     when (funcion_carga) {
@@ -1027,11 +1031,11 @@ class ver_productos_publicados : AppCompatActivity() {
                         }
 
                         "mascliks" -> {
-                                filtrar_publicaciones(
-                                    binding.min.text.toString().toInt(),
-                                    binding.max.text.toString().toInt(),
-                                    "estadisticas_click"
-                                )
+                            filtrar_publicaciones(
+                                binding.min.text.toString().toInt(),
+                                binding.max.text.toString().toInt(),
+                                "estadisticas_click"
+                            )
                         }
 
                         "masvistas" -> {
@@ -1079,6 +1083,66 @@ class ver_productos_publicados : AppCompatActivity() {
         }
 
     }
+
+    private fun cambiar_datos_archivar_eliminar_ocultar_archivar(
+        cambiado: String,
+        id_metodo_pago_entrega: String,
+        metodo_pago_o_entrega: String
+    ) {
+        Log.d("obtenosm_datos","$cambiado $id_metodo_pago_entrega $metodo_pago_o_entrega")
+        val trabajadorRef = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(FirebaseAuth.getInstance().uid.toString())
+            .collection(metodo_pago_o_entrega)
+            .document(id_metodo_pago_entrega)
+
+        trabajadorRef.get().addOnSuccessListener { documentSnapshot ->
+            if (documentSnapshot.exists()) {
+                val publicacionesActivas = documentSnapshot.get("publicaciones_activas") as? Map<*, *>
+
+                publicacionesActivas?.forEach { (idPublicacion, datos) ->
+                    if (idPublicacion is String && datos is Map<*, *>) {
+                        val updates = mutableMapOf<String, Any>()
+
+                        // Campos booleanos posibles
+                        val campos = listOf(
+                            "activo",
+                            "archivados",
+                            "eliminados",
+                            "privado",
+                            "productos_publicaciones",
+                            "publicados",
+                            "solo_seguidores"
+                        )
+
+                        for (campo in campos) {
+                            val path = "publicaciones_activas.$idPublicacion.$campo"
+
+                            when {
+                                campo == cambiado -> updates[path] = true
+                                cambiado == "publicados" && (campo == "activo" || campo == "productos_publicaciones") -> updates[path] = true
+                                else -> updates[path] = false
+                            }
+                        }
+
+                        trabajadorRef.update(updates)
+                            .addOnSuccessListener {
+                                Log.d("FirestoreUpdate", "Actualización exitosa para $idPublicacion")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("FirestoreError", "Error al actualizar $idPublicacion: ${e.message}")
+                            }
+                    }
+                }
+            }
+        }.addOnFailureListener { e ->
+            Log.e("FirestoreError", "Error al obtener documento: ${e.message}")
+        }
+    }
+
+
 
     private fun obtener_productos(tipo: String, texto_sin_encontrar: String) {
 

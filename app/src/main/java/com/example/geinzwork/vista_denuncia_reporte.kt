@@ -429,7 +429,7 @@ class vista_denuncia_reporte : AppCompatActivity() {
                 val estado = data?.get("estado") as? String ?: ""
                 val fecha_envio = data["fecha_envio"] as? String ?: ""
                 val hora_envio = data["hora_envio"] as? String ?: ""
-                if (estado.toLowerCase() == filtradoSelecionado) {
+                if (estado.lowercase() == filtradoSelecionado) {
                     val dataclass_reporte = dataclass_reporte_denuncia_tb(
                         idTrabajador,
                         idUsuario,

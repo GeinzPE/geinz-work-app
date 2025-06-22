@@ -11,7 +11,6 @@ import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -21,9 +20,11 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_metodos_entrega
-import com.example.geinzwork.adapterViewholder.adapter_metodos_pagos
 import com.example.geinzwork.constantesGeneral.Variables
-import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja.handler
+import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega
+import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega.obtner_Metodos_pagosCreados
+
+import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega.verificar_Estado_metodo_pago
 import com.example.geinzwork.crear_publicacion_productos_trabajadores
 import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclass_metodos_entrega
@@ -39,7 +40,6 @@ import com.geinzz.geinzwork.databinding.BottomSheetNumeroNombrePagoBinding
 import com.geinzz.geinzwork.ver_publicaciones
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
@@ -161,6 +161,51 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
     }
 
+    private fun bottomSheet_metodos_pago() {
+        val binding_bottomSheet =
+            BotomSheetDialogMetodosPagoBinding.inflate(LayoutInflater.from(this))
+        binding_bottomSheet.cerrar.setOnClickListener { dialog.dismiss() }
+
+        val view = binding_bottomSheet.root
+        constantes_metodo_pago_entrega.obtner_Metodos_pagosCreados(
+            dialog,
+            this,
+            binding_bottomSheet
+        )
+
+        binding_bottomSheet.checkYape.setOnCheckedChangeListener { _, isChecked ->
+            yape = isChecked
+        }
+
+        binding_bottomSheet.checkPlin.setOnCheckedChangeListener { _, isChecked ->
+            plin = isChecked
+        }
+
+        binding_bottomSheet.checkEfectivo.setOnCheckedChangeListener { _, isChecked ->
+            efectivo = isChecked
+        }
+
+        binding_bottomSheet.checkTransferencia.setOnCheckedChangeListener { _, isChecked ->
+            trasnferecnia = isChecked
+        }
+
+        binding_bottomSheet.CrearMetodo.setOnClickListener {
+            constantes_metodo_pago_entrega.agregar_Referencia(
+                yape,
+                plin,
+                efectivo,
+                trasnferecnia,
+                binding_bottomSheet.nombreReferenciaED.text.toString(),
+                binding_bottomSheet,
+                this,
+                dialog
+            )
+
+        }
+
+        dialog.setContentView(view)
+
+    }
 
     private fun bottomSheet_metodo_entrega() {
         val bottoSheet_entrega = BottomSheeetMetodoEntregaBinding.inflate(LayoutInflater.from(this))
@@ -222,46 +267,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
         dialog.setContentView(view)
     }
-
-    private fun verificarNombreDisponible(
-        collectionReference: CollectionReference,
-        nombreColeccion: EditText,
-        resultado: (Boolean) -> Unit
-    ) {
-        collectionReference.get().addOnSuccessListener { res ->
-            var nombreExistente = false
-
-            for (document in res) {
-                val nombreMetodo = document.getString("nombre_metodo") ?: ""
-                if (nombreMetodo.equals(
-                        nombreColeccion.text.toString().trim(),
-                        ignoreCase = true
-                    )
-                ) {
-                    nombreExistente = true
-                    break
-                }
-            }
-
-            if (nombreExistente) {
-                Toast.makeText(
-                    this,
-                    "Elige otro nombre, este nombre ya existe",
-                    Toast.LENGTH_SHORT
-                ).show()
-                nombreColeccion.error = "Elige otro nombre, este nombre ya existe"
-                nombreColeccion.requestFocus()
-                resultado(false)
-            } else {
-                resultado(true)
-            }
-        }.addOnFailureListener {
-            Toast.makeText(this, "Error al verificar nombre: ${it.message}", Toast.LENGTH_SHORT)
-                .show()
-            resultado(false)
-        }
-    }
-
 
     private fun crear_metodoEntrega(
         delivery: Boolean,
@@ -379,7 +384,11 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             .collection("metodos_entrega")
 
         val startTime = System.currentTimeMillis()
-        verificarNombreDisponible(db, bottosheetEntrega.nombreReferenciaED) { res ->
+        constantes_metodo_pago_entrega.verificarNombreDisponible(
+            this,
+            db,
+            bottosheetEntrega.nombreReferenciaED
+        ) { res ->
             if (res) {
                 bottosheetEntrega.layoutRecicleTexview.isVisible = false
                 bottosheetEntrega.cargandoMetodosPago.isVisible = true
@@ -467,7 +476,66 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 bottoSheet_entrega.cargandoMetodosPago.isVisible = false
                 if (lista_entrega.isNotEmpty()) {
-                    incializar_recicle_entrega(bottoSheet_entrega)
+                    incializar_recicle_entrega("todos", bottoSheet_entrega,"")
+                    bottoSheet_entrega.textoSinMetodos.isVisible = false
+                    bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = true
+                } else {
+                    bottoSheet_entrega.textoSinMetodos.isVisible = true
+                    bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = false
+                }
+            }, delay)
+
+
+        }.addOnFailureListener { e ->
+            Log.e("METODOS_ENTREGA", "Error al obtener métodos de entrega", e)
+        }
+    }
+
+    private fun obtenerMetodosEntrega_menos_eliminado(
+        bottoSheet_entrega: BottomSheeetMetodoEntregaBinding,
+        id_selecionado: String
+    ) {
+        lista_entrega.clear()
+        bottoSheet_entrega.cargandoMetodosPago.isVisible = true
+        bottoSheet_entrega.textoSinMetodos.isVisible = false
+        bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = false
+        val tiempoInicio = System.currentTimeMillis()
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_entrega")
+        db.get().addOnSuccessListener { res ->
+            for (datos in res) {
+                val data = datos.data
+                val delivery = data?.get("delivery") as? Boolean ?: false
+                val coordinar = data?.get("coordinar") as? Boolean ?: false
+                val lugaresEntrega = data?.get("lugaresEntrega") as? Boolean ?: false
+                val retiroTienda = data?.get("retiroTienda") as? Boolean ?: false
+                val envioCourier = data?.get("envioCourier") as? Boolean ?: false
+                val entregaProgramada = data?.get("entregaProgramada") as? Boolean ?: false
+                val nombre_metodo = data?.get("nombre_metodo") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                if (id != id_selecionado) {
+                    val listaDataclass = dataclass_metodos_entrega(
+                        delivery,
+                        coordinar,
+                        lugaresEntrega,
+                        retiroTienda,
+                        envioCourier,
+                        entregaProgramada,
+                        nombre_metodo, id
+                    )
+                    lista_entrega.add(listaDataclass)
+                }
+
+
+            }
+            val tiempoFin = System.currentTimeMillis()
+            val delay = (tiempoFin - tiempoInicio)
+            Handler(Looper.getMainLooper()).postDelayed({
+                bottoSheet_entrega.cargandoMetodosPago.isVisible = false
+                if (lista_entrega.isNotEmpty()) {
+                    incializar_recicle_entrega("filtrado",bottoSheet_entrega,id_selecionado)
                     bottoSheet_entrega.textoSinMetodos.isVisible = false
                     bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = true
                 } else {
@@ -483,273 +551,205 @@ class panel_publicacion_trabajador : AppCompatActivity() {
     }
 
 
-    private fun bottomSheet_metodos_pago() {
-        val binding_bottomSheet =
-            BotomSheetDialogMetodosPagoBinding.inflate(LayoutInflater.from(this))
-        binding_bottomSheet.cerrar.setOnClickListener { dialog.dismiss() }
-
-        val view = binding_bottomSheet.root
-        obtner_Metodos_pagosCreados(binding_bottomSheet)
-
-        binding_bottomSheet.checkYape.setOnCheckedChangeListener { _, isChecked ->
-            yape = isChecked
-        }
-
-        binding_bottomSheet.checkPlin.setOnCheckedChangeListener { _, isChecked ->
-            plin = isChecked
-        }
-
-        binding_bottomSheet.checkEfectivo.setOnCheckedChangeListener { _, isChecked ->
-            efectivo = isChecked
-        }
-
-        binding_bottomSheet.checkTransferencia.setOnCheckedChangeListener { _, isChecked ->
-            trasnferecnia = isChecked
-        }
-
-        binding_bottomSheet.CrearMetodo.setOnClickListener {
-            agregar_Referencia(
-                yape,
-                plin,
-                efectivo,
-                trasnferecnia,
-                binding_bottomSheet.nombreReferenciaED.text.toString(), binding_bottomSheet
-            )
-
-        }
-
-        dialog.setContentView(view)
-
-    }
-
-    private fun agregar_Referencia(
-        yape: Boolean,
-        plin: Boolean,
-        efectivo: Boolean,
-        tranferencia: Boolean,
-        nombre_metodo: String,
-        BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
+    private fun incializar_recicle_entrega(
+        tipo_encontrado: String,
+        bottoSheet_entrega: BottomSheeetMetodoEntregaBinding,idAnterior: String
     ) {
-        val startTime = System.currentTimeMillis()
-        if (!yape && !plin && !efectivo && !tranferencia) {
-            Toast.makeText(
-                this,
-                "seleciona un metodo de pago para crear la referencia",
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        } else {
-            if (BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.text.toString().isEmpty()) {
-                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.error =
-                    "El nombre del metodo de entrega es obligatorio"
-                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.requestFocus()
-                return
-            } else {
-                val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                    .document("trabajadores").collection("trabajadores")
-                    .document(firebaseAuth.uid.toString())
-                    .collection("metodos_pago")
-
-                val hashMap = hashMapOf<String, Any>(
-                    "yape" to yape,
-                    "efectivo" to efectivo,
-                    "plin" to plin,
-                    "transferenia" to tranferencia,
-                    "nombre_metodo" to nombre_metodo
-                )
-                verificarNombreDisponible(
-                    db,
-                    BotomSheetDialogMetodosPagoBinding.nombreReferenciaED
-                ) { res ->
-                    if (res) {
-                        BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible = false
-                        BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible = true
-                        db.add(hashMap).addOnSuccessListener { documentRef ->
-                            val id = documentRef.id
-                            val idMap = hashMapOf<String, Any>(
-                                "id" to id
-                            )
-                            documentRef.set(idMap, SetOptions.merge()).addOnSuccessListener {
-                                val endTime = System.currentTimeMillis() // ⏱ Fin de medición
-                                val elapsedTime = endTime - startTime
-                                Handler(Looper.getMainLooper()).postDelayed({
-                                    BotomSheetDialogMetodosPagoBinding.layoutRecicleTexview.isVisible =
-                                        true
-                                    BotomSheetDialogMetodosPagoBinding.cargandoMetodosPago.isVisible =
-                                        false
-                                    Log.d(
-                                        "TIEMPO_FIRESTORE",
-                                        "Referencia creada en $elapsedTime ms"
-                                    )
-                                    Toast.makeText(
-                                        this,
-                                        "Referencia creada correctamente",
-                                        Toast.LENGTH_SHORT
-                                    )
-                                        .show()
-                                    BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked =
-                                        false
-                                    BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked =
-                                        false
-                                    BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
-                                    BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
-                                    BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
-                                    obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
-                                }, elapsedTime)
-
-
-                            }
-                        }.addOnFailureListener { e ->
-                            Log.e("ERROR SUBIR", "Error al subir la referencia: $e")
-                        }
-                    }
-                }
-
-            }
-        }
-
-
-    }
-
-
-    private fun obtner_Metodos_pagosCreados(
-        binding: BotomSheetDialogMetodosPagoBinding
-    ) {
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores")
-            .document(firebaseAuth.uid.toString())
-            .collection("metodos_pago")
-
-        lista.clear()
-        binding.cargandoMetodosPago.isVisible = true
-        binding.textoSinMetodos.isVisible = false
-        binding.recicleViewMetodosPagos.isVisible = false
-
-        val tiempoInicio = System.currentTimeMillis()
-
-        db.get().addOnSuccessListener { res ->
-            for (datos in res) {
-                val data = datos.data
-                val yape = data["yape"] as? Boolean ?: false
-                val efectivo = data["efectivo"] as? Boolean ?: false
-                val tranferencia = data["transferenia"] as? Boolean ?: false
-                val plin = data["plin"] as? Boolean ?: false
-                val nombre_colecion = data["nombre_metodo"] as? String ?: ""
-                val id = data["id"] as? String ?: ""
-
-                val metodo = dataclass_metodos_pagos(
-                    yape, efectivo, plin, tranferencia, nombre_colecion, id
-                )
-                lista.add(metodo)
-            }
-
-            val tiempoFin = System.currentTimeMillis()
-            val delay = (tiempoFin - tiempoInicio)
-
-            Handler(Looper.getMainLooper()).postDelayed({
-                binding.cargandoMetodosPago.isVisible = false
-
-                if (lista.isNotEmpty()) {
-                    inicializarRecicleViewPagos(binding)
-                    binding.textoSinMetodos.isVisible = false
-                    binding.recicleViewMetodosPagos.isVisible = true
-                } else {
-                    binding.textoSinMetodos.isVisible = true
-                    binding.recicleViewMetodosPagos.isVisible = false
-                }
-            }, delay)
-        }
-    }
-
-    private fun incializar_recicle_entrega(bottoSheet_entrega: BottomSheeetMetodoEntregaBinding) {
         val recicles = bottoSheet_entrega.recicleViewMetodosEntrega
         recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         recicles.adapter = adapter_metodos_entrega(lista_entrega, { selecionado ->
             eliminarReferenciaEntregaSelect(
+                lista_entrega.size,
                 selecionado.id.toString(),
                 bottoSheet_entrega
             )
         }, { editado ->
-            editarCambiosEntrega(editado.id.toString(), bottoSheet_entrega)
-        })
-    }
+            when (tipo_encontrado) {
+                "todos" -> {
+                    editarCambiosEntrega(editado.id.toString(), bottoSheet_entrega)
+                }
 
-    private fun inicializarRecicleViewPagos(BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding) {
-        val recicles = BotomSheetDialogMetodosPagoBinding.recicleViewMetodosPagos
-        recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
-        recicles.adapter = adapter_metodos_pagos(lista, { selecionado ->
-            eliminarReferenciaPagoSelect(
-                selecionado.id.toString(),
-                BotomSheetDialogMetodosPagoBinding
-            )
-        }, { editado ->
-            editarCambiosPAgos(editado.id.toString(), BotomSheetDialogMetodosPagoBinding)
-        })
-    }
-
-    private fun editarCambiosPAgos(
-        selecionado: String,
-        BotomSheetDialogMetodosPagoBinding: BotomSheetDialogMetodosPagoBinding
-    ) {
-
-        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores")
-            .document(firebaseAuth.uid.toString())
-            .collection("metodos_pago").document(selecionado)
-        db.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-                val data = res.data
-                val yape = data?.get("yape") as? Boolean ?: false
-                val efectivo = data?.get("efectivo") as? Boolean ?: false
-                val tranferencia = data?.get("transferenia") as? Boolean ?: false
-                val plin = data?.get("plin") as? Boolean ?: false
-                val nombre_colecion = data?.get("nombre_metodo") as? String ?: ""
-                val id = data?.get("id") as? String ?: ""
-
-                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText(nombre_colecion)
-                BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = efectivo
-                BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = tranferencia
-                BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = plin
-                BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = yape
-
-                BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = false
-                BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = true
-                BotomSheetDialogMetodosPagoBinding.nombreReferencia.isEnabled = false
-                BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = false
-                BotomSheetDialogMetodosPagoBinding.GuardarCambios.setOnClickListener {
-                    val hashMap = hashMapOf<String, Any>(
-                        "yape" to BotomSheetDialogMetodosPagoBinding.checkYape.isChecked,
-                        "efectivo" to BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked,
-                        "plin" to BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked,
-                        "transferenia" to BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked,
-                    )
-                    db.set(hashMap, SetOptions.merge()).addOnSuccessListener {
-                        Toast.makeText(
-                            this,
-                            "Cambios guardados correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.setText("")
-                        BotomSheetDialogMetodosPagoBinding.nombreReferencia.isEnabled = true
-                        BotomSheetDialogMetodosPagoBinding.nombreReferenciaED.isEnabled = true
-                        BotomSheetDialogMetodosPagoBinding.checkEfectivo.isChecked = false
-                        BotomSheetDialogMetodosPagoBinding.checkTransferencia.isChecked = false
-                        BotomSheetDialogMetodosPagoBinding.checkPlin.isChecked = false
-                        BotomSheetDialogMetodosPagoBinding.checkYape.isChecked = false
-                        BotomSheetDialogMetodosPagoBinding.CrearMetodo.isVisible = true
-                        BotomSheetDialogMetodosPagoBinding.GuardarCambios.isVisible = false
-                        obtner_Metodos_pagosCreados(BotomSheetDialogMetodosPagoBinding)
-                    }.addOnFailureListener { e ->
-                        Log.d("error guardado", "error al guardar losd atos $e")
-                    }
-
-
+                "filtrado" -> {
+                    pasar_metodos_pagosNuevo(bottoSheet_entrega,editado.id.toString(),idAnterior,dialog,"metodos_entrega")
                 }
             }
-        }.addOnFailureListener { e ->
-            Log.e("error", "no se econtro la referencia $e")
+
+        })
+    }
+
+    private fun pasar_metodos_pagosNuevo(
+        binding: BottomSheeetMetodoEntregaBinding,
+        actual_select: String,
+        idAnterior: String, dialog: BottomSheetDialog,metodo_pago_o_entrega:String
+    ) {
+        firebaseAuth =FirebaseAuth.getInstance()
+        val db = FirebaseFirestore.getInstance()
+        val trabajadorRef = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection(metodo_pago_o_entrega)
+
+        val docAnterior = trabajadorRef.document(idAnterior)
+        val docNuevo = trabajadorRef.document(actual_select)
+
+        docAnterior.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val publicacionesActivas =
+                    res.get("publicaciones_activas") as? Map<String, Map<String, Any>>
+                if (publicacionesActivas != null) {
+
+                    docNuevo.update("publicaciones_activas", publicacionesActivas)
+                        .addOnSuccessListener {
+                            verificar_Estado_metodo_pago("metodos_entrega",idAnterior) { cantidad, ids, tiposPorId ->
+                                var tareasEsperadas = 0
+                                var tareasCompletadas = 0
+
+                                ids.forEach { id ->
+                                    val tipos = tiposPorId[id] ?: emptyList()
+                                    val tipoPersonalEncontrado = tipos.firstOrNull {
+                                        it in listOf(
+                                            "publicados",
+                                            "archivados",
+                                            "eliminados",
+                                            "privado"
+                                        )
+                                    }
+
+                                    if (tipoPersonalEncontrado != null) {
+                                        tareasEsperadas++
+                                        val db_productos = FirebaseFirestore.getInstance()
+                                            .collection("Trabajadores_Usuarios_Drivers")
+                                            .document("trabajadores")
+                                            .collection("trabajadores")
+                                            .document(firebaseAuth.uid.toString())
+                                            .collection("productos_venta")
+                                            .document(tipoPersonalEncontrado)
+                                            .collection(tipoPersonalEncontrado)
+                                            .document(id)
+
+                                        val hasmap = hashMapOf<String, Any>(
+                                            "metodoEntrega" to actual_select
+                                        )
+
+                                        db_productos.set(hasmap, SetOptions.merge())
+                                            .addOnSuccessListener {
+                                                tareasCompletadas++
+                                                if (tareasCompletadas == tareasEsperadas) {
+                                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                                                    Toast.makeText(
+                                                        binding.root.context,
+                                                        "Método de pago eliminado correctamente",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    dialog.dismiss()
+                                                }
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Log.e(
+                                                    "error_cambio",
+                                                    "Error al actualizar en PERSONAL: $e"
+                                                )
+                                            }
+                                    }
+
+                                    val desactivados = listOf("archivados", "eliminados", "privado")
+                                    val estaDesactivado = tipos.any { it in desactivados }
+
+                                    if ("productos_publicaciones" in tipos && !estaDesactivado) {
+                                        tareasEsperadas++
+                                        val db_productos_general = FirebaseFirestore.getInstance()
+                                            .collection("productos_publicaciones")
+                                            .document("producto")
+                                            .collection("producto")
+                                            .document(id)
+
+                                        val hasmap = hashMapOf<String, Any>(
+                                            "metodoEntrega" to actual_select
+                                        )
+
+                                        db_productos_general.set(hasmap, SetOptions.merge())
+                                            .addOnSuccessListener {
+                                                tareasCompletadas++
+                                                if (tareasCompletadas == tareasEsperadas) {
+                                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                                                    Toast.makeText(
+                                                        binding.root.context,
+                                                        "Método de pago eliminado correctamente",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    dialog.dismiss()
+                                                }
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Log.e(
+                                                    "error_cambio",
+                                                    "Error al actualizar en GENERAL: $e"
+                                                )
+                                            }
+                                    }
+                                }
+
+                                // Si no hay publicaciones que actualizar, eliminamos directamente
+                                if (ids.isEmpty()) {
+                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                                    Toast.makeText(
+                                        binding.root.context,
+                                        "Método de pago eliminado correctamente",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    dialog.dismiss()
+                                }
+                            }
+
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("DEBUG_COPIA", "Error al pasar publicaciones: $e")
+                        }
+                } else {
+                    Log.d("DEBUG_COPIA", "No hay publicaciones activas en el método anterior.")
+               eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                    Toast.makeText(
+                        binding.root.context,
+                        "Método de pago eliminado correctamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dialog.dismiss()
+                }
+            } else {
+                Log.e("DEBUG_COPIA", "El documento anterior no existe.")
+            }
         }
     }
+
+    fun eliminarMetodo_pago_o_entrega(
+        dialog: BottomSheetDialog,
+        binding: BottomSheeetMetodoEntregaBinding, selecionado: String,metodo_pago_o_entrega: String
+    ) {
+        firebaseAuth =FirebaseAuth.getInstance()
+        val context = binding.root.context
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection(metodo_pago_o_entrega)
+            .document(selecionado)
+        db.delete()
+            .addOnSuccessListener {
+                Toast.makeText(
+                    context,
+                    "Método de entrega eliminado",
+                    Toast.LENGTH_SHORT
+                ).show()
+                obtenerMetodosEntrega(binding)
+                Log.d("eliminamosDB", db.path)
+            }
+
+            .addOnFailureListener { e ->
+                Log.e("error_eliminar", "Error al eliminar el método de entrega: $e")
+            }
+    }
+
 
     private fun editarCambiosEntrega(
         selecionado: String,
@@ -948,45 +948,9 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
     }
 
-    private fun eliminarReferenciaPagoSelect(
-        selecionado: String,
-        binding: BotomSheetDialogMetodosPagoBinding
-    ) {
-        val context = binding.root.context
-
-        AlertDialog.Builder(context)
-            .setTitle("Eliminar método de pago")
-            .setMessage("¿Estás seguro de que deseas eliminar este método de pago?")
-            .setPositiveButton("Sí") { dialog, _ ->
-                val db = FirebaseFirestore.getInstance()
-                    .collection("Trabajadores_Usuarios_Drivers")
-                    .document("trabajadores")
-                    .collection("trabajadores")
-                    .document(firebaseAuth.uid.toString())
-                    .collection("metodos_pago")
-                    .document(selecionado)
-
-                db.delete()
-                    .addOnSuccessListener {
-                        Toast.makeText(
-                            context,
-                            "Método de entrega eliminado correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        obtner_Metodos_pagosCreados(binding)
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("error_eliminar", "Error al eliminar el método de entrega: $e")
-                    }
-                dialog.dismiss()
-            }
-            .setNegativeButton("No") { dialog, _ ->
-                dialog.dismiss() // solo se cierra el diálogo sin hacer nada
-            }
-            .show()
-    }
 
     private fun eliminarReferenciaEntregaSelect(
+        lista: Int,
         selecionado: String,
         bottoSheet_entrega: BottomSheeetMetodoEntregaBinding
     ) {
@@ -1003,19 +967,70 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                     .document(firebaseAuth.uid.toString())
                     .collection("metodos_entrega")
                     .document(selecionado)
+                verificar_Estado_metodo_pago(
+                    "metodos_entrega",
+                    selecionado
+                ) { cantidad, ids, tiposPorId ->
+                    if (cantidad > 0) {
+                        Log.d("DEBUG_PUBLICACIONES", "Cantidad encontradas: $cantidad")
+                        Log.d("DEBUG_PUBLICACIONES", "IDs: $ids")
 
-                db.delete()
-                    .addOnSuccessListener {
-                        Toast.makeText(
-                            context,
-                            "Método de entrega eliminado correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        obtenerMetodosEntrega(bottoSheet_entrega)
+                        if (cantidad > 0) {
+                            val mensaje = buildString {
+                                append("Este método de entrega está en uso por una o más de una publicación:\n\n")
+                                ids.forEach {
+                                    append("• $it\n")
+                                    val tipos = tiposPorId[it] ?: emptyList()
+                                }
+                                append("\n¿Estás seguro de que deseas eliminarlo?")
+                            }
+
+                            AlertDialog.Builder(context)
+                                .setTitle("Advertencia")
+                                .setMessage(mensaje)
+                                .setPositiveButton("Eliminar de todos modos") { dialog2, _ ->
+                                    if (lista <= 1) {
+                                        Toast.makeText(
+                                            context,
+                                            "Deves agregar un nuevo metodo de pago ",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        bottoSheet_entrega.textoSelecionaMetodoEntrega.text =
+                                            "Selecione un metodo de entrega ya creado"
+                                        bottoSheet_entrega.linealMetodoPago.isVisible = false
+                                        obtenerMetodosEntrega_menos_eliminado(
+                                            bottoSheet_entrega,
+                                            selecionado
+                                        )
+                                        dialog2.dismiss()
+                                    }
+
+                                }
+                                .setNegativeButton("Cancelar") { dialog2, _ ->
+                                    dialog2.dismiss()
+                                }
+                                .show()
+                        } else {
+//                            eliminarMetodo_pago_o_entrega(dialog_params ,binding, selecionado,"metodos_pago")
+                        }
+                    } else {
+//                        eliminarMetodo_pago_o_entrega(dialog_params,binding, selecionado,"metodos_pago")
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("error_eliminar", "Error al eliminar el método de pago: $e")
-                    }
+                }
+//
+//                db.delete()
+//                    .addOnSuccessListener {
+//                        Toast.makeText(
+//                            context,
+//                            "Método de entrega eliminado correctamente",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+////                        obtenerMetodosEntrega(bottoSheet_entrega)
+//                    }
+//                    .addOnFailureListener { e ->
+//                        Log.e("error_eliminar", "Error al eliminar el método de pago: $e")
+//                    }
                 dialog.dismiss()
             }
             .setNegativeButton("No") { dialog, _ ->
@@ -1214,26 +1229,34 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 )
             })
 
-        obtenerTrabajosRecientes( binding.traajosRecientes.cargaDatos,
-            binding.traajosRecientes.linealCargaDatos,"trabajos_realizados", "archivados", { valor ->
-            val trabajos_activos =
-                SpannableString("Trabajos archivados : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Trabajos archivados",
-                trabajos_activos, binding.traajosRecientes.archivadas
-            )
-        })
+        obtenerTrabajosRecientes(
+            binding.traajosRecientes.cargaDatos,
+            binding.traajosRecientes.linealCargaDatos,
+            "trabajos_realizados",
+            "archivados",
+            { valor ->
+                val trabajos_activos =
+                    SpannableString("Trabajos archivados : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Trabajos archivados",
+                    trabajos_activos, binding.traajosRecientes.archivadas
+                )
+            })
 
 
-        obtenerTrabajosRecientes( binding.traajosRecientes.cargaDatos,
-            binding.traajosRecientes.linealCargaDatos,"trabajos_realizados", "eliminados", { valor ->
-            val trabajos_activos =
-                SpannableString("Trabajos eliminados : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Trabajos eliminados",
-                trabajos_activos, binding.traajosRecientes.eliminadas
-            )
-        })
+        obtenerTrabajosRecientes(
+            binding.traajosRecientes.cargaDatos,
+            binding.traajosRecientes.linealCargaDatos,
+            "trabajos_realizados",
+            "eliminados",
+            { valor ->
+                val trabajos_activos =
+                    SpannableString("Trabajos eliminados : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Trabajos eliminados",
+                    trabajos_activos, binding.traajosRecientes.eliminadas
+                )
+            })
         binding.traajosRecientes.verTodos.setOnClickListener {
             startActivity(Intent(this, ver_publicaciones::class.java))
         }
@@ -1242,68 +1265,83 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
 
 
-        obtenerTrabajosRecientes( binding.publicaciones.cargaDatos,
-            binding.publicaciones.linealCargaDatos,"publicaciones_trabajos", "publicados", { valor ->
-            val activas_trabajos =
-                SpannableString("Publicaciones activas : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Publicaciones activas",
-                activas_trabajos, binding.publicaciones.activos
-            )
-        })
+        obtenerTrabajosRecientes(
+            binding.publicaciones.cargaDatos,
+            binding.publicaciones.linealCargaDatos,
+            "publicaciones_trabajos",
+            "publicados",
+            { valor ->
+                val activas_trabajos =
+                    SpannableString("Publicaciones activas : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Publicaciones activas",
+                    activas_trabajos, binding.publicaciones.activos
+                )
+            })
 
-        obtenerTrabajosRecientes( binding.publicaciones.cargaDatos,
-            binding.publicaciones.linealCargaDatos,"publicaciones_trabajos", "archivados", { valor ->
-            val trabajos_activos =
-                SpannableString("Publicaciones archivados : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Publicaciones archivados",
-                trabajos_activos, binding.publicaciones.archivadas
-            )
-        })
-
-
-        obtenerTrabajosRecientes( binding.publicaciones.cargaDatos,
-            binding.publicaciones.linealCargaDatos,"publicaciones_trabajos", "eliminados", { valor ->
-            val trabajos_activos =
-                SpannableString("Publicaciones eliminados : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Publicaciones eliminados",
-                trabajos_activos, binding.publicaciones.eliminadas
-            )
-        })
+        obtenerTrabajosRecientes(
+            binding.publicaciones.cargaDatos,
+            binding.publicaciones.linealCargaDatos,
+            "publicaciones_trabajos",
+            "archivados",
+            { valor ->
+                val trabajos_activos =
+                    SpannableString("Publicaciones archivados : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Publicaciones archivados",
+                    trabajos_activos, binding.publicaciones.archivadas
+                )
+            })
 
 
-        obtenerTrabajosRecientes( binding.productosVenta.cargaDatos,
-            binding.productosVenta.linealCargaDatos,"productos_venta", "publicados", { valor ->
-            val productos_activos =
-                SpannableString("Productos activos : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Productos activos",
-                productos_activos, binding.productosVenta.activos
-            )
-        })
+        obtenerTrabajosRecientes(
+            binding.publicaciones.cargaDatos,
+            binding.publicaciones.linealCargaDatos,
+            "publicaciones_trabajos",
+            "eliminados",
+            { valor ->
+                val trabajos_activos =
+                    SpannableString("Publicaciones eliminados : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Publicaciones eliminados",
+                    trabajos_activos, binding.publicaciones.eliminadas
+                )
+            })
 
 
-        obtenerTrabajosRecientes( binding.productosVenta.cargaDatos,
-            binding.productosVenta.linealCargaDatos,"productos_venta", "archivados", { valor ->
-            val trabajos_activos =
-                SpannableString("Productos archivados : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Productos archivados",
-                trabajos_activos, binding.productosVenta.archivadas
-            )
-        })
+        obtenerTrabajosRecientes(
+            binding.productosVenta.cargaDatos,
+            binding.productosVenta.linealCargaDatos, "productos_venta", "publicados", { valor ->
+                val productos_activos =
+                    SpannableString("Productos activos : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Productos activos",
+                    productos_activos, binding.productosVenta.activos
+                )
+            })
 
-        obtenerTrabajosRecientes( binding.productosVenta.cargaDatos,
-            binding.productosVenta.linealCargaDatos,"productos_venta", "eliminados", { valor ->
-            val trabajos_activos =
-                SpannableString("Productos eliminados : ${valor}")
-            constantestextos_general.setearInformacionboldDescripcion(
-                "Productos eliminados",
-                trabajos_activos, binding.productosVenta.eliminadas
-            )
-        })
+
+        obtenerTrabajosRecientes(
+            binding.productosVenta.cargaDatos,
+            binding.productosVenta.linealCargaDatos, "productos_venta", "archivados", { valor ->
+                val trabajos_activos =
+                    SpannableString("Productos archivados : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Productos archivados",
+                    trabajos_activos, binding.productosVenta.archivadas
+                )
+            })
+
+        obtenerTrabajosRecientes(
+            binding.productosVenta.cargaDatos,
+            binding.productosVenta.linealCargaDatos, "productos_venta", "eliminados", { valor ->
+                val trabajos_activos =
+                    SpannableString("Productos eliminados : ${valor}")
+                constantestextos_general.setearInformacionboldDescripcion(
+                    "Productos eliminados",
+                    trabajos_activos, binding.productosVenta.eliminadas
+                )
+            })
 
 
         val imageView = binding.traajosRecientes.imgServicio

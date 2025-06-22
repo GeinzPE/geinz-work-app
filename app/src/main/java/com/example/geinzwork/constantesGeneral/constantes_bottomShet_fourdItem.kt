@@ -1189,7 +1189,7 @@ object constantes_bottomShet_fourdItem {
         val db = FirebaseFirestore.getInstance()
         val hoy = DayOfWeek.from(
             Calendar.getInstance().time.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-        ).name.toLowerCase(
+        ).name.lowercase(
             Locale.ROOT
         )
 

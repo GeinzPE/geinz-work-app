@@ -684,7 +684,7 @@ class VistaTienda : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
         val hoy = DayOfWeek.from(
             Calendar.getInstance().time.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-        ).name.toLowerCase(
+        ).name.lowercase(
             Locale.ROOT
         )
 

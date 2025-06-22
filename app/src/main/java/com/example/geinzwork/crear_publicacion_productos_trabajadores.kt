@@ -1097,7 +1097,12 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         // Crear la estructura para añadir al mapa
         val data = mapOf(
             "publicaciones_activas.$id_publicacion" to mapOf(
-                "tipo" to "$tipo,productos_publicaciones",
+                "archivados" to false,
+                "eliminados" to false,
+                "privado" to false,
+                "publicados" to true,
+                "solo_seguidores" to false,
+                "productos_publicaciones" to true,
                 "id_publicacion" to id_publicacion,
                 "activo" to true
             )
@@ -1114,7 +1119,13 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
                 val initData = mapOf(
                     "publicaciones_activas" to mapOf(
                         id_publicacion to mapOf(
-                            "tipo" to tipo
+                            "archivados" to false,
+                            "eliminados" to false,
+                            "privado" to false,
+                            "publicados" to true,
+                            "solo_seguidores" to false,
+                            "productos_publicaciones" to true,
+                            "activo" to true
                         )
                     )
                 )
