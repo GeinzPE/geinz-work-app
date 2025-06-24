@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_pinned_shortcut_prueva"
+        android:shortcutId="static_panel_publicaciones"
+        android:shortcutLongLabel="@string/my_feature_long_label"
+        android:shortcutShortLabel="@string/my_feature_short_label">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.example.geinzwork.fragmentos.panel_publicacion_trabajador"
+            android:targetPackage="com.example.geinzwork" />
+        <extra
+            android:name="shortcut_type"
+            android:value="panel_main" />
+
+    </shortcut>
+
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_pinned_shorcut_qr_trabajador"
+        android:shortcutId="static_qr_generar"
+        android:shortcutLongLabel="@string/my_feature_long_label"
+        android:shortcutShortLabel="@string/my_feature_short_label">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass=".GenerarQR_trabajador"
+            android:targetPackage="com.example.geinzwork" />
+
+        <extra
+            android:name="shortcut_type"
+            android:value="qr_generator" />
+
+    </shortcut>
+
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_pinned_shorcut_dispositivos_v"
+        android:shortcutId="static_disposivos"
+        android:shortcutLongLabel="@string/my_feature_long_label"
+        android:shortcutShortLabel="@string/my_feature_short_label">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass=".activity_dispositivos_vinculados"
+            android:targetPackage="com.example.geinzwork" />
+
+        <extra
+            android:name="shortcut_type"
+            android:value="dispo_vinculados" />
+    </shortcut>
+
+</shortcuts>

@@ -1,7 +1,13 @@
 package com.example.geinzwork.vistaTrabajador
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.drawable.Icon
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,14 +24,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_pbl_vr_tb_recientes
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
+import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
-import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityVerProductosPublicadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMinimoMaxFiltradoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
@@ -53,6 +60,22 @@ class ver_productos_publicados : AppCompatActivity() {
         })
         val dato_pasado = intent.getStringExtra("tipo").toString()
         Log.d("DebugTipo", "dato_pasado: $dato_pasado")
+
+
+        binding.crearAceso.setOnClickListener {
+
+            // Define los detalles del acceso directo fijado que quieres crear
+            val shortcutId = "geinzwork_main_app_pinned_shortcut" // Un ID único para este acceso directo fijado
+            val shortLabel = getString(R.string.app_name) // Usa el nombre de tu app como etiqueta corta
+            val longLabel = getString(R.string.bienvenido) // Usa una etiqueta larga
+            val targetActivity = MainActivity::class.java // La actividad que se abrirá
+            val iconResId = R.drawable.ic_pinned_shortcut_prueva // El ícono de tu aplicación
+
+            // Llama a la función para solicitar el acceso directo fijado
+            requestPinAppShortcut(this, shortcutId, shortLabel, longLabel, targetActivity, iconResId)
+        }
+
+        handleIncomingIntent(intent)
 
         when (dato_pasado) {
             "publicadas" -> {
@@ -188,6 +211,90 @@ class ver_productos_publicados : AppCompatActivity() {
 
     }
 
+    private fun handleIncomingIntent(intent: Intent?) {
+        intent?.let {
+            // Ejemplo: Si el Intent lleva un "shortcut_action"
+            val shortcutAction = it.getStringExtra("shortcut_action")
+            when (shortcutAction) {
+                "open_feature_X" -> {
+                    Toast.makeText(this, "Abriendo Característica X desde acceso directo", Toast.LENGTH_SHORT).show()
+                    // Aquí podrías navegar a un Fragment, o iniciar una nueva Activity
+                    // Por ejemplo: supportFragmentManager.beginTransaction().replace(R.id.fragment_container, FeatureXFragment()).commit()
+                }
+                // Añade más casos según los datos que envíes en tus Intents de atajo
+            }
+            // Si usas Deeplinks con Uri:
+            val data: Uri? = it.data
+            data?.let { uri ->
+                if (uri.host == "geinzapp.page.link" && uri.pathSegments.contains("chat")) {
+                    val chatId = uri.lastPathSegment
+                    Toast.makeText(this, "Abriendo chat con ID: $chatId", Toast.LENGTH_SHORT).show()
+                    // Aquí podrías abrir una pantalla de chat con el chatId
+                }
+            }
+        }
+    }
+
+    // ... (resto de tu código)
+
+    fun requestPinAppShortcut(
+        context: Context,
+        shortcutId: String,
+        shortLabel: String,
+        longLabel: String,
+        targetActivityClass: Class<*>,
+        iconResId: Int
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val shortcutManager = context.getSystemService(ShortcutManager::class.java)
+
+            if (shortcutManager?.isRequestPinShortcutSupported == true) {
+                val pinnedShortcutIntent = Intent(context, targetActivityClass).apply {
+                    // ¡Añade esta línea! Define la acción del Intent.
+                    action = Intent.ACTION_VIEW
+
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    putExtra("shortcut_action", "open_main_app")
+                }
+
+                val pinShortcutInfo = ShortcutInfo.Builder(context, shortcutId)
+                    .setShortLabel(shortLabel)
+                    .setLongLabel(longLabel)
+                    .setIcon(Icon.createWithResource(context, iconResId))
+                    .setIntent(pinnedShortcutIntent) // Aquí se pasaba el Intent sin acción
+                    .build()
+
+                val pinnedShortcutCallbackIntent = shortcutManager.createShortcutResultIntent(pinShortcutInfo)
+                val successCallback = PendingIntent.getBroadcast(
+                    context,
+                    0,
+                    pinnedShortcutCallbackIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                shortcutManager.requestPinShortcut(pinShortcutInfo, successCallback.intentSender)
+
+                Toast.makeText(
+                    context,
+                    getString(R.string.request_pin_shortcut_sent, shortLabel), // Asumiendo que has corregido el string resource
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } else {
+                Toast.makeText(
+                    context,
+                    getString(R.string.launcher_not_support_pin_shortcut),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        } else {
+            Toast.makeText(
+                context,
+                getString(R.string.android_version_not_support_pin_shortcut),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
     private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
         lista.clear()
         Toast.makeText(
@@ -693,9 +800,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.recicleProductos.isVisible = false
                 dialog.dismiss()
             }
-//            editar.setOnClickListener {
-//                editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
-//            }
+
         } else if (dato_pasado.equals("eliminadas")) {
             bottoSheet.regresar.isVisible = true
             privado.isVisible = false
@@ -719,13 +824,37 @@ class ver_productos_publicados : AppCompatActivity() {
             binding.textoDinamicoProgrees.text = "Actualizando contenido..."
             binding.recicleProductos.isVisible = false
             dialog.dismiss()
-            val firestore = FirebaseFirestore.getInstance()
-            val uid = firebaseAuth.uid.toString()
-            val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
-                .document("trabajadores").collection("trabajadores")
-                .document(uid).collection("productos_venta")
-                .document("eliminados").collection("eliminados")
-                .document(item.id_publicacion.toString())
+            eliminar_publicacion_permanente(item)
+            dialog.dismiss()
+        }
+
+        dialog.setContentView(view)
+    }
+
+    private fun eliminar_publicacion_permanente(item: dataclas_trabajos_ralizados_verificados) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+        val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection("productos_venta")
+            .document("eliminados").collection("eliminados")
+            .document(item.id_publicacion.toString())
+        refOrigen.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
+                val metodoPago = data?.get("metodoPago") as? String ?: ""
+                eliminar_metodo_pago_entrega_id(
+                    "metodos_entrega",
+                    metodoEntrega,
+                    item.id_publicacion.toString()
+                )
+                eliminar_metodo_pago_entrega_id(
+                    "metodos_pago",
+                    metodoPago,
+                    item.id_publicacion.toString()
+                )
+            }
             refOrigen.delete().addOnSuccessListener { res ->
                 obtener_productos("eliminados", "No se encontraron datos")
                 Toast.makeText(this, "publicacion eliminado correctamente", Toast.LENGTH_SHORT)
@@ -736,11 +865,84 @@ class ver_productos_publicados : AppCompatActivity() {
                 Toast.makeText(this, "Error al eliminar la publicacion", Toast.LENGTH_SHORT)
                     .show()
             }
-            dialog.dismiss()
+        }.addOnFailureListener { e ->
+
         }
 
-        dialog.setContentView(view)
     }
+
+    private fun eliminar_metodo_pago_entrega_id(
+        metodo_pago_entrega: String,
+        id_metodo_pago_entrega: String,
+        id_publicacion_params: String
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+        val ref = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(uid).collection(metodo_pago_entrega)
+            .document(id_metodo_pago_entrega)
+
+        ref.get().addOnSuccessListener { documentSnapshot ->
+            if (documentSnapshot.exists()) {
+                val publicacionesActivas =
+                    documentSnapshot.get("publicaciones_activas") as? Map<*, *>
+                if (publicacionesActivas != null) {
+
+                    var eliminado = false
+
+                    publicacionesActivas.forEach { entry ->
+                        val mapa = entry.value as? Map<*, *>
+                        val idPublicacion = mapa?.get("id_publicacion") as? String
+
+                        if (idPublicacion != null) {
+                            Log.d("ID_PUBLICACION_ENCONTRADO", "id_publicacion: $idPublicacion")
+
+                            if (idPublicacion == id_publicacion_params) {
+                                val path = "publicaciones_activas.${entry.key}"
+                                ref.update(path, FieldValue.delete())
+                                    .addOnSuccessListener {
+                                        Toast.makeText(
+                                            this,
+                                            "Publicación eliminada con éxito",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        Log.d("FirestoreUpdate", "Eliminado $path")
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(
+                                            this,
+                                            "Error al eliminar: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        Log.e(
+                                            "FirestoreError",
+                                            "Error al eliminar $path: ${e.message}"
+                                        )
+                                    }
+                                eliminado = true
+                                return@forEach // salir del bucle después de eliminar
+                            }
+                        }
+                    }
+
+                    if (!eliminado) {
+                        Toast.makeText(this, "No se encontró esa publicación", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+
+                } else {
+                    Toast.makeText(this, "No hay publicaciones activas", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "No existe el documento del trabajador", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun activar_publicacion(tipo: String, idPublicacion: String, tipo_fun: String) {
         val firestore = FirebaseFirestore.getInstance()
@@ -809,7 +1011,6 @@ class ver_productos_publicados : AppCompatActivity() {
                 val hasMap = hashMapOf<String, Any>(
                     "id" to idPublicacion,
                     "titulo" to titulo,
-
                     "cantidad_porcentaje_descuento" to cantidadPorcentajeDescuento,
                     "condicion_producto" to condicionProducto,
                     "categoria_producto" to categoriaProducto,
@@ -847,8 +1048,20 @@ class ver_productos_publicados : AppCompatActivity() {
                     .document(uid).collection("productos_venta")
                     .document("publicados").collection("publicados").document(idPublicacion)
                 refDestino.set(hasMap, SetOptions.merge()).addOnSuccessListener { res ->
-                    Toast.makeText(this, "agregeado correctamente a eliminados", Toast.LENGTH_SHORT)
+                    Toast.makeText(this, "agregeado correctamente a publicados", Toast.LENGTH_SHORT)
                         .show()
+                    cambiar_datos_archivar_eliminar_ocultar_archivar(
+                        idPublicacion,
+                        "publicados",
+                        metodoEntrega,
+                        "metodos_entrega"
+                    )
+                    cambiar_datos_archivar_eliminar_ocultar_archivar(
+                        idPublicacion,
+                        "publicados",
+                        metodoPago,
+                        "metodos_pago"
+                    )
                     refOrigen.delete().addOnSuccessListener { res ->
                         binding.linealEncontrados.isVisible = false
                         binding.recicleProductos.isVisible = true
@@ -1018,8 +1231,18 @@ class ver_productos_publicados : AppCompatActivity() {
                 refEliminado.set(hasMap, SetOptions.merge()).addOnSuccessListener { res ->
                     Toast.makeText(this, "agregeado correctamente a eliminados", Toast.LENGTH_SHORT)
                         .show()
-                    cambiar_datos_archivar_eliminar_ocultar_archivar(tipo2,metodoEntrega,"metodos_entrega")
-                    cambiar_datos_archivar_eliminar_ocultar_archivar(tipo2,metodoPago,"metodos_pago")
+                    cambiar_datos_archivar_eliminar_ocultar_archivar(
+                        id_selecionado,
+                        tipo2,
+                        metodoEntrega,
+                        "metodos_entrega"
+                    )
+                    cambiar_datos_archivar_eliminar_ocultar_archivar(
+                        id_selecionado,
+                        tipo2,
+                        metodoPago,
+                        "metodos_pago"
+                    )
 
                     binding.linealEncontrados.isVisible = false
                     binding.recicleProductos.isVisible = true
@@ -1085,11 +1308,12 @@ class ver_productos_publicados : AppCompatActivity() {
     }
 
     private fun cambiar_datos_archivar_eliminar_ocultar_archivar(
+        idPublicacion: String,
         cambiado: String,
         id_metodo_pago_entrega: String,
         metodo_pago_o_entrega: String
     ) {
-        Log.d("obtenosm_datos","$cambiado $id_metodo_pago_entrega $metodo_pago_o_entrega")
+        Log.d("obtenosm_datos", "$cambiado $id_metodo_pago_entrega $metodo_pago_o_entrega")
         val trabajadorRef = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores")
@@ -1100,48 +1324,54 @@ class ver_productos_publicados : AppCompatActivity() {
 
         trabajadorRef.get().addOnSuccessListener { documentSnapshot ->
             if (documentSnapshot.exists()) {
-                val publicacionesActivas = documentSnapshot.get("publicaciones_activas") as? Map<*, *>
+                val publicacionesActivas =
+                    documentSnapshot.get("publicaciones_activas") as? Map<*, *>
 
-                publicacionesActivas?.forEach { (idPublicacion, datos) ->
-                    if (idPublicacion is String && datos is Map<*, *>) {
-                        val updates = mutableMapOf<String, Any>()
+                val datos = publicacionesActivas?.get(idPublicacion) as? Map<*, *>
+                if (datos != null) {
+                    val updates = mutableMapOf<String, Any>()
 
-                        // Campos booleanos posibles
-                        val campos = listOf(
-                            "activo",
-                            "archivados",
-                            "eliminados",
-                            "privado",
-                            "productos_publicaciones",
-                            "publicados",
-                            "solo_seguidores"
-                        )
+                    // Campos booleanos posibles
+                    val campos = listOf(
+                        "activo",
+                        "archivados",
+                        "eliminados",
+                        "privado",
+                        "productos_publicaciones",
+                        "publicados",
+                        "solo_seguidores"
+                    )
 
-                        for (campo in campos) {
-                            val path = "publicaciones_activas.$idPublicacion.$campo"
+                    for (campo in campos) {
+                        val path = "publicaciones_activas.$idPublicacion.$campo"
 
-                            when {
-                                campo == cambiado -> updates[path] = true
-                                cambiado == "publicados" && (campo == "activo" || campo == "productos_publicaciones") -> updates[path] = true
-                                else -> updates[path] = false
-                            }
+                        when {
+                            campo == cambiado -> updates[path] = true
+                            cambiado == "publicados" && (campo == "activo" || campo == "productos_publicaciones") ->
+                                updates[path] = true
+
+                            else -> updates[path] = false
                         }
-
-                        trabajadorRef.update(updates)
-                            .addOnSuccessListener {
-                                Log.d("FirestoreUpdate", "Actualización exitosa para $idPublicacion")
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e("FirestoreError", "Error al actualizar $idPublicacion: ${e.message}")
-                            }
                     }
+
+                    trabajadorRef.update(updates)
+                        .addOnSuccessListener {
+                            Log.d("FirestoreUpdate", "Actualización exitosa para $idPublicacion")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(
+                                "FirestoreError",
+                                "Error al actualizar $idPublicacion: ${e.message}"
+                            )
+                        }
+                } else {
+                    Log.w("FirestoreWarning", "No se encontró la publicación con ID $idPublicacion")
                 }
             }
         }.addOnFailureListener { e ->
             Log.e("FirestoreError", "Error al obtener documento: ${e.message}")
         }
     }
-
 
 
     private fun obtener_productos(tipo: String, texto_sin_encontrar: String) {

@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
+import com.example.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work
 import com.example.geinzwork.activity_dispositivos_vinculados
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
@@ -60,7 +61,6 @@ object constantes_cuenta_user {
         val container_review = binding.containerReview
         val container_preview = binding.containerPreview
         val lineal_verificado = binding.linealVerificado
-        val lineal_Publicacion = binding.linealPublicacion
         val lineal_direccionEnvios = binding.containerLocalizacion
         val containerqr_agregar_img = binding.containerqrAgregarImg
         val panel_publicacion = binding.panelPublicacion
@@ -69,6 +69,7 @@ object constantes_cuenta_user {
         val qr_trabajador = binding.qrTrabajador
         val linealServicios = binding.linealServicios
         val vinculados = binding.vinculados
+        val accesos_directo = binding.accesoDirecto
 
         vinculados.setOnClickListener {
             val vista = Intent(context, activity_dispositivos_vinculados::class.java)
@@ -82,16 +83,19 @@ object constantes_cuenta_user {
                 lineal_verificado.isVisible = false
                 containerqr_agregar_img.isVisible = false
                 lineaReportes.isVisible = false
-                lineal_Publicacion.isVisible = false
+
                 qr_trabajador.isVisible = false
+                accesos_directo.isVisible = false
             }
 
             else -> ""
         }
-        lineal_Publicacion.setOnClickListener {
 
-
+        accesos_directo.setOnClickListener {
+            context.startActivity(Intent(context, accesos_directos_geinz_work::class.java))
+            dialog.dismiss()
         }
+
         bottomSheet.setOnClickListener {
             dialog.dismiss()
         }

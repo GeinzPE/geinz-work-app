@@ -8,8 +8,10 @@ import android.os.Looper
 import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -20,15 +22,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_metodos_entrega
+import com.example.geinzwork.constantesGeneral.PinShortcut_general
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega
-import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega.obtner_Metodos_pagosCreados
-
 import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega.verificar_Estado_metodo_pago
 import com.example.geinzwork.crear_publicacion_productos_trabajadores
 import com.example.geinzwork.crear_publicaciones_recientes
 import com.example.geinzwork.dataclass.dataclass_metodos_entrega
 import com.example.geinzwork.dataclass.dataclass_metodos_pagos
+import com.example.geinzwork.vistaTrabajador.ver_productos_publicados
+import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.crear_trabajos_realizados
@@ -72,32 +75,118 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        setear_datos_includes()
-        binding.panelMetoods.metodoEntrega.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottomSheet_metodo_entrega()
-            dialog.show()
+
+        if (firebaseAuth.currentUser != null) {
+            Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
+            setear_datos_includes()
+            binding.menuAccesoDirecto.setOnClickListener {
+                popup()
+            }
+            binding.panelMetoods.metodoEntrega.setOnClickListener {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_metodo_entrega()
+                dialog.show()
+            }
+            binding.panelMetoods.metodosPago.setOnClickListener {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_metodos_pago()
+                dialog.show()
+
+            }
+            binding.metodoNumeroNombre.setOnClickListener {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_numero_nombre_pagos()
+                dialog.show()
+            }
+            binding.agregarRedesSociales.setOnClickListener {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_agregar_redes()
+                dialog.show()
+            }
+            binding.sinRegistro.isVisible = false
+            binding.scroolView.isVisible = true
+        } else {
+            binding.sinRegistro.isVisible = true
+            binding.scroolView.isVisible = false
+            binding.iniciarSeccion.setOnClickListener {
+                val vista = Intent(this, Login::class.java).apply {
+                    putExtra("dato", "panel")
+                }
+                startActivity(vista)
+            }
         }
 
-        binding.panelMetoods.metodosPago.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottomSheet_metodos_pago()
-            dialog.show()
+    }
+    override fun onResume() {
+        super.onResume()
 
+        if (firebaseAuth.currentUser != null) {
+            Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
+            setear_datos_includes()
+            if (binding.menuAccesoDirecto.hasOnClickListeners().not()) {
+                binding.menuAccesoDirecto.setOnClickListener { popup() }
+                binding.panelMetoods.metodoEntrega.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_metodo_entrega()
+                    dialog.show()
+                }
+                binding.panelMetoods.metodosPago.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_metodos_pago()
+                    dialog.show()
+                }
+                binding.metodoNumeroNombre.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_numero_nombre_pagos()
+                    dialog.show()
+                }
+                binding.agregarRedesSociales.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_agregar_redes()
+                    dialog.show()
+                }
+            }
+
+            binding.sinRegistro.isVisible = false
+            binding.scroolView.isVisible = true
+
+        } else {
+            binding.sinRegistro.isVisible = true
+            binding.scroolView.isVisible = false
+
+            binding.iniciarSeccion.setOnClickListener {
+                val vista = Intent(this, Login::class.java).apply {
+                    putExtra("dato", "panel")
+                }
+                startActivity(vista)
+            }
         }
 
-        binding.metodoNumeroNombre.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottomSheet_numero_nombre_pagos()
-            dialog.show()
-        }
+    }
 
-        binding.agregarRedesSociales.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            bottomSheet_agregar_redes()
-            dialog.show()
-        }
 
+
+    private fun popup() {
+        val popup = PopupMenu(this, binding.menuAccesoDirecto)
+
+        // Agregar opciones al menú
+        popup.menu.add(Menu.NONE, 1, 1, "Crear acceso directo")
+
+
+        // Mostrar el popup
+        popup.show()
+
+        // Manejar clics en los ítems del menú
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> {
+                    PinShortcut_general.panel_publicacion_trabajador_accesoDirecto_panel(this)
+                    true
+                }
+
+                else -> true
+            }
+        }
     }
 
     private fun bottomSheet_agregar_redes() {
@@ -476,7 +565,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 bottoSheet_entrega.cargandoMetodosPago.isVisible = false
                 if (lista_entrega.isNotEmpty()) {
-                    incializar_recicle_entrega("todos", bottoSheet_entrega,"")
+                    incializar_recicle_entrega("todos", bottoSheet_entrega, "")
                     bottoSheet_entrega.textoSinMetodos.isVisible = false
                     bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = true
                 } else {
@@ -535,7 +624,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 bottoSheet_entrega.cargandoMetodosPago.isVisible = false
                 if (lista_entrega.isNotEmpty()) {
-                    incializar_recicle_entrega("filtrado",bottoSheet_entrega,id_selecionado)
+                    incializar_recicle_entrega("filtrado", bottoSheet_entrega, id_selecionado)
                     bottoSheet_entrega.textoSinMetodos.isVisible = false
                     bottoSheet_entrega.recicleViewMetodosEntrega.isVisible = true
                 } else {
@@ -553,7 +642,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     private fun incializar_recicle_entrega(
         tipo_encontrado: String,
-        bottoSheet_entrega: BottomSheeetMetodoEntregaBinding,idAnterior: String
+        bottoSheet_entrega: BottomSheeetMetodoEntregaBinding, idAnterior: String
     ) {
         val recicles = bottoSheet_entrega.recicleViewMetodosEntrega
         recicles.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -570,7 +659,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 }
 
                 "filtrado" -> {
-                    pasar_metodos_pagosNuevo(bottoSheet_entrega,editado.id.toString(),idAnterior,dialog,"metodos_entrega")
+                    pasar_metodos_pagosNuevo(
+                        bottoSheet_entrega,
+                        editado.id.toString(),
+                        idAnterior,
+                        dialog,
+                        "metodos_entrega"
+                    )
                 }
             }
 
@@ -580,9 +675,9 @@ class panel_publicacion_trabajador : AppCompatActivity() {
     private fun pasar_metodos_pagosNuevo(
         binding: BottomSheeetMetodoEntregaBinding,
         actual_select: String,
-        idAnterior: String, dialog: BottomSheetDialog,metodo_pago_o_entrega:String
+        idAnterior: String, dialog: BottomSheetDialog, metodo_pago_o_entrega: String
     ) {
-        firebaseAuth =FirebaseAuth.getInstance()
+        firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance()
         val trabajadorRef = db.collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -600,7 +695,10 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
                     docNuevo.update("publicaciones_activas", publicacionesActivas)
                         .addOnSuccessListener {
-                            verificar_Estado_metodo_pago("metodos_entrega",idAnterior) { cantidad, ids, tiposPorId ->
+                            verificar_Estado_metodo_pago(
+                                "metodos_entrega",
+                                idAnterior
+                            ) { cantidad, ids, tiposPorId ->
                                 var tareasEsperadas = 0
                                 var tareasCompletadas = 0
 
@@ -635,7 +733,12 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                             .addOnSuccessListener {
                                                 tareasCompletadas++
                                                 if (tareasCompletadas == tareasEsperadas) {
-                                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                                                    eliminarMetodo_pago_o_entrega(
+                                                        dialog,
+                                                        binding,
+                                                        idAnterior,
+                                                        "metodos_entrega"
+                                                    )
                                                     Toast.makeText(
                                                         binding.root.context,
                                                         "Método de pago eliminado correctamente",
@@ -671,7 +774,12 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                             .addOnSuccessListener {
                                                 tareasCompletadas++
                                                 if (tareasCompletadas == tareasEsperadas) {
-                                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                                                    eliminarMetodo_pago_o_entrega(
+                                                        dialog,
+                                                        binding,
+                                                        idAnterior,
+                                                        "metodos_entrega"
+                                                    )
                                                     Toast.makeText(
                                                         binding.root.context,
                                                         "Método de pago eliminado correctamente",
@@ -691,7 +799,12 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
                                 // Si no hay publicaciones que actualizar, eliminamos directamente
                                 if (ids.isEmpty()) {
-                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                                    eliminarMetodo_pago_o_entrega(
+                                        dialog,
+                                        binding,
+                                        idAnterior,
+                                        "metodos_entrega"
+                                    )
                                     Toast.makeText(
                                         binding.root.context,
                                         "Método de pago eliminado correctamente",
@@ -707,7 +820,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                         }
                 } else {
                     Log.d("DEBUG_COPIA", "No hay publicaciones activas en el método anterior.")
-               eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_entrega")
+                    eliminarMetodo_pago_o_entrega(dialog, binding, idAnterior, "metodos_entrega")
                     Toast.makeText(
                         binding.root.context,
                         "Método de pago eliminado correctamente",
@@ -723,9 +836,11 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     fun eliminarMetodo_pago_o_entrega(
         dialog: BottomSheetDialog,
-        binding: BottomSheeetMetodoEntregaBinding, selecionado: String,metodo_pago_o_entrega: String
+        binding: BottomSheeetMetodoEntregaBinding,
+        selecionado: String,
+        metodo_pago_o_entrega: String
     ) {
-        firebaseAuth =FirebaseAuth.getInstance()
+        firebaseAuth = FirebaseAuth.getInstance()
         val context = binding.root.context
         val db = FirebaseFirestore.getInstance()
             .collection("Trabajadores_Usuarios_Drivers")
@@ -1012,25 +1127,39 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                 }
                                 .show()
                         } else {
-//                            eliminarMetodo_pago_o_entrega(dialog_params ,binding, selecionado,"metodos_pago")
+                            db.delete()
+                                .addOnSuccessListener {
+                                    Toast.makeText(
+                                        context,
+                                        "Método de entrega eliminado correctamente",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    obtenerMetodosEntrega(bottoSheet_entrega)
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e(
+                                        "error_eliminar",
+                                        "Error al eliminar el método de pago: $e"
+                                    )
+                                }
                         }
                     } else {
-//                        eliminarMetodo_pago_o_entrega(dialog_params,binding, selecionado,"metodos_pago")
+                        db.delete()
+                            .addOnSuccessListener {
+                                Toast.makeText(
+                                    context,
+                                    "Método de entrega eliminado correctamente",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                obtenerMetodosEntrega(bottoSheet_entrega)
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("error_eliminar", "Error al eliminar el método de pago: $e")
+                            }
                     }
                 }
-//
-//                db.delete()
-//                    .addOnSuccessListener {
-//                        Toast.makeText(
-//                            context,
-//                            "Método de entrega eliminado correctamente",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-////                        obtenerMetodosEntrega(bottoSheet_entrega)
-//                    }
-//                    .addOnFailureListener { e ->
-//                        Log.e("error_eliminar", "Error al eliminar el método de pago: $e")
-//                    }
+
+
                 dialog.dismiss()
             }
             .setNegativeButton("No") { dialog, _ ->
@@ -1204,10 +1333,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        setear_datos_includes()
-    }
+
 
     private fun setear_datos_includes() {
         val plan = intent.getStringExtra(Variables.plan)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     style="@style/fondo"
@@ -27,14 +28,28 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="7dp"
-                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                    android:text="Dispositivos vinculados"
-                    android:textSize="27sp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="7dp"
+                        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                        android:text="Dispositivos vinculados"
+                        android:textSize="27sp" />
+
+                    <ImageView
+                        android:id="@+id/popup"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/menu_puntos" />
+                </RelativeLayout>
+
 
                 <TextView
                     style="@style/TextoModoOScuroColor"
@@ -47,13 +62,13 @@
 
 
                 <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:fontFamily="@font/fuente_para_texto_special_gothic"
-                    android:textSize="15sp"
                     android:id="@+id/TotalDispo"
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    android:layout_height="wrap_content" />
+                    android:fontFamily="@font/fuente_para_texto_special_gothic"
+                    android:textSize="15sp" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recicle_dispositivos"
@@ -101,7 +116,9 @@
         </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+
     <LinearLayout
+        android:id="@+id/carga_dispo"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
@@ -121,6 +138,52 @@
             android:text="Cargando dispositivos..."
             android:textSize="15sp" />
     </LinearLayout>
+
+    <RelativeLayout
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:id="@+id/sin_registro"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textViewMessage"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:text="¡Has cerrado sesión en GeinzWork!"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+
+            android:id="@+id/textViewInstructions"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textViewMessage"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="32dp"
+            android:text="Para continuar, por favor, inicia sesión nuevamente."
+            android:textSize="16sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/iniciar_seccion"
+            style="@style/RoundedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_below="@+id/textViewInstructions"
+            android:layout_centerHorizontal="true"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:text="Inicia sesión"
+            android:textSize="14sp"
+            app:iconGravity="textEnd" />
+    </RelativeLayout>
 
 
 </LinearLayout>

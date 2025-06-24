@@ -241,8 +241,6 @@ class veirificacionDatos : AppCompatActivity() {
         hashMap["Nombre_usuario"] = Nombre_usuario
 
 
-
-
         val db = FirebaseFirestore.getInstance()
         val userCollections =
             FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
@@ -252,12 +250,16 @@ class veirificacionDatos : AppCompatActivity() {
             userCollections.document(id).set(hashMap)
                 .addOnSuccessListener {
                     println("Usuario creado en Firestore")
-                    constantes_vinculados.agregar_vinculado(id.toString(),this)
+                    constantes_vinculados.agregar_vinculado(id.toString(), this, "directo")
                     var vista: Intent = Intent(this, GraciasRegistro::class.java)
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
                     finishAffinity()
-                    constantes_nombre_usuarios.agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
+                    constantes_nombre_usuarios.agregar_firestoreNombre_usuario(
+                        id,
+                        Nombre_usuario,
+                        TipoCuenta
+                    )
                 }
                 .addOnFailureListener { e ->
                     println("Error al crear usuario en Firestore: $e")
@@ -268,7 +270,6 @@ class veirificacionDatos : AppCompatActivity() {
 
 
     }
-
 
 
     private fun leerinfoCreacionUser() {
@@ -335,12 +336,16 @@ class veirificacionDatos : AppCompatActivity() {
             userCollections.document(id).set(hashMap)
                 .addOnSuccessListener {
                     println("Usuario creado en Firestore")
-                    constantes_vinculados.agregar_vinculado(id.toString(),this)
+                    constantes_vinculados.agregar_vinculado(id.toString(), this, "directo")
                     var vista: Intent = Intent(this, GraciasRegistro::class.java)
                     vista.putExtra("nombreUsuario", nombre)
                     startActivity(vista)
                     finishAffinity()
-                    constantes_nombre_usuarios.agregar_firestoreNombre_usuario(id,Nombre_usuario,TipoCuenta)
+                    constantes_nombre_usuarios.agregar_firestoreNombre_usuario(
+                        id,
+                        Nombre_usuario,
+                        TipoCuenta
+                    )
                 }
                 .addOnFailureListener { e ->
                     println("Error al crear usuario en Firestore: $e")

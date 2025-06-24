@@ -33,12 +33,37 @@ class Login : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        verificarSeccion()
+        val datos = intent.getStringExtra("dato").toString()
 
 
         binding.BtnIngresar.setOnClickListener {
-            verificaruser()
+            when (datos) {
+                "panel" -> {
+                    Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
+                    verificaruser("regreso") { registrado, texto -> }
+                }
+
+                "qr" -> {
+                    Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
+                    verificaruser("regreso") { registrado, texto -> }
+                }
+                "dispositivos"->{
+                    Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
+                    verificaruser("regreso") { registrado, texto -> }
+                }
+
+
+                else -> {
+                    verificaruser("directo") { registrado, texto ->
+                    }
+                }
+            }
         }
+
+        verificarSeccion()
+
+
+
         binding.registrate.setOnClickListener {
             dialog = BottomSheetDialog(this)
             constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
@@ -53,12 +78,16 @@ class Login : AppCompatActivity() {
         }
     }
 
-    private fun verificaruser() {
+    private fun verificaruser(
+        tipo: String,
+        onResult: (Boolean, String?) -> Unit
+    ) { // Agregado el callback aquí
         val correo = binding.ingreseSuMail.text.toString().trim()
         val contraseña = binding.txtpassword.text.toString().trim()
 
         if (correo.isEmpty() || contraseña.isEmpty()) {
             Toast.makeText(this, "Rellene los campos", Toast.LENGTH_SHORT).show()
+            onResult(false, "Rellene los campos") // Llama al callback con error
             return
         }
 
@@ -73,7 +102,14 @@ class Login : AppCompatActivity() {
                 if (!trabajadoresDocs.isEmpty) {
                     val doc = trabajadoresDocs.documents[0]
                     val uid = doc.getString("id") ?: doc.id
-                    verificarDispositivosYLogin(uid, correo, contraseña, "trabajadores")
+                    verificarDispositivosYLogin(
+                        tipo,
+                        uid,
+                        correo,
+                        contraseña,
+                        "trabajadores",
+                        onResult
+                    ) // Pasa el callback
                 } else {
                     // Buscar en usuarios si no está en trabajadores
                     db.document("usuarios")
@@ -84,21 +120,58 @@ class Login : AppCompatActivity() {
                             if (!usuariosDocs.isEmpty) {
                                 val doc = usuariosDocs.documents[0]
                                 val uid = doc.getString("id") ?: doc.id
-                                verificarDispositivosYLogin(uid, correo, contraseña, "usuarios")
+                                verificarDispositivosYLogin(
+                                    tipo,
+                                    uid,
+                                    correo,
+                                    contraseña,
+                                    "usuarios",
+                                    onResult
+                                ) // Pasa el callback
                             } else {
+                                // Correo no registrado en ninguna de las colecciones
                                 Toast.makeText(this, "Correo no registrado", Toast.LENGTH_SHORT)
                                     .show()
+                                onResult(
+                                    false,
+                                    "Correo no registrado"
+                                ) // Llama al callback con error
                             }
+                        }
+                        .addOnFailureListener { e ->
+                            // Error al buscar en usuarios
+                            Toast.makeText(
+                                this,
+                                "Error al buscar usuario: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onResult(
+                                false,
+                                "Error al buscar usuario: ${e.message}"
+                            ) // Llama al callback con error
                         }
                 }
             }
+            .addOnFailureListener { e ->
+                // Error al buscar en trabajadores
+                Toast.makeText(this, "Error al buscar trabajador: ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+                onResult(
+                    false,
+                    "Error al buscar trabajador: ${e.message}"
+                ) // Llama al callback con error
+            }
     }
 
+    // Función para verificar dispositivos vinculados e intentar el login.
+// Acepta un callback para reportar el resultado final de la operación.
     private fun verificarDispositivosYLogin(
+        tipo_obtenido: String,
         uid: String,
         correo: String,
         contraseña: String,
-        tipo: String
+        tipo: String,
+        onResult: (Boolean, String?) -> Unit // Agregado el callback aquí
     ) {
         val db = FirebaseFirestore.getInstance()
 
@@ -109,14 +182,17 @@ class Login : AppCompatActivity() {
             .collection("vinculados")
             .get()
             .addOnSuccessListener { vinculados ->
-                if (vinculados.size() >= 4) {
+                if (vinculados.size() >= 4) { // Límite de 4 dispositivos vinculados
                     Toast.makeText(
                         this,
                         "Tiene 4 dispositivos vinculados con esta cuenta",
                         Toast.LENGTH_SHORT
                     ).show()
+                    onResult(
+                        false,
+                        "Límite de dispositivos excedido"
+                    ) // Llama al callback con error
                 } else {
-               
                     val dialog = AlertDialog.Builder(this)
                         .setTitle("Iniciando sesión")
                         .setMessage("Espere un momento...")
@@ -130,13 +206,33 @@ class Login : AppCompatActivity() {
                         .addOnSuccessListener { resultado ->
                             val endTime = System.currentTimeMillis()
                             val duration = endTime - startTime
-
                             Handler(Looper.getMainLooper()).postDelayed({
                                 dialog.dismiss()
                             }, duration)
 
                             val user = resultado.user
-                            constantes_vinculados.agregar_vinculado(user!!.uid, this)
+                            if (user != null) { // Asegúrate de que el usuario no sea nulo
+                                constantes_vinculados.agregar_vinculado(
+                                    user.uid,
+                                    this,
+                                    tipo_obtenido
+                                )
+                                // Si agregar_vinculado es asíncrono y su éxito es el final,
+                                // podrías necesitar otro callback aquí.
+                                // Por ahora, asumimos que si llega aquí, el login es un éxito para el callback.
+                                onResult(true, null) // Llama al callback con éxito
+                            } else {
+                                dialog.dismiss()
+                                Toast.makeText(
+                                    this,
+                                    "Error: Usuario nulo después del inicio de sesión.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onResult(
+                                    false,
+                                    "Usuario nulo después del inicio de sesión"
+                                ) // Llama al callback con error
+                            }
                         }
                         .addOnFailureListener { e ->
                             dialog.dismiss()
@@ -145,8 +241,24 @@ class Login : AppCompatActivity() {
                                 "Error al iniciar sesión: ${e.message}",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            onResult(
+                                false,
+                                "Error al iniciar sesión: ${e.message}"
+                            ) // Llama al callback con error
                         }
                 }
+            }
+            .addOnFailureListener { e ->
+                // Error al obtener la colección de vinculados
+                Toast.makeText(
+                    this,
+                    "Error al verificar vinculados: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                onResult(
+                    false,
+                    "Error al verificar vinculados: ${e.message}"
+                ) // Llama al callback con error
             }
     }
 

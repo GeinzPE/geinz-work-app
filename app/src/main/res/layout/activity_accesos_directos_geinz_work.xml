@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work">
+
+    <LinearLayout
+        android:layout_margin="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:textSize="20sp"
+            style="@style/TextoModoOScuroColor"
+            android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Activa accesos rápidos y navega Geinz Work a tu manera" />
+
+        <TextView
+            android:textSize="15sp"
+            style="@style/TextoModoOScuroColor"
+            android:fontFamily="@font/fuente_para_texto_special_gothic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Elige tus funciones favoritas y crea accesos directos para llegar a ellas más rápido, cuando más lo necesites." />
+
+
+        <include
+            android:id="@+id/panel_publicaciones"
+            layout="@layout/include_accesos_directos" />
+
+        <include
+            android:id="@+id/qr_trabajador"
+            layout="@layout/include_accesos_directos" />
+
+        <include
+            android:id="@+id/dispositivos_vinculados"
+            layout="@layout/include_accesos_directos" />
+
+        <include
+            android:id="@+id/preview_cuenta"
+            layout="@layout/include_accesos_directos" />
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

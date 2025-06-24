@@ -7,20 +7,26 @@ import android.os.Looper
 import android.text.SpannableString
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ReportFragment.Companion.reportFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_dispo_vinculados
+import com.example.geinzwork.constantesGeneral.PinShortcut_general
+import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.constantesGeneral.constantes_vinculados.encontrarUser
 import com.example.geinzwork.constantesGeneral.constantes_vinculados.obtenerAndroidID
 import com.example.geinzwork.dataclass.dataclass_dispo_vinculados
+import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adaptadorReview
@@ -51,8 +57,65 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        obtener_dispositivos_vinculados()
-        confSwipe()
+        if (firebaseAuth.currentUser != null) {
+            binding.swipe.isVisible = true
+            Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
+            obtener_dispositivos_vinculados()
+            confSwipe()
+            binding.sinRegistro.isVisible = false
+        } else {
+            binding.sinRegistro.isVisible = true
+            binding.swipe.isVisible = false
+            binding.cargaDispo.isVisible = false
+            binding.iniciarSeccion.setOnClickListener {
+                val vista = Intent(this, Login::class.java).apply {
+                    putExtra("dato", "dispositivos")
+                }
+                startActivity(vista)
+            }
+        }
+        binding.popup.setOnClickListener {
+            popup()
+        }
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (firebaseAuth.currentUser != null) {
+            binding.swipe.isVisible = true
+            Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
+            obtener_dispositivos_vinculados()
+            confSwipe()
+            binding.sinRegistro.isVisible = false
+        } else {
+            binding.sinRegistro.isVisible = true
+            binding.swipe.isVisible = false
+            binding.cargaDispo.isVisible = false
+            binding.iniciarSeccion.setOnClickListener {
+                val vista = Intent(this, Login::class.java).apply {
+                    putExtra("dato", "dispositivos")
+                }
+                startActivity(vista)
+            }
+        }
+
+    }
+
+    private fun popup() {
+        val popup = PopupMenu(this, binding.popup)
+        popup.menu.add(Menu.NONE, 1, 1, "Crear acceso directo")
+        popup.show()
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> {
+                    PinShortcut_general.vinculados_accesoDirecto_panel(this)
+                    true
+                }
+
+                else -> true
+            }
+        }
     }
 
     private fun obtener_dispositivos_vinculados() {
@@ -103,8 +166,10 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 binding.LinealCargaDispo.isVisible = false
                                 binding.swipe.isVisible = true
                             }, duration)
+
                             inicializarRecicle()
                         } else {
+
                             binding.noDispositivo.isVisible = true
                             binding.recicleDispositivos.isVisible = false
                             binding.LinealCargaDispo.isVisible = false

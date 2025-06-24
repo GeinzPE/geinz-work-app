@@ -1,5 +1,6 @@
 package com.example.geinzwork.constantesGeneral
 
+import android.R
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -99,7 +100,7 @@ object constantes_vinculados {
     }
 
 
-    fun agregar_vinculado(idRegistrado: String, context: Context) {
+    fun agregar_vinculado(idRegistrado: String, context: Context,tipo_directo:String) {
         val dispositivo = "${Build.MANUFACTURER} ${Build.MODEL}"
         val androidId = obtenerAndroidID(context)
 
@@ -142,9 +143,20 @@ object constantes_vinculados {
                                 Toast.LENGTH_SHORT
                             ).show()
 
-                            val intent = Intent(context, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            context.startActivity(intent)
+                            when(tipo_directo){
+                                "directo"->{
+                                    val intent = Intent(context, MainActivity::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    context.startActivity(intent)
+                                }
+                                "regreso"->{
+                                    if (context is Activity) {
+                                        context.onBackPressed()
+                                    }
+                                }
+
+                            }
+
                         }
                         .addOnFailureListener { e ->
                             Log.e("ERROR", "Error al subir dispositivo vinculado", e)

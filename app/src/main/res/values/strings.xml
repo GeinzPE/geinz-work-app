@@ -456,4 +456,12 @@
     <string name="texto_numero">Actualiza tu número y guarda los cambios para verlo reflejado.</string>
     <string name="texto_descripcion">Edita tu descripción de trabajo y guarda los cambios para verlo reflejado.</string>
 
+    <string name="request_pin_shortcut_sent">Solicitud para fijar acceso directo enviada para \'%1$s\'</string>
+    <string name="launcher_not_support_pin_shortcut">Tu launcher no soporta fijar accesos directos directamente.</string>
+    <string name="android_version_not_support_pin_shortcut">Tu versión de Android no soporta la fijación de accesos directos (se requiere Android 8.0+).</string>
+    <string name="my_feature_short_label">Mi Función</string>
+    <string name="my_feature_long_label">Abrir la función especial de mi app</string>
+    <string name="my_tasks_short_label">Mis Tareas</string>
+    <string name="my_tasks_long_label">Ver todas mis tareas pendientes</string>
+    <string name="open_app_shortcut_long_label">Abrir la aplicación GeinzWork rápidamente</string>
 </resources>
