@@ -326,7 +326,7 @@
         <activity android:name=".vistaTrabajador.vista_CategoriasT" />
         <activity
             android:name=".vistaTrabajador.vistaTrabajador"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".caracteristicaTrabajo"
             android:exported="false"

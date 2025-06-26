@@ -1,20 +1,34 @@
 package com.geinzz.geinzwork.servicios_geinz
 
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import com.example.geinzwork.constantesGeneral.Variables
+import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapterViewPager
+import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.databinding.ActivityServiciosGeinzBinding
+import com.geinzz.geinzwork.fragmentos.addReview
+import com.geinzz.geinzwork.fragmentos.cuenta_verificada
+import com.geinzz.geinzwork.fragmentos.info
+import com.geinzz.geinzwork.fragmentos.review
+import com.geinzz.geinzwork.vistaTiendas.Fragment_trabajaConNosotros_tienda
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class serviciosGeinz : AppCompatActivity() {
     private lateinit var binding: ActivityServiciosGeinzBinding
     lateinit var bottomSheet: BottomSheetDragHandleView
+    private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
     private val categoriasTiendas = ArrayList<String>()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,16 +42,61 @@ class serviciosGeinz : AppCompatActivity() {
             insets
         }
 
-        val viewPage=binding.viewPager
-        val tableLayour=binding.tabLayout
+        firebaseAuth = FirebaseAuth.getInstance()
+        if (firebaseAuth.currentUser != null) {
+            val viewPage = binding.viewPager
+            val tableLayour = binding.tabLayout
+            binding.textAboveTabLayout.isVisible = true
+            tableLayour.isVisible = true
+            viewPage.isVisible = true
+            binding.sinRegistro.isVisible = false
+            val adapter = adapterViewPager(supportFragmentManager)
+            adapter.addFragmet(inicio_servicios_fragment(), "Servicios")
+            adapter.addFragmet(servicios_activos(), "Servicios activos")
+            viewPage.adapter = adapter
+            tableLayour.setupWithViewPager(viewPage)
+        } else {
+            binding.sinRegistro.isVisible = true
+            binding.viewPager.isVisible = false
+            binding.tabLayout.isVisible = false
+            binding.textAboveTabLayout.isVisible = false
+            binding.iniciarSeccion.setOnClickListener {
+                val vista = Intent(this, Login::class.java).apply {
+                    putExtra("dato", "dispositivos")
+                }
+                startActivity(vista)
+            }
+        }
 
-        val adapter = adapterViewPager(supportFragmentManager)
-        adapter.addFragmet(inicio_servicios_fragment(), "Servicios")
-        adapter.addFragmet(servicios_activos(),"Servicios activos")
+    }
 
-        viewPage.adapter=adapter
-        tableLayour.setupWithViewPager(viewPage)
+    override fun onResume() {
+        super.onResume()
+        if (firebaseAuth.currentUser != null) {
+            val viewPage = binding.viewPager
+            val tableLayour = binding.tabLayout
+            binding.textAboveTabLayout.isVisible = true
+            tableLayour.isVisible = true
+            viewPage.isVisible = true
+            binding.sinRegistro.isVisible = false
+            val adapter = adapterViewPager(supportFragmentManager)
+            adapter.addFragmet(inicio_servicios_fragment(), "Servicios")
+            adapter.addFragmet(servicios_activos(), "Servicios activos")
 
+            viewPage.adapter = adapter
+            tableLayour.setupWithViewPager(viewPage)
+        } else {
+            binding.sinRegistro.isVisible = true
+            binding.viewPager.isVisible = false
+            binding.tabLayout.isVisible = false
+            binding.textAboveTabLayout.isVisible = false
+            binding.iniciarSeccion.setOnClickListener {
+                val vista = Intent(this, Login::class.java).apply {
+                    putExtra("dato", "dispositivos")
+                }
+                startActivity(vista)
+            }
+        }
     }
 
 }

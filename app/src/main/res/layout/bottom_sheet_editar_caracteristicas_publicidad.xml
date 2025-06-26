@@ -1,154 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    tools:context="com.example.geinzwork.crear_publicacion_productos_trabajadores">
-
-    <LinearLayout
-        android:id="@+id/lineal_publicando"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginBottom="10dp" />
-
-        <TextView
-            style="@style/TextoModoOScuroColor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Creando publicacion"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
+    android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll"
+       android:id="@+id/linealPrinciapl"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginHorizontal="5dp"
-        android:padding="5dp"
-        android:scrollbars="none"
-        android:visibility="visible">
+        android:layout_marginHorizontal="10dp"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <RelativeLayout
+            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+                android:id="@+id/cerrar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:layout_gravity="center"
-                    android:fontFamily="@font/anton_regular"
-                    android:text="Agrega productos en Venta"
-                    android:textAllCaps="true"
-                    android:textSize="20sp" />
-
-                <ImageView
-                    android:id="@+id/popup"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_marginLeft="10dp"
-                    android:src="@drawable/baseline_more_vert_24"
-                    tools:ignore="InvalidId" />
-            </RelativeLayout>
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="8dp" />
 
 
             <TextView
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="¡Crea tus publicaciones y muestra a todos tus trabajos recientes! Comparte las tareas que has realizado últimamente a través de Geinz."
-                android:textSize="12sp" />
+                android:layout_marginBottom="10dp"
+                android:text="Edita los apartados de tu publicacion"
+                android:textSize="25sp"
+                android:textStyle="bold" />
 
-            <HorizontalScrollView
-                android:id="@+id/horizontalScrollView"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fillViewport="true"
-                android:scrollbars="none">
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:id="@+id/layout_imagenes"
+                <TextView
+                    style="@style/TextoModoOScuroColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="8dp">
+                    android:text="Id Publicacion : "
+                    android:textSize="15sp" />
 
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_1"
-                        android:layout_width="300dp"
-                        android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/agregar_imagen"
-                        android:visibility="visible"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+                <TextView
+                    android:id="@+id/id_publicacion"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textSize="15sp" />
 
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_2"
-                        android:layout_width="300dp"
-                        android:layout_height="200dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/agregar_imagen"
-                        android:visibility="gone"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_3"
-                        android:layout_width="300dp"
-                        android:layout_height="200dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/agregar_imagen"
-                        android:visibility="gone"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_4"
-                        android:layout_width="300dp"
-                        android:layout_height="200dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/agregar_imagen"
-                        android:visibility="gone"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_5"
-                        android:layout_width="300dp"
-                        android:layout_height="200dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/agregar_imagen"
-                        android:visibility="gone"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-                    <!-- Puedes agregar más si quieres -->
-
-                </LinearLayout>
-            </HorizontalScrollView>
-
+                <ImageView
+                    android:id="@+id/copiar_id"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/baseline_content_copy_24" />
+            </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/titulo_publicacion_pr"
@@ -170,6 +86,7 @@
                     android:paddingLeft="10dp" />
 
             </com.google.android.material.textfield.TextInputLayout>
+
 
             <TextView
                 android:id="@+id/catSelcionado"
@@ -274,7 +191,6 @@
 
             </LinearLayout>
 
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/stok"
                 android:layout_width="match_parent"
@@ -295,7 +211,6 @@
                     android:text="0" />
 
             </com.google.android.material.textfield.TextInputLayout>
-
 
             <TextView
                 style="@style/TextoModoOScuroColor"
@@ -321,77 +236,6 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <LinearLayout
-                android:id="@+id/linealVistaPrevia_apartado"
-                style="@style/RoundTrabajadoresBG"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="10dp"
-                android:visibility="gone">
-
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:gravity="center"
-                    android:text="Vista previa de tus caracterticas"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-
-                <TextView
-                    android:id="@+id/vistra_previa_descripciontitulo"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="5dp"
-                    android:text="Vista previa"
-                    android:textSize="17sp" />
-
-                <TextView
-                    android:id="@+id/vistra_previa_descripcion"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="15dp"
-                    android:text="Vista previa"
-                    android:textSize="15sp"/>
-
-
-
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:text="NOTA: Puedes agregar una imagen referencial para que tenga un apartado de caracteriticas mas atractivo" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/img_subir"
-                    android:layout_width="match_parent"
-                    android:layout_height="400dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/agregar_imagen_cuadrado"
-                    android:visibility="gone"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/subir"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Agregar Caracteristicas" />
-
-            <Button
-                android:id="@+id/campos_Editar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Editar campos"
-                android:visibility="gone" />
 
             <TextView
                 style="@style/TextoModoOScuroColor"
@@ -534,7 +378,7 @@
                         android:layout_height="wrap_content"
                         android:text="Meses" />
 
-                     <RadioButton
+                    <RadioButton
                         android:id="@+id/years"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -547,7 +391,6 @@
                         android:text="dias" />
                 </RadioGroup>
             </LinearLayout>
-
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/agregar_hastags"
@@ -668,100 +511,40 @@
                     android:text="Todos" />
             </LinearLayout>
 
-            <TextView
-                style="@style/TextoModoOScuroColor"
+            <Button
+                android:id="@+id/guardar_cambios"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Metodos de pago y entrega"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:text="guardar cambios" />
 
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:orientation="vertical">
-
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Metodos de pago" />
-
-                <TextView
-                    android:id="@+id/metodo_pago_select"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone" />
-
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chips_pagos"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:selectionRequired="true"
-                        app:singleSelection="true" />
-
-                </HorizontalScrollView>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:orientation="vertical">
-
-                <TextView
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Metodo de entrega" />
-
-                <TextView
-                    android:id="@+id/metodo_entrega_select"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone" />
-
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chips_entregas"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:selectionRequired="true"
-                        app:singleSelection="true" />
-
-                </HorizontalScrollView>
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/publicar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounder_btn_vtrajador"
-                    android:text="Publicar"
-                    android:textColor="@color/white" />
-
-            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-</RelativeLayout>
+
+    <LinearLayout
+
+        android:id="@+id/carga_contenido_actuliazr"
+        android:layout_marginVertical="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textocargaactualiza"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+            android:text="Actualizando contenido"
+            android:layout_marginBottom="10dp"
+            android:textSize="19sp" />
+
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+    </LinearLayout>
+
+
+</LinearLayout>

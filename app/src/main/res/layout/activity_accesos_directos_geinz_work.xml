@@ -48,6 +48,12 @@
         <include
             android:id="@+id/preview_cuenta"
             layout="@layout/include_accesos_directos" />
+
+
+        <include
+            android:id="@+id/servicios_geinz"
+            layout="@layout/include_accesos_directos" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

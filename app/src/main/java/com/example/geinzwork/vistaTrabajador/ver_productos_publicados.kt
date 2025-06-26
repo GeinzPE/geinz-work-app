@@ -5,42 +5,64 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
+import android.graphics.Typeface
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextWatcher
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_pbl_vr_tb_recientes
+import com.example.geinzwork.constantesGeneral.constantes_productos_publicados
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
+import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
 import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityVerProductosPublicadosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
+import com.geinzz.geinzwork.databinding.BottomSheetConfiguracionDescripcionPrVrBinding
+import com.geinzz.geinzwork.databinding.BottomSheetEditarCaracteristicasPublicidadBinding
+import com.geinzz.geinzwork.databinding.BottomSheetEditarProductoBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMinimoMaxFiltradoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlin.math.roundToInt
 
 class ver_productos_publicados : AppCompatActivity() {
     private lateinit var binding: ActivityVerProductosPublicadosBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var adapter: adapter_pbl_vr_tb_recientes
     private lateinit var dialog: BottomSheetDialog
+    private var unidadGarantia: String = ""
+    private var descuento: Boolean = false
+    private val hashtagsGeneralesList = mutableListOf<String>()
     private val lista = mutableListOf<dataclas_trabajos_ralizados_verificados>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,14 +87,23 @@ class ver_productos_publicados : AppCompatActivity() {
         binding.crearAceso.setOnClickListener {
 
             // Define los detalles del acceso directo fijado que quieres crear
-            val shortcutId = "geinzwork_main_app_pinned_shortcut" // Un ID único para este acceso directo fijado
-            val shortLabel = getString(R.string.app_name) // Usa el nombre de tu app como etiqueta corta
+            val shortcutId =
+                "geinzwork_main_app_pinned_shortcut" // Un ID único para este acceso directo fijado
+            val shortLabel =
+                getString(R.string.app_name) // Usa el nombre de tu app como etiqueta corta
             val longLabel = getString(R.string.bienvenido) // Usa una etiqueta larga
             val targetActivity = MainActivity::class.java // La actividad que se abrirá
             val iconResId = R.drawable.ic_pinned_shortcut_prueva // El ícono de tu aplicación
 
             // Llama a la función para solicitar el acceso directo fijado
-            requestPinAppShortcut(this, shortcutId, shortLabel, longLabel, targetActivity, iconResId)
+            requestPinAppShortcut(
+                this,
+                shortcutId,
+                shortLabel,
+                longLabel,
+                targetActivity,
+                iconResId
+            )
         }
 
         handleIncomingIntent(intent)
@@ -217,7 +248,11 @@ class ver_productos_publicados : AppCompatActivity() {
             val shortcutAction = it.getStringExtra("shortcut_action")
             when (shortcutAction) {
                 "open_feature_X" -> {
-                    Toast.makeText(this, "Abriendo Característica X desde acceso directo", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Abriendo Característica X desde acceso directo",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     // Aquí podrías navegar a un Fragment, o iniciar una nueva Activity
                     // Por ejemplo: supportFragmentManager.beginTransaction().replace(R.id.fragment_container, FeatureXFragment()).commit()
                 }
@@ -264,7 +299,8 @@ class ver_productos_publicados : AppCompatActivity() {
                     .setIntent(pinnedShortcutIntent) // Aquí se pasaba el Intent sin acción
                     .build()
 
-                val pinnedShortcutCallbackIntent = shortcutManager.createShortcutResultIntent(pinShortcutInfo)
+                val pinnedShortcutCallbackIntent =
+                    shortcutManager.createShortcutResultIntent(pinShortcutInfo)
                 val successCallback = PendingIntent.getBroadcast(
                     context,
                     0,
@@ -276,7 +312,10 @@ class ver_productos_publicados : AppCompatActivity() {
 
                 Toast.makeText(
                     context,
-                    getString(R.string.request_pin_shortcut_sent, shortLabel), // Asumiendo que has corregido el string resource
+                    getString(
+                        R.string.request_pin_shortcut_sent,
+                        shortLabel
+                    ), // Asumiendo que has corregido el string resource
                     Toast.LENGTH_LONG
                 ).show()
 
@@ -295,6 +334,7 @@ class ver_productos_publicados : AppCompatActivity() {
             ).show()
         }
     }
+
     private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
         lista.clear()
         Toast.makeText(
@@ -653,7 +693,6 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
             }
 
-
             if (binding.todos.isChecked) {
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
@@ -692,6 +731,13 @@ class ver_productos_publicados : AppCompatActivity() {
                         "publicados",
                         "solo_seguidores", "todos"
                     )
+                }
+                editar.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_editar_campos(item.id_publicacion.toString())
+                    dialog.show()
+
+
                 }
             }
             if (binding.privado.isChecked) {
@@ -736,7 +782,7 @@ class ver_productos_publicados : AppCompatActivity() {
 
                 }
                 editar.setOnClickListener {
-//                    editar_publicaciones(item.id_publicacion.toString(), "privado")
+                    Toast.makeText(this, "editamos desde publicados", Toast.LENGTH_SHORT).show()
                 }
             }
             if (binding.soloSeguidores.isChecked) {
@@ -783,7 +829,9 @@ class ver_productos_publicados : AppCompatActivity() {
                     vista_previa_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
                 editar.setOnClickListener {
-//                    editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
+                    Toast.makeText(this, "editamos desde solo publicados", Toast.LENGTH_SHORT)
+                        .show()
+
                 }
 
             }
@@ -1423,4 +1471,707 @@ class ver_productos_publicados : AppCompatActivity() {
         recycle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recycle.adapter = adapter
     }
+
+    private fun bottomSheet_editar_campos(id_publicacion: String) {
+        val bottomSheet = BottomSheetEditarProductoBinding.inflate(LayoutInflater.from(this))
+        val view = bottomSheet.root
+
+        bottomSheet.editar.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottom_sheet_editar_campos_publicidad(id_publicacion)
+            dialog.show()
+
+        }
+        bottomSheet.editarCaracterisitcas.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            mostrarBottomSheetDescripcion(id_publicacion)
+            dialog.show()
+        }
+        dialog.setContentView(view)
+    }
+
+    private fun bottom_sheet_editar_campos_publicidad(id_publicacion: String) {
+
+        val bottomSheet = BottomSheetEditarCaracteristicasPublicidadBinding.inflate(LayoutInflater.from(this))
+        val view = bottomSheet.root
+
+        bottomSheet.idPublicacion.text = id_publicacion
+        bottomSheet.copiarId.setOnClickListener {
+            constantestextos_general.copiarTexto_portapapeles(bottomSheet.idPublicacion, this)
+        }
+        bottomSheet.cargaContenidoActuliazr.isVisible=true
+        bottomSheet.linealPrinciapl.isVisible=false
+bottomSheet.textocargaactualiza.text="Cargando datos....."
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("productos_venta")
+            .document("publicados").collection("publicados").document(id_publicacion)
+        val tiempoInicio = System.currentTimeMillis()
+        db.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotal = tiempoFin - tiempoInicio
+            Handler(Looper.getMainLooper()).postDelayed({
+              bottomSheet.cargaContenidoActuliazr.isVisible=false
+                bottomSheet.linealPrinciapl.isVisible=true
+            }, tiempoTotal) // 2000 ms = 2 segundos
+            if (res.exists()) {
+                val data = res.data
+                val titulo = data?.get("titulo") as? String ?: ""
+                val condicionProducto = data?.get("condicion_producto") as? String ?: ""
+                val categoriaProducto = data?.get("categoria_producto") as? String ?: ""
+                val nombre = data?.get("nombre") as? String ?: ""
+                val stok = data?.get("stok") as? String ?: ""
+                val precio = (data?.get("precio") as? Number)?.toInt() ?: 0
+                val hashtagsGenerales = data?.get("hashtags_generales") as? List<String> ?: emptyList()
+                val masInformacion = data?.get("mas_informacio") as? String ?: ""
+                val visibilidad = data?.get("visivilidad") as? String ?: ""
+                val garantiaTexto = data?.get("garantia") as? String ?: ""
+                val marca = data?.get("marca") as? String ?: ""
+                val modelo = data?.get("modelo") as? String ?: ""
+                val subcategori_producto = data?.get("subcategori_producto") as? String ?: ""
+                val descuento = data?.get("descuento") as? Boolean ?: false
+                val precioDescuento = (data?.get("precio_descuento") as? Number)?.toInt() ?: 0
+                val categoria_producto = data?.get("categoria_producto") as? String ?: ""
+                val localidadUser = data?.get("localidadUser") as? String ?: ""
+
+                bottomSheet.tituloPublicacionPrED.setText(titulo)
+                bottomSheet.subcategoriaProducto.setText(categoriaProducto)
+                bottomSheet.catSelcionado.text = categoria_producto
+                bottomSheet.nombreProductoED.setText(nombre)
+                bottomSheet.stokED.setText(stok)
+                bottomSheet.condicionPrED.setText(condicionProducto)
+                bottomSheet.precioProductoED.setText(precio.toString())
+                bottomSheet.agregarHastagsED.setText(hashtagsGenerales.joinToString(", "))
+                bottomSheet.masInformacionED.setText(masInformacion)
+                bottomSheet.mostrarPublicacionPara.setText(visibilidad)
+                bottomSheet.hayGarantiaProductoED.setText(garantiaTexto)
+                bottomSheet.precioNuevoDescuentoPrED.setText(precioDescuento.toString())
+                bottomSheet.agregaUbiED.setText(localidadUser)
+
+                var SwitchSihay_garantia = bottomSheet.siHayGarantia
+                SwitchSihay_garantia.isChecked = garantiaTexto.isNotEmpty()
+                bottomSheet.linealGarantia.isVisible = SwitchSihay_garantia.isChecked
+
+                if (garantiaTexto.isNotEmpty()) {
+                    val partes = garantiaTexto.split(" ")
+                    if (partes.size >= 2) {
+                        val cantidad = partes[0]
+                        val unidad = partes[1].lowercase()
+                        bottomSheet.hayGarantiaProductoED.setText(cantidad)
+                        when (unidad) {
+                            "mes", "meses" -> bottomSheet.meses.isChecked = true
+                            "año", "años" -> bottomSheet.years.isChecked = true
+                            "día", "días" -> bottomSheet.dias.isChecked = true
+                        }
+                    }
+                }
+
+                bottomSheet.linealGarantia.visibility = if (SwitchSihay_garantia.isChecked) View.VISIBLE else View.GONE
+                SwitchSihay_garantia.setOnCheckedChangeListener { _, isChecked ->
+                    bottomSheet.linealGarantia.visibility = if (isChecked) View.VISIBLE else View.GONE
+                    if (!isChecked) {
+                        bottomSheet.hayGarantiaProductoED.setText("")
+                        bottomSheet.radioGrupPlazoRG.clearCheck()
+                    }
+                }
+
+                bottomSheet.siHayDescuento.isChecked = descuento
+                bottomSheet.precioNuevoDescuentoPr.visibility = if (descuento) View.VISIBLE else View.GONE
+                bottomSheet.siHayDescuento.setOnCheckedChangeListener { _, isChecked ->
+                    bottomSheet.precioNuevoDescuentoPr.visibility = if (isChecked) View.VISIBLE else View.GONE
+                    if (!isChecked) {
+                        bottomSheet.precioNuevoDescuentoPrED.setText("")
+                    }
+                }
+
+                val mostrarMarcaModelo = marca.isNotEmpty() || modelo.isNotEmpty()
+                bottomSheet.layoutNombreMarca.isVisible = mostrarMarcaModelo
+                if (mostrarMarcaModelo) {
+                    bottomSheet.marcaProductoED.setText(marca)
+                    bottomSheet.modeloProductoED.setText(modelo)
+                }
+
+                val SwitchUbi = bottomSheet.agregaUbicaciones
+                SwitchUbi.isChecked = localidadUser.isNotEmpty()
+                bottomSheet.selecionLocalidad.isVisible = SwitchUbi.isChecked
+                SwitchUbi.setOnCheckedChangeListener { _, isChecked ->
+                    bottomSheet.selecionLocalidad.isVisible = isChecked
+                }
+
+                constantes_productos_publicados.obtener_estados_productos(this, bottomSheet.condicionPrED)
+                constantesDatosUsuarioTienda.obtnerLocalidades(bottomSheet.agregaUbiED)
+                constantesCarrito.setearDatosUsuario { nombre, numero, localid, apellido ->
+                    bottomSheet.agregaUbiED.setText(localid)
+                    constantesDatosUsuarioTienda.obtnerLocalidades(bottomSheet.agregaUbiED)
+
+                }
+
+                bottomSheet.mostrarPublicacionPara.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    constantes_productos_publicados.mostrar_dialog_para(
+                        this, dialog, bottomSheet.mostrarPublicacionPara.text.toString()
+                    ) { selt ->
+                        bottomSheet.mostrarPublicacionPara.text = selt
+                    }
+                    dialog.show()
+                }
+
+                bottomSheet.subcategoriaProducto.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    constantes_productos_publicados.agregarCategorias(
+                        dialog,
+                        this,
+                        bottomSheet.layoutNombreMarca,
+                        bottomSheet.marcaProductoED,
+                        bottomSheet.modeloProductoED,
+                        bottomSheet.subcategoriaProducto,
+                        bottomSheet.catSelcionado
+                    )
+                    dialog.show()
+                }
+
+                bottomSheet.agregarHastagsED.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    constantes_productos_publicados.obtener_hastags_generales(
+                        bottomSheet.agregarHastagsED,
+                        this,
+                        hashtagsGeneralesList,
+                        dialog
+                    )
+                    dialog.show()
+                }
+
+                bottomSheet.radioGrupPlazoRG.setOnCheckedChangeListener { _, checkedId ->
+                    unidadGarantia = when (checkedId) {
+                        R.id.meses -> "mes"
+                        R.id.years -> "año"
+                        R.id.dias -> "día"
+                        else -> ""
+                    }
+                }
+
+                bottomSheet.guardarCambios.setOnClickListener {
+                    bottomSheet.cargaContenidoActuliazr.isVisible=true
+                    bottomSheet.linealPrinciapl.isVisible=false
+                    bottomSheet.textocargaactualiza.text="Actualizando contenido..."
+                    if (!validar_campos(bottomSheet)) {
+                        Toast.makeText(this, "Por favor, completa todos los campos obligatorios", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    val hashtagsGeneralesFinal = bottomSheet.agregarHastagsED.text.toString()
+                        .split(",")
+                        .map { it.trim() }
+                        .filter { it.isNotBlank() }
+
+                    val hasmap = hashMapOf<String, Any>(
+                        "titulo" to bottomSheet.tituloPublicacionPrED.text.toString(),
+                        "condicion_producto" to bottomSheet.condicionPrED.text.toString(),
+                        "categoria_producto" to bottomSheet.catSelcionado.text.toString(),
+                        "subcategori_producto" to bottomSheet.subcategoriaProducto.text.toString(),
+                        "localidadUser" to bottomSheet.agregaUbiED.text.toString(),
+                        "marca" to bottomSheet.marcaProductoED.text.toString(),
+                        "modelo" to bottomSheet.modeloProductoED.text.toString(),
+                        "hashtags_generales" to hashtagsGeneralesFinal,
+                        "nombre" to bottomSheet.nombreProductoED.text.toString(),
+                        "precio" to (bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0),
+                        "precioDelivery" to 5,
+                        "stok" to bottomSheet.stokED.text.toString(),
+                        "visivilidad" to bottomSheet.mostrarPublicacionPara.text.toString(),
+                        "mas_informacio" to bottomSheet.masInformacionED.text.toString()
+                    )
+
+                    // Garantía
+                    if (bottomSheet.siHayGarantia.isChecked) {
+                        val tiempo = bottomSheet.hayGarantiaProductoED.text.toString()
+                        val unidad = when {
+                            bottomSheet.meses.isChecked -> "mes"
+                            bottomSheet.years.isChecked -> "año"
+                            bottomSheet.dias.isChecked -> "día"
+                            else -> ""
+                        }
+                        if (tiempo.isNotEmpty() && unidad.isNotEmpty()) {
+                            val plural = if (tiempo.toIntOrNull() != 1) {
+                                if (unidad == "mes") "es" else "s"
+                            } else ""
+                            hasmap["garantia"] = "$tiempo $unidad$plural"
+                        }
+                    } else {
+                        hasmap["garantia"] = ""
+                    }
+
+                    // Descuento
+                    if (bottomSheet.siHayDescuento.isChecked) {
+                        val precioOriginal = bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0
+                        val precioDescuento = bottomSheet.precioNuevoDescuentoPrED.text.toString().toIntOrNull() ?: 0
+                        val descuentoAplicado = if (precioOriginal > 0 && precioDescuento < precioOriginal) {
+                            val descuentoCalculado = ((precioOriginal - precioDescuento).toDouble() / precioOriginal) * 100
+                            descuentoCalculado.roundToInt()
+                        } else {
+                            0
+                        }
+
+                        hasmap["cantidad_porcentaje_descuento"] = descuentoAplicado
+                        hasmap["precio_descuento"] = precioDescuento
+                        hasmap["descuento"] = true
+                    } else {
+                        hasmap["cantidad_porcentaje_descuento"] = FieldValue.delete()
+                        hasmap["precio_descuento"] = FieldValue.delete()
+                        hasmap["descuento"] = false
+                    }
+
+                    db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+                        Toast.makeText(this, "Cambios realizados correctamente", Toast.LENGTH_SHORT).show()
+                       dialog.dismiss()
+                    }.addOnFailureListener { e ->
+                        Toast.makeText(this, "Error al guardar los cambios: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            } else {
+                Toast.makeText(this, "No se encontró la publicación", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "Error al cargar datos: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e("Firestore", "Error al obtener datos: ", e)
+        }
+
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+
+    private fun mostrarBottomSheetDescripcion(
+        id_publicacion: String,
+    ) {
+        val bindingSheet =
+            BottomSheetConfiguracionDescripcionPrVrBinding.inflate(LayoutInflater.from(this))
+        val view = bindingSheet.root
+        bindingSheet.linealEdicion.isVisible = true
+        bindingSheet.idPublicacion.text = id_publicacion.toString()
+        bindingSheet.copiarId.setOnClickListener {
+            constantestextos_general.copiarTexto_portapapeles(
+                bindingSheet.idPublicacion,
+                this
+            )
+        }
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("productos_venta")
+            .document("publicados")
+            .collection("publicados")
+            .document(id_publicacion)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                // 1. Lista de descripciones
+                val descripcionLista =
+                    res.get("descripcion_texto_lista") as? List<String> ?: emptyList()
+                Log.d("Firestore", "descripcion_texto_lista: $descripcionLista")
+
+                // 2. Mapa: descripcion_texto
+                val descripcionTexto = res.get("descripcion_texto") as? Map<*, *>
+                val textoDescripcion = descripcionTexto?.get("texto_descripcion") as? String ?: ""
+                val textoMayus = descripcionTexto?.get("texto_mayus") as? String ?: ""
+                val textoEstilo = descripcionTexto?.get("texto_valor_style") as? String ?: ""
+                Log.d(
+                    "Firestore",
+                    "descripcion_texto: $textoDescripcion, mayus: $textoMayus, estilo: $textoEstilo"
+                )
+
+                // 3. Mapa: descripcion_titulo
+                val descripcionTitulo = res.get("descripcion_titulo") as? Map<*, *>
+                val tituloDescripcion =
+                    descripcionTitulo?.get("titulo_descripcion") as? String ?: ""
+                val tituloMayus = descripcionTitulo?.get("titulo_mayus") as? String ?: ""
+                val tituloEstilo = descripcionTitulo?.get("titulo_valor_style") as? String ?: ""
+                Log.d(
+                    "Firestore",
+                    "descripcion_titulo: $tituloDescripcion, mayus: $tituloMayus, estilo: $tituloEstilo"
+                )
+
+
+                if (tituloDescripcion != null && tituloDescripcion.isNotEmpty()) {
+                    Log.d("DEBUGsss", "Mostrar vista previa")
+                    mostrarVistaPrevia(bindingSheet)
+                } else {
+                    Log.d("DEBUGsss", "Ocultar vista previa")
+                    ocultarVistaPrevia(bindingSheet)
+                }
+                // Prellenar campos si hay datos
+                bindingSheet.tituloProductoED.setText(tituloDescripcion ?: "")
+                bindingSheet.AgregaDescipcionProductoED.setText(textoDescripcion ?: "")
+                bindingSheet.colocarBoldAgunasLetrasED.setText(
+                    descripcionLista?.joinToString(", ") ?: ""
+                )
+//                Log.d("vezllamada", "mayus titulo $mayus_minus , mayus de texto $mayus_minus_des")
+
+                // --- FIX FOR MAYUS/MINUS SELECTION ---
+
+                // Clear selection for title's capitalization options
+                bindingSheet.includeAgregarBoldTitulo.gurpoMayus.clearCheck()
+                when (tituloMayus?.lowercase()) {
+                    "mayuscula" -> bindingSheet.includeAgregarBoldTitulo.mayuscula.isChecked = true
+                    "minuscula" -> bindingSheet.includeAgregarBoldTitulo.minuscula.isChecked = true
+                    else -> {
+                        // Optionally, uncheck both if no valid option is provided
+                        // This ensures a clean slate if previous state was set
+                        bindingSheet.includeAgregarBoldTitulo.mayuscula.isChecked = false
+                        bindingSheet.includeAgregarBoldTitulo.minuscula.isChecked = false
+                    }
+                }
+
+                // Clear selection for description's capitalization options
+                bindingSheet.includeAgregarTextosCuales.gurpoMayus.clearCheck()
+                when (textoMayus?.lowercase()) {
+                    "mayuscula" -> bindingSheet.includeAgregarTextosCuales.mayusTxt.isChecked = true
+                    "minuscula" -> bindingSheet.includeAgregarTextosCuales.minusTxt.isChecked = true
+                    else -> {
+                        // Optionally, uncheck both if no valid option is provided
+                        bindingSheet.includeAgregarTextosCuales.mayusTxt.isChecked = false
+                        bindingSheet.includeAgregarTextosCuales.minusTxt.isChecked = false
+                    }
+                }
+
+                // --- Continue with the rest of your existing logic ---
+
+                // Also do this for bold/italic/underline options for the title
+                bindingSheet.includeAgregarBoldTitulo.grupoSubralladoTXT.clearCheck()
+                when (tituloEstilo?.lowercase()) {
+                    "bold" -> bindingSheet.includeAgregarBoldTitulo.bold.isChecked = true
+                    "cursiva" -> bindingSheet.includeAgregarBoldTitulo.cursiva.isChecked = true
+                    "subrayado" -> bindingSheet.includeAgregarBoldTitulo.subrallado.isChecked = true
+                    else -> {
+                        bindingSheet.includeAgregarBoldTitulo.bold.isChecked = false
+                        bindingSheet.includeAgregarBoldTitulo.cursiva.isChecked = false
+                        bindingSheet.includeAgregarBoldTitulo.subrallado.isChecked = false
+                    }
+                }
+
+                // Also do this for bold/italic/underline options for the description
+                bindingSheet.includeAgregarTextosCuales.grupoSubralladoTXT.clearCheck()
+                when (textoEstilo?.lowercase()) {
+                    "bold" -> bindingSheet.includeAgregarTextosCuales.bold.isChecked = true
+                    "cursiva" -> bindingSheet.includeAgregarTextosCuales.cursiva.isChecked = true
+                    "subrayado" -> bindingSheet.includeAgregarTextosCuales.subrallado.isChecked =
+                        true
+
+                    else -> {
+                        bindingSheet.includeAgregarTextosCuales.bold.isChecked = false
+                        bindingSheet.includeAgregarTextosCuales.cursiva.isChecked = false
+                        bindingSheet.includeAgregarTextosCuales.subrallado.isChecked = false
+                    }
+                }
+
+            } else {
+                Log.d("Firestore", "Documento no encontrado")
+            }
+        }
+
+        bindingSheet.tituloProductoED.addTextChangedListener(object : TextWatcher {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val texto = s?.toString()?.trim()
+                if (!texto.isNullOrEmpty()) {
+                    mostrarVistaPrevia(bindingSheet)
+                    actualizarTextoFormateado(bindingSheet)
+                } else {
+                    ocultarVistaPrevia(bindingSheet)
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+
+        bindingSheet.AgregaDescipcionProductoED.addTextChangedListener {
+            bindingSheet.textoDescripcion.text = it.toString()
+        }
+
+        bindingSheet.colocarBoldAgunasLetrasED.addTextChangedListener {
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+
+        // Checkboxes title (keep these as they are)
+        bindingSheet.includeAgregarBoldTitulo.bold.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.cursiva.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.subrallado.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.mayuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        bindingSheet.includeAgregarBoldTitulo.minuscula.setOnCheckedChangeListener { _, _ ->
+            actualizarTextoFormateado(bindingSheet)
+        }
+        // Checkboxes description (keep these as they are)
+        bindingSheet.includeAgregarTextosCuales.bold.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.cursiva.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.subrallado.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.mayusTxt.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+        bindingSheet.includeAgregarTextosCuales.minusTxt.setOnCheckedChangeListener { _, _ ->
+            actualizarVistaPreviaConNegritas(bindingSheet)
+        }
+
+        actualizarTextoFormateado(bindingSheet)
+        actualizarVistaPreviaConNegritas(bindingSheet)
+        dialog.setContentView(view)
+    }
+
+
+    fun mostrarVistaPrevia(bindingSheet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        bindingSheet.linealVistaPrevia.apply {
+            if (!isVisible) {
+                alpha = 0f
+                isVisible = true
+                animate()
+                    .alpha(1f)
+                    .setDuration(300)
+                    .start()
+            }
+        }
+    }
+
+    fun ocultarVistaPrevia(bindingSheet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        bindingSheet.linealVistaPrevia.animate()
+            .alpha(0f)
+            .setDuration(200)
+            .withEndAction {
+                bindingSheet.linealVistaPrevia.isVisible = false
+            }.start()
+    }
+
+    private fun actualizarTextoFormateado(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        var texto = binding_bottom_sheeet.tituloProductoED.text.toString()
+
+        // Convertir a mayúsculas o minúsculas si corresponde
+        texto = when {
+            binding_bottom_sheeet.includeAgregarBoldTitulo.mayuscula.isChecked -> texto.uppercase()
+            binding_bottom_sheeet.includeAgregarBoldTitulo.minuscula.isChecked -> texto.lowercase()
+            else -> texto
+        }
+
+        val spannable = SpannableString(texto)
+
+        // Aplicar estilo
+        when {
+            binding_bottom_sheeet.includeAgregarBoldTitulo.bold.isChecked -> {
+                spannable.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    0,
+                    texto.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            binding_bottom_sheeet.includeAgregarBoldTitulo.cursiva.isChecked -> {
+                spannable.setSpan(
+                    StyleSpan(Typeface.ITALIC),
+                    0,
+                    texto.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            binding_bottom_sheeet.includeAgregarBoldTitulo.subrallado.isChecked -> {
+                spannable.setSpan(
+                    UnderlineSpan(),
+                    0,
+                    texto.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+        }
+
+        binding_bottom_sheeet.previewTextTitulo.text = spannable
+    }
+
+
+    private fun actualizarVistaPreviaConNegritas(binding_bottom_sheeet: BottomSheetConfiguracionDescripcionPrVrBinding) {
+        var textoOriginal = binding_bottom_sheeet.AgregaDescipcionProductoED.text.toString()
+        val partesTexto = binding_bottom_sheeet.colocarBoldAgunasLetrasED.text.toString()
+            .split(",")
+            .map { it.trim() }
+
+        val spannableBuilder = SpannableStringBuilder(textoOriginal)
+
+        for (parte in partesTexto) {
+            if (parte.isEmpty()) continue
+
+            val start = spannableBuilder.indexOf(parte)
+            val end = start + parte.length
+
+            if (start != -1) {
+                // Aplicar mayúscula o minúscula
+
+                val textoTransformado = when {
+
+                    binding_bottom_sheeet.includeAgregarTextosCuales.mayusTxt.isChecked -> parte.uppercase()
+                    binding_bottom_sheeet.includeAgregarTextosCuales.minusTxt.isChecked -> parte.lowercase()
+                    else -> parte
+                }
+
+                // Reemplazar el texto encontrado por el texto transformado
+                spannableBuilder.replace(start, end, textoTransformado)
+
+                // Aplicar estilos después de reemplazar
+                when {
+                    binding_bottom_sheeet.includeAgregarTextosCuales.bold.isChecked -> {
+                        spannableBuilder.setSpan(
+                            StyleSpan(Typeface.BOLD),
+                            start,
+                            start + textoTransformado.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+
+                    binding_bottom_sheeet.includeAgregarTextosCuales.cursiva.isChecked -> {
+                        spannableBuilder.setSpan(
+                            StyleSpan(Typeface.ITALIC),
+                            start,
+                            start + textoTransformado.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+
+                    binding_bottom_sheeet.includeAgregarTextosCuales.subrallado.isChecked -> {
+                        spannableBuilder.setSpan(
+                            UnderlineSpan(),
+                            start,
+                            start + textoTransformado.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                }
+            }
+        }
+
+        binding_bottom_sheeet.textoDescripcion.text = spannableBuilder
+    }
+
+    private fun validar_campos(botto_shet: BottomSheetEditarCaracteristicasPublicidadBinding): Boolean {
+        var esValido = true
+
+        val titulo_producto = botto_shet.tituloPublicacionPrED
+        val modelo_producto = botto_shet.modeloProductoED
+        val marca_producto = botto_shet.marcaProductoED
+        val categoria_producto = botto_shet.subcategoriaProducto
+        val nombre_producto = botto_shet.nombreProductoED
+        val stok_producto = botto_shet.stokED
+        val condicion_producto = botto_shet.condicionPrED
+        val precioProducto = botto_shet.precioProductoED
+        val agregarhastags = botto_shet.agregarHastagsED
+        val mas_info = botto_shet.masInformacionED
+        val categoria_Selecionada = botto_shet.catSelcionado
+        val siHayDescuento = botto_shet.siHayDescuento
+        val precio_descuento = botto_shet.precioNuevoDescuentoPrED
+        val garantia = botto_shet.siHayGarantia
+        val hay_garantia = botto_shet.hayGarantiaProductoED
+        val ubicacion = botto_shet.agregaUbicaciones
+        val ubicacion_prd = botto_shet.agregaUbiED
+
+        val categoriasSinMarcaNiModelo = listOf(
+            "Juguetes y juegos",
+            "Arte y antigüedades",
+            "Hobbies y actividades",
+            "Ropa, calzado y accesorios",
+            "Muebles",
+            "Hogar y jardín",
+            "Construcción y materiales"
+        )
+        val categoriaSeleccionadaText = categoria_Selecionada.text.toString().trim()
+
+        fun validarCampoVacio(campo: EditText, mensaje: String) {
+            if (campo.text.toString().isBlank()) {
+                campo.error = mensaje
+                esValido = false
+            }
+        }
+
+        validarCampoVacio(titulo_producto, "Ingrese un título")
+        validarCampoVacio(categoria_producto, "Seleccione una categoría")
+        validarCampoVacio(nombre_producto, "Ingrese el nombre del producto")
+        validarCampoVacio(condicion_producto, "Ingrese la condición del producto")
+        validarCampoVacio(agregarhastags, "Seleccione al menos un hashtag")
+        validarCampoVacio(mas_info, "Ingrese información adicional")
+
+
+        // Validar marca y modelo si la categoría lo requiere
+        if (categoriaSeleccionadaText.isNotEmpty() &&
+            !categoriasSinMarcaNiModelo.contains(categoriaSeleccionadaText)
+        ) {
+            validarCampoVacio(marca_producto, "Ingrese la marca")
+            validarCampoVacio(modelo_producto, "Ingrese el modelo")
+        }
+
+        // Validar descuento
+        if (siHayDescuento.isChecked) {
+            validarCampoVacio(precio_descuento, "Ingrese el precio con descuento")
+            val precioOriginal = precioProducto.text.toString().toDoubleOrNull()
+            val precioConDescuento = precio_descuento.text.toString().toDoubleOrNull()
+
+            if (precioOriginal != null && precioConDescuento != null) {
+                if (precioConDescuento >= precioOriginal) {
+                    Toast.makeText(
+                        this,
+                        "El precio con descuento debe ser menor al precio original",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    precio_descuento.error = "Cambiar el valor"
+                    precio_descuento.requestFocus()
+                    esValido = false
+                }
+            } else {
+                Toast.makeText(this, "Precios inválidos", Toast.LENGTH_SHORT).show()
+                esValido = false
+            }
+        }
+
+        // Validar garantía
+        if (garantia.isChecked) {
+            validarCampoVacio(hay_garantia, "Ingrese la información de la garantía")
+        }
+
+        // Validar ubicación si es requerida
+        if (ubicacion.isChecked) {
+            validarCampoVacio(ubicacion_prd, "Ingrese la ubicación del producto")
+        }
+
+        // Validar stock
+        val stock = stok_producto.text.toString().toIntOrNull()
+        if (stock == null || stock <= 0) {
+            stok_producto.error = "El stock debe ser mayor a 0"
+            stok_producto.requestFocus()
+
+            esValido = false
+        }
+
+        // Validar precio original
+        val precio = precioProducto.text.toString().toIntOrNull()
+        if (precio == null || precio <= 0) {
+            precioProducto.error = "El precio debe ser mayor a 0"
+            precioProducto.requestFocus()
+            esValido = false
+        }
+
+        return esValido
+    }
+
 }
+
+

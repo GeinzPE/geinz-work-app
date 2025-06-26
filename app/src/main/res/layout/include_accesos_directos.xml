@@ -12,6 +12,7 @@
 
         <!-- ICONO -->
         <RelativeLayout
+            android:id="@+id/realative_icon"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"

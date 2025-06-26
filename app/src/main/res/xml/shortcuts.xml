@@ -54,4 +54,40 @@
             android:value="dispo_vinculados" />
     </shortcut>
 
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_pinned_shorcut_preview"
+        android:shortcutId="static_preview"
+        android:shortcutLongLabel="@string/my_feature_long_label"
+        android:shortcutShortLabel="@string/my_feature_short_label">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.example.geinzwork.vistaTrabajador.vistaTrabajador"
+            android:targetPackage="com.example.geinzwork" />
+
+        <extra
+            android:name="shortcut_type"
+            android:value="vista_previa" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_pinned_shorcit_servicios_geinz"
+        android:shortcutId="static_preview"
+        android:shortcutLongLabel="@string/my_feature_long_label"
+        android:shortcutShortLabel="@string/my_feature_short_label">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.example.geinzwork.servicios_geinz.serviciosGeinz"
+            android:targetPackage="com.example.geinzwork" />
+
+        <extra
+            android:name="shortcut_type"
+            android:value="servicio_geinz" />
+    </shortcut>
+
+
+
 </shortcuts>

@@ -117,6 +117,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
 
     }
+
     override fun onResume() {
         super.onResume()
 
@@ -163,7 +164,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         }
 
     }
-
 
 
     private fun popup() {
@@ -338,7 +338,9 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         bottoSheet_entrega.entregaProgramada.setOnCheckedChangeListener { _, isChecked ->
             entregaProgramada = isChecked
         }
+
         obtenerMetodosEntrega(bottoSheet_entrega)
+
         bottoSheet_entrega.CrearMetodo.setOnClickListener {
             crear_metodoEntrega(
                 delivery,
@@ -691,10 +693,22 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             if (res.exists()) {
                 val publicacionesActivas =
                     res.get("publicaciones_activas") as? Map<String, Map<String, Any>>
-                if (publicacionesActivas != null) {
 
-                    docNuevo.update("publicaciones_activas", publicacionesActivas)
-                        .addOnSuccessListener {
+                if (publicacionesActivas != null) {
+                    // Obtener lo que ya existe en el nuevo documento
+                    docNuevo.get().addOnSuccessListener { nuevoDoc ->
+                        val actuales =
+                            nuevoDoc.get("publicaciones_activas") as? Map<String, Map<String, Any>> ?: emptyMap()
+                        val combinados = actuales.toMutableMap()
+
+                        // Combinar los datos sin borrar los anteriores
+                        publicacionesActivas.forEach { (clave, valor) ->
+                            combinados[clave] = valor // reemplaza si ya existe esa clave
+                        }
+
+                        val updateMap = mapOf("publicaciones_activas" to combinados)
+
+                        docNuevo.set(updateMap, SetOptions.merge()).addOnSuccessListener {
                             verificar_Estado_metodo_pago(
                                 "metodos_entrega",
                                 idAnterior
@@ -705,12 +719,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                 ids.forEach { id ->
                                     val tipos = tiposPorId[id] ?: emptyList()
                                     val tipoPersonalEncontrado = tipos.firstOrNull {
-                                        it in listOf(
-                                            "publicados",
-                                            "archivados",
-                                            "eliminados",
-                                            "privado"
-                                        )
+                                        it in listOf("publicados", "archivados", "eliminados", "privado")
                                     }
 
                                     if (tipoPersonalEncontrado != null) {
@@ -747,12 +756,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                                     dialog.dismiss()
                                                 }
                                             }
-                                            .addOnFailureListener { e ->
-                                                Log.e(
-                                                    "error_cambio",
-                                                    "Error al actualizar en PERSONAL: $e"
-                                                )
-                                            }
                                     }
 
                                     val desactivados = listOf("archivados", "eliminados", "privado")
@@ -788,16 +791,9 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                                     dialog.dismiss()
                                                 }
                                             }
-                                            .addOnFailureListener { e ->
-                                                Log.e(
-                                                    "error_cambio",
-                                                    "Error al actualizar en GENERAL: $e"
-                                                )
-                                            }
                                     }
                                 }
 
-                                // Si no hay publicaciones que actualizar, eliminamos directamente
                                 if (ids.isEmpty()) {
                                     eliminarMetodo_pago_o_entrega(
                                         dialog,
@@ -813,11 +809,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                                     dialog.dismiss()
                                 }
                             }
+                        }.addOnFailureListener { e ->
+                            Log.e("DEBUG_COPIA", "Error al fusionar publicaciones: $e")
+                        }
+                    }.addOnFailureListener {
+                        Log.e("DEBUG_COPIA", "Error al obtener el doc nuevo: $it")
+                    }
 
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e("DEBUG_COPIA", "Error al pasar publicaciones: $e")
-                        }
                 } else {
                     Log.d("DEBUG_COPIA", "No hay publicaciones activas en el método anterior.")
                     eliminarMetodo_pago_o_entrega(dialog, binding, idAnterior, "metodos_entrega")
@@ -832,6 +830,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 Log.e("DEBUG_COPIA", "El documento anterior no existe.")
             }
         }
+
     }
 
     fun eliminarMetodo_pago_o_entrega(
@@ -871,13 +870,13 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         bottoSheet_entrega: BottomSheeetMetodoEntregaBinding,
     ) {
 
+        Toast.makeText(this, "entramos a campos editados", Toast.LENGTH_SHORT).show()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString())
             .collection("metodos_entrega").document(selecionado)
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
-
                 val data = res.data
                 val delivery = data?.get("delivery") as? Boolean ?: false
                 val coordinar = data?.get("coordinar") as? Boolean ?: false
@@ -935,7 +934,19 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 bottoSheet_entrega.CrearMetodo.isVisible = false
                 bottoSheet_entrega.GuardarCambios.isVisible = true
 
+
                 bottoSheet_entrega.GuardarCambios.setOnClickListener {
+                    val deliver_gratis_editar =
+                        when (bottoSheet_entrega.grupoEnvioGratis.checkedRadioButtonId) {
+                            R.id.si -> true
+                            R.id.no -> false
+                            else -> false
+                        }
+                    Toast.makeText(
+                        this,
+                        "guardamos los cambios con el $deliver_gratis_editar",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     if (bottoSheet_entrega.delivery.isChecked && bottoSheet_entrega.grupoEnvioGratis.checkedRadioButtonId == -1) {
                         Toast.makeText(
                             this,
@@ -1009,8 +1020,9 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                         "envioCourier" to bottoSheet_entrega.envioCourier.isChecked,
                         "entregaProgramada" to bottoSheet_entrega.entregaProgramada.isChecked,
                     )
+
                     if (bottoSheet_entrega.delivery.isChecked) {
-                        hashMap["datos_delivery"] = hashMapOf("gratis" to deliver_gratis)
+                        hashMap["datos_delivery"] = hashMapOf("gratis" to deliver_gratis_editar)
                     }
                     if (bottoSheet_entrega.lugaresEntrega.isChecked) {
                         val lugarTexto = bottoSheet_entrega.LugaresEntregaED.text.toString().trim()
@@ -1332,7 +1344,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             Log.d("error_guardad", "error al guardar $e")
         }
     }
-
 
 
     private fun setear_datos_includes() {

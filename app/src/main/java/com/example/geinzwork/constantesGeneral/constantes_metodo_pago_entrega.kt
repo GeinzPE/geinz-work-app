@@ -442,9 +442,11 @@ object constantes_metodo_pago_entrega {
     private fun pasar_metodos_pagosNuevo(
         binding: BotomSheetDialogMetodosPagoBinding,
         actual_select: String,
-        idAnterior: String, dialog: BottomSheetDialog,metodo_pago_o_entrega:String
+        idAnterior: String,
+        dialog: BottomSheetDialog,
+        metodo_pago_o_entrega: String
     ) {
-        firebaseAuth=FirebaseAuth.getInstance()
+        firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance()
         val trabajadorRef = db.collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -456,31 +458,35 @@ object constantes_metodo_pago_entrega {
 
         docAnterior.get().addOnSuccessListener { res ->
             if (res.exists()) {
-                val publicacionesActivas =
+                val publicacionesActivasAnterior =
                     res.get("publicaciones_activas") as? Map<String, Map<String, Any>>
-                if (publicacionesActivas != null) {
 
-                    docNuevo.update("publicaciones_activas", publicacionesActivas)
-                        .addOnSuccessListener {
-                            verificar_Estado_metodo_pago("metodos_pago",idAnterior) { cantidad, ids, tiposPorId ->
+                if (publicacionesActivasAnterior != null) {
+                    docNuevo.get().addOnSuccessListener { resNuevo ->
+                        val publicacionesActuales =
+                            resNuevo.get("publicaciones_activas") as? Map<String, Map<String, Any>> ?: emptyMap()
+
+                        val fusion = publicacionesActuales.toMutableMap()
+                        publicacionesActivasAnterior.forEach { (clave, valor) ->
+                            fusion[clave] = valor
+                        }
+
+                        val mapFinal = mapOf("publicaciones_activas" to fusion)
+
+                        docNuevo.set(mapFinal, SetOptions.merge()).addOnSuccessListener {
+                            verificar_Estado_metodo_pago("metodos_pago", idAnterior) { cantidad, ids, tiposPorId ->
                                 var tareasEsperadas = 0
                                 var tareasCompletadas = 0
 
                                 ids.forEach { id ->
                                     val tipos = tiposPorId[id] ?: emptyList()
                                     val tipoPersonalEncontrado = tipos.firstOrNull {
-                                        it in listOf(
-                                            "publicados",
-                                            "archivados",
-                                            "eliminados",
-                                            "privado"
-                                        )
+                                        it in listOf("publicados", "archivados", "eliminados", "privado")
                                     }
 
                                     if (tipoPersonalEncontrado != null) {
                                         tareasEsperadas++
-                                        val db_productos = FirebaseFirestore.getInstance()
-                                            .collection("Trabajadores_Usuarios_Drivers")
+                                        val db_productos = db.collection("Trabajadores_Usuarios_Drivers")
                                             .document("trabajadores")
                                             .collection("trabajadores")
                                             .document(firebaseAuth.uid.toString())
@@ -489,15 +495,13 @@ object constantes_metodo_pago_entrega {
                                             .collection(tipoPersonalEncontrado)
                                             .document(id)
 
-                                        val hasmap = hashMapOf<String, Any>(
-                                            "metodoPago" to actual_select
-                                        )
+                                        val hasmap = hashMapOf<String, Any>("metodoPago" to actual_select)
 
                                         db_productos.set(hasmap, SetOptions.merge())
                                             .addOnSuccessListener {
                                                 tareasCompletadas++
                                                 if (tareasCompletadas == tareasEsperadas) {
-                                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_pago")
+                                                    eliminarMetodo_pago_o_entrega(dialog, binding, idAnterior, "metodos_pago")
                                                     Toast.makeText(
                                                         binding.root.context,
                                                         "Método de pago eliminado correctamente",
@@ -507,10 +511,7 @@ object constantes_metodo_pago_entrega {
                                                 }
                                             }
                                             .addOnFailureListener { e ->
-                                                Log.e(
-                                                    "error_cambio",
-                                                    "Error al actualizar en PERSONAL: $e"
-                                                )
+                                                Log.e("error_cambio", "Error al actualizar en PERSONAL: $e")
                                             }
                                     }
 
@@ -519,21 +520,18 @@ object constantes_metodo_pago_entrega {
 
                                     if ("productos_publicaciones" in tipos && !estaDesactivado) {
                                         tareasEsperadas++
-                                        val db_productos_general = FirebaseFirestore.getInstance()
-                                            .collection("productos_publicaciones")
+                                        val db_productos_general = db.collection("productos_publicaciones")
                                             .document("producto")
                                             .collection("producto")
                                             .document(id)
 
-                                        val hasmap = hashMapOf<String, Any>(
-                                            "metodoPago" to actual_select
-                                        )
+                                        val hasmap = hashMapOf<String, Any>("metodoPago" to actual_select)
 
                                         db_productos_general.set(hasmap, SetOptions.merge())
                                             .addOnSuccessListener {
                                                 tareasCompletadas++
                                                 if (tareasCompletadas == tareasEsperadas) {
-                                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_pago")
+                                                    eliminarMetodo_pago_o_entrega(dialog, binding, idAnterior, "metodos_pago")
                                                     Toast.makeText(
                                                         binding.root.context,
                                                         "Método de pago eliminado correctamente",
@@ -543,17 +541,13 @@ object constantes_metodo_pago_entrega {
                                                 }
                                             }
                                             .addOnFailureListener { e ->
-                                                Log.e(
-                                                    "error_cambio",
-                                                    "Error al actualizar en GENERAL: $e"
-                                                )
+                                                Log.e("error_cambio", "Error al actualizar en GENERAL: $e")
                                             }
                                     }
                                 }
 
-                                // Si no hay publicaciones que actualizar, eliminamos directamente
                                 if (ids.isEmpty()) {
-                                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_pago")
+                                    eliminarMetodo_pago_o_entrega(dialog, binding, idAnterior, "metodos_pago")
                                     Toast.makeText(
                                         binding.root.context,
                                         "Método de pago eliminado correctamente",
@@ -562,14 +556,13 @@ object constantes_metodo_pago_entrega {
                                     dialog.dismiss()
                                 }
                             }
-
+                        }.addOnFailureListener { e ->
+                            Log.e("DEBUG_COPIA", "Error al fusionar publicaciones: $e")
                         }
-                        .addOnFailureListener { e ->
-                            Log.e("DEBUG_COPIA", "Error al pasar publicaciones: $e")
-                        }
+                    }
                 } else {
                     Log.d("DEBUG_COPIA", "No hay publicaciones activas en el método anterior.")
-                    eliminarMetodo_pago_o_entrega(dialog,binding, idAnterior,"metodos_pago")
+                    eliminarMetodo_pago_o_entrega(dialog, binding, idAnterior, "metodos_pago")
                     Toast.makeText(
                         binding.root.context,
                         "Método de pago eliminado correctamente",
@@ -582,6 +575,7 @@ object constantes_metodo_pago_entrega {
             }
         }
     }
+
 
     private fun editarCambiosPAgos(
         dialog: BottomSheetDialog,

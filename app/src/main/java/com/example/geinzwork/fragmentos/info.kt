@@ -154,165 +154,194 @@ class info : Fragment() {
         firebaseAuth = FirebaseAuth.getInstance()
         var mostrandoTrabajadores = false
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR).toString()
-        val img_perfil_user = arguments?.getString(IMAGEN_PERFIL).toString()
-        val nombre = arguments?.getString(NOMBRE).toString()
-        val nacionalidad = arguments?.getString(NACIONALIDAD).toString()
-        val categoria = arguments?.getString(CATEGORIA).toString()
-        val id_publicacion = arguments?.getString(id_publicaciones).toString()
 
-        obtenertrabajosRecientes(idTrabajador)
-        constantes_trabajadores_info.obtener_Segudores(binding, idTrabajador)
-        constantes_trabajadores_info.ver_cantidad_siguiendo(binding, idTrabajador)
-        obtenerDatosTrabajador(idTrabajador) { categoria ->
-            constantes_trabajadores_info.obtenerMejoresTrabajadores(
-                idTrabajador,
-                categoria,
-                listaTrabajo,
-                binding.trabajadoresSimilares,
-                mContex,
-                binding,
-            ) { trabajadoresEncontrados ->
-                if (trabajadoresEncontrados) {
-                    binding.trabajadoresSimilares.isVisible = true
-                    binding.noSeEncontraronTrabajadores.isVisible = false
-                } else {
-                    binding.trabajadoresSimilares.isVisible = false
-                    binding.noSeEncontraronTrabajadores.isVisible = true
+        obtener_datos_trabajador(idTrabajador){img, nacionalidad, nombre, categoria ->
+        val img_perfil_user = img
+        val nombre =nombre
+        val nacionalidad = nacionalidad
+        val categoria = categoria
+            val id_publicacion = arguments?.getString(id_publicaciones).toString()
+
+            obtenertrabajosRecientes(idTrabajador)
+            constantes_trabajadores_info.obtener_Segudores(binding, idTrabajador)
+            constantes_trabajadores_info.ver_cantidad_siguiendo(binding, idTrabajador)
+            obtenerDatosTrabajador(idTrabajador) { categoria ->
+                constantes_trabajadores_info.obtenerMejoresTrabajadores(
+                    idTrabajador,
+                    categoria,
+                    listaTrabajo,
+                    binding.trabajadoresSimilares,
+                    mContex,
+                    binding,
+                ) { trabajadoresEncontrados ->
+                    if (trabajadoresEncontrados) {
+                        binding.trabajadoresSimilares.isVisible = true
+                        binding.noSeEncontraronTrabajadores.isVisible = false
+                    } else {
+                        binding.trabajadoresSimilares.isVisible = false
+                        binding.noSeEncontraronTrabajadores.isVisible = true
+                    }
+                }
+                binding.verMasTrabajadores.setOnClickListener {
+                    var intent = Intent(mContex, vista_CategoriasT::class.java)
+                    intent.putExtra(Variables.valor, categoria)
+                    startActivity(intent)
+                    (mContex as? Activity)?.finish()
                 }
             }
-            binding.verMasTrabajadores.setOnClickListener {
-                var intent = Intent(mContex, vista_CategoriasT::class.java)
-                intent.putExtra(Variables.valor, categoria)
-                startActivity(intent)
-                (mContex as? Activity)?.finish()
+            constantes.carga(3000, { mostrarDatos() })
+            obtenerPerfil(idTrabajador)
+            confSwipe(idTrabajador, img_perfil_user)
+            constantes_trabajadores_info.verificarSiSiueTrabajador(
+                binding, idTrabajador, mContex, { sige -> },
+                { noti ->
+                    Log.d("norificaicon", noti.toString())
+                    if (noti) {
+                        binding.notificaciones.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                mContex,
+                                R.drawable.notification_on
+                            )
+                        )
+                    } else {
+                        binding.notificaciones.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                mContex,
+                                R.drawable.notification_off
+                            )
+                        )
+                    }
+                })
+
+            val recicle = binding.productosDestacados
+            val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+            recicle.layoutManager = customLayoutManager
+
+            binding.linealSiguiendo.setOnClickListener {
+                dialog = BottomSheetDialog(mContex)
+                BottomSheet_cargarSeguidoresSeguidos(idTrabajador)
+                dialog.show()
             }
-        }
-        constantes.carga(3000, { mostrarDatos() })
-        obtenerPerfil(idTrabajador)
-        confSwipe(idTrabajador, img_perfil_user)
-        constantes_trabajadores_info.verificarSiSiueTrabajador(
-            binding, idTrabajador, mContex, { sige -> },
-            { noti ->
-                Log.d("norificaicon", noti.toString())
-                if (noti) {
-                    binding.notificaciones.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            mContex,
-                            R.drawable.notification_on
-                        )
-                    )
-                } else {
-                    binding.notificaciones.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            mContex,
-                            R.drawable.notification_off
-                        )
-                    )
+            binding.linealSeguidores.setOnClickListener {
+                dialog = BottomSheetDialog(mContex)
+                BottomShett_carga_seguidores(idTrabajador)
+                dialog.show()
+            }
+            binding.qrTrabajador.setOnClickListener {
+                var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
+                    putExtra(Variables.info, Variables.info)
+                    putExtra(Variables.idTrabajdor, idTrabajador)
                 }
-            })
-
-        val recicle = binding.productosDestacados
-        val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
-        recicle.layoutManager = customLayoutManager
-
-        binding.linealSiguiendo.setOnClickListener {
-            dialog = BottomSheetDialog(mContex)
-            BottomSheet_cargarSeguidoresSeguidos(idTrabajador)
-            dialog.show()
-        }
-        binding.linealSeguidores.setOnClickListener {
-            dialog = BottomSheetDialog(mContex)
-            BottomShett_carga_seguidores(idTrabajador)
-            dialog.show()
-        }
-        binding.qrTrabajador.setOnClickListener {
-            var vista = Intent(mContex, GenerarQR_trabajador::class.java).apply {
-                putExtra(Variables.info, Variables.info)
-                putExtra(Variables.idTrabajdor, idTrabajador)
+                startActivity(vista)
             }
-            startActivity(vista)
-        }
-        binding.popup.setOnClickListener { popup(idTrabajador, nombre, nacionalidad, categoria) }
-        binding.ig.setOnClickListener {
-            obtenerRedes(mContex, Variables.ig, idTrabajador)
-        }
-        binding.fb.setOnClickListener {
-            obtenerRedes(mContex, Variables.fb, idTrabajador)
-        }
-        binding.tk.setOnClickListener {
-            obtenerRedes(mContex, Variables.tk, idTrabajador)
-        }
-        binding.dejarDeSeguirOSeguir.setOnClickListener {
-            constantes_trabajadores_info.seguir_trabajador(idTrabajador, binding, mContex)
-        }
-        binding.siguiendoBtn.setOnClickListener {
-            constantes_trabajadores_info.showCustomUnfollowDialog(binding, mContex, idTrabajador)
-        }
-        binding.masInformacion.setOnClickListener {
-            dialog = BottomSheetDialog(mContex)
-            constantes_trabajadores_info.mostrarDialoDatosUSer(
-                dialog,
-                idTrabajador,
-                mContex,
-                img_perfil_user
-            )
-            dialog.show()
-        }
-        binding.mostrarSeguridos.setOnClickListener {
-            if (!mostrandoTrabajadores) {
-                // Primera vez: cargar trabajadores
-                binding.mostrarSeguridosIMG.isVisible = false
-                binding.cargadoSugeridos.isVisible = true
+            binding.popup.setOnClickListener { popup(idTrabajador, nombre, nacionalidad, categoria) }
+            binding.ig.setOnClickListener {
+                obtenerRedes(mContex, Variables.ig, idTrabajador)
+            }
+            binding.fb.setOnClickListener {
+                obtenerRedes(mContex, Variables.fb, idTrabajador)
+            }
+            binding.tk.setOnClickListener {
+                obtenerRedes(mContex, Variables.tk, idTrabajador)
+            }
+            binding.dejarDeSeguirOSeguir.setOnClickListener {
+                constantes_trabajadores_info.seguir_trabajador(idTrabajador, binding, mContex)
+            }
+            binding.siguiendoBtn.setOnClickListener {
+                constantes_trabajadores_info.showCustomUnfollowDialog(binding, mContex, idTrabajador)
+            }
+            binding.masInformacion.setOnClickListener {
+                dialog = BottomSheetDialog(mContex)
+                constantes_trabajadores_info.mostrarDialoDatosUSer(
+                    dialog,
+                    idTrabajador,
+                    mContex,
+                    img_perfil_user
+                )
+                dialog.show()
+            }
+            binding.mostrarSeguridos.setOnClickListener {
+                if (!mostrandoTrabajadores) {
+                    // Primera vez: cargar trabajadores
+                    binding.mostrarSeguridosIMG.isVisible = false
+                    binding.cargadoSugeridos.isVisible = true
 
-                Handler(Looper.getMainLooper()).postDelayed({
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        binding.cargadoSugeridos.isVisible = false
+                        binding.mostrarSeguridosIMG.isVisible = true
+                        binding.linealtrabajadoresGeinz.isVisible = true
+                    }, 2000)
+
+                    mostrandoTrabajadores = true
+                } else {
+                    // Segunda vez: ocultar trabajadores
+                    binding.linealtrabajadoresGeinz.isVisible = false
                     binding.cargadoSugeridos.isVisible = false
                     binding.mostrarSeguridosIMG.isVisible = true
-                    binding.linealtrabajadoresGeinz.isVisible = true
-                }, 2000)
-
-                mostrandoTrabajadores = true
-            } else {
-                // Segunda vez: ocultar trabajadores
-                binding.linealtrabajadoresGeinz.isVisible = false
-                binding.cargadoSugeridos.isVisible = false
-                binding.mostrarSeguridosIMG.isVisible = true
-                mostrandoTrabajadores = false
-            }
-        }
-        binding.notificaciones.setOnClickListener {
-            isNotificationOn = !isNotificationOn
-
-            if (isNotificationOn) {
-                agregarNotificacionTrabajador(true, idTrabajador, firebaseAuth.uid.toString()) {
-                    binding.notificaciones.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            mContex,
-                            R.drawable.notification_on
-                        )
-                    )
-                }
-            } else {
-                agregarNotificacionTrabajador(false, idTrabajador, firebaseAuth.uid.toString()) {
-                    binding.notificaciones.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            mContex,
-                            R.drawable.notification_off
-                        )
-                    )
+                    mostrandoTrabajadores = false
                 }
             }
-        }
-        if (!id_publicacion.isNullOrEmpty()) {
-            dialog = BottomSheetDialog(mContex)
-            showBottomShetDialogPublicacionesMasRecientes(
-                idTrabajador,
-                id_publicacion
-            )
-            dialog.show()
-        } else {
-            Toast.makeText(mContex, "ID de publicación no válido", Toast.LENGTH_SHORT).show()
-        }
+            binding.notificaciones.setOnClickListener {
+                isNotificationOn = !isNotificationOn
 
+                if (isNotificationOn) {
+                    agregarNotificacionTrabajador(true, idTrabajador, firebaseAuth.uid.toString()) {
+                        binding.notificaciones.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                mContex,
+                                R.drawable.notification_on
+                            )
+                        )
+                    }
+                } else {
+                    agregarNotificacionTrabajador(false, idTrabajador, firebaseAuth.uid.toString()) {
+                        binding.notificaciones.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                mContex,
+                                R.drawable.notification_off
+                            )
+                        )
+                    }
+                }
+            }
+            if (!id_publicacion.isNullOrEmpty()) {
+                dialog = BottomSheetDialog(mContex)
+                showBottomShetDialogPublicacionesMasRecientes(
+                    idTrabajador,
+                    id_publicacion
+                )
+                dialog.show()
+            } else {
+                Toast.makeText(mContex, "ID de publicación no válido", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun obtener_datos_trabajador(
+        id_trabajador: String,
+        callback: (String, String, String, String) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(id_trabajador)
+
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val img = data?.get("imagenPerfil") as? String ?: ""
+                val nacionalidad = data?.get("nacionalidad") as? String ?: ""
+                val nombre = data?.get("nombre") as? String ?: ""
+                val categoria = data?.get("categoriaTrabajo") as? String ?: ""
+
+                callback(img, nacionalidad, nombre, categoria)
+            } else {
+                callback("", "", "", "") // No existe el documento
+            }
+        }.addOnFailureListener {
+            callback("", "", "", "") // Ocurrió un error
+        }
     }
 
 

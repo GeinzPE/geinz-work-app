@@ -9,6 +9,7 @@
     tools:context=".servicios_geinz.serviciosGeinz">
 
     <TextView
+
         android:id="@+id/textAboveTabLayout"
         style="@style/TextoTitulos"
         android:layout_width="wrap_content"
@@ -43,5 +44,49 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tabLayout" />
 
+    <RelativeLayout
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:id="@+id/sin_registro"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
+        <TextView
+            android:id="@+id/textViewMessage"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:text="¡Has cerrado sesión en GeinzWork!"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+
+            android:id="@+id/textViewInstructions"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textViewMessage"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="32dp"
+            android:text="Para continuar, por favor, inicia sesión nuevamente."
+            android:textSize="16sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/iniciar_seccion"
+            style="@style/RoundedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_below="@+id/textViewInstructions"
+            android:layout_centerHorizontal="true"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:text="Inicia sesión"
+            android:textSize="14sp"
+            app:iconGravity="textEnd" />
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

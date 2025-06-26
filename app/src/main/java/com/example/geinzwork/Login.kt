@@ -51,6 +51,10 @@ class Login : AppCompatActivity() {
                     Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
                     verificaruser("regreso") { registrado, texto -> }
                 }
+                "perfil"->{
+                    Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
+                    verificaruser("regreso") { registrado, texto -> }
+                }
 
 
                 else -> {
