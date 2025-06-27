@@ -50,6 +50,7 @@ import com.geinzz.geinzwork.databinding.BottomSheetEditarProductoBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMinimoMaxFiltradoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -1492,16 +1493,17 @@ class ver_productos_publicados : AppCompatActivity() {
 
     private fun bottom_sheet_editar_campos_publicidad(id_publicacion: String) {
 
-        val bottomSheet = BottomSheetEditarCaracteristicasPublicidadBinding.inflate(LayoutInflater.from(this))
+        val bottomSheet =
+            BottomSheetEditarCaracteristicasPublicidadBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
 
         bottomSheet.idPublicacion.text = id_publicacion
         bottomSheet.copiarId.setOnClickListener {
             constantestextos_general.copiarTexto_portapapeles(bottomSheet.idPublicacion, this)
         }
-        bottomSheet.cargaContenidoActuliazr.isVisible=true
-        bottomSheet.linealPrinciapl.isVisible=false
-bottomSheet.textocargaactualiza.text="Cargando datos....."
+        bottomSheet.cargaContenidoActuliazr.isVisible = true
+        bottomSheet.linealPrinciapl.isVisible = false
+        bottomSheet.textocargaactualiza.text = "Cargando datos....."
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("productos_venta")
@@ -1511,8 +1513,8 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
             val tiempoFin = System.currentTimeMillis()
             val tiempoTotal = tiempoFin - tiempoInicio
             Handler(Looper.getMainLooper()).postDelayed({
-              bottomSheet.cargaContenidoActuliazr.isVisible=false
-                bottomSheet.linealPrinciapl.isVisible=true
+                bottomSheet.cargaContenidoActuliazr.isVisible = false
+                bottomSheet.linealPrinciapl.isVisible = true
             }, tiempoTotal) // 2000 ms = 2 segundos
             if (res.exists()) {
                 val data = res.data
@@ -1522,7 +1524,8 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
                 val nombre = data?.get("nombre") as? String ?: ""
                 val stok = data?.get("stok") as? String ?: ""
                 val precio = (data?.get("precio") as? Number)?.toInt() ?: 0
-                val hashtagsGenerales = data?.get("hashtags_generales") as? List<String> ?: emptyList()
+                val hashtagsGenerales =
+                    data?.get("hashtags_generales") as? List<String> ?: emptyList()
                 val masInformacion = data?.get("mas_informacio") as? String ?: ""
                 val visibilidad = data?.get("visivilidad") as? String ?: ""
                 val garantiaTexto = data?.get("garantia") as? String ?: ""
@@ -1566,9 +1569,11 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
                     }
                 }
 
-                bottomSheet.linealGarantia.visibility = if (SwitchSihay_garantia.isChecked) View.VISIBLE else View.GONE
+                bottomSheet.linealGarantia.visibility =
+                    if (SwitchSihay_garantia.isChecked) View.VISIBLE else View.GONE
                 SwitchSihay_garantia.setOnCheckedChangeListener { _, isChecked ->
-                    bottomSheet.linealGarantia.visibility = if (isChecked) View.VISIBLE else View.GONE
+                    bottomSheet.linealGarantia.visibility =
+                        if (isChecked) View.VISIBLE else View.GONE
                     if (!isChecked) {
                         bottomSheet.hayGarantiaProductoED.setText("")
                         bottomSheet.radioGrupPlazoRG.clearCheck()
@@ -1576,9 +1581,11 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
                 }
 
                 bottomSheet.siHayDescuento.isChecked = descuento
-                bottomSheet.precioNuevoDescuentoPr.visibility = if (descuento) View.VISIBLE else View.GONE
+                bottomSheet.precioNuevoDescuentoPr.visibility =
+                    if (descuento) View.VISIBLE else View.GONE
                 bottomSheet.siHayDescuento.setOnCheckedChangeListener { _, isChecked ->
-                    bottomSheet.precioNuevoDescuentoPr.visibility = if (isChecked) View.VISIBLE else View.GONE
+                    bottomSheet.precioNuevoDescuentoPr.visibility =
+                        if (isChecked) View.VISIBLE else View.GONE
                     if (!isChecked) {
                         bottomSheet.precioNuevoDescuentoPrED.setText("")
                     }
@@ -1598,13 +1605,19 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
                     bottomSheet.selecionLocalidad.isVisible = isChecked
                 }
 
-                constantes_productos_publicados.obtener_estados_productos(this, bottomSheet.condicionPrED)
+                constantes_productos_publicados.obtener_estados_productos(
+                    this,
+                    bottomSheet.condicionPrED
+                )
+
+
                 constantesDatosUsuarioTienda.obtnerLocalidades(bottomSheet.agregaUbiED)
                 constantesCarrito.setearDatosUsuario { nombre, numero, localid, apellido ->
                     bottomSheet.agregaUbiED.setText(localid)
+                    bottomSheet.agregaUbiED.setText(localidadUser)
                     constantesDatosUsuarioTienda.obtnerLocalidades(bottomSheet.agregaUbiED)
-
                 }
+
 
                 bottomSheet.mostrarPublicacionPara.setOnClickListener {
                     dialog = BottomSheetDialog(this)
@@ -1651,81 +1664,15 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
                 }
 
                 bottomSheet.guardarCambios.setOnClickListener {
-                    bottomSheet.cargaContenidoActuliazr.isVisible=true
-                    bottomSheet.linealPrinciapl.isVisible=false
-                    bottomSheet.textocargaactualiza.text="Actualizando contenido..."
                     if (!validar_campos(bottomSheet)) {
-                        Toast.makeText(this, "Por favor, completa todos los campos obligatorios", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Por favor, completa todos los campos obligatorios",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         return@setOnClickListener
                     }
-
-                    val hashtagsGeneralesFinal = bottomSheet.agregarHastagsED.text.toString()
-                        .split(",")
-                        .map { it.trim() }
-                        .filter { it.isNotBlank() }
-
-                    val hasmap = hashMapOf<String, Any>(
-                        "titulo" to bottomSheet.tituloPublicacionPrED.text.toString(),
-                        "condicion_producto" to bottomSheet.condicionPrED.text.toString(),
-                        "categoria_producto" to bottomSheet.catSelcionado.text.toString(),
-                        "subcategori_producto" to bottomSheet.subcategoriaProducto.text.toString(),
-                        "localidadUser" to bottomSheet.agregaUbiED.text.toString(),
-                        "marca" to bottomSheet.marcaProductoED.text.toString(),
-                        "modelo" to bottomSheet.modeloProductoED.text.toString(),
-                        "hashtags_generales" to hashtagsGeneralesFinal,
-                        "nombre" to bottomSheet.nombreProductoED.text.toString(),
-                        "precio" to (bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0),
-                        "precioDelivery" to 5,
-                        "stok" to bottomSheet.stokED.text.toString(),
-                        "visivilidad" to bottomSheet.mostrarPublicacionPara.text.toString(),
-                        "mas_informacio" to bottomSheet.masInformacionED.text.toString()
-                    )
-
-                    // Garantía
-                    if (bottomSheet.siHayGarantia.isChecked) {
-                        val tiempo = bottomSheet.hayGarantiaProductoED.text.toString()
-                        val unidad = when {
-                            bottomSheet.meses.isChecked -> "mes"
-                            bottomSheet.years.isChecked -> "año"
-                            bottomSheet.dias.isChecked -> "día"
-                            else -> ""
-                        }
-                        if (tiempo.isNotEmpty() && unidad.isNotEmpty()) {
-                            val plural = if (tiempo.toIntOrNull() != 1) {
-                                if (unidad == "mes") "es" else "s"
-                            } else ""
-                            hasmap["garantia"] = "$tiempo $unidad$plural"
-                        }
-                    } else {
-                        hasmap["garantia"] = ""
-                    }
-
-                    // Descuento
-                    if (bottomSheet.siHayDescuento.isChecked) {
-                        val precioOriginal = bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0
-                        val precioDescuento = bottomSheet.precioNuevoDescuentoPrED.text.toString().toIntOrNull() ?: 0
-                        val descuentoAplicado = if (precioOriginal > 0 && precioDescuento < precioOriginal) {
-                            val descuentoCalculado = ((precioOriginal - precioDescuento).toDouble() / precioOriginal) * 100
-                            descuentoCalculado.roundToInt()
-                        } else {
-                            0
-                        }
-
-                        hasmap["cantidad_porcentaje_descuento"] = descuentoAplicado
-                        hasmap["precio_descuento"] = precioDescuento
-                        hasmap["descuento"] = true
-                    } else {
-                        hasmap["cantidad_porcentaje_descuento"] = FieldValue.delete()
-                        hasmap["precio_descuento"] = FieldValue.delete()
-                        hasmap["descuento"] = false
-                    }
-
-                    db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
-                        Toast.makeText(this, "Cambios realizados correctamente", Toast.LENGTH_SHORT).show()
-                       dialog.dismiss()
-                    }.addOnFailureListener { e ->
-                        Toast.makeText(this, "Error al guardar los cambios: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
+                    actualizar_campos(bottomSheet, db, dialog)
                 }
 
             } else {
@@ -1738,6 +1685,82 @@ bottomSheet.textocargaactualiza.text="Cargando datos....."
 
         dialog.setContentView(view)
         dialog.show()
+    }
+
+    private fun actualizar_campos(
+        bottomSheet: BottomSheetEditarCaracteristicasPublicidadBinding,
+        db: DocumentReference, dialog: BottomSheetDialog
+    ) {
+        bottomSheet.cargaContenidoActuliazr.isVisible = true
+        bottomSheet.linealPrinciapl.isVisible = false
+        bottomSheet.textocargaactualiza.text = "Actualizando contenido..."
+        val hashtagsGeneralesFinal = bottomSheet.agregarHastagsED.text.toString()
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+
+        val hasmap = hashMapOf<String, Any>(
+            "titulo" to bottomSheet.tituloPublicacionPrED.text.toString(),
+            "condicion_producto" to bottomSheet.condicionPrED.text.toString(),
+            "categoria_producto" to bottomSheet.catSelcionado.text.toString(),
+            "subcategori_producto" to bottomSheet.subcategoriaProducto.text.toString(),
+            "localidadUser" to bottomSheet.agregaUbiED.text.toString(),
+            "marca" to bottomSheet.marcaProductoED.text.toString(),
+            "modelo" to bottomSheet.modeloProductoED.text.toString(),
+            "hashtags_generales" to hashtagsGeneralesFinal,
+            "nombre" to bottomSheet.nombreProductoED.text.toString(),
+            "precio" to (bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0),
+            "precioDelivery" to 5,
+            "stok" to bottomSheet.stokED.text.toString(),
+            "visivilidad" to bottomSheet.mostrarPublicacionPara.text.toString(),
+            "mas_informacio" to bottomSheet.masInformacionED.text.toString()
+        )
+        // Garantía
+        if (bottomSheet.siHayGarantia.isChecked) {
+            val tiempo = bottomSheet.hayGarantiaProductoED.text.toString()
+            val unidad = when {
+                bottomSheet.meses.isChecked -> "mes"
+                bottomSheet.years.isChecked -> "año"
+                bottomSheet.dias.isChecked -> "día"
+                else -> ""
+            }
+            if (tiempo.isNotEmpty() && unidad.isNotEmpty()) {
+                val plural = if (tiempo.toIntOrNull() != 1) {
+                    if (unidad == "mes") "es" else "s"
+                } else ""
+                hasmap["garantia"] = "$tiempo $unidad$plural"
+            }
+        } else {
+            hasmap["garantia"] = ""
+        }
+        // Descuento
+        if (bottomSheet.siHayDescuento.isChecked) {
+            val precioOriginal = bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0
+            val precioDescuento =
+                bottomSheet.precioNuevoDescuentoPrED.text.toString().toIntOrNull() ?: 0
+            val descuentoAplicado = if (precioOriginal > 0 && precioDescuento < precioOriginal) {
+                val descuentoCalculado =
+                    ((precioOriginal - precioDescuento).toDouble() / precioOriginal) * 100
+                descuentoCalculado.roundToInt()
+            } else {
+                0
+            }
+
+            hasmap["cantidad_porcentaje_descuento"] = descuentoAplicado
+            hasmap["precio_descuento"] = precioDescuento
+            hasmap["descuento"] = true
+        } else {
+            hasmap["cantidad_porcentaje_descuento"] = FieldValue.delete()
+            hasmap["precio_descuento"] = FieldValue.delete()
+            hasmap["descuento"] = false
+        }
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Cambios realizados correctamente", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "Error al guardar los cambios: ${e.message}", Toast.LENGTH_SHORT)
+                .show()
+        }
     }
 
 
