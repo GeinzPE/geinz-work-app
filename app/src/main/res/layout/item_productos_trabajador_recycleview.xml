@@ -24,8 +24,10 @@
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/img_trabajo"
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="wrap_content"
                 android:scaleType="centerCrop"
+                android:minHeight="150dp"
+                android:maxHeight="200dp"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
             <ProgressBar
@@ -122,6 +124,7 @@
     <ProgressBar
         android:id="@+id/cargadoContenido"
         android:layout_width="30dp"
+        android:layout_marginVertical="50dp"
         android:layout_height="30dp"
         android:layout_gravity="center" />
 </androidx.cardview.widget.CardView>

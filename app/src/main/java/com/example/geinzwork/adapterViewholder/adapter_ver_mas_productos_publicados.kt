@@ -33,6 +33,7 @@ class adapter_ver_mas_productos_publicados(
     }
 
     override fun getItemCount(): Int = lista.size
+
     fun dpToPx(context: Context, dp: Float): Int {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics
@@ -43,18 +44,21 @@ class adapter_ver_mas_productos_publicados(
     override fun onBindViewHolder(holder: viewHolderPorductosPublicados, position: Int) {
         val item = lista[position]
 
+        // Si quieres variar el tamaño de la imagen según la posición, puedes cambiar este valor
         val context = holder.itemView.context
+        val maxImgHeightDp = if (position % 2 == 0) 200f else 150f
+        val maxImgHeightPx = dpToPx(context, maxImgHeightDp)
 
-        val totalHeightDp = if (position % 2 == 0) 300f else 250f // en dp
-        val totalHeightPx = dpToPx(context, totalHeightDp)
-        val imgHeight = (totalHeightPx * 0.65).toInt()
-        val contentHeight = totalHeightPx - imgHeight
+        // Aplicar la altura máxima (opcional, en caso de que uses wrap_content + maxHeight)
+        holder.getBinding().imgTrabajo.apply {
+            layoutParams.height = maxImgHeightPx
+            requestLayout() // Asegura que se redibuje
+        }
 
-        holder.itemView.layoutParams.height = totalHeightPx
-        holder.getBinding().imgTrabajo.layoutParams.height = imgHeight
-        holder.getBinding().linealCargandoDatos.layoutParams.height = contentHeight
+        // Renderizar los datos
         holder.render(item)
     }
+
 
 
     inner class viewHolderPorductosPublicados(private val binding: ItemProductosTrabajadorRecycleviewBinding) :
