@@ -6,6 +6,7 @@ data class dataclass_ver_mas_productos_trabajador(
     val precioDescuento: Number?,
     val precioPRD: Number?,
     val descuentoProducto: Boolean?,
-    val envioGRT: Boolean?,
+    val id_trabajador:String?,
+    val metodo_envio: String?,
     val id: String?, val descuentoTotalNumber: Number?, val nombreProducto: String?
 )

@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone"
-        android:paddingBottom="10dp">
+        android:paddingBottom="10dp"
+        android:visibility="gone">
 
         <!-- Imagen principal -->
         <FrameLayout
@@ -25,8 +25,8 @@
                 android:id="@+id/img_trabajo"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-            android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
             <ProgressBar
                 android:id="@+id/progress_carga_imagen"
@@ -56,17 +56,17 @@
             android:id="@+id/linealCargandoDatos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical"
             android:paddingHorizontal="7dp"
-            android:paddingTop="10dp"
-            android:layout_weight="1"> <!-- Esto hace que ocupe el espacio restante -->
+            android:paddingTop="10dp"> <!-- Esto hace que ocupe el espacio restante -->
 
             <TextView
-                android:layout_marginRight="10dp"
                 android:id="@+id/nombreProducto"
                 style="@style/TextoModoOScuroColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="@string/cat"
@@ -109,15 +109,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:textColor="@color/verdedelivery_gratis"
-                android:textStyle="bold"
                 android:text="Envio Gratis"
+                android:textColor="@color/verdedelivery_gratis"
                 android:textSize="15sp"
+                android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
 
 
     </LinearLayout>
+
     <ProgressBar
         android:id="@+id/cargadoContenido"
         android:layout_width="30dp"

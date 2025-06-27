@@ -56,23 +56,24 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
     private fun filtrar_por_categorias(idTrabajador: String, categoriaFiltrado: String) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
+            .collection("productos_venta").document("publicados").collection("publicados")
         listaVer_mas_productos.clear()
-        binding.prograsvar.isVisible=true
-        binding.recycleViewProductosFiltrados.isVisible=false
+        binding.prograsvar.isVisible = true
+        binding.recycleViewProductosFiltrados.isVisible = false
         db.get().addOnSuccessListener { res ->
             for (datos in res) {
                 val data = datos.data
-                val imgPrincipal = data.get("img_principal") as? String ?: ""
+                val imgPrincipal = data.get("img_url") as? String ?: ""
                 val id = data.get("id") as? String ?: ""
                 val descripcionProducto = data.get("descripcion") as? String ?: ""
-                val cantidad_porcentaje_descuento = data.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val cantidad_porcentaje_descuento =
+                    data.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 val precioAntiguoProducto = data.get("precio_descuento") as? Number ?: 0
                 val precioProducto = data.get("precio") as? Number ?: 0
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
-                val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
                 val categoria = data.get("categoria") as? String ?: ""
                 val nombre = data.get("nombre") as? String ?: ""
+                val metodoEntrega=data?.get("metodoEntrega") as? String?:""
 
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
@@ -80,19 +81,19 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    envioGratisProducto, id, cantidad_porcentaje_descuento,nombre
+                    idTrabajador,metodoEntrega,id, cantidad_porcentaje_descuento, nombre
                 )
                 if (categoriaFiltrado == categoria) {
                     listaVer_mas_productos.add(dataclass)
                     if (listaVer_mas_productos.isNotEmpty()) {
-                        inicializarRecycleProductos(idTrabajador,listaVer_mas_productos)
-                        binding.recycleViewProductosFiltrados.isVisible=true
-                        binding.textoNoEncontrado.isVisible=false
-                        binding.prograsvar.isVisible=false
+                        inicializarRecycleProductos(idTrabajador, listaVer_mas_productos)
+                        binding.recycleViewProductosFiltrados.isVisible = true
+                        binding.textoNoEncontrado.isVisible = false
+                        binding.prograsvar.isVisible = false
                     } else {
                         println("no se econtraron datos")
-                        binding.textoNoEncontrado.isVisible=true
-                        binding.prograsvar.isVisible=false
+                        binding.textoNoEncontrado.isVisible = true
+                        binding.prograsvar.isVisible = false
                     }
 
                 } else {
@@ -103,26 +104,31 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
         }
     }
 
-    private fun filtar_por_categorias_y_descuentos(idTrabajador: String, categoriaFiltrado: String){
+    private fun filtar_por_categorias_y_descuentos(
+        idTrabajador: String,
+        categoriaFiltrado: String
+    ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
+            .collection("productos_venta").document("publicados").collection("publicados")
         listaVer_mas_productos.clear()
-        binding.prograsvar.isVisible=true
-        binding.recycleViewProductosFiltrados.isVisible=false
+        binding.prograsvar.isVisible = true
+        binding.recycleViewProductosFiltrados.isVisible = false
         db.get().addOnSuccessListener { res ->
             for (datos in res) {
                 val data = datos.data
-                val imgPrincipal = data.get("img_principal") as? String ?: ""
+                val imgPrincipal = data.get("img_url") as? String ?: ""
                 val id = data.get("id") as? String ?: ""
                 val descripcionProducto = data.get("descripcion") as? String ?: ""
-                val cantidad_porcentaje_descuento = data.get("cantidad_porcentaje_descuento") as? Number ?: 0
+                val cantidad_porcentaje_descuento =
+                    data.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 val precioAntiguoProducto = data.get("precio_descuento") as? Number ?: 0
                 val precioProducto = data.get("precio") as? Number ?: 0
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
-                val categoria = data.get("categoria") as? String ?:""
+                val categoria = data.get("categoria") as? String ?: ""
                 val nombre = data.get("nombre") as? String ?: ""
+                val metodoEntrega=data?.get("metodoEntrega") as? String?:""
 
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
@@ -130,19 +136,19 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    envioGratisProducto, id, cantidad_porcentaje_descuento,nombre
+                    idTrabajador,metodoEntrega,id, cantidad_porcentaje_descuento, nombre
                 )
                 if (categoriaFiltrado == categoria && descuentoProducto) {
                     listaVer_mas_productos.add(dataclass)
                     if (listaVer_mas_productos.isNotEmpty()) {
-                        inicializarRecycleProductos(idTrabajador,listaVer_mas_productos)
-                        binding.recycleViewProductosFiltrados.isVisible=true
-                        binding.textoNoEncontrado.isVisible=false
-                        binding.prograsvar.isVisible=false
+                        inicializarRecycleProductos(idTrabajador, listaVer_mas_productos)
+                        binding.recycleViewProductosFiltrados.isVisible = true
+                        binding.textoNoEncontrado.isVisible = false
+                        binding.prograsvar.isVisible = false
                     } else {
                         println("no se econtraron datos")
-                        binding.textoNoEncontrado.isVisible=true
-                        binding.prograsvar.isVisible=false
+                        binding.textoNoEncontrado.isVisible = true
+                        binding.prograsvar.isVisible = false
                     }
 
                 } else {
@@ -156,9 +162,9 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
     private fun obtener_categoriasDescuentos(idTrabajador: String) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
-        binding.prograsvar.isVisible=true
-        binding.recycleViewProductosFiltrados.isVisible=false
+            .collection("productos_venta").document("publicados").collection("publicados")
+        binding.prograsvar.isVisible = true
+        binding.recycleViewProductosFiltrados.isVisible = false
         listaCategorias.clear()
         listaCategoriasDescuento.clear()
         db.get().addOnSuccessListener { res ->
@@ -187,24 +193,24 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
 
             if (listaCategorias.isNotEmpty()) {
                 inicializarCategoriasFiltrados(idTrabajador)
-                binding.recycleViewProductosFiltrados.isVisible=true
-                binding.textoNoEncontrado.isVisible=false
-                binding.prograsvar.isVisible=false
+                binding.recycleViewProductosFiltrados.isVisible = true
+                binding.textoNoEncontrado.isVisible = false
+                binding.prograsvar.isVisible = false
             } else {
                 println("no se econtraron datos")
-                binding.textoNoEncontrado.isVisible=true
-                binding.prograsvar.isVisible=false
+                binding.textoNoEncontrado.isVisible = true
+                binding.prograsvar.isVisible = false
             }
 
             if (listaCategoriasDescuento.isNotEmpty()) {
                 inicializarCategoriasFiltradosDescuento(idTrabajador)
-                binding.recycleViewProductosFiltrados.isVisible=true
-                binding.textoNoEncontrado.isVisible=false
-                binding.prograsvar.isVisible=false
+                binding.recycleViewProductosFiltrados.isVisible = true
+                binding.textoNoEncontrado.isVisible = false
+                binding.prograsvar.isVisible = false
             } else {
                 println("no se econtraron datos")
-                binding.textoNoEncontrado.isVisible=true
-                binding.prograsvar.isVisible=false
+                binding.textoNoEncontrado.isVisible = true
+                binding.prograsvar.isVisible = false
             }
         }.addOnFailureListener { e ->
             println("No se encontraron categorías: $e")
@@ -215,13 +221,13 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
     private fun obtenerProductosGenerales(idTrabajador: String) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta")
+            .collection("productos_venta").document("publicados").collection("publicados")
         binding.prograsvar.isVisible = true
 
         db.get().addOnSuccessListener { res ->
             for (datos in res) {
                 val data = datos.data
-                val imgPrincipal = data.get("img_principal") as? String ?: ""
+                val imgPrincipal = data.get("img_url") as? String ?: ""
                 val id = data.get("id") as? String ?: ""
                 val nombre = data.get("nombre") as? String ?: ""
                 val descripcionProducto = data.get("descripcion") as? String ?: ""
@@ -232,13 +238,15 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
 
+                val metodoEntrega=data?.get("metodoEntrega") as? String?:""
+
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
                     descripcionProducto,
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    envioGratisProducto, id, cantidad_porcentaje_descuento, nombre
+                    idTrabajador,metodoEntrega,id, cantidad_porcentaje_descuento, nombre
                 )
 
                 listaVer_mas_productos.add(dataclass)
@@ -294,11 +302,12 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
             dialog.dismiss()
         }
 //
-        bindingProductosTrabajadores.cargaProductosPromoTrabajos.linealMostrarTrabajos.isVisible=false
+        bindingProductosTrabajadores.cargaProductosPromoTrabajos.linealMostrarTrabajos.isVisible =
+            false
         bindingProductosTrabajadores.comprar.setOnClickListener {
-            val intent=Intent(this,compras_productos_vendedor::class.java).apply {
-                putExtra("idProducto",productoClikado)
-                putExtra("idTrabajador",idTrabajador)
+            val intent = Intent(this, compras_productos_vendedor::class.java).apply {
+                putExtra("idProducto", productoClikado)
+                putExtra("idTrabajador", idTrabajador)
             }
             startActivity(intent)
             dialog.dismiss()
@@ -309,18 +318,28 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
-                bindingProductosTrabajadores.progressCarga.isVisible=true
-                bindingProductosTrabajadores.nettScrollView.isVisible=false
+                bindingProductosTrabajadores.progressCarga.isVisible = true
+                bindingProductosTrabajadores.nettScrollView.isVisible = false
                 val data = res.data ?: emptyMap()
-                constantes_publicaciones_general_user_tiendas.setearDatosdialogProductos(idTrabajador,this,data, bindingProductosTrabajadores) { completado ->
-                    bindingProductosTrabajadores.progressCarga.isVisible=false
-                    bindingProductosTrabajadores.nettScrollView.isVisible=true
+                constantes_publicaciones_general_user_tiendas.setearDatosdialogProductos(
+                    idTrabajador,
+                    this,
+                    data,
+                    bindingProductosTrabajadores
+                ) { completado ->
+                    bindingProductosTrabajadores.progressCarga.isVisible = false
+                    bindingProductosTrabajadores.nettScrollView.isVisible = true
                 }
-                constantes_publicaciones_general_user_tiendas.inizializarImgProductos(this,listaImg,bindingProductosTrabajadores,data)
+                constantes_publicaciones_general_user_tiendas.inizializarImgProductos(
+                    this,
+                    listaImg,
+                    bindingProductosTrabajadores,
+                    data
+                )
             } else {
                 println("no se encontraron datos del producto")
             }

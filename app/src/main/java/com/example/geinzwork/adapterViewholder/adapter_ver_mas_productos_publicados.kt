@@ -1,13 +1,16 @@
 package com.example.geinzwork.adapterViewholder
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclass_ver_mas_productos_trabajador
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ItemProductosTrabajadorRecycleviewBinding
 
@@ -30,20 +33,26 @@ class adapter_ver_mas_productos_publicados(
     }
 
     override fun getItemCount(): Int = lista.size
+    fun dpToPx(context: Context, dp: Float): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics
+        ).toInt()
+    }
+
 
     override fun onBindViewHolder(holder: viewHolderPorductosPublicados, position: Int) {
         val item = lista[position]
 
-        // Controlar el alto total y la altura de la imagen
-        val totalHeight = if (position % 2 == 0) 950 else 850
-        val imgHeight = (totalHeight * 0.65).toInt() // 65% para la imagen
-        val contentHeight = totalHeight - imgHeight
+        val context = holder.itemView.context
 
-        // Ajustar la altura de las vistas a través de holder.getBinding()
-        holder.itemView.layoutParams.height = totalHeight
+        val totalHeightDp = if (position % 2 == 0) 300f else 250f // en dp
+        val totalHeightPx = dpToPx(context, totalHeightDp)
+        val imgHeight = (totalHeightPx * 0.65).toInt()
+        val contentHeight = totalHeightPx - imgHeight
+
+        holder.itemView.layoutParams.height = totalHeightPx
         holder.getBinding().imgTrabajo.layoutParams.height = imgHeight
         holder.getBinding().linealCargandoDatos.layoutParams.height = contentHeight
-
         holder.render(item)
     }
 
@@ -65,6 +74,18 @@ class adapter_ver_mas_productos_publicados(
                 "portada",
                 null
             ) {}
+            obtener_metodoEntrega(
+                item.id_trabajador.toString(), item.metodo_envio.toString(),
+                callback = { metodo_entrega ->
+                },
+                evio_gratis = { delivery_gratis ->
+                    if (delivery_gratis) {
+                        binding.envioGratis.isVisible = true
+                    } else {
+                        binding.envioGratis.isVisible = false
+                    }
+                }
+            )
 
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.btnVermas.isVisible = true
@@ -92,7 +113,6 @@ class adapter_ver_mas_productos_publicados(
                 binding.descuentoPorcentaje.isVisible = false
             }
 
-            binding.envioGratis.isVisible = item.envioGRT == true
         }
     }
 
