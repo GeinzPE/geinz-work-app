@@ -69,7 +69,8 @@ class ver_publicaciones : AppCompatActivity() {
             },
             { cantidadSeleccionados, listaSeleccionados ->  // 🔴 ahora recibes ambos
                 binding.modoSelecion.text = "$cantidadSeleccionados Selecionados"
-                binding.modoSelecion.isVisible=true
+                binding.modoSelecion.isVisible = true
+                binding.titulosCentrado.isVisible=false
                 if (cantidadSeleccionados > 0) {
                     binding.cerrarselecion.isVisible = true
                     binding.listartododos.isVisible = true
@@ -79,10 +80,35 @@ class ver_publicaciones : AppCompatActivity() {
                     val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
                     println("IDs seleccionados: $idsSeleccionados")
 
+                    binding.eliminarselect.setOnClickListener {
+                        Toast.makeText(
+                            this,
+                            "pasmos a elminados todos los $idsSeleccionados",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        eliminar_archivar_lista_ids(idsSeleccionados as List<String>,"eliminados")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        eliminar_archivar_lista_ids(idsSeleccionados as List<String>,"archivados")
+
+                        Toast.makeText(
+                            this,
+                            "pasmos a archivados todos los $idsSeleccionados",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    }
+
+
+
                     val todosSeleccionados = cantidadSeleccionados == listAdapter.size
                     if (todosSeleccionados) {
                         binding.deslistar.setColorFilter(
-                            ContextCompat.getColor(this, R.color.blue),  // reemplaza con tu color deseado
+                            ContextCompat.getColor(
+                                this,
+                                R.color.blue
+                            ),  // reemplaza con tu color deseado
                             PorterDuff.Mode.SRC_IN
                         )
                         binding.deslistar.isVisible = true
@@ -97,8 +123,8 @@ class ver_publicaciones : AppCompatActivity() {
                     }
                 } else {
                     // Modo selección activo pero sin elementos seleccionados
-                    binding.modoSelecion.isVisible=false
-
+                    binding.modoSelecion.isVisible = false
+                    binding.titulosCentrado.isVisible=true
                     binding.bottomOpciones.isVisible = false
                 }
 
@@ -111,7 +137,7 @@ class ver_publicaciones : AppCompatActivity() {
             binding.listartododos.isVisible = false
             binding.deslistar.isVisible = false
             binding.bottomOpciones.isVisible = false
-            binding.modoSelecion.isVisible=false
+            binding.modoSelecion.isVisible = false
 
             adapter.cancelarModoSeleccion()
         }
@@ -123,6 +149,7 @@ class ver_publicaciones : AppCompatActivity() {
             )
             adapter.seleccionarTodos()
         }
+
         binding.deslistar.setOnClickListener {
             binding.listartododos.isVisible = true
             binding.deslistar.isVisible = false
@@ -139,7 +166,12 @@ class ver_publicaciones : AppCompatActivity() {
             adapter,
             binding.linealNoCuenta,
         )
+
         binding.todos.setOnClickListener {
+            binding.archivarselect.isVisible=true
+            binding.eliminarselect.isVisible=true
+            binding.reactivar.isVisible=false
+            adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "publicados",
                 firebaseAuth.uid.toString(),
@@ -150,7 +182,11 @@ class ver_publicaciones : AppCompatActivity() {
                 binding.linealNoCuenta,
             )
         }
-        binding.chipPublicados.setOnClickListener {
+        binding.chipPublicados.setOnClickListener{
+            binding.archivarselect.isVisible=true
+            binding.eliminarselect.isVisible=true
+            binding.reactivar.isVisible=false
+            adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "publicados",
                 firebaseAuth.uid.toString(),
@@ -162,6 +198,10 @@ class ver_publicaciones : AppCompatActivity() {
             )
         }
         binding.chipEliminados.setOnClickListener {
+            binding.archivarselect.isVisible=false
+            binding.eliminarselect.isVisible=false
+            binding.reactivar.isVisible=true
+            adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "eliminados",
                 firebaseAuth.uid.toString(),
@@ -173,6 +213,10 @@ class ver_publicaciones : AppCompatActivity() {
             )
         }
         binding.chipArchivados.setOnClickListener {
+            binding.archivarselect.isVisible=false
+            binding.eliminarselect.isVisible=false
+            binding.reactivar.isVisible=true
+            adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "archivados",
                 firebaseAuth.uid.toString(),
@@ -185,6 +229,7 @@ class ver_publicaciones : AppCompatActivity() {
         }
 
     }
+
     override fun onBackPressed() {
         if (adapter.estaEnModoSeleccion()) {
             // Salir del modo selección en vez de cerrar la actividad
@@ -203,7 +248,6 @@ class ver_publicaciones : AppCompatActivity() {
             super.onBackPressed()
         }
     }
-
 
 
     private fun bottomSheet_editar_eliminar_Arhivar_estadi(
@@ -358,6 +402,74 @@ class ver_publicaciones : AppCompatActivity() {
     }
 
 
+    private fun eliminar_archivar_lista_ids(idSeleccionados: List<String>, tipo: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        for (id in idSeleccionados) {
+            val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(uid).collection("trabajos_realizados")
+                .document("publicados").collection("publicados").document(id)
+
+            refOrigen.get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data ?: return@addOnSuccessListener
+
+                    val hashMap = hashMapOf<String, Any>()
+
+                    // Copiar campos comunes
+                    hashMap[Variables.titulo] = data[Variables.titulo] ?: ""
+                    hashMap[Variables.descripcion] = data[Variables.descripcion] ?: ""
+                    hashMap[Variables.hora] = data[Variables.hora] ?: ""
+                    hashMap[Variables.fecha] = data[Variables.fecha] ?: ""
+                    hashMap[Variables.id] = data[Variables.id] ?: ""
+
+                    // Copiar imágenes
+                    for ((key, value) in data) {
+                        if (key.startsWith("img_url") && value is String) {
+                            hashMap[key] = value
+                        }
+                    }
+
+                    val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(uid).collection("trabajos_realizados")
+                        .document(tipo).collection(tipo).document(id)
+
+                    refDestino.set(hashMap).addOnSuccessListener {
+                        refOrigen.delete().addOnSuccessListener {
+                            println("✅ Trabajo $id movido a $tipo")
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Error al eliminar $id: ${it.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(this, "Error al mover $id: ${it.message}", Toast.LENGTH_SHORT).show()
+                    }
+
+                } else {
+                    Toast.makeText(this, "El documento $id no existe", Toast.LENGTH_SHORT).show()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Error al obtener $id: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Actualizar vista al final (con retraso opcional)
+        Handler(Looper.getMainLooper()).postDelayed({
+            obtenerPublicaciones(
+                "publicados",
+                uid,
+                listAdapter,
+                binding.recicleViewTrabajos,
+                this,
+                adapter,
+                binding.linealNoCuenta,
+            )
+        }, 1000) // espera 1 segundo a que terminen
+    }
+
+
     private fun eliminar_archivar(idSeleccionado: String, tipo: String) {
         val firestore = FirebaseFirestore.getInstance()
         val uid = firebaseAuth.uid.toString()
@@ -508,6 +620,10 @@ class ver_publicaciones : AppCompatActivity() {
         adapter: publicaciones_ralizadas, // Cambiado a publicaciones_ralizadas
         lineal_no_cuenta: LinearLayout
     ) {
+        binding.cerrarselecion.isVisible=false
+        binding.listartododos.isVisible=false
+        binding.deslistar.isVisible=false
+        adapter.cancelarModoSeleccion()
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
             .collection(Variables.trabajos_realizados).document(filtrado)

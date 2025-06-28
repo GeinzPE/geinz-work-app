@@ -60,6 +60,19 @@ class publicaciones_ralizadas(
             manejarSeleccion: (Int) -> Unit,
             activarModoSeleccion: (Int) -> Unit
         ) {
+            binding.chekSelecionado.setOnCheckedChangeListener { _, isChecked ->
+                manejarSeleccion(adapterPosition)
+
+                // 🔄 Animación al hacer check
+                binding.chekSelecionado.animate()
+                    .scaleX(1.2f)
+                    .scaleY(1.2f)
+                    .setDuration(100)
+                    .withEndAction {
+                        binding.chekSelecionado.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                    }.start()
+            }
+
             binding.tituloProducto.text = item.titulo
             binding.descripcionProducto.text = item.contenido
 
@@ -80,8 +93,8 @@ class publicaciones_ralizadas(
             val estaSeleccionado = elementosSeleccionados.contains(item)
 
             // Fondo si está seleccionado
-            binding.root.setBackgroundColor(
-                if (estaSeleccionado) ContextCompat.getColor(itemView.context, R.color.search_opaque)
+            binding.listenerPadre.setBackgroundColor(
+                if (estaSeleccionado) ContextCompat.getColor(itemView.context, R.color.selecion_multiple)
                 else ContextCompat.getColor(itemView.context, android.R.color.transparent)
             )
 
