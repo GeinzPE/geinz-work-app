@@ -93,10 +93,15 @@ class publicaciones_ralizadas(
             val estaSeleccionado = elementosSeleccionados.contains(item)
 
             // Fondo si está seleccionado
-            binding.listenerPadre.setBackgroundColor(
-                if (estaSeleccionado) ContextCompat.getColor(itemView.context, R.color.selecion_multiple)
-                else ContextCompat.getColor(itemView.context, android.R.color.transparent)
-            )
+            if (estaSeleccionado) {
+                    ContextCompat.getDrawable(itemView.context, R.drawable.car_selecionados)
+
+            } else {
+                binding.listenerPadre.background =
+                    ContextCompat.getDrawable(itemView.context, R.drawable.card_trabajos)
+            }
+
+
 
             // Mostrar el CheckBox si está en modo selección
             binding.chekSelecionado.isVisible = modoSeleccion
@@ -120,6 +125,7 @@ class publicaciones_ralizadas(
                 if (modoSeleccion) {
                     manejarSeleccion(adapterPosition)
                     Toast.makeText(itemView.context, "Seleccionando...", Toast.LENGTH_SHORT).show()
+                    ContextCompat.getColor(itemView.context, R.color.selecion_multiple)
                 } else {
                     Toast.makeText(itemView.context, "Click normal", Toast.LENGTH_SHORT).show()
                     editar_eliminar_estadi_archivar(item)
