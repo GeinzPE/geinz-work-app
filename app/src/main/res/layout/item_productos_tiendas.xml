@@ -41,116 +41,129 @@
                     android:visibility="gone" />
             </RelativeLayout>
 
-
-            <LinearLayout
-                android:id="@+id/Editar"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="10dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
+                android:layout_height="match_parent">
 
                 <LinearLayout
+                    android:id="@+id/Editar"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tituloProducto"
-                        style="@style/CustomTextAppearance"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginRight="30dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textAllCaps="true"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/descripcionProducto"
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/tituloProducto"
-                        android:layout_marginVertical="5dp"
-                        android:layout_marginRight="30dp"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:textSize="12sp" />
-
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
 
                     <LinearLayout
-                        android:id="@+id/linealvista_compartidas_publicacion"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tituloProducto"
+                            style="@style/CustomTextAppearance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginRight="30dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textAllCaps="true"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/descripcionProducto"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/tituloProducto"
+                            android:layout_marginVertical="5dp"
+                            android:layout_marginRight="30dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:textSize="12sp" />
+
 
                         <LinearLayout
+                            android:id="@+id/linealvista_compartidas_publicacion"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:layout_marginRight="5dp"
-                                android:src="@drawable/icon_ver_estadistica" />
-
-                            <TextView
-                                android:id="@+id/cantidad_view"
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center" />
+                                android:layout_weight="1"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="30dp"
+                                    android:layout_height="30dp"
+                                    android:layout_marginRight="5dp"
+                                    android:src="@drawable/icon_ver_estadistica" />
+
+                                <TextView
+                                    android:id="@+id/cantidad_view"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="30dp"
+
+                                    android:layout_height="30dp"
+                                    android:layout_marginRight="5dp"
+                                    android:src="@drawable/compartir_icon_vector" />
+
+                                <TextView
+                                    android:id="@+id/cantidad_compartida"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="30dp"
+                                    android:layout_height="30dp"
+                                    android:layout_marginRight="5dp"
+                                    android:src="@drawable/clikc_drawable" />
+
+                                <TextView
+                                    android:id="@+id/cantidad_clicks"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center" />
+                            </LinearLayout>
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="horizontal">
 
-                            <ImageView
-                                android:layout_width="30dp"
-
-                                android:layout_height="30dp"
-                                android:layout_marginRight="5dp"
-                                android:src="@drawable/compartir_icon_vector" />
-
-                            <TextView
-                                android:id="@+id/cantidad_compartida"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:layout_marginRight="5dp"
-                                android:src="@drawable/clikc_drawable" />
-
-                            <TextView
-                                android:id="@+id/cantidad_clicks"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center" />
-                        </LinearLayout>
                     </LinearLayout>
-
 
                 </LinearLayout>
 
-            </LinearLayout>
+                <CheckBox
+                    android:visibility="gone"
+                    android:id="@+id/chekSelecionado"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"/>
+            </RelativeLayout>
+
 
         </LinearLayout>
     </RelativeLayout>

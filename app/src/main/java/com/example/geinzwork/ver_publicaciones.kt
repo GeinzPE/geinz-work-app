@@ -1,7 +1,8 @@
 package com.geinzz.geinzwork
 
 import android.content.Context
-import android.content.Intent
+import android.graphics.PorterDuff
+
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -58,14 +59,76 @@ class ver_publicaciones : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        adapter = publicaciones_ralizadas(listAdapter, { item ->
-            dialog = BottomSheetDialog(
-                this
-            )
-            bottomSheet_editar_eliminar_Arhivar_estadi(item, "publicados")
-            dialog.show()
 
-        })
+        adapter = publicaciones_ralizadas(
+            listAdapter,
+            { item ->
+                dialog = BottomSheetDialog(this)
+                bottomSheet_editar_eliminar_Arhivar_estadi(item, "publicados")
+                dialog.show()
+            },
+            { cantidadSeleccionados, listaSeleccionados ->  // 🔴 ahora recibes ambos
+                binding.modoSelecion.text = "$cantidadSeleccionados Selecionados"
+                binding.modoSelecion.isVisible=true
+                if (cantidadSeleccionados > 0) {
+                    binding.cerrarselecion.isVisible = true
+                    binding.listartododos.isVisible = true
+                    binding.bottomOpciones.isVisible = true
+
+                    // 🔎 Accede a los IDs seleccionados (si tu data class tiene "id")
+                    val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
+                    println("IDs seleccionados: $idsSeleccionados")
+
+                    val todosSeleccionados = cantidadSeleccionados == listAdapter.size
+                    if (todosSeleccionados) {
+                        binding.deslistar.setColorFilter(
+                            ContextCompat.getColor(this, R.color.blue),  // reemplaza con tu color deseado
+                            PorterDuff.Mode.SRC_IN
+                        )
+                        binding.deslistar.isVisible = true
+                        binding.listartododos.isVisible = false
+                        // Aquí puedes hacer algo más si quieres
+                        Toast.makeText(this, "se sleeicono todos", Toast.LENGTH_SHORT).show()
+                    } else {
+                        binding.deslistar.isVisible = false
+                        binding.listartododos.isVisible = true
+
+                        println("❌ Aún faltan elementos por seleccionar.")
+                    }
+                } else {
+                    // Modo selección activo pero sin elementos seleccionados
+                    binding.modoSelecion.isVisible=false
+
+                    binding.bottomOpciones.isVisible = false
+                }
+
+            }
+        )
+
+        binding.cerrarselecion.setOnClickListener {
+            Toast.makeText(this, "se realziao clik ", Toast.LENGTH_SHORT).show()
+            binding.cerrarselecion.isVisible = false
+            binding.listartododos.isVisible = false
+            binding.deslistar.isVisible = false
+            binding.bottomOpciones.isVisible = false
+            binding.modoSelecion.isVisible=false
+
+            adapter.cancelarModoSeleccion()
+        }
+        binding.listartododos.setOnClickListener {
+            binding.deslistar.isVisible = true
+            binding.deslistar.setColorFilter(
+                ContextCompat.getColor(this, R.color.blue),  // reemplaza con tu color deseado
+                PorterDuff.Mode.SRC_IN
+            )
+            adapter.seleccionarTodos()
+        }
+        binding.deslistar.setOnClickListener {
+            binding.listartododos.isVisible = true
+            binding.deslistar.isVisible = false
+            adapter.deseleccionarTodosSinSalirDeModo()
+        }
+
 
         obtenerPublicaciones(
             "publicados",
@@ -122,6 +185,25 @@ class ver_publicaciones : AppCompatActivity() {
         }
 
     }
+    override fun onBackPressed() {
+        if (adapter.estaEnModoSeleccion()) {
+            // Salir del modo selección en vez de cerrar la actividad
+            adapter.cancelarModoSeleccion()
+
+            // Ocultar UI relacionada a la selección
+            binding.modoSelecion.text = ""
+            binding.bottomOpciones.isVisible = false
+            binding.cerrarselecion.isVisible = false
+            binding.deslistar.isVisible = false
+            binding.listartododos.isVisible = false
+
+            Toast.makeText(this, "Selección cancelada", Toast.LENGTH_SHORT).show()
+        } else {
+            // Si no hay selección activa, se comporta como siempre
+            super.onBackPressed()
+        }
+    }
+
 
 
     private fun bottomSheet_editar_eliminar_Arhivar_estadi(
