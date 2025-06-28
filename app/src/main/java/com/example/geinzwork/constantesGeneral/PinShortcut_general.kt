@@ -65,7 +65,7 @@ object PinShortcut_general {
             val pinnedShortcutIntent = Intent(Intent.ACTION_VIEW).apply {
                 setClass(context, vistaTrabajador::class.java)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                data = Uri.parse("geinzwork://vista_trabajador?registrado=usuario&uid=$uid")
+                data = Uri.parse("geinzwork://vista_trabajador?registrado=usuario")
             }
 
             val pinShortcutInfo = ShortcutInfo.Builder(context, "geinzwork_pinned_shortcut_vista_previa")

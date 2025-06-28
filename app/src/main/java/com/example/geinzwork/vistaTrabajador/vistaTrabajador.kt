@@ -52,7 +52,8 @@ class vistaTrabajador : AppCompatActivity() {
             binding.sinRegistro.isVisible = false
             when (tipo_pasado_vistas) {
                 "usuario" -> {
-                    val idTrabajador = uri?.getQueryParameter("uid") ?: firebaseAuth.uid.toString()
+                    val idTrabajador =  firebaseAuth.uid.toString()
+                    Toast.makeText(this, "pasamos el id $idTrabajador", Toast.LENGTH_SHORT).show()
                     val nombreUSer = intent.getStringExtra(Variables.nombreUSer) ?: ""
                     val nacionalidad = intent.getStringExtra(Variables.nacionalidad) ?: ""
                     val categoria = intent.getStringExtra(Variables.categoria) ?: ""
