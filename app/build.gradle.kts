@@ -103,6 +103,6 @@ dependencies {
     implementation("org.quanqi:android-holo-graph:0.1.0")
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("com.google.firebase:firebase-ai")
-
+    implementation("androidx.biometric:biometric:1.1.0")
 
 }

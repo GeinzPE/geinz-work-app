@@ -39,14 +39,18 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 
 class activity_dispositivos_vinculados : AppCompatActivity() {
     private lateinit var binding: ActivityDispositivosVinculadosBinding
     private val lista = mutableListOf<dataclass_dispo_vinculados>()
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
-
+    private lateinit var biometricPrompt: BiometricPrompt
+    private lateinit var promptInfo: BiometricPrompt.PromptInfo
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         binding = ActivityDispositivosVinculadosBinding.inflate(layoutInflater)
         enableEdgeToEdge()
@@ -74,9 +78,51 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                 startActivity(vista)
             }
         }
+
         binding.popup.setOnClickListener {
             popup()
         }
+        binding.biometrica.setOnClickListener {
+            val biometricManager = BiometricManager.from(this)
+            if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                != BiometricManager.BIOMETRIC_SUCCESS
+            ) {
+                Toast.makeText(this, "Biometría no disponible", Toast.LENGTH_SHORT).show()
+                binding.biometrica.isEnabled = false
+                return@setOnClickListener
+            }
+
+            val executor = ContextCompat.getMainExecutor(this)
+
+            val biometricPrompt = BiometricPrompt(this, executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        Toast.makeText(applicationContext, "Autenticación exitosa", Toast.LENGTH_SHORT).show()
+                        // Aquí tu lógica segura
+                    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        Toast.makeText(applicationContext, "Error: $errString", Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        super.onAuthenticationFailed()
+                        Toast.makeText(applicationContext, "Falló la autenticación", Toast.LENGTH_SHORT).show()
+                    }
+                })
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Verifica tu identidad")
+                .setSubtitle("Usa tu huella digital")
+                .setNegativeButtonText("Cancelar")
+                .build()
+
+            // ✅ Esto es lo que faltaba
+            biometricPrompt.authenticate(promptInfo)
+        }
+
 
     }
 

@@ -59,7 +59,11 @@
                     android:fontFamily="@font/fuente_para_texto_special_gothic"
                     android:text="Estos son los dispositivos donde has iniciado sesión. Toca uno si quieres cerrar sesión desde ahí.\nSi no inicias sesión antes, no podrás cerrar sesión en ningún dispositivo."
                     android:textSize="15sp" />
-
+<Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="enviar"
+    android:id="@+id/biometrica"/>
 
                 <TextView
                     android:id="@+id/TotalDispo"
