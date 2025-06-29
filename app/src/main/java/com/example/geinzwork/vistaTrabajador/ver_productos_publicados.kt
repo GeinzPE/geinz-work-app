@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
+import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.graphics.drawable.Icon
 import android.net.Uri
@@ -26,6 +27,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -33,6 +35,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_pbl_vr_tb_recientes
+import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_productos_publicados
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
@@ -76,48 +79,180 @@ class ver_productos_publicados : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-//        adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
-//            dialog = BottomSheetDialog(this)
-//            bottomSheet_editar_eliminar_Arhivar_estadi(item)
-//            dialog.show()
-//        })
+        adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
+            dialog = BottomSheetDialog(this)
+            bottomSheet_editar_eliminar_Arhivar_estadi(item)
+            dialog.show()
+        }, { cantidadSeleccionados, listaSeleccionados ->  // 🔴 ahora recibes ambos
+            binding.modoSelecion.text = "$cantidadSeleccionados Selecionados"
+            binding.modoSelecion.isVisible = true
+            binding.titulosCentrado.isVisible = false
+            if (cantidadSeleccionados > 0) {
+                binding.cerrarselecion.isVisible = true
+                binding.listartododos.isVisible = true
+                binding.bottomOpciones.isVisible = true
+
+                // 🔎 Accede a los IDs seleccionados (si tu data class tiene "id")
+                val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
+                binding.idsObtenidos.text = "$idsSeleccionados"
+
+                binding.eliminarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el elimianr desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "eliminados", "todos"
+                    )
+                }
+
+                binding.archivarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "archivados", "todos"
+                    )
+
+                }
+
+
+                binding.ocultarPublicaciones.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "privado", "todos"
+                    )
+                }
+
+                binding.soloSeguidoresMov.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "solo_seguidores", "todos"
+                    )
+
+                }
+
+
+                val todosSeleccionados = cantidadSeleccionados == lista.size
+                if (todosSeleccionados) {
+                    binding.deslistar.setColorFilter(
+                        ContextCompat.getColor(
+                            this,
+                            R.color.blue
+                        ),  // reemplaza con tu color deseado
+                        PorterDuff.Mode.SRC_IN
+                    )
+                    binding.deslistar.isVisible = true
+                    binding.listartododos.isVisible = false
+                    // Aquí puedes hacer algo más si quieres
+                    Toast.makeText(this, "se sleeicono todos", Toast.LENGTH_SHORT).show()
+                } else {
+                    binding.deslistar.isVisible = false
+                    binding.listartododos.isVisible = true
+
+                    println("❌ Aún faltan elementos por seleccionar.")
+                }
+            } else {
+                // Modo selección activo pero sin elementos seleccionados
+                binding.modoSelecion.isVisible = false
+                binding.titulosCentrado.isVisible = true
+                binding.bottomOpciones.isVisible = false
+            }
+
+        })
+
+        binding.cerrarselecion.setOnClickListener {
+            Toast.makeText(this, "se realziao clik ", Toast.LENGTH_SHORT).show()
+            binding.cerrarselecion.isVisible = false
+            binding.listartododos.isVisible = false
+            binding.deslistar.isVisible = false
+            binding.bottomOpciones.isVisible = false
+            binding.modoSelecion.isVisible = false
+            adapter.cancelarModoSeleccion()
+        }
+
+        binding.listartododos.setOnClickListener {
+            binding.deslistar.isVisible = true
+            binding.deslistar.setColorFilter(
+                ContextCompat.getColor(this, R.color.blue),  // reemplaza con tu color deseado
+                PorterDuff.Mode.SRC_IN
+            )
+            adapter.seleccionarTodos()
+        }
+
+        binding.deslistar.setOnClickListener {
+            binding.listartododos.isVisible = true
+            binding.deslistar.isVisible = false
+            adapter.deseleccionarTodosSinSalirDeModo()
+        }
+
         val dato_pasado = intent.getStringExtra("tipo").toString()
         Log.d("DebugTipo", "dato_pasado: $dato_pasado")
-
-
-        binding.crearAceso.setOnClickListener {
-
-            // Define los detalles del acceso directo fijado que quieres crear
-            val shortcutId =
-                "geinzwork_main_app_pinned_shortcut" // Un ID único para este acceso directo fijado
-            val shortLabel =
-                getString(R.string.app_name) // Usa el nombre de tu app como etiqueta corta
-            val longLabel = getString(R.string.bienvenido) // Usa una etiqueta larga
-            val targetActivity = MainActivity::class.java // La actividad que se abrirá
-            val iconResId = R.drawable.ic_pinned_shortcut_prueva // El ícono de tu aplicación
-
-            // Llama a la función para solicitar el acceso directo fijado
-            requestPinAppShortcut(
-                this,
-                shortcutId,
-                shortLabel,
-                longLabel,
-                targetActivity,
-                iconResId
-            )
-        }
 
         handleIncomingIntent(intent)
 
         when (dato_pasado) {
             "publicadas" -> {
                 binding.linealChips.isVisible = true
-
                 obtener_productos("publicados", "No se encontraron publicaciones")
-
                 binding.todos.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    binding.ocultarPublicaciones.isVisible = true
                     binding.linealEncontrados.isVisible = false
+                    adapter.cancelarModoSeleccion()
                     obtener_productos("publicados", "No se encontraron publicaciones")
+                    binding.eliminarselect.isVisible = true
+                    binding.archivarselect.isVisible = true
+                    binding.reactivar.isVisible = false
+                    binding.eliminarselect.setOnClickListener {
+                        Toast.makeText(
+                            this,
+                            "selecionasr el elimianr desde todos",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        binding.linealEncontrados.isVisible = true
+                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible = false
+                        binding.bottomOpciones.isVisible = false
+                        binding.recicleProductos.isVisible = false
+
+                        archivar_eliminar_publicaciones_list(
+                            binding.idsObtenidos.text.toString() as List<String>,
+                            "publicados",
+                            "eliminados", "todos"
+                        )
+                    }
 
 
                 }
@@ -156,32 +291,130 @@ class ver_productos_publicados : AppCompatActivity() {
                         dialog.show()
                     }
                 }
+
                 binding.privado.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = false
+                    binding.ocultarPublicaciones.isVisible = false
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-
                     obtener_productos("privado", "No se encontraron publicaciones")
+                    binding.reactivar.setOnClickListener {
+                        binding.linealEncontrados.isVisible = true
+                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible = false
+                        binding.bottomOpciones.isVisible = false
+                        binding.recicleProductos.isVisible = false
+                        val ids = binding.idsObtenidos.text
+                            .toString()
+                            .removePrefix("[")
+                            .removeSuffix("]")
+                            .split(",")
+                            .map { it.trim() }
 
+                        activar_publicacion_list(
+                            "privado",
+                            ids,
+                            "privado"
+                        )
 
+                    }
                 }
                 binding.soloSeguidores.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.soloSeguidoresMov.isVisible = false
+                    binding.ocultarPublicaciones.isVisible = false
+                    binding.reactivar.isVisible = true
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-
                     obtener_productos("solo_seguidores", "No se encontraron publicaciones")
+                    binding.reactivar.setOnClickListener {
+                        binding.linealEncontrados.isVisible = true
+                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible = false
+                        binding.bottomOpciones.isVisible = false
+                        binding.recicleProductos.isVisible = false
+                        val ids = binding.idsObtenidos.text
+                            .toString()
+                            .removePrefix("[")
+                            .removeSuffix("]")
+                            .split(",")
+                            .map { it.trim() }
 
+                        activar_publicacion_list(
+                            "solo_seguidores",
+                            ids,
+                            "solo_seguidores"
+                        )
+
+                    }
                 }
             }
 
             "archivadas" -> {
+                binding.archivarselect.isVisible = false
+                binding.eliminarselect.isVisible = false
+                binding.reactivar.isVisible = true
+                binding.soloSeguidoresMov.isVisible = false
+                binding.ocultarPublicaciones.isVisible = false
                 binding.linealChips.isVisible = false
 
+                binding.reactivar.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    val ids = binding.idsObtenidos.text
+                        .toString()
+                        .removePrefix("[")
+                        .removeSuffix("]")
+                        .split(",")
+                        .map { it.trim() }
+
+                    activar_publicacion_list(
+                        "archivados",
+                        ids,
+                        "archivados"
+                    )
+
+                }
                 obtener_productos("archivados", "No se encontraron publicaciones")
             }
 
             "eliminadas" -> {
+                binding.archivarselect.isVisible = false
+                binding.eliminarselect.isVisible = false
+                binding.reactivar.isVisible = true
+                binding.soloSeguidoresMov.isVisible = false
+                binding.ocultarPublicaciones.isVisible = false
                 binding.linealChips.isVisible = false
                 obtener_productos("eliminados", "No se encontraron publicaciones")
+                binding.reactivar.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    val ids = binding.idsObtenidos.text
+                        .toString()
+                        .removePrefix("[")
+                        .removeSuffix("]")
+                        .split(",")
+                        .map { it.trim() }
+
+                    activar_publicacion_list(
+                        "eliminados",
+                        ids,
+                        "eliminados"
+                    )
+
+                }
             }
 
             else -> {
@@ -224,16 +457,22 @@ class ver_productos_publicados : AppCompatActivity() {
                     }
                 }
                 binding.privado.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
                     obtener_productos("privado", "No se encontraron publicaciones")
 
-
                 }
                 binding.soloSeguidores.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
-
                     obtener_productos("solo_seguidores", "No se encontraron publicaciones")
 
                 }
@@ -241,6 +480,26 @@ class ver_productos_publicados : AppCompatActivity() {
         }
 
 
+    }
+
+    override fun onBackPressed() {
+        if (adapter.estaEnModoSeleccion()) {
+            // Salir del modo selección en vez de cerrar la actividad
+            adapter.cancelarModoSeleccion()
+
+            // Ocultar UI relacionada a la selección
+            binding.modoSelecion.text = ""
+            binding.bottomOpciones.isVisible = false
+            binding.cerrarselecion.isVisible = false
+            binding.deslistar.isVisible = false
+            binding.listartododos.isVisible = false
+
+            Toast.makeText(this, "Selección cancelada", Toast.LENGTH_SHORT).show()
+
+        } else {
+            // Si no hay selección activa, se comporta como siempre
+            super.onBackPressed()
+        }
     }
 
     private fun handleIncomingIntent(intent: Intent?) {
@@ -273,68 +532,6 @@ class ver_productos_publicados : AppCompatActivity() {
 
     // ... (resto de tu código)
 
-    fun requestPinAppShortcut(
-        context: Context,
-        shortcutId: String,
-        shortLabel: String,
-        longLabel: String,
-        targetActivityClass: Class<*>,
-        iconResId: Int
-    ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val shortcutManager = context.getSystemService(ShortcutManager::class.java)
-
-            if (shortcutManager?.isRequestPinShortcutSupported == true) {
-                val pinnedShortcutIntent = Intent(context, targetActivityClass).apply {
-                    // ¡Añade esta línea! Define la acción del Intent.
-                    action = Intent.ACTION_VIEW
-
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    putExtra("shortcut_action", "open_main_app")
-                }
-
-                val pinShortcutInfo = ShortcutInfo.Builder(context, shortcutId)
-                    .setShortLabel(shortLabel)
-                    .setLongLabel(longLabel)
-                    .setIcon(Icon.createWithResource(context, iconResId))
-                    .setIntent(pinnedShortcutIntent) // Aquí se pasaba el Intent sin acción
-                    .build()
-
-                val pinnedShortcutCallbackIntent =
-                    shortcutManager.createShortcutResultIntent(pinShortcutInfo)
-                val successCallback = PendingIntent.getBroadcast(
-                    context,
-                    0,
-                    pinnedShortcutCallbackIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-
-                shortcutManager.requestPinShortcut(pinShortcutInfo, successCallback.intentSender)
-
-                Toast.makeText(
-                    context,
-                    getString(
-                        R.string.request_pin_shortcut_sent,
-                        shortLabel
-                    ), // Asumiendo que has corregido el string resource
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } else {
-                Toast.makeText(
-                    context,
-                    getString(R.string.launcher_not_support_pin_shortcut),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        } else {
-            Toast.makeText(
-                context,
-                getString(R.string.android_version_not_support_pin_shortcut),
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
 
     private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
         lista.clear()
@@ -1154,6 +1351,116 @@ class ver_productos_publicados : AppCompatActivity() {
         }
     }
 
+    private fun activar_publicacion_list(
+        tipo: String,
+        idsPublicaciones: List<String>,
+        tipo_fun: String
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        binding.linealEncontrados.isVisible = true
+        binding.recicleProductos.isVisible = false
+
+        var procesadas = 0
+        fun checkCompletadas() {
+            procesadas++
+            if (procesadas == idsPublicaciones.size) {
+                binding.linealEncontrados.isVisible = false
+                binding.recicleProductos.isVisible = true
+                when (tipo_fun) {
+                    "privado" -> obtener_productos("privado", "No se encontraron publicaciones")
+                    "solo_seguidores" -> obtener_productos("solo_seguidores", "No se encontraron publicaciones")
+                    "archivados" -> obtener_productos("archivados", "No se encontraron publicaciones")
+                    "eliminados" -> obtener_productos("eliminados", "No se encontraron publicaciones")
+                }
+            }
+        }
+
+        idsPublicaciones.forEach { idPublicacion ->
+            val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(uid).collection("productos_venta")
+                .document(tipo).collection(tipo).document(idPublicacion)
+
+            refOrigen.get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data ?: return@addOnSuccessListener
+
+                    val metodoEntrega = data["metodoEntrega"] as? String ?: ""
+                    val metodoPago = data["metodoPago"] as? String ?: ""
+
+                    val hasMap = hashMapOf<String, Any>(
+                        "id" to idPublicacion,
+                        "titulo" to (data["titulo"] ?: ""),
+                        "cantidad_porcentaje_descuento" to (data["cantidad_porcentaje_descuento"] ?: 0),
+                        "condicion_producto" to (data["condicion_producto"] ?: ""),
+                        "categoria_producto" to (data["categoria_producto"] ?: ""),
+                        "subcategori_producto" to (data["subcategori_producto"] ?: ""),
+                        "fechaPublicada" to (data["fechaPublicada"] ?: ""),
+                        "horaPublicada" to (data["horaPublicada"] ?: ""),
+                        "garantia" to (data["garantia"] ?: ""),
+                        "localidadUser" to (data["localidadUser"] ?: ""),
+                        "marca" to (data["marca"] ?: ""),
+                        "metodoEntrega" to metodoEntrega,
+                        "metodoPago" to metodoPago,
+                        "modelo" to (data["modelo"] ?: ""),
+                        "hashtags_generales" to (data["hashtags_generales"] as? List<String> ?: emptyList()),
+                        "nombre" to (data["nombre"] ?: ""),
+                        "precio" to (data["precio"] ?: 0.0),
+                        "precioDelivery" to 5,
+                        "precio_descuento" to (data["precio_descuento"] ?: 0.0),
+                        "stok" to (data["stok"] ?: ""),
+                        "visivilidad" to (data["visivilidad"] ?: ""),
+                        "mas_informacio" to (data["mas_informacio"] ?: ""),
+                        "estadisticas_click" to (data["estadisticas_click"] ?: 0),
+                        "estadisticas_compartir" to (data["estadisticas_compartir"] ?: 0),
+                        "estadisticas_vistas" to (data["estadisticas_vistas"] ?: 0),
+                        "descripcion_titulo" to (data["descripcion_titulo"] as? Map<*, *> ?: emptyMap<String, String>()),
+                        "descripcion_texto" to (data["descripcion_texto"] as? Map<*, *> ?: emptyMap<String, String>()),
+                        "descripcion_texto_lista" to (data["descripcion_texto_lista"] as? List<String> ?: emptyList())
+                    )
+
+                    for ((key, value) in data) {
+                        if (key.startsWith("img_url") && value is String) {
+                            hasMap[key] = value
+                        }
+                    }
+
+                    val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(uid).collection("productos_venta")
+                        .document("publicados").collection("publicados").document(idPublicacion)
+
+                    refDestino.set(hasMap, SetOptions.merge()).addOnSuccessListener {
+                        Toast.makeText(this, "Agregado correctamente a publicados", Toast.LENGTH_SHORT).show()
+
+                        cambiar_datos_archivar_eliminar_ocultar_archivar(idPublicacion, "publicados", metodoEntrega, "metodos_entrega")
+                        cambiar_datos_archivar_eliminar_ocultar_archivar(idPublicacion, "publicados", metodoPago, "metodos_pago")
+
+                        refOrigen.delete().addOnSuccessListener {
+                            Toast.makeText(this, "Eliminado de $tipo", Toast.LENGTH_SHORT).show()
+                            checkCompletadas()
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Error al eliminar de $tipo", Toast.LENGTH_SHORT).show()
+                            checkCompletadas()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(this, "Error al agregar a publicados: ${it.message}", Toast.LENGTH_SHORT).show()
+                        checkCompletadas()
+                    }
+
+                } else {
+                    Toast.makeText(this, "No existe publicación con ID: $idPublicacion", Toast.LENGTH_SHORT).show()
+                    checkCompletadas()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Error al obtener publicación: ${it.message}", Toast.LENGTH_SHORT).show()
+                checkCompletadas()
+            }
+        }
+    }
+
     private fun vista_previa_publicaciones(id_publicacion: String, tipo1: String) {
         Log.d("obtenemos_datos intent", "obtenemos datos $id_publicacion")
         val vista =
@@ -1164,6 +1471,146 @@ class ver_productos_publicados : AppCompatActivity() {
             }
         startActivity(vista)
     }
+
+
+    private fun archivar_eliminar_publicaciones_list(
+        idsPublicaciones: List<String>,
+        tipo1: String,
+        tipo2: String,
+        funcionFiltro: String
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        binding.linealEncontrados.isVisible = true
+        binding.recicleProductos.isVisible = false
+
+        var procesadas = 0
+        fun checkCompletadas() {
+            procesadas++
+            if (procesadas == idsPublicaciones.size) {
+                binding.linealEncontrados.isVisible = false
+                binding.recicleProductos.isVisible = true
+                lista.clear()
+                when (funcionFiltro) {
+                    "todos" -> obtener_productos("publicados", "No se encontraron datos")
+                    "mascliks" -> filtrar_publicaciones(
+                        binding.min.text.toString().toInt(),
+                        binding.max.text.toString().toInt(),
+                        "estadisticas_click"
+                    )
+                    "masvistas" -> filtrar_publicaciones(
+                        binding.min.text.toString().toInt(),
+                        binding.max.text.toString().toInt(),
+                        "estadisticas_vistas"
+                    )
+                    "mascompartidas" -> filtrar_publicaciones(
+                        binding.min.text.toString().toInt(),
+                        binding.max.text.toString().toInt(),
+                        "estadisticas_compartir"
+                    )
+                    "privado" -> obtener_productos("privado", "No se encontraron datos")
+                    "solo_seguidores" -> obtener_productos("solo_seguidores", "No se encontraron datos")
+                }
+            }
+        }
+
+        idsPublicaciones.forEach { id_publicacion ->
+            val refEliminado = firestore.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(uid).collection("productos_venta")
+                .document(tipo2).collection(tipo2).document(id_publicacion)
+
+            val ref_puplicados = firestore.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(uid).collection("productos_venta")
+                .document(tipo1).collection(tipo1).document(id_publicacion)
+
+            ref_puplicados.get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data ?: return@addOnSuccessListener
+
+                    val metodoEntrega = data["metodoEntrega"] as? String ?: ""
+                    val metodoPago = data["metodoPago"] as? String ?: ""
+
+                    val hasMap = hashMapOf<String, Any>(
+                        "id" to (data["id"] ?: id_publicacion),
+                        "titulo" to (data["titulo"] ?: ""),
+                        "cantidad_porcentaje_descuento" to (data["cantidad_porcentaje_descuento"] ?: 0),
+                        "condicion_producto" to (data["condicion_producto"] ?: ""),
+                        "categoria_producto" to (data["categoria_producto"] ?: ""),
+                        "subcategori_producto" to (data["subcategori_producto"] ?: ""),
+                        "fechaPublicada" to (data["fechaPublicada"] ?: ""),
+                        "horaPublicada" to (data["horaPublicada"] ?: ""),
+                        "garantia" to (data["garantia"] ?: ""),
+                        "localidadUser" to (data["localidadUser"] ?: ""),
+                        "marca" to (data["marca"] ?: ""),
+                        "metodoEntrega" to metodoEntrega,
+                        "metodoPago" to metodoPago,
+                        "modelo" to (data["modelo"] ?: ""),
+                        "hashtags_generales" to (data["hashtags_generales"] as? List<String> ?: emptyList()),
+                        "nombre" to (data["nombre"] ?: ""),
+                        "precio" to (data["precio"] ?: 0.0),
+                        "precioDelivery" to 5,
+                        "precio_descuento" to (data["precio_descuento"] ?: 0.0),
+                        "stok" to (data["stok"] ?: ""),
+                        "visivilidad" to (data["visivilidad"] ?: ""),
+                        "mas_informacio" to (data["mas_informacio"] ?: ""),
+                        "estadisticas_click" to (data["estadisticas_click"] ?: 0),
+                        "estadisticas_compartir" to (data["estadisticas_compartir"] ?: 0),
+                        "estadisticas_vistas" to (data["estadisticas_vistas"] ?: 0),
+                        "descripcion_titulo" to (data["descripcion_titulo"] as? Map<*, *> ?: emptyMap<String, String>()),
+                        "descripcion_texto" to (data["descripcion_texto"] as? Map<*, *> ?: emptyMap<String, String>()),
+                        "descripcion_texto_lista" to (data["descripcion_texto_lista"] as? List<String> ?: emptyList())
+                    )
+
+                    for ((key, value) in data) {
+                        if (key.startsWith("img_url") && value is String) {
+                            hasMap[key] = value
+                        }
+                    }
+
+                    refEliminado.set(hasMap, SetOptions.merge()).addOnSuccessListener {
+                        Toast.makeText(
+                            this,
+                            "agregado correctamente a eliminados",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        cambiar_datos_archivar_eliminar_ocultar_archivar(
+                            id_publicacion, tipo2, metodoEntrega, "metodos_entrega"
+                        )
+
+                        cambiar_datos_archivar_eliminar_ocultar_archivar(
+                            id_publicacion, tipo2, metodoPago, "metodos_pago"
+                        )
+
+                        ref_puplicados.delete().addOnSuccessListener {
+                            Toast.makeText(this, "eliminado de publicados", Toast.LENGTH_SHORT).show()
+                            checkCompletadas()
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Error al eliminar", Toast.LENGTH_SHORT).show()
+                            checkCompletadas()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(
+                            this,
+                            "error al agregar a eliminados: ${it.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        checkCompletadas()
+                    }
+                } else {
+                    Toast.makeText(this, "no existe", Toast.LENGTH_SHORT).show()
+                    checkCompletadas()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Error al obtener publicación", Toast.LENGTH_SHORT).show()
+                checkCompletadas()
+            }
+        }
+    }
+
 
 
     private fun eliminar_publicacion_Archivar(
@@ -1424,9 +1871,15 @@ class ver_productos_publicados : AppCompatActivity() {
 
 
     private fun obtener_productos(tipo: String, texto_sin_encontrar: String) {
-
+        binding.linealEncontrados.isVisible = false
+        binding.linealPublicacionesFiltrados.isVisible = true
+        binding.cerrarselecion.isVisible = false
         binding.linealNoCuenta.isVisible = false
         binding.recicleProductos.isVisible = false
+        binding.deslistar.isVisible = false
+        binding.listartododos.isVisible = false
+        binding.linealNoCuenta.isVisible = false
+        adapter.cancelarModoSeleccion()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("productos_venta").document(tipo)

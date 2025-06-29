@@ -10,28 +10,7 @@
     android:animateLayoutChanges="true"
     tools:context="com.example.geinzwork.vistaTrabajador.ver_productos_publicados">
 
-    <LinearLayout
-        android:id="@+id/lineal_encontrados"
-        android:layout_centerInParent="true"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
 
-        <ProgressBar
-            android:layout_width="50dp"
-            android:layout_height="50dp"/>
-        <TextView
-            android:id="@+id/texto_dinamico_progrees"
-            style="@style/TextoModoOScuroColor"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cargando publicaciones"/>
-    </LinearLayout>
     <androidx.core.widget.NestedScrollView
         android:animateLayoutChanges="true"
         android:layout_width="match_parent"
@@ -44,21 +23,73 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/linealPublicacionesFiltrados"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/crear_aceso"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginVertical="10dp"
-                    android:layout_marginLeft="5dp"
-                    android:fontFamily="@font/anton_regular"
-                    android:text="Edita o elimina tus publicaciones"
-                    android:textSize="20sp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/titulosCentrado"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:layout_gravity="center"
+                        android:layout_marginVertical="10dp"
+                        android:layout_marginLeft="5dp"
+                        android:fontFamily="@font/anton_regular"
+                        android:text="Edita o elimina tus publicaciones"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:gravity="center"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        android:id="@+id/modo_selecion"
+                        android:layout_centerInParent="true"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginVertical="15dp"
+                        android:fontFamily="@font/fuente_para_texto_special_gothic"
+                        android:textSize="19sp" />
+
+
+                    <ImageView
+                        android:id="@+id/cerrarselecion"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginHorizontal="10dp"
+                        android:src="@drawable/cerrar_selecion_x_vector"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/listartododos"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginHorizontal="10dp"
+                        android:src="@drawable/selecionar_todos_vector"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/deslistar"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginHorizontal="10dp"
+                        android:src="@drawable/selecionar_todos_vector"
+                        android:visibility="gone" />
+                </RelativeLayout>
                 <TextView
                     android:visibility="gone"
                     android:layout_width="match_parent"
@@ -136,7 +167,19 @@
 
             </LinearLayout>
 
-
+            <TextView
+                android:visibility="gone"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:id="@+id/ids_obtenidos"
+                android:layout_centerInParent="true"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="15dp"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:textSize="19sp" />
             <androidx.recyclerview.widget.RecyclerView
                 android:visibility="gone"
                 android:id="@+id/recicle_productos"
@@ -165,14 +208,172 @@
             android:layout_marginBottom="10dp"
             android:text="No cuentas con publicaciones crea una nueva" />
 
-        <!--                <androidx.appcompat.widget.AppCompatButton-->
-        <!--                    android:id="@+id/Crea_publicacion"-->
-        <!--                    android:layout_width="wrap_content"-->
-        <!--                    android:layout_height="wrap_content"-->
-        <!--                    android:layout_marginLeft="10dp"-->
-        <!--                    android:background="@drawable/rounder_btn_vtrajador"-->
-        <!--                    android:paddingHorizontal="10dp"-->
-        <!--                    android:text="Crea tu publicacion"-->
-        <!--                    android:textColor="@color/white" />-->
+
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lineal_encontrados"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"/>
+        <TextView
+            android:id="@+id/texto_dinamico_progrees"
+            style="@style/TextoModoOScuroColor"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cargando publicaciones"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:paddingVertical="5dp"
+        android:id="@+id/bottom_opciones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        style="@style/fondo"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/eliminarselect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="27dp"
+                android:layout_height="27dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:src="@drawable/borroar_icono_webp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="10"
+                style="@style/TextoModoOScuroColor"
+                android:text="Eliminar"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/archivarselect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="27dp"
+                android:layout_height="27dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="5dp"
+                android:src="@drawable/archivar_icono_webp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="10"
+                android:text="archivar"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ocultar_publicaciones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:src="@drawable/publicacion_bottom_privada_webp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="10"
+                style="@style/TextoModoOScuroColor"
+                android:text="Ocultar publicaciones"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/solo_seguidores_mov"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="27dp"
+                android:layout_height="27dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:src="@drawable/publicacion_bottom_seguidos_webp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="10"
+                style="@style/TextoModoOScuroColor"
+                android:text="solo seguidores"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/reactivar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="27dp"
+                android:layout_height="27dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="5dp"
+                android:src="@drawable/regresar_icono_webp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="10"
+                android:text="Activar"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
 </RelativeLayout>

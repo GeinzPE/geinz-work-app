@@ -18,7 +18,7 @@
             android:id="@+id/metodos_pago"
             style="@style/RoundTrabajadoresBG"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="340dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -57,7 +57,7 @@
                         android:fontFamily="sans-serif"
                         android:text="Modificar metodo de pago"
                         android:textAllCaps="true"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                 </RelativeLayout>
@@ -109,7 +109,7 @@
             style="@style/RoundTrabajadoresBG"
             android:layout_marginLeft="5dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="340dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -147,7 +147,7 @@
                         android:fontFamily="sans-serif"
                         android:text="Modificar metodo de entrega"
                         android:textAllCaps="true"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                 </RelativeLayout>

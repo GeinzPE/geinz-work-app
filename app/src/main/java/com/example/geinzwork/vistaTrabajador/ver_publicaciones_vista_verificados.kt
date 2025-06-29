@@ -181,6 +181,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             binding.modoSelecion.isVisible = false
             adapter.cancelarModoSeleccion()
         }
+
         binding.listartododos.setOnClickListener {
             binding.deslistar.isVisible = true
             binding.deslistar.setColorFilter(
@@ -321,7 +322,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     binding.soloSeguidoresMov.isVisible = false
                     binding.ocultarPublicaciones.isVisible = false
                     binding.reactivar.isVisible = true
-
                     adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
