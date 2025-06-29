@@ -59,7 +59,7 @@ class adapter_pbl_vr_tb_recientes(
                 "portada", placeholderperfil
             ) {}
 
-            binding.listenerPadre.setOnLongClickListener {
+            binding.listenerPadre.setOnClickListener {
                 editar_eliminar_estadi_archivar(item)
                 true
             }

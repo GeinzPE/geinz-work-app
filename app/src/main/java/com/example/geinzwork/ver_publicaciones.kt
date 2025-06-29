@@ -70,7 +70,7 @@ class ver_publicaciones : AppCompatActivity() {
             { cantidadSeleccionados, listaSeleccionados ->  // 🔴 ahora recibes ambos
                 binding.modoSelecion.text = "$cantidadSeleccionados Selecionados"
                 binding.modoSelecion.isVisible = true
-                binding.titulosCentrado.isVisible=false
+                binding.titulosCentrado.isVisible = false
                 if (cantidadSeleccionados > 0) {
                     binding.cerrarselecion.isVisible = true
                     binding.listartododos.isVisible = true
@@ -78,19 +78,30 @@ class ver_publicaciones : AppCompatActivity() {
 
                     // 🔎 Accede a los IDs seleccionados (si tu data class tiene "id")
                     val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
-                    println("IDs seleccionados: $idsSeleccionados")
+                    binding.idsObtenidos.text = "$idsSeleccionados"
 
                     binding.eliminarselect.setOnClickListener {
+                        binding.linealEncontrados.isVisible=true
+                        binding.cargandoActualzando.text="Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible=false
+                        binding.bottomOpciones.isVisible=false
+                        binding.recicleViewTrabajos.isVisible=false
                         Toast.makeText(
                             this,
                             "pasmos a elminados todos los $idsSeleccionados",
                             Toast.LENGTH_SHORT
                         ).show()
-                        eliminar_archivar_lista_ids(idsSeleccionados as List<String>,"eliminados")
+                        eliminar_archivar_lista_ids(idsSeleccionados as List<String>, "eliminados")
+
                     }
 
                     binding.archivarselect.setOnClickListener {
-                        eliminar_archivar_lista_ids(idsSeleccionados as List<String>,"archivados")
+                        binding.linealEncontrados.isVisible=true
+                        binding.cargandoActualzando.text="Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible=false
+                        binding.bottomOpciones.isVisible=false
+                        binding.recicleViewTrabajos.isVisible=false
+                        eliminar_archivar_lista_ids(idsSeleccionados as List<String>, "archivados")
 
                         Toast.makeText(
                             this,
@@ -98,8 +109,8 @@ class ver_publicaciones : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
 
-                    }
 
+                    }
 
 
                     val todosSeleccionados = cantidadSeleccionados == listAdapter.size
@@ -124,7 +135,7 @@ class ver_publicaciones : AppCompatActivity() {
                 } else {
                     // Modo selección activo pero sin elementos seleccionados
                     binding.modoSelecion.isVisible = false
-                    binding.titulosCentrado.isVisible=true
+                    binding.titulosCentrado.isVisible = true
                     binding.bottomOpciones.isVisible = false
                 }
 
@@ -168,9 +179,9 @@ class ver_publicaciones : AppCompatActivity() {
         )
 
         binding.todos.setOnClickListener {
-            binding.archivarselect.isVisible=true
-            binding.eliminarselect.isVisible=true
-            binding.reactivar.isVisible=false
+            binding.archivarselect.isVisible = true
+            binding.eliminarselect.isVisible = true
+            binding.reactivar.isVisible = false
             adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "publicados",
@@ -182,10 +193,10 @@ class ver_publicaciones : AppCompatActivity() {
                 binding.linealNoCuenta,
             )
         }
-        binding.chipPublicados.setOnClickListener{
-            binding.archivarselect.isVisible=true
-            binding.eliminarselect.isVisible=true
-            binding.reactivar.isVisible=false
+        binding.chipPublicados.setOnClickListener {
+            binding.archivarselect.isVisible = true
+            binding.eliminarselect.isVisible = true
+            binding.reactivar.isVisible = false
             adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "publicados",
@@ -198,9 +209,9 @@ class ver_publicaciones : AppCompatActivity() {
             )
         }
         binding.chipEliminados.setOnClickListener {
-            binding.archivarselect.isVisible=false
-            binding.eliminarselect.isVisible=false
-            binding.reactivar.isVisible=true
+            binding.archivarselect.isVisible = false
+            binding.eliminarselect.isVisible = false
+            binding.reactivar.isVisible = true
             adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "eliminados",
@@ -211,11 +222,26 @@ class ver_publicaciones : AppCompatActivity() {
                 adapter,
                 binding.linealNoCuenta,
             )
+            binding.reactivar.setOnClickListener {
+                binding.linealEncontrados.isVisible=true
+                binding.cargandoActualzando.text="Cambiando publicaciones"
+                binding.linealPublicacionesFiltrados.isVisible=false
+                binding.bottomOpciones.isVisible=false
+                binding.recicleViewTrabajos.isVisible=false
+                val ids = binding.idsObtenidos.text
+                    .toString()
+                    .removePrefix("[")
+                    .removeSuffix("]")
+                    .split(",")
+                    .map { it.trim() }
+
+                activar_publicacion_list("eliminados", ids)
+            }
         }
         binding.chipArchivados.setOnClickListener {
-            binding.archivarselect.isVisible=false
-            binding.eliminarselect.isVisible=false
-            binding.reactivar.isVisible=true
+            binding.archivarselect.isVisible = false
+            binding.eliminarselect.isVisible = false
+            binding.reactivar.isVisible = true
             adapter.cancelarModoSeleccion()
             obtenerPublicaciones(
                 "archivados",
@@ -226,6 +252,21 @@ class ver_publicaciones : AppCompatActivity() {
                 adapter,
                 binding.linealNoCuenta,
             )
+            binding.reactivar.setOnClickListener {
+                binding.linealEncontrados.isVisible=true
+                binding.cargandoActualzando.text="Cambiando publicaciones"
+                binding.linealPublicacionesFiltrados.isVisible=false
+                binding.bottomOpciones.isVisible=false
+                binding.recicleViewTrabajos.isVisible=false
+                val ids = binding.idsObtenidos.text
+                    .toString()
+                    .removePrefix("[")
+                    .removeSuffix("]")
+                    .split(",")
+                    .map { it.trim() }
+
+                activar_publicacion_list("archivados", ids)
+            }
         }
 
     }
@@ -243,6 +284,7 @@ class ver_publicaciones : AppCompatActivity() {
             binding.listartododos.isVisible = false
 
             Toast.makeText(this, "Selección cancelada", Toast.LENGTH_SHORT).show()
+
         } else {
             // Si no hay selección activa, se comporta como siempre
             super.onBackPressed()
@@ -336,6 +378,89 @@ class ver_publicaciones : AppCompatActivity() {
 
         dialog.setContentView(view)
     }
+
+    private fun activar_publicacion_list(tipo: String, idsPublicacion: List<String>) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        idsPublicacion.forEach { idPublicacion ->
+            val refOrigen = firestore.collection("Trabajadores_Usuarios_Drivers")
+                .document("trabajadores").collection("trabajadores")
+                .document(uid).collection("trabajos_realizados")
+                .document(tipo).collection(tipo).document(idPublicacion)
+            Log.d("ids_bonido", "${refOrigen.path}")
+
+            refOrigen.get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data ?: return@addOnSuccessListener
+
+                    val hashMap = hashMapOf<String, Any>()
+
+                    hashMap[Variables.titulo] = data[Variables.titulo] ?: ""
+                    hashMap[Variables.descripcion] = data[Variables.descripcion] ?: ""
+                    hashMap[Variables.hora] = data[Variables.hora] ?: ""
+                    hashMap[Variables.fecha] = data[Variables.fecha] ?: ""
+                    hashMap[Variables.id] = data[Variables.id] ?: ""
+
+                    for ((key, value) in data) {
+                        if (key.startsWith("img_url") && value is String) {
+                            hashMap[key] = value
+                        }
+                    }
+
+                    val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(uid).collection("trabajos_realizados")
+                        .document("publicados").collection("publicados").document(idPublicacion)
+
+                    refDestino.set(hashMap).addOnSuccessListener {
+                        refOrigen.delete().addOnSuccessListener {
+                            Toast.makeText(
+                                this,
+                                "Trabajo $idPublicacion movido correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+
+                            obtenerPublicaciones(
+                                tipo,
+                                uid,
+                                listAdapter,
+                                binding.recicleViewTrabajos,
+                                this,
+                                adapter,
+                                binding.linealNoCuenta
+                            )
+
+                        }.addOnFailureListener {
+                            Toast.makeText(
+                                this,
+                                "Error al eliminar: ${it.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(this, "Error al mover: ${it.message}", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+
+                } else {
+                    Toast.makeText(
+                        this,
+                        "El documento $idPublicacion no existe",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(
+                    this,
+                    "Error al obtener $idPublicacion: ${it.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
 
     private fun activar_publicacion(tipo: String, idPublicacion: String) {
         val firestore = FirebaseFirestore.getInstance()
@@ -441,21 +566,30 @@ class ver_publicaciones : AppCompatActivity() {
                         refOrigen.delete().addOnSuccessListener {
                             println("✅ Trabajo $id movido a $tipo")
                         }.addOnFailureListener {
-                            Toast.makeText(this, "Error al eliminar $id: ${it.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "Error al eliminar $id: ${it.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }.addOnFailureListener {
-                        Toast.makeText(this, "Error al mover $id: ${it.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Error al mover $id: ${it.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
 
                 } else {
                     Toast.makeText(this, "El documento $id no existe", Toast.LENGTH_SHORT).show()
                 }
             }.addOnFailureListener {
-                Toast.makeText(this, "Error al obtener $id: ${it.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error al obtener $id: ${it.message}", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
-        // Actualizar vista al final (con retraso opcional)
+        listAdapter.clear()
         Handler(Looper.getMainLooper()).postDelayed({
             obtenerPublicaciones(
                 "publicados",
@@ -466,7 +600,7 @@ class ver_publicaciones : AppCompatActivity() {
                 adapter,
                 binding.linealNoCuenta,
             )
-        }, 1000) // espera 1 segundo a que terminen
+        }, 3000) // espera 1 segundo a que terminen
     }
 
 
@@ -620,9 +754,11 @@ class ver_publicaciones : AppCompatActivity() {
         adapter: publicaciones_ralizadas, // Cambiado a publicaciones_ralizadas
         lineal_no_cuenta: LinearLayout
     ) {
-        binding.cerrarselecion.isVisible=false
-        binding.listartododos.isVisible=false
-        binding.deslistar.isVisible=false
+        binding.linealEncontrados.isVisible=false
+        binding.linealPublicacionesFiltrados.isVisible=true
+        binding.cerrarselecion.isVisible = false
+        binding.listartododos.isVisible = false
+        binding.deslistar.isVisible = false
         adapter.cancelarModoSeleccion()
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
@@ -631,6 +767,7 @@ class ver_publicaciones : AppCompatActivity() {
         lineal_no_cuenta.isVisible = false
         recicleTrabajosRealizados.isVisible = false
         binding.linealEncontrados.isVisible = true
+        binding.cargandoActualzando.text="Cargando publicaciones"
 
         db.get().addOnSuccessListener { result ->
             lista.clear()

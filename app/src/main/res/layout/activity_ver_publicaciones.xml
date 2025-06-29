@@ -23,6 +23,7 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/linealPublicacionesFiltrados"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -59,6 +60,7 @@
                         android:fontFamily="@font/fuente_para_texto_special_gothic"
                         android:textSize="19sp" />
 
+
                     <ImageView
                         android:id="@+id/cerrarselecion"
                         android:layout_width="30dp"
@@ -91,6 +93,7 @@
 
 
                 <HorizontalScrollView
+
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
@@ -140,7 +143,19 @@
                 </HorizontalScrollView>
             </LinearLayout>
 
-
+            <TextView
+                android:visibility="gone"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:id="@+id/ids_obtenidos"
+                android:layout_centerInParent="true"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="15dp"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:textSize="19sp" />
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recicleViewTrabajos"
                 android:layout_width="match_parent"
@@ -187,6 +202,7 @@
             android:layout_height="50dp" />
 
         <TextView
+            android:id="@+id/cargandoActualzando"
             style="@style/TextoModoOScuroColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -196,7 +212,6 @@
     </LinearLayout>
 
     <LinearLayout
-
         android:paddingVertical="5dp"
         android:id="@+id/bottom_opciones"
         android:layout_width="match_parent"
@@ -283,6 +298,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
+
 
 
 </RelativeLayout>
