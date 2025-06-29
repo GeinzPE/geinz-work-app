@@ -2,6 +2,7 @@ package com.example.geinzwork.vistaTrabajador
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -36,6 +38,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
 
 class ver_publicaciones_vista_verificados : AppCompatActivity() {
     private lateinit var binding: ActivityVerPublicacionesVistaVerificadosBinding
@@ -61,7 +66,137 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             dialog = BottomSheetDialog(this)
             bottomSheet_editar_eliminar_Arhivar_estadi(item)
             dialog.show()
+        }, { cantidadSeleccionados, listaSeleccionados ->  // 🔴 ahora recibes ambos
+            binding.modoSelecion.text = "$cantidadSeleccionados Selecionados"
+            binding.modoSelecion.isVisible = true
+            binding.titulosCentrado.isVisible = false
+            if (cantidadSeleccionados > 0) {
+                binding.cerrarselecion.isVisible = true
+                binding.listartododos.isVisible = true
+                binding.bottomOpciones.isVisible = true
+
+                // 🔎 Accede a los IDs seleccionados (si tu data class tiene "id")
+                val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
+                binding.idsObtenidos.text = "$idsSeleccionados"
+
+                binding.eliminarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el elimianr desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "eliminados", "todos"
+                    )
+                }
+
+                binding.archivarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "archivados", "todos"
+                    )
+
+                }
+
+
+                binding.ocultarPublicaciones.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "privado", "todos"
+                    )
+
+                }
+                binding.soloSeguidoresMov.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        idsSeleccionados as List<String>,
+                        "publicados",
+                        "solo_seguidores", "todos"
+                    )
+
+                }
+
+
+                val todosSeleccionados = cantidadSeleccionados == lista.size
+                if (todosSeleccionados) {
+                    binding.deslistar.setColorFilter(
+                        ContextCompat.getColor(
+                            this,
+                            R.color.blue
+                        ),  // reemplaza con tu color deseado
+                        PorterDuff.Mode.SRC_IN
+                    )
+                    binding.deslistar.isVisible = true
+                    binding.listartododos.isVisible = false
+                    // Aquí puedes hacer algo más si quieres
+                    Toast.makeText(this, "se sleeicono todos", Toast.LENGTH_SHORT).show()
+                } else {
+                    binding.deslistar.isVisible = false
+                    binding.listartododos.isVisible = true
+
+                    println("❌ Aún faltan elementos por seleccionar.")
+                }
+            } else {
+                // Modo selección activo pero sin elementos seleccionados
+                binding.modoSelecion.isVisible = false
+                binding.titulosCentrado.isVisible = true
+                binding.bottomOpciones.isVisible = false
+            }
+
         })
+
+        binding.cerrarselecion.setOnClickListener {
+            Toast.makeText(this, "se realziao clik ", Toast.LENGTH_SHORT).show()
+            binding.cerrarselecion.isVisible = false
+            binding.listartododos.isVisible = false
+            binding.deslistar.isVisible = false
+            binding.bottomOpciones.isVisible = false
+            binding.modoSelecion.isVisible = false
+            adapter.cancelarModoSeleccion()
+        }
+        binding.listartododos.setOnClickListener {
+            binding.deslistar.isVisible = true
+            binding.deslistar.setColorFilter(
+                ContextCompat.getColor(this, R.color.blue),  // reemplaza con tu color deseado
+                PorterDuff.Mode.SRC_IN
+            )
+            adapter.seleccionarTodos()
+        }
+
+        binding.deslistar.setOnClickListener {
+            binding.listartododos.isVisible = true
+            binding.deslistar.isVisible = false
+            adapter.deseleccionarTodosSinSalirDeModo()
+        }
+
+
         val dato_pasado = intent.getStringExtra("tipo").toString()
         Log.d("DebugTipo", "dato_pasado: $dato_pasado")
 
@@ -74,12 +209,39 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     "No se encontraron datos Publicados"
                 )
                 binding.todos.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    binding.ocultarPublicaciones.isVisible = true
                     binding.linealEncontrados.isVisible = false
+                    adapter.cancelarModoSeleccion()
                     obtener_publicaciones_realizadas(
                         firebaseAuth.uid.toString(),
                         "publicados",
                         "No se encontraron datos Publicados"
                     )
+                    binding.eliminarselect.isVisible = true
+                    binding.archivarselect.isVisible = true
+                    binding.reactivar.isVisible = false
+                    binding.eliminarselect.setOnClickListener {
+                        Toast.makeText(
+                            this,
+                            "selecionasr el elimianr desde todos",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        binding.linealEncontrados.isVisible = true
+                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible = false
+                        binding.bottomOpciones.isVisible = false
+                        binding.recicleViewTrabajos.isVisible = false
+
+                        archivar_eliminar_publicaciones_list(
+                            binding.idsObtenidos.text.toString() as List<String>,
+                            "publicados",
+                            "eliminados", "todos"
+                        )
+                    }
                 }
                 binding.masClicks.setOnClickListener {
                     binding.linealEncontrados.isVisible = true
@@ -117,6 +279,12 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     }
                 }
                 binding.privado.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = false
+                    binding.ocultarPublicaciones.isVisible = false
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_publicaciones_realizadas(
@@ -124,10 +292,37 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "privado",
                         "No se encontraron datos Publicados"
                     )
+                    binding.reactivar.setOnClickListener {
+                        binding.linealEncontrados.isVisible = true
+                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible = false
+                        binding.bottomOpciones.isVisible = false
+                        binding.recicleViewTrabajos.isVisible = false
+                        val ids = binding.idsObtenidos.text
+                            .toString()
+                            .removePrefix("[")
+                            .removeSuffix("]")
+                            .split(",")
+                            .map { it.trim() }
+
+                        activar_publicacion_lista(
+                            "privado",
+                            ids,
+                            "privado"
+                        )
+
+                    }
 
 
                 }
                 binding.soloSeguidores.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.soloSeguidoresMov.isVisible = false
+                    binding.ocultarPublicaciones.isVisible = false
+                    binding.reactivar.isVisible = true
+
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
 
@@ -136,25 +331,95 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "solo_seguidores",
                         "No se encontraron datos Publicados"
                     )
+                    binding.reactivar.setOnClickListener {
+                        binding.linealEncontrados.isVisible = true
+                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                        binding.linealPublicacionesFiltrados.isVisible = false
+                        binding.bottomOpciones.isVisible = false
+                        binding.recicleViewTrabajos.isVisible = false
+                        val ids = binding.idsObtenidos.text
+                            .toString()
+                            .removePrefix("[")
+                            .removeSuffix("]")
+                            .split(",")
+                            .map { it.trim() }
+
+                        activar_publicacion_lista(
+                            "solo_seguidores",
+                            ids,
+                            "solo_seguidores"
+                        )
+
+                    }
                 }
             }
 
             "archivadas" -> {
+                binding.archivarselect.isVisible = false
+                binding.eliminarselect.isVisible = false
+                binding.reactivar.isVisible = true
+                binding.soloSeguidoresMov.isVisible = false
+                binding.ocultarPublicaciones.isVisible = false
                 binding.linealChips.isVisible = false
                 obtener_publicaciones_realizadas(
                     firebaseAuth.uid.toString(),
                     "archivados",
                     "No se encontraron datos archivados"
                 )
+                binding.reactivar.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    val ids = binding.idsObtenidos.text
+                        .toString()
+                        .removePrefix("[")
+                        .removeSuffix("]")
+                        .split(",")
+                        .map { it.trim() }
+
+                    activar_publicacion_lista(
+                        "archivados",
+                        ids,
+                        "archivados"
+                    )
+
+                }
             }
 
             "eliminadas" -> {
+                binding.archivarselect.isVisible = false
+                binding.eliminarselect.isVisible = false
+                binding.reactivar.isVisible = true
+                binding.soloSeguidoresMov.isVisible = false
+                binding.ocultarPublicaciones.isVisible = false
                 binding.linealChips.isVisible = false
                 obtener_publicaciones_realizadas(
                     firebaseAuth.uid.toString(),
                     "eliminados",
                     "No se encontraron datos eliminados"
                 )
+                binding.reactivar.setOnClickListener {
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    val ids = binding.idsObtenidos.text
+                        .toString()
+                        .removePrefix("[")
+                        .removeSuffix("]")
+                        .split(",")
+                        .map { it.trim() }
+
+                    activar_publicacion_lista(
+                        "eliminados",
+                        ids,
+                        "eliminados"
+                    )
+
+                }
             }
 
             else -> {
@@ -201,6 +466,10 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     }
                 }
                 binding.privado.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_publicaciones_realizadas(
@@ -212,6 +481,10 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
                 }
                 binding.soloSeguidores.setOnClickListener {
+                    binding.archivarselect.isVisible = false
+                    binding.eliminarselect.isVisible = false
+                    binding.reactivar.isVisible = true
+                    adapter.cancelarModoSeleccion()
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
 
@@ -493,10 +766,50 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     )
                 }
             }
+
             if (binding.todos.isChecked) {
+                binding.archivarselect.isVisible = false
+                binding.eliminarselect.isVisible = false
+                binding.reactivar.isVisible = true
+                binding.soloSeguidoresMov.isVisible = true
+                binding.ocultarPublicaciones.isVisible = true
+                Toast.makeText(this, "todos estan selciondaso en chek", Toast.LENGTH_SHORT).show()
+                adapter.cancelarModoSeleccion()
+                binding.eliminarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el elimianr desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "eliminados", "todos"
+                    )
+
+                }
+
+                binding.archivarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "archivados", "todos"
+                    )
+
+                }
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
-                    vista_previa_publicaciones(item.id_publicacion.toString(),"publicados")
+                    vista_previa_publicaciones(item.id_publicacion.toString(), "publicados")
                 }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
@@ -573,7 +886,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 }
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
-                    vista_previa_publicaciones(item.id_publicacion.toString(),"privado")
+                    vista_previa_publicaciones(item.id_publicacion.toString(), "privado")
                 }
             }
             if (binding.soloSeguidores.isChecked) {
@@ -616,7 +929,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 }
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
-                    vista_previa_publicaciones(item.id_publicacion.toString(),"solo_seguidores")
+                    vista_previa_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
                 editar.setOnClickListener {
                     editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
@@ -639,7 +952,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             }
             vista_previa.setOnClickListener {
                 dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString(),"archivados")
+                vista_previa_publicaciones(item.id_publicacion.toString(), "archivados")
             }
         } else if (dato_pasado.equals("eliminadas")) {
             bottoSheet.regresar.isVisible = true
@@ -656,7 +969,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             }
             vista_previa.setOnClickListener {
                 dialog.dismiss()
-                vista_previa_publicaciones(item.id_publicacion.toString(),"eliminados")
+                vista_previa_publicaciones(item.id_publicacion.toString(), "eliminados")
             }
         }
 
@@ -692,7 +1005,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
-    private fun vista_previa_publicaciones(id_publicacion: String,tipo1:String) {
+    private fun vista_previa_publicaciones(id_publicacion: String, tipo1: String) {
         val vista =
             Intent(this, vista_ver_publicaciones_trabajadores::class.java).apply {
                 putExtra("id_trabajador", firebaseAuth.uid.toString())
@@ -813,6 +1126,164 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         }
 
     }
+
+    private fun activar_publicacion_lista(
+        tipo1: String,
+        idsPublicacion: List<String>,
+        tipo_fun: String
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        binding.linealEncontrados.isVisible = true
+        binding.recicleViewTrabajos.isVisible = false
+
+        var procesadas = 0
+        fun checkFinal() {
+            procesadas++
+            if (procesadas == idsPublicacion.size) {
+                binding.linealEncontrados.isVisible = false
+                lista.clear()
+                when (tipo_fun) {
+                    "privado" -> obtener_publicaciones_realizadas(
+                        uid,
+                        "privado",
+                        "No se encontraron datos"
+                    )
+
+                    "solo_seguidores" -> obtener_publicaciones_realizadas(
+                        uid,
+                        "solo_seguidores",
+                        "No se encontraron datos"
+                    )
+
+                    "archivados", "eliminados" -> obtener_publicaciones_realizadas(
+                        uid,
+                        tipo1,
+                        "No se encontraron datos "
+                    )
+                }
+            }
+        }
+        idsPublicacion.forEach { idPublicacion ->
+            val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(firebaseAuth.uid.toString())
+                .collection("publicaciones_trabajos").document(tipo1).collection(tipo1)
+                .document(idPublicacion)
+
+            db.get().addOnSuccessListener { res ->
+                if (res.exists()) {
+                    val data = res.data ?: return@addOnSuccessListener
+                    val categoria = data["categoria"] as? String ?: ""
+                    val contenido = data["contenido"] as? String ?: ""
+                    val estadisticas_click = data["estadisticas_click"] as? Number ?: 0
+                    val estadisticas_compartir = data["estadisticas_compartir"] as? Number ?: 0
+                    val estadisticas_vistas = data["estadisticas_vistas"] as? Number ?: 0
+                    val fecha_rec = data["fecha_rec"] as? String ?: ""
+                    val hora_rec = data["hora_rec"] as? String ?: ""
+                    val titulo = data["titulo"] as? String ?: ""
+                    val id = data["id"] as? String ?: ""
+                    val ubicacion = data["ubicacion"] as? String ?: ""
+                    val visibilidad = data["visivilidad"] as? String ?: ""
+                    val hashtags_generales =
+                        data["hashtags_generales"] as? List<String> ?: emptyList()
+                    val hashtags_trabajos_publicados =
+                        data["hashtags_trabajos_publicados"] as? List<String> ?: emptyList()
+
+                    val hashMap = hashMapOf<String, Any>(
+                        "id" to id,
+                        "categoria" to categoria,
+                        "contenido" to contenido,
+                        "estadisticas_click" to estadisticas_click,
+                        "estadisticas_compartir" to estadisticas_compartir,
+                        "estadisticas_vistas" to estadisticas_vistas,
+                        "fecha_rec" to fecha_rec,
+                        "hora_rec" to hora_rec,
+                        "titulo" to titulo,
+                        "ubicacion" to ubicacion,
+                        "visivilidad" to visibilidad,
+                        "hashtags_generales" to hashtags_generales,
+                        "hashtags_trabajos_publicados" to hashtags_trabajos_publicados
+                    )
+
+                    for ((key, value) in data) {
+                        if (key.startsWith("img_url") && value is String) {
+                            hashMap[key] = value
+                        }
+                    }
+
+                    val refDestino = firestore.collection("Trabajadores_Usuarios_Drivers")
+                        .document("trabajadores").collection("trabajadores")
+                        .document(uid).collection("publicaciones_trabajos")
+                        .document("publicados").collection("publicados").document(idPublicacion)
+
+                    refDestino.set(hashMap).addOnSuccessListener {
+                        db.delete().addOnSuccessListener {
+                            Log.d("Firestore", "Publicación $idPublicacion movida correctamente")
+                            procesadas++
+                            if (procesadas == idsPublicacion.size) {
+                                binding.linealEncontrados.isVisible = false
+                                when (tipo_fun) {
+                                    "privado" -> {
+                                        lista.clear()
+                                        obtener_publicaciones_realizadas(
+                                            uid,
+                                            "privado",
+                                            "No se encontraron datos"
+                                        )
+                                    }
+
+                                    "solo_seguidores" -> {
+                                        lista.clear()
+                                        obtener_publicaciones_realizadas(
+                                            uid,
+                                            "solo_seguidores",
+                                            "No se encontraron datos"
+                                        )
+                                    }
+
+                                    "archivados" -> {
+                                        lista.clear()
+                                        obtener_publicaciones_realizadas(
+                                            uid,
+                                            tipo1,
+                                            "No se encontraron datos "
+                                        )
+                                    }
+
+                                    "eliminados" -> {
+                                        lista.clear()
+                                        obtener_publicaciones_realizadas(
+                                            uid,
+                                            tipo1,
+                                            "No se encontraron datos "
+                                        )
+                                    }
+                                }
+                            }
+                        }.addOnFailureListener {
+                            Log.d("erro_pasado", "Error al eliminar la publicación")
+                            checkFinal()
+                        }
+                    }.addOnFailureListener {
+                        Log.d("erro_pasado", "Error al mover la publicación")
+                        checkFinal()
+                    }
+
+                } else {
+                    Log.d("erro_pasado", "No se encontró la publicación")
+                    checkFinal()
+                }
+            }.addOnFailureListener {
+                Log.d("erro_pasado", "Error al obtener la publicación")
+                checkFinal()
+            }
+        }
+
+
+    }
+
 
     private fun archivar_eliminar_publicaciones(
         id_publicacion: String,
@@ -943,6 +1414,145 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
     }
 
 
+    private fun archivar_eliminar_publicaciones_list(
+        idsPublicaciones: List<String>,
+        tipoOrigen: String,
+        tipoDestino: String,
+        funcionFiltro: String
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val uid = firebaseAuth.uid.toString()
+
+        binding.linealEncontrados.isVisible = true
+        binding.recicleViewTrabajos.isVisible = false
+
+        var procesadas = 0 // Contador de completadas
+        fun checkCompletadas() {
+            procesadas++
+            if (procesadas == idsPublicaciones.size) {
+                // Solo cuando TODAS terminaron
+                binding.linealEncontrados.isVisible = false
+                binding.recicleViewTrabajos.isVisible = true
+                lista.clear()
+                when (funcionFiltro) {
+                    "todos" -> {
+                        obtener_publicaciones_realizadas(
+                            uid,
+                            "publicados",
+                            "No se encontraron datos"
+                        )
+                    }
+
+                    "mascliks" -> {
+                        filtrar_publicaciones(
+                            binding.min.text.toString().toInt(),
+                            binding.max.text.toString().toInt(),
+                            "estadisticas_click"
+                        )
+                    }
+
+                    "masvistas" -> {
+                        filtrar_publicaciones(
+                            binding.min.text.toString().toInt(),
+                            binding.max.text.toString().toInt(),
+                            "estadisticas_vistas"
+                        )
+                    }
+
+                    "mascompartidas" -> {
+                        filtrar_publicaciones(
+                            binding.min.text.toString().toInt(),
+                            binding.max.text.toString().toInt(),
+                            "estadisticas_compartir"
+                        )
+                    }
+
+                    "privado" -> {
+                        obtener_publicaciones_realizadas(uid, "privado", "No se encontraron datos")
+                    }
+
+                    "solo_seguidores" -> {
+                        obtener_publicaciones_realizadas(
+                            uid,
+                            "solo_seguidores",
+                            "No se encontraron datos"
+                        )
+                    }
+                }
+            }
+        }
+        idsPublicaciones.forEach { id_publicacion ->
+            val refOrigen = firestore.collection(Variables.trabajadores_usuariosDB)
+                .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                .document(uid).collection("publicaciones_trabajos")
+                .document(tipoOrigen).collection(tipoOrigen)
+                .document(id_publicacion)
+
+            refOrigen.get().addOnSuccessListener { res ->
+                if (!res.exists()) {
+                    Log.e("Firestore", "No existe publicación con ID: $id_publicacion")
+                    checkCompletadas()
+                    return@addOnSuccessListener
+                }
+
+                val data = res.data ?: run {
+                    checkCompletadas()
+                    return@addOnSuccessListener
+                }
+
+                val hashMap = mutableMapOf<String, Any>(
+                    "id" to (data["id"] ?: ""),
+                    "categoria" to (data["categoria"] ?: ""),
+                    "contenido" to (data["contenido"] ?: ""),
+                    "estadisticas_click" to (data["estadisticas_click"] ?: 0),
+                    "estadisticas_compartir" to (data["estadisticas_compartir"] ?: 0),
+                    "estadisticas_vistas" to (data["estadisticas_vistas"] ?: 0),
+                    "fecha_rec" to (data["fecha_rec"] ?: ""),
+                    "hora_rec" to (data["hora_rec"] ?: ""),
+                    "titulo" to (data["titulo"] ?: ""),
+                    "ubicacion" to (data["ubicacion"] ?: ""),
+                    "visivilidad" to (data["visivilidad"] ?: ""),
+                    "hashtags_generales" to (data["hashtags_generales"] as? List<String>
+                        ?: emptyList()),
+                    "hashtags_trabajos_publicados" to (data["hashtags_trabajos_publicados"] as? List<String>
+                        ?: emptyList())
+                )
+
+                for ((key, value) in data) {
+                    if (key.startsWith("img_url") && value is String) {
+                        hashMap[key] = value
+                    }
+                }
+
+                val refDestino = firestore.collection(Variables.trabajadores_usuariosDB)
+                    .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
+                    .document(uid).collection("publicaciones_trabajos")
+                    .document(tipoDestino).collection(tipoDestino)
+                    .document(id_publicacion)
+
+                refDestino.set(hashMap).addOnSuccessListener {
+                    refOrigen.delete().addOnSuccessListener {
+                        Log.d("Firestore", "Movido correctamente: $id_publicacion")
+                        checkCompletadas()
+                    }.addOnFailureListener {
+                        Log.e("Firestore", "Error al eliminar origen: ${it.message}")
+                        checkCompletadas()
+                    }
+                }.addOnFailureListener {
+                    Log.e("Firestore", "Error al mover destino: ${it.message}")
+                    checkCompletadas()
+                }
+
+            }.addOnFailureListener {
+                Log.e("Firestore", "Error al obtener publicación $id_publicacion: ${it.message}")
+                checkCompletadas()
+            }
+        }
+
+
+    }
+
+
     private fun bottom_sheet_chips(
         max: String,
         min: String,
@@ -1019,14 +1629,17 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         tipo: String,
         texto_sin_encontrar: String
     ) {
-
+        binding.linealEncontrados.isVisible = false
+        binding.linealPublicacionesFiltrados.isVisible = true
+        binding.cerrarselecion.isVisible = false
         binding.linealNoCuenta.isVisible = false
         binding.recicleViewTrabajos.isVisible = false
+        binding.deslistar.isVisible = false
+        binding.listartododos.isVisible = false
+        adapter.cancelarModoSeleccion()
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
             .collection("publicaciones_trabajos").document(tipo).collection(tipo)
-//        binding.loading.isVisible = true
-
         lista.clear()
         db.get().addOnSuccessListener { res ->
             for (datos in res) {

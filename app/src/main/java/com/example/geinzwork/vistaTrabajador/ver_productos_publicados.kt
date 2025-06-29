@@ -76,11 +76,11 @@ class ver_productos_publicados : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
-        adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
-            dialog = BottomSheetDialog(this)
-            bottomSheet_editar_eliminar_Arhivar_estadi(item)
-            dialog.show()
-        })
+//        adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
+//            dialog = BottomSheetDialog(this)
+//            bottomSheet_editar_eliminar_Arhivar_estadi(item)
+//            dialog.show()
+//        })
         val dato_pasado = intent.getStringExtra("tipo").toString()
         Log.d("DebugTipo", "dato_pasado: $dato_pasado")
 
