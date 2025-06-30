@@ -932,7 +932,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
                 editar.setOnClickListener {
                     dialog = BottomSheetDialog(this)
-                    bottomSheet_editar_campos(item.id_publicacion.toString())
+                    bottomSheet_editar_campos(item.id_publicacion.toString(),"publicados")
                     dialog.show()
 
 
@@ -1370,9 +1370,20 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.recicleProductos.isVisible = true
                 when (tipo_fun) {
                     "privado" -> obtener_productos("privado", "No se encontraron publicaciones")
-                    "solo_seguidores" -> obtener_productos("solo_seguidores", "No se encontraron publicaciones")
-                    "archivados" -> obtener_productos("archivados", "No se encontraron publicaciones")
-                    "eliminados" -> obtener_productos("eliminados", "No se encontraron publicaciones")
+                    "solo_seguidores" -> obtener_productos(
+                        "solo_seguidores",
+                        "No se encontraron publicaciones"
+                    )
+
+                    "archivados" -> obtener_productos(
+                        "archivados",
+                        "No se encontraron publicaciones"
+                    )
+
+                    "eliminados" -> obtener_productos(
+                        "eliminados",
+                        "No se encontraron publicaciones"
+                    )
                 }
             }
         }
@@ -1393,7 +1404,8 @@ class ver_productos_publicados : AppCompatActivity() {
                     val hasMap = hashMapOf<String, Any>(
                         "id" to idPublicacion,
                         "titulo" to (data["titulo"] ?: ""),
-                        "cantidad_porcentaje_descuento" to (data["cantidad_porcentaje_descuento"] ?: 0),
+                        "cantidad_porcentaje_descuento" to (data["cantidad_porcentaje_descuento"]
+                            ?: 0),
                         "condicion_producto" to (data["condicion_producto"] ?: ""),
                         "categoria_producto" to (data["categoria_producto"] ?: ""),
                         "subcategori_producto" to (data["subcategori_producto"] ?: ""),
@@ -1405,7 +1417,8 @@ class ver_productos_publicados : AppCompatActivity() {
                         "metodoEntrega" to metodoEntrega,
                         "metodoPago" to metodoPago,
                         "modelo" to (data["modelo"] ?: ""),
-                        "hashtags_generales" to (data["hashtags_generales"] as? List<String> ?: emptyList()),
+                        "hashtags_generales" to (data["hashtags_generales"] as? List<String>
+                            ?: emptyList()),
                         "nombre" to (data["nombre"] ?: ""),
                         "precio" to (data["precio"] ?: 0.0),
                         "precioDelivery" to 5,
@@ -1416,9 +1429,12 @@ class ver_productos_publicados : AppCompatActivity() {
                         "estadisticas_click" to (data["estadisticas_click"] ?: 0),
                         "estadisticas_compartir" to (data["estadisticas_compartir"] ?: 0),
                         "estadisticas_vistas" to (data["estadisticas_vistas"] ?: 0),
-                        "descripcion_titulo" to (data["descripcion_titulo"] as? Map<*, *> ?: emptyMap<String, String>()),
-                        "descripcion_texto" to (data["descripcion_texto"] as? Map<*, *> ?: emptyMap<String, String>()),
-                        "descripcion_texto_lista" to (data["descripcion_texto_lista"] as? List<String> ?: emptyList())
+                        "descripcion_titulo" to (data["descripcion_titulo"] as? Map<*, *>
+                            ?: emptyMap<String, String>()),
+                        "descripcion_texto" to (data["descripcion_texto"] as? Map<*, *>
+                            ?: emptyMap<String, String>()),
+                        "descripcion_texto_lista" to (data["descripcion_texto_lista"] as? List<String>
+                            ?: emptyList())
                     )
 
                     for ((key, value) in data) {
@@ -1433,29 +1449,56 @@ class ver_productos_publicados : AppCompatActivity() {
                         .document("publicados").collection("publicados").document(idPublicacion)
 
                     refDestino.set(hasMap, SetOptions.merge()).addOnSuccessListener {
-                        Toast.makeText(this, "Agregado correctamente a publicados", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Agregado correctamente a publicados",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
-                        cambiar_datos_archivar_eliminar_ocultar_archivar(idPublicacion, "publicados", metodoEntrega, "metodos_entrega")
-                        cambiar_datos_archivar_eliminar_ocultar_archivar(idPublicacion, "publicados", metodoPago, "metodos_pago")
+                        cambiar_datos_archivar_eliminar_ocultar_archivar(
+                            idPublicacion,
+                            "publicados",
+                            metodoEntrega,
+                            "metodos_entrega"
+                        )
+                        cambiar_datos_archivar_eliminar_ocultar_archivar(
+                            idPublicacion,
+                            "publicados",
+                            metodoPago,
+                            "metodos_pago"
+                        )
 
                         refOrigen.delete().addOnSuccessListener {
                             Toast.makeText(this, "Eliminado de $tipo", Toast.LENGTH_SHORT).show()
                             checkCompletadas()
                         }.addOnFailureListener {
-                            Toast.makeText(this, "Error al eliminar de $tipo", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Error al eliminar de $tipo", Toast.LENGTH_SHORT)
+                                .show()
                             checkCompletadas()
                         }
                     }.addOnFailureListener {
-                        Toast.makeText(this, "Error al agregar a publicados: ${it.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Error al agregar a publicados: ${it.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         checkCompletadas()
                     }
 
                 } else {
-                    Toast.makeText(this, "No existe publicación con ID: $idPublicacion", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "No existe publicación con ID: $idPublicacion",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     checkCompletadas()
                 }
             }.addOnFailureListener {
-                Toast.makeText(this, "Error al obtener publicación: ${it.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Error al obtener publicación: ${it.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
                 checkCompletadas()
             }
         }
@@ -1499,18 +1542,24 @@ class ver_productos_publicados : AppCompatActivity() {
                         binding.max.text.toString().toInt(),
                         "estadisticas_click"
                     )
+
                     "masvistas" -> filtrar_publicaciones(
                         binding.min.text.toString().toInt(),
                         binding.max.text.toString().toInt(),
                         "estadisticas_vistas"
                     )
+
                     "mascompartidas" -> filtrar_publicaciones(
                         binding.min.text.toString().toInt(),
                         binding.max.text.toString().toInt(),
                         "estadisticas_compartir"
                     )
+
                     "privado" -> obtener_productos("privado", "No se encontraron datos")
-                    "solo_seguidores" -> obtener_productos("solo_seguidores", "No se encontraron datos")
+                    "solo_seguidores" -> obtener_productos(
+                        "solo_seguidores",
+                        "No se encontraron datos"
+                    )
                 }
             }
         }
@@ -1536,7 +1585,8 @@ class ver_productos_publicados : AppCompatActivity() {
                     val hasMap = hashMapOf<String, Any>(
                         "id" to (data["id"] ?: id_publicacion),
                         "titulo" to (data["titulo"] ?: ""),
-                        "cantidad_porcentaje_descuento" to (data["cantidad_porcentaje_descuento"] ?: 0),
+                        "cantidad_porcentaje_descuento" to (data["cantidad_porcentaje_descuento"]
+                            ?: 0),
                         "condicion_producto" to (data["condicion_producto"] ?: ""),
                         "categoria_producto" to (data["categoria_producto"] ?: ""),
                         "subcategori_producto" to (data["subcategori_producto"] ?: ""),
@@ -1548,7 +1598,8 @@ class ver_productos_publicados : AppCompatActivity() {
                         "metodoEntrega" to metodoEntrega,
                         "metodoPago" to metodoPago,
                         "modelo" to (data["modelo"] ?: ""),
-                        "hashtags_generales" to (data["hashtags_generales"] as? List<String> ?: emptyList()),
+                        "hashtags_generales" to (data["hashtags_generales"] as? List<String>
+                            ?: emptyList()),
                         "nombre" to (data["nombre"] ?: ""),
                         "precio" to (data["precio"] ?: 0.0),
                         "precioDelivery" to 5,
@@ -1559,9 +1610,12 @@ class ver_productos_publicados : AppCompatActivity() {
                         "estadisticas_click" to (data["estadisticas_click"] ?: 0),
                         "estadisticas_compartir" to (data["estadisticas_compartir"] ?: 0),
                         "estadisticas_vistas" to (data["estadisticas_vistas"] ?: 0),
-                        "descripcion_titulo" to (data["descripcion_titulo"] as? Map<*, *> ?: emptyMap<String, String>()),
-                        "descripcion_texto" to (data["descripcion_texto"] as? Map<*, *> ?: emptyMap<String, String>()),
-                        "descripcion_texto_lista" to (data["descripcion_texto_lista"] as? List<String> ?: emptyList())
+                        "descripcion_titulo" to (data["descripcion_titulo"] as? Map<*, *>
+                            ?: emptyMap<String, String>()),
+                        "descripcion_texto" to (data["descripcion_texto"] as? Map<*, *>
+                            ?: emptyMap<String, String>()),
+                        "descripcion_texto_lista" to (data["descripcion_texto_lista"] as? List<String>
+                            ?: emptyList())
                     )
 
                     for ((key, value) in data) {
@@ -1586,7 +1640,8 @@ class ver_productos_publicados : AppCompatActivity() {
                         )
 
                         ref_puplicados.delete().addOnSuccessListener {
-                            Toast.makeText(this, "eliminado de publicados", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "eliminado de publicados", Toast.LENGTH_SHORT)
+                                .show()
                             checkCompletadas()
                         }.addOnFailureListener {
                             Toast.makeText(this, "Error al eliminar", Toast.LENGTH_SHORT).show()
@@ -1610,7 +1665,6 @@ class ver_productos_publicados : AppCompatActivity() {
             }
         }
     }
-
 
 
     private fun eliminar_publicacion_Archivar(
@@ -1926,13 +1980,13 @@ class ver_productos_publicados : AppCompatActivity() {
         recycle.adapter = adapter
     }
 
-    private fun bottomSheet_editar_campos(id_publicacion: String) {
+    private fun bottomSheet_editar_campos(id_publicacion: String,tipo: String) {
         val bottomSheet = BottomSheetEditarProductoBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
 
         bottomSheet.editar.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            bottom_sheet_editar_campos_publicidad(id_publicacion)
+            bottom_sheet_editar_campos_publicidad(id_publicacion,tipo)
             dialog.show()
 
         }
@@ -1944,11 +1998,14 @@ class ver_productos_publicados : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
-    private fun bottom_sheet_editar_campos_publicidad(id_publicacion: String) {
+    private fun bottom_sheet_editar_campos_publicidad(id_publicacion: String,tipo: String) {
 
         val bottomSheet =
             BottomSheetEditarCaracteristicasPublicidadBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
+        dialog = BottomSheetDialog(this)
+        dialog.setContentView(view)
+        dialog.show()
 
         bottomSheet.idPublicacion.text = id_publicacion
         bottomSheet.copiarId.setOnClickListener {
@@ -2073,19 +2130,21 @@ class ver_productos_publicados : AppCompatActivity() {
 
 
                 bottomSheet.mostrarPublicacionPara.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
+                    val dialog_personales:BottomSheetDialog
+                    dialog_personales = BottomSheetDialog(this)
                     constantes_productos_publicados.mostrar_dialog_para(
-                        this, dialog, bottomSheet.mostrarPublicacionPara.text.toString()
+                        this, dialog_personales, bottomSheet.mostrarPublicacionPara.text.toString()
                     ) { selt ->
                         bottomSheet.mostrarPublicacionPara.text = selt
                     }
-                    dialog.show()
+                    dialog_personales.show()
                 }
 
                 bottomSheet.subcategoriaProducto.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
+                    val dialog_personales:BottomSheetDialog
+                    dialog_personales = BottomSheetDialog(this)
                     constantes_productos_publicados.agregarCategorias(
-                        dialog,
+                        dialog_personales,
                         this,
                         bottomSheet.layoutNombreMarca,
                         bottomSheet.marcaProductoED,
@@ -2093,18 +2152,19 @@ class ver_productos_publicados : AppCompatActivity() {
                         bottomSheet.subcategoriaProducto,
                         bottomSheet.catSelcionado
                     )
-                    dialog.show()
+                    dialog_personales.show()
                 }
 
                 bottomSheet.agregarHastagsED.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
+                    val dialog_personales:BottomSheetDialog
+                    dialog_personales = BottomSheetDialog(this)
                     constantes_productos_publicados.obtener_hastags_generales(
                         bottomSheet.agregarHastagsED,
                         this,
                         hashtagsGeneralesList,
-                        dialog
+                        dialog_personales
                     )
-                    dialog.show()
+                    dialog_personales.show()
                 }
 
                 bottomSheet.radioGrupPlazoRG.setOnCheckedChangeListener { _, checkedId ->
@@ -2125,8 +2185,22 @@ class ver_productos_publicados : AppCompatActivity() {
                         ).show()
                         return@setOnClickListener
                     }
-                    actualizar_campos(bottomSheet, db, dialog)
+
+                    actualizar_campos(bottomSheet, db) { completado ->
+                        if (completado) {
+                            obtener_productos(tipo,"No se encontraron productos publicados")
+                            dialog.dismiss()
+                        } else {
+                            Toast.makeText(
+                                this,
+                                "Error al guardar los cambios",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                 }
+
+
 
             } else {
                 Toast.makeText(this, "No se encontró la publicación", Toast.LENGTH_SHORT).show()
@@ -2136,13 +2210,11 @@ class ver_productos_publicados : AppCompatActivity() {
             Log.e("Firestore", "Error al obtener datos: ", e)
         }
 
-        dialog.setContentView(view)
-        dialog.show()
     }
 
     private fun actualizar_campos(
         bottomSheet: BottomSheetEditarCaracteristicasPublicidadBinding,
-        db: DocumentReference, dialog: BottomSheetDialog
+        db: DocumentReference, completados: (Boolean) -> Unit
     ) {
         bottomSheet.cargaContenidoActuliazr.isVisible = true
         bottomSheet.linealPrinciapl.isVisible = false
@@ -2157,7 +2229,6 @@ class ver_productos_publicados : AppCompatActivity() {
             "condicion_producto" to bottomSheet.condicionPrED.text.toString(),
             "categoria_producto" to bottomSheet.catSelcionado.text.toString(),
             "subcategori_producto" to bottomSheet.subcategoriaProducto.text.toString(),
-            "localidadUser" to bottomSheet.agregaUbiED.text.toString(),
             "marca" to bottomSheet.marcaProductoED.text.toString(),
             "modelo" to bottomSheet.modeloProductoED.text.toString(),
             "hashtags_generales" to hashtagsGeneralesFinal,
@@ -2186,6 +2257,11 @@ class ver_productos_publicados : AppCompatActivity() {
         } else {
             hasmap["garantia"] = ""
         }
+        if (bottomSheet.agregaUbicaciones.isChecked) {
+            hasmap["localidadUser"] = bottomSheet.agregaUbiED.text.toString()
+        } else {
+            hasmap["localidadUser"] = FieldValue.delete()
+        }
         // Descuento
         if (bottomSheet.siHayDescuento.isChecked) {
             val precioOriginal = bottomSheet.precioProductoED.text.toString().toIntOrNull() ?: 0
@@ -2198,7 +2274,6 @@ class ver_productos_publicados : AppCompatActivity() {
             } else {
                 0
             }
-
             hasmap["cantidad_porcentaje_descuento"] = descuentoAplicado
             hasmap["precio_descuento"] = precioDescuento
             hasmap["descuento"] = true
@@ -2209,10 +2284,9 @@ class ver_productos_publicados : AppCompatActivity() {
         }
         db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
             Toast.makeText(this, "Cambios realizados correctamente", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
+            completados(true)
         }.addOnFailureListener { e ->
-            Toast.makeText(this, "Error al guardar los cambios: ${e.message}", Toast.LENGTH_SHORT)
-                .show()
+            completados(false)
         }
     }
 

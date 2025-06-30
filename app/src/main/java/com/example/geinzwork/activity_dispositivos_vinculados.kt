@@ -45,8 +45,6 @@ import com.geinzz.geinzwork.databinding.BottomSheetlCrrsVinculadosBinding
 import android.provider.Settings
 
 
-
-
 class activity_dispositivos_vinculados : AppCompatActivity() {
     private lateinit var binding: ActivityDispositivosVinculadosBinding
     private val lista = mutableListOf<dataclass_dispo_vinculados>()
@@ -257,7 +255,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
 
     fun obtenerMarcaDesdeModelo(modelo: String): String {
         return when {
-            modelo.startsWith("SM-", ignoreCase = true) -> "Samsung"
+            modelo.startsWith("SM-", ignoreCase = true) -> "samsung"
             modelo.startsWith(
                 "M2",
                 ignoreCase = true
@@ -419,62 +417,61 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
         val androidId = obtenerAndroidID(this)
 
         dialog = BottomSheetDialog(this)
-        dialog.setContentView(view) // PRIMERO SET CONTENT
-        dialog.show() // SOLO UNA VEZ
+        dialog.setContentView(view)
+        dialog.show()
 
-        selecionar_dialog_biometricocuenta(
-            nombre_dispo,
-            id_dispo
-        ) // <- Esto debe ser solo para mostrar texto o UI dentro del mismo layout
+        if (!sinExsitir) {
+            // Si NO existe un dispositivo primario, mostrar solo el diálogo para marcarlo
+//            if (id_dispo == androidId) {
+            bottomSheetBinding.camposprimario.isVisible = true
+            bottomSheetBinding.primario.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    dialog.dismiss()
+                    encontrarUser(firebaseAuth.uid.toString()) { tipo, _ ->
+                        val docRef = when (tipo) {
+                            "trabajador" -> FirebaseFirestore.getInstance()
+                                .collection("Trabajadores_Usuarios_Drivers")
+                                .document("trabajadores").collection("trabajadores")
+                                .document(firebaseAuth.uid.toString())
+                                .collection("vinculados")
+                                .document(id_dispo)
 
-        if (sinExsitir) {
-            if (id_dispo == androidId) {
-                bottomSheetBinding.camposprimario.isVisible = true
+                            "usuario" -> FirebaseFirestore.getInstance()
+                                .collection("Trabajadores_Usuarios_Drivers")
+                                .document("usuarios").collection("usuarios")
+                                .document(firebaseAuth.uid.toString())
+                                .collection("vinculados")
+                                .document(id_dispo)
 
-                bottomSheetBinding.primario.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        dialog.dismiss()
-                        encontrarUser(firebaseAuth.uid.toString()) { tipo, _ ->
-                            val docRef = when (tipo) {
-                                "trabajador" -> FirebaseFirestore.getInstance()
-                                    .collection("Trabajadores_Usuarios_Drivers")
-                                    .document("trabajadores").collection("trabajadores")
-                                    .document(firebaseAuth.uid.toString())
-                                    .collection("vinculados")
-                                    .document(id_dispo)
-
-                                "usuario" -> FirebaseFirestore.getInstance()
-                                    .collection("Trabajadores_Usuarios_Drivers")
-                                    .document("usuarios").collection("usuarios")
-                                    .document(firebaseAuth.uid.toString())
-                                    .collection("vinculados")
-                                    .document(id_dispo)
-
-                                else -> {
-                                    Log.d("RESULT", "No se encontró el usuario")
-                                    return@encontrarUser
-                                }
+                            else -> {
+                                Log.d("RESULT", "No se encontró el usuario")
+                                return@encontrarUser
                             }
+                        }
 
-                            val hasmap = hashMapOf<String, Any>("primario" to true)
-                            docRef.set(hasmap, SetOptions.merge()).addOnSuccessListener {
-                                Toast.makeText(
-                                    this,
-                                    "Dispositivo primario guardado correctamente",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                obtener_dispositivos_vinculados()
-                            }.addOnFailureListener { e ->
-                                Log.d("error_dispo", "Error al colocar primario el dispositivo: $e")
-                            }
+                        val hasmap = hashMapOf<String, Any>("primario" to true)
+                        docRef.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+                            Toast.makeText(
+                                this,
+                                "Dispositivo primario guardado correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            dialog.dismiss()
+                            obtener_dispositivos_vinculados()
+
+                            // ✅ Ahora que ya se marcó como primario, mostrar el dialog de biometría
+//                                selecionar_dialog_biometricocuenta(nombre_dispo, id_dispo)
+
+                        }.addOnFailureListener { e ->
+                            Log.d("error_dispo", "Error al colocar primario el dispositivo: $e")
                         }
                     }
                 }
-            } else {
-                bottomSheetBinding.camposprimario.isVisible = false
-                // Aquí puedes manejar lógica alternativa si el dispositivo no es el mismo
             }
+
+
         } else {
+            // Ya hay un primario, así que puedes mostrar directamente el dialog de biometría
             bottomSheetBinding.camposprimario.isVisible = true
 
             bottomSheetBinding.primario.setOnCheckedChangeListener { _, isChecked ->
@@ -509,13 +506,18 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 "Dispositivo primario guardado correctamente",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            dialog.dismiss()
                             obtener_dispositivos_vinculados()
+//                            selecionar_dialog_biometricocuenta(nombre_dispo, id_dispo) // ✅ también aquí
                         }.addOnFailureListener { e ->
                             Log.d("error_dispo", "Error al colocar primario el dispositivo: $e")
                         }
                     }
                 }
             }
+
+            // ✅ Mostrar de inmediato el dialog de biometría si ya hay un primario
+            selecionar_dialog_biometricocuenta(nombre_dispo, id_dispo)
         }
     }
 
@@ -542,7 +544,8 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
 
     private fun cerrar_seccion_biometrico(nombre_dispo: String, id_dispo: String) {
         val biometricManager = BiometricManager.from(this)
-        val biometricAuth = BiometricManager.Authenticators.BIOMETRIC_STRONG
+        val biometricAuth =
+            BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL
         val firebaseAuth = FirebaseAuth.getInstance()
 
         when (biometricManager.canAuthenticate(biometricAuth)) {
@@ -625,8 +628,11 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
 
                 val promptInfo = BiometricPrompt.PromptInfo.Builder()
                     .setTitle("Verifica tu identidad")
-                    .setSubtitle("Usa tu huella para cerrar sesión en \"$nombre_dispo\"")
-                    .setNegativeButtonText("Cancelar")
+                    .setSubtitle("Usa tu rostro, huella o clave para cerrar sesión en \"$nombre_dispo\"")
+                    .setAllowedAuthenticators(
+                        BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                    )
                     .build()
 
                 biometricPrompt.authenticate(promptInfo)

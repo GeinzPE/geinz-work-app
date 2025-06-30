@@ -3,9 +3,11 @@ package com.geinzz.geinzwork.fragmentos
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
@@ -123,7 +125,10 @@ class cuentaFracment : Fragment() {
             pciMEdia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
         binding.fotoPortada.setOnClickListener {
-            picmedaiFotoPoprtada.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            // Usamos el nuevo Photo Picker (Android 13+ o soporte por Google Play Services)
+            picmedaiFotoPoprtada.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
         }
         binding.editarnombre.setOnClickListener {
             dialog = BottomSheetDialog(mContex)

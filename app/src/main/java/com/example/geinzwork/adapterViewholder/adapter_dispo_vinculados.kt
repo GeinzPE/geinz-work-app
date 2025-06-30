@@ -45,9 +45,9 @@ class adapter_dispo_vinculados(
                 binding.dispoActual.isVisible=false
             }
 
-            binding.listener.setOnLongClickListener {
+            binding.listener.setOnClickListener {
                 eliminar(item)
-                true
+
             }
             val dispositivo =
                 SpannableString("Dispositivo : ${item.nombre_dispo}")
