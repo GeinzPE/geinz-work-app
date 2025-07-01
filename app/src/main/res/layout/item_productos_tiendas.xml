@@ -155,7 +155,7 @@
 
                 </LinearLayout>
 
-                <CheckBox
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:visibility="gone"
                     android:id="@+id/chekSelecionado"
                     android:layout_width="wrap_content"

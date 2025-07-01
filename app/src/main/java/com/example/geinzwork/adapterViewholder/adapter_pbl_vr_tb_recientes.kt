@@ -42,7 +42,7 @@ class adapter_pbl_vr_tb_recientes(
         holder.render(
             item,
             position,
-            elementosSeleccionados,
+            elementosSeleccionados, modoSeleccion,
             editar_eliminar_estadi_archivar,
             ::manejarSeleccion,
             ::activarModoSeleccion
@@ -55,6 +55,7 @@ class adapter_pbl_vr_tb_recientes(
             item: dataclas_trabajos_ralizados_verificados,
             position: Int,
             elementosSeleccionados: Set<dataclas_trabajos_ralizados_verificados>,
+            modoSeleccion: Boolean,
             editar_eliminar_estadi_archivar: (dataclas_trabajos_ralizados_verificados) -> Unit,
             manejarSeleccion: (Int) -> Unit,
             activarModoSeleccion: (Int) -> Unit

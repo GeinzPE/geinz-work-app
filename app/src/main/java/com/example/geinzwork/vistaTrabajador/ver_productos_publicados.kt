@@ -67,7 +67,7 @@ class ver_productos_publicados : AppCompatActivity() {
     private var unidadGarantia: String = ""
     private var descuento: Boolean = false
     private val hashtagsGeneralesList = mutableListOf<String>()
-    private val lista = mutableListOf<dataclas_trabajos_ralizados_verificados>()
+    private var lista = mutableListOf<dataclas_trabajos_ralizados_verificados>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityVerProductosPublicadosBinding.inflate(layoutInflater)
@@ -97,8 +97,6 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.idsObtenidos.text = "$idsSeleccionados"
 
                 binding.eliminarselect.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el elimianr desde todos", Toast.LENGTH_SHORT)
-                        .show()
                     binding.linealEncontrados.isVisible = true
                     binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
                     binding.linealPublicacionesFiltrados.isVisible = false
@@ -113,8 +111,6 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
 
                 binding.archivarselect.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
                     binding.linealEncontrados.isVisible = true
                     binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
                     binding.linealPublicacionesFiltrados.isVisible = false
@@ -128,10 +124,7 @@ class ver_productos_publicados : AppCompatActivity() {
 
                 }
 
-
                 binding.ocultarPublicaciones.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
                     binding.linealEncontrados.isVisible = true
                     binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
                     binding.linealPublicacionesFiltrados.isVisible = false
@@ -145,8 +138,6 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
 
                 binding.soloSeguidoresMov.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
                     binding.linealEncontrados.isVisible = true
                     binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
                     binding.linealPublicacionesFiltrados.isVisible = false
@@ -185,6 +176,8 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.modoSelecion.isVisible = false
                 binding.titulosCentrado.isVisible = true
                 binding.bottomOpciones.isVisible = false
+                binding.recicleProductos.invalidate()
+
             }
 
         })
@@ -2444,7 +2437,6 @@ class ver_productos_publicados : AppCompatActivity() {
         bindingSheet.colocarBoldAgunasLetrasED.addTextChangedListener {
             actualizarVistaPreviaConNegritas(bindingSheet)
         }
-
         // Checkboxes title (keep these as they are)
         bindingSheet.includeAgregarBoldTitulo.bold.setOnCheckedChangeListener { _, _ ->
             actualizarTextoFormateado(bindingSheet)
@@ -2461,7 +2453,6 @@ class ver_productos_publicados : AppCompatActivity() {
         bindingSheet.includeAgregarBoldTitulo.minuscula.setOnCheckedChangeListener { _, _ ->
             actualizarTextoFormateado(bindingSheet)
         }
-        // Checkboxes description (keep these as they are)
         bindingSheet.includeAgregarTextosCuales.bold.setOnCheckedChangeListener { _, _ ->
             actualizarVistaPreviaConNegritas(bindingSheet)
         }
@@ -2478,6 +2469,95 @@ class ver_productos_publicados : AppCompatActivity() {
             actualizarVistaPreviaConNegritas(bindingSheet)
         }
 
+        bindingSheet.guardarCambios.setOnClickListener {
+
+            val radioPadre_bold_cursiva =
+                bindingSheet.includeAgregarBoldTitulo.grupoSubralladoTXT
+            val radio_padre_mayus_minus = bindingSheet.includeAgregarBoldTitulo.gurpoMayus
+            val titlo_descripcion = bindingSheet.tituloProductoED.text.toString()
+            val descripcion_desc = bindingSheet.AgregaDescipcionProductoED.text.toString()
+
+            val idSeleccionado = radioPadre_bold_cursiva.checkedRadioButtonId
+            val id_mayus_minus = radio_padre_mayus_minus.checkedRadioButtonId
+
+            val radio_padre_bold_cursiva_texto_des =
+                bindingSheet.includeAgregarTextosCuales.grupoSubralladoTXT
+            val radio_padre_mayus_minus_texto_des =
+                bindingSheet.includeAgregarTextosCuales.gurpoMayus
+            val idSeleccionado_des = radio_padre_bold_cursiva_texto_des.checkedRadioButtonId
+            val id_mayus_minus_des = radio_padre_mayus_minus_texto_des.checkedRadioButtonId
+
+
+            val texto = bindingSheet.colocarBoldAgunasLetrasED.text.toString().trim()
+
+            val listaFrases = texto
+                .split(",") // separamos usando coma
+                .map { it.trim() } // quitamos espacios alrededor
+                .filter { it.isNotEmpty() } // evitamos frases vacías si las hay
+
+            val valorSeleccionadoTitulo = when (idSeleccionado) {
+                R.id.bold -> "Bold"
+                R.id.cursiva -> "Cursiva"
+                R.id.subrallado -> "Subrayado"
+                else -> "" // Por si no seleccionó nada
+            }
+            // Clear selection for description's capitalization options
+            val valorMayusMinusTitulo = when (id_mayus_minus) {
+                R.id.mayuscula -> "mayuscula"
+                R.id.minuscula -> "minuscula"
+                else -> "" // Por si no seleccionó nada
+            }
+
+
+            val valorSeleccionadoDes = when (idSeleccionado_des) {
+                R.id.bold -> "Bold"
+                R.id.cursiva -> "Cursiva"
+                R.id.subrallado -> "Subrayado"
+                else -> "" // Por si no seleccionó nada
+            }
+
+            val valorMayusMinusDes = when (id_mayus_minus_des) {
+                R.id.mayus_txt -> "mayuscula"
+                R.id.minus_txt -> "minuscula"
+                else -> "" // Por si no seleccionó nada
+            }
+
+            val descripcion_titulo = mapOf(
+                "titulo_descripcion" to titlo_descripcion,
+                "titulo_valor_style" to valorSeleccionadoTitulo,
+                "titulo_mayus" to valorMayusMinusTitulo
+            )
+
+            val descripcion_texto = mapOf(
+                "texto_descripcion" to descripcion_desc,
+                "texto_valor_style" to valorSeleccionadoDes,
+                "texto_mayus" to valorMayusMinusDes
+            )
+
+// Si tienes una lista también
+
+
+// Combinar todo en un solo mapa
+            val datosActualizados = mapOf(
+                "descripcion_titulo" to descripcion_titulo,
+                "descripcion_texto" to descripcion_texto,
+                "descripcion_texto_lista" to listaFrases
+            )
+            // Combinar l
+            // os dos mapas en uno textoMap
+
+
+// Actualizar Firestore con SetOptions.merge()
+            db.set(datosActualizados, SetOptions.merge())
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Se actulaziron los cambios realizados", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Manejo de error
+                }
+
+
+        }
         actualizarTextoFormateado(bindingSheet)
         actualizarVistaPreviaConNegritas(bindingSheet)
         dialog.setContentView(view)

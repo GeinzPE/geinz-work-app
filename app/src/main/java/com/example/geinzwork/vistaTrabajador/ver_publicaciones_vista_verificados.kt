@@ -615,6 +615,25 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        if (adapter.estaEnModoSeleccion()) {
+            // Salir del modo selección en vez de cerrar la actividad
+            adapter.cancelarModoSeleccion()
+
+            // Ocultar UI relacionada a la selección
+            binding.modoSelecion.text = ""
+            binding.bottomOpciones.isVisible = false
+            binding.cerrarselecion.isVisible = false
+            binding.deslistar.isVisible = false
+            binding.listartododos.isVisible = false
+
+            Toast.makeText(this, "Selección cancelada", Toast.LENGTH_SHORT).show()
+
+        } else {
+            // Si no hay selección activa, se comporta como siempre
+            super.onBackPressed()
+        }
+    }
 
     private fun bottomSheet_editar_eliminar_Arhivar_estadi(item: dataclas_trabajos_ralizados_verificados) {
         val bottoSheet = BottomSheetCamposTrPdPBinding.inflate(LayoutInflater.from(this))
