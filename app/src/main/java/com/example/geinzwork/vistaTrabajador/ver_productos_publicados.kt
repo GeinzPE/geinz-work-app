@@ -92,65 +92,8 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.listartododos.isVisible = true
                 binding.bottomOpciones.isVisible = true
 
-                // 🔎 Accede a los IDs seleccionados (si tu data class tiene "id")
                 val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
                 binding.idsObtenidos.text = "$idsSeleccionados"
-
-                binding.eliminarselect.setOnClickListener {
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleProductos.isVisible = false
-
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "eliminados", "todos"
-                    )
-                }
-
-                binding.archivarselect.setOnClickListener {
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleProductos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "archivados", "todos"
-                    )
-
-                }
-
-                binding.ocultarPublicaciones.setOnClickListener {
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleProductos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "privado", "todos"
-                    )
-                }
-
-                binding.soloSeguidoresMov.setOnClickListener {
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleProductos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "solo_seguidores", "todos"
-                    )
-
-                }
-
 
                 val todosSeleccionados = cantidadSeleccionados == lista.size
                 if (todosSeleccionados) {
@@ -177,10 +120,34 @@ class ver_productos_publicados : AppCompatActivity() {
                 binding.titulosCentrado.isVisible = true
                 binding.bottomOpciones.isVisible = false
                 binding.recicleProductos.invalidate()
-
             }
 
         })
+
+        if (binding.todos.isChecked) {
+            binding.archivarselect.isVisible = true
+            binding.reactivar.isVisible = false
+            binding.eliminarselect.isVisible = true
+            binding.soloSeguidoresMov.isVisible = true
+            binding.ocultarPublicaciones.isVisible = true
+            adapter.cancelarModoSeleccion()
+            binding.eliminarselect.setOnClickListener {
+                ejecutarCambioDePublicaciones("eliminados", "todos")
+            }
+
+            binding.archivarselect.setOnClickListener {
+                ejecutarCambioDePublicaciones("archivados", "todos")
+            }
+
+            binding.ocultarPublicaciones.setOnClickListener {
+                ejecutarCambioDePublicaciones("privado", "todos")
+            }
+
+            binding.soloSeguidoresMov.setOnClickListener {
+                ejecutarCambioDePublicaciones("solo_seguidores", "todos")
+            }
+
+        }
 
         binding.cerrarselecion.setOnClickListener {
             Toast.makeText(this, "se realziao clik ", Toast.LENGTH_SHORT).show()
@@ -229,27 +196,25 @@ class ver_productos_publicados : AppCompatActivity() {
                     binding.archivarselect.isVisible = true
                     binding.reactivar.isVisible = false
                     binding.eliminarselect.setOnClickListener {
-                        Toast.makeText(
-                            this,
-                            "selecionasr el elimianr desde todos",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.linealEncontrados.isVisible = true
-                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                        binding.linealPublicacionesFiltrados.isVisible = false
-                        binding.bottomOpciones.isVisible = false
-                        binding.recicleProductos.isVisible = false
-
-                        archivar_eliminar_publicaciones_list(
-                            binding.idsObtenidos.text.toString() as List<String>,
-                            "publicados",
-                            "eliminados", "todos"
-                        )
+                        ejecutarCambioDePublicaciones("eliminados", "todos")
                     }
-
-
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "todos")
+                    }
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "todos")
+                    }
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "todos")
+                    }
                 }
                 binding.masClicks.setOnClickListener {
+                    adapter.cancelarModoSeleccion()
+                    binding.archivarselect.isVisible = true
+                    binding.eliminarselect.isVisible = true
+                    binding.ocultarPublicaciones.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    binding.reactivar.isVisible = false
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
@@ -260,8 +225,30 @@ class ver_productos_publicados : AppCompatActivity() {
                         dialog.show()
                     }
 
+                    binding.eliminarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("eliminados", "mascliks")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "mascliks")
+                    }
+
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "mascliks")
+                    }
+
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "mascliks")
+                    }
+
                 }
                 binding.masVistas.setOnClickListener {
+                    adapter.cancelarModoSeleccion()
+                    binding.ocultarPublicaciones.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    binding.archivarselect.isVisible = true
+                    binding.eliminarselect.isVisible = true
+                    binding.reactivar.isVisible = false
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
@@ -271,8 +258,31 @@ class ver_productos_publicados : AppCompatActivity() {
                         }
                         dialog.show()
                     }
+
+                    binding.eliminarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("eliminados", "masvistas")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "masvistas")
+                    }
+
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "masvistas")
+                    }
+
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "masvistas")
+                    }
+
                 }
                 binding.masCompartidas.setOnClickListener {
+                    binding.ocultarPublicaciones.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    adapter.cancelarModoSeleccion()
+                    binding.archivarselect.isVisible = true
+                    binding.eliminarselect.isVisible = true
+                    binding.reactivar.isVisible = false
                     binding.linealEncontrados.isVisible = true
                     binding.recicleProductos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
@@ -282,6 +292,22 @@ class ver_productos_publicados : AppCompatActivity() {
                             filtrar_publicaciones(minC, maxC, "estadisticas_compartir")
                         }
                         dialog.show()
+                    }
+
+                    binding.eliminarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("eliminados", "mascompartidas")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "mascompartidas")
+                    }
+
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "mascompartidas")
+                    }
+
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "mascompartidas")
                     }
                 }
 
@@ -473,6 +499,32 @@ class ver_productos_publicados : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun ejecutarCambioDePublicaciones(destino: String, funcionFiltro: String) {
+        Toast.makeText(this, "Seleccionaste la opción: $destino", Toast.LENGTH_SHORT).show()
+        binding.linealEncontrados.isVisible = true
+        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+        binding.bottomOpciones.isVisible = false
+        binding.recicleProductos.isVisible = false
+        binding.cerrarselecion.isVisible = false
+        binding.listartododos.isVisible = false
+        binding.deslistar.isVisible = false
+        adapter.cancelarModoSeleccion()
+
+        val texto = binding.idsObtenidos.text.toString()
+        val listaIDs = texto.removePrefix("[")
+            .removeSuffix("]")
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        archivar_eliminar_publicaciones_list(
+            listaIDs,
+            "publicados", // origen fijo
+            destino,      // destino variable
+            funcionFiltro // función filtro
+        )
     }
 
     override fun onBackPressed() {
@@ -732,13 +784,9 @@ class ver_productos_publicados : AppCompatActivity() {
         if (dato_pasado.equals("publicadas")) {
             bottoSheet.linealIconosPrincipal.isVisible = true
             if (binding.masClicks.isChecked) {
-                editar.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes editar caundo estas en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                vista_previa.isVisible = false
+                estadisticas.isVisible = false
+                editar.isVisible = false
                 eliminar.setOnClickListener {
                     dialog.dismiss()
 
@@ -774,23 +822,72 @@ class ver_productos_publicados : AppCompatActivity() {
                         "solo_seguidores", "mascliks"
                     )
                 }
-                vista_previa.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes ver la vista previa en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                binding.eliminarselect.setOnClickListener {
+                    Toast.makeText(this, "mas clikscs elimamidno", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
 
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "eliminados", "mascliks"
+                    )
+
+                }
+                binding.archivarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "archivados", "mascliks"
+                    )
+
+                }
+                binding.ocultarPublicaciones.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "privado", "mascliks"
+                    )
+
+                }
+                binding.soloSeguidoresMov.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleProductos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "solo_seguidores", "mascliks"
+                    )
+
+                }
             }
             if (binding.masVistas.isChecked) {
-                editar.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes editar caundo estas en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                vista_previa.isVisible = false
+                editar.isVisible = false
+                estadisticas.isVisible = false
                 eliminar.setOnClickListener {
                     dialog.dismiss()
                     eliminar_publicacion_Archivar(
@@ -825,22 +922,12 @@ class ver_productos_publicados : AppCompatActivity() {
                         "solo_seguidores", "masvistas"
                     )
                 }
-                vista_previa.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes ver la vista previa en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+
             }
             if (binding.masCompartidas.isChecked) {
-                editar.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes editar caundo estas en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                vista_previa.isVisible = false
+                editar.isVisible = false
+                estadisticas.isVisible = false
                 eliminar.setOnClickListener {
                     dialog.dismiss()
                     eliminar_publicacion_Archivar(
@@ -875,16 +962,30 @@ class ver_productos_publicados : AppCompatActivity() {
                         "solo_seguidores", "mascompartidas"
                     )
                 }
-                vista_previa.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes ver la vista previa en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
             }
 
             if (binding.todos.isChecked) {
+                binding.archivarselect.isVisible = false
+                binding.eliminarselect.isVisible = false
+                binding.reactivar.isVisible = true
+                binding.soloSeguidoresMov.isVisible = true
+                binding.ocultarPublicaciones.isVisible = true
+                adapter.cancelarModoSeleccion()
+                binding.eliminarselect.setOnClickListener {
+                    ejecutarCambioDePublicaciones("eliminados", "todos")
+                }
+
+                binding.archivarselect.setOnClickListener {
+                    ejecutarCambioDePublicaciones("archivados", "todos")
+                }
+
+                binding.ocultarPublicaciones.setOnClickListener {
+                    ejecutarCambioDePublicaciones("privado", "todos")
+                }
+
+                binding.soloSeguidoresMov.setOnClickListener {
+                    ejecutarCambioDePublicaciones("solo_seguidores", "todos")
+                }
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
                     vista_previa_publicaciones(item.id_publicacion.toString(), "publicados")
@@ -925,10 +1026,12 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
                 editar.setOnClickListener {
                     dialog = BottomSheetDialog(this)
-                    bottomSheet_editar_campos(item.id_publicacion.toString(),"publicados")
+                    bottomSheet_editar_campos(
+                        item.id_publicacion.toString(),
+                        "publicados",
+                        "publicados"
+                    )
                     dialog.show()
-
-
                 }
             }
             if (binding.privado.isChecked) {
@@ -941,7 +1044,6 @@ class ver_productos_publicados : AppCompatActivity() {
                     binding.recicleProductos.isVisible = false
                     dialog.dismiss()
                 }
-
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
                     vista_previa_publicaciones(item.id_publicacion.toString(), "privado")
@@ -973,7 +1075,9 @@ class ver_productos_publicados : AppCompatActivity() {
 
                 }
                 editar.setOnClickListener {
-                    Toast.makeText(this, "editamos desde publicados", Toast.LENGTH_SHORT).show()
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_editar_campos(item.id_publicacion.toString(), "privado", "privado")
+                    dialog.show()
                 }
             }
             if (binding.soloSeguidores.isChecked) {
@@ -1020,11 +1124,14 @@ class ver_productos_publicados : AppCompatActivity() {
                     vista_previa_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
                 editar.setOnClickListener {
-                    Toast.makeText(this, "editamos desde solo publicados", Toast.LENGTH_SHORT)
-                        .show()
-
+                    dialog = BottomSheetDialog(this)
+                    bottomSheet_editar_campos(
+                        item.id_publicacion.toString(),
+                        "solo_seguidores",
+                        "solo_seguidores"
+                    )
+                    dialog.show()
                 }
-
             }
         } else if (dato_pasado.equals("archivadas")) {
             bottoSheet.regresar.isVisible = true
@@ -1973,26 +2080,29 @@ class ver_productos_publicados : AppCompatActivity() {
         recycle.adapter = adapter
     }
 
-    private fun bottomSheet_editar_campos(id_publicacion: String,tipo: String) {
+    private fun bottomSheet_editar_campos(id_publicacion: String, tipo: String, tipoRef: String) {
         val bottomSheet = BottomSheetEditarProductoBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
 
         bottomSheet.editar.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            bottom_sheet_editar_campos_publicidad(id_publicacion,tipo)
+            bottom_sheet_editar_campos_publicidad(id_publicacion, tipo, tipoRef)
             dialog.show()
 
         }
         bottomSheet.editarCaracterisitcas.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            mostrarBottomSheetDescripcion(id_publicacion)
+            mostrarBottomSheetDescripcion(id_publicacion, tipoRef)
             dialog.show()
         }
         dialog.setContentView(view)
     }
 
-    private fun bottom_sheet_editar_campos_publicidad(id_publicacion: String,tipo: String) {
-
+    private fun bottom_sheet_editar_campos_publicidad(
+        id_publicacion: String,
+        tipo: String,
+        tipoRef: String
+    ) {
         val bottomSheet =
             BottomSheetEditarCaracteristicasPublicidadBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
@@ -2010,7 +2120,7 @@ class ver_productos_publicados : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
             .document(firebaseAuth.uid.toString()).collection("productos_venta")
-            .document("publicados").collection("publicados").document(id_publicacion)
+            .document(tipoRef).collection(tipoRef).document(id_publicacion)
         val tiempoInicio = System.currentTimeMillis()
         db.get().addOnSuccessListener { res ->
             val tiempoFin = System.currentTimeMillis()
@@ -2123,7 +2233,7 @@ class ver_productos_publicados : AppCompatActivity() {
 
 
                 bottomSheet.mostrarPublicacionPara.setOnClickListener {
-                    val dialog_personales:BottomSheetDialog
+                    val dialog_personales: BottomSheetDialog
                     dialog_personales = BottomSheetDialog(this)
                     constantes_productos_publicados.mostrar_dialog_para(
                         this, dialog_personales, bottomSheet.mostrarPublicacionPara.text.toString()
@@ -2134,7 +2244,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
 
                 bottomSheet.subcategoriaProducto.setOnClickListener {
-                    val dialog_personales:BottomSheetDialog
+                    val dialog_personales: BottomSheetDialog
                     dialog_personales = BottomSheetDialog(this)
                     constantes_productos_publicados.agregarCategorias(
                         dialog_personales,
@@ -2149,7 +2259,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 }
 
                 bottomSheet.agregarHastagsED.setOnClickListener {
-                    val dialog_personales:BottomSheetDialog
+                    val dialog_personales: BottomSheetDialog
                     dialog_personales = BottomSheetDialog(this)
                     constantes_productos_publicados.obtener_hastags_generales(
                         bottomSheet.agregarHastagsED,
@@ -2181,7 +2291,7 @@ class ver_productos_publicados : AppCompatActivity() {
 
                     actualizar_campos(bottomSheet, db) { completado ->
                         if (completado) {
-                            obtener_productos(tipo,"No se encontraron productos publicados")
+                            obtener_productos(tipo, "No se encontraron productos publicados")
                             dialog.dismiss()
                         } else {
                             Toast.makeText(
@@ -2192,7 +2302,6 @@ class ver_productos_publicados : AppCompatActivity() {
                         }
                     }
                 }
-
 
 
             } else {
@@ -2285,11 +2394,14 @@ class ver_productos_publicados : AppCompatActivity() {
 
 
     private fun mostrarBottomSheetDescripcion(
-        id_publicacion: String,
+        id_publicacion: String, tipoRef: String
     ) {
         val bindingSheet =
             BottomSheetConfiguracionDescripcionPrVrBinding.inflate(LayoutInflater.from(this))
         val view = bindingSheet.root
+        bindingSheet.cargaContenidoActuliazr.isVisible = true
+        bindingSheet.linealPrinciapl.isVisible = false
+        bindingSheet.textocargaactualiza.text = "Cargando datos....."
         bindingSheet.linealEdicion.isVisible = true
         bindingSheet.idPublicacion.text = id_publicacion.toString()
         bindingSheet.copiarId.setOnClickListener {
@@ -2304,12 +2416,18 @@ class ver_productos_publicados : AppCompatActivity() {
             .collection("trabajadores")
             .document(firebaseAuth.uid.toString())
             .collection("productos_venta")
-            .document("publicados")
-            .collection("publicados")
+            .document(tipoRef)
+            .collection(tipoRef)
             .document(id_publicacion)
-
+        val tiempoInicio = System.currentTimeMillis()
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
+                val tiempoFin = System.currentTimeMillis()
+                val tiempoTotal = tiempoFin - tiempoInicio
+                Handler(Looper.getMainLooper()).postDelayed({
+                    bindingSheet.cargaContenidoActuliazr.isVisible = false
+                    bindingSheet.linealPrinciapl.isVisible = true
+                }, tiempoTotal) // 2000 ms = 2 segundos
                 // 1. Lista de descripciones
                 val descripcionLista =
                     res.get("descripcion_texto_lista") as? List<String> ?: emptyList()
@@ -2470,97 +2588,114 @@ class ver_productos_publicados : AppCompatActivity() {
         }
 
         bindingSheet.guardarCambios.setOnClickListener {
+            validar_campos_decripcion_productos(bindingSheet) { completado ->
+                if (completado) {
+                    val radioPadre_bold_cursiva =
+                        bindingSheet.includeAgregarBoldTitulo.grupoSubralladoTXT
+                    val radio_padre_mayus_minus = bindingSheet.includeAgregarBoldTitulo.gurpoMayus
+                    val titlo_descripcion = bindingSheet.tituloProductoED.text.toString()
+                    val descripcion_desc = bindingSheet.AgregaDescipcionProductoED.text.toString()
 
-            val radioPadre_bold_cursiva =
-                bindingSheet.includeAgregarBoldTitulo.grupoSubralladoTXT
-            val radio_padre_mayus_minus = bindingSheet.includeAgregarBoldTitulo.gurpoMayus
-            val titlo_descripcion = bindingSheet.tituloProductoED.text.toString()
-            val descripcion_desc = bindingSheet.AgregaDescipcionProductoED.text.toString()
+                    val idSeleccionado = radioPadre_bold_cursiva.checkedRadioButtonId
+                    val id_mayus_minus = radio_padre_mayus_minus.checkedRadioButtonId
 
-            val idSeleccionado = radioPadre_bold_cursiva.checkedRadioButtonId
-            val id_mayus_minus = radio_padre_mayus_minus.checkedRadioButtonId
-
-            val radio_padre_bold_cursiva_texto_des =
-                bindingSheet.includeAgregarTextosCuales.grupoSubralladoTXT
-            val radio_padre_mayus_minus_texto_des =
-                bindingSheet.includeAgregarTextosCuales.gurpoMayus
-            val idSeleccionado_des = radio_padre_bold_cursiva_texto_des.checkedRadioButtonId
-            val id_mayus_minus_des = radio_padre_mayus_minus_texto_des.checkedRadioButtonId
-
-
-            val texto = bindingSheet.colocarBoldAgunasLetrasED.text.toString().trim()
-
-            val listaFrases = texto
-                .split(",") // separamos usando coma
-                .map { it.trim() } // quitamos espacios alrededor
-                .filter { it.isNotEmpty() } // evitamos frases vacías si las hay
-
-            val valorSeleccionadoTitulo = when (idSeleccionado) {
-                R.id.bold -> "Bold"
-                R.id.cursiva -> "Cursiva"
-                R.id.subrallado -> "Subrayado"
-                else -> "" // Por si no seleccionó nada
-            }
-            // Clear selection for description's capitalization options
-            val valorMayusMinusTitulo = when (id_mayus_minus) {
-                R.id.mayuscula -> "mayuscula"
-                R.id.minuscula -> "minuscula"
-                else -> "" // Por si no seleccionó nada
-            }
+                    val radio_padre_bold_cursiva_texto_des =
+                        bindingSheet.includeAgregarTextosCuales.grupoSubralladoTXT
+                    val radio_padre_mayus_minus_texto_des =
+                        bindingSheet.includeAgregarTextosCuales.gurpoMayus
+                    val idSeleccionado_des = radio_padre_bold_cursiva_texto_des.checkedRadioButtonId
+                    val id_mayus_minus_des = radio_padre_mayus_minus_texto_des.checkedRadioButtonId
 
 
-            val valorSeleccionadoDes = when (idSeleccionado_des) {
-                R.id.bold -> "Bold"
-                R.id.cursiva -> "Cursiva"
-                R.id.subrallado -> "Subrayado"
-                else -> "" // Por si no seleccionó nada
-            }
+                    val texto = bindingSheet.colocarBoldAgunasLetrasED.text.toString().trim()
 
-            val valorMayusMinusDes = when (id_mayus_minus_des) {
-                R.id.mayus_txt -> "mayuscula"
-                R.id.minus_txt -> "minuscula"
-                else -> "" // Por si no seleccionó nada
-            }
+                    val listaFrases = texto
+                        .split(",") // separamos usando coma
+                        .map { it.trim() } // quitamos espacios alrededor
+                        .filter { it.isNotEmpty() } // evitamos frases vacías si las hay
 
-            val descripcion_titulo = mapOf(
-                "titulo_descripcion" to titlo_descripcion,
-                "titulo_valor_style" to valorSeleccionadoTitulo,
-                "titulo_mayus" to valorMayusMinusTitulo
-            )
-
-            val descripcion_texto = mapOf(
-                "texto_descripcion" to descripcion_desc,
-                "texto_valor_style" to valorSeleccionadoDes,
-                "texto_mayus" to valorMayusMinusDes
-            )
-
-// Si tienes una lista también
-
-
-// Combinar todo en un solo mapa
-            val datosActualizados = mapOf(
-                "descripcion_titulo" to descripcion_titulo,
-                "descripcion_texto" to descripcion_texto,
-                "descripcion_texto_lista" to listaFrases
-            )
-            // Combinar l
-            // os dos mapas en uno textoMap
-
-
-// Actualizar Firestore con SetOptions.merge()
-            db.set(datosActualizados, SetOptions.merge())
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Se actulaziron los cambios realizados", Toast.LENGTH_SHORT).show()
+                    val valorSeleccionadoTitulo = when (idSeleccionado) {
+                        R.id.bold -> "Bold"
+                        R.id.cursiva -> "Cursiva"
+                        R.id.subrallado -> "Subrayado"
+                        else -> "" // Por si no seleccionó nada
+                    }
+                    val valorMayusMinusTitulo = when (id_mayus_minus) {
+                        R.id.mayuscula -> "mayuscula"
+                        R.id.minuscula -> "minuscula"
+                        else -> "" // Por si no seleccionó nada
+                    }
+                    val valorSeleccionadoDes = when (idSeleccionado_des) {
+                        R.id.bold -> "Bold"
+                        R.id.cursiva -> "Cursiva"
+                        R.id.subrallado -> "Subrayado"
+                        else -> "" // Por si no seleccionó nada
+                    }
+                    val valorMayusMinusDes = when (id_mayus_minus_des) {
+                        R.id.mayus_txt -> "mayuscula"
+                        R.id.minus_txt -> "minuscula"
+                        else -> "" // Por si no seleccionó nada
+                    }
+                    val descripcion_titulo = mapOf(
+                        "titulo_descripcion" to titlo_descripcion,
+                        "titulo_valor_style" to valorSeleccionadoTitulo,
+                        "titulo_mayus" to valorMayusMinusTitulo
+                    )
+                    val descripcion_texto = mapOf(
+                        "texto_descripcion" to descripcion_desc,
+                        "texto_valor_style" to valorSeleccionadoDes,
+                        "texto_mayus" to valorMayusMinusDes
+                    )
+                    val datosActualizados = mapOf(
+                        "descripcion_titulo" to descripcion_titulo,
+                        "descripcion_texto" to descripcion_texto,
+                        "descripcion_texto_lista" to listaFrases
+                    )
+                    db.set(datosActualizados, SetOptions.merge())
+                        .addOnSuccessListener {
+                            Toast.makeText(
+                                this,
+                                "Se actulaziron los cambios realizados",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            bindingSheet.cargaContenidoActuliazr.isVisible = true
+                            bindingSheet.linealPrinciapl.isVisible = false
+                            bindingSheet.textocargaactualiza.text = "Actualizando contenido..."
+                            dialog.dismiss()
+                        }
+                        .addOnFailureListener { e ->
+                            // Manejo de error
+                        }
                 }
-                .addOnFailureListener { e ->
-                    // Manejo de error
-                }
+            }
 
 
         }
         actualizarTextoFormateado(bindingSheet)
         actualizarVistaPreviaConNegritas(bindingSheet)
         dialog.setContentView(view)
+
+    }
+
+
+    private fun validar_campos_decripcion_productos(
+        bindingSheet: BottomSheetConfiguracionDescripcionPrVrBinding,
+        completado: (Boolean) -> Unit
+    ) {
+        val titulo = bindingSheet.tituloProductoED.text.toString().trim()
+        val descripcion = bindingSheet.AgregaDescipcionProductoED.text.toString().trim()
+
+        if (titulo.isEmpty()) {
+            bindingSheet.tituloProductoED.error = "Ingrese un título para tu descripción"
+            bindingSheet.tituloProductoED.requestFocus()
+            completado(false)
+        } else if (descripcion.isEmpty()) {
+            bindingSheet.AgregaDescipcionProductoED.error = "Ingrese una descripción"
+            bindingSheet.AgregaDescipcionProductoED.requestFocus()
+            completado(false)
+        } else {
+            completado(true) // ✅ Todo está bien
+        }
     }
 
 
@@ -2715,6 +2850,7 @@ class ver_productos_publicados : AppCompatActivity() {
         val ubicacion = botto_shet.agregaUbicaciones
         val ubicacion_prd = botto_shet.agregaUbiED
 
+
         val categoriasSinMarcaNiModelo = listOf(
             "Juguetes y juegos",
             "Arte y antigüedades",
@@ -2774,7 +2910,21 @@ class ver_productos_publicados : AppCompatActivity() {
 
         // Validar garantía
         if (garantia.isChecked) {
+            // Validar campo de texto de la garantía
             validarCampoVacio(hay_garantia, "Ingrese la información de la garantía")
+
+            // Validar que se haya seleccionado un plazo
+            val radioGroup =
+                botto_shet.radioGrupPlazoRG // Asegúrate de que este ID está en tu binding
+
+            if (radioGroup.checkedRadioButtonId == -1) {
+                Toast.makeText(
+                    this,
+                    "Seleccione un plazo para la garantía (días, meses o años)",
+                    Toast.LENGTH_SHORT
+                ).show()
+                esValido = false
+            }
         }
 
         // Validar ubicación si es requerida

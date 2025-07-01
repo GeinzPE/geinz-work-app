@@ -710,6 +710,13 @@
 
                 </HorizontalScrollView>
 
+                <Button
+                    android:visibility="gone"
+                    android:id="@+id/metodo_pago"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="crear metoo de pago"/>
+
             </LinearLayout>
 
             <LinearLayout
@@ -743,6 +750,12 @@
                         app:singleSelection="true" />
 
                 </HorizontalScrollView>
+                <Button
+                    android:visibility="gone"
+                    android:id="@+id/metodo_entrega"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="crear metoo de pago"/>
             </LinearLayout>
 
 

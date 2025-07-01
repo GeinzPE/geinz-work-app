@@ -94,6 +94,7 @@
 
 
                         <LinearLayout
+                            android:layout_marginRight="10dp"
                             style="@style/RoundTrabajadoresBG"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -123,7 +124,7 @@
                         style="@style/RoundTrabajadoresBG"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginRight="10dp"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="5dp">

@@ -62,6 +62,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
+
         adapter = adapter_pbl_vr_tb_recientes(lista, { item ->
             dialog = BottomSheetDialog(this)
             bottomSheet_editar_eliminar_Arhivar_estadi(item)
@@ -74,75 +75,8 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 binding.cerrarselecion.isVisible = true
                 binding.listartododos.isVisible = true
                 binding.bottomOpciones.isVisible = true
-
-                // 🔎 Accede a los IDs seleccionados (si tu data class tiene "id")
                 val idsSeleccionados = listaSeleccionados.map { it.id_publicacion }
                 binding.idsObtenidos.text = "$idsSeleccionados"
-
-                binding.eliminarselect.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el elimianr desde todos", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleViewTrabajos.isVisible = false
-
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "eliminados", "todos"
-                    )
-                }
-
-                binding.archivarselect.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleViewTrabajos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "archivados", "todos"
-                    )
-
-                }
-
-
-                binding.ocultarPublicaciones.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleViewTrabajos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "privado", "todos"
-                    )
-
-                }
-                binding.soloSeguidoresMov.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleViewTrabajos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        idsSeleccionados as List<String>,
-                        "publicados",
-                        "solo_seguidores", "todos"
-                    )
-
-                }
-
 
                 val todosSeleccionados = cantidadSeleccionados == lista.size
                 if (todosSeleccionados) {
@@ -150,12 +84,11 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         ContextCompat.getColor(
                             this,
                             R.color.blue
-                        ),  // reemplaza con tu color deseado
+                        ),
                         PorterDuff.Mode.SRC_IN
                     )
                     binding.deslistar.isVisible = true
                     binding.listartododos.isVisible = false
-                    // Aquí puedes hacer algo más si quieres
                     Toast.makeText(this, "se sleeicono todos", Toast.LENGTH_SHORT).show()
                 } else {
                     binding.deslistar.isVisible = false
@@ -164,13 +97,36 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     println("❌ Aún faltan elementos por seleccionar.")
                 }
             } else {
-                // Modo selección activo pero sin elementos seleccionados
                 binding.modoSelecion.isVisible = false
                 binding.titulosCentrado.isVisible = true
                 binding.bottomOpciones.isVisible = false
             }
-
         })
+
+        if (binding.todos.isChecked) {
+            binding.archivarselect.isVisible = true
+            binding.reactivar.isVisible = false
+            binding.eliminarselect.isVisible = true
+            binding.soloSeguidoresMov.isVisible = true
+            binding.ocultarPublicaciones.isVisible = true
+            adapter.cancelarModoSeleccion()
+            binding.eliminarselect.setOnClickListener {
+                ejecutarCambioDePublicaciones("eliminados", "todos")
+            }
+
+            binding.archivarselect.setOnClickListener {
+                ejecutarCambioDePublicaciones("archivados", "todos")
+            }
+
+            binding.ocultarPublicaciones.setOnClickListener {
+                ejecutarCambioDePublicaciones("privado", "todos")
+            }
+
+            binding.soloSeguidoresMov.setOnClickListener {
+                ejecutarCambioDePublicaciones("solo_seguidores", "todos")
+            }
+
+        }
 
         binding.cerrarselecion.setOnClickListener {
             Toast.makeText(this, "se realziao clik ", Toast.LENGTH_SHORT).show()
@@ -210,8 +166,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     "No se encontraron datos Publicados"
                 )
                 binding.todos.setOnClickListener {
-                    binding.archivarselect.isVisible = false
-                    binding.eliminarselect.isVisible = false
                     binding.reactivar.isVisible = true
                     binding.soloSeguidoresMov.isVisible = true
                     binding.ocultarPublicaciones.isVisible = true
@@ -226,25 +180,25 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     binding.archivarselect.isVisible = true
                     binding.reactivar.isVisible = false
                     binding.eliminarselect.setOnClickListener {
-                        Toast.makeText(
-                            this,
-                            "selecionasr el elimianr desde todos",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.linealEncontrados.isVisible = true
-                        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                        binding.linealPublicacionesFiltrados.isVisible = false
-                        binding.bottomOpciones.isVisible = false
-                        binding.recicleViewTrabajos.isVisible = false
-
-                        archivar_eliminar_publicaciones_list(
-                            binding.idsObtenidos.text.toString() as List<String>,
-                            "publicados",
-                            "eliminados", "todos"
-                        )
+                        ejecutarCambioDePublicaciones("eliminados", "todos")
+                    }
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "todos")
+                    }
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "todos")
+                    }
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "todos")
                     }
                 }
                 binding.masClicks.setOnClickListener {
+                    adapter.cancelarModoSeleccion()
+                    binding.archivarselect.isVisible = true
+                    binding.eliminarselect.isVisible = true
+                    binding.ocultarPublicaciones.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    binding.reactivar.isVisible = false
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_click") { max, min ->
@@ -255,8 +209,32 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         dialog.show()
                     }
 
+
+                    binding.eliminarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("eliminados", "mascliks")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "mascliks")
+                    }
+
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "mascliks")
+                    }
+
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "mascliks")
+                    }
+
+
                 }
                 binding.masVistas.setOnClickListener {
+                    adapter.cancelarModoSeleccion()
+                    binding.ocultarPublicaciones.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    binding.archivarselect.isVisible = true
+                    binding.eliminarselect.isVisible = true
+                    binding.reactivar.isVisible = false
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_vistas") { max, min ->
@@ -266,8 +244,30 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         }
                         dialog.show()
                     }
+                    binding.eliminarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("eliminados", "masvistas")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "masvistas")
+                    }
+
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "masvistas")
+                    }
+
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "masvistas")
+                    }
+
                 }
                 binding.masCompartidas.setOnClickListener {
+                    binding.ocultarPublicaciones.isVisible = true
+                    binding.soloSeguidoresMov.isVisible = true
+                    adapter.cancelarModoSeleccion()
+                    binding.archivarselect.isVisible = true
+                    binding.eliminarselect.isVisible = true
+                    binding.reactivar.isVisible = false
                     binding.linealEncontrados.isVisible = true
                     binding.recicleViewTrabajos.isVisible = false
                     obtener_mayor_menor_cantidad_campos("estadisticas_compartir") { max, min ->
@@ -278,8 +278,25 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         }
                         dialog.show()
                     }
+                    binding.eliminarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("eliminados", "mascompartidas")
+                    }
+
+                    binding.archivarselect.setOnClickListener {
+                        ejecutarCambioDePublicaciones("archivados", "mascompartidas")
+                    }
+
+                    binding.ocultarPublicaciones.setOnClickListener {
+                        ejecutarCambioDePublicaciones("privado", "mascompartidas")
+                    }
+
+                    binding.soloSeguidoresMov.setOnClickListener {
+                        ejecutarCambioDePublicaciones("solo_seguidores", "mascompartidas")
+                    }
                 }
+
                 binding.privado.setOnClickListener {
+                    adapter.cancelarModoSeleccion()
                     binding.archivarselect.isVisible = false
                     binding.eliminarselect.isVisible = false
                     binding.reactivar.isVisible = true
@@ -317,6 +334,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
                 }
                 binding.soloSeguidores.setOnClickListener {
+                    adapter.cancelarModoSeleccion()
                     binding.archivarselect.isVisible = false
                     binding.eliminarselect.isVisible = false
                     binding.soloSeguidoresMov.isVisible = false
@@ -436,7 +454,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         dialog = BottomSheetDialog(this)
                         bottom_sheet_chips(max, min) { minC, maxC ->
                             filtrar_publicaciones(minC, maxC, "estadisticas_click")
-
                         }
                         dialog.show()
                     }
@@ -498,6 +515,32 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun ejecutarCambioDePublicaciones(destino: String, funcionFiltro: String) {
+        Toast.makeText(this, "Seleccionaste la opción: $destino", Toast.LENGTH_SHORT).show()
+        binding.linealEncontrados.isVisible = true
+        binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+        binding.bottomOpciones.isVisible = false
+        binding.recicleViewTrabajos.isVisible = false
+        binding.cerrarselecion.isVisible = false
+        binding.listartododos.isVisible = false
+        binding.deslistar.isVisible = false
+        adapter.cancelarModoSeleccion()
+
+        val texto = binding.idsObtenidos.text.toString()
+        val listaIDs = texto.removePrefix("[")
+            .removeSuffix("]")
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        archivar_eliminar_publicaciones_list(
+            listaIDs,
+            "publicados", // origen fijo
+            destino,      // destino variable
+            funcionFiltro // función filtro
+        )
     }
 
     private fun filtrar_publicaciones(min: Int, max: Int, filtado_pasado: String) {
@@ -565,7 +608,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             }
         }
     }
-
 
     private fun obtener_mayor_menor_cantidad_campos(
         campoFiltrado: String,
@@ -658,13 +700,9 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
             bottoSheet.linealIconosPrincipal.isVisible = true
 
             if (binding.masClicks.isChecked) {
-                editar.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes editar caundo estas en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                vista_previa.isVisible = false
+                estadisticas.isVisible = false
+                editar.isVisible = false
                 eliminar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
@@ -698,17 +736,75 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "solo_seguidores", "mascliks"
                     )
                 }
+                binding.eliminarselect.setOnClickListener {
+                    Toast.makeText(this, "mas clikscs elimamidno", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "eliminados", "mascliks"
+                    )
+
+                }
+                binding.archivarselect.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "archivados", "mascliks"
+                    )
+
+                }
+                binding.ocultarPublicaciones.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "privado", "mascliks"
+                    )
+
+                }
+                binding.soloSeguidoresMov.setOnClickListener {
+                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.linealEncontrados.isVisible = true
+                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
+                    binding.linealPublicacionesFiltrados.isVisible = false
+                    binding.bottomOpciones.isVisible = false
+                    binding.recicleViewTrabajos.isVisible = false
+                    archivar_eliminar_publicaciones_list(
+                        binding.idsObtenidos.text.toString() as List<String>,
+                        "publicados",
+                        "solo_seguidores", "mascliks"
+                    )
+
+                }
+
 
             }
             if (binding.masVistas.isChecked) {
+                vista_previa.isVisible = false
+                editar.isVisible = false
+                estadisticas.isVisible = false
 
-                editar.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes editar caundo estas en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
                 eliminar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
@@ -742,15 +838,12 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "solo_seguidores", "masvistas"
                     )
                 }
+
             }
             if (binding.masCompartidas.isChecked) {
-                editar.setOnClickListener {
-                    Toast.makeText(
-                        this,
-                        "solo puedes editar caundo estas en TODOS",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                vista_previa.isVisible = false
+                editar.isVisible = false
+                estadisticas.isVisible = false
                 eliminar.setOnClickListener {
                     dialog.dismiss()
                     archivar_eliminar_publicaciones(
@@ -785,46 +878,27 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     )
                 }
             }
-
             if (binding.todos.isChecked) {
                 binding.archivarselect.isVisible = false
                 binding.eliminarselect.isVisible = false
                 binding.reactivar.isVisible = true
                 binding.soloSeguidoresMov.isVisible = true
                 binding.ocultarPublicaciones.isVisible = true
-                Toast.makeText(this, "todos estan selciondaso en chek", Toast.LENGTH_SHORT).show()
                 adapter.cancelarModoSeleccion()
                 binding.eliminarselect.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el elimianr desde todos", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleViewTrabajos.isVisible = false
-
-                    archivar_eliminar_publicaciones_list(
-                        binding.idsObtenidos.text.toString() as List<String>,
-                        "publicados",
-                        "eliminados", "todos"
-                    )
-
+                    ejecutarCambioDePublicaciones("eliminados", "todos")
                 }
 
                 binding.archivarselect.setOnClickListener {
-                    Toast.makeText(this, "selecionasr el acrivar desde todos", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.linealEncontrados.isVisible = true
-                    binding.textoDinamicoProgrees.text = "Cambiando publicaciones"
-                    binding.linealPublicacionesFiltrados.isVisible = false
-                    binding.bottomOpciones.isVisible = false
-                    binding.recicleViewTrabajos.isVisible = false
-                    archivar_eliminar_publicaciones_list(
-                        binding.idsObtenidos.text.toString() as List<String>,
-                        "publicados",
-                        "archivados", "todos"
-                    )
+                    ejecutarCambioDePublicaciones("archivados", "todos")
+                }
 
+                binding.ocultarPublicaciones.setOnClickListener {
+                    ejecutarCambioDePublicaciones("privado", "todos")
+                }
+
+                binding.soloSeguidoresMov.setOnClickListener {
+                    ejecutarCambioDePublicaciones("solo_seguidores", "todos")
                 }
                 vista_previa.setOnClickListener {
                     dialog.dismiss()
@@ -865,6 +939,7 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                         "solo_seguidores", "todos"
                     )
                 }
+
             }
             if (binding.privado.isChecked) {
                 bottoSheet.privado.isVisible = false
@@ -954,7 +1029,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     editar_publicaciones(item.id_publicacion.toString(), "solo_seguidores")
                 }
             }
-
 
         } else if (dato_pasado.equals("archivadas")) {
             bottoSheet.regresar.isVisible = true
@@ -1456,9 +1530,8 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 when (funcionFiltro) {
                     "todos" -> {
                         obtener_publicaciones_realizadas(
-                            uid,
-                            "publicados",
-                            "No se encontraron datos"
+                            firebaseAuth.uid.toString(),
+                            "publicados", "No se encontraron datos"
                         )
                     }
 
@@ -1487,14 +1560,16 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                     }
 
                     "privado" -> {
-                        obtener_publicaciones_realizadas(uid, "privado", "No se encontraron datos")
+                        obtener_publicaciones_realizadas(
+                            firebaseAuth.uid.toString(),
+                            "privado", "No se encontraron datos"
+                        )
                     }
 
                     "solo_seguidores" -> {
                         obtener_publicaciones_realizadas(
-                            uid,
-                            "solo_seguidores",
-                            "No se encontraron datos"
+                            firebaseAuth.uid.toString(),
+                            "solo_seguidores", "No se encontraron datos"
                         )
                     }
                 }
@@ -1708,7 +1783,6 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
 
 
     private fun editar_publicaciones(id_publicacion: String, tipo: String) {
-        val crea_class = crear_publicaciones_recientes()
         val binding_bottomShet =
             BottomSheetEditarPublicacionesVerificadosBinding.inflate(LayoutInflater.from(this))
         val view = binding_bottomShet.root

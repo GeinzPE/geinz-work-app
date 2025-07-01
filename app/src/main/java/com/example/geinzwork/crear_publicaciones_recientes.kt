@@ -1,6 +1,5 @@
 package com.example.geinzwork
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -15,7 +14,6 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.PopupMenu
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,31 +27,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_agregar_imagenes_panel_publicaciones
 import com.example.geinzwork.constantesGeneral.Variables
-import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja.handler
 import com.example.geinzwork.constantesGeneral.constantes_hastags_generales
 import com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearPublicacionesRecientesBinding
-import com.geinzz.geinzwork.databinding.BottomSheetHastagsFiltradosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetPublicacionesParaBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
-
 import java.io.ByteArrayOutputStream
-
 import com.google.firebase.ai.ai
-
 import com.google.firebase.ai.type.GenerativeBackend
-
-
-import kotlinx.coroutines.tasks.await
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.Firebase
 import kotlinx.coroutines.launch
 

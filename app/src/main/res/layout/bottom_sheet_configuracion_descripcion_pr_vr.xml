@@ -14,179 +14,213 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+
             <com.google.android.material.bottomsheet.BottomSheetDragHandleView
                 android:id="@+id/cerrar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="8dp" />
-            <LinearLayout
-                android:id="@+id/lineal_edicion"
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/TextoModoOScuroColor"
-                    android:textSize="25sp"
-                    android:textStyle="bold"
-                    android:layout_marginHorizontal="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:text="Edita las caracteristicas de tu publicacion"/>
-                <LinearLayout
-                    android:layout_marginHorizontal="10dp"
-                    android:layout_width="match_parent"
-                    android:layout_marginBottom="10dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Id Publicacion : "
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/id_publicacion"
-                        style="@style/TextoModoOScuroColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textSize="15sp" />
-
-                    <ImageView
-                        android:id="@+id/copiar_id"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/baseline_content_copy_24" />
-                </LinearLayout>
-            </LinearLayout>
-
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/titulo_producto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/titulo_productoED"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Titulo de la descripcion"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <include
-                android:id="@+id/include_agregar_bold_titulo"
-                layout="@layout/include_agrega_productos_rb_vr_radiobutonss" />
-
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/Agrega_descipcion_producto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:layout_marginBottom="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/Agrega_descipcion_productoED"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Agrega descripcion"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/colocarBold_agunasLetras"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
-
-                <EditText
-                    android:id="@+id/colocarBold_agunasLetrasED"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Ingresa textos Los cuales quieres cambiar el tipo de texto"
-                    android:inputType="textMultiLine"
-                    android:paddingLeft="10dp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <include
-                android:id="@+id/include_agregar_textos_cuales"
-                layout="@layout/include_agrega_productos_rb_vr_radio_texto" />
 
             <LinearLayout
-                android:id="@+id/lineal_vistaPrevia"
+                android:id="@+id/linealPrinciapl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <TextView
-                    style="@style/TextoModoOScuroColor"
+                <LinearLayout
+                    android:id="@+id/lineal_edicion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Edita las caracteristicas de tu publicacion"
+                        android:textSize="25sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Id Publicacion : "
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:id="@+id/id_publicacion"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textSize="15sp" />
+
+                        <ImageView
+                            android:id="@+id/copiar_id"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/baseline_content_copy_24" />
+                    </LinearLayout>
+                </LinearLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/titulo_producto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
+
+                    <EditText
+                        android:id="@+id/titulo_productoED"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Titulo de la descripcion"
+                        android:inputType="textMultiLine"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <include
+                    android:id="@+id/include_agregar_bold_titulo"
+                    layout="@layout/include_agrega_productos_rb_vr_radiobutonss" />
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/Agrega_descipcion_producto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
                     android:layout_marginBottom="10dp"
-                    android:text="Vista previa de la caracteristica"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
 
-                <TextView
-                    android:id="@+id/previewTextTitulo"
-                    style="@style/TextoModoOScuroColor"
+                    <EditText
+                        android:id="@+id/Agrega_descipcion_productoED"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Agrega descripcion"
+                        android:inputType="textMultiLine"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/colocarBold_agunasLetras"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:text="Vista previa"
-                    android:textSize="17sp" />
+                    android:layout_marginHorizontal="10dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp">
 
-                <TextView
-                    android:id="@+id/textoDescripcion"
-                    style="@style/TextoModoOScuroColor"
+                    <EditText
+                        android:id="@+id/colocarBold_agunasLetrasED"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Ingresa textos Los cuales quieres cambiar el tipo de texto"
+                        android:inputType="textMultiLine"
+                        android:paddingLeft="10dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <include
+                    android:id="@+id/include_agregar_textos_cuales"
+                    layout="@layout/include_agrega_productos_rb_vr_radio_texto" />
+
+                <LinearLayout
+                    android:id="@+id/lineal_vistaPrevia"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="15dp"
-                    android:text="Vista previa"
-                    android:textSize="15sp" />
+                    android:layout_marginHorizontal="10dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Vista previa de la caracteristica"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/previewTextTitulo"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Vista previa"
+                        android:textSize="17sp" />
+
+                    <TextView
+                        android:id="@+id/textoDescripcion"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="15dp"
+                        android:text="Vista previa"
+                        android:textSize="15sp" />
 
 
-                <Button
-                    android:id="@+id/guardar_cambios"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="guardar cambios" />
+                    <Button
+                        android:id="@+id/guardar_cambios"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="guardar cambios" />
+                </LinearLayout>
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/carga_contenido_actuliazr"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="50dp"
+                android:gravity="center"
+                android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/textocargaactualiza"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="Actualizando contenido..."
+                    android:textSize="15sp" />
+
+                <ProgressBar
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

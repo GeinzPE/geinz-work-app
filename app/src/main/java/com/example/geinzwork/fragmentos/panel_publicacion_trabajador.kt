@@ -287,7 +287,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
                 binding_bottomSheet.nombreReferenciaED.text.toString(),
                 binding_bottomSheet,
                 this,
-                dialog
+                dialog, { parants() }
             )
 
         }
@@ -295,6 +295,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         dialog.setContentView(view)
 
     }
+    fun parants(){}
 
     private fun bottomSheet_metodo_entrega() {
         val bottoSheet_entrega = BottomSheeetMetodoEntregaBinding.inflate(LayoutInflater.from(this))

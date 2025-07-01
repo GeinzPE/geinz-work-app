@@ -44,20 +44,25 @@ import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.geinzwork.adapterViewholder.adapter_metodos_entrega
 import com.example.geinzwork.adapterViewholder.anidacion_categorias_productovrprivate
 import com.example.geinzwork.constantesGeneral.constantes_bottom_shet_trabaja.handler
+import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega
+import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega.verificar_Estado_metodo_pago
 import com.example.geinzwork.constantesGeneral.constantes_productos_publicados
 import com.example.geinzwork.dataclass.CategoryWithSubcategories
 import com.example.geinzwork.dataclass.MiViewModel
 import com.example.geinzwork.dataclass.dataclas_anidacion_productos_vr
+import com.example.geinzwork.dataclass.dataclass_metodos_entrega
 import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
 import com.example.geinzwork.vistaTrabajador.ver_productos_publicados
-import com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados
+
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearPublicacionProductosTrabajadoresBinding
+import com.geinzz.geinzwork.databinding.BottomSheeetMetodoEntregaBinding
 import com.geinzz.geinzwork.databinding.BottomSheetAplarReporteBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCategoriasPrVrBinding
 import com.geinzz.geinzwork.databinding.BottomSheetConfiguracionDescripcionPrVrBinding
@@ -78,6 +83,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private lateinit var binding: ActivityCrearPublicacionProductosTrabajadoresBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
+    private val lista_entrega = mutableListOf<dataclass_metodos_entrega>()
     private lateinit var categoryAdapter: anidacion_categorias_productovrprivate
     private val hashtagsGenerales = mutableListOf<String>()
     private lateinit var datosDescripcionGlobal: dataclass_texto_descripcion_pr
@@ -87,6 +93,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var descuento: Boolean = false
     private var efectivo: Boolean = false
     private var img1_uir1: Uri? = null
+    private var trasnferecnia: Boolean = false
+    private var deliver_gratis: Boolean = false
 
     private val imageViews by lazy {
         listOf(binding.img1, binding.img2, binding.img3, binding.img4, binding.img5)
@@ -254,10 +262,14 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             publicar_producto()
         }
 
-        constantes_productos_publicados.obtener_estados_productos(this,binding.condicionPrED)
+        constantes_productos_publicados.obtener_estados_productos(this, binding.condicionPrED)
         binding.mostrarPublicacionPara.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            constantes_productos_publicados.mostrar_dialog_para(this,dialog,binding.mostrarPublicacionPara.text.toString()) { selt ->
+            constantes_productos_publicados.mostrar_dialog_para(
+                this,
+                dialog,
+                binding.mostrarPublicacionPara.text.toString()
+            ) { selt ->
                 binding.mostrarPublicacionPara.text = selt
             }
             dialog.show()
@@ -283,7 +295,12 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         }
         binding.agregarHastagsED.setOnClickListener {
             dialog = BottomSheetDialog(this)
-            constantes_productos_publicados.obtener_hastags_generales(binding.agregarHastagsED,this, hashtagsGenerales, dialog)
+            constantes_productos_publicados.obtener_hastags_generales(
+                binding.agregarHastagsED,
+                this,
+                hashtagsGenerales,
+                dialog
+            )
             dialog.show()
         }
         binding.agregaUbicaciones.setOnCheckedChangeListener { _, isChecked ->
@@ -952,7 +969,6 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     }
 
 
-
     fun mostrarVistaPrevia(bindingSheet: BottomSheetConfiguracionDescripcionPrVrBinding) {
         bindingSheet.linealVistaPrevia.apply {
             if (!isVisible) {
@@ -991,6 +1007,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val view = bindingSheet.root
 
 
+        bindingSheet.linealPrinciapl.isVisible = true
+        bindingSheet.cargaContenidoActuliazr.isVisible = false
 
         if (titulo != null && titulo.trim().isNotEmpty()) {
             Log.d("DEBUGsss", "Mostrar vista previa")
@@ -1446,32 +1464,42 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             .collection("metodos_pago")
 
         db.get().addOnSuccessListener { res ->
-            binding.chipsPagos.removeAllViews() // limpia chips previos si hay
+            binding.chipsPagos.removeAllViews()
+            if (res.size() == 0) {
+                binding.metodoPago.isVisible = true
+            } else {
+                binding.metodoPago.isVisible = false
+                for (datos in res) {
+                    val nombreMetodo = datos.getString("nombre_metodo")
+                    val id = datos.getString("id") // el ID que quieres mostrar
+                    if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
+                        val chip = Chip(this).apply {
+                            text = nombreMetodo
+                            isCheckable = true
+                            tag = id // guardamos el ID como tag del chip
+                        }
 
-            for (datos in res) {
-                val nombreMetodo = datos.getString("nombre_metodo")
-                val id = datos.getString("id") // el ID que quieres mostrar
-                if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
-                    val chip = Chip(this).apply {
-                        text = nombreMetodo
-                        isCheckable = true
-                        tag = id // guardamos el ID como tag del chip
+                        binding.chipsPagos.addView(chip)
                     }
-
-                    binding.chipsPagos.addView(chip)
+                }
+                binding.chipsPagos.setOnCheckedStateChangeListener { group, checkedIds ->
+                    if (checkedIds.isNotEmpty()) {
+                        val selectedChip = group.findViewById<Chip>(checkedIds[0])
+                        val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
+                        Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
+                            .show()
+                        binding.metodoPagoSelect.text = idSeleccionado.toString()
+                    }
                 }
             }
-
-            // Escucha de selección
-            binding.chipsPagos.setOnCheckedStateChangeListener { group, checkedIds ->
-                if (checkedIds.isNotEmpty()) {
-                    val selectedChip = group.findViewById<Chip>(checkedIds[0])
-                    val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
-                    Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.metodoPagoSelect.text = idSeleccionado.toString()
+            binding.metodoPago.setOnClickListener {
+                dialog = BottomSheetDialog(this)
+                constantes_metodo_pago_entrega.bottomSheet_metodos_pago(dialog,this ,) {
+                    obtener_metodos_pagos()
                 }
+                dialog.show()
             }
+
         }.addOnFailureListener {
             Toast.makeText(this, "Error al cargar métodos de pago", Toast.LENGTH_SHORT).show()
         }
@@ -1487,35 +1515,46 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
 
         db.get().addOnSuccessListener { res ->
             binding.chipsEntregas.removeAllViews() // Limpiar chips anteriores
+            if (res.size() == 0) {
+                binding.metodoEntrega.isVisible = true
+            } else {
+                binding.metodoEntrega.isVisible = false
+                for (datos in res) {
+                    val nombreMetodo = datos.getString("nombre_metodo")
+                    val id =
+                        datos.getString("id") // Asegúrate de que este campo exista en Firestore
 
-            for (datos in res) {
-                val nombreMetodo = datos.getString("nombre_metodo")
-                val id = datos.getString("id") // Asegúrate de que este campo exista en Firestore
+                    if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
+                        val chip = Chip(this).apply {
+                            text = nombreMetodo
+                            isCheckable = true
+                            tag = id // Guardamos el ID como tag
+                        }
 
-                if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
-                    val chip = Chip(this).apply {
-                        text = nombreMetodo
-                        isCheckable = true
-                        tag = id // Guardamos el ID como tag
+                        binding.chipsEntregas.addView(chip)
                     }
-
-                    binding.chipsEntregas.addView(chip)
+                }
+                binding.chipsEntregas.setOnCheckedStateChangeListener { group, checkedIds ->
+                    if (checkedIds.isNotEmpty()) {
+                        val selectedChip = group.findViewById<Chip>(checkedIds[0])
+                        val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
+                        Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
+                            .show()
+                        binding.metodoEntregaSelect.text = idSeleccionado.toString()
+                    }
                 }
             }
 
-            // Listener para mostrar el ID seleccionado
-            binding.chipsEntregas.setOnCheckedStateChangeListener { group, checkedIds ->
-                if (checkedIds.isNotEmpty()) {
-                    val selectedChip = group.findViewById<Chip>(checkedIds[0])
-                    val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
-                    Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.metodoEntregaSelect.text = idSeleccionado.toString()
-                }
-            }
 
         }.addOnFailureListener {
             Toast.makeText(this, "Error al cargar métodos de entrega", Toast.LENGTH_SHORT).show()
+        }
+        binding.metodoEntrega.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            constantes_metodo_pago_entrega.bottomSheet_metodo_entrega(dialog, lista_entrega, this) {
+                obtener_metodos_entrega()
+            }
+            dialog.show()
         }
     }
 
