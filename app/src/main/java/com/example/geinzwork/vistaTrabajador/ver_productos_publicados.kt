@@ -2128,26 +2128,26 @@ class ver_productos_publicados : AppCompatActivity() {
                         isCheckable = true
                         tag = id
                         if (id == metodo_pago_default) isChecked = true
-                        setOnLongClickListener {
-                            val info = StringBuilder()
-                            info.append("🧾 Nombre: $nombreMetodo\n")
-                            info.append("🆔 ID: $id\n\n")
-
-                            for ((clave, valor) in datos.data) {
-                                // Mostramos solo campos booleanos que son true, excluyendo nombre/id
-                                if (valor is Boolean && valor == true && clave !in listOf("nombre_metodo", "id")) {
-                                    info.append("✅ ${clave.capitalize()}\n")
-                                }
-                            }
-
-                            AlertDialog.Builder(context)
-                                .setTitle("Detalles del método de pago")
-                                .setMessage(info.toString().trim())
-                                .setPositiveButton("OK", null)
-                                .show()
-
-                            true
-                        }
+//                        setOnLongClickListener {
+//                            val info = StringBuilder()
+//                            info.append("🧾 Nombre: $nombreMetodo\n")
+//                            info.append("🆔 ID: $id\n\n")
+//
+//                            for ((clave, valor) in datos.data) {
+//                                // Mostramos solo campos booleanos que son true, excluyendo nombre/id
+//                                if (valor is Boolean && valor == true && clave !in listOf("nombre_metodo", "id")) {
+//                                    info.append("✅ ${clave.capitalize()}\n")
+//                                }
+//                            }
+//
+//                            AlertDialog.Builder(context)
+//                                .setTitle("Detalles del método de pago")
+//                                .setMessage(info.toString().trim())
+//                                .setPositiveButton("OK", null)
+//                                .show()
+//
+//                            true
+//                        }
                     }
                     bottom_sheet.metodoPagoSelect.text = metodo_pago_default
 

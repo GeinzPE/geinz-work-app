@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.geinzwork.herramientas_geinz.herramientas_geinz">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/titulo_robo_semibold_fuente"
+                android:text="Apartados y herramientas de Geinz work"
+                android:textSize="25sp" />
+
+            <TextView
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/fuente_para_texto_special_gothic"
+                android:text="En Geinz Work encontrarás herramientas pensadas para ayudarte, según el tipo de trabajo que realices. Si crees que podríamos desarrollar una herramienta para tu categoría laboral, déjanos tu sugerencia: el equipo de desarrollo de Geinz la evaluará con gusto."
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/textViewID"
+                style="@style/TextoModoOScuroColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/campos_relative"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true">
+
+            <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                android:id="@+id/carruse2"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_gravity="center"
+                app:autoPlay="true"
+                app:autoPlayDelay="4000"
+                app:carouselGravity="CENTER"
+                app:carouselPaddingBottom="8dp"
+                app:carouselPaddingTop="8dp"
+                app:carouselType="SHOWCASE"
+                app:imageScaleType="centerCrop"
+                app:scaleOnScroll="true"
+                app:scalingFactor=".25"
+                app:showBottomShadow="false"
+                app:showCaption="false"
+                app:showIndicator="false"
+                app:showNavigationButtons="false"
+                app:showTopShadow="false" />
+
+            <RelativeLayout
+                android:id="@+id/linealCaption"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center" />
+
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/ituloCarrucel"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/campos_relative"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/descripcion_herramienta"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginBottom="20dp"
+            android:textAlignment="center"
+            android:fontFamily="@font/fuente_para_texto_special_gothic" />
+    </RelativeLayout>
+
+
+</RelativeLayout>

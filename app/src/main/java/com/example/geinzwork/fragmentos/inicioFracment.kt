@@ -27,6 +27,7 @@ import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.herramientas_geinz.herramientas_geinz
 import com.example.geinzwork.oferta_principales_geinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
 import com.example.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador
@@ -183,7 +184,10 @@ class inicioFracment : Fragment() {
             initScanner()
         }
         binding.Tiendas.setOnClickListener {
-            mContex.startActivity(Intent(mContex, ver_promociones::class.java))
+//            mContex.startActivity(Intent(mContex, ver_promociones::class.java))
+            mContex.startActivity(Intent(mContex, herramientas_geinz::class.java))
+
+
         }
         if (firebaseAuth.currentUser == null && storedValue.isNullOrEmpty() || storedValue.equals("Default Value")) {
             constantesTrabajadoresTiendasInicioFragmet.obtenerLocalida(Variables.General)
@@ -942,7 +946,11 @@ class inicioFracment : Fragment() {
                         if (lista.isNotEmpty()) {
                             binding.carrucelProductosTrabajdores.isVisible = true
                             binding.linealNoEncontradoProductos.isVisible = false
-                            configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                            configurarCarrusel(
+                                idTrabajadoresPorDocumento,
+                                lista,
+                                documentosFirestore
+                            )
                         } else {
                             binding.carrucelProductosTrabajdores.isVisible = false
                             binding.linealNoEncontradoProductos.isVisible = true
@@ -957,7 +965,11 @@ class inicioFracment : Fragment() {
                         if (lista.isNotEmpty()) {
                             binding.carrucelProductosTrabajdores.isVisible = true
                             binding.linealNoEncontradoProductos.isVisible = false
-                            configurarCarrusel(idTrabajadoresPorDocumento, lista, documentosFirestore)
+                            configurarCarrusel(
+                                idTrabajadoresPorDocumento,
+                                lista,
+                                documentosFirestore
+                            )
                         } else {
                             binding.carrucelProductosTrabajdores.isVisible = false
                             binding.linealNoEncontradoProductos.isVisible = true
@@ -1011,7 +1023,7 @@ class inicioFracment : Fragment() {
                     doc.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 val descuentoBoolean: Boolean = doc.get("descuento") as? Boolean ?: false
                 val precio_descuento: Number = doc.get("precio_descuento") as? Number ?: 0
-                val metodoEntrega: String= doc.get("metodoEntrega") as? String ?: ""
+                val metodoEntrega: String = doc.get("metodoEntrega") as? String ?: ""
                 val id: String = doc.get("id") as? String ?: ""
 
                 constantes_servicios.verificarEstado_vericiacion(
@@ -1119,7 +1131,10 @@ class inicioFracment : Fragment() {
 
         Log.d("DEBUG_CARRUSEL", "Lista Documentos Firestore (tamaño: ${documentos.size}):")
         documentos.forEachIndexed { index, doc ->
-            Log.d("DEBUG_CARRUSEL", "[$index] ID Publicación: ${doc.getString("id")}, Contenido: ${doc.getString("contenido")}")
+            Log.d(
+                "DEBUG_CARRUSEL",
+                "[$index] ID Publicación: ${doc.getString("id")}, Contenido: ${doc.getString("contenido")}"
+            )
         }
 
         Log.d("DEBUG_CARRUSEL", "Lista ID de Trabajadores (tamaño: ${idTrabajadores.size}):")
