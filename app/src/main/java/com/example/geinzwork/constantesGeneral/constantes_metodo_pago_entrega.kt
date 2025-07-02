@@ -20,6 +20,7 @@ import com.geinzz.geinzwork.databinding.BottomSheeetMetodoEntregaBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import okhttp3.Callback
@@ -1738,5 +1739,77 @@ object constantes_metodo_pago_entrega {
                 Log.e("error_eliminar", "Error al eliminar el método de entrega: $e")
             }
     }
+
+    fun cambiar_metodo_pago_metodo_entrega(
+        actualSelect: String,
+        idAnterior: String,
+        idPublicacion: String,
+        dialog: BottomSheetDialog,
+        metodoPagoOEntrega: String
+    ) {
+        val uid = FirebaseAuth.getInstance().uid ?: return
+        val db = FirebaseFirestore.getInstance()
+
+        val trabajadorRef = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(uid)
+            .collection(metodoPagoOEntrega)
+
+        val docAnterior = trabajadorRef.document(idAnterior)
+        val docNuevo = trabajadorRef.document(actualSelect)
+
+        docAnterior.get().addOnSuccessListener { resAnterior ->
+            if (!resAnterior.exists()) {
+                Log.e("CAMBIO_METODO", "❌ Documento anterior no existe.")
+                return@addOnSuccessListener
+            }
+
+            val publicacionesAnteriores = resAnterior.get("publicaciones_activas") as? Map<String, Map<String, Any>>
+            if (publicacionesAnteriores == null || !publicacionesAnteriores.containsKey(idPublicacion)) {
+                Log.d("CAMBIO_METODO", "⚠️ Publicación no encontrada en el método anterior.")
+                dialog.dismiss()
+                return@addOnSuccessListener
+            }
+
+            val publicacionAMover = publicacionesAnteriores[idPublicacion] ?: return@addOnSuccessListener
+
+            docNuevo.get().addOnSuccessListener { resNuevo ->
+                val publicacionesActuales = resNuevo.get("publicaciones_activas") as? MutableMap<String, Map<String, Any>>
+                    ?: mutableMapOf()
+
+                publicacionesActuales[idPublicacion] = publicacionAMover
+
+                val nuevasPublicaciones = mapOf("publicaciones_activas" to publicacionesActuales)
+
+                docNuevo.set(nuevasPublicaciones, SetOptions.merge())
+                    .addOnSuccessListener {
+                        // ✅ BORRAR solo la entrada específica del mapa
+                        val campoAEliminar = "publicaciones_activas.$idPublicacion"
+                        docAnterior.update(campoAEliminar, FieldValue.delete())
+                            .addOnSuccessListener {
+                                Log.d("CAMBIO_METODO", "✅ Publicación movida y eliminada correctamente.")
+                                dialog.dismiss()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("CAMBIO_METODO", "❌ Error al eliminar publicación anterior: $e")
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("CAMBIO_METODO", "❌ Error al mover publicación al nuevo documento: $e")
+                    }
+
+            }.addOnFailureListener {
+                Log.e("CAMBIO_METODO", "❌ Error al obtener el nuevo documento: $it")
+            }
+
+        }.addOnFailureListener {
+            Log.e("CAMBIO_METODO", "❌ Error al obtener el documento anterior: $it")
+        }
+    }
+
+
+
+
 
 }

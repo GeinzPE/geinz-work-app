@@ -1,88 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
-        android:layout_marginHorizontal="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
+        android:layout_marginHorizontal="10dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+
             <com.google.android.material.bottomsheet.BottomSheetDragHandleView
                 android:id="@+id/cerrar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:padding="8dp" />
+
             <LinearLayout
-                android:id="@+id/linealMetodoPago"
+                android:id="@+id/linealPrinciapl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/linealMetodoPago"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
+                        android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                        android:text="Editar métodos de pago y entrega"
+                        android:textSize="30sp" />
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Actualiza cómo los clientes podrán pagarte y cómo entregarás este producto."
+                        android:textSize="15sp" />
+
+
+                </LinearLayout>
+
                 <TextView
+                    android:id="@+id/metodo_entrega_select"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="30sp"
-                    android:layout_marginBottom="5dp"
-                    style="@style/TextoModoOScuroColor"
-                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
-                    android:text="Editar métodos de pago y entrega" />
+                    android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/metodo_pago_select"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="15sp"
-                    style="@style/TextoModoOScuroColor"
-                    android:text="Actualiza cómo los clientes podrán pagarte y cómo entregarás este producto." />
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
+                        android:text="Metodos de pago"
+                        android:textSize="15sp" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chips_pagos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:selectionRequired="true"
+                            app:singleSelection="true" />
+
+                    </HorizontalScrollView>
+                </LinearLayout>
 
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_marginBottom="5dp"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Metodos de Entrega"
+                        android:textSize="15sp" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chips_entregas"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:selectionRequired="true"
+                            app:singleSelection="true" />
+
+                    </HorizontalScrollView>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/guardar_metodos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="guardar cambios" />
             </LinearLayout>
-            <TextView
-                android:id="@+id/metodo_entrega_select"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/metodo_pago_select"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-            <HorizontalScrollView
+
+            <LinearLayout
+                android:id="@+id/carga_contenido_actuliazr"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="50dp"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chips_pagos"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/textocargaactualiza"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:selectionRequired="true"
-                    app:singleSelection="true" />
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="@font/titulo_roboto_extra_bold_fuente"
+                    android:text="cargando contenido..."
+                    android:textSize="15sp" />
 
-            </HorizontalScrollView>
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chips_entregas"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:selectionRequired="true"
-                    app:singleSelection="true" />
-
-            </HorizontalScrollView>
+                <ProgressBar
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

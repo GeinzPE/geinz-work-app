@@ -1,5 +1,6 @@
 package com.example.geinzwork.vistaTrabajador
 
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -2106,7 +2107,10 @@ class ver_productos_publicados : AppCompatActivity() {
         dialog.setContentView(view)
     }
 
-    private fun obtener_metodos_pagos(bottom_sheet: BottoSheetEditarMEntrPagBinding) {
+    private fun obtener_metodos_pagos(
+        bottom_sheet: BottoSheetEditarMEntrPagBinding,
+        metodo_pago_default: String
+    ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores")
             .collection("trabajadores")
@@ -2117,15 +2121,39 @@ class ver_productos_publicados : AppCompatActivity() {
             bottom_sheet.chipsPagos.removeAllViews()
             for (datos in res) {
                 val nombreMetodo = datos.getString("nombre_metodo")
-                val id = datos.getString("id") // el ID que quieres mostrar
+                val id = datos.getString("id")
                 if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
-                    val chip = Chip(this).apply {
+                    val chip = Chip(bottom_sheet.root.context).apply {
                         text = nombreMetodo
                         isCheckable = true
-                        tag = id // guardamos el ID como tag del chip
+                        tag = id
+                        if (id == metodo_pago_default) isChecked = true
+                        setOnLongClickListener {
+                            val info = StringBuilder()
+                            info.append("🧾 Nombre: $nombreMetodo\n")
+                            info.append("🆔 ID: $id\n\n")
+
+                            for ((clave, valor) in datos.data) {
+                                // Mostramos solo campos booleanos que son true, excluyendo nombre/id
+                                if (valor is Boolean && valor == true && clave !in listOf("nombre_metodo", "id")) {
+                                    info.append("✅ ${clave.capitalize()}\n")
+                                }
+                            }
+
+                            AlertDialog.Builder(context)
+                                .setTitle("Detalles del método de pago")
+                                .setMessage(info.toString().trim())
+                                .setPositiveButton("OK", null)
+                                .show()
+
+                            true
+                        }
                     }
+                    bottom_sheet.metodoPagoSelect.text = metodo_pago_default
 
                     bottom_sheet.chipsPagos.addView(chip)
+
+
                 }
             }
             bottom_sheet.chipsPagos.setOnCheckedStateChangeListener { group, checkedIds ->
@@ -2145,7 +2173,10 @@ class ver_productos_publicados : AppCompatActivity() {
     }
 
 
-    private fun obtener_metodos_entrega(bottom_sheet: BottoSheetEditarMEntrPagBinding) {
+    private fun obtener_metodos_entrega(
+        bottom_sheet: BottoSheetEditarMEntrPagBinding,
+        metodo_pago_default: String
+    ) {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores")
             .collection("trabajadores")
@@ -2160,11 +2191,14 @@ class ver_productos_publicados : AppCompatActivity() {
                     datos.getString("id") // Asegúrate de que este campo exista en Firestore
 
                 if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
-                    val chip = Chip(this).apply {
+                    val chip = Chip(bottom_sheet.root.context).apply {
                         text = nombreMetodo
                         isCheckable = true
-                        tag = id // Guardamos el ID como tag
+                        tag = id
+                        if (id == metodo_pago_default) isChecked = true
                     }
+                    bottom_sheet.metodoEntregaSelect.text = metodo_pago_default
+
 
                     bottom_sheet.chipsEntregas.addView(chip)
                 }
@@ -2190,9 +2224,75 @@ class ver_productos_publicados : AppCompatActivity() {
         val bottomSheet =
             BottoSheetEditarMEntrPagBinding.inflate(LayoutInflater.from(this))
         val view = bottomSheet.root
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+            .document(firebaseAuth.uid.toString()).collection("productos_venta").document(tipo)
+            .collection(tipo).document(id_publicacion)
+        val tiempoInicio = System.currentTimeMillis()
+        db.get().addOnSuccessListener { res ->
+            val tiempoFin = System.currentTimeMillis()
+            val tiempoTotal = tiempoFin - tiempoInicio
+            if (res.exists()) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                  bottomSheet.linealPrinciapl.isVisible=true
+                    bottomSheet.cargaContenidoActuliazr.isVisible=false
+                }, tiempoTotal) // 2000 ms = 2 segun
+                val data = res.data
+                val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
+                val metodoPago = data?.get("metodoPago") as? String ?: ""
 
-        obtener_metodos_pagos(bottomSheet)
-        obtener_metodos_entrega(bottomSheet)
+                obtener_metodos_pagos(bottomSheet, metodoPago)
+
+                obtener_metodos_entrega(bottomSheet, metodoEntrega)
+                bottomSheet.guardarMetodos.setOnClickListener {
+                    if (metodoEntrega == bottomSheet.metodoEntregaSelect.text.toString() && metodoPago == bottomSheet.metodoPagoSelect.text.toString()) {
+                        Toast.makeText(
+                            this,
+                            "Los datos son iguales, no se guardó ningún cambio",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        val hasmap = hashMapOf<String, Any>(
+                            "metodoEntrega" to bottomSheet.metodoEntregaSelect.text.toString(),
+                            "metodoPago" to bottomSheet.metodoPagoSelect.text.toString()
+                        )
+
+                        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+                            Toast.makeText(
+                                this,
+                                "Cambios guardados correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            dialog.dismiss()
+
+                            // Solo cambias si se modificó
+                            if (metodoEntrega != bottomSheet.metodoEntregaSelect.text.toString()) {
+                                constantes_metodo_pago_entrega.cambiar_metodo_pago_metodo_entrega(
+                                    bottomSheet.metodoEntregaSelect.text.toString(),
+                                    metodoEntrega,
+                                    id_publicacion,
+                                    dialog,
+                                    "metodos_entrega"
+                                )
+                            }
+
+                            if (metodoPago != bottomSheet.metodoPagoSelect.text.toString()) {
+                                constantes_metodo_pago_entrega.cambiar_metodo_pago_metodo_entrega(
+                                    bottomSheet.metodoPagoSelect.text.toString(),
+                                    metodoPago,
+                                    id_publicacion,
+                                    dialog,
+                                    "metodos_pago"
+                                )
+                            }
+                        }
+                    }
+
+
+                }
+            }
+        }
+
 
         dialog.setContentView(view)
     }
