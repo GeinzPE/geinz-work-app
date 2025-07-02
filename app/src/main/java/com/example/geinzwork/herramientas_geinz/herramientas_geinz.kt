@@ -144,7 +144,7 @@ class herramientas_geinz : AppCompatActivity() {
             "herramienta_2" -> context.startActivity(
                 Intent(
                     context,
-                    ver_promociones::class.java
+                    inicio_geinz_work::class.java
                 )
             )
 
