@@ -16,7 +16,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
-import com.example.geinzwork.dataclass.AnuncioCarousel
 import com.example.geinzwork.dataclass.HerramientaGeinz
 import com.example.geinzwork.vistaTrabajador.ver_promociones
 import com.geinzz.geinzwork.R
