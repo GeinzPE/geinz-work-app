@@ -879,9 +879,9 @@ class ver_publicaciones_vista_verificados : AppCompatActivity() {
                 }
             }
             if (binding.todos.isChecked) {
-                binding.archivarselect.isVisible = false
-                binding.eliminarselect.isVisible = false
-                binding.reactivar.isVisible = true
+                binding.archivarselect.isVisible = true
+                binding.eliminarselect.isVisible = true
+                binding.reactivar.isVisible = false
                 binding.soloSeguidoresMov.isVisible = true
                 binding.ocultarPublicaciones.isVisible = true
                 adapter.cancelarModoSeleccion()

@@ -36,6 +36,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.adapterViewholder.adapter_pbl_vr_tb_recientes
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.constantes_metodo_pago_entrega
 import com.example.geinzwork.constantesGeneral.constantes_productos_publicados
 import com.example.geinzwork.dataclass.dataclas_trabajos_ralizados_verificados
 import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
@@ -46,12 +47,14 @@ import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityVerProductosPublicadosBinding
+import com.geinzz.geinzwork.databinding.BottoSheetEditarMEntrPagBinding
 import com.geinzz.geinzwork.databinding.BottomSheetCamposTrPdPBinding
 import com.geinzz.geinzwork.databinding.BottomSheetConfiguracionDescripcionPrVrBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarCaracteristicasPublicidadBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarProductoBinding
 import com.geinzz.geinzwork.databinding.BottomSheetMinimoMaxFiltradoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
@@ -965,9 +968,9 @@ class ver_productos_publicados : AppCompatActivity() {
             }
 
             if (binding.todos.isChecked) {
-                binding.archivarselect.isVisible = false
-                binding.eliminarselect.isVisible = false
-                binding.reactivar.isVisible = true
+                binding.archivarselect.isVisible = true
+                binding.eliminarselect.isVisible = true
+                binding.reactivar.isVisible = false
                 binding.soloSeguidoresMov.isVisible = true
                 binding.ocultarPublicaciones.isVisible = true
                 adapter.cancelarModoSeleccion()
@@ -2095,6 +2098,102 @@ class ver_productos_publicados : AppCompatActivity() {
             mostrarBottomSheetDescripcion(id_publicacion, tipoRef)
             dialog.show()
         }
+        bottomSheet.metodoEntregaPago.setOnClickListener {
+            dialog = BottomSheetDialog(this)
+            bottomSheet_modificar_metodo_entrega_pago(id_publicacion, tipoRef)
+            dialog.show()
+        }
+        dialog.setContentView(view)
+    }
+
+    private fun obtener_metodos_pagos(bottom_sheet: BottoSheetEditarMEntrPagBinding) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_pago")
+
+        db.get().addOnSuccessListener { res ->
+            bottom_sheet.chipsPagos.removeAllViews()
+            for (datos in res) {
+                val nombreMetodo = datos.getString("nombre_metodo")
+                val id = datos.getString("id") // el ID que quieres mostrar
+                if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
+                    val chip = Chip(this).apply {
+                        text = nombreMetodo
+                        isCheckable = true
+                        tag = id // guardamos el ID como tag del chip
+                    }
+
+                    bottom_sheet.chipsPagos.addView(chip)
+                }
+            }
+            bottom_sheet.chipsPagos.setOnCheckedStateChangeListener { group, checkedIds ->
+                if (checkedIds.isNotEmpty()) {
+                    val selectedChip = group.findViewById<Chip>(checkedIds[0])
+                    val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
+                    Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
+                        .show()
+                    bottom_sheet.metodoPagoSelect.text = idSeleccionado.toString()
+                }
+            }
+
+
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al cargar métodos de pago", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun obtener_metodos_entrega(bottom_sheet: BottoSheetEditarMEntrPagBinding) {
+        val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(firebaseAuth.uid.toString())
+            .collection("metodos_entrega")
+
+        db.get().addOnSuccessListener { res ->
+            bottom_sheet.chipsEntregas.removeAllViews() // Limpiar chips anteriores
+            for (datos in res) {
+                val nombreMetodo = datos.getString("nombre_metodo")
+                val id =
+                    datos.getString("id") // Asegúrate de que este campo exista en Firestore
+
+                if (!nombreMetodo.isNullOrEmpty() && !id.isNullOrEmpty()) {
+                    val chip = Chip(this).apply {
+                        text = nombreMetodo
+                        isCheckable = true
+                        tag = id // Guardamos el ID como tag
+                    }
+
+                    bottom_sheet.chipsEntregas.addView(chip)
+                }
+            }
+            bottom_sheet.chipsEntregas.setOnCheckedStateChangeListener { group, checkedIds ->
+                if (checkedIds.isNotEmpty()) {
+                    val selectedChip = group.findViewById<Chip>(checkedIds[0])
+                    val idSeleccionado = selectedChip.tag?.toString() ?: "Sin ID"
+                    Toast.makeText(this, "ID seleccionado: $idSeleccionado", Toast.LENGTH_SHORT)
+                        .show()
+                    bottom_sheet.metodoEntregaSelect.text = idSeleccionado.toString()
+                }
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al cargar métodos de entrega", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun bottomSheet_modificar_metodo_entrega_pago(
+        id_publicacion: String,
+        tipo: String
+    ) {
+        val bottomSheet =
+            BottoSheetEditarMEntrPagBinding.inflate(LayoutInflater.from(this))
+        val view = bottomSheet.root
+
+        obtener_metodos_pagos(bottomSheet)
+        obtener_metodos_entrega(bottomSheet)
+
         dialog.setContentView(view)
     }
 
