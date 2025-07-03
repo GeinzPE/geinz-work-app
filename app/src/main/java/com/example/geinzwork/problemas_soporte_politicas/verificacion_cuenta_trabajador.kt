@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -17,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -170,7 +172,8 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         launcherImg2Constructor = crearLauncherPara(binding.lyConstrucion.img2)
         launcherImg3Constructor = crearLauncherPara(binding.lyConstrucion.img3)
         launcherImg4Constructor = crearLauncherPara(binding.lyConstrucion.img4)
-        launcherCertificadoConstructor = crearLauncherPara(binding.lyConstrucion.certificadosTecnicos)
+        launcherCertificadoConstructor =
+            crearLauncherPara(binding.lyConstrucion.certificadosTecnicos)
 
 // Arte y Antigüedades
         launcherImg1Arte = crearLauncherPara(binding.lyArte.img1)
@@ -187,7 +190,8 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
 // Servicios de Salud
         launcherCertificadoMedico = crearLauncherPara(binding.lyServicioSalud.ceritificadoMedico)
-        launcherCertificadoTecnicoSalud = crearLauncherPara(binding.lyServicioSalud.certificadosTecnicos)
+        launcherCertificadoTecnicoSalud =
+            crearLauncherPara(binding.lyServicioSalud.certificadosTecnicos)
         launcherCarnetMedico = crearLauncherPara(binding.lyServicioSalud.carnetMedico)
 
 //        binding.qrYape.setOnClickListener {
@@ -230,114 +234,110 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         setupListenersLegal()
         llenarAutocompletPlaner()
         binding.verificar.setOnClickListener {
-            if (tipo_selecionados(binding.categoriaTrabajos.text.toString())) {
-                Toast.makeText(this, "mandamos verificaicon", Toast.LENGTH_SHORT).show()
 
-            } else {
+            val nombreEd = binding.nombreED
+            val apellidoEd = binding.apellidoED
+            val descripcionServiciosEd = binding.descripcionServiciosED
+            val dniEd = binding.dniED
+            val numeroTelfEd = binding.numeroTelfED
+
+
+            if (nombreEd.text.isBlank() || apellidoEd.text.isBlank() ||
+                descripcionServiciosEd.text.isBlank() || dniEd.text.isBlank() ||
+                numeroTelfEd.text.isBlank()
+            ) {
                 Toast.makeText(
                     this,
-                    "Por favor completa todos los campos obligatorios",
+                    "Por favor, completa todos los campos.",
                     Toast.LENGTH_SHORT
                 ).show()
-            }
+            } else if (ImagenPerfil == null || DNIFRONTAL == null || DNIPOSTERIOR == null) {
+                Toast.makeText(this, "Por favor, suba Imágenes", Toast.LENGTH_SHORT)
+                    .show()
+            } else if (!binding.checkBoxPoliticas.isChecked) {
+                Toast.makeText(
+                    this,
+                    "Acepta nuestras políticas de privacidad",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                if (tipo_selecionados(binding.categoriaTrabajos.text.toString())) {
+                    binding.progressBarContainer.visibility = View.VISIBLE
+                    binding.scroll.isVisible = false
+                    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    val localDate = LocalDate.parse(binding.fecha.text.toString(), formatter)
+                    val fechaUnMesDespues = localDate.plusMonths(1)
+                    constantes.obtenerToken_trabajador(firebaseAuth.uid.toString()) { tokenTrabajador, nombre, apellido ->
+                        obtenertokenIdAdmin.obtenertokenAdmin { token, id ->
+                            enviarNotificacion(token, firebaseAuth.uid.toString())
+                        }
 
-//            val nombreEd = binding.nombreED
-//            val apellidoEd = binding.apellidoED
-//            val descripcionServiciosEd = binding.descripcionServiciosED
-//            val dniEd = binding.dniED
-//            val numeroTelfEd = binding.numeroTelfED
-//
-//
-//            if (nombreEd.text.isBlank() || apellidoEd.text.isBlank() ||
-//                descripcionServiciosEd.text.isBlank() || dniEd.text.isBlank() ||
-//                numeroTelfEd.text.isBlank()
-//            ) {
-//                Toast.makeText(
-//                    this,
-//                    "Por favor, completa todos los campos.",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//            } else if (ImagenPerfil == null || DNIFRONTAL == null || DNIPOSTERIOR == null) {
-//                Toast.makeText(this, "Por favor, suba Imágenes", Toast.LENGTH_SHORT)
-//                    .show()
-//            } else if (!binding.checkBoxPoliticas.isChecked) {
-//                Toast.makeText(
-//                    this,
-//                    "Acepta nuestras políticas de privacidad",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//            } else {
-//                binding.progressBarContainer.visibility = View.VISIBLE
-//                binding.scroll.isVisible = false
-//                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-//                val localDate =
-//                    LocalDate.parse(binding.fecha.text.toString(), formatter)
-//
-//                val fechaUnMesDespues = localDate.plusMonths(1)
-//                constantes.obtenerToken_trabajador(firebaseAuth.uid.toString()) { tokenTrabajador, nombre, apellido ->
-//                    obtenertokenIdAdmin.obtenertokenAdmin { token, id ->
-//                        enviarNotificacion(token, firebaseAuth.uid.toString())
-//                    }
-//
-//                    val documentId = firebaseAuth.uid.toString()
-//                    val hasmap = hashMapOf<String, Any>(
-//                        Variables.hora to "${binding.hora.text}",
-//                        Variables.fecha to "${binding.fecha.text}",
-//                        Variables.verificado to false,
-//                        Variables.idTrabajador to firebaseAuth.uid.toString(),
-//                        Variables.nombreT to nombreEd.text.toString(),
-//                        Variables.apellidoT to apellidoEd.text.toString(),
-//                        Variables.descripcion_servicios to descripcionServiciosEd.text.toString(),
-//                        Variables.DNI to dniEd.text.toString(),
-//                        Variables.numeroT to numeroTelfEd.text.toString(),
-////                        Variables.Plan to certificadosEd.text.toString(),
-//                        Variables.fecha_vencimiento to fechaUnMesDespues.format(formatter),
-//                        Variables.token to tokenTrabajador
-//                    )
-//
-//
-//                    val dbRef = FirebaseFirestore.getInstance()
-//                        .collection(Variables.solicitudes_serviciosDB)
-//                        .document(Variables.verificacionesDB)
-//                        .collection(Variables.pendientesDB)
-//                        .document(documentId)
-//
-//                    // Reemplazamos `add()` por `set()` para evitar crear documentos duplicados
-//                    dbRef.set(hasmap)
-//                        .addOnSuccessListener {
-//                            uploadImages(documentId)
-//
-//                            // Actualizar el documento para añadir el campo id_Comprovante
-//                            val hasmaoid = hashMapOf<String, Any>(
-//                                Variables.id_Comprovante to documentId
-//                            )
-//
-//                            val db2 = FirebaseFirestore.getInstance()
-//                                .collection(Variables.solicitudes_serviciosDB)
-//                                .document(Variables.verificacionesDB)
-//                                .collection(Variables.pendientesDB)
-//                                .document(documentId)
-//
-//                            db2.set(hasmaoid, SetOptions.merge())
-//                                .addOnSuccessListener {
-//
-//                                }
-//                        }
-//                        .addOnFailureListener { e ->
-//                            Toast.makeText(
-//                                this,
-//                                "Error al enviar la solicitud: ${e.message}",
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
-//                }
-//            }
+                        val documentId = firebaseAuth.uid.toString()
+                        val hasmap = hashMapOf<String, Any>(
+                            Variables.hora to "${binding.hora.text}",
+                            Variables.fecha to "${binding.fecha.text}",
+                            Variables.verificado to false,
+                            Variables.idTrabajador to firebaseAuth.uid.toString(),
+                            Variables.nombreT to nombreEd.text.toString(),
+                            Variables.apellidoT to apellidoEd.text.toString(),
+                            Variables.descripcion_servicios to descripcionServiciosEd.text.toString(),
+                            Variables.DNI to dniEd.text.toString(),
+                            Variables.numeroT to numeroTelfEd.text.toString(),
+                            Variables.fecha_vencimiento to fechaUnMesDespues.format(formatter),
+                            Variables.token to tokenTrabajador
+                        )
+
+
+                        val dbRef = FirebaseFirestore.getInstance()
+                            .collection(Variables.solicitudes_serviciosDB)
+                            .document(Variables.verificacionesDB)
+                            .collection(Variables.pendientesDB)
+                            .document(documentId)
+
+                        // Reemplazamos `add()` por `set()` para evitar crear documentos duplicados
+                        dbRef.set(hasmap)
+                            .addOnSuccessListener {
+                                uploadImages(documentId)
+
+                                // Actualizar el documento para añadir el campo id_Comprovante
+                                val hasmaoid = hashMapOf<String, Any>(
+                                    Variables.id_Comprovante to documentId
+                                )
+
+                                val db2 = FirebaseFirestore.getInstance()
+                                    .collection(Variables.solicitudes_serviciosDB)
+                                    .document(Variables.verificacionesDB)
+                                    .collection(Variables.pendientesDB)
+                                    .document(documentId)
+
+                                db2.set(hasmaoid, SetOptions.merge())
+                                    .addOnSuccessListener {
+
+                                    }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(
+                                    this,
+                                    "Error al enviar la solicitud: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Por favor completa todos los campos obligatorios",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
 
 
         }
 
 
     }
+
     private fun crearLauncherPara(imageView: ShapeableImageView): ActivityResultLauncher<String> {
         return registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let { imageView.setImageURI(it) }
@@ -580,17 +580,17 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             imageUploadTasks.add(uploadTask)
         }
 
-        YAPEO?.let { uri ->
-            val ref = storage.child("$documentId/${Variables.YAPEO}")
-            val uploadTask = ref.putFile(uri)
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) {
-                        task.exception?.let { throw it }
-                    }
-                    ref.downloadUrl
-                }
-            imageUploadTasks.add(uploadTask)
-        }
+//        YAPEO?.let { uri ->
+//            val ref = storage.child("$documentId/${Variables.YAPEO}")
+//            val uploadTask = ref.putFile(uri)
+//                .continueWithTask { task ->
+//                    if (!task.isSuccessful) {
+//                        task.exception?.let { throw it }
+//                    }
+//                    ref.downloadUrl
+//                }
+//            imageUploadTasks.add(uploadTask)
+//        }
 
 
         Tasks.whenAllSuccess<Uri>(imageUploadTasks)
@@ -662,256 +662,75 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                         autoCompleteTextView.setAdapter(adapter)
                         autoCompleteTextView.setOnItemClickListener { parent, view, position, id ->
                             val seleccionado = parent.getItemAtPosition(position).toString()
+
+                            // 👉 Limpiar campos antes de cambiar de categoría
+                            limpiarCamposTodasLasCategorias()
+
+                            // 👉 Ocultar todos los layouts primero
+                            ocultarTodosLosLayouts()
+
+                            // 👉 Mostrar el layout correspondiente a la categoría seleccionada
                             when (seleccionado) {
-                                "Construcción y hogar" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = true
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
+                                "Construcción y hogar" -> binding.lyConstrucion.principal.isVisible =
+                                    true
 
-                                "Servicios de Salud" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = true
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
+                                "Servicios de Salud" -> binding.lyServicioSalud.principal.isVisible =
+                                    true
 
-                                "Educación" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = true
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
+                                "Educación" -> binding.lyEducacion.principal.isVisible = true
+                                "Legal y Jurídico" -> binding.lyLegal.principal.isVisible = true
+                                "Redacción y Edición" -> binding.lyRedacion.principal.isVisible =
+                                    true
 
-                                "Legal y Jurídico" -> {
-                                    binding.lyLegal.principal.isVisible = true
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
+                                "Diseño Gráfico y Multimedia" -> binding.lyDesing.principal.isVisible =
+                                    true
 
-                                "Redacción y Edición" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = true
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
+                                "Desarrollo Web y Programación" -> binding.lyDesarrollo.principal.isVisible =
+                                    true
 
-                                }
+                                "Marketing Digital y Publicidad" -> binding.lyMarketing.principal.isVisible =
+                                    true
 
-                                "Diseño Gráfico y Multimedia" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = true
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
+                                "Artes Visuales y Creativas" -> binding.lyArte.principal.isVisible =
+                                    true
 
-                                "Desarrollo Web y Programación" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = true
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
+                                "Desarrollo Personal y Bienestar" -> binding.lyDesarrolloPersonal.principal.isVisible =
+                                    true
 
-                                }
+                                "Escritura Creativa y Periodismo" -> binding.lyRedacion.principal.isVisible =
+                                    true
 
-                                "Marketing Digital y Publicidad" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = true
-                                }
+                                "Conductor de reparto", "Chofer privado" -> binding.lyChofer.principal.isVisible =
+                                    true
 
-                                "Artes Visuales y Creativas" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = true
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
-                                "Desarrollo Personal y Bienestar" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = true
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
-                                "Escritura Creativa y Periodismo" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = true
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
-                                "Conductor de reparto" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = true
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
-                                "Chofer privado" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = true
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
-                                "Mecánicos" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = false
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = true
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
-                                "Tecnicos" -> {
-                                    binding.lyLegal.principal.isVisible = false
-                                    binding.lyEducacion.principal.isVisible = false
-                                    binding.lyDesing.principal.isVisible = false
-                                    binding.lyDesarrollo.principal.isVisible = false
-                                    binding.lyChofer.principal.isVisible = false
-                                    binding.lyConstrucion.principal.isVisible = false
-                                    binding.lyDesarrolloPersonal.principal.isVisible = false
-                                    binding.lyArte.principal.isVisible = false
-                                    binding.lyTecnicos.principal.isVisible = true
-                                    binding.lyServicioSalud.principal.isVisible = false
-                                    binding.lyRedacion.principal.isVisible = false
-                                    binding.lyMecanico.principal.isVisible = false
-                                    binding.lyMarketing.principal.isVisible = false
-                                }
-
+                                "Mecánicos" -> binding.lyMecanico.principal.isVisible = true
+                                "Tecnicos" -> binding.lyTecnicos.principal.isVisible = true
                             }
                         }
+
 
                     }
 
                 }
             }
+    }
+
+    private fun ocultarTodosLosLayouts() {
+        with(binding) {
+            lyLegal.principal.isVisible = false
+            lyEducacion.principal.isVisible = false
+            lyDesing.principal.isVisible = false
+            lyDesarrollo.principal.isVisible = false
+            lyChofer.principal.isVisible = false
+            lyConstrucion.principal.isVisible = false
+            lyDesarrolloPersonal.principal.isVisible = false
+            lyArte.principal.isVisible = false
+            lyTecnicos.principal.isVisible = false
+            lyServicioSalud.principal.isVisible = false
+            lyRedacion.principal.isVisible = false
+            lyMecanico.principal.isVisible = false
+            lyMarketing.principal.isVisible = false
+        }
     }
 
 
@@ -1017,10 +836,108 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         }
     }
 
+    private fun imagenValida(imageView: ShapeableImageView): Boolean {
+        val defaultDrawable = ContextCompat.getDrawable(this, R.drawable.cargar_foto_500x500)
+        return imageView.drawable.constantState != defaultDrawable?.constantState
+    }
+
+
+    private fun limpiarCamposTodasLasCategorias() {
+        // Utilidad para limpiar EditText y eerrores
+        fun limpiarCampo(vararg editTexts: EditText) {
+            editTexts.forEach {
+                it.setText("")
+                it.error = null
+            }
+        }
+
+        // Utilidad para resetear imagen a una por defecto
+        fun resetearImagen(vararg imageViews: ShapeableImageView) {
+            imageViews.forEach {
+                it.setImageResource(R.drawable.cargar_foto_500x500) // Usa tu imagen por defecto aquí
+            }
+        }
+
+        with(binding) {
+            // Legal
+            limpiarCampo(
+                lyLegal.especializacionED,
+                lyLegal.yearsExperienceED,
+                lyLegal.EspecializacionesED
+            )
+
+            // Educación
+            limpiarCampo(lyEducacion.especializacionED, lyEducacion.yearsExperienceED)
+
+            // Diseño Gráfico
+            limpiarCampo(
+                lyDesing.portafolioED,
+                lyDesing.softwareED,
+                lyDesing.yearsExperienceED,
+                lyDesing.especializacionED
+            )
+
+            // Desarrollo Web
+            limpiarCampo(
+                lyDesarrollo.repoED,
+                lyDesarrollo.portafolioED,
+                lyDesarrollo.yearsExperienceED
+            )
+
+            // Chofer
+            limpiarCampo(lyChofer.descripcionServiciosED)
+
+            // Construcción
+            limpiarCampo(lyConstrucion.espezializacionED, lyConstrucion.yearsExperienceED)
+            resetearImagen(
+                lyConstrucion.img1,
+                lyConstrucion.img2,
+                lyConstrucion.img3,
+                lyConstrucion.img4
+            )
+
+            // Desarrollo Personal
+            limpiarCampo(
+                lyDesarrolloPersonal.especialidadesED,
+                lyDesarrolloPersonal.yearsExperienceED
+            )
+
+            // Arte
+            limpiarCampo(
+                lyArte.enlaceRedesSocialesED,
+                lyArte.enlacePortafolioED,
+                lyArte.yearsExperienceED
+            )
+            resetearImagen(lyArte.img1, lyArte.img2, lyArte.img3, lyArte.img4)
+
+            // Técnicos
+            limpiarCampo(lyTecnicos.espezializacionED, lyTecnicos.yearsExperienceED)
+
+            // Salud
+            limpiarCampo(lyServicioSalud.espezializacionED, lyServicioSalud.yearsExperienceED)
+
+            // Redacción
+            limpiarCampo(
+                lyRedacion.portafolioED,
+                lyRedacion.herramientaED,
+                lyRedacion.especializacionED,
+                lyRedacion.yearsExperienceED
+            )
+
+            // Mecánicos
+            limpiarCampo(lyMecanico.espezializacionED, lyMecanico.yearsExperienceED)
+            resetearImagen(lyMecanico.img1, lyMecanico.img2, lyMecanico.img3, lyMecanico.img4)
+
+            // Marketing
+            limpiarCampo(lyMarketing.herramentaMarketingED, lyMarketing.yearsExperienceED)
+        }
+    }
 
 
     private fun verificar_campos_legal_juridico(): Boolean {
         val juridico = binding.lyLegal
+        val titulo = juridico.titulosEducativos
+        val carnet = juridico.fotoCarnet // opcional
         val areas = juridico.especializacionED.text.toString().trim()
         val yearsExp = juridico.yearsExperienceED.text.toString().trim()
         val especializaciones = juridico.EspecializacionesED.text.toString().trim()
@@ -1045,11 +962,22 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             valido = false
         }
 
+        if (!imagenValida(titulo)) {
+            Toast.makeText(
+                juridico.root.context,
+                "Debes subir tu título educativo",
+                Toast.LENGTH_SHORT
+            ).show()
+            valido = false
+        }
+
         return valido
     }
 
     private fun verificar_campos_educacion(): Boolean {
         val educacion = binding.lyEducacion
+        val titulo = educacion.titulosEducativos
+        val certificaciones = educacion.certificaciones
         val textoEspecializado = educacion.especializacionED.text.toString().trim()
         val yearsExp = educacion.yearsExperienceED.text.toString().trim()
 
@@ -1064,6 +992,12 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         if (yearsExp.isEmpty()) {
             educacion.yearsExperienceED.error = "Campo obligatorio"
             educacion.yearsExperienceED.requestFocus()
+            valido = false
+        }
+
+        if (!imagenValida(titulo) || !imagenValida(certificaciones)) {
+            Toast.makeText(this, "Debes subir título educativo y certificación", Toast.LENGTH_SHORT)
+                .show()
             valido = false
         }
 
@@ -1109,6 +1043,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
     private fun verificar_campos_desarrollo_programacion(): Boolean {
         val desarrollo = binding.lyDesarrollo
+        val certificados = desarrollo.certificadosTecnicos
 
         val repo = desarrollo.repoED.text.toString().trim()
         val portafolio = desarrollo.portafolioED.text.toString().trim()
@@ -1134,11 +1069,25 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             valido = false
         }
 
+        if (!imagenValida(certificados)) {
+            Toast.makeText(
+                desarrollo.root.context,
+                "Debes subir una imagen de tus certificados técnicos",
+                Toast.LENGTH_SHORT
+            ).show()
+            valido = false
+        }
+
         return valido
     }
 
     private fun campos_chofer_privado(): Boolean {
         val chofer = binding.lyChofer
+
+        val licencia = chofer.licenciaConducir
+        val fotoveiculo = chofer.fotoVeiculo
+        val seguro = chofer.seguroVeicular
+
         val puntosEntrega = chofer.descripcionServiciosED.text.toString().trim()
 
         var valido = true
@@ -1149,17 +1098,38 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             valido = false
         }
 
+        if (!imagenValida(fotoveiculo)) {
+            Toast.makeText(
+                chofer.root.context,
+                "Debes subir una imagen del vehículo",
+                Toast.LENGTH_SHORT
+            ).show()
+            valido = false
+        }
+
+        if (!imagenValida(seguro)) {
+            Toast.makeText(
+                chofer.root.context,
+                "Debes subir una imagen del seguro vehicular",
+                Toast.LENGTH_SHORT
+            ).show()
+            valido = false
+        }
+
+        if (!imagenValida(licencia)) {
+            Toast.makeText(
+                chofer.root.context,
+                "Debes subir la licencia de conducir",
+                Toast.LENGTH_SHORT
+            ).show()
+            valido = false
+        }
+
         return valido
     }
 
     private fun campos_constructor_hogares(): Boolean {
         val constructor = binding.lyConstrucion
-
-        val img1 = constructor.img1
-        val img2 = constructor.img2
-        val img3 = constructor.img3
-        val img4 = constructor.img4
-        val certificados = constructor.certificadosTecnicos
 
         val especializacion = constructor.espezializacionED.text.toString().trim()
         val yearsExp = constructor.yearsExperienceED.text.toString().trim()
@@ -1175,6 +1145,14 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         if (yearsExp.isEmpty()) {
             constructor.yearsExperienceED.error = "Campo obligatorio"
             constructor.yearsExperienceED.requestFocus()
+            valido = false
+        }
+
+        if (!imagenValida(constructor.img1) || !imagenValida(constructor.img2)
+            || !imagenValida(constructor.img3) || !imagenValida(constructor.img4)
+        ) {
+            Toast.makeText(this, "Debes subir las 4 imágenes de construcción", Toast.LENGTH_SHORT)
+                .show()
             valido = false
         }
 
@@ -1202,17 +1180,17 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             desarrollo.yearsExperienceED.requestFocus()
             valido = false
         }
+        if (!imagenValida(certificados)) {
+            Toast.makeText(this, "Debes subir el certificado técnico", Toast.LENGTH_SHORT).show()
+            valido = false
+        }
+
 
         return valido
     }
 
     private fun campos_arte_antiguedades(): Boolean {
         val arte = binding.lyArte
-
-        val img1 = arte.img1
-        val img2 = arte.img2
-        val img3 = arte.img3
-        val img4 = arte.img4
 
         val enlaceRedes = arte.enlaceRedesSocialesED.text.toString().trim()
         val portafolio = arte.enlacePortafolioED.text.toString().trim()
@@ -1235,6 +1213,13 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         if (yearsExp.isEmpty()) {
             arte.yearsExperienceED.error = "Campo obligatorio"
             arte.yearsExperienceED.requestFocus()
+            valido = false
+        }
+
+        if (!imagenValida(arte.img1) || !imagenValida(arte.img2)
+            || !imagenValida(arte.img3) || !imagenValida(arte.img4)
+        ) {
+            Toast.makeText(this, "Debes subir las 4 imágenes de arte", Toast.LENGTH_SHORT).show()
             valido = false
         }
 
@@ -1263,6 +1248,11 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             valido = false
         }
 
+        if (!imagenValida(certificados)) {
+            Toast.makeText(this, "Debes subir el certificado técnico", Toast.LENGTH_SHORT).show()
+            valido = false
+        }
+
         return valido
     }
 
@@ -1287,6 +1277,18 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         if (yearsExp.isEmpty()) {
             salud.yearsExperienceED.error = "Campo obligatorio"
             salud.yearsExperienceED.requestFocus()
+            valido = false
+        }
+
+        if (!imagenValida(certificadosM) || !imagenValida(certificadosT) || !imagenValida(
+                carnetMedico
+            )
+        ) {
+            Toast.makeText(
+                this,
+                "Debes subir certificado médico, técnico y carnet",
+                Toast.LENGTH_SHORT
+            ).show()
             valido = false
         }
 
@@ -1328,6 +1330,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         }
 
         return valido
+
     }
 
     private fun campos_mecanicos(): Boolean {
@@ -1337,7 +1340,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         val img2 = mecanicos.img2
         val img3 = mecanicos.img3
         val img4 = mecanicos.img4
-        val certificados = mecanicos.certificadosTecnicos
+        val certificado = mecanicos.certificadosTecnicos
 
         val especializacion = mecanicos.espezializacionED.text.toString().trim()
         val yearsExp = mecanicos.yearsExperienceED.text.toString().trim()
@@ -1353,6 +1356,24 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         if (yearsExp.isEmpty()) {
             mecanicos.yearsExperienceED.error = "Campo obligatorio"
             mecanicos.yearsExperienceED.requestFocus()
+            valido = false
+        }
+
+        if (!imagenValida(img1) || !imagenValida(img2) || !imagenValida(img3) || !imagenValida(
+                img4
+            )
+        ) {
+            Toast.makeText(this, "Debes subir las 4 imágenes mecánicas", Toast.LENGTH_SHORT)
+                .show()
+            valido = false
+        }
+
+        if (!imagenValida(certificado)) {
+            Toast.makeText(
+                this,
+                "Debes subir al menos un certificado técnico",
+                Toast.LENGTH_SHORT
+            ).show()
             valido = false
         }
 
@@ -1381,6 +1402,4 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
         return valido
     }
-
-
 }
