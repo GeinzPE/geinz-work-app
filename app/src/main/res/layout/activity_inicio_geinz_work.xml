@@ -30,7 +30,7 @@
                 app:endIconDrawable="@drawable/icon_user">
 
                 <EditText
-                    android:id="@+id/ingrese_su_mail"
+                    android:id="@+id/modelo_buscar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Ingresa tu modelo de celular a buscar"
@@ -39,7 +39,13 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/agregar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="agregar"/>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>
