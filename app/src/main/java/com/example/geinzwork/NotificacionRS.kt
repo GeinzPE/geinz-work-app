@@ -5,15 +5,20 @@ import android.util.Log
 import com.google.auth.oauth2.GoogleCredentials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 import okhttp3.Request
+import okhttp3.Response
+import java.io.IOException
 
 class NotificacionRS {
     private val FCM_URL = "https://fcm.googleapis.com/v1/projects/geinzworkapp/messages:send"
+    private val CLOUD_FUNCTION_URL = "https://us-central1-geinzworkapp.cloudfunctions.net/enviarNotificacion"
 
     private val client = OkHttpClient()
     suspend fun sendNotification_con_parametros(
@@ -70,6 +75,47 @@ class NotificacionRS {
             Log.e("Response_bodys", "${response.body?.string()}")
 
         }
+    }
+
+    fun enviarNotificacionFCM(
+        token: String,
+        clickAction: String,
+        idAnuncio: String,
+        idTienda: String,
+        entrada: String,
+        titulo: String,
+        cuerpo: String
+    ) {
+        val jsonBody = """
+        {
+            "token": "$token",
+            "title": "$titulo",
+            "body": "$cuerpo",
+            "click_action": "$clickAction",
+            "idAnuncio": "$idAnuncio",
+            "idTienda": "$idTienda",
+            "entrada": "$entrada"
+        }
+    """.trimIndent()
+
+        val client = OkHttpClient()
+        val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
+        val request = Request.Builder()
+            .url(CLOUD_FUNCTION_URL)
+            .post(requestBody)
+            .addHeader("Content-Type", "application/json") // ✅ IMPORTANTE
+            .addHeader("Accept", "application/json")       // opcional
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("noti", "Error al enviar notificación: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                Log.d("noti", "Respuesta: ${response.body?.string()}")
+            }
+        })
     }
 
 
