@@ -370,17 +370,21 @@
             <include layout="@layout/layout_arte_antiguedades"
                 android:id="@+id/ly_arte"/>
 
-
             <include layout="@layout/layout_tecnicos"
                 android:id="@+id/ly_tecnicos"/>
+
             <include layout="@layout/layout_sevicio_salud"
                 android:id="@+id/ly_servicioSalud"/>
+
             <include layout="@layout/layout_redaccion_edicion"
                 android:id="@+id/ly_redacion"/>
+
             <include layout="@layout/layout_mecanicos"
                 android:id="@+id/ly_mecanico"/>
+
             <include layout="@layout/layout_marketing_digital"
                 android:id="@+id/ly_marketing"/>
+
 
 
             <LinearLayout
@@ -499,7 +503,6 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/cargar_foto_500x500"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
-
 
             <TextView
                 style="@style/TextoModoOScuroColor"
