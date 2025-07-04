@@ -38,6 +38,7 @@ import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
@@ -241,26 +242,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             val dniEd = binding.dniED
             val numeroTelfEd = binding.numeroTelfED
 
-
-            if (nombreEd.text.isBlank() || apellidoEd.text.isBlank() ||
-                descripcionServiciosEd.text.isBlank() || dniEd.text.isBlank() ||
-                numeroTelfEd.text.isBlank()
-            ) {
-                Toast.makeText(
-                    this,
-                    "Por favor, completa todos los campos.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else if (ImagenPerfil == null || DNIFRONTAL == null || DNIPOSTERIOR == null) {
-                Toast.makeText(this, "Por favor, suba Imágenes", Toast.LENGTH_SHORT)
-                    .show()
-            } else if (!binding.checkBoxPoliticas.isChecked) {
-                Toast.makeText(
-                    this,
-                    "Acepta nuestras políticas de privacidad",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
+            if(verificar_campos()){
                 if (tipo_selecionados(binding.categoriaTrabajos.text.toString())) {
                     binding.progressBarContainer.visibility = View.VISIBLE
                     binding.scroll.isVisible = false
@@ -298,7 +280,76 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                         dbRef.set(hasmap)
                             .addOnSuccessListener {
                                 uploadImages(documentId)
+                                when (binding.categoriaTrabajos.text.toString()) {
+                                    "Artes Visuales y Creativas" -> crearHashmapArte(
+                                        dbRef,
+                                        documentId
+                                    )
 
+                                    "Chofer privado" -> crearHashmapChofer(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Conductor de reparto" -> true // Aún sin validación
+                                    "Construcción y hogar" -> crearHashmapConstructor(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Desarrollo Personal y Bienestar" -> crearHashmapDesarrolloPersonal(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Desarrollo Web y Programación" -> crearHashmapDesarrollo(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Diseño Gráfico y Multimedia" -> crearHashmapDesign(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Educación" -> crearHashmapEducacion(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Escritura Creativa y Periodismo" -> true // Aún sin validación
+                                    "Legal y Jurídico" -> crearHashmapLegal(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Marketing Digital y Publicidad" -> crearHashmapMarketing(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Mecánicos" -> crearHashmapMecanicos(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Redacción y Edición" -> crearHashmapRedaccion(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Servicios de Salud" -> crearHashmapSalud(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    "Tecnicos" -> crearHashmapTecnicos(
+                                        dbRef,
+                                        documentId
+                                    )
+
+                                    else -> true
+                                }
                                 // Actualizar el documento para añadir el campo id_Comprovante
                                 val hasmaoid = hashMapOf<String, Any>(
                                     Variables.id_Comprovante to documentId
@@ -334,13 +385,115 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
 
         }
-
-
     }
+
+    private fun verificar_campos(): Boolean {
+        val nombreEd = binding.nombreED
+        val apellidoEd = binding.apellidoED
+        val descripcionServiciosEd = binding.descripcionServiciosED
+        val dniEd = binding.dniED
+        val numeroTelfEd = binding.numeroTelfED
+        val correo = binding.correoElectronidoED
+        val categoria_trabajo = binding.categoriaTrabajos
+        val plan_verificacion = binding.planes
+
+        var valido = true
+
+        if (nombreEd.text.isBlank()) {
+            nombreEd.error = "Ingresa un nombre"
+            nombreEd.requestFocus()
+            valido = false
+        }
+
+        if (apellidoEd.text.isBlank()) {
+            apellidoEd.error = "Ingresa un apellido"
+            apellidoEd.requestFocus()
+            valido = false
+        }
+
+        if (descripcionServiciosEd.text.isBlank()) {
+            descripcionServiciosEd.error = "Ingresa una descripción"
+            descripcionServiciosEd.requestFocus()
+            valido = false
+        }
+
+        if (dniEd.text.isBlank()) {
+            dniEd.error = "Ingresa tu DNI"
+            dniEd.requestFocus()
+            valido = false
+        }
+
+        if (numeroTelfEd.text.isBlank()) {
+            numeroTelfEd.error = "Ingresa tu número de teléfono"
+            numeroTelfEd.requestFocus()
+            valido = false
+        }
+
+        if (correo.text.isBlank()) {
+            correo.error = "Ingresa tu correo electrónico"
+            correo.requestFocus()
+            valido = false
+        }
+
+        if (categoria_trabajo.text.isNullOrBlank() || categoria_trabajo.text.toString() == "Selecciona una categoría") {
+            Toast.makeText(this, "Selecciona una categoría de trabajo", Toast.LENGTH_SHORT).show()
+            valido = false
+        }
+
+        if (plan_verificacion.text.isNullOrBlank() || plan_verificacion.text.toString() == "Selecciona un plan") {
+            Toast.makeText(this, "Selecciona un plan de verificación", Toast.LENGTH_SHORT).show()
+            valido = false
+        }
+
+        if (ImagenPerfil == null || DNIFRONTAL == null || DNIPOSTERIOR == null) {
+            Toast.makeText(this, "Por favor, sube las imágenes requeridas (perfil y DNI)", Toast.LENGTH_SHORT).show()
+            valido = false
+        }
+
+        if (!binding.checkBoxPoliticas.isChecked) {
+            Toast.makeText(this, "Debes aceptar las políticas de privacidad", Toast.LENGTH_SHORT).show()
+            valido = false
+        }
+
+        return valido
+    }
+
+
+    private fun subirImagenes(
+        lista: List<Pair<String, Uri>>,
+        idDoc: String,
+        onComplete: (Map<String, String>) -> Unit
+    ) {
+        val storage = storage
+        val urlsMap = mutableMapOf<String, String>()
+        var subidas = 0
+
+        for ((nombre, uri) in lista) {
+            val ref = storage.child("$idDoc/${nombre}")
+            ref.putFile(uri).continueWithTask { tarea ->
+                if (!tarea.isSuccessful) throw tarea.exception
+                    ?: Exception("Error subiendo $nombre")
+                ref.downloadUrl
+            }.addOnSuccessListener { url ->
+                urlsMap[nombre] = url.toString()
+                subidas++
+                if (subidas == lista.size) {
+                    onComplete(urlsMap) // Todas subidas
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Error al subir $nombre: ${it.message}", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+    }
+
 
     private fun crearLauncherPara(imageView: ShapeableImageView): ActivityResultLauncher<String> {
         return registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let { imageView.setImageURI(it) }
+            uri?.let {
+                imageView.setImageURI(it)
+                imageView.tag = it // ✅ Guardar el URI para luego subirlo
+            }
         }
     }
 
@@ -349,13 +502,13 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return when (categoria) {
             "Artes Visuales y Creativas" -> campos_arte_antiguedades()
             "Chofer privado" -> campos_chofer_privado()
-            "Conductor de reparto" -> true // Aún sin validación
+            "Conductor de reparto" -> campos_chofer_privado() // Aún sin validación
             "Construcción y hogar" -> campos_constructor_hogares()
             "Desarrollo Personal y Bienestar" -> campos_desarrollo_personal()
             "Desarrollo Web y Programación" -> verificar_campos_desarrollo_programacion()
             "Diseño Gráfico y Multimedia" -> verificar_campos_desing_graphic()
             "Educación" -> verificar_campos_educacion()
-            "Escritura Creativa y Periodismo" -> true // Aún sin validación
+            "Escritura Creativa y Periodismo" -> campos_redaccion() // Aún sin validación
             "Legal y Jurídico" -> verificar_campos_legal_juridico()
             "Marketing Digital y Publicidad" -> campos_marketing()
             "Mecánicos" -> campos_mecanicos()
@@ -379,15 +532,6 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                 getString(R.string.titulo_notificacion_verificacion),
                 getString(R.string.mensaje_notificacion_verificacion)
             )
-//           < notificar.sendNotification_con_parametros(
-//                "idAdmin",
-//                id,
-//                "hola",
-//                this@verificacion_cuenta_trabajador,
-//                token,
-//                getString(R.string.titulo_notificacion_verificacion),
-//                getString(R.string.mensaje_notificacion_verificacion)
-//            )>
         }
 
     }
@@ -451,6 +595,7 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
                 val monto_cancelar_mensual = data?.get("monto_cancelar_mensual") as? Number ?: 0
                 if (caracteristicas != null) {
                     binding.layoutBeneficios.linealAnuncioVerificado.isVisible = true
+                    binding.cargandoCaracteristicas.isVisible = false
                     when (selecionado) {
                         "plan_a" -> {
                             binding.layoutBeneficios.planSelecionado.text =
@@ -503,18 +648,21 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
             when (opcionSeleccionada) {
                 "Plan A (Verificacion cuenta Geinz)" -> {
                     binding.layoutBeneficios.linealAnuncioVerificado.isVisible = false
+                    binding.cargandoCaracteristicas.isVisible = true
                     obtener_categorias_verificados("plan_a")
 
                 }
 
                 "Plan B (Verificacion cuenta Geinz)" -> {
                     binding.layoutBeneficios.linealAnuncioVerificado.isVisible = false
+                    binding.cargandoCaracteristicas.isVisible = true
                     obtener_categorias_verificados("plan_b")
                 }
 
                 "Plan C (Verificacion cuenta Geinz)" -> {
 
                     binding.layoutBeneficios.linealAnuncioVerificado.isVisible = false
+                    binding.cargandoCaracteristicas.isVisible = true
                     obtener_categorias_verificados("plan_c")
                 }
 
@@ -983,6 +1131,41 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapLegal(db: DocumentReference, id: String) {
+        val juridico = binding.lyLegal
+        val titulo = juridico.titulosEducativos
+        val carnet = juridico.fotoCarnet
+        val areas = juridico.especializacionED.text.toString().trim()
+        val yearsExp = juridico.yearsExperienceED.text.toString().trim()
+        val especializaciones = juridico.EspecializacionesED.text.toString().trim()
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "areasEspecializacion" to areas,
+                "añosExperiencia" to yearsExp,
+                "especializaciones" to especializaciones,
+                "imagenesValidas" to true
+            )
+        )
+        val uriList = listOfNotNull(
+            titulo.tag as? Uri,
+            carnet.tag as? Uri,
+
+            )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Jurídico guardado", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar jurídico: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     private fun verificar_campos_educacion(): Boolean {
         val educacion = binding.lyEducacion
         val titulo = educacion.titulosEducativos
@@ -1012,6 +1195,39 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
         return valido
     }
+
+    private fun crearHashmapEducacion(db: DocumentReference, id: String) {
+        val educacion = binding.lyEducacion
+        val titulo = educacion.titulosEducativos
+        val certificaciones = educacion.certificaciones
+        val textoEspecializado = educacion.especializacionED.text.toString().trim()
+        val yearsExp = educacion.yearsExperienceED.text.toString().trim()
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "especializacion" to textoEspecializado,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+        val uriList = listOfNotNull(
+            titulo.tag as? Uri,
+            certificaciones.tag as? Uri,
+
+            )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Educación guardada", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar educación: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun verificar_campos_desing_graphic(): Boolean {
         val desing = binding.lyDesing
@@ -1049,6 +1265,30 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
         return valido
     }
+
+    private fun crearHashmapDesign(db: DocumentReference, id: String) {
+        val desing = binding.lyDesing
+        val portafolio = desing.portafolioED.text.toString().trim()
+        val software = desing.softwareED.text.toString().trim()
+        val yearsExp = desing.yearsExperienceED.text.toString().trim()
+        val especializacion = desing.especializacionED.text.toString().trim()
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "portafolio" to portafolio,
+                "software" to software,
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Diseño gráfico guardado", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar diseño: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun verificar_campos_desarrollo_programacion(): Boolean {
         val desarrollo = binding.lyDesarrollo
@@ -1089,6 +1329,29 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
         return valido
     }
+
+    private fun crearHashmapDesarrollo(db: DocumentReference, id: String) {
+        val desarrollo = binding.lyDesarrollo
+        val repo = desarrollo.repoED.text.toString().trim()
+        val portafolio = desarrollo.portafolioED.text.toString().trim()
+        val yearsExp = desarrollo.yearsExperienceED.text.toString().trim()
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "repositorio" to repo,
+                "portafolio" to portafolio,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Desarrollo guardado", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar desarrollo: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun campos_chofer_privado(): Boolean {
         val chofer = binding.lyChofer
@@ -1137,6 +1400,37 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapChofer(db: DocumentReference, id: String) {
+        val chofer = binding.lyChofer
+        val puntosEntrega = chofer.descripcionServiciosED.text.toString().trim()
+        val licencia = chofer.licenciaConducir
+        val fotoveiculo = chofer.fotoVeiculo
+        val seguro = chofer.seguroVeicular
+        val uriList = listOfNotNull(
+            licencia.tag as? Uri,
+            fotoveiculo.tag as? Uri,
+            seguro.tag as? Uri,
+        )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "puntosEntrega" to puntosEntrega,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Chofer guardado", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar chofer: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     private fun campos_constructor_hogares(): Boolean {
         val constructor = binding.lyConstrucion
 
@@ -1168,6 +1462,42 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapConstructor(db: DocumentReference, id: String) {
+        val constructor = binding.lyConstrucion
+        val especializacion = constructor.espezializacionED.text.toString().trim()
+        val yearsExp = constructor.yearsExperienceED.text.toString().trim()
+        val img1 = constructor.img1
+        val img2 = constructor.img2
+        val img3 = constructor.img3
+        val img4 = constructor.img4
+
+        val uriList = listOfNotNull(
+            img1.tag as? Uri,
+            img2.tag as? Uri,
+            img3.tag as? Uri,
+            img4.tag as? Uri
+        )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Constructor guardado", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar constructor: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     private fun campos_desarrollo_personal(): Boolean {
         val desarrollo = binding.lyDesarrolloPersonal
 
@@ -1198,9 +1528,40 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapDesarrolloPersonal(db: DocumentReference, id: String) {
+        val desarrollo = binding.lyDesarrolloPersonal
+        val certificados = desarrollo.certificadosTecnicos
+        val especializacion = desarrollo.especialidadesED.text.toString().trim()
+        val yearsExp = desarrollo.yearsExperienceED.text.toString().trim()
+        val uriList = listOfNotNull(
+            certificados.tag as? Uri,
+
+            )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Desarrollo personal guardado", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar desarrollo personal: $it", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+
     private fun campos_arte_antiguedades(): Boolean {
         val arte = binding.lyArte
-
         val enlaceRedes = arte.enlaceRedesSocialesED.text.toString().trim()
         val portafolio = arte.enlacePortafolioED.text.toString().trim()
         val yearsExp = arte.yearsExperienceED.text.toString().trim()
@@ -1235,6 +1596,43 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapArte(db: DocumentReference, id: String) {
+        val arte = binding.lyArte
+        val img1 = arte.img1
+        val img2 = arte.img2
+        val img3 = arte.img3
+        val img4 = arte.img4
+
+        val uriList = listOfNotNull(
+            img1.tag as? Uri,
+            img2.tag as? Uri,
+            img3.tag as? Uri,
+            img4.tag as? Uri
+        )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+        val enlaceRedes = arte.enlaceRedesSocialesED.text.toString().trim()
+        val portafolio = arte.enlacePortafolioED.text.toString().trim()
+        val yearsExp = arte.yearsExperienceED.text.toString().trim()
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "enlaceRedes" to enlaceRedes,
+                "portafolio" to portafolio,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener { res ->
+            Toast.makeText(this, "se creo la referencia exitosamente", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "no se puedo enviar el map $e", Toast.LENGTH_SHORT).show()
+
+        }
+    }
+
     private fun campos_tecnicos(): Boolean {
         val tecnicos = binding.lyTecnicos
 
@@ -1264,6 +1662,36 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
         return valido
     }
+
+    private fun crearHashmapTecnicos(db: DocumentReference, id: String) {
+        val tecnicos = binding.lyTecnicos
+        val certificados = tecnicos.certificadosTecnicos
+        val especializacion = tecnicos.espezializacionED.text.toString().trim()
+        val yearsExp = tecnicos.yearsExperienceED.text.toString().trim()
+
+        val uriList = listOfNotNull(
+            certificados.tag as? Uri,
+        )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Características técnicas guardadas", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar técnicas: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun campos_servicios_salud(): Boolean {
         val salud = binding.lyServicioSalud
@@ -1304,6 +1732,39 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapSalud(db: DocumentReference, id: String) {
+        val salud = binding.lyServicioSalud
+        val certificadosM = salud.ceritificadoMedico
+        val certificadosT = salud.certificadosTecnicos
+        val carnetMedico = salud.carnetMedico
+        val especializacion = salud.espezializacionED.text.toString().trim()
+        val yearsExp = salud.yearsExperienceED.text.toString().trim()
+        val uriList = listOfNotNull(
+            certificadosM.tag as? Uri,
+            certificadosT.tag as? Uri,
+            carnetMedico.tag as? Uri,
+        )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Características de salud guardadas", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar salud: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     private fun campos_redaccion(): Boolean {
         val redaccion = binding.lyRedacion
 
@@ -1341,6 +1802,30 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
 
     }
+
+    private fun crearHashmapRedaccion(db: DocumentReference, id: String) {
+        val redaccion = binding.lyRedacion
+        val portafolio = redaccion.portafolioED.text.toString().trim()
+        val herramientas = redaccion.herramientaED.text.toString().trim()
+        val especializacion = redaccion.especializacionED.text.toString().trim()
+        val yearsExp = redaccion.yearsExperienceED.text.toString().trim()
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "portafolio" to portafolio,
+                "herramientas" to herramientas,
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Redacción guardada correctamente", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar redacción: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun campos_mecanicos(): Boolean {
         val mecanicos = binding.lyMecanico
@@ -1389,6 +1874,37 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
         return valido
     }
 
+    private fun crearHashmapMecanicos(db: DocumentReference, id: String) {
+        val mecanicos = binding.lyMecanico
+        val especializacion = mecanicos.espezializacionED.text.toString().trim()
+        val yearsExp = mecanicos.yearsExperienceED.text.toString().trim()
+        val uriList = listOfNotNull(
+            mecanicos.img1 as? Uri,
+            mecanicos.img2 as? Uri,
+            mecanicos.img3 as? Uri,
+            mecanicos.img4 as? Uri
+        )
+        val listaImagenes = uriList.mapIndexed { index, uri ->
+            "img${index + 1}.jpg" to uri
+        }
+        subirImagenes(listaImagenes, id) { urlsMap ->
+        }
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "especializacion" to especializacion,
+                "añosExperiencia" to yearsExp,
+                "imagenesValidas" to true
+            )
+        )
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Mecánica guardada correctamente", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar mecánica: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     private fun campos_marketing(): Boolean {
         val marketing = binding.lyMarketing
 
@@ -1411,4 +1927,25 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
 
         return valido
     }
+
+    private fun crearHashmapMarketing(db: DocumentReference, id: String) {
+        val marketing = binding.lyMarketing
+        val especializacion = marketing.herramentaMarketingED.text.toString().trim()
+        val yearsExp = marketing.yearsExperienceED.text.toString().trim()
+
+        val hasmap = hashMapOf(
+            "caracteristicas" to hashMapOf(
+                "herramientaMarketing" to especializacion,
+                "añosExperiencia" to yearsExp
+            )
+        )
+
+
+        db.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Toast.makeText(this, "Marketing guardado correctamente", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al guardar marketing: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 }

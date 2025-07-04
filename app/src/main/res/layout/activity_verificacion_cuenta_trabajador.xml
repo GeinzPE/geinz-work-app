@@ -16,10 +16,10 @@
         android:visibility="gone">
 
         <!-- Fondo oscuro -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#80000000" />
+        <!--        <View-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:background="#80000000" />-->
 
 
         <!-- ProgressBar centrado -->
@@ -346,45 +346,57 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <include layout="@layout/layout_lega_juridico"
-                android:id="@+id/ly_legal"/>
+            <include
+                android:id="@+id/ly_legal"
+                layout="@layout/layout_lega_juridico" />
 
-            <include layout="@layout/layout_educacion"
-                android:id="@+id/ly_educacion"/>
+            <include
+                android:id="@+id/ly_educacion"
+                layout="@layout/layout_educacion" />
 
-            <include layout="@layout/layout_desing_graphic"
-                android:id="@+id/ly_desing"/>
+            <include
+                android:id="@+id/ly_desing"
+                layout="@layout/layout_desing_graphic" />
 
-            <include layout="@layout/layout_desarrollo_programacion"
-                android:id="@+id/ly_desarrollo"/>
+            <include
+                android:id="@+id/ly_desarrollo"
+                layout="@layout/layout_desarrollo_programacion" />
 
-            <include layout="@layout/layout_car_chofer_privado_reparto"
-                android:id="@+id/ly_chofer"/>
+            <include
+                android:id="@+id/ly_chofer"
+                layout="@layout/layout_car_chofer_privado_reparto" />
 
-            <include layout="@layout/layout_construcion_hogar"
-                android:id="@+id/ly_construcion"/>
+            <include
+                android:id="@+id/ly_construcion"
+                layout="@layout/layout_construcion_hogar" />
 
-            <include layout="@layout/layout_desarrollo_personal"
-                android:id="@+id/ly_desarrollo_personal"/>
+            <include
+                android:id="@+id/ly_desarrollo_personal"
+                layout="@layout/layout_desarrollo_personal" />
 
-            <include layout="@layout/layout_arte_antiguedades"
-                android:id="@+id/ly_arte"/>
+            <include
+                android:id="@+id/ly_arte"
+                layout="@layout/layout_arte_antiguedades" />
 
-            <include layout="@layout/layout_tecnicos"
-                android:id="@+id/ly_tecnicos"/>
+            <include
+                android:id="@+id/ly_tecnicos"
+                layout="@layout/layout_tecnicos" />
 
-            <include layout="@layout/layout_sevicio_salud"
-                android:id="@+id/ly_servicioSalud"/>
+            <include
+                android:id="@+id/ly_servicioSalud"
+                layout="@layout/layout_sevicio_salud" />
 
-            <include layout="@layout/layout_redaccion_edicion"
-                android:id="@+id/ly_redacion"/>
+            <include
+                android:id="@+id/ly_redacion"
+                layout="@layout/layout_redaccion_edicion" />
 
-            <include layout="@layout/layout_mecanicos"
-                android:id="@+id/ly_mecanico"/>
+            <include
+                android:id="@+id/ly_mecanico"
+                layout="@layout/layout_mecanicos" />
 
-            <include layout="@layout/layout_marketing_digital"
-                android:id="@+id/ly_marketing"/>
-
+            <include
+                android:id="@+id/ly_marketing"
+                layout="@layout/layout_marketing_digital" />
 
 
             <LinearLayout
@@ -417,6 +429,29 @@
                     android:src="@drawable/info_icon" />
             </LinearLayout>
 
+            <LinearLayout
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:id="@+id/cargandoCaracteristicas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:textSize="15sp"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_height="wrap_content"
+                    android:text="cargando Beneficios..." />
+
+                <ProgressBar
+                    android:id="@+id/cargando_beneficios"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp" />
+            </LinearLayout>
 
             <include
                 android:id="@+id/layoutBeneficios"
