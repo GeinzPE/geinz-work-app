@@ -4,8 +4,10 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -15,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import com.echo.holographlibrary.Line
 import com.example.geinzwork.NotificacionRS
 import com.example.geinzwork.constantesGeneral.Variables
@@ -22,16 +25,19 @@ import com.example.geinzwork.constantesGeneral.obtenertokenIdAdmin
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
+import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ActivityPlanesBinding
 import com.geinzz.geinzwork.databinding.BottomSheetAdquirPlanesNoticiasBinding
 import com.geinzz.geinzwork.databinding.BottomSheetInfoPublicidadBinding
 import com.geinzz.geinzwork.databinding.FragmentSinInternetBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlin.math.log
 
 class planes : AppCompatActivity() {
     private lateinit var binding: ActivityPlanesBinding
@@ -51,89 +57,106 @@ class planes : AppCompatActivity() {
         }
         val intentRenovacion = intent.getStringExtra(Variables.renovacion).toString()
         firebaseAuth = FirebaseAuth.getInstance()
-        val caracteristicasbasica = listOf(
-            getString(R.string.primario),
-            getString(R.string.segundario),
-            getString(R.string.tercero),
-            getString(R.string.cuarto),
-            getString(R.string.quinto)
-        )
-        val caracteristicaAvanzado = listOf(
-            getString(R.string.publicacion_7_dias),
-            getString(R.string.publicidad_apartado_medio),
-            getString(R.string.compartir_publicidad),
-            getString(R.string.orientacion_publicidad),
-            getString(R.string.acceso_panel_control),
-            getString(R.string.enlace_directo_web),
-            getString(R.string.cambio_publicidad_periodo),
-        )
 
-        val caracteristicaPremiun = listOf(
-            getString(R.string.publicacion_1_mes),
-            getString(R.string.publicidad_apartado_alto),
-            getString(R.string.compartir_publicidad),
-            getString(R.string.orientacion_publicidad),
-            getString(R.string.enlace_directo_web),
-            getString(R.string.acceso_panel_control),
-            getString(R.string.cambio_publicidad_periodo),
-            getString(R.string.noticias_incluida)
-        )
 
-        planesBasico(caracteristicasbasica, intentRenovacion)
-        plan_avanzado(caracteristicaAvanzado, intentRenovacion)
-        plan_premiun(caracteristicaPremiun, intentRenovacion)
+        obtner_planes(
+            "basico",
+            binding.planBasico.precio,
+            binding.planBasico.planNombre,
+            binding.planBasico.linealCaracteristica,
+            binding.planBasico.descuento,
+            binding.planBasico.verMas
+        )
+        obtner_planes(
+            "avanzado",
+            binding.planAvanzado.precio,
+            binding.planAvanzado.planNombre,
+            binding.planAvanzado.linealCaracteristica,
+            binding.planAvanzado.descuento,
+            binding.planAvanzado.verMas
+        )
+        obtner_planes(
+            "premiun",
+            binding.PlanPremiun.precio,
+            binding.PlanPremiun.planNombre,
+            binding.PlanPremiun.linealCaracteristica,
+            binding.PlanPremiun.descuento,
+            binding.PlanPremiun.verMas
+        )
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun obtner_planes(
+        tipo: String,
+        precio_text: TextView,
+        planNombre: TextView,
+        linealCaracteristica: LinearLayout,
+        descuento_text: TextView, ver_mas: MaterialButton
+    ) {
+        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+            .document("publicidad_baner").collection("planes_baner").document(tipo)
+        db.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val descuento = data?.get("descuento") as? Boolean ?: false
+                val plan = data?.get("plan") as? String ?: ""
+                val precio = data?.get("precio") as? Number ?: 0
+                val caracteristica = data?.get("caracteristicas_plan") as? List<String>
+                val precio_descuento_ant = data?.get("precio_descuento_ant") as? Number ?: 0
+                precio_text.text = precio.toString()
+                planNombre.text = plan
+                val layoutCaracteristicas = linealCaracteristica
+                layoutCaracteristicas.removeAllViews()
+
+                caracteristica?.forEach { texto ->
+                    val textView = TextView(this).apply {
+                        this.text = texto
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                        setTypeface(null, Typeface.BOLD)
+                        setPadding(0, 0, 0, 20)
+                    }
+                    layoutCaracteristicas.addView(textView)
+                }
+
+                if (descuento) {
+                    descuento_text.isVisible = true
+                    descuento_text.text = "S/${precio_descuento_ant}"
+                    precio_text.text = "S/${precio}"
+                    constantestextos_general.marcarDescuentoTxt(descuento_text)
+                } else {
+                    descuento_text.isVisible = false
+                    precio_text.text = "S/${precio_descuento_ant}"
+                }
+
+                ver_mas.setOnClickListener {
+                    dialog = BottomSheetDialog(this)
+                    enviarFormularioGeinz(
+                        dialog,
+                        getString(R.string.plan_basico_descripcion),
+                        precio.toString(),
+                        plan, precio_descuento_ant.toString(), "s"
+                    )
+                    dialog.show()
+                }
+            }
+        }.addOnFailureListener { e ->
+            Log.d("error_obtner", "error al obtenr los datos")
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun planesBasico(caracteristicas: List<String>, renovacion: String) {
         InfladoPlanes(caracteristicas, binding.planBasico.linealCaracteristicasLayout)
         binding.planBasico.precio.text = getString(R.string.precio_plan_basico)
+        binding.planBasico.descuento.text = "S/60.00"
+
         binding.planBasico.planNombre.text = getString(R.string.plan_nombre_B)
-        binding.planBasico.verMas.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            enviarFormularioGeinz(
-                dialog,
-                getString(R.string.plan_basico_descripcion),
-                getString(R.string.precio_plan_basico),
-                getString(R.string.tipo_servicio_plan_basico), renovacion
-            )
-            dialog.show()
-        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun plan_avanzado(caracteristicas: List<String>, renovacion: String) {
-        InfladoPlanes(caracteristicas, binding.planAvanzado.linealCaracteristicasLayout)
-        binding.planAvanzado.precio.text = getString(R.string.precio_plan_avanzado)
-        binding.planAvanzado.planNombre.text = getString(R.string.plan_nombre_A)
-        binding.planAvanzado.verMas.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            enviarFormularioGeinz(
-                dialog,
-                getString(R.string.plan_avanzado_descripcion),
-                getString(R.string.precio_plan_avanzado),
-                getString(R.string.tipo_servicio_plan_avanzado), renovacion
-            )
-            dialog.show()
-        }
-    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun plan_premiun(caracteristicas: List<String>, renovacion: String) {
-        InfladoPlanes(caracteristicas, binding.PlanPremiun.linealCaracteristicasLayout)
-        binding.PlanPremiun.precio.text = getString(R.string.precio_plan_premium)
-        binding.PlanPremiun.planNombre.text = getString(R.string.plan_nombre_P)
-        binding.PlanPremiun.verMas.setOnClickListener {
-            dialog = BottomSheetDialog(this)
-            enviarFormularioGeinz(
-                dialog,
-                getString(R.string.plan_premium_descripcion),
-                getString(R.string.precio_plan_premium),
-                getString(R.string.tipo_servicio_plan_premium), renovacion
-            )
-            dialog.show()
-        }
-    }
 
     private fun InfladoPlanes(caracteristicas: List<String>, layoutParams: LinearLayout) {
         val layout = layoutParams
@@ -187,12 +210,20 @@ class planes : AppCompatActivity() {
         descripcion: String,
         total: String,
         tipo_servicio: String,
+        descuento: String,
         renovacion: String
     ) {
         val bindingBottomSheet =
             BottomSheetAdquirPlanesNoticiasBinding.inflate(LayoutInflater.from(this))
         BottomSheetDialog(this)
 
+        if (descuento.isNotEmpty()) {
+            bindingBottomSheet.descuento.isVisible = true
+            bindingBottomSheet.descuento.text = descuento
+            constantestextos_general.marcarDescuentoTxt(bindingBottomSheet.descuento)
+        } else {
+            bindingBottomSheet.descuento.isVisible = false
+        }
 
         if (firebaseAuth.currentUser == null) {
             constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
@@ -229,7 +260,11 @@ class planes : AppCompatActivity() {
                 if (res.exists()) {
                     val documentId = res.id
                     if (documentId == firebaseAuth.uid && renovacion != "r") {
-                        Toast.makeText(this, "Ya tiene un servicio de Anuncio activo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Ya tiene un servicio de Anuncio activo",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         dialog.dismiss()
                         return@addOnSuccessListener
                     }
@@ -276,8 +311,18 @@ class planes : AppCompatActivity() {
                         val documentId = documentReference.id
                         referencia.document(documentId).update(Variables.idSolicitud, documentId)
                             .addOnSuccessListener {
-                                enviarNoticacion("idAdmin", "ADMINISTRADOR_BANER", tituloNotificacion, mensajeNotificacion)
-                                Toast.makeText(this, "Solicitud enviada correctamente", Toast.LENGTH_SHORT).show()
+                                enviarNoticacion(
+                                    "idAdmin",
+                                    "ADMINISTRADOR_BANER",
+                                    tituloNotificacion,
+                                    mensajeNotificacion
+                                )
+
+                                Toast.makeText(
+                                    this,
+                                    "Solicitud enviada correctamente",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 dialog.dismiss()
                             }.addOnFailureListener { e ->
                                 manejarError(e, "Error al actualizar la solicitud.")
@@ -301,18 +346,34 @@ class planes : AppCompatActivity() {
 
     fun enviarNoticacion(enviado1: String, vista: String, Titulo: String, texto: String) {
         GlobalScope.launch {
-            val notificacionRS = NotificacionRS()
-            obtenertokenIdAdmin.obtenertokenAdmin { token, id ->
-                GlobalScope.launch {
-                    notificacionRS.sendNotification_con_parametros(
-                        enviado1,
-                        id,
-                        vista,
-                        this@planes,
-                        token,
-                        Titulo,
-                        texto
-                    )
+//            val notificacionRS = NotificacionRS()
+//            obtenertokenIdAdmin.obtenertokenAdmin { token, id ->
+//                GlobalScope.launch {
+//                    notificacionRS.sendNotification_con_parametros(
+//                        enviado1,
+//                        id,
+//                        vista,
+//                        this@planes,
+//                        token,
+//                        Titulo,
+//                        texto
+//                    )
+//                }
+//            }
+            GlobalScope.launch {
+                val notificacionRS = NotificacionRS()
+                obtenertokenIdAdmin.obtenertokenAdmin { token, id ->
+                    GlobalScope.launch {
+                        notificacionRS.enviarNotificacionFCM(
+                            token,
+                            "idAdmin",
+                            "idasdasda",
+                            "iadasdasda",
+                            "entrada",
+                            Titulo,
+                            texto
+                        )
+                    }
                 }
             }
         }

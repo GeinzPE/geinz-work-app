@@ -305,29 +305,39 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         val versionActual = packageManager.getPackageInfo(packageName, 0).versionName
         val sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE)
         val versionGuardada = sharedPreferences.getString("ultima_version", "")
-        if (versionActual < versionMasReciente) {
-            AlertDialog.Builder(this)
-                .setTitle("Actualización disponible")
-                .setMessage("Hay una nueva versión de la aplicación disponible. Actualiza para disfrutar de las últimas mejoras.")
-                .setPositiveButton("Actualizar") { dialog, which ->
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        data = Uri.parse(urlPlayStore)
+
+        // Si la versión actual es menor que la más reciente, pedir actualizar
+        if (versionActual != null) {
+            if (versionActual < versionMasReciente) {
+                AlertDialog.Builder(this)
+                    .setTitle("Actualización disponible")
+                    .setMessage("Hay una nueva versión de la aplicación disponible. Actualiza para disfrutar de las últimas mejoras.")
+                    .setPositiveButton("Actualizar") { _, _ ->
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = Uri.parse(urlPlayStore)
+                        }
+                        if (intent.resolveActivity(packageManager) != null) {
+                            startActivity(intent)
+                        } else {
+                            Toast.makeText(this, "No se pudo abrir el enlace de actualización.", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    if (intent.resolveActivity(packageManager) != null) {
-                        startActivity(intent)
-                    } else {
-                        println("No hay una aplicación disponible para abrir la URL de actualización.")
+                    .setNegativeButton("Más tarde", null)
+                    .show()
+            }
+            // Si se detecta una nueva versión nunca mostrada antes
+            else if (versionActual != null) {
+                if (versionGuardada.isNullOrBlank() || versionActual > versionGuardada) {
+                    dialog = BottomSheetDialog(this)
+                    dialogControlVersiones(versionMasReciente)
+                    dialog.show()
+
+                    // Guardar la nueva versión como mostrada
+                    with(sharedPreferences.edit()) {
+                        putString("ultima_version", versionActual)
+                        apply()
                     }
                 }
-                .setNegativeButton("Más tarde", null)
-                .show()
-        } else if (versionActual > versionGuardada!!) {
-            dialog = BottomSheetDialog(this)
-            dialogControlVersiones(versionMasReciente)
-            dialog.show()
-            with(sharedPreferences.edit()) {
-                putString("ultima_version", versionActual)
-                apply()
             }
         }
     }

@@ -10,13 +10,13 @@ plugins {
 
 android {
     namespace = "com.geinzz.geinzwork"
-    compileSdk = 34
+    compileSdk = 35
 
 
     defaultConfig {
         applicationId = "com.geinzz.geinzwork"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 27
         versionName = "1.14.1"
 
