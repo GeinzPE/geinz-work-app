@@ -3,6 +3,8 @@ package com.geinzz.geinzwork
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -65,7 +67,9 @@ class planes : AppCompatActivity() {
             binding.planBasico.planNombre,
             binding.planBasico.linealCaracteristica,
             binding.planBasico.descuento,
-            binding.planBasico.verMas
+            binding.planBasico.verMas,
+            binding.planBasico.linealCarga,
+            binding.planBasico.componentesGeneral
         )
         obtner_planes(
             "avanzado",
@@ -73,7 +77,8 @@ class planes : AppCompatActivity() {
             binding.planAvanzado.planNombre,
             binding.planAvanzado.linealCaracteristica,
             binding.planAvanzado.descuento,
-            binding.planAvanzado.verMas
+            binding.planAvanzado.verMas,binding.planAvanzado.linealCarga,
+            binding.planAvanzado.componentesGeneral
         )
         obtner_planes(
             "premiun",
@@ -81,7 +86,8 @@ class planes : AppCompatActivity() {
             binding.PlanPremiun.planNombre,
             binding.PlanPremiun.linealCaracteristica,
             binding.PlanPremiun.descuento,
-            binding.PlanPremiun.verMas
+            binding.PlanPremiun.verMas,binding.PlanPremiun.linealCarga,
+            binding.PlanPremiun.componentesGeneral
         )
     }
 
@@ -92,11 +98,23 @@ class planes : AppCompatActivity() {
         precio_text: TextView,
         planNombre: TextView,
         linealCaracteristica: LinearLayout,
-        descuento_text: TextView, ver_mas: MaterialButton
+        descuento_text: TextView,
+        ver_mas: MaterialButton, lineal_carga: LinearLayout, lineal_componentes: LinearLayout
     ) {
         val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
             .document("publicidad_baner").collection("planes_baner").document(tipo)
+
+        val startTime = System.currentTimeMillis() // 🟢 Inicio
+
         db.get().addOnSuccessListener { res ->
+            val endTime = System.currentTimeMillis() // 🔴 Fin
+            val duration = endTime - startTime
+            Log.d("tiempo_obtner_planes", "Tardó $duration ms en obtener los datos de Firestore")
+            Handler(Looper.getMainLooper()).postDelayed({
+                lineal_carga.isVisible = false
+                lineal_componentes.isVisible = true
+            }, duration)
+
             if (res.exists()) {
                 val data = res.data
                 val descuento = data?.get("descuento") as? Boolean ?: false
@@ -104,7 +122,8 @@ class planes : AppCompatActivity() {
                 val precio = data?.get("precio") as? Number ?: 0
                 val caracteristica = data?.get("caracteristicas_plan") as? List<String>
                 val precio_descuento_ant = data?.get("precio_descuento_ant") as? Number ?: 0
-                precio_text.text = precio.toString()
+
+                precio_text.text = "S/$precio"
                 planNombre.text = plan
                 val layoutCaracteristicas = linealCaracteristica
                 layoutCaracteristicas.removeAllViews()
@@ -121,12 +140,12 @@ class planes : AppCompatActivity() {
 
                 if (descuento) {
                     descuento_text.isVisible = true
-                    descuento_text.text = "S/${precio_descuento_ant}"
-                    precio_text.text = "S/${precio}"
+                    descuento_text.text = "S/$precio_descuento_ant"
+                    precio_text.text = "S/$precio"
                     constantestextos_general.marcarDescuentoTxt(descuento_text)
                 } else {
                     descuento_text.isVisible = false
-                    precio_text.text = "S/${precio_descuento_ant}"
+                    precio_text.text = "S/$precio_descuento_ant"
                 }
 
                 ver_mas.setOnClickListener {
@@ -135,15 +154,18 @@ class planes : AppCompatActivity() {
                         dialog,
                         getString(R.string.plan_basico_descripcion),
                         precio.toString(),
-                        plan, precio_descuento_ant.toString(), "s"
+                        plan,
+                        precio_descuento_ant.toString(),
+                        "s"
                     )
                     dialog.show()
                 }
             }
         }.addOnFailureListener { e ->
-            Log.d("error_obtner", "error al obtenr los datos")
+            Log.d("error_obtner", "Error al obtener los datos: ${e.message}")
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun planesBasico(caracteristicas: List<String>, renovacion: String) {
