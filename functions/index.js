@@ -27,7 +27,17 @@ exports.enviarNotificacion = functions.https.onRequest(async (req, res) => {
       idTienda,
       entrada
     },
-    token
+    token,
+    // --- ¡Añade esta línea para la prioridad! ---
+    android: {
+      priority: 'high' // Para Android
+    },
+    apns: {
+      headers: {
+        'apns-priority': '10' // Para iOS (APN)
+      }
+    }
+    // ---------------------------------------------
   };
 
   try {

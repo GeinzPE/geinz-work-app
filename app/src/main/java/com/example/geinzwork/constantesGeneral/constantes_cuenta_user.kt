@@ -62,7 +62,7 @@ object constantes_cuenta_user {
         val container_preview = binding.containerPreview
         val lineal_verificado = binding.linealVerificado
         val lineal_direccionEnvios = binding.containerLocalizacion
-        val containerqr_agregar_img = binding.containerqrAgregarImg
+//        val containerqr_agregar_img = binding.containerqrAgregarImg
         val panel_publicacion = binding.panelPublicacion
         val lineaReportes = binding.lineaReportes
         val lineal_como_funcion_Geinz = binding.linealComoFuncionGeinz
@@ -81,7 +81,7 @@ object constantes_cuenta_user {
                 container_review.isVisible = false
                 container_preview.isVisible = false
                 lineal_verificado.isVisible = false
-                containerqr_agregar_img.isVisible = false
+//                containerqr_agregar_img.isVisible = false
                 lineaReportes.isVisible = false
 
                 qr_trabajador.isVisible = false

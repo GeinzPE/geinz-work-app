@@ -92,8 +92,8 @@ class planes_noticias_servicios_geinz : AppCompatActivity() {
             binding.planAvanzado.planNombre,
             binding.planAvanzado.linealCaracteristica,
             binding.planAvanzado.descuento,
-            binding.planAvanzado.verMas, binding.planBasico.linealCarga,
-            binding.planBasico.componentesGeneral
+            binding.planAvanzado.verMas, binding.planAvanzado.linealCarga,
+            binding.planAvanzado.componentesGeneral
         )
     }
 

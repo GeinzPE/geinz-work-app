@@ -8,6 +8,7 @@
     android:layout_height="235dp">
 
     <androidx.cardview.widget.CardView
+        android:layout_marginLeft="5dp"
         android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="230dp"
@@ -16,6 +17,7 @@
 
         <io.getstream.photoview.PhotoView
             android:id="@+id/image_view"
+
             android:layout_width="match_parent"
             android:layout_height="235dp"
             android:scaleType="centerCrop"

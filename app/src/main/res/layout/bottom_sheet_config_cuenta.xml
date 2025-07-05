@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
 
-                android:text="Panel de administracion"
+                android:text="Mi espacio Geinz"
                 android:textSize="25sp"
                 android:textStyle="bold" />
 
@@ -39,8 +39,9 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="20dp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="Administra tu cuenta Geinz y adquiere los planes que Geinz ofrece de manera rápida y directa con Geinz Work."
+                android:text="Gestiona tu cuenta, revisa tus reseñas, direcciones, reportes, dispositivos y accede a los beneficios que Geinz Work tiene para ti."
                 android:textSize="12sp" />
+
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -48,305 +49,16 @@
                 android:layout_marginBottom="20dp"
                 android:orientation="vertical">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="30dp"
-                    android:orientation="horizontal">
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="Centro de gestión de cuenta "
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:id="@+id/container_cerrar_seccion"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/ig"
-                            android:layout_width="90dp"
-                            android:layout_height="50dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/cerra_seccion_icon" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Cerrar seccion"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/container_eliminar_cuenta"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/fb"
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/eliminar_user_icon" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Eliminar cuenta"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="30dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:id="@+id/container_guardados"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/tk"
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/guardados_icon" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Guardados"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/containerLocalizacion"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/localizacion"
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginHorizontal="5dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/localizacion_icon" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Direccion de envios"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/containerqr_agregar_img"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="30dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:id="@+id/container_review"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/web"
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginHorizontal="5dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/review_icons" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Reseñas"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/panel_publicacion"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginHorizontal="5dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/icono_panel_de_publicacion" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="@string/panel_publicacion_txt"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="30dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:id="@+id/container_preview"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/preview"
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/preview_icon" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Previzualisacion de cuenta"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-
-                    <LinearLayout
-                        android:id="@+id/lineaReportes"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginHorizontal="5dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/reporte_user" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Reportes"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="30dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:id="@+id/linealServicios"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginHorizontal="5dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/logo_geinz_circular" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Servicios Geinz"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/lineal_como_funcion_Geinz"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginHorizontal="5dp"
-                            android:layout_marginBottom="10dp"
-                            android:src="@drawable/como_funcion_geinz" />
-
-                        <TextView
-                            style="@style/TextoModoOScuroColor"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/roboto_medium"
-                            android:text="Como funciona Geinz?"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
@@ -356,45 +68,78 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
                         android:layout_marginBottom="30dp"
                         android:orientation="horizontal">
 
-
                         <LinearLayout
-                            android:id="@+id/acceso_directo"
+                            android:paddingVertical="5dp"
+                            android:id="@+id/panel_publicacion"
+                            style="@style/RoundTrabajadoresBG"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="15dp"
-                            android:layout_marginRight="5dp"
+                            android:layout_marginRight="10dp"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:orientation="vertical">
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
 
                             <ImageView
                                 android:layout_width="50dp"
                                 android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
                                 android:layout_marginBottom="10dp"
-                                android:src="@drawable/accesos_directo_icon" />
+                                android:src="@drawable/icono_panel_de_publicacion" />
 
                             <TextView
                                 style="@style/TextoModoOScuroColor"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center"
                                 android:fontFamily="@font/roboto_medium"
-                                android:gravity="center"
-                                android:text="Accesos directos"
+                                android:text="@string/panel_publicacion_txt"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/container_preview"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/preview"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/preview_icon" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Previzualisacion de cuenta"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/qr_trabajador"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="5dp"
+                            android:layout_marginRight="10dp"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:orientation="vertical">
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
 
                             <ImageView
                                 android:layout_width="50dp"
@@ -412,11 +157,14 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
                             android:id="@+id/vinculados"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="5dp"
+                            android:layout_marginRight="10dp"
                             android:layout_weight="1"
+                            android:paddingHorizontal="10dp"
                             android:gravity="center"
                             android:orientation="vertical">
 
@@ -437,15 +185,133 @@
                                 android:textSize="12sp" />
                         </LinearLayout>
 
+                        <LinearLayout
+                            android:id="@+id/container_cerrar_seccion"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/ig"
+                                android:layout_width="90dp"
+                                android:layout_height="50dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/cerra_seccion_icon" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Cerrar seccion"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/container_eliminar_cuenta"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/fb"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/eliminar_user_icon" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Eliminar cuenta"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                </HorizontalScrollView>
+
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="Servicios de Geinz"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="30dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/linealServicios"
+                            style="@style/RoundTrabajadoresBG"
+                            android:paddingVertical="5dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/logo_geinz_circular" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Servicios Geinz"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/lineal_verificado"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="5dp"
+                            android:layout_marginRight="10dp"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:orientation="vertical">
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
 
                             <ImageView
                                 android:layout_width="60dp"
@@ -462,11 +328,329 @@
                                 android:text="Verificar Cuenta"
                                 android:textSize="12sp" />
 
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/lineal_como_funcion_Geinz"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/como_funcion_geinz" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Como funciona Geinz?"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/acceso_directo"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/accesos_directo_icon" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:fontFamily="@font/roboto_medium"
+                                android:gravity="center"
+                                android:text="Accesos directos"
+                                android:textSize="12sp" />
                         </LinearLayout>
 
                     </LinearLayout>
 
                 </HorizontalScrollView>
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:text="Mis datos personales"
+                    android:layout_marginBottom="5dp"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="30dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:paddingVertical="5dp"
+                            android:id="@+id/container_guardados"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/tk"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/guardados_icon" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Guardados"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/container_review"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/web"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/review_icons" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Reseñas"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/containerLocalizacion"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/localizacion"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/localizacion_icon" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Direccion de envios"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/lineaReportes"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/reporte_user" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Reportes"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:text="Mi actividad comercial"
+                    android:layout_marginBottom="5dp"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="30dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:paddingVertical="5dp"
+                            android:id="@+id/historial_compra"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/compras_geinz"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/compras_geinz_webp" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Historial de compras"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/historial_venta"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/ventas_img"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/ventas_geinz_webp" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Historial de ventas"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/comprovantes_geinz"
+                            android:paddingVertical="5dp"
+                            style="@style/RoundTrabajadoresBG"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="10dp">
+
+                            <ImageView
+                                android:id="@+id/pagos_geinz_img"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_marginHorizontal="5dp"
+                                android:layout_marginBottom="10dp"
+                                android:src="@drawable/boletas_pagos_geinz_webp" />
+
+                            <TextView
+                                style="@style/TextoModoOScuroColor"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_medium"
+                                android:text="Comporvante de pagos Geinz"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+
 
 
             </LinearLayout>
