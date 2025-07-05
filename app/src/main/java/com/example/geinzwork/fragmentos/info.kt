@@ -154,7 +154,7 @@ class info : Fragment() {
         firebaseAuth = FirebaseAuth.getInstance()
         var mostrandoTrabajadores = false
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR).toString()
-
+        Log.d("obtenos_id_trabajodr","en info es $idTrabajador")
         obtener_datos_trabajador(idTrabajador){img, nacionalidad, nombre, categoria ->
         val img_perfil_user = img
         val nombre =nombre

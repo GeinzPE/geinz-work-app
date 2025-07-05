@@ -45,315 +45,190 @@ class vistaTrabajador : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         val uri = intent.data
         val tipo_pasado_vistas = uri?.getQueryParameter("registrado") ?: "desconocido"
+        val tipoEntrada = uri?.getQueryParameter("tipo_entrada") ?: "desconocido"
+        Toast.makeText(this, "el tipo pasdo es $tipo_pasado_vistas", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "el tipo entrada es $tipoEntrada", Toast.LENGTH_SHORT).show()
 
-        if (firebaseAuth.currentUser != null && tipo_pasado_vistas!=null) {
-            binding.fracmentoID.isVisible = true
-            binding.tabLayout.isVisible = true
-            binding.sinRegistro.isVisible = false
-            when (tipo_pasado_vistas) {
-                "usuario" -> {
-                    val idTrabajador =  firebaseAuth.uid.toString()
-                    Toast.makeText(this, "pasamos el id $idTrabajador", Toast.LENGTH_SHORT).show()
-                    val nombreUSer = intent.getStringExtra(Variables.nombreUSer) ?: ""
-                    val nacionalidad = intent.getStringExtra(Variables.nacionalidad) ?: ""
-                    val categoria = intent.getStringExtra(Variables.categoria) ?: ""
-                    val id_publicacion = intent.getStringExtra("id_publicacion") ?: ""
-                    val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).toString().trim()
+        val currentUser = firebaseAuth.currentUser
 
-                    val viewPage = binding.fracmentoID
-                    val tableLayour = binding.tabLayout
-                    val adapter = adapterViewPager(supportFragmentManager)
-                    viewPage.adapter = adapter
-                    val userCollections =
-                        FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
-                            .document(Variables.verificaiones).collection(Variables.activos)
-                            .document(idTrabajador)
-                    userCollections.get().addOnSuccessListener { res ->
-                        if (res.exists()) {
-                            constantesPublicidad.agregarCantidadClickAnuncios(
-                                userCollections,
-                                "",
-                                Variables.click
-                            )
-                            constantesPublicidad.obtenerLocalidaGeneroTipoCuenta(
-                                userCollections,
-                                Variables.verificacion
-                            )
-                            iniciarContadorVista(idTrabajador)
-                            val data = res.data
-                            val verificado = data?.get(Variables.estado) as? Boolean ?: false
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            if (verificado) {
-                                adapter.addFragmet(cuenta_verificada(), "Cuenta Verificada")
-                            }
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        } else {
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        }
-                        adapter.notifyDataSetChanged()
-                    }.addOnFailureListener {
-                        Toast.makeText(this, "Trabajador no encontrado", Toast.LENGTH_SHORT).show()
+        if (tipo_pasado_vistas == "usuario" && tipoEntrada == "pinnet") {
+            if (currentUser == null) {
+                // 🔐 Usuario NO logueado: mostrar pantalla sin registro
+                binding.sinRegistro.isVisible = true
+                binding.fracmentoID.isVisible = false
+                binding.tabLayout.isVisible = false
+
+                binding.iniciarSeccion.setOnClickListener {
+                    val vista = Intent(this, Login::class.java).apply {
+                        putExtra("dato", "perfil")
                     }
-                    tableLayour.setupWithViewPager(viewPage)
+                    startActivity(vista)
                 }
+            } else {
+                // ✅ Logueado desde shortcut: usar su UID como ID
+                val idTrabajador = currentUser.uid
+                val nombreUSer = intent.getStringExtra(Variables.nombreUSer).orEmpty()
+                val nacionalidad = intent.getStringExtra(Variables.nacionalidad).orEmpty()
+                val categoria = intent.getStringExtra(Variables.categoria).orEmpty()
+                val id_publicacion = intent.getStringExtra("id_publicacion").orEmpty()
+                val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).orEmpty()
 
-                else -> {
-                    val idTrabajador = intent.getStringExtra(Variables.id) ?: ""
-                    val nombreUSer = intent.getStringExtra(Variables.nombreUSer) ?: ""
-                    val nacionalidad = intent.getStringExtra(Variables.nacionalidad) ?: ""
-                    val categoria = intent.getStringExtra(Variables.categoria) ?: ""
-                    val id_publicacion = intent.getStringExtra("id_publicacion") ?: ""
-                    val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).toString().trim()
-
-                    val viewPage = binding.fracmentoID
-                    val tableLayour = binding.tabLayout
-                    val adapter = adapterViewPager(supportFragmentManager)
-                    viewPage.adapter = adapter
-                    val userCollections =
-                        FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
-                            .document(Variables.verificaiones).collection(Variables.activos)
-                            .document(idTrabajador)
-                    userCollections.get().addOnSuccessListener { res ->
-                        if (res.exists()) {
-                            constantesPublicidad.agregarCantidadClickAnuncios(
-                                userCollections,
-                                "",
-                                Variables.click
-                            )
-                            constantesPublicidad.obtenerLocalidaGeneroTipoCuenta(
-                                userCollections,
-                                Variables.verificacion
-                            )
-                            iniciarContadorVista(idTrabajador)
-                            val data = res.data
-                            val verificado = data?.get(Variables.estado) as? Boolean ?: false
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            if (verificado) {
-                                adapter.addFragmet(cuenta_verificada(), "Cuenta Verificada")
-                            }
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        } else {
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        }
-                        adapter.notifyDataSetChanged()
-                    }.addOnFailureListener {
-                        Toast.makeText(this, "Trabajador no encontrado", Toast.LENGTH_SHORT).show()
-                    }
-                    tableLayour.setupWithViewPager(viewPage)
-                }
+                mostrarVistaTrabajador(
+                    idTrabajador, nombreUSer, nacionalidad,
+                    categoria, id_publicacion, imgPerfil
+                )
             }
         } else {
-            binding.sinRegistro.isVisible = true
-            binding.fracmentoID.isVisible = false
-            binding.tabLayout.isVisible = false
-            binding.iniciarSeccion.setOnClickListener {
-                val vista = Intent(this, Login::class.java).apply {
-                    putExtra("dato", "perfil")
-                }
-                startActivity(vista)
-            }
+            // 🧭 Cualquier otro acceso (navegación normal, etc.)
+            val idTrabajador = intent.getStringExtra(Variables.id).orEmpty()
+            val nombreUSer = intent.getStringExtra(Variables.nombreUSer).orEmpty()
+            val nacionalidad = intent.getStringExtra(Variables.nacionalidad).orEmpty()
+            val categoria = intent.getStringExtra(Variables.categoria).orEmpty()
+            val id_publicacion = intent.getStringExtra("id_publicacion").orEmpty()
+            val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).orEmpty()
+
+            mostrarVistaTrabajador(
+                idTrabajador, nombreUSer, nacionalidad,
+                categoria, id_publicacion, imgPerfil
+            )
         }
+
+
     }
+
+    private fun mostrarVistaTrabajador(
+        idTrabajador: String,
+        nombreUSer: String,
+        nacionalidad: String,
+        categoria: String,
+        id_publicacion: String,
+        imgPerfil: String
+    ) {
+        binding.fracmentoID.isVisible = true
+        binding.tabLayout.isVisible = true
+        binding.sinRegistro.isVisible = false
+
+        val viewPage = binding.fracmentoID
+        val tableLayout = binding.tabLayout
+        val adapter = adapterViewPager(supportFragmentManager)
+        viewPage.adapter = adapter
+
+        val userDocRef = FirebaseFirestore.getInstance()
+            .collection(Variables.solicitud_servicios)
+            .document(Variables.verificaiones)
+            .collection(Variables.activos)
+            .document(idTrabajador)
+
+        userDocRef.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val verificado = res.getBoolean(Variables.estado) ?: false
+
+                constantesPublicidad.agregarCantidadClickAnuncios(userDocRef, "", Variables.click)
+                constantesPublicidad.obtenerLocalidaGeneroTipoCuenta(userDocRef, Variables.verificacion)
+
+                iniciarContadorVista(idTrabajador)
+
+                adapter.addFragmet(
+                    info.newInstance(
+                        idTrabajador,
+                        imgPerfil,
+                        nombreUSer,
+                        nacionalidad,
+                        categoria,
+                        id_publicacion
+                    ),
+                    "Información del usuario"
+                )
+                adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
+                adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
+
+                if (verificado) {
+                    adapter.addFragmet(cuenta_verificada(), "Cuenta Verificada")
+                }
+            } else {
+                adapter.addFragmet(
+                    info.newInstance(
+                        idTrabajador,
+                        imgPerfil,
+                        nombreUSer,
+                        nacionalidad,
+                        categoria,
+                        id_publicacion
+                    ),
+                    "Información del usuario"
+                )
+                adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
+                adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
+            }
+
+            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
+            adapter.notifyDataSetChanged()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Trabajador no encontrado", Toast.LENGTH_SHORT).show()
+        }
+
+
+        tableLayout.setupWithViewPager(viewPage)
+    }
+
 
     override fun onStop() {
         super.onStop()
         cancelarContadorVista()
     }
 
-    override fun onResume() {
+        override fun onResume() {
         super.onResume()
-        val uri = intent.data
-        val tipo_pasado_vistas = uri?.getQueryParameter("registrado") ?: "desconocido"
-        if (firebaseAuth.currentUser != null && tipo_pasado_vistas!=null) {
-            binding.fracmentoID.isVisible = true
-            binding.tabLayout.isVisible = true
-            binding.sinRegistro.isVisible = false
-            when (tipo_pasado_vistas) {
-                "usuario" -> {
-                    val idTrabajador = uri?.getQueryParameter("uid") ?: firebaseAuth.uid.toString()
-                    val nombreUSer = intent.getStringExtra(Variables.nombreUSer) ?: ""
-                    val nacionalidad = intent.getStringExtra(Variables.nacionalidad) ?: ""
-                    val categoria = intent.getStringExtra(Variables.categoria) ?: ""
-                    val id_publicacion = intent.getStringExtra("id_publicacion") ?: ""
-                    val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).toString().trim()
+            val uri = intent.data
+            val tipo_pasado_vistas = uri?.getQueryParameter("registrado") ?: "desconocido"
+            val tipoEntrada = uri?.getQueryParameter("tipo_entrada") ?: "desconocido"
+            Toast.makeText(this, "el tipo pasdo es $tipo_pasado_vistas", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "el tipo entrada es $tipoEntrada", Toast.LENGTH_SHORT).show()
 
-                    val viewPage = binding.fracmentoID
-                    val tableLayour = binding.tabLayout
-                    val adapter = adapterViewPager(supportFragmentManager)
-                    viewPage.adapter = adapter
-                    val userCollections =
-                        FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
-                            .document(Variables.verificaiones).collection(Variables.activos)
-                            .document(idTrabajador)
-                    userCollections.get().addOnSuccessListener { res ->
-                        if (res.exists()) {
-                            constantesPublicidad.agregarCantidadClickAnuncios(
-                                userCollections,
-                                "",
-                                Variables.click
-                            )
-                            constantesPublicidad.obtenerLocalidaGeneroTipoCuenta(
-                                userCollections,
-                                Variables.verificacion
-                            )
-                            iniciarContadorVista(idTrabajador)
-                            val data = res.data
-                            val verificado = data?.get(Variables.estado) as? Boolean ?: false
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            if (verificado) {
-                                adapter.addFragmet(cuenta_verificada(), "Cuenta Verificada")
-                            }
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        } else {
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
+            val currentUser = firebaseAuth.currentUser
+
+            if (tipo_pasado_vistas == "usuario" && tipoEntrada == "pinnet") {
+                if (currentUser == null) {
+                    // 🔐 Usuario NO logueado: mostrar pantalla sin registro
+                    binding.sinRegistro.isVisible = true
+                    binding.fracmentoID.isVisible = false
+                    binding.tabLayout.isVisible = false
+
+                    binding.iniciarSeccion.setOnClickListener {
+                        val vista = Intent(this, Login::class.java).apply {
+                            putExtra("dato", "perfil")
                         }
-                        adapter.notifyDataSetChanged()
-                    }.addOnFailureListener {
-                        Toast.makeText(this, "Trabajador no encontrado", Toast.LENGTH_SHORT).show()
+                        startActivity(vista)
                     }
-                    tableLayour.setupWithViewPager(viewPage)
-                }
+                } else {
+                    // ✅ Logueado desde shortcut: usar su UID como ID
+                    val idTrabajador = currentUser.uid
+                    val nombreUSer = intent.getStringExtra(Variables.nombreUSer).orEmpty()
+                    val nacionalidad = intent.getStringExtra(Variables.nacionalidad).orEmpty()
+                    val categoria = intent.getStringExtra(Variables.categoria).orEmpty()
+                    val id_publicacion = intent.getStringExtra("id_publicacion").orEmpty()
+                    val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).orEmpty()
 
-                else -> {
-                    val idTrabajador = intent.getStringExtra(Variables.id) ?: ""
-                    val nombreUSer = intent.getStringExtra(Variables.nombreUSer) ?: ""
-                    val nacionalidad = intent.getStringExtra(Variables.nacionalidad) ?: ""
-                    val categoria = intent.getStringExtra(Variables.categoria) ?: ""
-                    val id_publicacion = intent.getStringExtra("id_publicacion") ?: ""
-                    val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).toString().trim()
+                    mostrarVistaTrabajador(
+                        idTrabajador, nombreUSer, nacionalidad,
+                        categoria, id_publicacion, imgPerfil
+                    )
+                }
+            } else {
+                // 🧭 Cualquier otro acceso (navegación normal, etc.)
+                val idTrabajador = intent.getStringExtra(Variables.id).orEmpty()
+                val nombreUSer = intent.getStringExtra(Variables.nombreUSer).orEmpty()
+                val nacionalidad = intent.getStringExtra(Variables.nacionalidad).orEmpty()
+                val categoria = intent.getStringExtra(Variables.categoria).orEmpty()
+                val id_publicacion = intent.getStringExtra("id_publicacion").orEmpty()
+                val imgPerfil = intent.getStringExtra(Variables.imagenPerfil).orEmpty()
 
-                    val viewPage = binding.fracmentoID
-                    val tableLayour = binding.tabLayout
-                    val adapter = adapterViewPager(supportFragmentManager)
-                    viewPage.adapter = adapter
-                    val userCollections =
-                        FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
-                            .document(Variables.verificaiones).collection(Variables.activos)
-                            .document(idTrabajador)
-                    userCollections.get().addOnSuccessListener { res ->
-                        if (res.exists()) {
-                            constantesPublicidad.agregarCantidadClickAnuncios(
-                                userCollections,
-                                "",
-                                Variables.click
-                            )
-                            constantesPublicidad.obtenerLocalidaGeneroTipoCuenta(
-                                userCollections,
-                                Variables.verificacion
-                            )
-                            iniciarContadorVista(idTrabajador)
-                            val data = res.data
-                            val verificado = data?.get(Variables.estado) as? Boolean ?: false
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            if (verificado) {
-                                adapter.addFragmet(cuenta_verificada(), "Cuenta Verificada")
-                            }
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        } else {
-                            adapter.addFragmet(
-                                info.newInstance(
-                                    idTrabajador,
-                                    imgPerfil,
-                                    nombreUSer,
-                                    nacionalidad,
-                                    categoria, id_publicacion
-                                ), "Informacion del usuario"
-                            )
-                            adapter.addFragmet(review.newInstance(idTrabajador), "Reseñas de usuarios")
-                            adapter.addFragmet(addReview.newInstance(idTrabajador), "Agregar Reseña")
-                            adapter.addFragmet(Fragment_trabajaConNosotros_tienda(), "Geinz Tienda")
-                        }
-                        adapter.notifyDataSetChanged()
-                    }.addOnFailureListener {
-                        Toast.makeText(this, "Trabajador no encontrado", Toast.LENGTH_SHORT).show()
-                    }
-                    tableLayour.setupWithViewPager(viewPage)
-                }
+                mostrarVistaTrabajador(
+                    idTrabajador, nombreUSer, nacionalidad,
+                    categoria, id_publicacion, imgPerfil
+                )
             }
-        } else {
-            binding.sinRegistro.isVisible = true
-            binding.fracmentoID.isVisible = false
-            binding.tabLayout.isVisible = false
-            binding.iniciarSeccion.setOnClickListener {
-                val vista = Intent(this, Login::class.java).apply {
-                    putExtra("dato", "perfil")
-                }
-                startActivity(vista)
-            }
-        }
+
     }
     private fun iniciarContadorVista(idTrabajador: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
