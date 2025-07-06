@@ -19,6 +19,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,6 +33,7 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
@@ -1088,6 +1090,7 @@ object constantes_publicaciones_general_user_tiendas {
                 if (listaImg.isNotEmpty()) {
                     val carouselItems = listaImg.map { CarouselItem(it) }
                     bindingMostrar.carruselImgTrabajos.registerLifecycle(lifecycle)
+
                     bindingMostrar.carruselImgTrabajos.carouselListener =
                         object : CarouselListener {
                             override fun onCreateViewHolder(
@@ -1108,6 +1111,12 @@ object constantes_publicaciones_general_user_tiendas {
                             ) {
                                 val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
                                 currentBinding.imageView.apply {
+                                    currentBinding.imageView.setOnClickListener {
+                                        val imageUrl = item.imageUrl ?: return@setOnClickListener
+                                        val dialog = FullscreenImageDialog(imageUrl)
+                                        dialog.show((context as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+
+                                    }
                                     setImage(item, R.drawable.ic_wb_cloudy_with_padding)
                                     minimumScale = 1f
                                     maximumScale = 10f
@@ -1553,6 +1562,8 @@ object constantes_publicaciones_general_user_tiendas {
                     registerLifecycle(lifecycle)
                     setData(carouselItems)
                 }
+
+
                 bindingMostrarTRabajos.cargarConteindo.isVisible = false
                 bindingMostrarTRabajos.scollView.isVisible = true
                 constantestextos_general.extender_acortar_texto(

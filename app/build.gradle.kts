@@ -1,4 +1,3 @@
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.logging.LogFactory.release
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -87,7 +86,12 @@ dependencies {
     implementation("com.google.firebase:firebase-dynamic-links-ktx:21.1.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("com.google.zxing:core:3.4.1")
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
+        exclude(group = "com.android.support", module = "support-v4")
+    }
+
+
+
     implementation("io.getstream:photoview:1.0.2")
     implementation("com.squareup.picasso:picasso:2.8")
     implementation("com.github.MikeOrtiz:TouchImageView:3.6")
@@ -98,11 +102,14 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0-RC")
-    implementation("org.quanqi:android-holo-graph:0.1.0")
+    implementation("org.quanqi:android-holo-graph:0.1.0") {
+        exclude(group = "com.android.support", module = "support-v4")
+    }
+
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    implementation("org.quanqi:android-holo-graph:0.1.0")
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("com.google.firebase:firebase-ai")
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("com.github.chrisbanes:PhotoView:2.0.0")
 
 }

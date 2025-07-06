@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes2
 import com.geinzz.geinzwork.constantesGeneral.constantesNoticias
@@ -104,13 +105,8 @@ class adaptadorAnuncios(
             )
 
             imgAnuncio.setOnClickListener {
-                val imageUrl =
-                    dataClassAnuncios.img
-                val dialogFragment = ImageDialogFragmentURL.newInstance(imageUrl)
-                dialogFragment.show(
-                    (itemView.context as AppCompatActivity).supportFragmentManager,
-                    "image_dialog"
-                )
+                    val dialog = FullscreenImageDialog( dataClassAnuncios.img.toString()) //
+                    dialog.show((itemView.context as AppCompatActivity).supportFragmentManager, "fullscreenImage")
             }
 
             vencetexto.text = "Vence :${dataClassAnuncios.fechaVencimiento.toString()}"

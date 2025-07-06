@@ -19,6 +19,7 @@ import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vistas_publicaciones_productos_verificados
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
@@ -240,6 +241,12 @@ class vista_ver_publicaciones_trabajadores : AppCompatActivity() {
                                 val currentBinding =
                                     binding as ItemCustomFixedSizeLayout2Binding
                                 currentBinding.imageView.apply {
+                                    currentBinding.imageView.setOnClickListener {
+                                        val imageUrl = item.imageUrl ?: return@setOnClickListener
+                                        val dialog = FullscreenImageDialog(imageUrl)
+                                        dialog.show((this@vista_ver_publicaciones_trabajadores as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+
+                                    }
                                     setImage(item, R.drawable.ic_wb_cloudy_with_padding)
                                     minimumScale = 1f
                                     maximumScale = 10f

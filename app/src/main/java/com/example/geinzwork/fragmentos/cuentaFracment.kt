@@ -1,8 +1,10 @@
 package com.geinzz.geinzwork.fragmentos
 
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -10,6 +12,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.text.InputType
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -21,12 +24,14 @@ import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.geinzz.geinzwork.EditarInfo
 import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.R
@@ -49,6 +54,8 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 
 
 class cuentaFracment : Fragment() {
@@ -77,7 +84,7 @@ class cuentaFracment : Fragment() {
             if (uri != null) {
                 portadaFoto = uri
                 binding.fotoPortada.setImageURI(uri)
-                subirImagenStorage(uri, foto_portada)
+                subirImagenPortada(uri, foto_portada)
             } else {
                 println("Imagen no seleccionada")
             }
@@ -124,6 +131,7 @@ class cuentaFracment : Fragment() {
         binding.imagenPerfil.setOnClickListener {
             pciMEdia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
+
         binding.fotoPortada.setOnClickListener {
             // Usamos el nuevo Photo Picker (Android 13+ o soporte por Google Play Services)
             picmedaiFotoPoprtada.launch(
@@ -883,6 +891,12 @@ class cuentaFracment : Fragment() {
                             Glide.with(this)
                                 .load(imgUrl)
                                 .into(binding.fotoPortada)
+                            binding.fotoPortada.setOnLongClickListener {
+                                val dialog = FullscreenImageDialog(imgUrl) //
+                                dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+
+                                true
+                            }
                         } catch (e: Exception) {
                             println(e)
                         }
@@ -905,12 +919,30 @@ class cuentaFracment : Fragment() {
             val imagenComprimida = constantesImagenes.resizeAndCompressImage(
                 contentResolver,
                 uri,
-                1000,
-                1000
+                500,
+                500
             )
             constantesImagenes.refereciaStorage(rutaimg, imagenComprimida, nombreimg, mContex)
         }
     }
+
+    private fun subirImagenPortada(uri: Uri, nombreimg: String) {
+        val rutaimg = "${Variables.usuarios_db}/${firebaseAuth.uid.toString()}/$nombreimg"
+        val contentResolver = mContex.contentResolver
+        GlobalScope.launch(Dispatchers.Main) {
+            val imagenComprimida = constantesImagenes.procesarImagenPortada(
+                contentResolver,
+                uri,
+            )
+            constantesImagenes.refereciaStorage(rutaimg, imagenComprimida, nombreimg, mContex)
+        }
+    }
+
+
+
+
+
+
 
     private fun obtenerPerfil(
         idUsuario: String,
@@ -947,6 +979,12 @@ class cuentaFracment : Fragment() {
                         Glide.with(mContex)
                             .load(urlImg)
                             .into(cartel)
+                        binding.imagenPerfil.setOnLongClickListener {
+                            val dialog = FullscreenImageDialog(urlImg) //
+                            dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+
+                            true
+                        }
                     } catch (e: Exception) {
                         println(e)
                     }

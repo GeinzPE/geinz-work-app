@@ -50,16 +50,66 @@ object constantesImagenes {
         var urlimg = urlImagen
         return urlimg
     }
-    suspend fun resizeAndCompressImage(contentResolver: ContentResolver, imageUri: Uri, maxWidth: Int, maxHeight: Int): ByteArray {
+    suspend fun resizeAndCompressImage(
+        contentResolver: ContentResolver,
+        imageUri: Uri,
+        maxWidth: Int,
+        maxHeight: Int
+    ): ByteArray {
         return withContext(Dispatchers.IO) {
-            val bitmap = Picasso.get()
-                .load(imageUri)
-                .resize(maxWidth, maxHeight)
-                .onlyScaleDown() // Sólo reducir el tamaño si la imagen es más grande que los límites especificados
-                .get()
+            val originalBitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
 
+            // Paso 1: Recortar al centro y hacerlo cuadrado
+            val dimension = minOf(originalBitmap.width, originalBitmap.height)
+            val xOffset = (originalBitmap.width - dimension) / 2
+            val yOffset = (originalBitmap.height - dimension) / 2
+
+            val squareBitmap = Bitmap.createBitmap(originalBitmap, xOffset, yOffset, dimension, dimension)
+
+            // Paso 2: Redimensionar al tamaño deseado (por ejemplo, 500x500)
+            val resizedBitmap = Bitmap.createScaledBitmap(squareBitmap, maxWidth, maxHeight, true)
+
+            // Paso 3: Comprimir
             val outputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // Comprimir al 80%
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+
+            outputStream.toByteArray()
+        }
+    }
+
+    suspend fun procesarImagenPortada(
+        contentResolver: ContentResolver,
+        imageUri: Uri,
+        targetWidth: Int = 1000,
+        targetHeight: Int = 600
+    ): ByteArray {
+        return withContext(Dispatchers.IO) {
+            val originalBitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
+
+            // Paso 1: Obtener proporciones deseadas
+            val targetRatio = targetWidth.toFloat() / targetHeight
+
+            val originalRatio = originalBitmap.width.toFloat() / originalBitmap.height
+
+            val cropBitmap: Bitmap = if (originalRatio > targetRatio) {
+                // Imagen más ancha que el objetivo, recortar bordes laterales
+                val newWidth = (originalBitmap.height * targetRatio).toInt()
+                val xOffset = (originalBitmap.width - newWidth) / 2
+                Bitmap.createBitmap(originalBitmap, xOffset, 0, newWidth, originalBitmap.height)
+            } else {
+                // Imagen más alta que el objetivo, recortar parte superior e inferior
+                val newHeight = (originalBitmap.width / targetRatio).toInt()
+                val yOffset = (originalBitmap.height - newHeight) / 2
+                Bitmap.createBitmap(originalBitmap, 0, yOffset, originalBitmap.width, newHeight)
+            }
+
+            // Paso 2: Redimensionar a 1000x600 (o lo que definas)
+            val resizedBitmap = Bitmap.createScaledBitmap(cropBitmap, targetWidth, targetHeight, true)
+
+            // Paso 3: Comprimir
+            val outputStream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+
             outputStream.toByteArray()
         }
     }

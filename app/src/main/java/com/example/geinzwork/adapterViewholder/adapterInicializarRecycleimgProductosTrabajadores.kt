@@ -3,8 +3,10 @@ package com.example.geinzwork.adapterViewholder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.geinzz.geinzwork.databinding.ItemCustomTrabajadoresProductosBinding
 import com.geinzz.geinzwork.dataclass.dataclassMostarImgProductosVendedor
 
@@ -45,7 +47,13 @@ class adapterInicializarRecycleimgProductosTrabajadores(private val lista: Mutab
                 "portada",
                 null
             ) { complet -> }
+            binding.imageView.setOnClickListener {
+                val dialog = FullscreenImageDialog(item.imgProducto.toString()) //
+                dialog.show((itemView.context as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+            }
+
         }
+
 
     }
 }

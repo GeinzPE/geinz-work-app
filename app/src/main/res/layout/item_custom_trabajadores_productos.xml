@@ -23,7 +23,7 @@
                 android:layout_height="300dp"
                 app:cardCornerRadius="8dp"> <!-- Ajusta el radio de las esquinas según sea necesario -->
 
-                <io.getstream.photoview.PhotoView
+                <ImageView
                     android:id="@+id/image_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -42,6 +43,7 @@ import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos
 import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.GenerarQR_trabajador
@@ -260,6 +262,7 @@ class info : Fragment() {
                 )
                 dialog.show()
             }
+
             binding.mostrarSeguridos.setOnClickListener {
                 if (!mostrandoTrabajadores) {
                     // Primera vez: cargar trabajadores
@@ -801,7 +804,13 @@ class info : Fragment() {
                 binding.imgPortada,
                 "portada", placeholderPortada
             ) {}
+            binding.imgPortada.setOnClickListener {
+                val dialog = FullscreenImageDialog(imgUrl) //
+                dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+            }
+
         }
+
 
         constantes.obtenerEstado(binding.estado, id)
 
@@ -819,6 +828,10 @@ class info : Fragment() {
                     null,
                     "perfil", placeholder
                 ) {}
+                binding.imgPerfilUser.setOnClickListener {
+                    val dialog = FullscreenImageDialog(img) //
+                    dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                }
             }
         }
 
@@ -912,6 +925,7 @@ class info : Fragment() {
                     position: Int,
                 ) {
                     val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
+
                     currentBinding.imageView.apply {
                         setImage(item, R.drawable.ic_wb_cloudy_with_padding)
                         minimumScale = 1f
@@ -1052,6 +1066,12 @@ class info : Fragment() {
                 ) {
                     val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
                     currentBinding.imageView.apply {
+                        currentBinding.imageView.setOnClickListener {
+                            val imageUrl = item.imageUrl ?: return@setOnClickListener
+                            val dialog = FullscreenImageDialog(imageUrl)
+                            dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+
+                        }
                         setImage(item, R.drawable.ic_wb_cloudy_with_padding)
                         minimumScale = 1f
                         maximumScale = 10f
@@ -1164,6 +1184,12 @@ class info : Fragment() {
                             ) {
                                 val currentBinding = binding as ItemCustomFixedSizeLayout2Binding
                                 currentBinding.imageView.apply {
+                                    currentBinding.imageView.setOnClickListener {
+                                        val imageUrl = item.imageUrl ?: return@setOnClickListener
+                                        val dialog = FullscreenImageDialog(imageUrl)
+                                        dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+
+                                    }
                                     setImage(item, R.drawable.ic_wb_cloudy_with_padding)
                                     minimumScale = 1f
                                     maximumScale = 10f
