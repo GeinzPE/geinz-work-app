@@ -36,9 +36,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
-        <activity
-            android:name="com.example.geinzwork.fragmentos.img_completa.FullScreenImageActivity"
-            android:exported="false" />
+        <activity android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
         <activity
             android:name="com.example.geinzwork.herramientas_geinz.inicio_geinz_work"
             android:exported="false" />

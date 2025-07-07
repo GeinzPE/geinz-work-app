@@ -111,5 +111,6 @@ dependencies {
     implementation("com.google.firebase:firebase-ai")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("com.github.chrisbanes:PhotoView:2.0.0")
+    implementation("com.github.yalantis:ucrop:2.2.10")
 
 }

@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -12,16 +13,19 @@ import android.view.View
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.fragmentos.img_completa.recortador_img
 
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityCrearTrabajosRealizadosBinding
@@ -31,7 +35,9 @@ import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.yalantis.ucrop.UCrop
 import java.io.ByteArrayOutputStream
+import java.io.File
 
 class crear_trabajos_realizados : AppCompatActivity() {
     private lateinit var binding: ActivityCrearTrabajosRealizadosBinding
@@ -40,19 +46,35 @@ class crear_trabajos_realizados : AppCompatActivity() {
         listOf(binding.img1, binding.img2, binding.img3, binding.img4, binding.img5)
     }
     private var currentImageIndex = 0
+    private val cropImageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val resultUri = UCrop.getOutput(result.data!!)
+                resultUri?.let {
+                    imageViews[currentImageIndex].setImageURI(it)
+
+                    if (currentImageIndex + 1 < imageViews.size) {
+                        imageViews[currentImageIndex + 1].visibility = View.VISIBLE
+                    }
+                    binding.horizontalScrollView.post {
+                        binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+                    }
+                }
+            } else if (result.resultCode == UCrop.RESULT_ERROR) {
+                val error = UCrop.getError(result.data!!)
+                Toast.makeText(this, "Error: ${error?.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    
     private val pickImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
-                imageViews[currentImageIndex].setImageURI(it)
-
-                if (currentImageIndex + 1 < imageViews.size) {
-                    imageViews[currentImageIndex + 1].visibility = View.VISIBLE
-                }
-                binding.horizontalScrollView.post {
-                    binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
-                }
+                recortador_img.iniciarRecorte(cropImageLauncher,this,it,true)
             }
         }
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +110,7 @@ class crear_trabajos_realizados : AppCompatActivity() {
         }
     }
 
+
     override fun onBackPressed() {
 
         val hayContenido = binding.tituloPublicacionED.text.isNotBlank() ||
@@ -110,6 +133,22 @@ class crear_trabajos_realizados : AppCompatActivity() {
             super.onBackPressed()
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == UCrop.REQUEST_CROP && resultCode == Activity.RESULT_OK) {
+            val resultUri = UCrop.getOutput(data!!)
+            resultUri?.let {
+                // Asignar la imagen recortada al ImageView actual
+                imageViews[currentImageIndex].setImageURI(it)
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            val error = UCrop.getError(data!!)
+            Toast.makeText(this, "Error al recortar: ${error?.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun resetearImagenes() {
         val drawablePorDefecto = ContextCompat.getDrawable(this, R.drawable.agregar_imagen)

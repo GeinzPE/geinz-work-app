@@ -98,7 +98,7 @@
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_1"
                         android:layout_width="300dp"
-                        android:layout_height="200dp"
+                        android:layout_height="350dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
                         android:visibility="visible"
@@ -107,7 +107,7 @@
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_2"
                         android:layout_width="300dp"
-                        android:layout_height="200dp"
+                        android:layout_height="350dp"
                         android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
@@ -117,7 +117,7 @@
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_3"
                         android:layout_width="300dp"
-                        android:layout_height="200dp"
+                        android:layout_height="350dp"
                         android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
@@ -127,7 +127,7 @@
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_4"
                         android:layout_width="300dp"
-                        android:layout_height="200dp"
+                        android:layout_height="350dp"
                         android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"
@@ -137,7 +137,7 @@
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/img_5"
                         android:layout_width="300dp"
-                        android:layout_height="200dp"
+                        android:layout_height="350dp"
                         android:layout_marginStart="8dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/agregar_imagen"

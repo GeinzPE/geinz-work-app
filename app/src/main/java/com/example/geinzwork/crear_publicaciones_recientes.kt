@@ -1,5 +1,6 @@
 package com.example.geinzwork
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -28,6 +29,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.geinzwork.adapterViewholder.adapter_agregar_imagenes_panel_publicaciones
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_hastags_generales
+import com.example.geinzwork.fragmentos.img_completa.recortador_img
 import com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
@@ -43,6 +45,7 @@ import java.io.ByteArrayOutputStream
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.Firebase
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 
 
@@ -62,20 +65,30 @@ class crear_publicaciones_recientes : AppCompatActivity() {
     }
     private var currentImageIndex = 0
 
+    private val cropImageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val resultUri = UCrop.getOutput(result.data!!)
+                resultUri?.let {
+                    imageViews[currentImageIndex].setImageURI(it)
+
+                    if (currentImageIndex + 1 < imageViews.size) {
+                        imageViews[currentImageIndex + 1].visibility = View.VISIBLE
+                    }
+                    binding.horizontalScrollView.post {
+                        binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+                    }
+                }
+            } else if (result.resultCode == UCrop.RESULT_ERROR) {
+                val error = UCrop.getError(result.data!!)
+                Toast.makeText(this, "Error: ${error?.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     private val pickImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
-                // Establece la imagen seleccionada
-                imageViews[currentImageIndex].setImageURI(it)
-
-
-                if (currentImageIndex + 1 < imageViews.size) {
-                    imageViews[currentImageIndex + 1].visibility = View.VISIBLE
-                }
-
-                binding.horizontalScrollView.post {
-                    binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
-                }
+                recortador_img.iniciarRecorte(cropImageLauncher,this,it,true)
             }
         }
 
@@ -219,7 +232,6 @@ class crear_publicaciones_recientes : AppCompatActivity() {
     }
 
 
-
     override fun onBackPressed() {
         val hayContenido = binding.tituloPublicacionED.text.isNotBlank() ||
                 binding.descripcionServiciosED.text.isNotBlank() ||
@@ -241,6 +253,21 @@ class crear_publicaciones_recientes : AppCompatActivity() {
                 .show()
         } else {
             super.onBackPressed()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == UCrop.REQUEST_CROP && resultCode == Activity.RESULT_OK) {
+            val resultUri = UCrop.getOutput(data!!)
+            resultUri?.let {
+                // Asignar la imagen recortada al ImageView actual
+                imageViews[currentImageIndex].setImageURI(it)
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            val error = UCrop.getError(data!!)
+            Toast.makeText(this, "Error al recortar: ${error?.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

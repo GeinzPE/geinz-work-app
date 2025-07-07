@@ -1,5 +1,6 @@
 package com.example.geinzwork
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -55,6 +56,7 @@ import com.example.geinzwork.dataclass.MiViewModel
 import com.example.geinzwork.dataclass.dataclas_anidacion_productos_vr
 import com.example.geinzwork.dataclass.dataclass_metodos_entrega
 import com.example.geinzwork.dataclass.dataclass_texto_descripcion_pr
+import com.example.geinzwork.fragmentos.img_completa.recortador_img
 import com.example.geinzwork.vistaTrabajador.ver_productos_publicados
 
 import com.geinzz.geinzwork.R
@@ -76,6 +78,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
+import com.yalantis.ucrop.UCrop
 import java.io.ByteArrayOutputStream
 import kotlin.math.roundToInt
 
@@ -102,37 +105,51 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
     private var currentImageIndex = 0
 
     private val viewModel: MiViewModel by viewModels()
-    private val img1Launcher =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) {
-                img1_uir1 = uri
-                Toast.makeText(this, "Imagen seleccionada: $uri", Toast.LENGTH_SHORT).show()
+    private val cropImageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val resultUri = UCrop.getOutput(result.data!!)
+                resultUri?.let {
+                    imageViews[currentImageIndex].setImageURI(it)
 
-                // ✅ Refrescar imagen en el BottomSheet si está visible
-                binding?.imgSubir?.setImageURI(uri)
-
-            } else {
-                Toast.makeText(this, getString(R.string.ImgNoSeleccionada), Toast.LENGTH_SHORT)
-                    .show()
+                    if (currentImageIndex + 1 < imageViews.size) {
+                        imageViews[currentImageIndex + 1].visibility = View.VISIBLE
+                    }
+                    binding.horizontalScrollView.post {
+                        binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
+                    }
+                }
+            } else if (result.resultCode == UCrop.RESULT_ERROR) {
+                val error = UCrop.getError(result.data!!)
+                Toast.makeText(this, "Error: ${error?.message}", Toast.LENGTH_SHORT).show()
             }
         }
+
+    private val crom_img_caracteristicas =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val resultUri = UCrop.getOutput(result.data!!)
+                resultUri?.let {
+                    binding.imgSubir.setImageURI(it)
+                }
+            }
+        }
+
     private val pickImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
-                // Establece la imagen seleccionada
-                imageViews[currentImageIndex].setImageURI(it)
-
-                // Si hay otra ImageView disponible, la hacemos visible
-                if (currentImageIndex + 1 < imageViews.size) {
-                    imageViews[currentImageIndex + 1].visibility = View.VISIBLE
-                }
-
-                // Hacer scroll automático al final
-                binding.horizontalScrollView.post {
-                    binding.horizontalScrollView.fullScroll(View.FOCUS_RIGHT)
-                }
+                recortador_img.iniciarRecorte(cropImageLauncher,this,it,false)
             }
         }
+    private val img1Launcher =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            uri?.let {
+                recortador_img.iniciarRecorte(crom_img_caracteristicas, this, it, horizontal = false) // o false si quieres cuadrado
+            }
+        }
+
+
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -444,6 +461,22 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             super.onBackPressed()
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == UCrop.REQUEST_CROP && resultCode == Activity.RESULT_OK) {
+            val resultUri = UCrop.getOutput(data!!)
+            resultUri?.let {
+                // Asignar la imagen recortada al ImageView actual
+                imageViews[currentImageIndex].setImageURI(it)
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            val error = UCrop.getError(data!!)
+            Toast.makeText(this, "Error al recortar: ${error?.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
 
     private fun validar_campos(): Boolean {
