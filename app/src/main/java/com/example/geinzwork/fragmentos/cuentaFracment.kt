@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.fragmentos
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -32,6 +33,7 @@ import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
+import com.example.geinzwork.fragmentos.img_completa.recortador_img
 import com.geinzz.geinzwork.EditarInfo
 import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.R
@@ -51,6 +53,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.auth.User
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -79,12 +82,31 @@ class cuentaFracment : Fragment() {
             }
         }
 
-    private val picmedaiFotoPoprtada =
+    private val cropImageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val resultUri = UCrop.getOutput(result.data!!)
+                resultUri?.let {
+                    // Mostrar imagen recortada en el ImageView
+                    binding.fotoPortada.setImageURI(it)
+
+                    // Guardar la URI si la necesitas después
+                    portadaFoto = it
+
+                    // Subir imagen
+                    subirImagenPortada(it, foto_portada)
+                }
+            } else if (result.resultCode == UCrop.RESULT_ERROR) {
+                val error = UCrop.getError(result.data!!)
+                Toast.makeText(mContex, "Error: ${error?.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val picmedaiFotoPortada =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
-                portadaFoto = uri
-                binding.fotoPortada.setImageURI(uri)
-                subirImagenPortada(uri, foto_portada)
+                // Aquí solo inicias el recorte, aún no se setea en el ImageView ni se sube
+                recortador_img.iniciarRecorte(cropImageLauncher, mContex, uri, horizontal = true)
             } else {
                 println("Imagen no seleccionada")
             }
@@ -133,8 +155,7 @@ class cuentaFracment : Fragment() {
         }
 
         binding.fotoPortada.setOnClickListener {
-            // Usamos el nuevo Photo Picker (Android 13+ o soporte por Google Play Services)
-            picmedaiFotoPoprtada.launch(
+            picmedaiFotoPortada.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
         }

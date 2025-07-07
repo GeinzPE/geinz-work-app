@@ -184,6 +184,7 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/view_garantia"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginHorizontal="5dp"

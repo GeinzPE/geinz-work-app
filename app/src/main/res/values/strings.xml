@@ -464,4 +464,16 @@
     <string name="my_tasks_short_label">Mis Tareas</string>
     <string name="my_tasks_long_label">Ver todas mis tareas pendientes</string>
     <string name="open_app_shortcut_long_label">Abrir la aplicación GeinzWork rápidamente</string>
+
+
+    <string name="ucrop_label_edit_photo">Editar foto</string>
+    <string name="ucrop_menu_crop">Recortar</string>
+    <string name="ucrop_menu_loader">Guardando...</string>
+    <string name="ucrop_label_rotate">Girar</string>
+    <string name="ucrop_label_scale">Escalar</string>
+    <string name="ucrop_label_angle">Ángulo</string>
+    <string name="ucrop_label_reset">Reiniciar</string>
+    <string name="ucrop_label_aspect_ratio">Relación</string>
+    <string name="ucrop_label_original">Original</string>
+
 </resources>

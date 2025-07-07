@@ -11,7 +11,8 @@
         android:id="@+id/progressCarga"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_centerInParent="true" />
+        android:layout_centerInParent="true"
+        android:layout_marginVertical="10dp" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nettScrollView"
@@ -146,10 +147,10 @@
                         android:id="@+id/descuentoPorcentaje"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:layout_marginLeft="10dp"
                         android:background="@drawable/roun_off_descuento"
                         android:padding="5dp"
-                        android:layout_gravity="center"
                         android:text="@string/cat"
                         android:textColor="@color/black"
                         android:textSize="12sp"
@@ -185,9 +186,9 @@
                     android:visibility="gone" />
 
                 <LinearLayout
-                    android:layout_marginTop="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:orientation="horizontal">
 
 
@@ -320,17 +321,18 @@
                             android:fontFamily="@font/roboto_medium"
                             android:text="@string/cat"
                             android:textSize="13sp" />
+
                         <RelativeLayout
-                            android:visibility="gone"
                             android:id="@+id/relative_img_container"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:visibility="gone">
 
                             <ProgressBar
-                                android:layout_width="wrap_content"
                                 android:id="@+id/progrees_indicator"
-                                android:layout_centerInParent="true"
-                                android:layout_height="wrap_content" />
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerInParent="true" />
 
                             <com.google.android.material.imageview.ShapeableImageView
                                 android:id="@+id/img_subir"
@@ -341,8 +343,6 @@
                                 app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
                         </RelativeLayout>
                     </LinearLayout>
-
-
 
 
                 </LinearLayout>
@@ -382,12 +382,12 @@
 
 
                     <TextView
+                        android:id="@+id/mas_infomacion"
                         style="@style/TextoModoOScuroColor"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/titulo_roboto_regular_fuente"
-                        android:id="@+id/mas_infomacion"
                         android:textSize="13sp"
                         android:visibility="gone" />
                 </LinearLayout>

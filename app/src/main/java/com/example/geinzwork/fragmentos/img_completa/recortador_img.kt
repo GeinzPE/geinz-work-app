@@ -15,7 +15,7 @@ object recortador_img {
 
         val options = UCrop.Options().apply {
             setCompressionQuality(90)
-            setFreeStyleCropEnabled(!horizontal) // libre si no es horizontal fijo
+            setFreeStyleCropEnabled(true) // libre si no es horizontal fijo
             setHideBottomControls(false) // mostrar controles como el botón ✓
             setToolbarTitle("Recorta tu imagen")
             setStatusBarColor(ContextCompat.getColor(contex, R.color.white))

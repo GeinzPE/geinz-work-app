@@ -26,6 +26,7 @@ import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.vistaTrabajador.ver_promociones
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
@@ -671,17 +672,14 @@ class vistas_anuncios_general : AppCompatActivity() {
                         .load(imagenUrl)
                         .centerCrop()
                         .into(binding.imgAnuncio)
+                    binding.imgAnuncio.setOnClickListener {
+                        val dialog = FullscreenImageDialog(imagenUrl.toString())
+                        dialog.show(this.supportFragmentManager, "fullscreenImage")
+                    }
                 } catch (e: Exception) {
                     println(e)
                 }
-                binding.imgAnuncio.setOnClickListener {
-                    val imageUrl = imagenUrl
-                    val dialogFragment = ImageDialogFragmentURL.newInstance(imageUrl)
-                    dialogFragment.show(
-                        (this as AppCompatActivity).supportFragmentManager,
-                        "image_dialog"
-                    )
-                }
+
                 binding.redes.setOnClickListener {
                     dialog = BottomSheetDialog(this)
                     bottom_shetRedes(
@@ -708,21 +706,40 @@ class vistas_anuncios_general : AppCompatActivity() {
     }
 
     private fun obtenerDatos_Avanzado_Premiun(docuemnto1: String, documento2: String) {
-        val refefencia =
-            FirebaseStorage.getInstance().getReference(Variables.anuncios).child(docuemnto1)
-                .child(documento2).child(Variables.Imagenes_publicitarias)
-        refefencia.listAll().addOnSuccessListener { listResul ->
-            listResul.items.forEach { item ->
-                item.downloadUrl.addOnSuccessListener { uri ->
-                    val uriString = uri.toString()
-                    val carouselItem = CarouselItem(uriString)
-                    lista.add(carouselItem)
-                    binding.carrusel.setData(lista)
+        val refefencia = FirebaseStorage.getInstance()
+            .getReference(Variables.anuncios)
+            .child(docuemnto1)
+            .child(documento2)
+            .child(Variables.Imagenes_publicitarias)
 
-                }
+        val lista = mutableListOf<CarouselItem>()
+
+        refefencia.listAll().addOnSuccessListener { listResult ->
+            val items = listResult.items
+            var cargadas = 0
+
+            items.forEach { item ->
+                item.downloadUrl.addOnSuccessListener { uri ->
+                    lista.add(CarouselItem(uri.toString()))
+                    cargadas++
+
+                    // Solo setea el carrusel una vez, cuando todas las imágenes estén listas
+                    if (cargadas == items.size) {
+                        binding.carrusel.setData(lista)
+
+                        binding.carrusel.carouselListener = object : CarouselListener {
+                            override fun onClick(position: Int, carouselItem: CarouselItem) {
+                                val imageUrl = carouselItem.imageUrl ?: return
+                                val dialog = FullscreenImageDialog(imageUrl)
+                                dialog.show(this@vistas_anuncios_general.supportFragmentManager, "fullscreenImage")
+                            }
+                        }
+                    }
+                }.addOnFailureListener { it.printStackTrace() }
             }
-        }
+        }.addOnFailureListener { it.printStackTrace() }
     }
+
 
     private fun mostrarDatos() {
         binding.loading.isVisible = false

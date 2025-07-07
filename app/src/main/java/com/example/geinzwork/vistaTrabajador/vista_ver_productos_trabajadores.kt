@@ -26,6 +26,7 @@ import com.example.geinzwork.adapterViewholder.adapterInicializarRecycleimgProdu
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vistas_publicaciones_productos_verificados
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor
 import com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores
 import com.geinzz.geinzwork.R
@@ -365,12 +366,12 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
     private fun obtner_img_descripcion(id_trabajador: String, producto_id: String) {
         val storageRef = FirebaseStorage.getInstance().reference
 
-        val fileName = "caracteristica_producto"
+        val fileName = "imagen_caracteristica.jpg"
 
         val rutaImagen = storageRef
             .child("usuarios")
             .child(id_trabajador)
-            .child("productos_publicados")
+            .child("productos_venta")
             .child(producto_id)
             .child(fileName)
 
@@ -389,6 +390,11 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         "portada",
                         null
                     ) { completado ->
+
+                    }
+                    binding.imgSubir.setOnClickListener {
+                        val dialog = FullscreenImageDialog(urlImagen) //
+                        dialog.show(this.supportFragmentManager, "fullscreenImage")
 
                     }
                 } else {
@@ -651,7 +657,12 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
 
 
                         binding.camposProductosUserVerificados.stok.text = stok
-                        binding.camposProductosUserVerificados.garantia.text = garantia
+                        if (garantia.isNotEmpty()) {
+                            binding.camposProductosUserVerificados.garantia.text = garantia
+                        } else {
+                            binding.camposProductosUserVerificados.garantia.text = "No"
+
+                        }
                         binding.camposProductosUserVerificados.Condicion.text = condicionProducto
                         binding.camposProductosUserVerificados.descripcion.text = descripcion
                         binding.camposProductosUserVerificados.fechaPublicado.text = fechaPublicada

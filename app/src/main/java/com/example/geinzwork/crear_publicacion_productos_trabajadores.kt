@@ -625,6 +625,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
         val marca_producto = binding.marcaProductoED
         val localida_user = binding.agregaUbiED
         val mostra_para = binding.mostrarPublicacionPara
+        val garantia = binding.siHayGarantia
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores")
@@ -672,10 +673,8 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "subcategori_producto" to binding.subcategoriaProducto.text.toString(),
             "fechaPublicada" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
             "horaPublicada" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
-            "garantia" to "${tiempoGarantiaYears.text} $unidadGarantia${
-                if (tiempoGarantiaYears.text.toString().toIntOrNull() != 1)
-                    if (unidadGarantia == "mes") "es" else "s" else ""
-            }",
+
+
             "descuento" to descuento,
             "localidadUser" to localida_user.text.toString(),
             "marca" to marca_producto.text.toString(),
@@ -694,6 +693,16 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "descripcion_texto_lista" to datos.listaEncontrados,
             "mas_informacio" to binding.masInformacionED.text.toString()
         )
+        if (garantia.isChecked) {
+            val cantidad = tiempoGarantiaYears.text.toString().toIntOrNull() ?: 0
+            val unidad = unidadGarantia
+            val sufijo = if (cantidad != 1) {
+                if (unidad == "mes") "es" else "s"
+            } else {
+                ""
+            }
+            hasMap["garantia"] = "$cantidad $unidad$sufijo"
+        }
 
         db.add(hasMap).addOnSuccessListener { res ->
             val productId = res.id

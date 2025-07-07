@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adaptadorAnuncios
 import com.geinzz.geinzwork.constantesGeneral.constantes
@@ -46,6 +47,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ListResult
 import com.google.firebase.storage.StorageReference
+import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 
 
@@ -139,6 +141,7 @@ class ver_detalles_Promociones : AppCompatActivity() {
                 dialog.show()
             }
         }
+
 
     }
 
@@ -839,22 +842,37 @@ class ver_detalles_Promociones : AppCompatActivity() {
 
     private fun fetchAllImageUrls(storageRef: StorageReference) {
         val lista = mutableListOf<CarouselItem>()
+
         storageRef.listAll()
-            .addOnSuccessListener { listResult: ListResult ->
+            .addOnSuccessListener { listResult ->
                 val items = listResult.items
+                var loaded = 0
+
                 for (item in items) {
                     item.downloadUrl.addOnSuccessListener { uri ->
                         lista.add(CarouselItem(uri.toString()))
-                        binding.carrusel.setData(lista)
-                    }.addOnFailureListener { exception ->
-                        exception.printStackTrace()
+                        loaded++
+
+                        if (loaded == items.size) {
+                            binding.carrusel.setData(lista)
+
+                            // Agrega el listener aquí
+                            binding.carrusel.carouselListener = object : CarouselListener {
+                                override fun onClick(position: Int, carouselItem: CarouselItem) {
+                                    val imageUrl = carouselItem.imageUrl ?: return
+                                    val dialog = FullscreenImageDialog(imageUrl)
+                                    dialog.show(this@ver_detalles_Promociones.supportFragmentManager, "fullscreenImage")
+                                }
+                            }
+                        }
                     }
                 }
             }
-            .addOnFailureListener { exception ->
-                exception.printStackTrace()
-            }
+            .addOnFailureListener { it.printStackTrace() }
     }
+
+
+
 
     private fun mostrarDatos() {
         binding.scroll.isVisible = true

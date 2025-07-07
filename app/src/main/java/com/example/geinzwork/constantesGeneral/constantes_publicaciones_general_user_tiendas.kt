@@ -614,7 +614,11 @@ object constantes_publicaciones_general_user_tiendas {
             bindingProductosTrabajadores.camposProductosUserVerificados.marca.text = marca
             bindingProductosTrabajadores.camposProductosUserVerificados.modelo.text = modelo
             bindingProductosTrabajadores.camposProductosUserVerificados.stok.text = "$stok UND"
-            bindingProductosTrabajadores.camposProductosUserVerificados.garantia.text = garantia
+            if(garantia.isNotEmpty()){
+                bindingProductosTrabajadores.camposProductosUserVerificados.garantia.text = garantia
+            }else{
+                bindingProductosTrabajadores.camposProductosUserVerificados.garantia.text = "NO"
+            }
             bindingProductosTrabajadores.camposProductosUserVerificados.Condicion.text =
                 condicionProducto
             bindingProductosTrabajadores.camposProductosUserVerificados.descripcion.text =
@@ -838,6 +842,10 @@ object constantes_publicaciones_general_user_tiendas {
                         null
                     ) { completado ->
 
+                    }
+                    bindingProductosTrabajadores.imgSubir.setOnClickListener {
+                        val dialog = FullscreenImageDialog(urlImagen.toString()) //
+                        dialog.show((context as AppCompatActivity).supportFragmentManager, "fullscreenImage")
                     }
                 } else {
                     bindingProductosTrabajadores.relativeImgContainer.isVisible = false

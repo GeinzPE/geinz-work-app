@@ -580,7 +580,12 @@ class compras_productos_vendedor : AppCompatActivity() {
 
 
                 binding.StokDiponible.textoNumero2.text = "$stok UND"
-                binding.garantiaProducto.textoNumero2.text = garantia
+                if(garantia.isNotEmpty()){
+                    binding.garantiaProducto.textoNumero2.text = garantia
+                }else{
+                    binding.garantiaProducto.textoNumero2.text = "NO"
+
+                }
                 binding.condicionProducto.textoNumero2.text = condicionProducto
 
 
