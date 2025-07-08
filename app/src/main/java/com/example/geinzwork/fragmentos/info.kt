@@ -40,6 +40,7 @@ import com.example.geinzwork.classcustom.classcustomscrool
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_trabajadores_info
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.constantesGeneral.obtenertokenIdAdmin
 import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
 import com.example.geinzwork.dataclass.dataclass_adapter_promociones
 import com.example.geinzwork.dataclass.dataclass_seguidores_seguidos
@@ -156,12 +157,14 @@ class info : Fragment() {
         firebaseAuth = FirebaseAuth.getInstance()
         var mostrandoTrabajadores = false
         val idTrabajador = arguments?.getString(ARG_ID_TRABAJADOR).toString()
-        Log.d("obtenos_id_trabajodr","en info es $idTrabajador")
-        obtener_datos_trabajador(idTrabajador){img, nacionalidad, nombre, categoria ->
-        val img_perfil_user = img
-        val nombre =nombre
-        val nacionalidad = nacionalidad
-        val categoria = categoria
+        Log.d("obtenos_id_trabajodr", "en info es $idTrabajador")
+
+
+        obtener_datos_trabajador(idTrabajador) { img, nacionalidad, nombre, categoria ->
+            val img_perfil_user = img
+            val nombre = nombre
+            val nacionalidad = nacionalidad
+            val categoria = categoria
             val id_publicacion = arguments?.getString(id_publicaciones).toString()
 
             obtenertrabajosRecientes(idTrabajador)
@@ -215,8 +218,11 @@ class info : Fragment() {
                     }
                 })
 
+
+
             val recicle = binding.productosDestacados
-            val customLayoutManager = classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+            val customLayoutManager =
+                classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
             recicle.layoutManager = customLayoutManager
 
             binding.linealSiguiendo.setOnClickListener {
@@ -236,7 +242,14 @@ class info : Fragment() {
                 }
                 startActivity(vista)
             }
-            binding.popup.setOnClickListener { popup(idTrabajador, nombre, nacionalidad, categoria) }
+            binding.popup.setOnClickListener {
+                popup(
+                    idTrabajador,
+                    nombre,
+                    nacionalidad,
+                    categoria
+                )
+            }
             binding.ig.setOnClickListener {
                 obtenerRedes(mContex, Variables.ig, idTrabajador)
             }
@@ -250,7 +263,11 @@ class info : Fragment() {
                 constantes_trabajadores_info.seguir_trabajador(idTrabajador, binding, mContex)
             }
             binding.siguiendoBtn.setOnClickListener {
-                constantes_trabajadores_info.showCustomUnfollowDialog(binding, mContex, idTrabajador)
+                constantes_trabajadores_info.showCustomUnfollowDialog(
+                    binding,
+                    mContex,
+                    idTrabajador
+                )
             }
             binding.masInformacion.setOnClickListener {
                 dialog = BottomSheetDialog(mContex)
@@ -297,7 +314,11 @@ class info : Fragment() {
                         )
                     }
                 } else {
-                    agregarNotificacionTrabajador(false, idTrabajador, firebaseAuth.uid.toString()) {
+                    agregarNotificacionTrabajador(
+                        false,
+                        idTrabajador,
+                        firebaseAuth.uid.toString()
+                    ) {
                         binding.notificaciones.setImageDrawable(
                             ContextCompat.getDrawable(
                                 mContex,
@@ -806,7 +827,10 @@ class info : Fragment() {
             ) {}
             binding.imgPortada.setOnClickListener {
                 val dialog = FullscreenImageDialog(imgUrl) //
-                dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                dialog.show(
+                    (mContex as AppCompatActivity).supportFragmentManager,
+                    "fullscreenImage"
+                )
             }
 
         }
@@ -830,7 +854,10 @@ class info : Fragment() {
                 ) {}
                 binding.imgPerfilUser.setOnClickListener {
                     val dialog = FullscreenImageDialog(img) //
-                    dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                    dialog.show(
+                        (mContex as AppCompatActivity).supportFragmentManager,
+                        "fullscreenImage"
+                    )
                 }
             }
         }
@@ -1069,7 +1096,10 @@ class info : Fragment() {
                         currentBinding.imageView.setOnClickListener {
                             val imageUrl = item.imageUrl ?: return@setOnClickListener
                             val dialog = FullscreenImageDialog(imageUrl)
-                            dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                            dialog.show(
+                                (mContex as AppCompatActivity).supportFragmentManager,
+                                "fullscreenImage"
+                            )
 
                         }
                         setImage(item, R.drawable.ic_wb_cloudy_with_padding)
@@ -1187,7 +1217,10 @@ class info : Fragment() {
                                     currentBinding.imageView.setOnClickListener {
                                         val imageUrl = item.imageUrl ?: return@setOnClickListener
                                         val dialog = FullscreenImageDialog(imageUrl)
-                                        dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                                        dialog.show(
+                                            (mContex as AppCompatActivity).supportFragmentManager,
+                                            "fullscreenImage"
+                                        )
 
                                     }
                                     setImage(item, R.drawable.ic_wb_cloudy_with_padding)

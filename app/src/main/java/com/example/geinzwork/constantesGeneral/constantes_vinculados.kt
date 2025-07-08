@@ -12,6 +12,7 @@ import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 import com.google.firebase.firestore.SetOptions
@@ -208,6 +209,7 @@ object constantes_vinculados {
             Log.d("modeloEXaco", androidId)
             docRef.delete()
                 .addOnSuccessListener {
+                    eliminar_token_por_dispositivo(iduser)
                     Log.d("dispo_vinculado", "Dispositivo eliminado correctamente")
                     onFinish()
                 }
@@ -216,6 +218,31 @@ object constantes_vinculados {
                     onFinish()
                 }
         }
+    }
+
+    private fun eliminar_token_por_dispositivo(id_registrado: String) {
+        val nombreDispositivo = "${Build.MANUFACTURER}-${Build.MODEL}"
+            .replace(" ", "_")
+            .replace(".", "")
+            .lowercase()
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("tokens")
+            .collection(id_registrado)
+            .document("dispositivos")
+
+        val updateMap = mapOf(
+            "tokens.$nombreDispositivo" to FieldValue.delete()
+        )
+
+        db.update(updateMap)
+            .addOnSuccessListener {
+                Log.d("FCM", "Token eliminado para $nombreDispositivo")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FCM", "Error al eliminar token: ${e.message}")
+            }
     }
 
     fun verificaAcceso(

@@ -1,9 +1,11 @@
 package com.geinzz.geinzwork
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -17,6 +19,8 @@ import com.geinzz.geinzwork.databinding.ActivityLoginBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 
 class Login : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -47,11 +51,13 @@ class Login : AppCompatActivity() {
                     Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
                     verificaruser("regreso") { registrado, texto -> }
                 }
-                "dispositivos"->{
+
+                "dispositivos" -> {
                     Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
                     verificaruser("regreso") { registrado, texto -> }
                 }
-                "perfil"->{
+
+                "perfil" -> {
                     Toast.makeText(this, "precionamoes el panel", Toast.LENGTH_SHORT).show()
                     verificaruser("regreso") { registrado, texto -> }
                 }
@@ -214,6 +220,7 @@ class Login : AppCompatActivity() {
                                 dialog.dismiss()
                             }, duration)
 
+
                             val user = resultado.user
                             if (user != null) { // Asegúrate de que el usuario no sea nulo
                                 constantes_vinculados.agregar_vinculado(
@@ -221,6 +228,7 @@ class Login : AppCompatActivity() {
                                     this,
                                     tipo_obtenido
                                 )
+                                agregar_token_listaFCM(user.uid)
                                 // Si agregar_vinculado es asíncrono y su éxito es el final,
                                 // podrías necesitar otro callback aquí.
                                 // Por ahora, asumimos que si llega aquí, el login es un éxito para el callback.
@@ -273,4 +281,40 @@ class Login : AppCompatActivity() {
             finishAffinity()
         }
     }
+
+    private fun agregar_token_listaFCM(id_registrado: String) {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            val deviceName = "${Build.MANUFACTURER}-${Build.MODEL}"
+                .replace(" ", "_")
+                .replace(".", "")
+                .lowercase() // 🔧 Normaliza el nombre del dispositivo
+
+            val db = FirebaseFirestore.getInstance()
+                .collection("Trabajadores_Usuarios_Drivers")
+                .document("tokens")
+                .collection(id_registrado)
+                .document("dispositivos")
+
+            val tokenMap = mapOf(
+                deviceName to token // ✅ Solo el nombre limpio
+            )
+
+            val finalMap = mapOf(
+                "tokens" to tokenMap // ✅ Lo metemos dentro del campo "tokens"
+            )
+
+            db.set(finalMap, SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d("FCM", "Token guardado para: $deviceName")
+                }
+                .addOnFailureListener {
+                    Log.e("FCM", "Error al guardar token: ${it.message}")
+                }
+        }.addOnFailureListener {
+            Log.e("FCM", "Error al obtener token FCM: ${it.message}")
+        }
+    }
+
+
+
 }

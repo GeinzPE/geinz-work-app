@@ -21,11 +21,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.geinzwork.NotificacionRS
 import com.example.geinzwork.adapterViewholder.adapter_seguirTrabajadores_info
 import com.example.geinzwork.dataclass.dataClasSeguirTrabajdores_info
 import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
+import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesNoticias
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
 import com.geinzz.geinzwork.databinding.BottomShettDialogMasInfoTrabajadorBinding
@@ -37,6 +40,10 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 object constantes_trabajadores_info {
     private lateinit var firebaseAuth: FirebaseAuth
@@ -207,9 +214,8 @@ object constantes_trabajadores_info {
             dialog.show()
         } else {
             seguirTrabajador(idTrabajadorActual, binding, true)
-
             actualizarSeguidres(binding, idTrabajadorActual)
-            binding.notificaciones.isVisible=true
+            binding.notificaciones.isVisible = true
             binding.siguiendoBtn.isVisible = true
             binding.dejarDeSeguirOSeguir.isVisible = false
         }
@@ -283,6 +289,38 @@ object constantes_trabajadores_info {
         binding: FragmentInfoBinding,
         funcion_aplicar: Boolean
     ) {
+        obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(
+            idTrabajadorActual,
+            onSuccess = { tokensMap ->
+                // Obtener los datos del usuario solo una vez
+                constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
+                    val notificacionRS = NotificacionRS()
+
+                    // Puedes usar CoroutineScope(Dispatchers.IO) si estás en una función normal
+                    CoroutineScope(Dispatchers.IO).launch {
+                        for ((dispositivo, token) in tokensMap) {
+                            Log.d("FCM_rsitaldo", "Dispositivo: $dispositivo -> Token: $token")
+
+                            // Enviar notificación
+                            notificacionRS.enviarNotificacionFCM(
+                                token,
+                                "idAdmin",
+                                "idasdasda",
+                                "iadasdasda",
+                                "entrada",
+                                "Nuevo seguidor",
+                                "$nombre $apellido empezó a seguirte"
+                            )
+                        }
+                    }
+                }
+            },
+            onError = { error ->
+                Log.e("FCM_rsitaldo", "Error al obtener tokens: ${error.message}")
+            }
+        )
+
+
         firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("tokens").collection("tokens").document(firebaseAuth.uid.toString())
@@ -290,6 +328,7 @@ object constantes_trabajadores_info {
             if (res.exists()) {
                 val data = res.data
                 val token = data?.get("token") as? String ?: ""
+
                 AgregarCollectionFollow(
                     token,
                     firebaseAuth.uid.toString(),
@@ -374,7 +413,7 @@ object constantes_trabajadores_info {
             }
             .addOnFailureListener {
                 if (binding != null) {
-                    binding.notificaciones.isVisible=false
+                    binding.notificaciones.isVisible = false
                     binding.siguiendoBtn.isVisible = false
                     binding.dejarDeSeguirOSeguir.isVisible = true
                 }
@@ -400,7 +439,7 @@ object constantes_trabajadores_info {
             .addOnFailureListener {
                 println("Error al agregar seguido")
                 if (binding != null) {
-                    binding.notificaciones.isVisible=false
+                    binding.notificaciones.isVisible = false
                     binding.siguiendoBtn.isVisible = false
                     binding.dejarDeSeguirOSeguir.isVisible = true
                 }
@@ -499,7 +538,7 @@ object constantes_trabajadores_info {
         dialogView.findViewById<Button>(R.id.buttonYes).setOnClickListener {
             binding.siguiendoBtn.isVisible = false
             binding.dejarDeSeguirOSeguir.isVisible = true
-            binding.notificaciones.isVisible=false
+            binding.notificaciones.isVisible = false
             actualizar_dejar_seguir(binding, idTrabajadorActual)
             dejarSeguirTrabajador(binding, idTrabajadorActual, context, true, true)
             dialog.dismiss()
@@ -632,27 +671,35 @@ object constantes_trabajadores_info {
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
             .collection("seguidores")
-        actualizarSeguidores(true,binding.segidores,binding.segidores.text.toString().toInt())
+        actualizarSeguidores(true, binding.segidores, binding.segidores.text.toString().toInt())
         db.get().addOnSuccessListener { res ->
-            Log.d("correcto_segudores","se actualizo correctaete los segudores")
+            Log.d("correcto_segudores", "se actualizo correctaete los segudores")
 
         }.addOnFailureListener { e ->
-            actualizarSeguidores(false,binding.segidores,binding.segidores.text.toString().toInt())
+            actualizarSeguidores(
+                false,
+                binding.segidores,
+                binding.segidores.text.toString().toInt()
+            )
         }
     }
 
 
-    fun actualizar_dejar_seguir(binding: FragmentInfoBinding, idTrabajadorActual: String){
+    fun actualizar_dejar_seguir(binding: FragmentInfoBinding, idTrabajadorActual: String) {
         firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
             .collection("seguidores")
-        actualizarSeguidores(false,binding.segidores,binding.segidores.text.toString().toInt())
+        actualizarSeguidores(false, binding.segidores, binding.segidores.text.toString().toInt())
         db.get().addOnSuccessListener { res ->
-            Log.d("correcto_segudores","se actualizo correctaete los segudores")
+            Log.d("correcto_segudores", "se actualizo correctaete los segudores")
 
         }.addOnFailureListener { e ->
-            actualizarSeguidores(false,binding.segidores,binding.segidores.text.toString().toInt())
+            actualizarSeguidores(
+                false,
+                binding.segidores,
+                binding.segidores.text.toString().toInt()
+            )
         }
     }
 
@@ -668,17 +715,21 @@ object constantes_trabajadores_info {
     }
 
 
-    fun obtener_Segudores(binding: FragmentInfoBinding, idTrabajadorActual: String){
+    fun obtener_Segudores(binding: FragmentInfoBinding, idTrabajadorActual: String) {
         firebaseAuth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajadorActual)
             .collection("seguidores")
 
         db.get().addOnSuccessListener { res ->
-            Log.d("correcto_segudores","se actualizo correctaete los segudores")
-            binding.segidores.text="${res.size()}"
+            Log.d("correcto_segudores", "se actualizo correctaete los segudores")
+            binding.segidores.text = "${res.size()}"
         }.addOnFailureListener { e ->
-            actualizarSeguidores(false,binding.segidores,binding.segidores.text.toString().toInt())
+            actualizarSeguidores(
+                false,
+                binding.segidores,
+                binding.segidores.text.toString().toInt()
+            )
         }
     }
 

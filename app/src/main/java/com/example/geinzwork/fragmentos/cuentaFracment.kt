@@ -709,7 +709,7 @@ class cuentaFracment : Fragment() {
         if (firebaseAuth.currentUser == null) {
             startActivity(Intent(mContex, Login::class.java))
         } else {
-            pasamosToken(collection)
+//            pasamosToken(collection)
         }
     }
 
@@ -792,23 +792,23 @@ class cuentaFracment : Fragment() {
     }
 
 
-    private fun pasamosToken(collection: String) {
-        val muid = "${firebaseAuth.uid}"
-        FirebaseMessaging.getInstance().token
-            .addOnSuccessListener { tokens ->
-                val token = hashMapOf<String, Any>(
-                    "token" to "$tokens"
-                )
-                val db =
-                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
-                        .document(collection).collection(collection).document(muid)
-                db.update(token)
-                    .addOnSuccessListener {
-                        agregarListToken(muid, tokens)
-                    }
-                    .addOnFailureListener { e -> Log.e("token", "error $e") }
-            }.addOnFailureListener { e -> Log.e("token", "error $e") }
-    }
+//    private fun pasamosToken(collection: String) {
+//        val muid = "${firebaseAuth.uid}"
+//        FirebaseMessaging.getInstance().token
+//            .addOnSuccessListener { tokens ->
+//                val token = hashMapOf<String, Any>(
+//                    "token" to "$tokens"
+//                )
+//                val db =
+//                    FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
+//                        .document(collection).collection(collection).document(muid)
+//                db.update(token)
+//                    .addOnSuccessListener {
+//                        agregarListToken(muid, tokens)
+//                    }
+//                    .addOnFailureListener { e -> Log.e("token", "error $e") }
+//            }.addOnFailureListener { e -> Log.e("token", "error $e") }
+//    }
 
     private fun agregarListToken(id: String, token: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
