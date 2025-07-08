@@ -3,12 +3,15 @@ package com.geinzz.geinzwork.vistaTrabajador
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import com.example.geinzwork.Network_internet.BaseActivity
+import com.example.geinzwork.constantesGeneral.NetworkMonitor
 import com.example.geinzwork.constantesGeneral.Variables
 import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.R
@@ -25,17 +28,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class vistaTrabajador : AppCompatActivity() {
+class vistaTrabajador : BaseActivity() {
     private var idTrabajador: String? = null
     private lateinit var dialog: BottomSheetDialog
     private lateinit var firebaseAuth: FirebaseAuth
     private var vistaTimer: CountDownTimer? = null
     private val tiempoParaContarVista: Long = 20000
     private lateinit var binding: ActivityVistaTrabajadorBinding
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityVistaTrabajadorBinding.inflate(layoutInflater)
+
+
+
         enableEdgeToEdge()
+        binding = ActivityVistaTrabajadorBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -43,6 +51,7 @@ class vistaTrabajador : AppCompatActivity() {
             insets
         }
         firebaseAuth = FirebaseAuth.getInstance()
+
         val uri = intent.data
         val tipo_pasado_vistas = uri?.getQueryParameter("registrado") ?: "desconocido"
         val tipoEntrada = uri?.getQueryParameter("tipo_entrada") ?: "desconocido"
@@ -96,6 +105,7 @@ class vistaTrabajador : AppCompatActivity() {
 
     }
 
+    override fun getRootView():  View = binding.root
     private fun mostrarVistaTrabajador(
         idTrabajador: String,
         nombreUSer: String,

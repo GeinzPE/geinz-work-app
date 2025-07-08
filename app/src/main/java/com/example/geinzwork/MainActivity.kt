@@ -24,6 +24,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.example.geinzwork.Network_internet.BaseActivity
+import com.example.geinzwork.constantesGeneral.NetworkMonitor
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_agregar_estadisticas_publicaiones
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
@@ -38,7 +40,7 @@ import com.geinzz.geinzwork.fragmentos.categoriasFracment
 import com.geinzz.geinzwork.fragmentos.contactoFracment
 import com.geinzz.geinzwork.fragmentos.cuentaFracment
 import com.geinzz.geinzwork.fragmentos.inicioFracment
-import com.geinzz.geinzwork.fragmentos.sinInternet
+
 import com.geinzz.geinzwork.fragmentos.sinRegistroFracment
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTiendas.VistaTienda
@@ -48,13 +50,15 @@ import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDragHandleView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 
-class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
+class MainActivity :  BaseActivity() , View.OnApplyWindowInsetsListener {
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private var currentFragmentTag: String? = null
@@ -69,12 +73,20 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var viewPagerAdapter: ViewPagerAdapter
 
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+
         enableEdgeToEdge()
+
+        // ✅ Primero inflas el binding
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        super.onCreate(savedInstanceState)
+        // ✅ Luego seteas el layout
         setContentView(binding.root)
+
+        // ✅ Ahora sí puedes usar binding.root sin error
         ViewCompat.setOnApplyWindowInsetsListener(binding.buttonNavigation) { view, insets ->
             val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
             val statusBars =
@@ -168,12 +180,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
                 println("No se encontró el enlace dinámico: $it")
             }
         changeSystemBarsColor(Color.parseColor("#744ACB"))
-        if (!isInternetAvailable(this)) {
-            Toast.makeText(this, "No hay conexión a Internet", Toast.LENGTH_SHORT).show()
-            sinInternetfun()
-        } else {
-            //loadMainContent()
-        }
+
         val configSettings = FirebaseRemoteConfigSettings.Builder()
             .setMinimumFetchIntervalInSeconds(3600) // Fetch cada hora
             .build()
@@ -231,6 +238,9 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
             }
         })
     }
+
+
+    override fun getRootView(): View = binding.root
 
     val getViewPager: ViewPager2
         get() = viewPager
@@ -477,13 +487,7 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         window.statusBarColor = color
     }
 
-    fun onInternetRestored() {
-        val fragment = supportFragmentManager.findFragmentByTag("sin_internet")
-        fragment?.let {
-            supportFragmentManager.beginTransaction().remove(it).commit()
-        }
-//        loadMainContent()
-    }
+
 
 
     override fun onBackPressed() {
@@ -521,12 +525,6 @@ class MainActivity : AppCompatActivity(), View.OnApplyWindowInsetsListener {
         putString("idUSer", "$id")
     }
 
-    private fun sinInternetfun() {
-        val fragmentBinding = sinInternet()
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(binding.viewPager.id, fragmentBinding, "sin_internet")
-        fragmentTransaction.commit()
-    }
 
     override fun onApplyWindowInsets(v: View, insets: WindowInsets): WindowInsets {
         TODO("Not yet implemented")

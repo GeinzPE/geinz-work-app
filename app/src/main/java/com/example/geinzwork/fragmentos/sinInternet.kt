@@ -35,12 +35,7 @@ class sinInternet : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.retryButton.setOnClickListener {
-            if (isInternetAvailable(requireContext())) {
-                Toast.makeText(requireContext(), "Conexión a Internet restaurada", Toast.LENGTH_SHORT).show()
-                (activity as? MainActivity)?.onInternetRestored()
-            } else {
-                Toast.makeText(requireContext(), "No hay conexión a Internet", Toast.LENGTH_SHORT).show()
-            }
+
         }
     }
 

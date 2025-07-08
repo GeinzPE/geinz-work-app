@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.geinzwork.NotificacionRS
 import com.example.geinzwork.constantesGeneral.Variables
+import com.example.geinzwork.constantesGeneral.obtenertokenIdAdmin
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
@@ -24,10 +25,14 @@ import com.geinzz.geinzwork.databinding.ActivityProbleasUsuariosFormularioBindin
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
 import kotlin.math.E
 
 class probleas_usuarios_formulario : AppCompatActivity() {
@@ -167,26 +172,35 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                             try {
                                 val enviar_notificaciones = NotificacionRS()
                                 constantes.obtenerToken_trabajador(idTrabajador) { token, nombre, apellido ->
-                                    if (token.isNotEmpty()) {
-                                        GlobalScope.launch {
-                                            try {
-                                                enviar_notificaciones.sendNotification_con_parametros(
-                                                    "idUSer",
-                                                    idTrabajador,
-                                                    "REPORTE",
-                                                    this@probleas_usuarios_formulario,
-                                                    token,
-                                                    "REPORTE DE TRABAJADOR GEINZ WORK",
-                                                    "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con su cuenta"
-                                                )
-                                                println("Enviamos los valores $idTrabajador, $token")
-                                            } catch (e: Exception) {
-                                                println("Error sending notification: ${e.message}")
+                                    obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(idTrabajador,
+                                        onSuccess = { tokensMap ->
+                                            // Obtener los datos del usuario solo una vez
+                                            constantesCarrito.setearDatosUsuario { nombre, numero, localidad, apellido ->
+                                                val notificacionRS = NotificacionRS()
+
+                                                // Puedes usar CoroutineScope(Dispatchers.IO) si estás en una función normal
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    for ((dispositivo, token) in tokensMap) {
+                                                        Log.d("FCM_rsitaldo", "Dispositivo: $dispositivo -> Token: $token")
+
+                                                        // Enviar notificación
+                                                        notificacionRS.enviarNotificacionFCM(
+                                                            token,
+                                                            "idAdmin",
+                                                            "idasdasda",
+                                                            "iadasdasda",
+                                                            "entrada",
+                                                            "REPORTE DE TRABAJADOR ",
+                                                            "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con tu cuenta"
+                                                        )
+                                                    }
+                                                }
                                             }
+                                        },
+                                        onError = { error ->
+                                            Log.e("FCM_rsitaldo", "Error al obtener tokens: ${error.message}")
                                         }
-                                    } else {
-                                        println("Token no disponible o vacío.")
-                                    }
+                                    )
                                 }
                             } catch (e: Exception) {
                                 println("Error obtaining token: ${e.message}")

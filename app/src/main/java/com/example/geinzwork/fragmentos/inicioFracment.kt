@@ -24,6 +24,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import com.example.geinzwork.constantesGeneral.NetworkMonitor
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
@@ -56,6 +57,7 @@ import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -88,6 +90,7 @@ class inicioFracment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         obtenerImagenesFirestorage()
         SetAnuncios()
         obtenerTrabajosCat()
@@ -318,6 +321,7 @@ class inicioFracment : Fragment() {
         }
 
     }
+
 
     val permisoNotificaion =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { esConcedido -> }

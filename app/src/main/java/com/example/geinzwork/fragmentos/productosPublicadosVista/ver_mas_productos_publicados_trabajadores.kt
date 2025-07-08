@@ -37,10 +37,11 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
 
     private lateinit var binding: ActivityVerMasProductosPublicadosTrabajadoresBinding
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityVerMasProductosPublicadosTrabajadoresBinding.inflate(layoutInflater)
         enableEdgeToEdge()
+        binding = ActivityVerMasProductosPublicadosTrabajadoresBinding.inflate(layoutInflater)
+
         setContentView(binding.root)
+        super.onCreate(savedInstanceState)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
