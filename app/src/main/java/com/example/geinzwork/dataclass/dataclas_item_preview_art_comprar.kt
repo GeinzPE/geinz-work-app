@@ -1,6 +1,8 @@
 package com.example.geinzwork.dataclass
 
 data class dataclas_item_preview_art_comprar(
+    val id_trabajador: String,
+    val metodo_entrega: String,
     val id:String?,
     val img: String?,
     val titulo: String?,

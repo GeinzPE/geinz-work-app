@@ -58,8 +58,9 @@ object constantes_vistas_publicaciones_productos_verificados {
                 val precio_descuento = data["precio_descuento"] as? Number ?: 0
                 val precio = data["precio"] as? Number ?: 0
                 val nombre = data["nombre"] as? String ?: ""
+                val metodoEntrega = data["metodoEntrega"] as? String ?: ""
 
-                val item = dataclas_item_preview_art_comprar(
+                val item = dataclas_item_preview_art_comprar(metodoEntrega,idTrabajador,
                     id,
                     imgProducto,
                     nombre,

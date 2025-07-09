@@ -113,7 +113,7 @@ class adapter_ver_mas_productos_publicados(
                     item.precioPRD,
                     binding.precioProducto
                 )
-                binding.precioDescuento.isVisible = true
+                binding.precioDescuento.isVisible = false
                 binding.descuentoPorcentaje.isVisible = false
             }
 

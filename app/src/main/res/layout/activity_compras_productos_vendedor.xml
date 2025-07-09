@@ -219,6 +219,16 @@
                 layout="@layout/include_texto_horizontal_general" />
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:id="@+id/total_cancelar_normal"/>
+            <TextView
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/nombreProductoNotifi"/>
+            <TextView
                 style="@style/TextoTitulos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

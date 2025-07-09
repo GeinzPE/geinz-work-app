@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.dataclass.dataclas_item_preview_art_comprar
+import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
 import com.geinzz.geinzwork.databinding.ItemProductosUsuariosVerificadosBinding
 
@@ -48,6 +49,18 @@ class adapter_mostra_articulos_trabajadores(
         val carga=binding.cargadoContenido
         val linealCamposTXT=binding.linealCargandoDatos
         fun render(item: dataclas_item_preview_art_comprar) {
+            obtener_metodoEntrega(
+                item.id_trabajador.toString(), item.metodo_entrega.toString(),
+                callback = { metodo_entrega ->
+                },
+                evio_gratis = { delivery_gratis ->
+                    if (delivery_gratis) {
+                        binding.envioGrtis.isVisible = true
+                    } else {
+                        binding.envioGrtis.isVisible = false
+                    }
+                }
+            )
             imgARticulo.setOnClickListener { listener(item) }
             constatnes_carga_imagenes_general.changer_img(
                 progressVar,
@@ -78,6 +91,7 @@ class adapter_mostra_articulos_trabajadores(
                 descuentoPorcentaje.isVisible = false
                 precioDescuento.isVisible=false
             }
+
         }
 
 

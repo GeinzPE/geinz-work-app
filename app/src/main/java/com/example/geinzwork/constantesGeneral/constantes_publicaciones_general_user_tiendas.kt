@@ -135,11 +135,12 @@ object constantes_publicaciones_general_user_tiendas {
                 val imgProducto = data["img_url"] as? String ?: ""
                 val descuentoActivo = data["descuento"] as? Boolean ?: false
                 val id = data["id"] as? String ?: ""
+                val metodoEntrega = data["metodoEntrega"] as? String ?: ""
                 val cantidadDescuento = data["cantidad_porcentaje_descuento"] as? Number ?: 0
                 val precio_descuento = data["precio_descuento"] as? Number ?: 0
                 val precio = data["precio"] as? Number ?: 0
                 val nombre = data["nombre"] as? String ?: ""
-                val item = dataclas_item_preview_art_comprar(
+                val item = dataclas_item_preview_art_comprar(idTrabajador,metodoEntrega,
                     id,
                     imgProducto,
                     nombre,
@@ -395,8 +396,9 @@ object constantes_publicaciones_general_user_tiendas {
                 val precio_descuento = datos["precio_descuento"] as? Number ?: 0
                 val precio = datos["precio"] as? Number ?: 0
                 val nombre = datos["nombre"] as? String ?: ""
+                val metodoEntrega = datos["metodoEntrega"] as? String ?: ""
                 if (id != idProducto) {
-                    val item = dataclas_item_preview_art_comprar(
+                    val item = dataclas_item_preview_art_comprar(idTrabajador,metodoEntrega,
                         id,
                         imgProducto,
                         nombre,
@@ -710,6 +712,8 @@ object constantes_publicaciones_general_user_tiendas {
                     val datosDelivery = data?.get("datos_delivery") as? Map<*, *>
                     val esGratis = datosDelivery?.get("gratis") as? Boolean ?: false
                     evio_gratis(esGratis)
+                }else{
+                    evio_gratis(false)
                 }
 
                 callback(resultadoTexto)

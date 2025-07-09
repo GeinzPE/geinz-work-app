@@ -3,6 +3,7 @@ package com.example.geinzwork.fragmentos.productosPublicadosVista
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -11,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.example.geinzwork.Network_internet.BaseActivity
 import com.example.geinzwork.adapterViewholder.adapterCategoriasPromocionesFiltrado
 import com.example.geinzwork.adapterViewholder.adapter_trabajos_realizados_trabajador
 import com.example.geinzwork.adapterViewholder.adapter_ver_mas_productos_publicados
@@ -26,7 +28,7 @@ import com.geinzz.geinzwork.fragmentos.info
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
+class ver_mas_productos_publicados_trabajadores : BaseActivity() {
     private var listaVer_mas_productos = mutableListOf<dataclass_ver_mas_productos_trabajador>()
     private lateinit var adapterCategorias: adapterCategoriasPromocionesFiltrado
     private val listaCategoriasDescuento = mutableListOf<dataclasCaterogirasFiltrado>()
@@ -66,15 +68,16 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val data = datos.data
                 val imgPrincipal = data.get("img_url") as? String ?: ""
                 val id = data.get("id") as? String ?: ""
+                val nombre = data.get("nombre") as? String ?: ""
                 val descripcionProducto = data.get("descripcion") as? String ?: ""
                 val cantidad_porcentaje_descuento =
                     data.get("cantidad_porcentaje_descuento") as? Number ?: 0
                 val precioAntiguoProducto = data.get("precio_descuento") as? Number ?: 0
                 val precioProducto = data.get("precio") as? Number ?: 0
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
-                val categoria = data.get("categoria") as? String ?: ""
-                val nombre = data.get("nombre") as? String ?: ""
-                val metodoEntrega=data?.get("metodoEntrega") as? String?:""
+                val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
+                val categoria = data?.get("categoria_producto") as? String ?: ""
+                val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
 
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
@@ -82,7 +85,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    idTrabajador,metodoEntrega,id, cantidad_porcentaje_descuento, nombre
+                    idTrabajador, metodoEntrega, id, cantidad_porcentaje_descuento, nombre
                 )
                 if (categoriaFiltrado == categoria) {
                     listaVer_mas_productos.add(dataclass)
@@ -120,6 +123,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val data = datos.data
                 val imgPrincipal = data.get("img_url") as? String ?: ""
                 val id = data.get("id") as? String ?: ""
+                val nombre = data.get("nombre") as? String ?: ""
                 val descripcionProducto = data.get("descripcion") as? String ?: ""
                 val cantidad_porcentaje_descuento =
                     data.get("cantidad_porcentaje_descuento") as? Number ?: 0
@@ -127,9 +131,8 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val precioProducto = data.get("precio") as? Number ?: 0
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
-                val categoria = data.get("categoria") as? String ?: ""
-                val nombre = data.get("nombre") as? String ?: ""
-                val metodoEntrega=data?.get("metodoEntrega") as? String?:""
+                val categoria = data?.get("categoria_producto") as? String ?: ""
+                val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
 
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
@@ -137,7 +140,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    idTrabajador,metodoEntrega,id, cantidad_porcentaje_descuento, nombre
+                    idTrabajador, metodoEntrega, id, cantidad_porcentaje_descuento, nombre
                 )
                 if (categoriaFiltrado == categoria && descuentoProducto) {
                     listaVer_mas_productos.add(dataclass)
@@ -173,7 +176,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
             val categoriaDescuento = mutableSetOf<String>()
 
             for (datos in res) {
-                val categoria = datos.getString("categoria") ?: ""
+                val categoria = datos.getString("categoria_producto") ?: ""
                 val descuento = datos.getBoolean("descuento") ?: false
                 if (categoria.isNotEmpty()) {
                     categoriasSet.add(categoria) // Agregar solo categorías válidas
@@ -239,7 +242,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                 val descuentoProducto = data.get("descuento") as? Boolean ?: false
                 val envioGratisProducto = data.get("envio_gratis") as? Boolean ?: false
 
-                val metodoEntrega=data?.get("metodoEntrega") as? String?:""
+                val metodoEntrega = data?.get("metodoEntrega") as? String ?: ""
 
                 val dataclass = dataclass_ver_mas_productos_trabajador(
                     imgPrincipal,
@@ -247,7 +250,7 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
                     precioAntiguoProducto,
                     precioProducto,
                     descuentoProducto,
-                    idTrabajador,metodoEntrega,id, cantidad_porcentaje_descuento, nombre
+                    idTrabajador, metodoEntrega, id, cantidad_porcentaje_descuento, nombre
                 )
 
                 listaVer_mas_productos.add(dataclass)
@@ -319,7 +322,8 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
-            .collection("productos_venta").document("publicados").collection("publicados").document(productoClikado)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(productoClikado)
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -385,4 +389,6 @@ class ver_mas_productos_publicados_trabajadores : AppCompatActivity() {
         recicle.adapter = adapterCategorias
 
     }
+
+    override fun getRootView(): View = binding.root
 }

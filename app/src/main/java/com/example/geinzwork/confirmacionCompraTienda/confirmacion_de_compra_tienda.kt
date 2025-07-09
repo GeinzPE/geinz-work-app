@@ -242,30 +242,30 @@ class confirmacion_de_compra_tienda : AppCompatActivity() {
                         .collection("articulos")
                         .document(productId)
 
-                    db.get().addOnSuccessListener { res ->
-                        if (res.exists()) {
-                            val data = res.data
-                            val img = data?.get("imgArticulo") as? String ?: ""
-                            val id = data?.get("id") as? String ?: ""
-                            val nombreArticulo = data?.get("nombreArticulo") as? String ?: ""
-                            val productDetails = jsonObject.getJSONObject(productId)
-                            val cantidad = productDetails.getInt("cantidad")
-                            val precio = productDetails.getDouble("precio")
-                            val datos_dataclas = dataclas_item_preview_art_comprar(
-                                id,
-                                img,
-                                nombreArticulo,
-                                precio,
-                                cantidad
-                            )
-                            lista.add(datos_dataclas)
-                            activarRecicle(lista, recicleView, this)
-                        } else {
-                            println("Producto con ID $productId no existe en Firestore")
-                        }
-                    }.addOnFailureListener { exception ->
-                        println("Error al obtener el producto con ID $productId: ${exception.message}")
-                    }
+//                    db.get().addOnSuccessListener { res ->
+//                        if (res.exists()) {
+//                            val data = res.data
+//                            val img = data?.get("imgArticulo") as? String ?: ""
+//                            val id = data?.get("id") as? String ?: ""
+//                            val nombreArticulo = data?.get("nombreArticulo") as? String ?: ""
+//                            val productDetails = jsonObject.getJSONObject(productId)
+//                            val cantidad = productDetails.getInt("cantidad")
+//                            val precio = productDetails.getDouble("precio")
+//                            val datos_dataclas = dataclas_item_preview_art_comprar(
+//                                id,
+//                                img,
+//                                nombreArticulo,
+//                                precio,
+//                                cantidad
+//                            )
+//                            lista.add(datos_dataclas)
+//                            activarRecicle(lista, recicleView, this)
+//                        } else {
+//                            println("Producto con ID $productId no existe en Firestore")
+//                        }
+//                    }.addOnFailureListener { exception ->
+//                        println("Error al obtener el producto con ID $productId: ${exception.message}")
+//                    }
                 }
             } catch (e: JSONException) {
                 e.printStackTrace()

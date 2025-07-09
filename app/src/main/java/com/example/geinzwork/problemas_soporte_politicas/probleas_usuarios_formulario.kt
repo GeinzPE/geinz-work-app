@@ -170,7 +170,6 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                     dbreporteEnviado.document(reporteId).update(Variables.idReporte, reporteId)
                         .addOnSuccessListener {
                             try {
-                                val enviar_notificaciones = NotificacionRS()
                                 constantes.obtenerToken_trabajador(idTrabajador) { token, nombre, apellido ->
                                     obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(idTrabajador,
                                         onSuccess = { tokensMap ->

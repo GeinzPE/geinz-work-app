@@ -3,6 +3,8 @@ package com.example.geinzwork.fragmentos.productosPublicadosVista
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.SpannableString
 import android.util.Log
 import android.view.View
@@ -17,21 +19,33 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.geinzwork.Network_internet.BaseActivity
+import com.example.geinzwork.NotificacionRS
+import com.example.geinzwork.constantesGeneral.obtenertokenIdAdmin
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.adapterViewholder.adapter_radioButton_envios
 import com.geinzz.geinzwork.constantesGeneral.constantesCarrito
+import com.geinzz.geinzwork.constantesGeneral.constantesDatosUsuarioTienda
 import com.geinzz.geinzwork.constantesGeneral.constantesPublicidad
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas
 import com.geinzz.geinzwork.constantesGeneral.constantes_publicaciones_general_user_tiendas.obtener_metodoEntrega
 import com.geinzz.geinzwork.constantesGeneral.constantestextos_general
+import com.geinzz.geinzwork.constantesGeneral.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.databinding.ActivityComprasProductosVendedorBinding
 import com.geinzz.geinzwork.dataclass.dataclassradiobtn
 import com.geinzz.geinzwork.vistaTiendas.direccion_entrega_lat_log
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
 
-class compras_productos_vendedor : AppCompatActivity() {
+class compras_productos_vendedor : BaseActivity() {
     private lateinit var binding: ActivityComprasProductosVendedorBinding
     private val listaLugaresEntrega = mutableListOf<dataclassradiobtn>()
     private lateinit var dialog: BottomSheetDialog
@@ -80,16 +94,7 @@ class compras_productos_vendedor : AppCompatActivity() {
         }
 
 
-        obtnerDatosProducto(idProducto, idTrabajdor) { cargado ->
-            if (cargado) {
-
-                binding.linealCarga.isVisible = false
-                binding.netScroolView.isVisible = true
-            } else {
-                binding.linealCarga.isVisible = true
-                binding.netScroolView.isVisible = false
-            }
-        }
+        obtnerDatosProducto(idProducto, idTrabajdor) { cargado -> }
         println("el idtrabajodr $idTrabajdor y el $idProducto")
         verificarRegistroUSer(firebaseAuth)
     }
@@ -131,7 +136,13 @@ class compras_productos_vendedor : AppCompatActivity() {
         binding.comfirmarCompra.setOnClickListener {
             mostrarDialogCreacionCuenta()
             if (firebaseAuth.currentUser != null) {
-                verificarCamposCompletos()
+                if (verificarCamposCompletos()) {
+                    val idTrabajdor = intent.getStringExtra("idTrabajador").toString()
+                    val idProducto = intent.getStringExtra("idProducto").toString()
+                    agregar_compra(idTrabajdor, idProducto)
+                }
+
+
             }
         }
 
@@ -145,7 +156,7 @@ class compras_productos_vendedor : AppCompatActivity() {
         }
     }
 
-    private fun verificarCamposCompletos() {
+    private fun verificarCamposCompletos(): Boolean {
         var camposValidos = true // Variable para verificar si todo está correcto
 
         val nombreCompletoVacio = binding.nombresCompletosED.text.toString().trim().isEmpty()
@@ -214,6 +225,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         }
+        return camposValidos
     }
 
 
@@ -332,11 +344,19 @@ class compras_productos_vendedor : AppCompatActivity() {
         idTrabajador: String,
         cargado: (Boolean) -> Unit
     ) {
+        val inicio = System.currentTimeMillis()
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
             .document("trabajadores").collection("trabajadores").document(idTrabajador)
             .collection("productos_venta").document("publicados").collection("publicados")
             .document(idProducto)
         db.get().addOnSuccessListener { res ->
+            val fin = System.currentTimeMillis()
+            val tiempo = fin - inicio
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.linealCarga.isVisible = false
+                binding.netScroolView.isVisible = true
+
+            }, tiempo) // 2000 ms = 2 segundos
             if (res.exists()) {
                 Log.d(
                     "FirestoreResponse",
@@ -486,6 +506,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                 obtener_metodoEntrega(
                     idTrabajador, metodoEntrega,
                     callback = { metodo_entrega ->
+                        Log.d("validaocion","sin metodo delivery")
                         binding.MetodoEntregaProducto.textoNumero2.text = metodo_entrega
                         Log.d("metodos_entrega", metodo_entrega)
 
@@ -495,8 +516,13 @@ class compras_productos_vendedor : AppCompatActivity() {
                         // Mostrar solo los botones correspondientes
                         binding.cordinar.visibility =
                             if ("Coordinar" in metodosLista) View.VISIBLE else View.GONE
-                        binding.delivery.visibility =
-                            if ("Delivery" in metodosLista) View.VISIBLE else View.GONE
+                        if ("Delivery" in metodosLista) {
+                            binding.delivery.visibility = View.VISIBLE
+                        } else {
+                            binding.delivery.visibility = View.GONE
+                            binding.precioDelivery.linealCampos.isVisible = false
+                        }
+
                         binding.entregaProgramada.visibility =
                             if ("Entrega Programada" in metodosLista) View.VISIBLE else View.GONE
                         binding.envioCourier.visibility =
@@ -505,9 +531,18 @@ class compras_productos_vendedor : AppCompatActivity() {
                             if ("Lugares de Entrega" in metodosLista) View.VISIBLE else View.GONE
                         binding.retiroTienda.visibility =
                             if ("Retiro en Tienda" in metodosLista) View.VISIBLE else View.GONE
+                        val precioFinal = if (descuento) precioDescuento else precio
+                        constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+                            precioFinal,
+                            binding.totalcancelar.textoNumero2
+                        )
+                        incrementarCantidad(precioFinal, stok.toInt())
+
                     },
                     evio_gratis = { delivery_gratis ->
                         if (delivery_gratis) {
+                            binding.precioDelivery.linealCampos.isVisible=true
+                            Log.d("validaocion","delivceri gartis")
                             binding.precioDelivery.textoNumero2.text = "Envío Gratis"
                             binding.precioDelivery.textoNumero2.setTextColor(
                                 ContextCompat.getColor(
@@ -515,6 +550,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                                     R.color.verde
                                 )
                             )
+
                             val precioFinal = if (descuento) precioDescuento else precio
                             constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
                                 precioFinal,
@@ -522,6 +558,8 @@ class compras_productos_vendedor : AppCompatActivity() {
                             )
                             incrementarCantidad(precioFinal, stok.toInt())
                         } else {
+                            Log.d("validaocion","no es gratis")
+                            binding.precioDelivery.linealCampos.isVisible=false
                             val precioBase = if (descuento) precioDescuento else precio
                             val precioFinalDelivery =
                                 precioBase.toDouble() + precioDelivery.toDouble()
@@ -564,6 +602,7 @@ class compras_productos_vendedor : AppCompatActivity() {
 
 
                 binding.categoriaProductos.textoNumero2.text = categoria
+                binding.nombreProductoNotifi.text = nombre
                 if (marca.isNotEmpty()) {
                     binding.marcaProducto.textoNumero2.text = marca
 
@@ -580,9 +619,9 @@ class compras_productos_vendedor : AppCompatActivity() {
 
 
                 binding.StokDiponible.textoNumero2.text = "$stok UND"
-                if(garantia.isNotEmpty()){
+                if (garantia.isNotEmpty()) {
                     binding.garantiaProducto.textoNumero2.text = garantia
-                }else{
+                } else {
                     binding.garantiaProducto.textoNumero2.text = "NO"
 
                 }
@@ -659,6 +698,7 @@ class compras_productos_vendedor : AppCompatActivity() {
         val menos = binding.menos
 
         val totalPAga = TotalCancelar
+        binding.totalCancelarNormal.text = TotalCancelar.toString()
 
         val intCantidadStok = cantidadStok
 
@@ -668,6 +708,7 @@ class compras_productos_vendedor : AppCompatActivity() {
                 binding.cantidad.text = numeroCantidad.toString()
                 val totalPAgarPorCantidad = numeroCantidad * totalPAga.toDouble()
                 binding.totalcancelar.textoNumero2.text = "S/ %.2f".format(totalPAgarPorCantidad)
+                binding.totalCancelarNormal.text = totalPAgarPorCantidad.toString()
             } else {
                 Toast.makeText(
                     binding.root.context,
@@ -683,9 +724,92 @@ class compras_productos_vendedor : AppCompatActivity() {
                 binding.cantidad.text = numeroCantidad.toString()
                 val totalPAgarPorCantidad = numeroCantidad * totalPAga.toDouble()
                 binding.totalcancelar.textoNumero2.text = "S/ %.2f".format(totalPAgarPorCantidad)
+                binding.totalCancelarNormal.text = totalPAgarPorCantidad.toString()
             }
         }
     }
 
+    private fun agregar_compra(idTrabajdor: String, idProducto: String) {
+        val metodoPagoSeleccionado = when (binding.radioGrupMetodosPago.checkedRadioButtonId) {
+            R.id.metodoYape -> "yape"
+            R.id.metodoPlin -> "plin"
+            R.id.metodoEfectivo -> "efectivo"
+            R.id.metodoTransferencia -> "transferencia"
+            else -> ""
+        }
+        val metodoEntregaSeleccionado = when (binding.metodoEntregaSelect.checkedRadioButtonId) {
+            R.id.cordinar -> "coordinar"
+            R.id.delivery -> "delivery"
+            R.id.entrega_programada -> "entrega_programada"
+            R.id.envio_courier -> "envio_courier"
+            R.id.lugar_entrega -> "lugar_entrega"
+            R.id.retiro_tienda -> "retiro_en_tienda"
+            else -> ""
+        }
 
+        val dbVendedor = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajdor)
+            .collection("compra_venta")
+            .document("venta").collection("venta")
+
+        val hasmap_vendedor = hashMapOf<String, Any>(
+            "id_usuario" to firebaseAuth.uid.toString(),
+            "id_vendedor" to idTrabajdor,
+            "id_producto" to idProducto,
+            "cantidad_adquirida" to binding.cantidad.text.toString().toInt(),
+            "total_cancelar" to binding.totalCancelarNormal.text.toString().toDouble(),
+            "metodo_entrega" to metodoEntregaSeleccionado,
+            "metodo_pago" to metodoPagoSeleccionado,
+            "pagado" to false,
+            "estado_pedido" to "pendiente",
+            "observaciones" to "",
+            "fecha_pedido" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
+            "hora_pedido" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+        )
+        if (metodoEntregaSeleccionado == "delivery") {
+            val datosDeliveryMap = mapOf(
+                "id" to binding.TexviewIDRefDire.text.toString()
+            )
+            hasmap_vendedor["datos_delivery"] = datosDeliveryMap
+        }
+        dbVendedor.add(hasmap_vendedor).addOnSuccessListener { res ->
+            val id_venta = res.id
+            dbVendedor.document(id_venta).update("id_venta", id_venta)
+            Toast.makeText(this, "compra registrada correctamente", Toast.LENGTH_SHORT).show()
+            obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(
+                idTrabajdor,
+                onSuccess = { tokensMap ->
+                    val notificacionRS = NotificacionRS()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        for ((dispositivo, token) in tokensMap) {
+                            Log.d("FCM_rsitaldo", "Dispositivo: $dispositivo -> Token: $token")
+
+                            notificacionRS.enviarNotificacionFCM(
+                                token,
+                                "idAdmin",
+                                "idasdasda",
+                                "iadasdasda",
+                                "entrada",
+                                "¡Nueva Venta Realizada! \uD83E\uDD73 ",
+                                "Has recibido un pedido. Toca aquí para aceptar la venta de ${binding.nombreProductoNotifi.text} y organizar la entrega"
+                            )
+                        }
+                    }
+                },
+                onError = { error ->
+                    Log.e("FCM_rsitaldo", "Error al obtener tokens: ${error.message}")
+                }
+            )
+
+
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al realizar la compra", Toast.LENGTH_SHORT).show()
+        }
+
+
+    }
+
+    override fun getRootView(): View = binding.root
 }
+
+
