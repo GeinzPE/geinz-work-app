@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/fondo"
     android:layout_width="200dp"
-    android:layout_height="340dp"
-    android:layout_marginRight="10dp"
+    android:layout_height="310dp"
     android:layout_marginVertical="10dp"
-    app:cardBackgroundColor="@color/colorFondo"
+    android:layout_marginRight="10dp"
+    app:cardBackgroundColor="@color/roundcustom"
     app:cardCornerRadius="8dp"
     app:cardElevation="3dp">
 
@@ -46,6 +46,22 @@
             android:textStyle="bold"
             android:visibility="gone" />
 
+        <TextView
+            android:id="@+id/envio_grtis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:background="@drawable/roun_verde_descuento"
+            android:padding="5dp"
+            android:text="Envio gratis"
+
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <ProgressBar
             android:id="@+id/cargadoContenido"
             android:layout_width="30dp"
@@ -55,12 +71,12 @@
             android:layout_marginTop="20dp" />
 
         <LinearLayout
-            android:visibility="gone"
             android:id="@+id/linealCargandoDatos"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/img_trabajo"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/nombreProducto"
@@ -108,22 +124,7 @@
                     android:visibility="gone" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/envio_grtis"
-                style="@style/TextoModoOScuroColor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginRight="20dp"
-                android:ellipsize="end"
-                android:textColor="@color/verde"
-                android:maxLines="1"
-                android:visibility="gone"
-                android:text="Envío Gratis"
-                android:textAllCaps="true"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+
         </LinearLayout>
 
     </RelativeLayout>
