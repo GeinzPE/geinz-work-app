@@ -1323,7 +1323,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 val nombre = data?.get("nombre") as? String ?: ""
                 val precio = (data?.get("precio") as? Number)?.toDouble() ?: 0.0
                 val precioDescuento = (data?.get("precio_descuento") as? Number)?.toDouble() ?: 0.0
-                val stok = data?.get("stok") as? String ?: ""
+                val stok = data?.get("stok") as? Number ?: 0
                 val visibilidad = data?.get("visivilidad") as? String ?: ""
                 val masInformacion = data?.get("mas_informacio") as? String ?: ""
 
@@ -1811,7 +1811,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 val nombre = data?.get("nombre") as? String ?: ""
                 val precio = (data?.get("precio") as? Number)?.toDouble() ?: 0.0
                 val precioDescuento = (data?.get("precio_descuento") as? Number)?.toDouble() ?: 0.0
-                val stok = data?.get("stok") as? String ?: ""
+                val stok = data?.get("stok") as? Number ?: 0
                 val visibilidad = data?.get("visivilidad") as? String ?: ""
                 val masInformacion = data?.get("mas_informacio") as? String ?: ""
 
@@ -2334,7 +2334,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 val condicionProducto = data?.get("condicion_producto") as? String ?: ""
                 val categoriaProducto = data?.get("categoria_producto") as? String ?: ""
                 val nombre = data?.get("nombre") as? String ?: ""
-                val stok = data?.get("stok") as? String ?: ""
+                val stok = data?.get("stok") as? Number ?: 0
                 val precio = (data?.get("precio") as? Number)?.toInt() ?: 0
                 val hashtagsGenerales =
                     data?.get("hashtags_generales") as? List<String> ?: emptyList()
@@ -2353,7 +2353,7 @@ class ver_productos_publicados : AppCompatActivity() {
                 bottomSheet.subcategoriaProducto.setText(categoriaProducto)
                 bottomSheet.catSelcionado.text = categoria_producto
                 bottomSheet.nombreProductoED.setText(nombre)
-                bottomSheet.stokED.setText(stok)
+                bottomSheet.stokED.setText(stok.toString())
                 bottomSheet.condicionPrED.setText(condicionProducto)
                 bottomSheet.precioProductoED.setText(precio.toString())
                 bottomSheet.agregarHastagsED.setText(hashtagsGenerales.joinToString(", "))

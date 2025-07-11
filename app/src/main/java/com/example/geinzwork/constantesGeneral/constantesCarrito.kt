@@ -898,13 +898,13 @@ object constantesCarrito {
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         return fechaActual.format(formatter)
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaDentroDeUnMes(): String {
         val fechaFutura = LocalDateTime.now().plusMonths(1)
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         return fechaFutura.format(formatter)
     }
-
 
 
     fun obtnerFotoPErfilTienda(
@@ -1256,6 +1256,61 @@ object constantesCarrito {
             }
     }
 
+    fun obtenerDatosVendedor_trabajadores(
+        idVendedor: String,
+        callback: (nombre: String, apellido: String, imgPerfil: String, localidad: String) -> Unit
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val trabajadoresRef = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores")
+
+        trabajadoresRef.document(idVendedor).get()
+            .addOnSuccessListener { documento ->
+                if (documento.exists()) {
+                    val nombre = documento.getString("nombre") ?: ""
+                    val apellido = documento.getString("apellido") ?: ""
+                    val imagenPerfil = documento.getString("imagenPerfil") ?: ""
+                    val localidad = documento.getString("localidad") ?: ""
+
+                    callback(nombre, apellido, imagenPerfil, localidad)
+                } else {
+                    Log.e("obtenerDatosVendedor", "No se encontró el vendedor con ID: $idVendedor")
+                    callback("", "", "", "")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("obtenerDatosVendedor", "Error al obtener vendedor", e)
+                callback("", "", "", "")
+            }
+    }
+
+    fun obtener_datos_productos(
+        id_vendedor: String,
+        id_producto: String,
+        callback: (nombre_prodcuto: String?, precio_producto: Number?, stok_disponible: Number?) -> Unit
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+        val producto = firestore.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(id_vendedor)
+            .collection("productos_venta").document("publicados").collection("publicados")
+            .document(id_producto)
+        producto.get().addOnSuccessListener { res ->
+            if (res.exists()) {
+                val data = res.data
+                val nombreP = data?.get("nombre") as? String ?: ""
+                val precioP = data?.get("precio") as? Number ?: 0
+                val stok = data?.get("stok") as? Number ?: 0
+                callback(nombreP, precioP, stok)
+            } else {
+                callback("", 0, 0)
+            }
+        }.addOnFailureListener { e ->
+            Log.e("error_obtener_producto", "error al obtener el producto")
+            callback("", 0, 0)
+        }
+
+    }
+
     fun verificar_estado_verificado_user(idUSer: String, verificadoBool: (Boolean) -> Unit) {
         println("Los user pasados son los $idUSer")
         val firestore = FirebaseFirestore.getInstance()
@@ -1298,7 +1353,6 @@ object constantesCarrito {
                 verificadoBool(false)
             }
     }
-
 
 
     fun retornarIDTienda(callback: (List<String>) -> Unit) {

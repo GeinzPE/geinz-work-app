@@ -686,7 +686,7 @@ class crear_publicacion_productos_trabajadores : AppCompatActivity() {
             "precio" to (precioProducto.text.toString().toDoubleOrNull() ?: 0.0),
             "precioDelivery" to 5,
             "precio_descuento" to (precio_descuento_nuevo.text.toString().toDoubleOrNull() ?: 0.0),
-            "stok" to stok_producto.text.toString(),
+            "stok" to stok_producto.text.toString().toInt(),
             "visivilidad" to mostra_para.text.toString(),
             "descripcion_titulo" to tituloMap,
             "descripcion_texto" to texto_map,

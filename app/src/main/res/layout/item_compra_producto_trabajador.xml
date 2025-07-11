@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        style="@style/RoundTrabajadoresBG"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/id_comprovante"
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/cat"
+                        android:textAllCaps="true" />
+
+                    <ImageView
+                        android:id="@+id/copiar_id_compra"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:src="@drawable/baseline_content_copy_24" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_alignParentRight="true">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/img_comprado_vendedor"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/bandera_peru" />
+
+                    <ProgressBar
+                        android:id="@+id/progrs_carga_img"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_centerInParent="true"
+                        android:visibility="gone" />
+
+                </RelativeLayout>
+            </LinearLayout>
+
+
+        </RelativeLayout>
+
+
+        <TextView
+            android:id="@+id/comprado_por"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/titulo_producto"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/cantida_comprada"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/cantidad_restante"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+
+        <TextView
+            android:id="@+id/metodo_entrega_selecionado"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/metodo_pago_selecionado"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/pagado"
+
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/estado_pedido"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/hora_pedida"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:id="@+id/fecha_pedida"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true" />
+
+        <Button
+            android:id="@+id/aceptar_venta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="aceptar" />
+
+        <Button
+            android:id="@+id/rechazar_venta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rechazado" />
+
+        <TextView
+            android:id="@+id/hora_aceptada"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/fecha_aceptada"
+            style="@style/TextoModoOScuroColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/cat"
+            android:textAllCaps="true"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+
+</LinearLayout>

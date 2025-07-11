@@ -444,6 +444,7 @@ object constantes_publicaciones_general_user_tiendas {
     }
 
 
+    @SuppressLint("SetTextI18n")
     fun setearDatosdialogProductos(
         idTrabajador: String,
         context: Context,
@@ -506,7 +507,7 @@ object constantes_publicaciones_general_user_tiendas {
             val marca = data["marca"] as? String ?: ""
             val nombre = data["nombre"] as? String ?: ""
             val mas_informacio = data["mas_informacio"] as? String ?: ""
-            val stok = data["stok"] as? String ?: ""
+            val stok = data["stok"] as? Number ?: 0
             val cantidad_porcentaje_descuento =
                 data["cantidad_porcentaje_descuento"] as? Number ?: 0
             val metodoPago = data?.get("metodoPago") as? String ?: ""
@@ -615,7 +616,7 @@ object constantes_publicaciones_general_user_tiendas {
             bindingProductosTrabajadores.nombreProducto.text = nombre
             bindingProductosTrabajadores.camposProductosUserVerificados.marca.text = marca
             bindingProductosTrabajadores.camposProductosUserVerificados.modelo.text = modelo
-            bindingProductosTrabajadores.camposProductosUserVerificados.stok.text = "$stok UND"
+            bindingProductosTrabajadores.camposProductosUserVerificados.stok.text = "$stok"
             if(garantia.isNotEmpty()){
                 bindingProductosTrabajadores.camposProductosUserVerificados.garantia.text = garantia
             }else{

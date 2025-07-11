@@ -13,6 +13,8 @@ import com.example.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work
 import com.example.geinzwork.activity_dispositivos_vinculados
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_vinculados
+import com.example.geinzwork.fragmentos.apartados_compra_venta.compra_trabajador
+import com.example.geinzwork.fragmentos.apartados_compra_venta.venta_trabajador
 import com.example.geinzwork.fragmentos.panel_publicacion_trabajador
 import com.example.geinzwork.noticias_trabajadores_guardados
 import com.example.geinzwork.vista_denuncia_reporte
@@ -70,6 +72,9 @@ object constantes_cuenta_user {
         val linealServicios = binding.linealServicios
         val vinculados = binding.vinculados
         val accesos_directo = binding.accesoDirecto
+        val historial_venta = binding.historialVenta
+        val historial_compra = binding.historialCompra
+
 
         vinculados.setOnClickListener {
             val vista = Intent(context, activity_dispositivos_vinculados::class.java)
@@ -89,6 +94,17 @@ object constantes_cuenta_user {
             }
 
             else -> ""
+        }
+
+
+        historial_venta.setOnClickListener {
+            context.startActivity(Intent(context, venta_trabajador::class.java))
+            dialog.dismiss()
+        }
+
+        historial_compra.setOnClickListener {
+            context.startActivity(Intent(context, compra_trabajador::class.java))
+            dialog.dismiss()
         }
 
         accesos_directo.setOnClickListener {

@@ -35,7 +35,6 @@ object obtenertokenIdAdmin {
         db.get()
             .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
-                    // ✅ Aquí sí puede leer como mapa correctamente ahora
                     val tokensMap = documentSnapshot.get("tokens") as? Map<String, String>
                     if (tokensMap != null) {
                         onSuccess(tokensMap)

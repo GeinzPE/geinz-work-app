@@ -465,7 +465,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         val lugarDeEntrega = data?.get("lugarEntrega") as? String ?: ""
                         val marca = data?.get("marca") as? String ?: ""
                         val nombre = data?.get("nombre") as? String ?: ""
-                        val stok = data?.get("stok") as? String ?: ""
+                        val stok = data?.get("stok") as? Number ?: 0
                         val plin = data?.get("plin") as? Boolean ?: false
                         val efectivo = data?.get("efectivo") as? Boolean ?: false
                         val yape = data?.get("yape") as? Boolean ?: false
@@ -656,7 +656,7 @@ class vista_ver_productos_trabajadores : AppCompatActivity() {
                         binding.camposProductosUserVerificados.categoriaProducto.text = categoria
 
 
-                        binding.camposProductosUserVerificados.stok.text = stok
+                        binding.camposProductosUserVerificados.stok.text = stok.toString()
                         if (garantia.isNotEmpty()) {
                             binding.camposProductosUserVerificados.garantia.text = garantia
                         } else {

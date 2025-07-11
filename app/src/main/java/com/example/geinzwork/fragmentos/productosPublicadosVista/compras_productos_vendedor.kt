@@ -383,7 +383,7 @@ class compras_productos_vendedor : BaseActivity() {
                 val metodoPago = data?.get("metodoPago") as? String ?: ""
                 val marca = data?.get("marca") as? String ?: ""
                 val nombre = data?.get("nombre") as? String ?: ""
-                val stok = data?.get("stok") as? String ?: ""
+                val stok = data?.get("stok") as? Number ?: ""
                 val envio_gratis = data?.get("envio_gratis") as? Boolean ?: false
                 val precioDelivery = data?.get("precioDelivery") as? Number ?: 0
                 val cantidad_porcentaje_descuento =
@@ -399,7 +399,7 @@ class compras_productos_vendedor : BaseActivity() {
                     binding.linealMetodoEntrega.isVisible = true
                     binding.titulometodoEntregaSelect.text = "Delivery"
                     binding.textometodoEntregaSelect.text =
-                        "Geinz se encargará de la entrega del producto utilizando la referencia\n" +
+                        "El driver se encargará de la entrega del producto utilizando la referencia\n" +
                                 "primaria y secundaria proporcionada en el formulario de envío."
                 }
                 binding.cordinar.setOnClickListener {
@@ -506,7 +506,7 @@ class compras_productos_vendedor : BaseActivity() {
                 obtener_metodoEntrega(
                     idTrabajador, metodoEntrega,
                     callback = { metodo_entrega ->
-                        Log.d("validaocion","sin metodo delivery")
+                        Log.d("validaocion", "sin metodo delivery")
                         binding.MetodoEntregaProducto.textoNumero2.text = metodo_entrega
                         Log.d("metodos_entrega", metodo_entrega)
 
@@ -536,13 +536,13 @@ class compras_productos_vendedor : BaseActivity() {
                             precioFinal,
                             binding.totalcancelar.textoNumero2
                         )
-                        incrementarCantidad(precioFinal, stok.toInt())
+                        incrementarCantidad(precioFinal, stok.toString().toInt())
 
                     },
                     evio_gratis = { delivery_gratis ->
                         if (delivery_gratis) {
-                            binding.precioDelivery.linealCampos.isVisible=true
-                            Log.d("validaocion","delivceri gartis")
+                            binding.precioDelivery.linealCampos.isVisible = true
+                            Log.d("validaocion", "delivceri gartis")
                             binding.precioDelivery.textoNumero2.text = "Envío Gratis"
                             binding.precioDelivery.textoNumero2.setTextColor(
                                 ContextCompat.getColor(
@@ -556,10 +556,10 @@ class compras_productos_vendedor : BaseActivity() {
                                 precioFinal,
                                 binding.totalcancelar.textoNumero2
                             )
-                            incrementarCantidad(precioFinal, stok.toInt())
+                            incrementarCantidad(precioFinal, stok.toString().toInt())
                         } else {
-                            Log.d("validaocion","no es gratis")
-                            binding.precioDelivery.linealCampos.isVisible=false
+                            Log.d("validaocion", "no es gratis")
+                            binding.precioDelivery.linealCampos.isVisible = false
                             val precioBase = if (descuento) precioDescuento else precio
                             val precioFinalDelivery =
                                 precioBase.toDouble() + precioDelivery.toDouble()
@@ -573,7 +573,7 @@ class compras_productos_vendedor : BaseActivity() {
                                 precioFinalDelivery,
                                 binding.totalcancelar.textoNumero2
                             )
-                            incrementarCantidad(precioFinalDelivery, stok.toInt())
+                            incrementarCantidad(precioFinalDelivery, stok.toString().toInt())
                         }
                     }
                 )
@@ -729,7 +729,7 @@ class compras_productos_vendedor : BaseActivity() {
         }
     }
 
-    private fun agregar_compra(idTrabajdor: String, idProducto: String) {
+    private fun agregar_compra(idTrabajador: String, idProducto: String) {
         val metodoPagoSeleccionado = when (binding.radioGrupMetodosPago.checkedRadioButtonId) {
             R.id.metodoYape -> "yape"
             R.id.metodoPlin -> "plin"
@@ -747,14 +747,22 @@ class compras_productos_vendedor : BaseActivity() {
             else -> ""
         }
 
-        val dbVendedor = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-            .document("trabajadores").collection("trabajadores").document(idTrabajdor)
-            .collection("compra_venta")
-            .document("venta").collection("venta")
+        val idCompra = binding.codigoGeneradoCompra.text.toString() // ID manual de 9 dígitos
 
-        val hasmap_vendedor = hashMapOf<String, Any>(
+        val db = FirebaseFirestore.getInstance()
+        val refVenta = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(idTrabajador)
+            .collection("compra_venta").document("venta").collection("venta").document(idCompra)
+
+        val refCompra = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores").collection("trabajadores").document(firebaseAuth.uid.toString())
+            .collection("compra_venta").document("compra").collection("compra").document(idCompra)
+        val db_compras_generales=db.collection("Trabajadores_Usuarios_Drivers").document("trabajadores").collection("compra_venta_trabajadores").document(idCompra)
+
+
+        val datosCompraVenta = hashMapOf<String, Any>(
             "id_usuario" to firebaseAuth.uid.toString(),
-            "id_vendedor" to idTrabajdor,
+            "id_vendedor" to idTrabajador,
             "id_producto" to idProducto,
             "cantidad_adquirida" to binding.cantidad.text.toString().toInt(),
             "total_cancelar" to binding.totalCancelarNormal.text.toString().toDouble(),
@@ -765,49 +773,74 @@ class compras_productos_vendedor : BaseActivity() {
             "observaciones" to "",
             "fecha_pedido" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
             "hora_pedido" to mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+            "id_venta" to idCompra,
+            "codigo_compra" to idCompra
         )
+
         if (metodoEntregaSeleccionado == "delivery") {
-            val datosDeliveryMap = mapOf(
-                "id" to binding.TexviewIDRefDire.text.toString()
-            )
-            hasmap_vendedor["datos_delivery"] = datosDeliveryMap
+            datosCompraVenta["datos_delivery"] = mapOf("id" to binding.TexviewIDRefDire.text.toString())
         }
-        dbVendedor.add(hasmap_vendedor).addOnSuccessListener { res ->
-            val id_venta = res.id
-            dbVendedor.document(id_venta).update("id_venta", id_venta)
-            Toast.makeText(this, "compra registrada correctamente", Toast.LENGTH_SHORT).show()
-            obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(
-                idTrabajdor,
-                onSuccess = { tokensMap ->
-                    val notificacionRS = NotificacionRS()
-                    CoroutineScope(Dispatchers.IO).launch {
-                        for ((dispositivo, token) in tokensMap) {
-                            Log.d("FCM_rsitaldo", "Dispositivo: $dispositivo -> Token: $token")
 
-                            notificacionRS.enviarNotificacionFCM(
-                                token,
-                                "idAdmin",
-                                "idasdasda",
-                                "iadasdasda",
-                                "entrada",
-                                "¡Nueva Venta Realizada! \uD83E\uDD73 ",
-                                "Has recibido un pedido. Toca aquí para aceptar la venta de ${binding.nombreProductoNotifi.text} y organizar la entrega"
-                            )
-                        }
-                    }
-                },
-                onError = { error ->
-                    Log.e("FCM_rsitaldo", "Error al obtener tokens: ${error.message}")
-                }
+        db_compras_generales.set(datosCompraVenta, SetOptions.merge()).addOnSuccessListener {
+            val hasmap_compra_venta_t=hashMapOf<String, Any>(
+                "codigo_compra" to idCompra
             )
+            refVenta.set(hasmap_compra_venta_t).addOnSuccessListener {
+                refCompra.set(hasmap_compra_venta_t).addOnSuccessListener {
+                    Toast.makeText(this, "Compra registrada correctamente", Toast.LENGTH_SHORT).show()
 
+                    // Notificar al comprador
+                    obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(firebaseAuth.uid.toString(),
+                        onSuccess = { tokensMap ->
+                            val notificacionRS = NotificacionRS()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                for ((_, token) in tokensMap) {
+                                    notificacionRS.enviarNotificacionFCM(
+                                        token,
+                                        "idAdmin",
+                                        "codigoCompra",
+                                        "compraExitosa",
+                                        "entrada",
+                                        "Tu compra fue enviada exitosamente",
+                                        "Recibirás la confirmación del vendedor en unos momentos"
+                                    )
+                                }
+                            }
+                        },
+                        onError = { error -> Log.e("FCM", "Error al obtener tokens: ${error.message}") }
+                    )
+
+                    // Notificar al vendedor
+                    obtenertokenIdAdmin.obtenerTokensDispositivos_trabajador(idTrabajador,
+                        onSuccess = { tokensMap ->
+                            val notificacionRS = NotificacionRS()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                for ((_, token) in tokensMap) {
+                                    notificacionRS.enviarNotificacionFCM(
+                                        token,
+                                        "idAdmin",
+                                        "codigoCompra",
+                                        "nuevaVenta",
+                                        "entrada",
+                                        "¡Nueva Venta Realizada! 🎉",
+                                        "Has recibido un pedido. Toca aquí para aceptar la venta de ${binding.nombreProductoNotifi.text}"
+                                    )
+                                }
+                            }
+                        },
+                        onError = { error -> Log.e("FCM", "Error al obtener tokens: ${error.message}") }
+                    )
+                }
+            }
 
         }.addOnFailureListener {
-            Toast.makeText(this, "Error al realizar la compra", Toast.LENGTH_SHORT).show()
+
         }
+
 
 
     }
+
 
     override fun getRootView(): View = binding.root
 }
