@@ -38,6 +38,9 @@
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
         <activity
+            android:name="com.example.geinzwork.fragmentos.cuenta_config"
+            android:exported="false" />
+        <activity
             android:name="com.example.geinzwork.fragmentos.apartados_compra_venta.compra_trabajador"
             android:exported="false" />
         <activity

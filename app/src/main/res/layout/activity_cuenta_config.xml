@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    style="@style/fondo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.geinzwork.fragmentos.cuenta_config">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_marginBottom="10dp"
+                style="@style/TextoTitulos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Configuracion general"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                style="@style/descripcionColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/roboto_medium"
+                android:text="Gestiona tu cuenta, revisa tus reseñas, direcciones, reportes, dispositivos y accede a los beneficios que Geinz Work tiene para ti."
+                android:textSize="12sp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                app:cardElevation="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardUseCompatPadding="true"
+                android:backgroundTint="@color/color_fondo_mas_claro">
+
+                <RelativeLayout
+                    android:layout_margin="10dp"
+                    android:padding="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:id="@+id/lineal_cabezera"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:src="@drawable/geinz_circular_new" />
+
+                        <TextView
+                            android:layout_marginLeft="10dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="Geinz work"
+                            android:textSize="15sp"
+                            style="@style/TextoTitulos" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lineal_productos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/lineal_cabezera"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_marginBottom="10dp"
+                            style="@style/TextoModoOScuroColor"
+                            android:textStyle="bold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Productos de geinz work "
+                            android:textSize="15sp" />
+
+                        <TextView
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="Explora los diferentes productos que geinz work tiene para ti y mejorar tu crecimiento"
+                            android:textSize="13sp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <!-- Ítem 1 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/logo_geinz_circular" />
+
+                                <TextView
+                                    android:layout_marginLeft="5dp"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_weight="1"
+                                    android:text="Servicios Geinz"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                            <!-- Ítem 2 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/icon_verificado" />
+
+                                <TextView
+                                    android:layout_marginLeft="5dp"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_weight="1"
+                                    android:text="Verificar Cuenta"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                            <!-- Ítem 3 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/como_funcion_geinz" />
+
+                                <TextView
+                                    android:layout_marginLeft="5dp"
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_weight="1"
+                                    android:text="¿Cómo funciona Geinz?"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+
+
+            <include
+                android:id="@+id/panel_publicacion"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/container_preview"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/qr_trabajador"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/vinculados"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/container_cerrar_seccion"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/container_eliminar_cuenta"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/acceso_directo"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/container_guardados"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/container_review"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/containerLocalizacion"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/lineaReportes"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/historial_compra"
+                layout="@layout/item_cuenta_config" />
+
+            <include
+                android:id="@+id/historial_venta"
+                layout="@layout/item_cuenta_config" />
+
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</LinearLayout>

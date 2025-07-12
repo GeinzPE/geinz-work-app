@@ -32,6 +32,7 @@ import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
+import com.example.geinzwork.fragmentos.cuenta_config
 import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.fragmentos.img_completa.recortador_img
 import com.geinzz.geinzwork.EditarInfo
@@ -137,18 +138,21 @@ class cuentaFracment : Fragment() {
 
         verificarEstado_vericiacion(firebaseAuth.uid.toString())
         binding.popup.setOnClickListener {
-            dialog = BottomSheetDialog(mContex)
-            activity?.let { it1 ->
-                constantes_cuenta_user.bottom_shett_config(
-                    dialog,
-                    mContex,
-                    it1,
-                    binding.tipoCuenta,
-                    binding.plan.text.toString()
+//            dialog = BottomSheetDialog(mContex)
+//            activity?.let { it1 ->
+//                constantes_cuenta_user.bottom_shett_config(
+//                    dialog,
+//                    mContex,
+//                    it1,
+//                    binding.tipoCuenta,
+//                    binding.plan.text.toString()
+//
+//                )
+//            }
+//            dialog.show()
 
-                )
-            }
-            dialog.show()
+            startActivity(Intent(mContex, cuenta_config::class.java))
+
         }
         binding.imagenPerfil.setOnClickListener {
             pciMEdia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))

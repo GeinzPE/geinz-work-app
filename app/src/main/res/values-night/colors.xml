@@ -8,6 +8,7 @@
     <color name="color_invertido_white_blackTexto">#FFFFFF</color>
     <color name="roundcustomItemsCompra">#202020</color>
     <color name="colorFondo">#1A1A1A</color>
+    <color name="color_fondo_mas_claro">#2A2A2A</color>
     <color name="colorBTNFiltrado">#804D3187</color>
     <color name="textoColorBTNFiltrado">#171F26</color>
     <color name="f1">#1A1A1A</color>
