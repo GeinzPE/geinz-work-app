@@ -31,6 +31,7 @@
     <color name="colorFondo">#F9F8FF</color>
     <color name="color_fondo_mas_claro">#F9F8FF</color>
     <color name="colorFondoPantallaACtividades">#F9F8FF</color>
+    <color name="inpusBusqueda">#EDF1F3</color>
 
 
     <color name="colorBTNFiltrado">#C9EBF9</color>

@@ -32,7 +32,7 @@ import com.bumptech.glide.Glide
 import com.example.geinzwork.constantesGeneral.Variables
 import com.example.geinzwork.constantesGeneral.constantes_nombre_usuarios
 import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
-import com.example.geinzwork.fragmentos.cuenta_config
+import com.example.geinzwork.fragmentos.cuenta_config.cuenta_config
 import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.fragmentos.img_completa.recortador_img
 import com.geinzz.geinzwork.EditarInfo
@@ -138,20 +138,18 @@ class cuentaFracment : Fragment() {
 
         verificarEstado_vericiacion(firebaseAuth.uid.toString())
         binding.popup.setOnClickListener {
-//            dialog = BottomSheetDialog(mContex)
-//            activity?.let { it1 ->
-//                constantes_cuenta_user.bottom_shett_config(
-//                    dialog,
-//                    mContex,
-//                    it1,
-//                    binding.tipoCuenta,
-//                    binding.plan.text.toString()
-//
-//                )
-//            }
-//            dialog.show()
+            dialog = BottomSheetDialog(mContex)
+            activity?.let { it1 ->
+                val vista = Intent(mContex, cuenta_config::class.java).apply {
+                    putExtra("plan",binding.plan.text.toString())
+                    putExtra("tipo_cuenta",binding.tipoCuenta.text.toString())
+                }
+                startActivity(vista)
+            }
 
-            startActivity(Intent(mContex, cuenta_config::class.java))
+
+
+
 
         }
         binding.imagenPerfil.setOnClickListener {
@@ -254,7 +252,11 @@ class cuentaFracment : Fragment() {
                             bottomSheet_verificado.planVerificado.text =
                                 "Plan de obtenido: Plan A"
                             bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_a)
-                            setear_caracteristicasVerificados(db, "plan_a", bottomSheet_verificado) { tiempo ->
+                            setear_caracteristicasVerificados(
+                                db,
+                                "plan_a",
+                                bottomSheet_verificado
+                            ) { tiempo ->
                                 Handler(Looper.getMainLooper()).postDelayed({
                                     bottomSheet_verificado.lineaContenido.isVisible = true
                                     bottomSheet_verificado.cargaContenido.isVisible = false
@@ -266,7 +268,11 @@ class cuentaFracment : Fragment() {
                             bottomSheet_verificado.planVerificado.text =
                                 "Plan de obtenido: Plan B"
                             bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.icon_verificado)
-                            setear_caracteristicasVerificados(db, "plan_b", bottomSheet_verificado) { tiempo ->
+                            setear_caracteristicasVerificados(
+                                db,
+                                "plan_b",
+                                bottomSheet_verificado
+                            ) { tiempo ->
                                 Handler(Looper.getMainLooper()).postDelayed({
                                     bottomSheet_verificado.lineaContenido.isVisible = true
                                     bottomSheet_verificado.cargaContenido.isVisible = false
@@ -278,7 +284,11 @@ class cuentaFracment : Fragment() {
                             bottomSheet_verificado.planVerificado.text =
                                 "Plan de obtenido: Plan C"
                             bottomSheet_verificado.iconoVerificado.setImageResource(R.drawable.verificado_c)
-                            setear_caracteristicasVerificados(db, "plan_c", bottomSheet_verificado) { tiempo ->
+                            setear_caracteristicasVerificados(
+                                db,
+                                "plan_c",
+                                bottomSheet_verificado
+                            ) { tiempo ->
                                 Handler(Looper.getMainLooper()).postDelayed({
                                     bottomSheet_verificado.lineaContenido.isVisible = true
                                     bottomSheet_verificado.cargaContenido.isVisible = false
@@ -628,7 +638,6 @@ class cuentaFracment : Fragment() {
     }
 
 
-
     private fun verificarEstado_vericiacion(id: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.solicitud_servicios)
             .document(Variables.verificaiones).collection(Variables.activos).document(id)
@@ -918,7 +927,10 @@ class cuentaFracment : Fragment() {
                                 .into(binding.fotoPortada)
                             binding.fotoPortada.setOnLongClickListener {
                                 val dialog = FullscreenImageDialog(imgUrl) //
-                                dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                                dialog.show(
+                                    (mContex as AppCompatActivity).supportFragmentManager,
+                                    "fullscreenImage"
+                                )
 
                                 true
                             }
@@ -933,8 +945,6 @@ class cuentaFracment : Fragment() {
                 }
             }
     }
-
-
 
 
     private fun subirImagenStorage(uri: Uri, nombreimg: String) {
@@ -962,11 +972,6 @@ class cuentaFracment : Fragment() {
             constantesImagenes.refereciaStorage(rutaimg, imagenComprimida, nombreimg, mContex)
         }
     }
-
-
-
-
-
 
 
     private fun obtenerPerfil(
@@ -1006,7 +1011,10 @@ class cuentaFracment : Fragment() {
                             .into(cartel)
                         binding.imagenPerfil.setOnLongClickListener {
                             val dialog = FullscreenImageDialog(urlImg) //
-                            dialog.show((mContex as AppCompatActivity).supportFragmentManager, "fullscreenImage")
+                            dialog.show(
+                                (mContex as AppCompatActivity).supportFragmentManager,
+                                "fullscreenImage"
+                            )
 
                             true
                         }

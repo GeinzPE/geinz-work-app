@@ -7,27 +7,57 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.geinzwork.fragmentos.cuenta_config">
+    tools:context="com.example.geinzwork.fragmentos.cuenta_config.cuenta_config">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:animateLayoutChanges="true"
             android:orientation="vertical">
 
-
-            <TextView
-                android:layout_marginBottom="10dp"
-                style="@style/TextoTitulos"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Configuracion general"
-                android:textSize="25sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/retroceder"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:background="@drawable/circle_bakc_preset"
+                    android:maxWidth="20dp"
+                    android:maxHeight="20dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/back_preset_retro" />
+
+                <TextView
+                    style="@style/TextoTitulos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="Configuracion general"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:src="@drawable/logo_geinz_circular" />
+
+            </LinearLayout>
+
 
             <TextView
                 style="@style/descripcionColor"
@@ -40,27 +70,60 @@
                 android:text="Gestiona tu cuenta, revisa tus reseñas, direcciones, reportes, dispositivos y accede a los beneficios que Geinz Work tiene para ti."
                 android:textSize="12sp" />
 
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/inputnombre"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                app:boxBackgroundColor="@color/inpusBusqueda"
+                app:boxCornerRadiusBottomEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusTopStart="20dp"
+                app:boxStrokeWidth="0dp"
+                app:endIconMode="clear_text">
+
+                <EditText
+                    android:id="@+id/editexFilter"
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:drawableStart="@drawable/buscar_icon"
+                    android:drawablePadding="5dp"
+                    android:gravity="center_vertical"
+                    android:hint="Buscar en ajustes"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:paddingStart="10dp"
+                    android:paddingTop="0dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="0dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                app:cardElevation="6dp"
+                android:backgroundTint="@color/color_fondo_mas_claro"
                 app:cardCornerRadius="16dp"
-                app:cardUseCompatPadding="true"
-                android:backgroundTint="@color/color_fondo_mas_claro">
+                app:cardElevation="6dp"
+                app:cardUseCompatPadding="true">
 
                 <RelativeLayout
-                    android:layout_margin="10dp"
-                    android:padding="10dp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:padding="10dp">
 
                     <LinearLayout
                         android:id="@+id/lineal_cabezera"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="10dp">
+                        android:layout_marginBottom="10dp"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="30dp"
@@ -68,13 +131,13 @@
                             android:src="@drawable/geinz_circular_new" />
 
                         <TextView
-                            android:layout_marginLeft="10dp"
+                            style="@style/TextoTitulos"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
+                            android:layout_marginLeft="10dp"
                             android:text="Geinz work"
-                            android:textSize="15sp"
-                            style="@style/TextoTitulos" />
+                            android:textSize="15sp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -85,13 +148,13 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_marginBottom="10dp"
                             style="@style/TextoModoOScuroColor"
-                            android:textStyle="bold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
                             android:text="Productos de geinz work "
-                            android:textSize="15sp" />
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             style="@style/TextoModoOScuroColor"
@@ -117,20 +180,69 @@
                                     android:layout_width="20dp"
                                     android:layout_height="20dp"
                                     android:layout_gravity="center"
-                                    android:src="@drawable/logo_geinz_circular" />
+                                    android:src="@drawable/geinz_circular_new" />
 
                                 <TextView
-                                    android:layout_marginLeft="5dp"
                                     style="@style/TextoModoOScuroColor"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
+                                    android:layout_marginLeft="5dp"
                                     android:layout_weight="1"
                                     android:text="Servicios Geinz"
                                     android:textSize="13sp" />
                             </LinearLayout>
 
                             <!-- Ítem 2 -->
+
+
+                            <!-- Ítem 3 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/como_funciona_geinz_webp" />
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginLeft="5dp"
+                                    android:layout_weight="1"
+                                    android:text="¿Cómo funciona Geinz?"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/pagos_geinz_webp" />
+
+                                <TextView
+                                    style="@style/TextoModoOScuroColor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginLeft="5dp"
+                                    android:layout_weight="1"
+                                    android:text="Pagos Geinz"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -144,97 +256,306 @@
                                     android:src="@drawable/icon_verificado" />
 
                                 <TextView
-                                    android:layout_marginLeft="5dp"
                                     style="@style/TextoModoOScuroColor"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
+                                    android:layout_marginLeft="5dp"
                                     android:layout_weight="1"
                                     android:text="Verificar Cuenta"
                                     android:textSize="13sp" />
                             </LinearLayout>
-
-                            <!-- Ítem 3 -->
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="5dp"
-                                android:orientation="horizontal">
-
-                                <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/como_funcion_geinz" />
-
-                                <TextView
-                                    android:layout_marginLeft="5dp"
-                                    style="@style/TextoModoOScuroColor"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center"
-                                    android:layout_weight="1"
-                                    android:text="¿Cómo funciona Geinz?"
-                                    android:textSize="13sp" />
-                            </LinearLayout>
                         </LinearLayout>
+
+
+                        <TextView
+                            android:id="@+id/ver_mas"
+                            style="@style/TextoModoOScuroColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginVertical="10dp"
+                            android:text="@string/ver_mas_subrayado"
+                            android:textColor="@color/blue"
+                            android:textSize="15sp" />
+
                     </LinearLayout>
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
+            <LinearLayout
+                android:id="@+id/layout_visible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/solo_geinz"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="De geinz work"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <include
+                        android:id="@+id/servicios_geinz"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/funcionamiento_geinz"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/pagos_geinz"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/cuenta_verifica"
+                        layout="@layout/item_cuenta_config" />
+                </LinearLayout>
+
+                <View
+                    android:visibility="gone"
+                    android:id="@+id/linea_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/gris_medio_color" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Tu cuenta"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+                    <!-- 👤 Tu cuenta -->
+                    <include
+                        android:id="@+id/container_preview"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/qr_trabajador"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/acceso_directo"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/vinculados"
+                        layout="@layout/item_cuenta_config" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/gris_medio_color" />
 
 
-            <include
-                android:id="@+id/panel_publicacion"
-                layout="@layout/item_cuenta_config" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
 
-            <include
-                android:id="@+id/container_preview"
-                layout="@layout/item_cuenta_config" />
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Publicaciones y visibilidad"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+                    <!-- 📢 Publicaciones y visibilidad -->
+                    <include
+                        android:id="@+id/panel_publicacion"
+                        layout="@layout/item_cuenta_config" />
+                </LinearLayout>
 
-            <include
-                android:id="@+id/qr_trabajador"
-                layout="@layout/item_cuenta_config" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/gris_medio_color" />
 
-            <include
-                android:id="@+id/vinculados"
-                layout="@layout/item_cuenta_config" />
 
-            <include
-                android:id="@+id/container_cerrar_seccion"
-                layout="@layout/item_cuenta_config" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
 
-            <include
-                android:id="@+id/container_eliminar_cuenta"
-                layout="@layout/item_cuenta_config" />
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Favoritos y opiniones"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+                    <!-- 💾 Favoritos y opiniones -->
+                    <include
+                        android:id="@+id/container_guardados"
+                        layout="@layout/item_cuenta_config" />
 
-            <include
-                android:id="@+id/acceso_directo"
-                layout="@layout/item_cuenta_config" />
+                    <include
+                        android:id="@+id/container_review"
+                        layout="@layout/item_cuenta_config" />
 
-            <include
-                android:id="@+id/container_guardados"
-                layout="@layout/item_cuenta_config" />
+                </LinearLayout>
 
-            <include
-                android:id="@+id/container_review"
-                layout="@layout/item_cuenta_config" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/gris_medio_color" />
 
-            <include
-                android:id="@+id/containerLocalizacion"
-                layout="@layout/item_cuenta_config" />
 
-            <include
-                android:id="@+id/lineaReportes"
-                layout="@layout/item_cuenta_config" />
+                <LinearLayout
+                    android:layout_width="match_parent"
 
-            <include
-                android:id="@+id/historial_compra"
-                layout="@layout/item_cuenta_config" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
 
-            <include
-                android:id="@+id/historial_venta"
-                layout="@layout/item_cuenta_config" />
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Ubicación y reportes"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+                    <!-- 🗺️ Ubicación y reportes -->
+                    <include
+                        android:id="@+id/containerLocalizacion"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/lineaReportes"
+                        layout="@layout/item_cuenta_config" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/gris_medio_color" />
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Historial de actividad"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+                    <!-- 🧾 Historial de actividad -->
+                    <include
+                        android:id="@+id/historial_compra"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/historial_venta"
+                        layout="@layout/item_cuenta_config" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/gris_medio_color" />
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextoModoOScuroColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="Sesión y privacidad"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+                    <!-- 🚪 Sesión y privacidad -->
+                    <include
+                        android:id="@+id/container_cerrar_seccion"
+                        layout="@layout/item_cuenta_config" />
+
+                    <include
+                        android:id="@+id/container_eliminar_cuenta"
+                        layout="@layout/item_cuenta_config" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recicle_ajustes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/sin_resultados"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/TextoModoOScuroColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="No se encontraron resultados"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
 
         </LinearLayout>
