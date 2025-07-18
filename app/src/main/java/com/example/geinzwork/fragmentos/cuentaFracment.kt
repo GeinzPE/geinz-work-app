@@ -2,18 +2,13 @@ package com.geinzz.geinzwork.fragmentos
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
 import android.text.InputType
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -35,14 +30,10 @@ import com.example.geinzwork.constantesGeneral.constatnes_carga_imagenes_general
 import com.example.geinzwork.fragmentos.cuenta_config.cuenta_config
 import com.example.geinzwork.fragmentos.img_completa.FullscreenImageDialog
 import com.example.geinzwork.fragmentos.img_completa.recortador_img
-import com.geinzz.geinzwork.EditarInfo
 import com.geinzz.geinzwork.Login
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.constantesGeneral.constantes
 import com.geinzz.geinzwork.constantesGeneral.constantesImagenes
-import com.geinzz.geinzwork.constantesGeneral.constantes_cuenta_user
-import com.geinzz.geinzwork.constantesGeneral.constantes_servicios
-import com.geinzz.geinzwork.databinding.BottomSheetConfigCuentaBinding
 import com.geinzz.geinzwork.databinding.BottomSheetEditarCamposBinding
 import com.geinzz.geinzwork.databinding.BottomSheetVerificadoMasInfoBinding
 import com.geinzz.geinzwork.databinding.FragmentCuentaFracmentBinding
@@ -51,16 +42,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.auth.User
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-
 
 class cuentaFracment : Fragment() {
     private lateinit var binding: FragmentCuentaFracmentBinding

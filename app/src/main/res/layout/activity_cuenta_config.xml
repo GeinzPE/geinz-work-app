@@ -104,6 +104,7 @@
 
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/car_view_geinz_work"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
@@ -290,11 +291,11 @@
 
                 <LinearLayout
                     android:id="@+id/solo_geinz"
-                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <TextView
                         style="@style/TextoModoOScuroColor"
@@ -324,18 +325,18 @@
                 </LinearLayout>
 
                 <View
-                    android:visibility="gone"
                     android:id="@+id/linea_view"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="20dp"
                     android:layout_marginBottom="10dp"
-                    android:background="@color/gris_medio_color" />
+                    android:background="@color/gris_medio_color"
+                    android:visibility="gone" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginVertical="10dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -374,6 +375,7 @@
 
 
                 <LinearLayout
+                    android:id="@+id/publicacioneVisibilidad"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
@@ -395,6 +397,7 @@
                 </LinearLayout>
 
                 <View
+                    android:id="@+id/PublicacionesView"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="20dp"

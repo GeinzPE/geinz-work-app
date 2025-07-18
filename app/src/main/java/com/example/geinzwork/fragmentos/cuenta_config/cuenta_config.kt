@@ -49,8 +49,6 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
     private lateinit var adapterFiltrado: adapter_filtrado_cuenta_config
     private lateinit var prefs: SharedPreferences
 
-    private var isCamposVisible = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCuentaConfigBinding.inflate(layoutInflater)
@@ -69,177 +67,18 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
         val plan = intent.getStringExtra("plan").toString()
         val tipo_cuenta = intent.getStringExtra("tipo_cuenta").toString()
         firebaseAuth = FirebaseAuth.getInstance()
-
-        restaurarIncluidos(prefs)
         ocultar_apartado(prefs)
-        agregra_lista_filtrado_geinz_work(prefs)
+        when (tipo_cuenta) {
+            "Cuenta Simple" -> { solocampos_vista_usuarios() }
 
+            "Cuenta Trabajador" -> { solo_vista_trabajadores() }
 
-        setear_datos_include(
-            binding.panelPublicacion.lineaApartado,
-            binding.panelPublicacion.imgIcono,
-            R.drawable.icono_panel_de_publicacion,
-            "Panel de publicación",
-            binding.panelPublicacion.textoContenido,
-            binding.panelPublicacion.linealPadre,
-            binding.panelPublicacion.ocultarP1,
-            binding.panelPublicacion.textoOcultar,
-            "Administra y visualiza todas las publicaciones que has realizado en Geinz Work.", true
-        )
-
-        setear_datos_include(
-            binding.accesoDirecto.lineaApartado,
-            binding.accesoDirecto.imgIcono,
-            R.drawable.accesos_directo_icon,
-            "Accesos directos",
-            binding.accesoDirecto.textoContenido,
-            binding.accesoDirecto.linealPadre,
-            binding.accesoDirecto.ocultarP1,
-            binding.accesoDirecto.textoOcultar,
-            "Accede rápidamente a funciones clave y apartados de tu cuenta desde este menú directo.",
-            true
-        )
-
-        setear_datos_include(
-            binding.containerPreview.lineaApartado,
-            binding.containerPreview.imgIcono,
-            R.drawable.preview_icon,
-            "Vista de cuenta",
-            binding.containerPreview.textoContenido,
-            binding.containerPreview.linealPadre,
-            binding.containerPreview.ocultarP1,
-            binding.containerPreview.textoOcultar,
-            "Visualiza cómo se muestra tu perfil público para otros usuarios de la plataforma.",
-            true
-        )
-
-        setear_datos_include(
-            binding.qrTrabajador.lineaApartado,
-            binding.qrTrabajador.imgIcono,
-            R.drawable.qr_icon_color_webp,
-            "QR trabajador",
-            binding.qrTrabajador.textoContenido,
-            binding.qrTrabajador.linealPadre,
-            binding.qrTrabajador.ocultarP1,
-            binding.qrTrabajador.textoOcultar,
-            "Comparte fácilmente tu perfil profesional a través de tu código QR único.", true
-        )
-
-        setear_datos_include(
-            binding.vinculados.lineaApartado,
-            binding.vinculados.imgIcono,
-            R.drawable.dispositivo_vinculado,
-            "Dispositivos vinculados",
-            binding.vinculados.textoContenido,
-            binding.vinculados.linealPadre,
-            binding.vinculados.ocultarP1,
-            binding.vinculados.textoOcultar,
-            "Revisa y gestiona los dispositivos que tienen acceso a tu cuenta actualmente.", true
-        )
-
-        setear_datos_include(
-            binding.containerCerrarSeccion.lineaApartado,
-            binding.containerCerrarSeccion.imgIcono,
-            R.drawable.cerra_seccion_icon,
-            "Cerrar seccion",
-            binding.containerCerrarSeccion.textoContenido,
-            binding.containerCerrarSeccion.linealPadre,
-            binding.containerCerrarSeccion.ocultarP1,
-            binding.containerCerrarSeccion.textoOcultar,
-            "Finaliza tu sesión de forma segura y protege tu cuenta.", true
-        )
-
-        setear_datos_include(
-            binding.containerEliminarCuenta.lineaApartado,
-            binding.containerEliminarCuenta.imgIcono,
-            R.drawable.eliminar_user_icon,
-            "Eliminar cuenta",
-            binding.containerEliminarCuenta.textoContenido,
-            binding.containerEliminarCuenta.linealPadre,
-            binding.containerEliminarCuenta.ocultarP1,
-            binding.containerEliminarCuenta.textoOcultar,
-            "Elimina tu cuenta de manera permanente junto con toda tu información registrada.", true
-        )
-
-        setear_datos_include(
-            binding.containerGuardados.lineaApartado,
-            binding.containerGuardados.imgIcono,
-            R.drawable.guardados_icon,
-            "Guardados",
-            binding.containerGuardados.textoContenido,
-            binding.containerGuardados.linealPadre,
-            binding.containerGuardados.ocultarP1,
-            binding.containerGuardados.textoOcultar,
-            "Consulta todos los elementos y publicaciones que has guardado para ver después.", true
-        )
-
-        setear_datos_include(
-            binding.containerReview.lineaApartado,
-            binding.containerReview.imgIcono,
-            R.drawable.review_icons,
-            "Reseñas",
-            binding.containerReview.textoContenido,
-            binding.containerReview.linealPadre,
-            binding.containerReview.ocultarP1,
-            binding.containerReview.textoOcultar,
-            "Accede a las reseñas que has recibido o dejado sobre otros usuarios o servicios.", true
-        )
-
-        setear_datos_include(
-            binding.containerLocalizacion.lineaApartado,
-            binding.containerLocalizacion.imgIcono,
-            R.drawable.localizacion_icon,
-            "Dirección de envíos",
-            binding.containerLocalizacion.textoContenido,
-            binding.containerLocalizacion.linealPadre,
-            binding.containerLocalizacion.ocultarP1,
-            binding.containerLocalizacion.textoOcultar,
-            "Gestiona y actualiza las direcciones para recibir productos o servicios.", true
-        )
-
-        setear_datos_include(
-            binding.lineaReportes.lineaApartado,
-            binding.lineaReportes.imgIcono,
-            R.drawable.reporte_user,
-            "Reportes",
-            binding.lineaReportes.textoContenido,
-            binding.lineaReportes.linealPadre,
-            binding.lineaReportes.ocultarP1,
-            binding.lineaReportes.textoOcultar,
-            "Envía reportes sobre usuarios, contenido inapropiado o errores en la app.", true
-        )
-
-        setear_datos_include(
-            binding.historialCompra.lineaApartado,
-            binding.historialCompra.imgIcono,
-            R.drawable.compras_geinz_webp,
-            "Historial de compra",
-            binding.historialCompra.textoContenido,
-            binding.historialCompra.linealPadre,
-            binding.historialCompra.ocultarP1,
-            binding.historialCompra.textoOcultar,
-            "Revisa todos los productos y servicios que has comprado desde tu cuenta.", true
-        )
-
-        setear_datos_include(
-            binding.historialVenta.lineaApartado,
-            binding.historialVenta.imgIcono,
-            R.drawable.ventas_geinz_webp,
-            "Historial de venta",
-            binding.historialVenta.textoContenido,
-            binding.historialVenta.linealPadre,
-            binding.historialVenta.ocultarP1,
-            binding.historialVenta.textoOcultar,
-            "Consulta el historial completo de tus ventas y transacciones realizadas.", true
-        )
-
+        }
         binding.verMas.setOnClickListener {
             dialog = BottomSheetDialog(this)
             constantes_cuenta_user.bottom_shett_config(dialog, this, this)
             dialog.show()
         }
-
-        lista.addAll(agregar_lista_filtrado())
         adapterFiltrado = adapter_filtrado_cuenta_config(lista.toMutableList()) { item ->
             item.actividadDestino?.let {
                 startActivity(Intent(this, it))
@@ -250,7 +89,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                     "QR trabajador" -> abrirQRTrabajador()
                     "Accesos directos" -> abrirAccesosDirectos()
                     "Dispositivos vinculados" -> abrirDispositivosVinculados()
-                    "Cerrar seccion" -> mostrarDialogCerrarSesion()
+                    "Cerrar sesión" -> mostrarDialogCerrarSesion()
                     "Eliminar cuenta" -> mostrarDialogEliminarCuenta(tipo_cuenta, this)
                     "Guardados" -> abrirGuardados()
                     "Reseñas" -> abrirReseñas()
@@ -258,16 +97,29 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                     "Reportes" -> abrirReportes(plan)
                     "Historial de compra" -> abrirHistorialCompra()
                     "Historial de venta" -> abrirHistorialVenta()
+                    "Servicios Geinz" -> {
+                        startActivity(Intent(this, serviciosGeinz::class.java))
+                    }
+
+                    "Funcionamiento de Geinz" -> {
+                        startActivity(Intent(this, onboarding_como_usar_geinz::class.java))
+                    }
+
+                    "Pagos Geinz" -> {}
+                    "Verificar cuenta" -> {
+                        startActivity(
+                            Intent(
+                                this,
+                                verificacion_cuenta_trabajador::class.java
+                            )
+                        )
+                    }
                 }
 
             }
         }
-
-
-
         binding.recicleAjustes.layoutManager = LinearLayoutManager(this)
         binding.recicleAjustes.adapter = adapterFiltrado
-
         binding.editexFilter.addTextChangedListener { editable ->
             val texto = editable?.toString()?.trim() ?: ""
 
@@ -298,8 +150,6 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                 adapterFiltrado.actualizarLista(resultadosFiltrados)
             }
         }
-
-
     }
 
     private fun abrirGuardados() {
@@ -333,7 +183,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
 
     private fun mostrarDialogCerrarSesion() {
         val alerta = AlertDialog.Builder(this)
-        alerta.setTitle("Cerrar Sesión")
+        alerta.setTitle("Cerrar sesión")
         alerta.setMessage("¿Está seguro de que desea cerrar sesión?")
         alerta.setPositiveButton("Sí") { dialog, which ->
             constantes_vinculados.cerrarSeccion(
@@ -381,70 +231,6 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
         startActivity(intent)
 
     }
-    private fun agregra_lista_filtrado_geinz_work(prefs: SharedPreferences) {
-
-        val estados = mapOf(
-            "servicios_geinz" to  prefs.getBoolean("funcionamiento_geinz", false),
-            "funcionamiento_geinz" to prefs.getBoolean("servicios_geinz", false),
-            "pagos_geinz" to prefs.getBoolean("pagos_geinz", false),
-            "verificar_cuenta" to  prefs.getBoolean("verificar_cuenta", false)
-        )
-
-        val listaFiltrada = mutableListOf<dataclass_cuenta_config_filtrado>()
-
-        estados.forEach { (clave, valor) ->
-            if (valor) {
-                Log.d("refa", valor.toString())
-
-                when (clave) {
-                    "servicios_geinz" -> {
-                        listaFiltrada.add(
-                            dataclass_cuenta_config_filtrado(
-                                "Servicios Geinz",
-                                R.drawable.geinz_circular_new,
-                                null,
-                                "Administra y visualiza todas las publicaciones que has realizado en Geinz Work."
-                            )
-                        )
-                    }
-                    "funcionamiento_geinz" -> {
-                        listaFiltrada.add(
-                            dataclass_cuenta_config_filtrado(
-                                "Funcionamiento de Geinz",
-                                R.drawable.como_funciona_geinz_webp,
-                                null,
-                                "Aprende cómo funciona la plataforma Geinz Work y sácale el máximo provecho."
-                            )
-                        )
-                    }
-                    "pagos_geinz" -> {
-                        listaFiltrada.add(
-                            dataclass_cuenta_config_filtrado(
-                                "Pagos Geinz",
-                                R.drawable.pagos_geinz_webp,
-                                null,
-                                "Consulta tus métodos de pago y tus ganancias dentro de Geinz Work."
-                            )
-                        )
-                    }
-                    "verificar_cuenta" -> {
-                        listaFiltrada.add(
-                            dataclass_cuenta_config_filtrado(
-                                "Verificar cuenta",
-                                R.drawable.icon_verificado,
-                                null,
-                                "Verifica tu cuenta para acceder a funciones avanzadas en Geinz Work."
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        // Aquí podrías usar listaFiltrada en un RecyclerView, por ejemplo
-        Log.d("listaGeinz", "Total visibles: ${listaFiltrada.size}")
-    }
-
 
     private fun agregar_lista_filtrado(): List<dataclass_cuenta_config_filtrado> {
         return listOf(
@@ -528,7 +314,61 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
             )
 
         )
+    }
 
+    private fun agregar_lista_filtrado_cuenta_simple(): List<dataclass_cuenta_config_filtrado> {
+        return listOf(
+            dataclass_cuenta_config_filtrado(
+                "Dispositivos vinculados",
+                R.drawable.dispositivo_vinculado,
+                null,
+                "Gestiona los dispositivos que tienen acceso a tu cuenta."
+            ),
+            dataclass_cuenta_config_filtrado(
+                "Cerrar sesión",
+                R.drawable.cerra_seccion_icon,
+                null,
+                "Cierra tu sesión actual de forma segura en Geinz Work."
+            ),
+            dataclass_cuenta_config_filtrado(
+                "Eliminar cuenta",
+                R.drawable.eliminar_user_icon,
+                null,
+                "Elimina permanentemente tu cuenta y todos tus datos asociados."
+            ),
+            dataclass_cuenta_config_filtrado(
+                "Guardados",
+                R.drawable.guardados_icon,
+                null,
+                "Revisa todos los elementos que guardaste para ver después."
+            ),
+
+            dataclass_cuenta_config_filtrado(
+                "Dirección de envíos",
+                R.drawable.localizacion_icon,
+                null,
+                "Gestiona y actualiza tus direcciones de envío guardadas."
+            ),
+            dataclass_cuenta_config_filtrado(
+                "Reportes",
+                R.drawable.reporte_user,
+                null,
+                "Accede a reportes de actividad, errores o comportamiento inadecuado."
+            ),
+            dataclass_cuenta_config_filtrado(
+                "Historial de compra",
+                R.drawable.compras_geinz_webp,
+                null,
+                "Consulta todas las compras que realizaste en la plataforma."
+            ),
+            dataclass_cuenta_config_filtrado(
+                "Historial de venta",
+                R.drawable.ventas_geinz_webp,
+                null,
+                "Revisa el historial completo de tus ventas y transacciones."
+            )
+
+        )
     }
 
     private fun restaurarIncluidos(prefs: SharedPreferences) {
@@ -541,7 +381,6 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
         if (prefs.getBoolean("pagos_geinz", false)) onIncludeSeleccionado("pagos_geinz")
         if (prefs.getBoolean("verificar_cuenta", false)) onIncludeSeleccionado("verificar_cuenta")
     }
-
 
     private fun setear_datosGeinz(
         lineal_apartado: LinearLayout,
@@ -562,15 +401,13 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                 if (visible) R.drawable.ocultar_abajo else R.drawable.ocultar_arriva
             )
         }
-        lineal_apartado.isVisible=true
+        lineal_apartado.isVisible = true
         textView_ocultar.text = texto_setear
         Glide.with(this)
             .load(img)
             .into(imageView)
 
         textView.text = tituloTexto
-        val plan = intent.getStringExtra("plan").toString()
-        val tipo_cuenta = intent.getStringExtra("tipo_cuenta").toString()
         linealPadre.setOnClickListener {
             when (tituloTexto) {
                 "Servicios Geinz" -> {
@@ -630,7 +467,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                 "QR trabajador" -> abrirQRTrabajador()
                 "Accesos directos" -> abrirAccesosDirectos()
                 "Dispositivos vinculados" -> abrirDispositivosVinculados()
-                "Cerrar seccion" -> mostrarDialogCerrarSesion()
+                "Cerrar sesión" -> mostrarDialogCerrarSesion()
                 "Eliminar cuenta" -> mostrarDialogEliminarCuenta(
                     tipoCuenta = tipo_cuenta,
                     activity = this
@@ -642,6 +479,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                 "Reportes" -> abrirReportes(plan)
                 "Historial de compra" -> abrirHistorialCompra()
                 "Historial de venta" -> abrirHistorialVenta()
+
             }
         }
     }
@@ -649,7 +487,6 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
     private fun abrirAccesosDirectos() {
         startActivity(Intent(this, accesos_directos_geinz_work::class.java))
     }
-
 
     private fun abrirHistorialVenta() {
         startActivity(Intent(this, venta_trabajador::class.java))
@@ -682,15 +519,15 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
 
     }
 
-
     override fun onIncludeSeleccionado(id: String) {
         binding.lineaView.isVisible = true
         binding.soloGeinz.isVisible = true
         Log.d("ebenos_el_id", "obtenmos el $id")
         when (id) {
-            "servicios_geinz" ->{
-                if(!binding.serviciosGeinz.lineaApartado.isVisible){
-                    setear_datosGeinz(binding.serviciosGeinz.lineaApartado,
+            "servicios_geinz" -> {
+                if (!binding.serviciosGeinz.lineaApartado.isVisible) {
+                    setear_datosGeinz(
+                        binding.serviciosGeinz.lineaApartado,
                         binding.serviciosGeinz.imgIcono,
                         R.drawable.geinz_circular_new,
                         "Servicios Geinz",
@@ -702,13 +539,26 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                     )
                 }
 
+                val yaExiste = lista.any { it.titulo_texto == "Servicios Geinz" }
+
+                if (!yaExiste) {
+                    lista.add(
+                        dataclass_cuenta_config_filtrado(
+                            "Servicios Geinz",
+                            R.drawable.geinz_circular_new,
+                            null,
+                            "Administra y visualiza todas las publicaciones que has realizado en Geinz Work."
+                        )
+                    )
+
+                }
             }
 
+
             "funcionamiento_geinz" -> {
-                if(!binding.funcionamientoGeinz.lineaApartado.isVisible){
-
-
-                    setear_datosGeinz(binding.funcionamientoGeinz.lineaApartado,
+                if (!binding.funcionamientoGeinz.lineaApartado.isVisible) {
+                    setear_datosGeinz(
+                        binding.funcionamientoGeinz.lineaApartado,
                         binding.funcionamientoGeinz.imgIcono,
                         R.drawable.como_funciona_geinz_webp,
                         "Funcionamiento de Geinz",
@@ -720,14 +570,26 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
 
                         )
                 }
+                val yaExiste = lista.any { it.titulo_texto == "Funcionamiento de Geinz" }
+                if (!yaExiste) {
+                    lista.add(
+                        dataclass_cuenta_config_filtrado(
+                            "Funcionamiento de Geinz",
+                            R.drawable.como_funciona_geinz_webp,
+                            null,
+                            "Aprende cómo funciona la plataforma Geinz Work y sácale el máximo provecho."
+                        )
+                    )
+
+                }
 
 
             }
 
             "pagos_geinz" -> {
-                if(!binding.pagosGeinz.lineaApartado.isVisible){
-
-                    setear_datosGeinz(binding.pagosGeinz.lineaApartado,
+                if (!binding.pagosGeinz.lineaApartado.isVisible) {
+                    setear_datosGeinz(
+                        binding.pagosGeinz.lineaApartado,
                         binding.pagosGeinz.imgIcono,
                         R.drawable.pagos_geinz_webp,
                         "Pagos Geinz",
@@ -736,17 +598,28 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                         binding.pagosGeinz.ocultarP1,
                         binding.pagosGeinz.textoOcultar,
                         "Administra y visualiza todas las publicaciones que has realizado en Geinz Work.",
-
-
-                        )
+                    )
                 }
+                val yaExiste = lista.any { it.titulo_texto == "Funcionamiento de Geinz" }
+                if (!yaExiste) {
+                    lista.add(
+                        dataclass_cuenta_config_filtrado(
+                            "Pagos Geinz",
+                            R.drawable.pagos_geinz_webp,
+                            null,
+                            "Consulta tus métodos de pago y tus ganancias dentro de Geinz Work."
+                        )
+
+                    )
+                }
+
 
             }
 
             "verificar_cuenta" -> {
-                if(!binding.cuentaVerifica.lineaApartado.isVisible){
-
-                    setear_datosGeinz(binding.cuentaVerifica.lineaApartado,
+                if (!binding.cuentaVerifica.lineaApartado.isVisible) {
+                    setear_datosGeinz(
+                        binding.cuentaVerifica.lineaApartado,
                         binding.cuentaVerifica.imgIcono,
                         R.drawable.icon_verificado,
                         "Verificar cuenta",
@@ -755,27 +628,37 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                         binding.cuentaVerifica.ocultarP1,
                         binding.cuentaVerifica.textoOcultar,
                         "Administra y visualiza todas las publicaciones que has realizado en Geinz Work.",
-
-
-                        )
+                    )
                 }
+                val yaExiste = lista.any { it.titulo_texto == "Verificar cuenta" }
+                if (!yaExiste) {
+                    lista.add(
+                        dataclass_cuenta_config_filtrado(
+                            "Verificar cuenta",
+                            R.drawable.icon_verificado,
+                            null,
+                            "Verifica tu cuenta para acceder a funciones avanzadas en Geinz Work."
+                        )
+                    )
+
+                }
+
 
             }
         }
         guardarEnPreferencias(id)
     }
 
-
     private fun guardarEnPreferencias(id: String) {
         prefs.edit().putBoolean(id, true).apply()
     }
 
     private fun ocultar_apartado(prefs: SharedPreferences) {
-
         binding.funcionamientoGeinz.linealPadre.setOnLongClickListener {
             prefs.edit().putBoolean("funcionamiento_geinz", false).apply()
             binding.funcionamientoGeinz.lineaApartado.isVisible = false
             verificarVisibilidadGeneral()
+            lista.removeIf { it.titulo_texto == "Funcionamiento de Geinz" }
             true
         }
 
@@ -783,6 +666,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
             prefs.edit().putBoolean("servicios_geinz", false).apply()
             binding.serviciosGeinz.lineaApartado.isVisible = false
             verificarVisibilidadGeneral()
+            lista.removeIf { it.titulo_texto == "Servicios Geinz" }
             true
         }
 
@@ -790,6 +674,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
             prefs.edit().putBoolean("pagos_geinz", false).apply()
             binding.pagosGeinz.lineaApartado.isVisible = false
             verificarVisibilidadGeneral()
+            lista.removeIf { it.titulo_texto == "Pagos Geinz" }
             true
         }
 
@@ -797,11 +682,10 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
             prefs.edit().putBoolean("verificar_cuenta", false).apply()
             binding.cuentaVerifica.lineaApartado.isVisible = false
             verificarVisibilidadGeneral()
+            lista.removeIf { it.titulo_texto == "Verificar cuenta" }
             true
         }
     }
-
-
 
     private fun verificarVisibilidadGeneral() {
         val visibles = listOf(
@@ -820,6 +704,290 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
         binding.lineaView.isVisible = mostrar
     }
 
+    private fun solocampos_vista_usuarios() {
+        binding.PublicacionesView.isVisible = false
+        binding.publicacioneVisibilidad.isVisible = false
+        binding.qrTrabajador.lineaApartado.isVisible = false
+        binding.containerPreview.lineaApartado.isVisible = false
+        binding.panelPublicacion.lineaApartado.isVisible = false
+        binding.containerReview.lineaApartado.isVisible = false
+        binding.accesoDirecto.lineaApartado.isVisible = false
+        binding.carViewGeinzWork.isVisible = false
+        binding.soloGeinz.isVisible = false
+        binding.lineaView.isVisible = false
+        setear_datos_include(
+            binding.vinculados.lineaApartado,
+            binding.vinculados.imgIcono,
+            R.drawable.dispositivo_vinculado,
+            "Dispositivos vinculados",
+            binding.vinculados.textoContenido,
+            binding.vinculados.linealPadre,
+            binding.vinculados.ocultarP1,
+            binding.vinculados.textoOcultar,
+            "Revisa y gestiona los dispositivos que tienen acceso a tu cuenta actualmente.", true
+        )
+
+        setear_datos_include(
+            binding.containerCerrarSeccion.lineaApartado,
+            binding.containerCerrarSeccion.imgIcono,
+            R.drawable.cerra_seccion_icon,
+            "Cerrar sesión",
+            binding.containerCerrarSeccion.textoContenido,
+            binding.containerCerrarSeccion.linealPadre,
+            binding.containerCerrarSeccion.ocultarP1,
+            binding.containerCerrarSeccion.textoOcultar,
+            "Finaliza tu sesión de forma segura y protege tu cuenta.", true
+        )
+
+        setear_datos_include(
+            binding.containerEliminarCuenta.lineaApartado,
+            binding.containerEliminarCuenta.imgIcono,
+            R.drawable.eliminar_user_icon,
+            "Eliminar cuenta",
+            binding.containerEliminarCuenta.textoContenido,
+            binding.containerEliminarCuenta.linealPadre,
+            binding.containerEliminarCuenta.ocultarP1,
+            binding.containerEliminarCuenta.textoOcultar,
+            "Elimina tu cuenta de manera permanente junto con toda tu información registrada.", true
+        )
+
+        setear_datos_include(
+            binding.containerGuardados.lineaApartado,
+            binding.containerGuardados.imgIcono,
+            R.drawable.guardados_icon,
+            "Guardados",
+            binding.containerGuardados.textoContenido,
+            binding.containerGuardados.linealPadre,
+            binding.containerGuardados.ocultarP1,
+            binding.containerGuardados.textoOcultar,
+            "Consulta todos los elementos y publicaciones que has guardado para ver después.", true
+        )
+
+        setear_datos_include(
+            binding.containerLocalizacion.lineaApartado,
+            binding.containerLocalizacion.imgIcono,
+            R.drawable.localizacion_icon,
+            "Dirección de envíos",
+            binding.containerLocalizacion.textoContenido,
+            binding.containerLocalizacion.linealPadre,
+            binding.containerLocalizacion.ocultarP1,
+            binding.containerLocalizacion.textoOcultar,
+            "Gestiona y actualiza las direcciones para recibir productos o servicios.", true
+        )
+
+        setear_datos_include(
+            binding.lineaReportes.lineaApartado,
+            binding.lineaReportes.imgIcono,
+            R.drawable.reporte_user,
+            "Reportes",
+            binding.lineaReportes.textoContenido,
+            binding.lineaReportes.linealPadre,
+            binding.lineaReportes.ocultarP1,
+            binding.lineaReportes.textoOcultar,
+            "Envía reportes sobre usuarios, contenido inapropiado o errores en la app.", true
+        )
+
+        setear_datos_include(
+            binding.historialCompra.lineaApartado,
+            binding.historialCompra.imgIcono,
+            R.drawable.compras_geinz_webp,
+            "Historial de compra",
+            binding.historialCompra.textoContenido,
+            binding.historialCompra.linealPadre,
+            binding.historialCompra.ocultarP1,
+            binding.historialCompra.textoOcultar,
+            "Revisa todos los productos y servicios que has comprado desde tu cuenta.", true
+        )
+
+        setear_datos_include(
+            binding.historialVenta.lineaApartado,
+            binding.historialVenta.imgIcono,
+            R.drawable.ventas_geinz_webp,
+            "Historial de venta",
+            binding.historialVenta.textoContenido,
+            binding.historialVenta.linealPadre,
+            binding.historialVenta.ocultarP1,
+            binding.historialVenta.textoOcultar,
+            "Consulta el historial completo de tus ventas y transacciones realizadas.", true
+        )
+
+        lista.addAll(agregar_lista_filtrado_cuenta_simple())
+    }
+
+    private fun solo_vista_trabajadores(){
+        restaurarIncluidos(prefs)
+        binding.qrTrabajador.lineaApartado.isVisible = true
+        binding.containerPreview.lineaApartado.isVisible = true
+        binding.panelPublicacion.lineaApartado.isVisible = true
+        binding.containerReview.lineaApartado.isVisible = true
+        binding.accesoDirecto.lineaApartado.isVisible = true
+        binding.carViewGeinzWork.isVisible = true
+        lista.addAll(agregar_lista_filtrado())
+        setear_datos_include(
+            binding.panelPublicacion.lineaApartado,
+            binding.panelPublicacion.imgIcono,
+            R.drawable.icono_panel_de_publicacion,
+            "Panel de publicación",
+            binding.panelPublicacion.textoContenido,
+            binding.panelPublicacion.linealPadre,
+            binding.panelPublicacion.ocultarP1,
+            binding.panelPublicacion.textoOcultar,
+            "Administra y visualiza todas las publicaciones que has realizado en Geinz Work.",
+            true
+        )
+
+        setear_datos_include(
+            binding.accesoDirecto.lineaApartado,
+            binding.accesoDirecto.imgIcono,
+            R.drawable.accesos_directo_icon,
+            "Accesos directos",
+            binding.accesoDirecto.textoContenido,
+            binding.accesoDirecto.linealPadre,
+            binding.accesoDirecto.ocultarP1,
+            binding.accesoDirecto.textoOcultar,
+            "Accede rápidamente a funciones clave y apartados de tu cuenta desde este menú directo.",
+            true
+        )
+
+        setear_datos_include(
+            binding.containerPreview.lineaApartado,
+            binding.containerPreview.imgIcono,
+            R.drawable.preview_icon,
+            "Vista de cuenta",
+            binding.containerPreview.textoContenido,
+            binding.containerPreview.linealPadre,
+            binding.containerPreview.ocultarP1,
+            binding.containerPreview.textoOcultar,
+            "Visualiza cómo se muestra tu perfil público para otros usuarios de la plataforma.",
+            true
+        )
+
+        setear_datos_include(
+            binding.qrTrabajador.lineaApartado,
+            binding.qrTrabajador.imgIcono,
+            R.drawable.qr_icon_color_webp,
+            "QR trabajador",
+            binding.qrTrabajador.textoContenido,
+            binding.qrTrabajador.linealPadre,
+            binding.qrTrabajador.ocultarP1,
+            binding.qrTrabajador.textoOcultar,
+            "Comparte fácilmente tu perfil profesional a través de tu código QR único.",
+            true
+        )
+
+        setear_datos_include(
+            binding.vinculados.lineaApartado,
+            binding.vinculados.imgIcono,
+            R.drawable.dispositivo_vinculado,
+            "Dispositivos vinculados",
+            binding.vinculados.textoContenido,
+            binding.vinculados.linealPadre,
+            binding.vinculados.ocultarP1,
+            binding.vinculados.textoOcultar,
+            "Revisa y gestiona los dispositivos que tienen acceso a tu cuenta actualmente.",
+            true
+        )
+
+        setear_datos_include(
+            binding.containerCerrarSeccion.lineaApartado,
+            binding.containerCerrarSeccion.imgIcono,
+            R.drawable.cerra_seccion_icon,
+            "Cerrar seccion",
+            binding.containerCerrarSeccion.textoContenido,
+            binding.containerCerrarSeccion.linealPadre,
+            binding.containerCerrarSeccion.ocultarP1,
+            binding.containerCerrarSeccion.textoOcultar,
+            "Finaliza tu sesión de forma segura y protege tu cuenta.", true
+        )
+
+        setear_datos_include(
+            binding.containerEliminarCuenta.lineaApartado,
+            binding.containerEliminarCuenta.imgIcono,
+            R.drawable.eliminar_user_icon,
+            "Eliminar cuenta",
+            binding.containerEliminarCuenta.textoContenido,
+            binding.containerEliminarCuenta.linealPadre,
+            binding.containerEliminarCuenta.ocultarP1,
+            binding.containerEliminarCuenta.textoOcultar,
+            "Elimina tu cuenta de manera permanente junto con toda tu información registrada.",
+            true
+        )
+
+        setear_datos_include(
+            binding.containerGuardados.lineaApartado,
+            binding.containerGuardados.imgIcono,
+            R.drawable.guardados_icon,
+            "Guardados",
+            binding.containerGuardados.textoContenido,
+            binding.containerGuardados.linealPadre,
+            binding.containerGuardados.ocultarP1,
+            binding.containerGuardados.textoOcultar,
+            "Consulta todos los elementos y publicaciones que has guardado para ver después.",
+            true
+        )
+
+        setear_datos_include(
+            binding.containerReview.lineaApartado,
+            binding.containerReview.imgIcono,
+            R.drawable.review_icons,
+            "Reseñas",
+            binding.containerReview.textoContenido,
+            binding.containerReview.linealPadre,
+            binding.containerReview.ocultarP1,
+            binding.containerReview.textoOcultar,
+            "Accede a las reseñas que has recibido o dejado sobre otros usuarios o servicios.",
+            true
+        )
+
+        setear_datos_include(
+            binding.containerLocalizacion.lineaApartado,
+            binding.containerLocalizacion.imgIcono,
+            R.drawable.localizacion_icon,
+            "Dirección de envíos",
+            binding.containerLocalizacion.textoContenido,
+            binding.containerLocalizacion.linealPadre,
+            binding.containerLocalizacion.ocultarP1,
+            binding.containerLocalizacion.textoOcultar,
+            "Gestiona y actualiza las direcciones para recibir productos o servicios.", true
+        )
+
+        setear_datos_include(
+            binding.lineaReportes.lineaApartado,
+            binding.lineaReportes.imgIcono,
+            R.drawable.reporte_user,
+            "Reportes",
+            binding.lineaReportes.textoContenido,
+            binding.lineaReportes.linealPadre,
+            binding.lineaReportes.ocultarP1,
+            binding.lineaReportes.textoOcultar,
+            "Envía reportes sobre usuarios, contenido inapropiado o errores en la app.",
+            true
+        )
+
+        setear_datos_include(
+            binding.historialCompra.lineaApartado,
+            binding.historialCompra.imgIcono,
+            R.drawable.compras_geinz_webp,
+            "Historial de compra",
+            binding.historialCompra.textoContenido,
+            binding.historialCompra.linealPadre,
+            binding.historialCompra.ocultarP1,
+            binding.historialCompra.textoOcultar,
+            "Revisa todos los productos y servicios que has comprado desde tu cuenta.", true
+        )
+
+        setear_datos_include(
+            binding.historialVenta.lineaApartado,
+            binding.historialVenta.imgIcono,
+            R.drawable.ventas_geinz_webp,
+            "Historial de venta",
+            binding.historialVenta.textoContenido,
+            binding.historialVenta.linealPadre,
+            binding.historialVenta.ocultarP1,
+            binding.historialVenta.textoOcultar,
+            "Consulta el historial completo de tus ventas y transacciones realizadas.", true
+        )
+    }
 
 
 }

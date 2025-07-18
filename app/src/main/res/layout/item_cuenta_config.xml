@@ -16,7 +16,6 @@
             android:id="@+id/lineal_padre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:orientation="horizontal">
 
             <ImageView
@@ -45,7 +44,11 @@
                 android:layout_height="25dp"
                 android:layout_gravity="center"
                 android:layout_marginRight="10dp"
-                android:src="@drawable/ocultar_arriva" />
+                android:src="@drawable/ocultar_arriva"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
 
 
         </LinearLayout>
