@@ -6,7 +6,7 @@
     style="@style/fondo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.fragmentos.panel_publicacion_trabajador">
+    tools:context="com.geinzz.geinzwork.fragmentos.panel_publicacion_trabajador">
 
 
     <androidx.core.widget.NestedScrollView

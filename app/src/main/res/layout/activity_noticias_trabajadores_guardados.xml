@@ -9,7 +9,7 @@
     android:animateLayoutChanges="true"
     android:orientation="vertical"
 
-    tools:context="com.example.geinzwork.noticias_trabajadores_guardados">
+    tools:context="com.geinzz.geinzwork.noticias_trabajadores_guardados">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe"

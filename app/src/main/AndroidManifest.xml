@@ -27,7 +27,7 @@
         android:required="false" />
 
     <application
-        android:name="com.example.geinzwork.App"
+        android:name="com.geinzz.geinzwork.App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -38,50 +38,50 @@
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
         <activity
-            android:name="com.example.geinzwork.fragmentos.cuenta_config.cuenta_config"
+            android:name="com.geinzz.geinzwork.fragmentos.cuenta_config.cuenta_config"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.fragmentos.apartados_compra_venta.compra_trabajador"
+            android:name="com.geinzz.geinzwork.fragmentos.apartados_compra_venta.compra_trabajador"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.fragmentos.apartados_compra_venta.venta_trabajador"
+            android:name="com.geinzz.geinzwork.fragmentos.apartados_compra_venta.venta_trabajador"
             android:exported="false" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name="com.example.geinzwork.herramientas_geinz.inicio_geinz_work"
+            android:name="com.geinzz.geinzwork.herramientas_geinz.inicio_geinz_work"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.herramientas_geinz.herramientas_geinz"
+            android:name="com.geinzz.geinzwork.herramientas_geinz.herramientas_geinz"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work"
+            android:name="com.geinzz.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistaTrabajador.ver_productos_publicados"
+            android:name="com.geinzz.geinzwork.vistaTrabajador.ver_productos_publicados"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistas_principales.tu_trabajo_habla_porti"
+            android:name="com.geinzz.geinzwork.vistas_principales.tu_trabajo_habla_porti"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.noticias_trabajadores_guardados"
+            android:name="com.geinzz.geinzwork.noticias_trabajadores_guardados"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistas_p.onboarding_como_usar_geinz"
+            android:name="com.geinzz.geinzwork.vistas_p.onboarding_como_usar_geinz"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.activity_dispositivos_vinculados"
+            android:name="com.geinzz.geinzwork.activity_dispositivos_vinculados"
             android:exported="true" />
         <activity
-            android:name="com.example.geinzwork.vistas_principales.tipos_verificaciones_geinz"
+            android:name="com.geinzz.geinzwork.vistas_principales.tipos_verificaciones_geinz"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vista_denuncia_reporte"
+            android:name="com.geinzz.geinzwork.vista_denuncia_reporte"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.SplashActivity"
+            android:name="com.geinzz.geinzwork.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.ApiSclasScrenn">
             <intent-filter>
@@ -91,46 +91,46 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.geinzwork.OnboardingActivity"
+            android:name="com.geinzz.geinzwork.OnboardingActivity"
             android:exported="true" />
         <activity
-            android:name="com.example.geinzwork.crear_publicacion_productos_trabajadores"
+            android:name="com.geinzz.geinzwork.crear_publicacion_productos_trabajadores"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados"
+            android:name="com.geinzz.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.Crea_trabajos_publicaciones"
+            android:name="com.geinzz.geinzwork.Crea_trabajos_publicaciones"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.crear_publicaciones_recientes"
+            android:name="com.geinzz.geinzwork.crear_publicaciones_recientes"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador"
+            android:name="com.geinzz.geinzwork.vistaTrabajador.ver_toto_publicaciones_trabajador"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.fragmentos.panel_publicacion_trabajador"
+            android:name="com.geinzz.geinzwork.fragmentos.panel_publicacion_trabajador"
             android:exported="true" />
         <activity
-            android:name="com.example.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores"
+            android:name="com.geinzz.geinzwork.vistaTrabajador.vista_ver_productos_trabajadores"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores"
+            android:name="com.geinzz.geinzwork.vistaTrabajador.vista_ver_publicaciones_trabajadores"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor"
+            android:name="com.geinzz.geinzwork.fragmentos.productosPublicadosVista.compras_productos_vendedor"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores"
+            android:name="com.geinzz.geinzwork.fragmentos.productosPublicadosVista.ver_mas_productos_publicados_trabajadores"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos"
+            android:name="com.geinzz.geinzwork.publicaciones_trabajadores.mostrarTodosTrabajos"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.crea_tu_noticia"
+            android:name="com.geinzz.geinzwork.crea_tu_noticia"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistaTrabajador.ver_promociones"
+            android:name="com.geinzz.geinzwork.vistaTrabajador.ver_promociones"
             android:exported="false" />
         <activity
             android:name=".servicios_geinz.publicidad_servicios_geinz_activity"
@@ -139,10 +139,10 @@
             android:name=".servicios_geinz.noticias_servicios_geinz_activity"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.oferta_principales_geinz"
+            android:name="com.geinzz.geinzwork.oferta_principales_geinz"
             android:exported="false" />
         <activity
-            android:name="com.example.geinzwork.vistaTiendas.agregarPagoComprareservaTiendas"
+            android:name="com.geinzz.geinzwork.vistaTiendas.agregarPagoComprareservaTiendas"
             android:exported="false" />
         <activity
             android:name=".vistaTiendas.direccion_entrega_lat_log"

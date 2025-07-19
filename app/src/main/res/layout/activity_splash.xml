@@ -6,6 +6,6 @@
     android:layout_width="match_parent"
     style="@style/fondo"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.SplashActivity">
+    tools:context="com.geinzz.geinzwork.SplashActivity">
 
 </androidx.constraintlayout.widget.ConstraintLayout>

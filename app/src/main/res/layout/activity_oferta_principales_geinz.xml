@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    tools:context="com.example.geinzwork.oferta_principales_geinz">
+    tools:context="com.geinzz.geinzwork.oferta_principales_geinz">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollPrincipal"

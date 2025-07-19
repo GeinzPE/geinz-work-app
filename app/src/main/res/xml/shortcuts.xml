@@ -10,8 +10,8 @@
         android:shortcutShortLabel="@string/my_feature_short_label">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.example.geinzwork.fragmentos.panel_publicacion_trabajador"
-            android:targetPackage="com.example.geinzwork" />
+            android:targetClass="com.geinzz.geinzwork.fragmentos.panel_publicacion_trabajador"
+            android:targetPackage="com.geinzz.geinzwork" />
         <extra
             android:name="shortcut_type"
             android:value="panel_main" />
@@ -28,7 +28,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass=".GenerarQR_trabajador"
-            android:targetPackage="com.example.geinzwork" />
+            android:targetPackage="com.geinzz.geinzwork" />
 
         <extra
             android:name="shortcut_type"
@@ -47,7 +47,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass=".activity_dispositivos_vinculados"
-            android:targetPackage="com.example.geinzwork" />
+            android:targetPackage="com.geinzz.geinzwork" />
 
         <extra
             android:name="shortcut_type"
@@ -63,8 +63,8 @@
 
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.example.geinzwork.vistaTrabajador.vistaTrabajador"
-            android:targetPackage="com.example.geinzwork" />
+            android:targetClass="com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador"
+            android:targetPackage="com.geinzz.geinzwork" />
 
         <extra
             android:name="shortcut_type"
@@ -80,8 +80,8 @@
 
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.example.geinzwork.servicios_geinz.serviciosGeinz"
-            android:targetPackage="com.example.geinzwork" />
+            android:targetClass="com.geinzz.geinzwork.servicios_geinz.serviciosGeinz"
+            android:targetPackage="com.geinzz.geinzwork" />
 
         <extra
             android:name="shortcut_type"

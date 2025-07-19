@@ -9,7 +9,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:padding="20dp"
-    tools:context="com.example.geinzwork.vistas_p.onboarding_como_usar_geinz">
+    tools:context="com.geinzz.geinzwork.vistas_p.onboarding_como_usar_geinz">
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"

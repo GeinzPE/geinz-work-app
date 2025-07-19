@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     style="@style/fondo"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.vistaTrabajador.promocionesvista">
+    tools:context="com.geinzz.geinzwork.vistaTrabajador.promocionesvista">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"

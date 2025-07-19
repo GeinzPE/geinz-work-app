@@ -6,7 +6,7 @@ style="@style/fondo"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work">
+    tools:context="com.geinzz.geinzwork.FuncionalidadGeinz.accesos_directos_geinz_work">
 
     <LinearLayout
         android:layout_margin="10dp"

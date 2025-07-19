@@ -1,0 +1,209 @@
+package com.geinzz.geinzwork.ui.adapters
+
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.geinzz.geinzwork.DiffUtilClass.difultil_Seguidores_seguidos
+import com.geinzz.geinzwork.utils.constantes.constantes.Variables
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_trabajadores_info
+import com.geinzz.geinzwork.utils.constantes.constantes.constatnes_carga_imagenes_general
+import com.geinzz.geinzwork.model.dataclass_seguidores_seguidos
+import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.utils.constantes.constantes.constantesPublicidad
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_servicios
+import com.geinzz.geinzwork.databinding.ItemCargaSeguidoresSeguidosBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+
+class adapter_seguidores_seguidos(
+    private var lista: List<dataclass_seguidores_seguidos>,
+    private var id_trabajador_clikeado: String,
+    private val listener: (dataclass_seguidores_seguidos) -> Unit,
+    private val seguir: (dataclass_seguidores_seguidos) -> Unit,
+    private val dejar_seguir: (dataclass_seguidores_seguidos) -> Unit
+) :
+    RecyclerView.Adapter<adapter_seguidores_seguidos.viewholderSeguidores_Seguidos>() {
+    private lateinit var firebaseAuth: FirebaseAuth
+    private lateinit var dialog: BottomSheetDialog
+    fun actualizarLista(newList: List<dataclass_seguidores_seguidos>) {
+        val difutil = difultil_Seguidores_seguidos(lista, newList)
+        val result = DiffUtil.calculateDiff(difutil)
+        lista = newList
+        result.dispatchUpdatesTo(this)
+    }
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): viewholderSeguidores_Seguidos {
+        val binding = ItemCargaSeguidoresSeguidosBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return viewholderSeguidores_Seguidos(binding)
+    }
+
+    override fun getItemCount(): Int = lista.size
+
+    override fun onBindViewHolder(holder: viewholderSeguidores_Seguidos, position: Int) {
+        val item = lista[position]
+        holder.render(item)
+
+    }
+
+    inner class viewholderSeguidores_Seguidos(private val binding: ItemCargaSeguidoresSeguidosBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun render(item: dataclass_seguidores_seguidos) {
+            val inicio = System.currentTimeMillis()
+            binding.categoriaTrabajo.text = item.tipo_trabajado
+            binding.nombreUser.text = item.nombre_trabajador
+            binding.nacionalidadUser.text = item.nacionalidad
+
+            constantes_servicios.verificarEstado_vericiacion(
+                binding.verificadoIcono,
+                item.id_trabajador.toString()
+            ) { v, plan ->
+                when (plan) {
+                    Variables.plaA -> {
+                        binding.verificadoIcono.setImageResource(R.drawable.verificado_a)
+
+                    }
+
+                    Variables.planB -> {
+                        binding.verificadoIcono.setImageResource(R.drawable.icon_verificado)
+                    }
+
+                    Variables.PlanC -> {
+                        binding.verificadoIcono.setImageResource(R.drawable.verificado_c)
+
+
+                    }
+                }
+
+            }
+
+            val drawable = ContextCompat.getDrawable(itemView.context, R.drawable.img_perfil)
+            constatnes_carga_imagenes_general.changer_img(
+                binding.progreesCarga,
+                itemView.context,
+                item.img_perfil.toString(),
+                binding.imgPerfil,
+                null,
+                "perfil", drawable
+            ) { cargado ->
+            }
+
+
+            val banderaResId = when (item.nacionalidad?.trim()?.lowercase()) {
+                Variables.Peruano.lowercase() -> R.drawable.bandera_peru
+                Variables.Venezolano.lowercase() -> R.drawable.bandera_venezolana
+                else -> R.drawable.logo_geinz_circular
+            }
+
+            try {
+                Glide.with(itemView.context)
+                    .load(banderaResId)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(binding.banderaNacionalidad)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+
+            binding.listener.setOnClickListener {
+                listener(item)
+            }
+            firebaseAuth = FirebaseAuth.getInstance()
+            verificar_seguimiento(
+                binding,
+                item.id_trabajador.toString(),
+                firebaseAuth.uid.toString(), itemView.context
+            )
+
+            binding.seguir.setOnClickListener {
+                if (firebaseAuth.currentUser == null) {
+                    dialog = BottomSheetDialog(itemView.context)
+                    constantesPublicidad.CreacionCuentaBottom_shett(
+                        itemView.context,
+                        dialog
+                    )
+                    dialog.show()
+                } else {
+                    seguir(item)
+                    binding.dejarSeguir.isVisible = true
+                    binding.seguir.isVisible = false
+                }
+
+            }
+            binding.dejarSeguir.setOnClickListener {
+                dejar_seguir(item)
+                binding.seguir.isVisible = true
+                binding.dejarSeguir.isVisible = false
+            }
+
+            binding.verPerfil.setOnClickListener {
+                listener(item)
+            }
+            val fin = System.currentTimeMillis()
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.cargaContenido.isVisible = false
+                binding.realtiveCarga.isVisible = true
+            }, 100)
+        }
+
+    }
+
+    private fun verificar_seguimiento(
+        binding: ItemCargaSeguidoresSeguidosBinding,
+        id_trabajadores: String,
+        id_user_registrado: String,
+        context: Context
+    ) {
+        // Reiniciar visibilidades siempre que se llame
+        binding.verPerfil.isVisible = false
+        binding.seguir.isVisible = false
+        binding.dejarSeguir.isVisible = false
+
+        // El usuario no puede seguirse a sí mismo
+        if (id_trabajadores == id_user_registrado) {
+            binding.verPerfil.isVisible = true
+            constantes_trabajadores_info.aplicarEstiloPorDefecto(binding.verPerfil, context)
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("trabajadores")
+            .collection("trabajadores")
+            .document(id_trabajadores)
+            .collection("seguidores")
+
+        db.get().addOnSuccessListener { res ->
+            val loSigue = res.any { it.getString("id") == id_user_registrado }
+            if (loSigue) {
+                binding.dejarSeguir.isVisible = true
+                constantes_trabajadores_info.aplicarEstiloSigueindo(binding.dejarSeguir, context)
+            } else {
+                binding.seguir.isVisible = true
+                constantes_trabajadores_info.aplicarEstiloPorDefecto(binding.seguir, context)
+            }
+
+        }.addOnFailureListener { e ->
+            Log.e("verificar_seguimiento", "Error al obtener seguidores: ${e.message}")
+        }
+    }
+
+
+}

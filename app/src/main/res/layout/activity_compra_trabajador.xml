@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:orientation="vertical"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.fragmentos.apartados_compra_venta.compra_trabajador">
+    tools:context="com.geinzz.geinzwork.fragmentos.apartados_compra_venta.compra_trabajador">
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"

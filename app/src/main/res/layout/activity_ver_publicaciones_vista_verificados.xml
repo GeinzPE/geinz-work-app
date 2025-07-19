@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:animateLayoutChanges="true"
-    tools:context="com.example.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados">
+    tools:context="com.geinzz.geinzwork.vistaTrabajador.ver_publicaciones_vista_verificados">
 
 
     <androidx.core.widget.NestedScrollView

@@ -20,7 +20,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.example.geinzwork.adapterViewholder.*
--keep class com.example.geinzwork.constantesGeneral.*
--keep class com.example.geinzwork.dataclass.*
--keep class com.example.geinzwork.vistaTiendas.*
+-keep class com.geinzz.geinzwork.adapters.*
+-keep class com.geinzz.geinzwork.constantes.*
+-keep class com.geinzz.geinzwork.model.*
+-keep class com.geinzz.geinzwork.vistaTiendas.*

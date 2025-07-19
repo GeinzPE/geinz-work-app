@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.fragmentos.img_completa.FullScreenImageActivity">
+    tools:context="com.geinzz.geinzwork.fragmentos.img_completa.FullScreenImageActivity">
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/photoView"
         android:layout_width="match_parent"

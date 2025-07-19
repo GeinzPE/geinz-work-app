@@ -9,7 +9,7 @@
     android:animateLayoutChanges="true"
     style="@style/fondo"
     android:orientation="vertical"
-    tools:context="com.example.geinzwork.vista_denuncia_reporte">
+    tools:context="com.geinzz.geinzwork.vista_denuncia_reporte">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"

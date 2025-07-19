@@ -9,7 +9,7 @@
     android:padding="24dp"
     style="@style/fondo"
     android:gravity="center"
-    tools:context="com.example.geinzwork.OnboardingActivity">
+    tools:context="com.geinzz.geinzwork.OnboardingActivity">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

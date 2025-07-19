@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    tools:context="com.example.geinzwork.crear_publicaciones_recientes">
+    tools:context="com.geinzz.geinzwork.crear_publicaciones_recientes">
 
     <LinearLayout
         android:id="@+id/lineal_publicando"

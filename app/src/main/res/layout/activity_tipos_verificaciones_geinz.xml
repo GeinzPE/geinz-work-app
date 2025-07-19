@@ -10,7 +10,7 @@
     android:gravity="center"
     android:orientation="vertical"
     android:padding="20dp"
-    tools:context="com.example.geinzwork.vistas_principales.tipos_verificaciones_geinz">
+    tools:context="com.geinzz.geinzwork.vistas_principales.tipos_verificaciones_geinz">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

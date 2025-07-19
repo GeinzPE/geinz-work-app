@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.geinzwork.herramientas_geinz.inicio_geinz_work">
+    tools:context="com.geinzz.geinzwork.herramientas_geinz.inicio_geinz_work">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"

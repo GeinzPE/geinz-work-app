@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
     android:orientation="vertical"
-    tools:context="com.example.geinzwork.activity_dispositivos_vinculados">
+    tools:context="com.geinzz.geinzwork.activity_dispositivos_vinculados">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe"

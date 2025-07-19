@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.geinzwork.vistas_principales.tu_trabajo_habla_porti">
+    tools:context="com.geinzz.geinzwork.vistas_principales.tu_trabajo_habla_porti">
 
     <androidx.core.widget.NestedScrollView
         style="@style/fondo"

@@ -7,7 +7,7 @@
     style="@style/fondo"
     android:orientation="vertical"
     android:layout_height="match_parent"
-    tools:context="com.example.geinzwork.fragmentos.apartados_compra_venta.venta_trabajador">
+    tools:context="com.geinzz.geinzwork.fragmentos.apartados_compra_venta.venta_trabajador">
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
