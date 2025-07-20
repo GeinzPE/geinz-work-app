@@ -587,59 +587,59 @@ class inicioFracment : Fragment() {
 
     }
 
-    private fun obtenerTrabajosCat() {
-        binding.progresCargaCat.isVisible = true
-        binding.RecicleCategoria.isVisible = false
-        val trabajos = mutableListOf<dataClassCategoriasInicio>()
-        val db = FirebaseFirestore.getInstance()
-        val collection = db.collection(Variables.categoriasDB).document(Variables.categoriasTrabajo)
-        collection.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val categorias = document.get(Variables.categoriasDB) as? ArrayList<String>
-                    categorias?.let {
-                        for (categoria in it) {
-                            Log.d(Variables.categoriasDB, categoria)
-                            constantesSubcategoriaszonasTiendas.obtenerImagenesCategorias(
-                                Variables.IMG_CategoriasGeneral,
-                                Variables.categroriasTrabajadores,
-                                categoria,
-                                onSuccess = { urlImg ->
-                                    val data = dataClassCategoriasInicio(
-                                        categoria,
-                                        urlImg ?: "",
-                                    )
-                                    binding.progresCargaCat.isVisible = false
-                                    binding.RecicleCategoria.isVisible = true
-                                    trabajos.add(data)
-                                    inicalizarREciocle(
-                                        binding.RecicleCategoria,
-                                        trabajos
-                                    )
+        private fun obtenerTrabajosCat() {
+            binding.progresCargaCat.isVisible = true
+            binding.RecicleCategoria.isVisible = false
+            val trabajos = mutableListOf<dataClassCategoriasInicio>()
+            val db = FirebaseFirestore.getInstance()
+            val collection = db.collection(Variables.categoriasDB).document(Variables.categoriasTrabajo)
+            collection.get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val categorias = document.get(Variables.categoriasDB) as? ArrayList<String>
+                        categorias?.let {
+                            for (categoria in it) {
+                                Log.d(Variables.categoriasDB, categoria)
+                                constantesSubcategoriaszonasTiendas.obtenerImagenesCategorias(
+                                    Variables.IMG_CategoriasGeneral,
+                                    Variables.categroriasTrabajadores,
+                                    categoria,
+                                    onSuccess = { urlImg ->
+                                        val data = dataClassCategoriasInicio(
+                                            categoria,
+                                            urlImg ?: "",
+                                        )
+                                        binding.progresCargaCat.isVisible = false
+                                        binding.RecicleCategoria.isVisible = true
+                                        trabajos.add(data)
+                                        inicalizarREciocle(
+                                            binding.RecicleCategoria,
+                                            trabajos
+                                        )
 
-                                },
-                                onFailure = { error ->
-                                    binding.progresCargaCat.isVisible = false
-                                    binding.noEncontradocat.isVisible = true
-                                    binding.RecicleCategoria.isVisible = false
-                                    println("Error al obtener las imágenes para $categoria: ${error.message}")
-                                    inicalizarREciocle(
-                                        binding.RecicleCategoria,
-                                        trabajos
-                                    )
-                                }
-                            )
+                                    },
+                                    onFailure = { error ->
+                                        binding.progresCargaCat.isVisible = false
+                                        binding.noEncontradocat.isVisible = true
+                                        binding.RecicleCategoria.isVisible = false
+                                        println("Error al obtener las imágenes para $categoria: ${error.message}")
+                                        inicalizarREciocle(
+                                            binding.RecicleCategoria,
+                                            trabajos
+                                        )
+                                    }
+                                )
+                            }
+                            inicalizarREciocle(binding.RecicleCategoria, trabajos)
                         }
-                        inicalizarREciocle(binding.RecicleCategoria, trabajos)
+                    } else {
+                        Log.d(Variables.categoriasDB, "El documento no existe o está vacío.")
                     }
-                } else {
-                    Log.d(Variables.categoriasDB, "El documento no existe o está vacío.")
                 }
-            }
-            .addOnFailureListener { exception ->
-                Log.e(Variables.categoriasDB, "Error al obtener las categorías: $exception")
-            }
-    }
+                .addOnFailureListener { exception ->
+                    Log.e(Variables.categoriasDB, "Error al obtener las categorías: $exception")
+                }
+        }
 
     private fun SetAnuncios() {
         constantesPublicidad.obtenerAnunciosGeinz(

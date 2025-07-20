@@ -64,9 +64,6 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(libs.androidx.leanback)
     implementation(libs.androidx.recyclerview)
-    implementation(libs.androidx.recyclerview)
-    implementation(libs.androidx.recyclerview)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,9 +86,6 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
         exclude(group = "com.android.support", module = "support-v4")
     }
-
-
-
     implementation("io.getstream:photoview:1.0.2")
     implementation("com.squareup.picasso:picasso:2.8")
     implementation("com.github.MikeOrtiz:TouchImageView:3.6")
@@ -100,17 +94,21 @@ dependencies {
     implementation("com.google.firebase:firebase-config")
     implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0-RC")
+
     implementation("org.quanqi:android-holo-graph:0.1.0") {
         exclude(group = "com.android.support", module = "support-v4")
     }
-
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("com.google.firebase:firebase-ai")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("com.github.chrisbanes:PhotoView:2.0.0")
     implementation("com.github.yalantis:ucrop:2.2.10")
+//courutinas
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0-RC")
 
+
+    //live data
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 }
