@@ -40,7 +40,6 @@ object filtradoLocalidadElementos {
         general.isVisible=false
         deGeinz.isVisible=false
 
-
         obtenerLocalidadUser { localidad ->
             autoCompleteCategory.setText(localidad)
             listaFiltrado(autoCompleteCategory)

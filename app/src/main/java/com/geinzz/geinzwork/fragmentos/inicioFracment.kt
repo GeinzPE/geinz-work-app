@@ -20,7 +20,10 @@ import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -51,6 +54,12 @@ import com.geinzz.geinzwork.databinding.ItemProductsTrabajadoresPrincipalBinding
 import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
 import com.geinzz.geinzwork.model.dataClassCategoriasInicio
 import com.geinzz.geinzwork.model.dataClassTrabajosd
+import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.actualizarVisibilidadCargando
+import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.actualizarVisibilidadPorCategoria
+import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.inicializarRecicleMejoresTrabajadores
+import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.inicializarTrabajos
+import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria
+import com.geinzz.geinzwork.viewModels.viewModel_inicio_fr
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
@@ -59,6 +68,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.integration.android.IntentIntegrator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.imaginativeworld.whynotimagecarousel.ImageCarousel
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -68,8 +81,9 @@ class inicioFracment : Fragment() {
     private lateinit var mContex: Context
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
-
     private val listaTrabajo = mutableListOf<dataClassTrabajosd>().toMutableList()
+    private lateinit var viewModel: viewModel_inicio_fr
+
     private val KEY = "MY_KEY"
 
     override fun onAttach(context: Context) {
@@ -87,14 +101,176 @@ class inicioFracment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
+        val storedValue = pref?.getString(KEY, "General")
+        viewModel = ViewModelProvider(this)[viewModel_inicio_fr::class.java]
+        viewModel.cargar_categorias()
+        binding.progresCargaCat.isVisible = true
+        binding.RecicleCategoria.isVisible = false
+        binding.noEncontradocat.isVisible = false
+        viewModel.cat.observe(viewLifecycleOwner) { lista_cat ->
+            if (lista_cat.isNullOrEmpty()) {
+                binding.noEncontradocat.isVisible = true
+                binding.RecicleCategoria.isVisible = false
+                binding.progresCargaCat.isVisible = false
+            } else {
+                binding.progresCargaCat.isVisible = false
+                binding.noEncontradocat.isVisible = false
+                binding.RecicleCategoria.isVisible = true
+                inicalizarREciocle(
+                    binding.RecicleCategoria,
+                    lista_cat as MutableList<dataClassCategoriasInicio>
+                )
+            }
+        }
 
-        obtenerImagenesFirestorage()
+        viewModel.cargar_img_fire()
+        viewModel.img_firestore.observe(viewLifecycleOwner) { lista_firestore ->
+            val listaCarousel = lista_firestore.map {
+                CarouselItem(imageUrl = it.img)
+            }
+            binding.carruselPimarioInicio.registerLifecycle(lifecycle)
+            binding.carruselPimarioInicio.carouselListener = object : CarouselListener {
+                override fun onCreateViewHolder(
+                    layoutInflater: LayoutInflater,
+                    parent: ViewGroup,
+                ): ViewBinding? {
+                    return ItemCustomPublicidadPrincipalBinding.inflate(
+                        layoutInflater,
+                        parent,
+                        false
+                    )
+                }
+
+                override fun onBindViewHolder(
+                    binding: ViewBinding,
+                    item: CarouselItem,
+                    position: Int,
+                ) {
+                    val currentBinding = binding as ItemCustomPublicidadPrincipalBinding
+                    val currentItem = lista_firestore[position]
+
+                    currentBinding.titulos.text = currentItem.titulo
+                    currentBinding.descripcion.text = currentItem.descripcion
+
+                    constatnes_carga_imagenes_general.changer_img(
+                        currentBinding.progressCargaImagenFondo,
+                        mContex,
+                        currentItem.img.toString(),
+                        null,
+                        currentBinding.imgPublicidad,
+                        "portada",
+                        null
+                    ) {}
+
+                    currentBinding.realtiveClikc.setOnClickListener {
+                        val vista = Intent(mContex, oferta_principales_geinz::class.java).apply {
+                            putExtra(Variables.idPublicidad, currentItem.id)
+                        }
+                        startActivity(vista)
+
+                    }
+                }
+            }
+            binding.carruselPimarioInicio.setData(listaCarousel)
+        }
+
+        viewModel.scaner.observe(viewLifecycleOwner) { trabajador ->
+            for (trb in trabajador) {
+                val intent = Intent(requireContext(), vistaTrabajador::class.java).apply {
+                    putExtra(Variables.id, trb.nombre)
+                    putExtra(Variables.nombreUSer, trb.nombre)
+                    putExtra(Variables.nacionalidad, trb.nacionalidad)
+                    putExtra(Variables.categoria, trb.categoria)
+                    putExtra(Variables.imagenPerfil, trb.img)
+                }
+                startActivity(intent)
+            }
+        }
+
+
+
+        viewModel.trabajadores.observe(viewLifecycleOwner) { mejores_trabajadores ->
+            if (mejores_trabajadores.isNotEmpty()) {
+                binding.includeTrabajadoresTop.progressvar.isVisible = false
+                binding.includeTrabajadoresTop.noEncontrado.isVisible = false
+                binding.includeTrabajadoresTop.trabajadores.isVisible = true
+                inicializarRecicleMejoresTrabajadores(
+                    false,
+                    mejores_trabajadores as MutableList<dataClassTrabajosd>,
+                    binding.includeTrabajadoresTop.trabajadores,
+                    mContex
+                )
+                actualizarVisibilidadCargando(true, binding, binding.loading)
+            } else {
+                binding.includeTrabajadoresTop.progressvar.isVisible = false
+                binding.includeTrabajadoresTop.noEncontrado.isVisible = true
+                binding.includeTrabajadoresTop.trabajadores.isVisible = false
+                actualizarVisibilidadCargando(true, binding, binding.loading)
+            }
+        }
+        viewModel.escucha_servicio.observe(viewLifecycleOwner) { lista_servicios ->
+            inicializarTrabajos(
+                binding.includeRecicleViewsalud.trabajadores,
+                lista_servicios as MutableList<dataClassTrabajosd>,
+                requireContext()
+            )
+            actualizarVisibilidadPorCategoria(binding.includeRecicleViewsalud, lista_servicios)
+        }
+        viewModel.escucha_constructor.observe(viewLifecycleOwner) { lista_servicios ->
+            inicializarTrabajos(
+                binding.includeReciclehogar.trabajadores,
+                lista_servicios as MutableList<dataClassTrabajosd>,
+                requireContext()
+            )
+            actualizarVisibilidadPorCategoria(binding.includeReciclehogar, lista_servicios)
+        }
+        viewModel.escucha_reparto.observe(viewLifecycleOwner) { lista_servicios ->
+            inicializarTrabajos(
+                binding.includeRecicleViewddelivery.trabajadores,
+                lista_servicios as MutableList<dataClassTrabajosd>,
+                requireContext()
+            )
+            actualizarVisibilidadPorCategoria(binding.includeRecicleViewddelivery, lista_servicios)
+        }
+        viewModel.escucha_tecnicos.observe(viewLifecycleOwner) { lista_servicios ->
+            inicializarTrabajos(
+                binding.includeRecicleTecnicos.trabajadores,
+                lista_servicios as MutableList<dataClassTrabajosd>,
+                requireContext()
+            )
+            actualizarVisibilidadPorCategoria(binding.includeRecicleTecnicos, lista_servicios)
+        }
+        viewModel.escucha_mecanicos.observe(viewLifecycleOwner) { it ->
+            inicializarTrabajos(
+                binding.includeReciclemecanico.trabajadores,
+                it as MutableList<dataClassTrabajosd>,
+                requireContext()
+            )
+            actualizarVisibilidadPorCategoria(binding.includeReciclemecanico, it)
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         SetAnuncios()
-        obtenerTrabajosCat()
         obtenerProductos_trabajadores()
         obterTrabajosRecientes_trabajadores()
-        val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
-
 
 
         if (firebaseAuth.currentUser == null) {
@@ -174,7 +350,6 @@ class inicioFracment : Fragment() {
         }
 
 
-        val storedValue = pref?.getString(KEY, "Default Value")
         obtener_mensajes_destacados(binding.verificadoBoolean.text.toString())
         conteoUser.obtenerConteoUSer { usuarios ->
             binding.includeCabezero.usuariosRegistrados.text = usuarios.toString()
@@ -267,7 +442,6 @@ class inicioFracment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
-
         enviarCategoria()
         constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
             binding.includeCabezero.progressCargaImagen,
@@ -289,7 +463,7 @@ class inicioFracment : Fragment() {
             vista.putExtra(Variables.filtradoPasado, filtrado)
             startActivity(vista)
         }
-        confSwipe(storedValue!!)
+//        confSwipe(storedValue!!)
 
 
         val activity = requireActivity() as? MainActivity
@@ -308,7 +482,6 @@ class inicioFracment : Fragment() {
         setupRecyclerViewTouchListener(binding.includeReciclehogar.trabajadores, activity!!)
         setupRecyclerViewTouchListener(binding.includeReciclemecanico.trabajadores, activity!!)
         setupRecyclerViewTouchListener(binding.includeRecicleTecnicos.trabajadores, activity!!)
-
 
         binding.verTrabajosPublicados.setOnClickListener {
             val intent = Intent(mContex, ver_toto_publicaciones_trabajador::class.java).apply {
@@ -485,61 +658,12 @@ class inicioFracment : Fragment() {
             if (result.contents == null) {
                 Toast.makeText(requireContext(), "Escaneo cancelado", Toast.LENGTH_SHORT).show()
             } else {
-                val db = FirebaseFirestore.getInstance()
-                    .collection(Variables.trabajadores_usuariosDB)
-                    .document(Variables.trabajadoresDB)
-                    .collection(Variables.trabajadoresDB)
-                    .document(result.contents)
-
-
-                db.get().addOnSuccessListener { res ->
-                    if (res.exists()) {
-                        val data = res.data
-                        val id = data?.get(Variables.id) as? String ?: ""
-
-                        if (id == result.contents) {
-                            val nombreUser = data?.get(Variables.nombre) as? String ?: ""
-                            val nacionalidad = data?.get(Variables.nacionalidad) as? String ?: ""
-                            val categoria = data?.get(Variables.categoriaTrabajo) as? String ?: ""
-                            val img = data?.get(Variables.imagenPerfil) as? String ?: ""
-                            val intent =
-                                Intent(requireContext(), vistaTrabajador::class.java).apply {
-
-                                    putExtra(Variables.id, result.contents)
-                                    putExtra(Variables.nombreUSer, nombreUser)
-                                    putExtra(Variables.nacionalidad, nacionalidad)
-                                    putExtra(Variables.categoria, categoria)
-                                    putExtra(Variables.imagenPerfil, img)
-                                }
-
-                            startActivity(intent)
-                        } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "Trabajador no encontrado",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "Documento no encontrado en la base de datos",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }.addOnFailureListener { exception ->
-                    Toast.makeText(
-                        requireContext(),
-                        "Error al obtener datos: ${exception.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                viewModel.obtenerScannerTrabajador(result.contents)
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
-
 
     private fun confSwipe(storedValue: String) {
         binding.swipe.setOnRefreshListener {
@@ -547,7 +671,7 @@ class inicioFracment : Fragment() {
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.swipe.isRefreshing = false
                 SetAnuncios()
-                obtenerTrabajosCat()
+//                obtenerTrabajosCat()
                 obtnerFiltrado(binding.includeCabezero.filtradoUsuairo.text.toString())
                 obtenerProductos_trabajadores()
                 obterTrabajosRecientes_trabajadores()
@@ -563,7 +687,6 @@ class inicioFracment : Fragment() {
 
     }
 
-
     private fun guardarShaderPref(pref: SharedPreferences?, valor: String) {
         val editor = pref?.edit()
         editor?.putString(KEY, valor)
@@ -571,75 +694,57 @@ class inicioFracment : Fragment() {
     }
 
     private fun obtnerFiltrado(filtrado: String) {
-        //Mejores trabajadores
-        constantesTrabajadoresTiendasInicioFragmet.obtenerMejoresTrabajadores(
-            listaTrabajo,
-            filtrado,
-            mContex,
-            binding
-        )
-        // Trabajadores generales por categoría
-        constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria(
-            binding,
-            filtrado,
-            mContex
-        )
+        binding.apply {
+            includeTrabajadoresTop.progressvar.isVisible = true
+            includeRecicleViewsalud.progressvar.isVisible = true
+            includeReciclehogar.progressvar.isVisible = true
+            includeRecicleViewddelivery.progressvar.isVisible = true
+            includeRecicleTecnicos.progressvar.isVisible = true
+            includeReciclemecanico.progressvar.isVisible = true
 
+            includeTrabajadoresTop.trabajadores.isVisible = false
+            includeRecicleViewsalud.trabajadores.isVisible = false
+            includeReciclehogar.trabajadores.isVisible = false
+            includeRecicleViewddelivery.trabajadores.isVisible = false
+            includeRecicleTecnicos.trabajadores.isVisible = false
+            includeReciclemecanico.trabajadores.isVisible = false
+        }
+        viewModel.obtener_mejores_trabajadores(filtrado){tiempo->
+            lifecycleScope.launch {
+                delay(tiempo)
+                binding.includeTrabajadoresTop.progressvar.isVisible = false}
+        }
+
+        lifecycleScope.launch {
+            viewModel.obtener_servicios(filtrado, "Servicios de Salud"){}
+            binding.includeRecicleViewsalud.progressvar.isVisible = false
+
+            viewModel.obtener_construcion_hogar(filtrado, "Construcción y hogar"){}
+            binding.includeReciclehogar.progressvar.isVisible = false
+
+            viewModel.conductor_reparto(filtrado, "Conductor de reparto"){}
+            binding.includeRecicleViewddelivery.progressvar.isVisible = false
+
+            viewModel.tecnicos(filtrado, "Tecnicos"){}
+            binding.includeRecicleTecnicos.progressvar.isVisible = false
+
+            viewModel.mecanicos(filtrado, "Mecánicos"){}
+            binding.includeReciclemecanico.progressvar.isVisible = false
+        }
     }
 
-        private fun obtenerTrabajosCat() {
-            binding.progresCargaCat.isVisible = true
-            binding.RecicleCategoria.isVisible = false
-            val trabajos = mutableListOf<dataClassCategoriasInicio>()
-            val db = FirebaseFirestore.getInstance()
-            val collection = db.collection(Variables.categoriasDB).document(Variables.categoriasTrabajo)
-            collection.get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val categorias = document.get(Variables.categoriasDB) as? ArrayList<String>
-                        categorias?.let {
-                            for (categoria in it) {
-                                Log.d(Variables.categoriasDB, categoria)
-                                constantesSubcategoriaszonasTiendas.obtenerImagenesCategorias(
-                                    Variables.IMG_CategoriasGeneral,
-                                    Variables.categroriasTrabajadores,
-                                    categoria,
-                                    onSuccess = { urlImg ->
-                                        val data = dataClassCategoriasInicio(
-                                            categoria,
-                                            urlImg ?: "",
-                                        )
-                                        binding.progresCargaCat.isVisible = false
-                                        binding.RecicleCategoria.isVisible = true
-                                        trabajos.add(data)
-                                        inicalizarREciocle(
-                                            binding.RecicleCategoria,
-                                            trabajos
-                                        )
 
-                                    },
-                                    onFailure = { error ->
-                                        binding.progresCargaCat.isVisible = false
-                                        binding.noEncontradocat.isVisible = true
-                                        binding.RecicleCategoria.isVisible = false
-                                        println("Error al obtener las imágenes para $categoria: ${error.message}")
-                                        inicalizarREciocle(
-                                            binding.RecicleCategoria,
-                                            trabajos
-                                        )
-                                    }
-                                )
-                            }
-                            inicalizarREciocle(binding.RecicleCategoria, trabajos)
-                        }
-                    } else {
-                        Log.d(Variables.categoriasDB, "El documento no existe o está vacío.")
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    Log.e(Variables.categoriasDB, "Error al obtener las categorías: $exception")
-                }
-        }
+
+    fun actualizarVisibilidadCargando(
+        cargando: Boolean,
+        binding: FragmentInicioFracmentBinding,
+        loadingView: LinearLayoutCompat
+    ) {
+        binding.progresCargaCat
+        binding.containerGeneral.isVisible = true
+        loadingView.isVisible = false
+    }
+
 
     private fun SetAnuncios() {
         constantesPublicidad.obtenerAnunciosGeinz(
@@ -648,7 +753,11 @@ class inicioFracment : Fragment() {
             mContex,
             binding.includeCabezero.filtradoUsuairo
         )
-        constantesPublicidad.obteneranunciostorage(binding.carruse2, binding.linealCaption, mContex)
+        constantesPublicidad.obteneranunciostorage(
+            binding.carruse2,
+            binding.linealCaption,
+            mContex
+        )
         constantesPublicidad.obtenerAnunciosIniciosFragment(
             binding.IncludeAnunciosTercero.carrucel,
             mContex,
@@ -729,83 +838,13 @@ class inicioFracment : Fragment() {
         lista: MutableList<dataClassCategoriasInicio>,
     ) {
         val recicle = recicleTrabajos
-        recicle.layoutManager = LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
+        recicle.layoutManager =
+            LinearLayoutManager(mContex, LinearLayoutManager.HORIZONTAL, false)
         recicle.adapter = adapterTrabajosMostrados(lista) { dataClassCategoriasInicio ->
             mandarvistaTrabajos(dataClassCategoriasInicio)
         }
     }
 
-    private fun obtenerImagenesFirestorage() {
-        val db = FirebaseFirestore.getInstance().collection(Variables.anuncios)
-            .document(Variables.anunciosprimarios_cortos).collection(Variables.anuncios)
-        val lista = mutableListOf<CarouselItem>()
-
-        db.get().addOnSuccessListener { res ->
-            for (datos in res) {
-                val data = datos.data
-                val URLimg = data?.get(Variables.URLimg) as? String ?: ""
-                val carouselItem = CarouselItem(URLimg)
-                lista.add(carouselItem)
-            }
-
-            binding.carruselPimarioInicio.registerLifecycle(lifecycle)
-            binding.carruselPimarioInicio.carouselListener = object : CarouselListener {
-                override fun onCreateViewHolder(
-                    layoutInflater: LayoutInflater,
-                    parent: ViewGroup,
-                ): ViewBinding? {
-                    return ItemCustomPublicidadPrincipalBinding.inflate(
-                        layoutInflater,
-                        parent,
-                        false
-                    )
-                }
-
-                override fun onBindViewHolder(
-                    binding: ViewBinding,
-                    item: CarouselItem,
-                    position: Int,
-                ) {
-                    val currentBinding = binding as ItemCustomPublicidadPrincipalBinding
-
-                    val currentItem = lista[position]
-                    val currentData = res.documents[position].data
-                    val currentTitulo = currentData?.get(Variables.titulo) as? String ?: ""
-                    val currentDescripcion =
-                        currentData?.get(Variables.descripcion) as? String ?: ""
-                    val currentURLimg = currentData?.get(Variables.URLimg) as? String ?: ""
-                    val currentId = currentData?.get(Variables.id) as? String ?: ""
-
-                    currentBinding.titulos.text = currentTitulo
-                    currentBinding.descripcion.text = currentDescripcion
-
-                    constatnes_carga_imagenes_general.changer_img(
-                        currentBinding.progressCargaImagenFondo,
-                        mContex,
-                        currentURLimg,
-                        null,
-                        currentBinding.imgPublicidad,
-                        "portada",
-                        null
-                    ) {}
-
-                    currentBinding.realtiveClikc.setOnClickListener {
-
-                        val vista = Intent(mContex, oferta_principales_geinz::class.java).apply {
-                            putExtra(Variables.idPublicidad, currentId)
-                        }
-                        startActivity(vista)
-
-                    }
-                }
-            }
-            binding.carruselPimarioInicio.setData(lista)
-
-        }.addOnFailureListener { e ->
-            println("Error al obtener los datos: $e")
-        }
-
-    }
 
     private fun obterTrabajosRecientes_trabajadores() {
         val lista = mutableListOf<CarouselItem>()
@@ -955,7 +994,8 @@ class inicioFracment : Fragment() {
                         } else {
                             binding.carrucelProductosTrabajdores.isVisible = false
                             binding.linealNoEncontradoProductos.isVisible = true
-                            binding.noEncontradoProducto.text = "No se encontraron productos"
+                            binding.noEncontradoProducto.text =
+                                "No se encontraron productos"
                         }
                     }
 
@@ -974,7 +1014,8 @@ class inicioFracment : Fragment() {
                         } else {
                             binding.carrucelProductosTrabajdores.isVisible = false
                             binding.linealNoEncontradoProductos.isVisible = true
-                            binding.noEncontradoProducto.text = "No se encontraron productos"
+                            binding.noEncontradoProducto.text =
+                                "No se encontraron productos"
                         }
                     }
                 }
@@ -1016,8 +1057,10 @@ class inicioFracment : Fragment() {
                 val doc = documentos[position]
                 val id_trabajador = id_trabajador[position]
                 val titulo: String = doc.get("nombre") as? String ?: ""
-                val descripcionTitulo = doc["descripcion_titulo"] as? Map<String, Any> ?: emptyMap()
-                val tituloDescripcion = descripcionTitulo["titulo_descripcion"] as? String ?: ""
+                val descripcionTitulo =
+                    doc["descripcion_titulo"] as? Map<String, Any> ?: emptyMap()
+                val tituloDescripcion =
+                    descripcionTitulo["titulo_descripcion"] as? String ?: ""
                 val img_producto: String = doc.get("img_url") as? String ?: ""
                 val precio: Number = doc.get("precio") as? Number ?: 0
                 val descuento_porcentajeProducto: Number =
@@ -1107,7 +1150,10 @@ class inicioFracment : Fragment() {
                 ) {}
                 currentBinding.listener.setOnClickListener {
                     val vista =
-                        Intent(mContex, vista_ver_productos_trabajadores::class.java).apply {
+                        Intent(
+                            mContex,
+                            vista_ver_productos_trabajadores::class.java
+                        ).apply {
                             putExtra("id_trabajador", id_trabajador)
                                 .putExtra("id_publicacion", id)
                                 .putExtra("tipo_ubicado", "publicados")
@@ -1134,93 +1180,105 @@ class inicioFracment : Fragment() {
         documentos.forEachIndexed { index, doc ->
             Log.d(
                 "DEBUG_CARRUSEL",
-                "[$index] ID Publicación: ${doc.getString("id")}, Contenido: ${doc.getString("contenido")}"
+                "[$index] ID Publicación: ${doc.getString("id")}, Contenido: ${
+                    doc.getString(
+                        "contenido"
+                    )
+                }"
             )
         }
 
-        Log.d("DEBUG_CARRUSEL", "Lista ID de Trabajadores (tamaño: ${idTrabajadores.size}):")
+        Log.d(
+            "DEBUG_CARRUSEL",
+            "Lista ID de Trabajadores (tamaño: ${idTrabajadores.size}):"
+        )
         idTrabajadores.forEachIndexed { index, id ->
             Log.d("DEBUG_CARRUSEL", "[$index] ID trabajador: $id")
         }
 
         binding.carrucelPublicacionesRecientes.registerLifecycle(lifecycle)
-        binding.carrucelPublicacionesRecientes.carouselListener = object : CarouselListener {
-            override fun onCreateViewHolder(
-                layoutInflater: LayoutInflater,
-                parent: ViewGroup,
-            ): ViewBinding? {
-                return ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding.inflate(
-                    layoutInflater,
-                    parent,
-                    false
-                )
-            }
+        binding.carrucelPublicacionesRecientes.carouselListener =
+            object : CarouselListener {
+                override fun onCreateViewHolder(
+                    layoutInflater: LayoutInflater,
+                    parent: ViewGroup,
+                ): ViewBinding? {
+                    return ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding.inflate(
+                        layoutInflater,
+                        parent,
+                        false
+                    )
+                }
 
-            override fun onBindViewHolder(
-                binding: ViewBinding,
-                item: CarouselItem,
-                position: Int,
-            ) {
-                val currentBinding =
-                    binding as ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
-                val doc = documentos[position]
-                val id_trabajador = idTrabajadores[position] // <- Ahora sí es el correcto
-                val contenidoPublicacion: String = doc.get("contenido") as? String ?: ""
-                val img_url: String = doc.get("img_url") as? String ?: ""
-                val id: String = doc.get("id") as? String ?: ""
+                override fun onBindViewHolder(
+                    binding: ViewBinding,
+                    item: CarouselItem,
+                    position: Int,
+                ) {
+                    val currentBinding =
+                        binding as ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
+                    val doc = documentos[position]
+                    val id_trabajador =
+                        idTrabajadores[position] // <- Ahora sí es el correcto
+                    val contenidoPublicacion: String = doc.get("contenido") as? String ?: ""
+                    val img_url: String = doc.get("img_url") as? String ?: ""
+                    val id: String = doc.get("id") as? String ?: ""
 
-                Log.d("obtenosimgtrabajdor", id_trabajador)
+                    Log.d("obtenosimgtrabajdor", id_trabajador)
 
-                constantes_servicios.verificarEstado_vericiacion(
-                    currentBinding.verificado,
-                    id_trabajador
-                ) { v, plan ->
-                    when (plan) {
-                        Variables.plaA -> {
-                            currentBinding.verificado.setImageResource(R.drawable.verificado_a)
+                    constantes_servicios.verificarEstado_vericiacion(
+                        currentBinding.verificado,
+                        id_trabajador
+                    ) { v, plan ->
+                        when (plan) {
+                            Variables.plaA -> {
+                                currentBinding.verificado.setImageResource(R.drawable.verificado_a)
 
+                            }
+
+                            Variables.planB -> {
+                                currentBinding.verificado.setImageResource(R.drawable.icon_verificado)
+                            }
+
+                            Variables.PlanC -> {
+                                currentBinding.verificado.setImageResource(R.drawable.verificado_c)
+
+                            }
                         }
 
-                        Variables.planB -> {
-                            currentBinding.verificado.setImageResource(R.drawable.icon_verificado)
-                        }
-
-                        Variables.PlanC -> {
-                            currentBinding.verificado.setImageResource(R.drawable.verificado_c)
-
-                        }
                     }
 
-                }
+                    constantesTrabajadoresTiendasInicioFragmet.obtnerIMG_trabajador(
+                        id_trabajador,
+                        currentBinding.imgPerfil,
+                        currentBinding.cargaimg,
+                        mContex
+                    )
+                    constatnes_carga_imagenes_general.changer_img(
+                        binding.cargaContenido,
+                        mContex,
+                        img_url,
+                        null,
+                        currentBinding.imgPublicidad as ImageView,
+                        "portada",
+                        null
+                    ) {}
+                    currentBinding.realtiveClikc.setOnClickListener {
+                        val vista =
+                            Intent(
+                                mContex,
+                                vista_ver_publicaciones_trabajadores::class.java
+                            ).apply {
+                                putExtra("id_trabajador", id_trabajador)
+                                    .putExtra("id_publicacion", id)
+                                    .putExtra("tipo_ubicado", "publicados")
+                            }
+                        startActivity(vista)
+                    }
 
-                constantesTrabajadoresTiendasInicioFragmet.obtnerIMG_trabajador(
-                    id_trabajador,
-                    currentBinding.imgPerfil,
-                    currentBinding.cargaimg,
-                    mContex
-                )
-                constatnes_carga_imagenes_general.changer_img(
-                    binding.cargaContenido,
-                    mContex,
-                    img_url,
-                    null,
-                    currentBinding.imgPublicidad as ImageView,
-                    "portada",
-                    null
-                ) {}
-                currentBinding.realtiveClikc.setOnClickListener {
-                    val vista =
-                        Intent(mContex, vista_ver_publicaciones_trabajadores::class.java).apply {
-                            putExtra("id_trabajador", id_trabajador)
-                                .putExtra("id_publicacion", id)
-                                .putExtra("tipo_ubicado", "publicados")
-                        }
-                    startActivity(vista)
+                    currentBinding.contenidoPublicacion.text = contenidoPublicacion
                 }
-
-                currentBinding.contenidoPublicacion.text = contenidoPublicacion
             }
-        }
 
         binding.carrucelPublicacionesRecientes.setData(lista)
     }

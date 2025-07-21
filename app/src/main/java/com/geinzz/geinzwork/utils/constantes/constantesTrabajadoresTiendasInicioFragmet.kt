@@ -111,7 +111,7 @@ object constantesTrabajadoresTiendasInicioFragmet {
             }
     }
 
-    private fun actualizarVisibilidadCargando(
+     fun actualizarVisibilidadCargando(
         cargando: Boolean,
         binding: FragmentInicioFracmentBinding,
         loadingView: LinearLayoutCompat
