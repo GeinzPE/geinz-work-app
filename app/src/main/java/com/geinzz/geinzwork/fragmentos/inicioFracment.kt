@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.fragmentos
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -21,9 +22,11 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.ViewModelInitializer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -60,6 +63,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTi
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.inicializarTrabajos
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria
 import com.geinzz.geinzwork.viewModels.viewModel_inicio_fr
+import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
@@ -72,6 +76,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.internal.toImmutableList
 import org.imaginativeworld.whynotimagecarousel.ImageCarousel
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -83,6 +88,7 @@ class inicioFracment : Fragment() {
     private lateinit var dialog: BottomSheetDialog
     private val listaTrabajo = mutableListOf<dataClassTrabajosd>().toMutableList()
     private lateinit var viewModel: viewModel_inicio_fr
+    private lateinit var viewModel_info_user_general: viewModel_usuarios_general
 
     private val KEY = "MY_KEY"
 
@@ -100,10 +106,13 @@ class inicioFracment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val pref = PreferenceManager.getDefaultSharedPreferences(mContex)
         val storedValue = pref?.getString(KEY, "General")
         viewModel = ViewModelProvider(this)[viewModel_inicio_fr::class.java]
+        viewModel_info_user_general =
+            ViewModelProvider(this)[viewModel_usuarios_general::class.java]
         viewModel.cargar_categorias()
         binding.progresCargaCat.isVisible = true
         binding.RecicleCategoria.isVisible = false
@@ -250,6 +259,35 @@ class inicioFracment : Fragment() {
             actualizarVisibilidadPorCategoria(binding.includeReciclemecanico, it)
         }
 
+        viewModel_info_user_general.verificados_Bool.observe(viewLifecycleOwner) { verificado ->
+            if (verificado) {
+                binding.verificadoBoolean.text = "true"
+                Toast.makeText(mContex, "veficiado", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(mContex, "no verificado ", Toast.LENGTH_SHORT).show()
+                binding.verificadoBoolean.text = "false"
+            }
+        }
+
+        viewModel_info_user_general.datos_user.observe(viewLifecycleOwner) { lista ->
+            val placeholderperfil =
+                ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
+
+            lista.firstOrNull()?.let {
+                constatnes_carga_imagenes_general.changer_img(
+                    binding.includeCabezero.progressCargaImagen,
+                    mContex,
+                    it.img_perfil.toString(),
+                    binding.includeCabezero.imgPerfilUser,
+                    null,
+                    "perfil",
+                    placeholderperfil
+                ) {}
+                binding.includeCabezero.usuarioRegsitradoName.text=it.nombre
+            }
+
+        }
+
 
 
 
@@ -275,7 +313,6 @@ class inicioFracment : Fragment() {
 
         if (firebaseAuth.currentUser == null) {
             binding.linealAnuncioVerificado.isVisible = false
-
         } else {
             binding.linealAnuncioVerificado.isVisible = true
             constantes_vinculados.verificaAcceso(
@@ -292,57 +329,57 @@ class inicioFracment : Fragment() {
                         dialogBuilder.setPositiveButton("Contactar con Geinz Work") { dialog, _ ->
 
                             dialog.dismiss()
-                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-                                binding.includeCabezero.progressCargaImagen,
-                                binding.includeCabezero.usuarioRegsitradoName,
-                                mContex,
-                                binding.includeCabezero.imgPerfilUser,
-                                binding.linealAnuncioVerificado
-                            ) { verificado ->
-                                if (verificado) {
-                                    binding.verificadoBoolean.text = "true"
-                                } else {
-                                    binding.verificadoBoolean.text = "false"
-                                }
-
-                            }
+//                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+//                                binding.includeCabezero.progressCargaImagen,
+//                                binding.includeCabezero.usuarioRegsitradoName,
+//                                mContex,
+//                                binding.includeCabezero.imgPerfilUser,
+//                                binding.linealAnuncioVerificado
+//                            ) { verificado ->
+////                                if (verificado) {
+////                                    binding.verificadoBoolean.text = "true"
+////                                } else {
+////                                    binding.verificadoBoolean.text = "false"
+////                                }
+//
+//                            }
                         }
 
                         dialogBuilder.setNegativeButton("Cancelar") { dialog, _ ->
                             dialog.dismiss()
-                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-                                binding.includeCabezero.progressCargaImagen,
-                                binding.includeCabezero.usuarioRegsitradoName,
-                                mContex,
-                                binding.includeCabezero.imgPerfilUser,
-                                binding.linealAnuncioVerificado
-                            ) { verificado ->
-                                if (verificado) {
-                                    binding.verificadoBoolean.text = "true"
-                                } else {
-                                    binding.verificadoBoolean.text = "false"
-                                }
-
-                            }
+//                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+//                                binding.includeCabezero.progressCargaImagen,
+//                                binding.includeCabezero.usuarioRegsitradoName,
+//                                mContex,
+//                                binding.includeCabezero.imgPerfilUser,
+//                                binding.linealAnuncioVerificado
+//                            ) { verificado ->
+////                                if (verificado) {
+////                                    binding.verificadoBoolean.text = "true"
+////                                } else {
+////                                    binding.verificadoBoolean.text = "false"
+////                                }
+//
+//                            }
                         }
 
                         val alertDialog = dialogBuilder.create()
                         alertDialog.show()
                     } else {
-                        constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-                            binding.includeCabezero.progressCargaImagen,
-                            binding.includeCabezero.usuarioRegsitradoName,
-                            mContex,
-                            binding.includeCabezero.imgPerfilUser,
-                            binding.linealAnuncioVerificado
-                        ) { verificado ->
-                            if (verificado) {
-                                binding.verificadoBoolean.text = "true"
-                            } else {
-                                binding.verificadoBoolean.text = "false"
-                            }
-
-                        }
+//                        constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+//                            binding.includeCabezero.progressCargaImagen,
+//                            binding.includeCabezero.usuarioRegsitradoName,
+//                            mContex,
+//                            binding.includeCabezero.imgPerfilUser,
+//                            binding.linealAnuncioVerificado
+//                        ) { verificado ->
+////                            if (verificado) {
+////                                binding.verificadoBoolean.text = "true"
+////                            } else {
+////                                binding.verificadoBoolean.text = "false"
+////                            }
+//
+//                        }
                     }
                 }
 
@@ -443,20 +480,22 @@ class inicioFracment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
         enviarCategoria()
-        constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-            binding.includeCabezero.progressCargaImagen,
-            binding.includeCabezero.usuarioRegsitradoName,
-            mContex,
-            binding.includeCabezero.imgPerfilUser,
-            binding.linealAnuncioVerificado
-        ) { verificado ->
-            if (verificado) {
-                binding.verificadoBoolean.text = "true"
-            } else {
-                binding.verificadoBoolean.text = "false"
-            }
 
-        }
+//        constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
+//            binding.includeCabezero.progressCargaImagen,
+//            binding.includeCabezero.usuarioRegsitradoName,
+//            mContex,
+//            binding.includeCabezero.imgPerfilUser,
+//            binding.linealAnuncioVerificado
+//        ) { verificado ->
+////            if (verificado) {
+////                binding.verificadoBoolean.text = "true"
+////            } else {
+////                binding.verificadoBoolean.text = "false"
+////            }
+//        }
+
+
         binding.verTiendas.setOnClickListener {
             val vista = Intent(mContex, TiendasGenerales::class.java)
             val filtrado = binding.includeCabezero.filtradoUsuairo.text.toString()
@@ -703,36 +742,50 @@ class inicioFracment : Fragment() {
             includeReciclemecanico.progressvar.isVisible = true
 
             includeTrabajadoresTop.trabajadores.isVisible = false
+            includeTrabajadoresTop.noEncontrado.isVisible = false
             includeRecicleViewsalud.trabajadores.isVisible = false
+            includeRecicleViewsalud.noEncontrado.isVisible = false
+
             includeReciclehogar.trabajadores.isVisible = false
+            includeReciclehogar.noEncontrado.isVisible = false
+
             includeRecicleViewddelivery.trabajadores.isVisible = false
+            includeRecicleViewddelivery.noEncontrado.isVisible = false
+
             includeRecicleTecnicos.trabajadores.isVisible = false
+            includeRecicleTecnicos.noEncontrado.isVisible = false
+
             includeReciclemecanico.trabajadores.isVisible = false
+            includeReciclemecanico.noEncontrado.isVisible = false
+
         }
-        viewModel.obtener_mejores_trabajadores(filtrado){tiempo->
+        viewModel.obtener_mejores_trabajadores(filtrado) { tiempo ->
             lifecycleScope.launch {
                 delay(tiempo)
-                binding.includeTrabajadoresTop.progressvar.isVisible = false}
+                binding.includeTrabajadoresTop.progressvar.isVisible = false
+            }
         }
 
         lifecycleScope.launch {
-            viewModel.obtener_servicios(filtrado, "Servicios de Salud"){}
+            viewModel.obtener_servicios(filtrado, "Servicios de Salud") {}
             binding.includeRecicleViewsalud.progressvar.isVisible = false
 
-            viewModel.obtener_construcion_hogar(filtrado, "Construcción y hogar"){}
+            viewModel.obtener_construcion_hogar(filtrado, "Construcción y hogar") {}
             binding.includeReciclehogar.progressvar.isVisible = false
 
-            viewModel.conductor_reparto(filtrado, "Conductor de reparto"){}
+            viewModel.conductor_reparto(filtrado, "Conductor de reparto") {}
             binding.includeRecicleViewddelivery.progressvar.isVisible = false
 
-            viewModel.tecnicos(filtrado, "Tecnicos"){}
+            viewModel.tecnicos(filtrado, "Tecnicos") {}
             binding.includeRecicleTecnicos.progressvar.isVisible = false
 
-            viewModel.mecanicos(filtrado, "Mecánicos"){}
+            viewModel.mecanicos(filtrado, "Mecánicos") {}
             binding.includeReciclemecanico.progressvar.isVisible = false
+
+            viewModel_info_user_general.ver_verificaro(firebaseAuth.uid.toString())
+            viewModel_info_user_general.obtener_datos_trabajajdor()
         }
     }
-
 
 
     fun actualizarVisibilidadCargando(

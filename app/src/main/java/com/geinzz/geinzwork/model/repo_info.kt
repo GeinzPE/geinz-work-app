@@ -1,7 +1,6 @@
 package com.geinzz.geinzwork.model
 
 import android.util.Log
-import androidx.compose.material.AlertDialog
 import com.geinzz.geinzwork.data.model.data_model_inicio_fr_
 import com.geinzz.geinzwork.data.model.data_model_trabajador_scanner
 import com.geinzz.geinzwork.utils.constantes.constantes.Variables
