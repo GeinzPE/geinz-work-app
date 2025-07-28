@@ -84,8 +84,11 @@ class NotificacionRS {
         idTienda: String,
         entrada: String,
         titulo: String,
-        cuerpo: String
+        cuerpo: String,
+        urlImagen: String? = null // <-- imagen opcional
     ) {
+        val imageField = if (urlImagen != null) """, "image": "$urlImagen"""" else ""
+
         val jsonBody = """
         {
             "token": "$token",
@@ -95,6 +98,7 @@ class NotificacionRS {
             "idAnuncio": "$idAnuncio",
             "idTienda": "$idTienda",
             "entrada": "$entrada"
+            $imageField
         }
     """.trimIndent()
 
@@ -103,8 +107,7 @@ class NotificacionRS {
         val request = Request.Builder()
             .url(CLOUD_FUNCTION_URL)
             .post(requestBody)
-            .addHeader("Content-Type", "application/json") // ✅ IMPORTANTE
-            .addHeader("Accept", "application/json")       // opcional
+            .addHeader("Content-Type", "application/json")
             .build()
 
         client.newCall(request).enqueue(object : Callback {
@@ -117,6 +120,7 @@ class NotificacionRS {
             }
         })
     }
+
 
 
     suspend fun getAccessToken(context: Context): String? {

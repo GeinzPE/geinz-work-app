@@ -5,6 +5,8 @@ biometric = "1.1.0"
 ccp = "2.7.0"
 circleimageview = "3.1.0"
 circleindicator = "2.1.6"
+coilCompose = "3.3.0"
+coilNetworkOkhttp = "3.3.0"
 compressor = "3.0.1"
 core = "3.4.1"
 coreSplashscreen = "1.0.1"
@@ -20,6 +22,7 @@ kotlinxCoroutinesCore = "1.9.0-RC"
 kotlinxCoroutinesPlayServices = "1.9.0-RC"
 lifecycleLivedataKtx = "2.7.0"
 lottie = "6.4.1"
+lottieCompose = "6.6.6"
 material = "1.11.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
@@ -37,6 +40,7 @@ photoviewVersion = "2.0.0"
 picasso = "2.8"
 playServicesLocation = "21.2.0"
 recyclerview = "1.1.0"
+runtimeLivedata = "1.8.3"
 shimmer = "0.5.0"
 touchimageview = "3.6"
 ucrop = "2.2.10"
@@ -44,6 +48,10 @@ uiTextAndroid = "1.8.0"
 firebaseVertexai = "16.5.0"
 viewpager2 = "1.1.0"
 whynotimagecarousel = "2.1.0"
+lifecycleRuntimeKtx = "2.9.2"
+activityCompose = "1.10.1"
+composeBom = "2024.09.00"
+versionConstraint="1.1.0"
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -51,11 +59,14 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
+androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 ccp = { module = "com.hbb20:ccp", version.ref = "ccp" }
 chrisbanes-photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoviewVersion" }
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 circleindicator = { module = "me.relex:circleindicator", version.ref = "circleindicator" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil3-coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 compressor = { module = "id.zelory:compressor", version.ref = "compressor" }
 core = { module = "com.google.zxing:core", version.ref = "core" }
 glide-v4160 = { module = "com.github.bumptech.glide:glide", version.ref = "glideVersion" }
@@ -67,6 +78,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -87,9 +99,22 @@ shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmer" }
 touchimageview = { module = "com.github.MikeOrtiz:TouchImageView", version.ref = "touchimageview" }
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
 whynotimagecarousel = { module = "org.imaginativeworld.whynotimagecarousel:whynotimagecarousel", version.ref = "whynotimagecarousel" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+constaints_layout = { module = "androidx.constraintlayout:constraintlayout-compose",version.ref="versionConstraint" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 crashlytics={id="com.google.firebase.crashlytics", version.ref="crashlytic"}
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

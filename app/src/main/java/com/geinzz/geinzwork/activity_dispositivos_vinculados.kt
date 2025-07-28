@@ -35,6 +35,16 @@ import com.geinzz.geinzwork.databinding.BottomSheetUserCrrsVincualdosBinding
 import com.geinzz.geinzwork.databinding.BottomSheetlCrrsVinculadosBinding
 
 import android.provider.Settings
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.geinzz.geinzwork.viewModels.viewModel_dispo_vincualdos
+import com.geinzz.geinzwork.viewModels.viewModel_notificaciones
+import com.geinzz.geinzwork.viewModels.viewModel_text_validaciones
+import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
+import kotlinx.coroutines.launch
 
 
 class activity_dispositivos_vinculados : AppCompatActivity() {
@@ -42,8 +52,14 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
     private val lista = mutableListOf<dataclass_dispo_vinculados>()
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private var vmNotificaciones: viewModel_notificaciones? = null
+    private var vmTextosValidaciones: viewModel_text_validaciones? = null
+    private var vmDispoVinculados: viewModel_dispo_vincualdos? = null
+    private var vmUsuariosGenerales: viewModel_usuarios_general? = null
+    private var primario_boolean: Boolean = false
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDispositivosVinculadosBinding.inflate(layoutInflater)
         enableEdgeToEdge()
@@ -55,9 +71,113 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
         }
         firebaseAuth = FirebaseAuth.getInstance()
         if (firebaseAuth.currentUser != null) {
+            vmNotificaciones = ViewModelProvider(this)[viewModel_notificaciones::class.java]
+            vmTextosValidaciones = ViewModelProvider(this)[viewModel_text_validaciones::class.java]
+            vmDispoVinculados = ViewModelProvider(this)[viewModel_dispo_vincualdos::class.java]
+            vmUsuariosGenerales = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
             binding.swipe.isVisible = true
-            Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
-            obtener_dispositivos_vinculados()
+            vmDispoVinculados?.obtener_vinculados()
+
+            lifecycleScope.launch {
+                vmDispoVinculados?.obtener_dispo_vinculados?.collect { lista_vincualdos ->
+                    if (lista_vincualdos.isNotEmpty()) {
+                        binding.recicleDispositivos.isVisible = true
+                        binding.LinealCargaDispo.isVisible = false
+                        binding.swipe.isVisible = true
+                        binding.noDispositivo.isVisible = false
+                        val recicle = binding.recicleDispositivos
+                        recicle.layoutManager =
+                            LinearLayoutManager(this@activity_dispositivos_vinculados)
+                        vmDispoVinculados?.puedeCerrarSesionDispositivo(firebaseAuth.uid.toString())
+                        recicle.adapter =
+                            adapter_dispo_vinculados(lista_vincualdos as MutableList<dataclass_dispo_vinculados>) { idDispoSeleccionado ->
+                                val androidId =
+                                    obtenerAndroidID(this@activity_dispositivos_vinculados)
+                                vmUsuariosGenerales?.encontra_user(firebaseAuth.uid.toString())
+                                manejarCerrarSesion(idDispoSeleccionado, androidId)
+                            }
+                    } else {
+                        binding.noDispositivo.isVisible = true
+                        binding.recicleDispositivos.isVisible = false
+                        binding.LinealCargaDispo.isVisible = false
+                        binding.swipe.isVisible = false
+                    }
+
+                }
+            }
+//            vmUsuariosGenerales?.encontra_user(firebaseAuth.uid.toString())
+//            vmDispoVinculados?.buscar_primario?.observe(this@activity_dispositivos_vinculados) { existe ->
+//                if (existe.isNotEmpty()) {
+//                    dialog = BottomSheetDialog(this)
+//                    dialog_cerrar_seccion(
+//                        "it.nombre_dispo.toString()",
+//                        "it.id_dispo.toString()",
+//                        true
+//                    )
+//                    dialog.show()
+//                } else {
+//                    dialog = BottomSheetDialog(this)
+//                    dialog_cerrar_seccion(
+//                        "it.nombre_dispo.toString()",
+//                        "it.id_dispo.toString()",
+//                        false
+//                    )
+//                    dialog.show()
+//
+//                }
+//                datos?.let {
+//                    Log.d(
+//                        "DEBUG_DISPO", """
+//    primarioExiste: ${it.primarioExiste}
+//    cerrarSeccionMismoDispo: ${it.cerrarSeccionMismoDispo}
+//    soyPrimario: ${it.soyPrimario}
+//    esDispositivoActual: ${it.esDispositivoActual}
+//    esPrimarioActual: ${it.esPrimarioActual}
+//    nombre_dispo: ${it.nombre_dispo}
+//    id_dispo: ${it.id_dispo}
+//""".trimIndent()
+//                    )
+//                    when {
+//
+//                        // CASO 1: Es primario y se quiere cerrar a sí mismo
+//                        it.primarioExiste && it.cerrarSeccionMismoDispo -> {
+//                            Toast.makeText(
+//                                this,
+//                                "No puedes cerrar sesión desde aquí",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//
+//                        // CASO 2: Es primario y quiere cerrar otro dispositivo
+//                        it.primarioExiste && !it.cerrarSeccionMismoDispo -> {
+//                            dialog = BottomSheetDialog(this)
+//                            dialog_cerrar_seccion(
+//                                it.nombre_dispo.toString(),
+//                                it.id_dispo.toString(),
+//                                true
+//                            )
+//
+//                            dialog.show()
+//                            Log.d("verificamosdatos", "${it.id_dispo}")
+//                        }
+//
+//                        // CASO 3: No hay ningún primario → todos pueden cerrarse
+//                        !it.primarioExiste -> {
+//                            dialog = BottomSheetDialog(this)
+//                            dialog_cerrar_seccion(
+//                                it.nombre_dispo.toString(),
+//                                it.id_dispo.toString(),
+//                                false
+//                            )
+//                            dialog.show()
+//                            Log.d("verificamosdatos", "${it.id_dispo}")
+//                        }
+//                    }
+//                }
+//            }
+
+
+//            obtener_dispositivos_vinculados()
             confSwipe()
             binding.sinRegistro.isVisible = false
         } else {
@@ -78,12 +198,66 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
 
     }
 
+    private fun manejarCerrarSesion(
+        idDispoSeleccionado: dataclass_dispo_vinculados,
+        androidId: String
+    ) {
+
+        vmDispoVinculados?.buscar_primario?.observeOnce(this) { idPrimario ->
+
+            if (idPrimario.isNotEmpty()) {
+                if (idPrimario == idDispoSeleccionado.id_dispo && idPrimario == androidId) {
+                    Log.d("validamos_campos1", "$idPrimario == ${idDispoSeleccionado.id_dispo}")
+                    Toast.makeText(
+                        this,
+                        "No puedes cerrar sesión directamente desde este dispositivo",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else if (idPrimario != androidId) {
+                    Log.d("validamos_campos2", "$idPrimario == ${androidId}")
+
+                    Toast.makeText(
+                        this,
+                        "Solo el dispositivo primario puede cerrar sesión en otros dispositivos",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    dialog = BottomSheetDialog(this)
+                    dialog_cerrar_seccion(
+                        idDispoSeleccionado.nombre_dispo.toString(),
+                        idDispoSeleccionado.id_dispo.toString(),
+                        true
+                    )
+                    dialog.show()
+                }
+            } else {
+                dialog = BottomSheetDialog(this)
+                dialog_cerrar_seccion(
+                    idDispoSeleccionado.nombre_dispo.toString(),
+                    idDispoSeleccionado.id_dispo.toString(),
+                    false
+                )
+                dialog.show()
+            }
+        }
+    }
+
+    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: (T) -> Unit) {
+        val obs = object : Observer<T> {
+            override fun onChanged(t: T) {
+                observer(t)
+                removeObserver(this)
+            }
+        }
+        observe(lifecycleOwner, obs)
+    }
+
+
     override fun onResume() {
         super.onResume()
         if (firebaseAuth.currentUser != null) {
             binding.swipe.isVisible = true
             Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
-            obtener_dispositivos_vinculados()
             confSwipe()
             binding.sinRegistro.isVisible = false
         } else {
@@ -116,290 +290,340 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
         }
     }
 
-    private fun obtener_dispositivos_vinculados() {
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        val startTime = System.currentTimeMillis()  // Tiempo de inicio
-
-        encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
-            when (tipo) {
-                "trabajador" -> {
-                    val db = FirebaseFirestore.getInstance()
-                        .collection("Trabajadores_Usuarios_Drivers")
-                        .document("trabajadores").collection("trabajadores")
-                        .document(firebaseAuth.uid.toString()).collection("vinculados")
-
-                    db.get().addOnSuccessListener { res ->
-                        val spannableString =
-                            SpannableString("Disposivos vinculados : ${res.size().toString()}")
-                        constantestextos_general.setearInformacionboldDescripcion(
-                            "Disposivos vinculados",
-                            spannableString, binding.TotalDispo
-                        )
-                        lista.clear()
-                        for (datos in res) {
-                            val data = datos.data
-                            val dispositivo = data?.get("dispositivo") as? String ?: ""
-                            val fecha_registro = data?.get("fecha_registro") as? String ?: ""
-                            val hora_registro = data?.get("hora_registro") as? String ?: ""
-                            val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
-                            val primario = data?.get("primario") as? Boolean ?: false
-                            val ultima_con = data?.get("ultima_con") as? String ?: ""
-                            val untima_fecha_con = data?.get("untima_fecha_con") as? String ?: ""
-                            val marca = obtenerMarcaDesdeModelo(dispositivo)
-
-                            val datos = dataclass_dispo_vinculados(
-                                id_dispositivo,
-                                dispositivo,
-                                hora_registro,
-                                fecha_registro, marca, primario, untima_fecha_con, ultima_con
-                            )
-                            lista.add(datos)
-                        }
-                        val endTime = System.currentTimeMillis()  // Tiempo al terminar
-                        val duration = endTime - startTime
-                        Log.d("TIEMPO_CARGA", "Carga completada en $duration ms")
-                        if (lista.isNotEmpty()) {
-                            handler.postDelayed({
-                                binding.recicleDispositivos.isVisible = true
-                                binding.LinealCargaDispo.isVisible = false
-                                binding.swipe.isVisible = true
-                            }, duration)
-
-                            inicializarRecicle()
-                        } else {
-
-                            binding.noDispositivo.isVisible = true
-                            binding.recicleDispositivos.isVisible = false
-                            binding.LinealCargaDispo.isVisible = false
-                            binding.swipe.isVisible = false
-                        }
-
-
-                    }
-                }
-
-                "usuario" -> {
-                    val db = FirebaseFirestore.getInstance()
-                        .collection("Trabajadores_Usuarios_Drivers")
-                        .document("usuarios").collection("usuarios")
-                        .document(firebaseAuth.uid.toString()).collection("vinculados")
-
-                    db.get().addOnSuccessListener { res ->
-                        val spannableString =
-                            SpannableString("Disposivos vinculados : ${res.size().toString()}")
-                        constantestextos_general.setearInformacionboldDescripcion(
-                            "Disposivos vinculados",
-                            spannableString, binding.TotalDispo
-                        )
-                        lista.clear()
-                        for (datos in res) {
-                            val data = datos.data
-                            val dispositivo = data?.get("dispositivo") as? String ?: ""
-                            val fecha_registro = data?.get("fecha_registro") as? String ?: ""
-                            val hora_registro = data?.get("hora_registro") as? String ?: ""
-                            val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
-                            val ultima_con = data?.get("ultima_con") as? String ?: ""
-                            val untima_fecha_con = data?.get("untima_fecha_con") as? String ?: ""
-                            val primario = data?.get("primario") as? Boolean ?: false
-                            val marca = obtenerMarcaDesdeModelo(dispositivo)
-                            val datos = dataclass_dispo_vinculados(
-                                id_dispositivo,
-                                dispositivo,
-                                hora_registro,
-                                fecha_registro, marca, primario, untima_fecha_con, ultima_con
-                            )
-                            lista.add(datos)
-                        }
-
-                        val endTime = System.currentTimeMillis()  // Tiempo al terminar
-                        val duration = endTime - startTime
-                        Log.d("TIEMPO_CARGA", "Carga completada en $duration ms")
-                        if (lista.isNotEmpty()) {
-                            handler.postDelayed({
-                                binding.recicleDispositivos.isVisible = true
-                                binding.LinealCargaDispo.isVisible = false
-                                binding.swipe.isVisible = true
-                            }, duration)
-                            inicializarRecicle()
-                        } else {
-                            binding.noDispositivo.isVisible = true
-                            binding.recicleDispositivos.isVisible = false
-                            binding.LinealCargaDispo.isVisible = false
-                            binding.swipe.isVisible = false
-                        }
-                    }
-                }
-
-                else -> Log.d("RESULT", "No se encontró el usuario")
-            }
-        }
-    }
+//    private fun obtener_dispositivos_vinculados() {
+//        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+//        val startTime = System.currentTimeMillis()  // Tiempo de inicio
+//
+//        encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
+//            when (tipo) {
+//                "trabajador" -> {
+//                    val db = FirebaseFirestore.getInstance()
+//                        .collection("Trabajadores_Usuarios_Drivers")
+//                        .document("trabajadores").collection("trabajadores")
+//                        .document(firebaseAuth.uid.toString()).collection("vinculados")
+//
+//                    db.get().addOnSuccessListener { res ->
+//                        val spannableString =
+//                            SpannableString("Disposivos vinculados : ${res.size().toString()}")
+//                        constantestextos_general.setearInformacionboldDescripcion(
+//                            "Disposivos vinculados",
+//                            spannableString, binding.TotalDispo
+//                        )
+//                        lista.clear()
+//                        for (datos in res) {
+//                            val data = datos.data
+//                            val dispositivo = data?.get("dispositivo") as? String ?: ""
+//                            val fecha_registro = data?.get("fecha_registro") as? String ?: ""
+//                            val hora_registro = data?.get("hora_registro") as? String ?: ""
+//                            val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
+//                            val primario = data?.get("primario") as? Boolean ?: false
+//                            val ultima_con = data?.get("ultima_con") as? String ?: ""
+//                            val untima_fecha_con = data?.get("untima_fecha_con") as? String ?: ""
+//                            val marca = obtenerMarcaDesdeModelo(dispositivo)
+//
+//                            val datos = dataclass_dispo_vinculados(
+//                                id_dispositivo,
+//                                dispositivo,
+//                                hora_registro,
+//                                fecha_registro, marca, primario, untima_fecha_con, ultima_con
+//                            )
+//                            lista.add(datos)
+//                        }
+//                        val endTime = System.currentTimeMillis()  // Tiempo al terminar
+//                        val duration = endTime - startTime
+//                        Log.d("TIEMPO_CARGA", "Carga completada en $duration ms")
+//                        if (lista.isNotEmpty()) {
+//                            handler.postDelayed({
+//                                binding.recicleDispositivos.isVisible = true
+//                                binding.LinealCargaDispo.isVisible = false
+//                                binding.swipe.isVisible = true
+//                            }, duration)
+//
+////                            inicializarRecicle(lista_vincualdos)
+//                        } else {
+//
+//                            binding.noDispositivo.isVisible = true
+//                            binding.recicleDispositivos.isVisible = false
+//                            binding.LinealCargaDispo.isVisible = false
+//                            binding.swipe.isVisible = false
+//                        }
+//
+//
+//                    }
+//                }
+//
+//                "usuario" -> {
+//                    val db = FirebaseFirestore.getInstance()
+//                        .collection("Trabajadores_Usuarios_Drivers")
+//                        .document("usuarios").collection("usuarios")
+//                        .document(firebaseAuth.uid.toString()).collection("vinculados")
+//
+//                    db.get().addOnSuccessListener { res ->
+//                        val spannableString =
+//                            SpannableString("Disposivos vinculados : ${res.size().toString()}")
+//                        constantestextos_general.setearInformacionboldDescripcion(
+//                            "Disposivos vinculados",
+//                            spannableString, binding.TotalDispo
+//                        )
+//                        lista.clear()
+//                        for (datos in res) {
+//                            val data = datos.data
+//                            val dispositivo = data?.get("dispositivo") as? String ?: ""
+//                            val fecha_registro = data?.get("fecha_registro") as? String ?: ""
+//                            val hora_registro = data?.get("hora_registro") as? String ?: ""
+//                            val id_dispositivo = data?.get("id_dispositivo") as? String ?: ""
+//                            val ultima_con = data?.get("ultima_con") as? String ?: ""
+//                            val untima_fecha_con = data?.get("untima_fecha_con") as? String ?: ""
+//                            val primario = data?.get("primario") as? Boolean ?: false
+//                            val marca = obtenerMarcaDesdeModelo(dispositivo)
+//                            val datos = dataclass_dispo_vinculados(
+//                                id_dispositivo,
+//                                dispositivo,
+//                                hora_registro,
+//                                fecha_registro, marca, primario, untima_fecha_con, ultima_con
+//                            )
+//                            lista.add(datos)
+//                        }
+//
+//                        val endTime = System.currentTimeMillis()  // Tiempo al terminar
+//                        val duration = endTime - startTime
+//                        Log.d("TIEMPO_CARGA", "Carga completada en $duration ms")
+//                        if (lista.isNotEmpty()) {
+//                            handler.postDelayed({
+//                                binding.recicleDispositivos.isVisible = true
+//                                binding.LinealCargaDispo.isVisible = false
+//                                binding.swipe.isVisible = true
+//                            }, duration)
+////                            inicializarRecicle(lista_vincualdos)
+//                        } else {
+//                            binding.noDispositivo.isVisible = true
+//                            binding.recicleDispositivos.isVisible = false
+//                            binding.LinealCargaDispo.isVisible = false
+//                            binding.swipe.isVisible = false
+//                        }
+//                    }
+//                }
+//
+//                else -> Log.d("RESULT", "No se encontró el usuario")
+//            }
+//        }
+//    }
 
     private fun confSwipe() {
         binding.swipe.setOnRefreshListener {
             binding.swipe.setColorSchemeResources(R.color.violeta)
             Handler(Looper.getMainLooper()).postDelayed({
                 binding.swipe.isRefreshing = false
-                obtener_dispositivos_vinculados()
+//                obtener_dispositivos_vinculados()
             }, 2000)
         }
     }
 
-    fun obtenerMarcaDesdeModelo(modelo: String): String {
-        return when {
-            modelo.startsWith("SM-", ignoreCase = true) -> "samsung"
-            modelo.startsWith(
-                "M2",
-                ignoreCase = true
-            ) || modelo.startsWith("220") || modelo.startsWith("230") || modelo.startsWith("Xiaomi") -> "Xiaomi"
 
-            modelo.startsWith("RMX", ignoreCase = true) -> "Realme"
-            modelo.startsWith("CPH", ignoreCase = true) -> "Oppo"
-            modelo.startsWith("V") && modelo.length >= 5 && modelo[1].isDigit() -> "Vivo"
-            modelo.startsWith("XT", ignoreCase = true) -> "Motorola"
-            modelo.startsWith("G", ignoreCase = true) && modelo.length >= 5 -> "Google"
-            modelo.startsWith("LM-", ignoreCase = true) || modelo.startsWith(
-                "LG-",
-                ignoreCase = true
-            ) -> "LG"
-
-            modelo.startsWith("ASUS_", ignoreCase = true) || modelo.startsWith("ZS") -> "Asus"
-            modelo.startsWith("XQ-", ignoreCase = true) -> "Sony"
-            modelo.startsWith("TA-", ignoreCase = true) -> "Nokia"
-            modelo.startsWith("ZTE", ignoreCase = true) -> "ZTE"
-            modelo.startsWith("X") && modelo.length >= 5 && modelo[1].isDigit() -> "Infinix"
-            modelo.startsWith("KG") || modelo.startsWith("KE") || modelo.startsWith("BD") -> "Tecno"
-            else -> "Desconocido"
-        }
-    }
-
-    private fun inicializarRecicle() {
+    private fun inicializarRecicle(
+        lista_vincualdos: List<dataclass_dispo_vinculados?>
+    ) {
         val recicle = binding.recicleDispositivos
         recicle.layoutManager = LinearLayoutManager(this)
-        recicle.adapter = adapter_dispo_vinculados(lista) { id ->
-            val androidId = obtenerAndroidID(this)
-            encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
-                val docRefActual = when (tipo) {
-                    "trabajador" -> FirebaseFirestore.getInstance()
-                        .collection("Trabajadores_Usuarios_Drivers")
-                        .document("trabajadores").collection("trabajadores")
-                        .document(firebaseAuth.uid.toString())
-                        .collection("vinculados")
-                        .document(androidId)  // Verificamos el dispositivo actual
+        recicle.adapter =
+            adapter_dispo_vinculados(lista_vincualdos as MutableList<dataclass_dispo_vinculados>) { idDispoSeleccionado ->
+                val androidId = obtenerAndroidID(this)
+                vmUsuariosGenerales?.encontrar_user?.observe(this@activity_dispositivos_vinculados) { acceso ->
+                    val (encontrado, coleccion) = acceso
+//                    if (encontrado && coleccion != null) {
+//                        vmDispoVinculados?.puedeCerrarSesionDispositivo(
+//                            coleccion,
+//                            idDispoSeleccionado.id_dispo.toString(),
+//                            androidId, idDispoSeleccionado.nombre_dispo.toString()
+//                        )
+//
+////                        referencia_vinculado.get().addOnSuccessListener { resActual ->
+////                            if (resActual.exists()) {
+////                                val dataActual = resActual.data
+////                                val esPrimarioActual =
+////                                    dataActual?.get("primario") as? Boolean ?: false
+////                                val vinculados = coleccion.document(firebaseAuth.uid.toString())
+////                                    .collection("vinculados")
+////
+////                                vinculados.get().addOnSuccessListener { documentos ->
+////                                    val existePrimario =
+////                                        documentos.any { it.getBoolean("primario") == true }
+////                                    if (id.id_dispo == androidId) {
+////                                        if (existePrimario) {
+////                                            Toast.makeText(
+////                                                this,
+////                                                "No puedes cerrar sesión directa en este dispositivo",
+////                                                Toast.LENGTH_SHORT
+////                                            ).show()
+////                                        } else {
+////                                            // No hay un primario aún → ofrecer opción para establecer como primario
+////                                            dialog = BottomSheetDialog(this)
+////                                            dialog_cerrar_seccion(
+////                                                id.nombre_dispo.toString(),
+////                                                id.id_dispo.toString(),
+////                                                false
+////                                            )
+////                                            dialog.show()
+////                                        }
+////                                    } else {
+////                                        // Está intentando cerrar sesión en otro dispositivo
+////                                        if (existePrimario) {
+////                                            if (esPrimarioActual) {
+////                                                // Soy el primario, puedo cerrar sesión a otros
+////                                                dialog = BottomSheetDialog(this)
+////                                                dialog_cerrar_seccion(
+////                                                    id.nombre_dispo.toString(),
+////                                                    id.id_dispo.toString(),
+////                                                    true
+////                                                )
+////                                                dialog.show()
+////                                            } else {
+////                                                // No soy el primario, no puedo cerrar sesión a nadie
+////                                                Toast.makeText(
+////                                                    this,
+////                                                    "Solo el dispositivo primario puede cerrar sesión en otros dispositivos",
+////                                                    Toast.LENGTH_SHORT
+////                                                ).show()
+////                                            }
+////                                        } else {
+////                                            // No hay primario aún → permitir cerrar sesión
+////                                            dialog = BottomSheetDialog(this)
+////                                            dialog_cerrar_seccion(
+////                                                id.nombre_dispo.toString(),
+////                                                id.id_dispo.toString(),
+////                                                false
+////                                            )
+////                                            dialog.show()
+////                                        }
+////                                    }
+////                                }
+////                            }
+////                        }
+//                    }
 
-                    "usuario" -> FirebaseFirestore.getInstance()
-                        .collection("Trabajadores_Usuarios_Drivers")
-                        .document("usuarios").collection("usuarios")
-                        .document(firebaseAuth.uid.toString())
-                        .collection("vinculados")
-                        .document(androidId)
-
-                    else -> {
-                        Log.d("RESULT", "No se encontró el usuario")
-                        return@encontrarUser
-                    }
                 }
-
-                docRefActual.get().addOnSuccessListener { resActual ->
-                    if (resActual.exists()) {
-                        val dataActual = resActual.data
-                        val esPrimarioActual = dataActual?.get("primario") as? Boolean ?: false
-
-                        val vinculadosRef = when (tipo) {
-                            "trabajador" -> FirebaseFirestore.getInstance()
-                                .collection("Trabajadores_Usuarios_Drivers")
-                                .document("trabajadores").collection("trabajadores")
-                                .document(firebaseAuth.uid.toString()).collection("vinculados")
-
-                            "usuario" -> FirebaseFirestore.getInstance()
-                                .collection("Trabajadores_Usuarios_Drivers")
-                                .document("usuarios").collection("usuarios")
-                                .document(firebaseAuth.uid.toString()).collection("vinculados")
-
-                            else -> return@addOnSuccessListener
-                        }
-
-                        vinculadosRef.get().addOnSuccessListener { documentos ->
-                            val existePrimario =
-                                documentos.any { it.getBoolean("primario") == true }
-
-                            if (id.id_dispo == androidId) {
-                                if (existePrimario) {
-                                    // Si ya hay un primario, y está intentando cerrar sesión en sí mismo (prohibido)
-                                    Toast.makeText(
-                                        this,
-                                        "No puedes cerrar sesión directa en este dispositivo",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    // No hay un primario aún → ofrecer opción para establecer como primario
-                                    dialog = BottomSheetDialog(this)
-                                    dialog_cerrar_seccion(
-                                        id.nombre_dispo.toString(),
-                                        id.id_dispo.toString(),
-                                        false
-                                    )
-                                    dialog.show()
-                                }
-                            } else {
-                                // Está intentando cerrar sesión en otro dispositivo
-                                if (existePrimario) {
-                                    if (esPrimarioActual) {
-                                        // Soy el primario, puedo cerrar sesión a otros
-                                        dialog = BottomSheetDialog(this)
-                                        dialog_cerrar_seccion(
-                                            id.nombre_dispo.toString(),
-                                            id.id_dispo.toString(),
-                                            true
-                                        )
-                                        dialog.show()
-                                    } else {
-                                        // No soy el primario, no puedo cerrar sesión a nadie
-                                        Toast.makeText(
-                                            this,
-                                            "Solo el dispositivo primario puede cerrar sesión en otros dispositivos",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                } else {
-                                    // No hay primario aún → permitir cerrar sesión
-                                    dialog = BottomSheetDialog(this)
-                                    dialog_cerrar_seccion(
-                                        id.nombre_dispo.toString(),
-                                        id.id_dispo.toString(),
-                                        false
-                                    )
-                                    dialog.show()
-                                }
-                            }
-
-                        }.addOnFailureListener {
-                            Toast.makeText(
-                                this,
-                                "Error al verificar dispositivos vinculados",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        Toast.makeText(
-                            this,
-                            "No se encontró información del dispositivo actual",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }.addOnFailureListener {
-                    Toast.makeText(
-                        this,
-                        "Error al consultar el dispositivo actual",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+//                encontrarUser(firebaseAuth.uid.toString()) { tipo, coleccion ->
+//                    val docRefActual = when (tipo) {
+//                        "trabajador" -> FirebaseFirestore.getInstance()
+//                            .collection("Trabajadores_Usuarios_Drivers")
+//                            .document("trabajadores").collection("trabajadores")
+//                            .document(firebaseAuth.uid.toString())
+//                            .collection("vinculados")
+//                            .document(androidId)  // Verificamos el dispositivo actual
+//
+//                        "usuario" -> FirebaseFirestore.getInstance()
+//                            .collection("Trabajadores_Usuarios_Drivers")
+//                            .document("usuarios").collection("usuarios")
+//                            .document(firebaseAuth.uid.toString())
+//                            .collection("vinculados")
+//                            .document(androidId)
+//
+//                        else -> {
+//                            Log.d("RESULT", "No se encontró el usuario")
+//                            return@encontrarUser
+//                        }
+//                    }
+//
+//                    docRefActual.get().addOnSuccessListener { resActual ->
+//                        if (resActual.exists()) {
+//                            val dataActual = resActual.data
+//                            val esPrimarioActual = dataActual?.get("primario") as? Boolean ?: false
+//
+//                            val vinculadosRef = when (tipo) {
+//                                "trabajador" -> FirebaseFirestore.getInstance()
+//                                    .collection("Trabajadores_Usuarios_Drivers")
+//                                    .document("trabajadores").collection("trabajadores")
+//                                    .document(firebaseAuth.uid.toString()).collection("vinculados")
+//
+//                                "usuario" -> FirebaseFirestore.getInstance()
+//                                    .collection("Trabajadores_Usuarios_Drivers")
+//                                    .document("usuarios").collection("usuarios")
+//                                    .document(firebaseAuth.uid.toString()).collection("vinculados")
+//
+//                                else -> return@addOnSuccessListener
+//                            }
+//
+//                            vinculadosRef.get().addOnSuccessListener { documentos ->
+//                                val existePrimario =
+//                                    documentos.any { it.getBoolean("primario") == true }
+//
+//                                if (id.id_dispo == androidId) {
+//                                    if (existePrimario) {
+//                                        // Si ya hay un primario, y está intentando cerrar sesión en sí mismo (prohibido)
+//                                        Toast.makeText(
+//                                            this,
+//                                            "No puedes cerrar sesión directa en este dispositivo",
+//                                            Toast.LENGTH_SHORT
+//                                        ).show()
+//                                    } else {
+//                                        // No hay un primario aún → ofrecer opción para establecer como primario
+//                                        dialog = BottomSheetDialog(this)
+//                                        dialog_cerrar_seccion(
+//                                            id.nombre_dispo.toString(),
+//                                            id.id_dispo.toString(),
+//                                            false
+//                                        )
+//                                        dialog.show()
+//                                    }
+//                                } else {
+//                                    // Está intentando cerrar sesión en otro dispositivo
+//                                    if (existePrimario) {
+//                                        if (esPrimarioActual) {
+//                                            // Soy el primario, puedo cerrar sesión a otros
+//                                            dialog = BottomSheetDialog(this)
+//                                            dialog_cerrar_seccion(
+//                                                id.nombre_dispo.toString(),
+//                                                id.id_dispo.toString(),
+//                                                true
+//                                            )
+//                                            dialog.show()
+//                                        } else {
+//                                            // No soy el primario, no puedo cerrar sesión a nadie
+//                                            Toast.makeText(
+//                                                this,
+//                                                "Solo el dispositivo primario puede cerrar sesión en otros dispositivos",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        }
+//                                    } else {
+//                                        // No hay primario aún → permitir cerrar sesión
+//                                        dialog = BottomSheetDialog(this)
+//                                        dialog_cerrar_seccion(
+//                                            id.nombre_dispo.toString(),
+//                                            id.id_dispo.toString(),
+//                                            false
+//                                        )
+//                                        dialog.show()
+//                                    }
+//                                }
+//
+//                            }.addOnFailureListener {
+//                                Toast.makeText(
+//                                    this,
+//                                    "Error al verificar dispositivos vinculados",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                            }
+//                        } else {
+//                            Toast.makeText(
+//                                this,
+//                                "No se encontró información del dispositivo actual",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    }.addOnFailureListener {
+//                        Toast.makeText(
+//                            this,
+//                            "Error al consultar el dispositivo actual",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
+//
+//
+//                }
 
 
             }
-
-
-        }
     }
 
     private fun dialog_cerrar_seccion(nombre_dispo: String, id_dispo: String, sinExsitir: Boolean) {
@@ -413,8 +637,6 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
         dialog.show()
 
         if (!sinExsitir) {
-            // Si NO existe un dispositivo primario, mostrar solo el diálogo para marcarlo
-//            if (id_dispo == androidId) {
             bottomSheetBinding.camposprimario.isVisible = true
             bottomSheetBinding.primario.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
@@ -440,7 +662,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 return@encontrarUser
                             }
                         }
-
+                        Log.d("vemos_igualdad", "$id_dispo $androidId")
                         val hasmap = hashMapOf<String, Any>("primario" to true)
                         docRef.set(hasmap, SetOptions.merge()).addOnSuccessListener {
                             Toast.makeText(
@@ -449,10 +671,8 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                             dialog.dismiss()
-                            obtener_dispositivos_vinculados()
+//                            obtener_dispositivos_vinculados()
 
-                            // ✅ Ahora que ya se marcó como primario, mostrar el dialog de biometría
-//                                selecionar_dialog_biometricocuenta(nombre_dispo, id_dispo)
 
                         }.addOnFailureListener { e ->
                             Log.d("error_dispo", "Error al colocar primario el dispositivo: $e")
@@ -460,10 +680,9 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                     }
                 }
             }
-
 
         } else {
-            // Ya hay un primario, así que puedes mostrar directamente el dialog de biometría
+
             bottomSheetBinding.camposprimario.isVisible = true
 
             bottomSheetBinding.primario.setOnCheckedChangeListener { _, isChecked ->
@@ -499,8 +718,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                             dialog.dismiss()
-                            obtener_dispositivos_vinculados()
-//                            selecionar_dialog_biometricocuenta(nombre_dispo, id_dispo) // ✅ también aquí
+//                            obtener_dispositivos_vinculados()
                         }.addOnFailureListener { e ->
                             Log.d("error_dispo", "Error al colocar primario el dispositivo: $e")
                         }
@@ -508,11 +726,9 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                 }
             }
 
-            // ✅ Mostrar de inmediato el dialog de biometría si ya hay un primario
             selecionar_dialog_biometricocuenta(nombre_dispo, id_dispo)
         }
     }
-
 
     private fun selecionar_dialog_biometricocuenta(nombre_dispo: String, id_disp: String) {
         val botto_shhet_biometrico_cuenta_user = BottomSheetlCrrsVinculadosBinding.inflate(
@@ -577,22 +793,59 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                         return@encontrarUser
                                     }
                                 }
+                                docRef.get().addOnSuccessListener { res ->
+                                    if (res.exists()) {
+                                        val data = res.data
+                                        val dispositivo = data?.get("dispositivo") as? String ?: ""
+                                        docRef.delete()
+                                            .addOnSuccessListener {
+                                                vmNotificaciones?.notificar_cerrado_seccion_vinculado(
+                                                    firebaseAuth.uid.toString(),
+                                                    dispositivo
+                                                )
+                                                dialog.dismiss()
+                                                vmNotificaciones?._notifica_cerrado_seccion?.observe(
+                                                    this@activity_dispositivos_vinculados
+                                                ) { dispositivos ->
+                                                    dispositivos?.forEach { it ->
+                                                        if (it.nombre_dispo != null) {
+                                                            val validacion =
+                                                                vmTextosValidaciones?.modelos_celulares_iguales_directo(
+                                                                    it.nombre_dispo,
+                                                                    dispositivo
+                                                                ) ?: false
+                                                            if (validacion) {
+                                                                lifecycleScope.launch {
+                                                                    val notificacionRS =
+                                                                        NotificacionRS()
+                                                                    notificacionRS.enviarNotificacionFCM(
+                                                                        it.tok_dispo.toString(),
+                                                                        "idAdmin",
+                                                                        "idasdasda",
+                                                                        "iadasdasda",
+                                                                        "entrada",
+                                                                        "El administrador cerró tu sesión",
+                                                                        "Tu sesión en el dispositivo $dispositivo fue cerrada por el administrador. Si no reconoces esta acción, te recomendamos contactarte con geinz work "
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
 
-                                docRef.delete()
-                                    .addOnSuccessListener {
-                                        dialog.dismiss()
-                                        obtener_dispositivos_vinculados()
-                                        Log.d(
-                                            "dispo_vinculado",
-                                            "Dispositivo eliminado correctamente"
-                                        )
+
+                                            }
+
+                                            .addOnFailureListener { e ->
+                                                Log.d(
+                                                    "error_eliminar",
+                                                    "Error al eliminar el dispositivo: ${e.message}"
+                                                )
+                                            }
                                     }
-                                    .addOnFailureListener { e ->
-                                        Log.d(
-                                            "error_eliminar",
-                                            "Error al eliminar el dispositivo: ${e.message}"
-                                        )
-                                    }
+
+                                }
+
                             }
                         }
 
@@ -725,7 +978,7 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                     .addOnSuccessListener {
                                         bottomSheet_verificar.cerrandoSeccion.isVisible = false
                                         dialog.dismiss()
-                                        obtener_dispositivos_vinculados()
+//                                        obtener_dispositivos_vinculados()
                                         Log.d(
                                             "dispo_vinculado",
                                             "Dispositivo eliminado correctamente"

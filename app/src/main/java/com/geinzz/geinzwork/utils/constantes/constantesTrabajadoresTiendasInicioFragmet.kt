@@ -367,84 +367,84 @@ object constantesTrabajadoresTiendasInicioFragmet {
     }
 
 
-    fun obtenerNombre_imgPerfil(
-        progressbar: ProgressBar,
-        TextView: TextView,
-        contexto: Context,
-        imagen: CircleImageView,
-        linealAnuncioVerificado: LinearLayout,
-        verificadoBoolena: (Boolean) -> Unit
-    ) {
-        if (constantes.firebaseAuth.currentUser == null) {
-            val placeholderperfil =
-                ContextCompat.getDrawable(contexto, R.drawable.img_perfil)
-            TextView.text = "usuario"
-            constatnes_carga_imagenes_general.changer_img(
-                progressbar,
-                contexto,
-                img,
-                imagen,
-                null,
-                "perfil", placeholderperfil
-            ) {}
-        } else {
-            var encontrado = false
-            val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                .document("trabajadores").collection("trabajadores")
-
-            db.get().addOnSuccessListener { res ->
-                for (resultado in res) {
-                    val data = resultado.data
-                    val id = data?.get("id") as? String
-                    val verificado = data?.get("verificado") as? Boolean ?: false
-                    if (id == constantes.firebaseAuth.uid.toString()) {
-                        encontrado = true
-                        setearimgNombre(
-                            progressbar,
-                            "trabajadores",
-                            id.toString(),
-                            TextView,
-                            contexto,
-                            imagen
-                        )
-                        if (verificado == true) {
-                            verificadoBoolena(true)
-//                            linealAnuncioVerificado.isVisible=false
-                        } else {
-                            verificadoBoolena(false)
-//                            linealAnuncioVerificado.isVisible=true
-                        }
-                        break
-                    }
-
-                }
-                if (encontrado == false) {
-                    val db2 =
-                        FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-                            .document("usuarios").collection("usuarios")
-
-                    db2.get().addOnSuccessListener { res2 ->
-                        for (resultado in res2) {
-//                            linealAnuncioVerificado.isVisible=false
-                            val data = resultado.data
-                            val id = data?.get("id") as? String
-                            if (id == constantes.firebaseAuth.uid.toString()) {
-                                setearimgNombre(
-                                    progressbar,
-                                    "usuarios",
-                                    id.toString(),
-                                    TextView,
-                                    contexto,
-                                    imagen
-                                )
-                                break
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    fun obtenerNombre_imgPerfil(
+//        progressbar: ProgressBar,
+//        TextView: TextView,
+//        contexto: Context,
+//        imagen: CircleImageView,
+//        linealAnuncioVerificado: LinearLayout,
+//        verificadoBoolena: (Boolean) -> Unit
+//    ) {
+//        if (constantes.firebaseAuth.currentUser == null) {
+//            val placeholderperfil =
+//                ContextCompat.getDrawable(contexto, R.drawable.img_perfil)
+//            TextView.text = "usuario"
+//            constatnes_carga_imagenes_general.changer_img(
+//                progressbar,
+//                contexto,
+//                img,
+//                imagen,
+//                null,
+//                "perfil", placeholderperfil
+//            ) {}
+//        } else {
+//            var encontrado = false
+//            val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+//                .document("trabajadores").collection("trabajadores")
+//
+//            db.get().addOnSuccessListener { res ->
+//                for (resultado in res) {
+//                    val data = resultado.data
+//                    val id = data?.get("id") as? String
+//                    val verificado = data?.get("verificado") as? Boolean ?: false
+//                    if (id == constantes.firebaseAuth.uid.toString()) {
+//                        encontrado = true
+//                        setearimgNombre(
+//                            progressbar,
+//                            "trabajadores",
+//                            id.toString(),
+//                            TextView,
+//                            contexto,
+//                            imagen
+//                        )
+//                        if (verificado == true) {
+//                            verificadoBoolena(true)
+////                            linealAnuncioVerificado.isVisible=false
+//                        } else {
+//                            verificadoBoolena(false)
+////                            linealAnuncioVerificado.isVisible=true
+//                        }
+//                        break
+//                    }
+//
+//                }
+//                if (encontrado == false) {
+//                    val db2 =
+//                        FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+//                            .document("usuarios").collection("usuarios")
+//
+//                    db2.get().addOnSuccessListener { res2 ->
+//                        for (resultado in res2) {
+////                            linealAnuncioVerificado.isVisible=false
+//                            val data = resultado.data
+//                            val id = data?.get("id") as? String
+//                            if (id == constantes.firebaseAuth.uid.toString()) {
+//                                setearimgNombre(
+//                                    progressbar,
+//                                    "usuarios",
+//                                    id.toString(),
+//                                    TextView,
+//                                    contexto,
+//                                    imagen
+//                                )
+//                                break
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private fun setearimgNombre(
         progressbar: ProgressBar,

@@ -36,7 +36,6 @@ import kotlin.collections.get
 
 object constantes {
 
-    val firebaseAuth = FirebaseAuth.getInstance()
 
     fun vistaTrabajador(contexto: Context, dataClassTrabajosd: dataClassTrabajosd) {
         var vista =

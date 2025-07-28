@@ -12,20 +12,28 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.geinzz.geinzwork.utils.constantes.constantes.Variables
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesPublicidad
 import com.geinzz.geinzwork.databinding.ActivityLoginBinding
+import com.geinzz.geinzwork.utils.constantes.constantes.obtenertokenIdAdmin
+import com.geinzz.geinzwork.viewModels.viewModel_notificaciones
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class Login : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var dialog: BottomSheetDialog
+    private lateinit var view_model_noficaciones: viewModel_notificaciones
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -36,8 +44,12 @@ class Login : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        view_model_noficaciones =
+            ViewModelProvider(this@Login)[viewModel_notificaciones::class.java]
         firebaseAuth = FirebaseAuth.getInstance()
         val datos = intent.getStringExtra("dato").toString()
+
+
 
 
         binding.BtnIngresar.setOnClickListener {
@@ -72,8 +84,6 @@ class Login : AppCompatActivity() {
 
         verificarSeccion()
 
-
-
         binding.registrate.setOnClickListener {
             dialog = BottomSheetDialog(this)
             constantesPublicidad.CreacionCuentaBottom_shett(this, dialog)
@@ -91,7 +101,7 @@ class Login : AppCompatActivity() {
     private fun verificaruser(
         tipo: String,
         onResult: (Boolean, String?) -> Unit
-    ) { // Agregado el callback aquí
+    ) {
         val correo = binding.ingreseSuMail.text.toString().trim()
         val contraseña = binding.txtpassword.text.toString().trim()
 
@@ -102,7 +112,6 @@ class Login : AppCompatActivity() {
         }
 
         val db = FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
-
         // Buscar en trabajadores
         db.document("trabajadores")
             .collection("trabajadores")
@@ -173,8 +182,6 @@ class Login : AppCompatActivity() {
             }
     }
 
-    // Función para verificar dispositivos vinculados e intentar el login.
-// Acepta un callback para reportar el resultado final de la operación.
     private fun verificarDispositivosYLogin(
         tipo_obtenido: String,
         uid: String,
@@ -183,6 +190,10 @@ class Login : AppCompatActivity() {
         tipo: String,
         onResult: (Boolean, String?) -> Unit // Agregado el callback aquí
     ) {
+        val deviceName = "${Build.MANUFACTURER}-${Build.MODEL}"
+            .replace(" ", "_")
+            .replace(".", "")
+            .lowercase() // 🔧 Normaliza el nombre del dispositivo
         val db = FirebaseFirestore.getInstance()
 
         db.collection("Trabajadores_Usuarios_Drivers")
@@ -210,6 +221,7 @@ class Login : AppCompatActivity() {
                         .create()
 
                     dialog.show()
+
                     val startTime = System.currentTimeMillis()
 
                     firebaseAuth.signInWithEmailAndPassword(correo, contraseña)
@@ -219,19 +231,34 @@ class Login : AppCompatActivity() {
                             Handler(Looper.getMainLooper()).postDelayed({
                                 dialog.dismiss()
                             }, duration)
-
-
                             val user = resultado.user
-                            if (user != null) { // Asegúrate de que el usuario no sea nulo
+                            if (user != null) {
+                                view_model_noficaciones.notificar_vincualdos(user.uid)
+                                view_model_noficaciones.notificar_vincualdos.observe(this) { dispositivos ->
+                                    dispositivos?.forEach { it ->
+                                        if (it.nombre_dispo != deviceName) {
+                                            lifecycleScope.launch {
+                                                val notificacionRS = NotificacionRS()
+                                                notificacionRS.enviarNotificacionFCM(
+                                                    it.tok_dispo.toString(),
+                                                    "idAdmin",
+                                                    "idasdasda",
+                                                    "iadasdasda",
+                                                    "entrada",
+                                                    "Nuevo dispositivo vinculado 📱",
+                                                    "${deviceName} ha sido vinculado a tu cuenta. Si reconoces este dispositivo, no necesitas hacer nada. De lo contrario, revisa tu seguridad.",
+                                                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/Verificados%2FAlttQDQZNpKGK9Zv5yQT%2FDNIFRONTAL.jpg?alt=media&token=c6a4aeaa-7696-46c0-964d-fa9ac05a9eef"
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                                 constantes_vinculados.agregar_vinculado(
                                     user.uid,
                                     this,
                                     tipo_obtenido
                                 )
                                 agregar_token_listaFCM(user.uid)
-                                // Si agregar_vinculado es asíncrono y su éxito es el final,
-                                // podrías necesitar otro callback aquí.
-                                // Por ahora, asumimos que si llega aquí, el login es un éxito para el callback.
                                 onResult(true, null) // Llama al callback con éxito
                             } else {
                                 dialog.dismiss()
@@ -314,7 +341,6 @@ class Login : AppCompatActivity() {
             Log.e("FCM", "Error al obtener token FCM: ${it.message}")
         }
     }
-
 
 
 }

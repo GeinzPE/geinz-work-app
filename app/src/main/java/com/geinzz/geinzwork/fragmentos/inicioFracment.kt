@@ -57,11 +57,14 @@ import com.geinzz.geinzwork.databinding.ItemProductsTrabajadoresPrincipalBinding
 import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresInicioFragmentBinding
 import com.geinzz.geinzwork.model.dataClassCategoriasInicio
 import com.geinzz.geinzwork.model.dataClassTrabajosd
+import com.geinzz.geinzwork.ui.adapters.ui.localizate_geinz_wokr_ui
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.actualizarVisibilidadCargando
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.actualizarVisibilidadPorCategoria
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.inicializarRecicleMejoresTrabajadores
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.inicializarTrabajos
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados.obtenerAndroidID
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados.setar_hora_fecha_ultimaConexion
 import com.geinzz.geinzwork.viewModels.viewModel_inicio_fr
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
@@ -283,28 +286,10 @@ class inicioFracment : Fragment() {
                     "perfil",
                     placeholderperfil
                 ) {}
-                binding.includeCabezero.usuarioRegsitradoName.text=it.nombre
+                binding.includeCabezero.usuarioRegsitradoName.text = it.nombre
             }
 
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         SetAnuncios()
         obtenerProductos_trabajadores()
@@ -315,75 +300,54 @@ class inicioFracment : Fragment() {
             binding.linealAnuncioVerificado.isVisible = false
         } else {
             binding.linealAnuncioVerificado.isVisible = true
-            constantes_vinculados.verificaAcceso(
-                firebaseAuth.uid.toString(), mContex,
-                onStart = {
-                },
-                onFinish = { dispositivoValido ->
-                    if (!dispositivoValido) {
-                        val dialogBuilder = AlertDialog.Builder(mContex)
-                        dialogBuilder.setTitle("Sesión cerrada")
-                        dialogBuilder.setMessage("Tu cuenta fue cerrada desde otro dispositivo. Si no fuiste tú, por favor contáctate con Geinz Work.")
-                        dialogBuilder.setCancelable(false)
-                        binding.linealAnuncioVerificado.isVisible = false
-                        dialogBuilder.setPositiveButton("Contactar con Geinz Work") { dialog, _ ->
+            lifecycleScope.launchWhenStarted {
+                viewModel_info_user_general.accesoPermitido.collect { acceso ->
+                    when (acceso) {
+                        true -> Log.d("Acceso", "Permiso concedido")
+                        false -> {
+                            val dialogBuilder = AlertDialog.Builder(mContex)
+                            dialogBuilder.setTitle("Sesión cerrada")
+                            dialogBuilder.setMessage("Tu cuenta fue cerrada desde otro dispositivo. Si no fuiste tú, por favor contáctate con Geinz Work.")
+                            dialogBuilder.setCancelable(false)
+                            binding.linealAnuncioVerificado.isVisible = false
+                            binding.includeCabezero.usuarioRegsitradoName.text = "Usuario"
+                            val placeholderperfil =
+                                ContextCompat.getDrawable(mContex, R.drawable.img_perfil)
+                            setar_hora_fecha_ultimaConexion(firebaseAuth.uid.toString(), mContex)
+                            constatnes_carga_imagenes_general.changer_img(
+                                binding.includeCabezero.progressCargaImagen,
+                                mContex,
+                                "",
+                                binding.includeCabezero.imgPerfilUser,
+                                null,
+                                "perfil", placeholderperfil
+                            ) {}
+                            dialogBuilder.setPositiveButton("Contactar con Geinz Work") { dialog, _ -> }
+                            dialogBuilder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
 
-                            dialog.dismiss()
-//                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-//                                binding.includeCabezero.progressCargaImagen,
-//                                binding.includeCabezero.usuarioRegsitradoName,
-//                                mContex,
-//                                binding.includeCabezero.imgPerfilUser,
-//                                binding.linealAnuncioVerificado
-//                            ) { verificado ->
-////                                if (verificado) {
-////                                    binding.verificadoBoolean.text = "true"
-////                                } else {
-////                                    binding.verificadoBoolean.text = "false"
-////                                }
-//
-//                            }
+                            val alertDialog = dialogBuilder.create()
+                            alertDialog.show()
                         }
 
-                        dialogBuilder.setNegativeButton("Cancelar") { dialog, _ ->
-                            dialog.dismiss()
-//                            constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-//                                binding.includeCabezero.progressCargaImagen,
-//                                binding.includeCabezero.usuarioRegsitradoName,
-//                                mContex,
-//                                binding.includeCabezero.imgPerfilUser,
-//                                binding.linealAnuncioVerificado
-//                            ) { verificado ->
-////                                if (verificado) {
-////                                    binding.verificadoBoolean.text = "true"
-////                                } else {
-////                                    binding.verificadoBoolean.text = "false"
-////                                }
-//
-//                            }
-                        }
-
-                        val alertDialog = dialogBuilder.create()
-                        alertDialog.show()
-                    } else {
-//                        constantesTrabajadoresTiendasInicioFragmet.obtenerNombre_imgPerfil(
-//                            binding.includeCabezero.progressCargaImagen,
-//                            binding.includeCabezero.usuarioRegsitradoName,
-//                            mContex,
-//                            binding.includeCabezero.imgPerfilUser,
-//                            binding.linealAnuncioVerificado
-//                        ) { verificado ->
-////                            if (verificado) {
-////                                binding.verificadoBoolean.text = "true"
-////                            } else {
-////                                binding.verificadoBoolean.text = "false"
-////                            }
-//
-//                        }
+                        null -> {}
                     }
                 }
-
-            )
+            }
+//            viewModel_info_user_general.dispsitivo.observe(viewLifecycleOwner) { acceso ->
+//                if (!acceso) {
+//
+//                }
+//            }
+//            constantes_vinculados.verificaAcceso(
+//                firebaseAuth.uid.toString(), mContex,
+//                onStart = {
+//                },
+//                onFinish = { dispositivoValido ->
+//                    if (!dispositivoValido) {
+//
+//                    }
+//                }
+//            )
         }
 
 
@@ -397,7 +361,10 @@ class inicioFracment : Fragment() {
         }
         binding.Tiendas.setOnClickListener {
 //            mContex.startActivity(Intent(mContex, ver_promociones::class.java))
-            mContex.startActivity(Intent(mContex, herramientas_geinz::class.java))
+//            mContex.startActivity(Intent(mContex, herramientas_geinz::class.java
+            mContex.startActivity(Intent(mContex, localizate_geinz_wokr_ui::class.java).apply {
+                putExtra("filtrado_localidad", binding.includeCabezero.filtradoUsuairo.text.toString())
+            })
 
 
         }
@@ -785,6 +752,10 @@ class inicioFracment : Fragment() {
             viewModel_info_user_general.ver_verificaro(firebaseAuth.uid.toString())
             viewModel_info_user_general.obtener_datos_trabajajdor()
         }
+
+
+        val androidId = obtenerAndroidID(mContex)
+        viewModel_info_user_general.iniciarVerificacion(androidId)
     }
 
 

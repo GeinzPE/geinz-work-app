@@ -17,6 +17,7 @@ import com.google.firebase.firestore.SetOptions
 
 object constantes_vinculados {
     private lateinit var firebaseAuth: FirebaseAuth
+
     fun encotrar_user(idRegistrado: String, callback: (Boolean, CollectionReference?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         Log.d("DEBUG", "Buscando usuario con ID: $idRegistrado")
@@ -171,6 +172,7 @@ object constantes_vinculados {
 
 
 
+
     fun obtenerAndroidID(context: Context): String {
         val androidId = Settings.Secure.getString(
             context.contentResolver,
@@ -269,8 +271,7 @@ object constantes_vinculados {
                         }
                         if (!dispositivoEncontrado) {
                             FirebaseAuth.getInstance().signOut()
-                            if (context is Activity) {
-                            }
+                            if (context is Activity) {}
                         }
                         onFinish(dispositivoEncontrado)
                     }

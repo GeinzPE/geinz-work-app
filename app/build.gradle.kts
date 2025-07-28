@@ -1,9 +1,11 @@
 
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.gms.google-services")
     alias(libs.plugins.crashlytics)
+    alias(libs.plugins.kotlinCompose)
 
 }
 
@@ -34,14 +36,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         viewBinding = true
+        compose = true
 
     }
     packagingOptions {
@@ -64,6 +67,13 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(libs.androidx.leanback)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -94,10 +104,10 @@ dependencies {
     implementation("com.google.firebase:firebase-config")
     implementation(libs.google.auth.library.oauth2.http)
     implementation(libs.okhttp)
-
     implementation("org.quanqi:android-holo-graph:0.1.0") {
         exclude(group = "com.android.support", module = "support-v4")
     }
+    implementation(libs.constaints.layout)
     implementation(libs.mpandroidchart)
     implementation(libs.androidx.activity.ktx)
     implementation("com.google.firebase:firebase-ai")
@@ -109,4 +119,16 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     //live data
     implementation(libs.androidx.lifecycle.livedata.ktx)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
+    //coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil3.coil.network.okhttp)
+    //lotti file
+    implementation(libs.lottie.compose)
+    //dependecia compouse live data
+    implementation(libs.androidx.runtime.livedata)
 }
