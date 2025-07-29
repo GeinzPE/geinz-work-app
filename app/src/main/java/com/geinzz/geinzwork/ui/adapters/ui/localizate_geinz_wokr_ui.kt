@@ -66,6 +66,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.model.modelo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
@@ -76,18 +77,22 @@ import kotlin.collections.forEach
 
 class localizate_geinz_wokr_ui : ComponentActivity() {
     private val viewModel by viewModels<viewModel_localizate_geinz>()
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             GeinzWorkTheme {
-                val localidad_user = intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
+                val localidad_user =
+                    intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
                 val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
                 var texto_filtrado by rememberSaveable { mutableStateOf("") }
                 val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-                val datosCategorias = remember { mutableStateMapOf<String, Triple<Int, Int, String>>() }
-                val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+                val datosCategorias =
+                    remember { mutableStateMapOf<String, Triple<Int, Int, String>>() }
+                val lista_filtrada =
+                    remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
                 val cargando = remember { mutableStateOf(true) }
 
                 val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
@@ -100,7 +105,10 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                 LaunchedEffect(Unit) {
                     if (localidadSeleccionada.value.isEmpty()) {
                         localidadSeleccionada.value = localidad_user
-                        Log.d("setamos localidad_user", "${localidadSeleccionada.value} = $localidad_user")
+                        Log.d(
+                            "setamos localidad_user",
+                            "${localidadSeleccionada.value} = $localidad_user"
+                        )
                     }
                 }
 
@@ -108,7 +116,10 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                     if (localidadSeleccionada.value != localidadAnterior) {
                         cargando.value = true
                         localidadAnterior = localidadSeleccionada.value
-                        Log.d("setamos localidad_user", "${localidadSeleccionada.value} = $localidadAnterior")
+                        Log.d(
+                            "setamos localidad_user",
+                            "${localidadSeleccionada.value} = $localidadAnterior"
+                        )
                         Log.d("cargando", "Cargando tiendas de: ${localidadSeleccionada.value}")
                         viewModel.obtener_horario_tiendas(localidadSeleccionada.value)
                     }
@@ -121,7 +132,11 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                         lista.addAll(listaNueva)
                         listaNueva.forEach { item ->
                             datosCategorias[normalizarTexto(item.categoria ?: "Desconocido")] =
-                                Triple(item.cantidad_registradas ?: 0, item.activas ?: 0, item.categoria ?: "Desconocido")
+                                Triple(
+                                    item.cantidad_registradas ?: 0,
+                                    item.activas ?: 0,
+                                    item.categoria ?: "Desconocido"
+                                )
                         }
                         cargando.value = false
                         Log.d("cargando", "Datos cargados: $listaNueva")
@@ -132,58 +147,58 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     if (cargando.value) {
-                        cargando_categorias(composision, "")
+                        cargando_categorias(composision, localidadSeleccionada.value)
                     } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .padding(vertical = 7.dp, horizontal = 7.dp)
-                    ) {
-                        item {
-                            cabezero_activity(localidad_user)
-                        }
-                        item {
-                            FiltradosChipsLocalidades(
-                                lista_localidades,
-                                localidadSeleccionada.value
-                            ) { nuevaLocalidad ->
-                                localidadSeleccionada.value = nuevaLocalidad
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .padding(vertical = 7.dp, horizontal = 7.dp)
+                        ) {
+                            item {
+                                cabezero_activity(localidad_user)
                             }
-                        }
-                        item {
-                            filtrado_texto(
-                                texto_filtrado,
-                                lista,
-                                { texto_filtrado = it },
-                                { nuevaLista, activar ->
-                                    lista_filtrada.clear()
-                                    lista_filtrada.addAll(nuevaLista)
-                                    Log.d("sugerencias", nuevaLista.toString())
+                            item {
+                                FiltradosChipsLocalidades(
+                                    lista_localidades,
+                                    localidadSeleccionada.value
+                                ) { nuevaLocalidad ->
+                                    localidadSeleccionada.value = nuevaLocalidad
                                 }
-                            )
-                        }
+                            }
+                            item {
+                                filtrado_texto(
+                                    texto_filtrado,
+                                    lista,
+                                    { texto_filtrado = it },
+                                    { nuevaLista, activar ->
+                                        lista_filtrada.clear()
+                                        lista_filtrada.addAll(nuevaLista)
+                                        Log.d("sugerencias", nuevaLista.toString())
+                                    }
+                                )
+                            }
 
-                        val listaParaMostrar =
-                            if (texto_filtrado.length > 2) lista_filtrada else lista
+                            val listaParaMostrar =
+                                if (texto_filtrado.length > 2) lista_filtrada else lista
 
-                        items(listaParaMostrar.chunked(2)) { fila ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                fila.forEach { item ->
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        MostrarSugerencias(item, datosCategorias)
+                            items(listaParaMostrar.chunked(2)) { fila ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    fila.forEach { item ->
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            MostrarSugerencias(item, datosCategorias)
+                                        }
+                                    }
+                                    if (fila.size < 2) {
+                                        Spacer(modifier = Modifier.weight(1f))
                                     }
                                 }
-                                if (fila.size < 2) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
                             }
-                        }
 
-                    }
+                        }
 
                     }
                 }
@@ -257,7 +272,8 @@ fun FiltradosChipsLocalidades(
 ) {
     LazyRow(modifier = Modifier.padding(top = 5.dp)) {
         items(lista_localidades) { localidad ->
-            val isSelected = localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
+            val isSelected =
+                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
             FilterChip(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 selected = isSelected,
@@ -291,8 +307,19 @@ fun filtrado_texto(
     texto_filtrado: (String) -> Unit,
     busquedaAction: (List<encontradas_por_categoria>, Boolean) -> Unit
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
     var is_error by rememberSaveable { mutableStateOf(false) }
     var icono_busqeuda by rememberSaveable { mutableStateOf(R.drawable.buscar_icon) }
+    val sugerencias: List<dataclass_resultado_filtrado> = lista_cargada_filstrado
+        .flatMap { catSub ->
+            catSub.subcateogiras.orEmpty().mapNotNull { subcat ->
+                if (subcat.contains(texto, ignoreCase = true) && texto.isNotBlank()) {
+                    dataclass_resultado_filtrado(catSub.categoria.toString(), subcat)
+                } else null
+            }
+        }
+
+    is_error = expanded && sugerencias.isEmpty()
     val focusManager = LocalFocusManager.current
     Box(
         modifier = Modifier
@@ -310,6 +337,7 @@ fun filtrado_texto(
                 shape = RoundedCornerShape(20.dp),
                 onValueChange = {
                     texto_filtrado(it)
+                    expanded = it.isNotBlank()
                     if (it.isNotBlank()) {
                         icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
                         busquedaAction(obtenerResultados(it, lista_cargada_filstrado), true)
@@ -335,6 +363,7 @@ fun filtrado_texto(
                         IconButton(onClick = {
                             texto_filtrado("")
                             busquedaAction(emptyList(), false)
+                            expanded = false
                             icono_busqeuda = R.drawable.buscar_icon
                         }) {
                             Icon(
@@ -354,6 +383,7 @@ fun filtrado_texto(
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         busquedaAction(obtenerResultados(texto, lista_cargada_filstrado), true)
+                        expanded = false
                         focusManager.clearFocus()
                     }
                 ),
