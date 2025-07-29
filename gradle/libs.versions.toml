@@ -1,6 +1,7 @@
 [versions]
 activityKtx = "1.9.1"
 agp = "8.11.1"
+animationCore = "1.8.3"
 biometric = "1.1.0"
 ccp = "2.7.0"
 circleimageview = "3.1.0"
@@ -10,6 +11,7 @@ coilNetworkOkhttp = "3.3.0"
 compressor = "3.0.1"
 core = "3.4.1"
 coreSplashscreen = "1.0.1"
+foundation = "1.5.0"
 glideVersion = "4.16.0"
 googleAuthLibraryOauth2Http = "1.19.0"
 kotlin = "2.1.0"
@@ -54,9 +56,11 @@ composeBom = "2024.09.00"
 versionConstraint="1.1.0"
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+androidx-animation-core = { module = "androidx.compose.animation:animation-core", version.ref = "animationCore" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }

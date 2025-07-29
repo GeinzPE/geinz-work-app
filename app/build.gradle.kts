@@ -131,4 +131,8 @@ dependencies {
     implementation(libs.lottie.compose)
     //dependecia compouse live data
     implementation(libs.androidx.runtime.livedata)
+
+    implementation(libs.androidx.animation.core)
+    implementation(libs.androidx.foundation)
+
 }
