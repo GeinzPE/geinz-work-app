@@ -6,10 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -56,146 +53,138 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import com.geinzz.geinzwork.R
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.VerticalAlign
+import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
+import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
-
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.model.modelo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
-import java.nio.file.WatchEvent
 import java.text.Normalizer
+import kotlin.collections.forEach
 
 class localizate_geinz_wokr_ui : ComponentActivity() {
-    val modelo_cat_sub = modelo_agregar_cat_sub_localizate()
     private val viewModel by viewModels<viewModel_localizate_geinz>()
-
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val nombre = intent.getStringExtra("filtrado_localidad") ?: "Barranca"
         setContent {
             GeinzWorkTheme {
+                val localidad_user = intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
                 val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
                 var texto_filtrado by rememberSaveable { mutableStateOf("") }
-                val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_loading))
-                val datosCategorias =
-                    remember { mutableStateMapOf<String, Triple<Int, Int, String>>() }
-                val lista_filtrada =
-                    remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+                val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
+                val datosCategorias = remember { mutableStateMapOf<String, Triple<Int, Int, String>>() }
+                val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
                 val cargando = remember { mutableStateOf(true) }
-                val localidadSeleccionada = remember { mutableStateOf("") }
-                val encontrados_activos_tiendas by viewModel.encontrados_activos_tiendas.observeAsState()
+
+                val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
                 val lista_localidades = constantes_lista_localidades.lista
-                LaunchedEffect(localidadSeleccionada.value) {
-                    cargando.value = true
-                    viewModel.obtener_horario_tiendas(localidadSeleccionada.value)
-                }
-                LaunchedEffect(encontrados_activos_tiendas) {
-                    encontrados_activos_tiendas?.let {
-                        lista.clear()
-                        lista.addAll(it)
-                        cargando.value = false
+
+                var localidadAnterior by remember { mutableStateOf("") }
+                val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
+                Log.d("cargando", localidadSeleccionada.value)
+
+                LaunchedEffect(Unit) {
+                    if (localidadSeleccionada.value.isEmpty()) {
+                        localidadSeleccionada.value = localidad_user
+                        Log.d("setamos localidad_user", "${localidadSeleccionada.value} = $localidad_user")
                     }
                 }
+
+                LaunchedEffect(localidadSeleccionada.value) {
+                    if (localidadSeleccionada.value != localidadAnterior) {
+                        cargando.value = true
+                        localidadAnterior = localidadSeleccionada.value
+                        Log.d("setamos localidad_user", "${localidadSeleccionada.value} = $localidadAnterior")
+                        Log.d("cargando", "Cargando tiendas de: ${localidadSeleccionada.value}")
+                        viewModel.obtener_horario_tiendas(localidadSeleccionada.value)
+                    }
+                }
+
+                LaunchedEffect(encontrados_activos_tiendass) {
+                    encontrados_activos_tiendass?.let { listaNueva ->
+                        datosCategorias.clear()
+                        lista.clear()
+                        lista.addAll(listaNueva)
+                        listaNueva.forEach { item ->
+                            datosCategorias[normalizarTexto(item.categoria ?: "Desconocido")] =
+                                Triple(item.cantidad_registradas ?: 0, item.activas ?: 0, item.categoria ?: "Desconocido")
+                        }
+                        cargando.value = false
+                        Log.d("cargando", "Datos cargados: $listaNueva")
+                    }
+                }
+
+
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    if (cargando.value) {
+                        cargando_categorias(composision, "")
+                    } else {
                     LazyColumn(
                         modifier = Modifier
                             .padding(innerPadding)
                             .padding(vertical = 7.dp, horizontal = 7.dp)
                     ) {
                         item {
-                            cabezero_activity(nombre)
+                            cabezero_activity(localidad_user)
                         }
                         item {
                             FiltradosChipsLocalidades(
                                 lista_localidades,
-                                nombre,
-                                viewModel,
-                                { registrado, activos, categoria ->
-                                    datosCategorias[normalizarTexto(categoria)] =
-                                        Triple(registrado, activos, categoria)
-                                    Log.d(
-                                        "tiendas_obnenidos_por_cateogira",
-                                        "registrados:$registrado , activos:$activos, categoria:$categoria $localidadSeleccionada"
-                                    )
-                                },
-                                { localidda ->
-                                    localidadSeleccionada.value = localidda
+                                localidadSeleccionada.value
+                            ) { nuevaLocalidad ->
+                                localidadSeleccionada.value = nuevaLocalidad
+                            }
+                        }
+                        item {
+                            filtrado_texto(
+                                texto_filtrado,
+                                lista,
+                                { texto_filtrado = it },
+                                { nuevaLista, activar ->
+                                    lista_filtrada.clear()
+                                    lista_filtrada.addAll(nuevaLista)
+                                    Log.d("sugerencias", nuevaLista.toString())
                                 }
                             )
                         }
 
-                        // Mostrar animación mientras carga
-                        if (cargando.value) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.Green),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    LottieAnimation(
-                                        composition = composision,
-                                        iterations = LottieConstants.IterateForever,
-                                        modifier = Modifier
-                                            .size(200.dp)
-                                            .background(Color.Red),
-                                    )
+                        val listaParaMostrar =
+                            if (texto_filtrado.length > 2) lista_filtrada else lista
+
+                        items(listaParaMostrar.chunked(2)) { fila ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                fila.forEach { item ->
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        MostrarSugerencias(item, datosCategorias)
+                                    }
                                 }
-                            }
-                        } else {
-                            // Mostrar buscador cuando no está cargando
-                            item {
-                                filtrado_texto(
-                                    texto_filtrado,
-                                    lista,
-                                    { texto_filtrado = it },
-                                    { nuevaLista, activar ->
-                                        lista_filtrada.clear()
-                                        lista_filtrada.addAll(nuevaLista)
-                                        Log.d("sugerencias", nuevaLista.toString())
-                                    }
-                                )
-                            }
-
-                            val listaParaMostrar =
-                                if (texto_filtrado.length > 2) lista_filtrada else lista
-
-                            items(listaParaMostrar.chunked(2)) { fila ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    fila.forEach { item ->
-                                        Box(modifier = Modifier.weight(1f)) {
-                                            MostrarSugerencias(item, datosCategorias)
-                                        }
-                                    }
-                                    if (fila.size < 2) {
-                                        Spacer(modifier = Modifier.weight(1f))
-                                    }
+                                if (fila.size < 2) {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
+
+                    }
+
                     }
                 }
             }
@@ -205,12 +194,40 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
 
 
 @Composable
+fun cargando_categorias(composision: LottieComposition?, localidad_selecionada: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+
+    ) {
+        ConstraintLayout(modifier = Modifier) {
+            val (texto, loti_animation) = createRefs()
+            Text(
+                text = "Cargando tiendas de $localidad_selecionada",
+                modifier = Modifier.constrainAs(texto) {
+                    top.linkTo(loti_animation.bottom)
+                }
+            )
+            LottieAnimation(
+                composition = composision,
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier
+                    .size(400.dp)
+                    .constrainAs(loti_animation) {}
+            )
+        }
+
+    }
+}
+
+@Composable
 fun cabezero_activity(localidad_registrado: String) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
-        verticalArrangement = Arrangement.Center, // centra vertical
-        horizontalAlignment = Alignment.CenterHorizontally // centra horizontal
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Ubicate $localidad_registrado",
@@ -235,30 +252,19 @@ fun cabezero_activity(localidad_registrado: String) {
 @Composable
 fun FiltradosChipsLocalidades(
     lista_localidades: List<dataclass_localidad_escudos>,
-    localidad_registrado: String,
-    viewmodel_localizate: viewModel_localizate_geinz,
-    calback: (Int, Int, categoria: String) -> Unit, localidad_selecionada: (String) -> Unit
+    localidadSeleccionada: String,
+    onLocalidadSeleccionada: (String) -> Unit
 ) {
-    var localidadSeleccionada by remember { mutableStateOf(localidad_registrado) }
-    LaunchedEffect(localidadSeleccionada) {
-        localidad_selecionada(localidadSeleccionada)
-    }
-    val encontrados_activos_tiendas by viewmodel_localizate.encontrados_activos_tiendas.observeAsState()
-
-    encontrados_activos_tiendas?.forEach { i ->
-        calback(i.cantidad_registradas ?: 0, i.activas ?: 0, i.categoria ?: "Desconocido")
-    }
-    LazyRow(
-        modifier = Modifier.padding(top = 5.dp)
-    ) {
+    LazyRow(modifier = Modifier.padding(top = 5.dp)) {
         items(lista_localidades) { localidad ->
-            val isSelected =
-                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
+            val isSelected = localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
             FilterChip(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 selected = isSelected,
                 onClick = {
-                    localidadSeleccionada = localidad.nombre_localidad.toString()
+                    if (!isSelected) {
+                        onLocalidadSeleccionada(localidad.nombre_localidad.toString())
+                    }
                 },
                 label = {
                     Text(text = localidad.nombre_localidad.toString())
@@ -285,21 +291,14 @@ fun filtrado_texto(
     texto_filtrado: (String) -> Unit,
     busquedaAction: (List<encontradas_por_categoria>, Boolean) -> Unit
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
     var is_error by rememberSaveable { mutableStateOf(false) }
     var icono_busqeuda by rememberSaveable { mutableStateOf(R.drawable.buscar_icon) }
-    val sugerencias: List<dataclass_resultado_filtrado> = lista_cargada_filstrado
-        .flatMap { catSub ->
-            catSub.subcateogiras.orEmpty().mapNotNull { subcat ->
-                if (subcat.contains(texto, ignoreCase = true) && texto.isNotBlank()) {
-                    dataclass_resultado_filtrado(catSub.categoria.toString(), subcat)
-                } else null
-            }
-        }
-
-    is_error = expanded && sugerencias.isEmpty()
     val focusManager = LocalFocusManager.current
-    Box(modifier = Modifier.fillMaxWidth()  .padding(vertical = 5.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -311,7 +310,6 @@ fun filtrado_texto(
                 shape = RoundedCornerShape(20.dp),
                 onValueChange = {
                     texto_filtrado(it)
-                    expanded = it.isNotBlank()
                     if (it.isNotBlank()) {
                         icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
                         busquedaAction(obtenerResultados(it, lista_cargada_filstrado), true)
@@ -337,7 +335,6 @@ fun filtrado_texto(
                         IconButton(onClick = {
                             texto_filtrado("")
                             busquedaAction(emptyList(), false)
-                            expanded = false
                             icono_busqeuda = R.drawable.buscar_icon
                         }) {
                             Icon(
@@ -357,7 +354,6 @@ fun filtrado_texto(
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         busquedaAction(obtenerResultados(texto, lista_cargada_filstrado), true)
-                        expanded = false
                         focusManager.clearFocus()
                     }
                 ),
@@ -379,10 +375,6 @@ fun MostrarSugerencias(
     item: encontradas_por_categoria,
     datosCategorias: Map<String, Triple<Int, Int, String>>
 ) {
-    Log.d("SUGERENCIAS", "Categoría: ${item.categoria}")
-    Log.d("SUGERENCIAS", "Subcategorías: ${item.subcateogiras}")
-    Log.d("SUGERENCIAS", "activa: ${item.activas}")
-    Log.d("SUGERENCIAS", "Total Tiendas: ${item.cantidad_registradas}")
     val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
     val triple = datosCategorias.entries.find {
         normalizarTexto(it.key) == categoriaKey

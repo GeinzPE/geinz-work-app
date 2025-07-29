@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,8 +23,6 @@ class viewModel_localizate_geinz : ViewModel() {
 //    private val _cantiada_tiendas = MutableLiveData<Int>()
 //    val cantidad_tiendas: LiveData<Int> get() = _cantiada_tiendas
 
-    val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
-    val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
 
 //    val _tiendas_activa = MutableLiveData<List<estadoTienda>>()
 //    val tiendas_activa: LiveData<List<estadoTienda>> get() = _tiendas_activa
@@ -40,16 +39,18 @@ class viewModel_localizate_geinz : ViewModel() {
 //        }
 //    }
 
+    val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
+    val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
+
     fun obtener_horario_tiendas(localidad_selecionada: String) {
         viewModelScope.launch {
             try {
                 val modelo_horario_tienda =
                     modelo_agregar_cat_sub.obtener_tiendas_categorias_activas_registradas(localidad_selecionada)
+                Log.d("btenoemos_lista_filtrado_por","$localidad_selecionada $modelo_horario_tienda")
                 _encontrados_activos_tiendas.value = modelo_horario_tienda
-//                _tiendas_activa.value = modelo_agregar_cat_sub.verificar_activos_desactivos(modelo_horario_tienda)
             } catch (e: Exception) {
                 _encontrados_activos_tiendas.value = emptyList()
-//                _tiendas_activa.value = emptyList()
             }
         }
     }
