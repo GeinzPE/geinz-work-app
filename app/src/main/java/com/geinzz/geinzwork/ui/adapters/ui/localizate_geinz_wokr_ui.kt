@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -59,8 +61,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.VerticalAlign
 import coil3.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -70,10 +74,12 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
+import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.model.modelo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
+import java.nio.file.WatchEvent
 import java.text.Normalizer
 
 class localizate_geinz_wokr_ui : ComponentActivity() {
@@ -87,98 +93,109 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
         val nombre = intent.getStringExtra("filtrado_localidad") ?: "Barranca"
         setContent {
             GeinzWorkTheme {
-                val lista = remember { mutableStateListOf<dataclass_cat_sub>() }
+                val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
                 var texto_filtrado by rememberSaveable { mutableStateOf("") }
                 val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_loading))
                 val datosCategorias =
                     remember { mutableStateMapOf<String, Triple<Int, Int, String>>() }
-                var lista_filtrada =
-                    remember { mutableStateListOf<dataclass_cat_sub>().apply { addAll(lista) } }
-                var cargando = remember { mutableStateOf(true) }
+                val lista_filtrada =
+                    remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+                val cargando = remember { mutableStateOf(true) }
+                val localidadSeleccionada = remember { mutableStateOf("") }
+                val encontrados_activos_tiendas by viewModel.encontrados_activos_tiendas.observeAsState()
                 val lista_localidades = constantes_lista_localidades.lista
-                LaunchedEffect(Unit) {
+                LaunchedEffect(localidadSeleccionada.value) {
                     cargando.value = true
-                    val datos = modelo_cat_sub.obtener_categorias_subcategorias()
-                    lista.clear()
-                    lista.addAll(datos)
-                    cargando.value = false
+                    viewModel.obtener_horario_tiendas(localidadSeleccionada.value)
                 }
-
+                LaunchedEffect(encontrados_activos_tiendas) {
+                    encontrados_activos_tiendas?.let {
+                        lista.clear()
+                        lista.addAll(it)
+                        cargando.value = false
+                    }
+                }
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(modifier = Modifier.padding(innerPadding)) {
-                            item { cabezero_activity(nombre) }
-                            item {
-                                FiltradosChipsLocalidades(
-                                    lista_localidades,
-                                    nombre,
-                                    viewModel,
-                                    { registrado, activos, categoria ->
-                                        datosCategorias[normalizarTexto(categoria)] =
-                                            Triple(registrado, activos, categoria)
-                                    }, { localidda ->
-                                        Log.d("cambiamos_localidad_selecioanda", localidda)
-                                        viewModel.obtener_cantidad_tiendas_por_localidad(localidda)
-                                        viewModel.obtener_horario_tiendas(localidda)
-                                    })
-                            }
-
-                            item {
-                                AnimatedVisibility(visible = cargando.value) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 40.dp), // para que se vea centrado en el scroll
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        LottieAnimation(
-                                            composition = composision,
-                                            iterations = LottieConstants.IterateForever,
-                                            modifier = Modifier.size(200.dp),
-                                        )
-                                    }
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .padding(vertical = 7.dp, horizontal = 7.dp)
+                    ) {
+                        item {
+                            cabezero_activity(nombre)
+                        }
+                        item {
+                            FiltradosChipsLocalidades(
+                                lista_localidades,
+                                nombre,
+                                viewModel,
+                                { registrado, activos, categoria ->
+                                    datosCategorias[normalizarTexto(categoria)] =
+                                        Triple(registrado, activos, categoria)
+                                    Log.d(
+                                        "tiendas_obnenidos_por_cateogira",
+                                        "registrados:$registrado , activos:$activos, categoria:$categoria $localidadSeleccionada"
+                                    )
+                                },
+                                { localidda ->
+                                    localidadSeleccionada.value = localidda
                                 }
-                            }
+                            )
+                        }
 
+                        // Mostrar animación mientras carga
+                        if (cargando.value) {
                             item {
-                                AnimatedVisibility(visible = !cargando.value) {
-                                    filtrado_texto(
-                                        texto_filtrado,
-                                        lista,
-                                        { texto_filtrado = it },
-                                        { nuevaLista, activar ->
-                                            lista_filtrada.clear()
-                                            lista_filtrada.addAll(nuevaLista)
-                                            Log.d("sugerencias", nuevaLista.toString())
-                                        }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Green),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    LottieAnimation(
+                                        composition = composision,
+                                        iterations = LottieConstants.IterateForever,
+                                        modifier = Modifier
+                                            .size(200.dp)
+                                            .background(Color.Red),
                                     )
                                 }
+                            }
+                        } else {
+                            // Mostrar buscador cuando no está cargando
+                            item {
+                                filtrado_texto(
+                                    texto_filtrado,
+                                    lista,
+                                    { texto_filtrado = it },
+                                    { nuevaLista, activar ->
+                                        lista_filtrada.clear()
+                                        lista_filtrada.addAll(nuevaLista)
+                                        Log.d("sugerencias", nuevaLista.toString())
+                                    }
+                                )
                             }
 
                             val listaParaMostrar =
                                 if (texto_filtrado.length > 2) lista_filtrada else lista
 
                             items(listaParaMostrar.chunked(2)) { fila ->
-                                AnimatedVisibility(visible = !cargando.value) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        fila.forEach { item ->
-                                            Box(modifier = Modifier.weight(1f)) {
-                                                MostrarSugerencias(item, datosCategorias)
-                                            }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    fila.forEach { item ->
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            MostrarSugerencias(item, datosCategorias)
                                         }
-                                        if (fila.size < 2) {
-                                            Spacer(modifier = Modifier.weight(1f))
-                                        }
+                                    }
+                                    if (fila.size < 2) {
+                                        Spacer(modifier = Modifier.weight(1f))
                                     }
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -191,25 +208,25 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
 fun cabezero_activity(localidad_registrado: String) {
     Column(
         modifier = Modifier
-            .wrapContentHeight(),
-        verticalArrangement = Arrangement.Center,
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center, // centra vertical
+        horizontalAlignment = Alignment.CenterHorizontally // centra horizontal
     ) {
         Text(
             text = "Ubicate $localidad_registrado",
             fontSize = 25.sp,
-            fontStyle = FontStyle.Normal,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth(),
+
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
             textAlign = TextAlign.Center
+
         )
         Text(
-
-            text = "Explora las diferentes categorías de tiendas de tu localidad\n" +
-                    "registradas en Geinz Work y ubícate fácilmente en $localidad_registrado \n" +
-                    "con nuestra app"
+            modifier = Modifier.padding(vertical = 0.dp),
+            text = "Explora las diferentes categorías de tiendas\n" +
+                    "registradas en Geinz Work y ubícate fácilmente en $localidad_registrado"
         )
-
-
     }
 }
 
@@ -224,7 +241,6 @@ fun FiltradosChipsLocalidades(
 ) {
     var localidadSeleccionada by remember { mutableStateOf(localidad_registrado) }
     LaunchedEffect(localidadSeleccionada) {
-
         localidad_selecionada(localidadSeleccionada)
     }
     val encontrados_activos_tiendas by viewmodel_localizate.encontrados_activos_tiendas.observeAsState()
@@ -233,13 +249,13 @@ fun FiltradosChipsLocalidades(
         calback(i.cantidad_registradas ?: 0, i.activas ?: 0, i.categoria ?: "Desconocido")
     }
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(horizontal = 8.dp)
+        modifier = Modifier.padding(top = 5.dp)
     ) {
         items(lista_localidades) { localidad ->
             val isSelected =
                 localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
             FilterChip(
+                modifier = Modifier.padding(horizontal = 4.dp),
                 selected = isSelected,
                 onClick = {
                     localidadSeleccionada = localidad.nombre_localidad.toString()
@@ -265,28 +281,34 @@ fun FiltradosChipsLocalidades(
 @Composable
 fun filtrado_texto(
     texto: String,
-    lista_cargada_filstrado: List<dataclass_cat_sub>,
-    texto_filtrado: (String) -> Unit, busquedaAction: (List<dataclass_cat_sub>, Boolean) -> Unit
+    lista_cargada_filstrado: List<encontradas_por_categoria>,
+    texto_filtrado: (String) -> Unit,
+    busquedaAction: (List<encontradas_por_categoria>, Boolean) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var is_error by rememberSaveable { mutableStateOf(false) }
     var icono_busqeuda by rememberSaveable { mutableStateOf(R.drawable.buscar_icon) }
     val sugerencias: List<dataclass_resultado_filtrado> = lista_cargada_filstrado
         .flatMap { catSub ->
-            catSub.lista_subcategorias.orEmpty().mapNotNull { subcat ->
+            catSub.subcateogiras.orEmpty().mapNotNull { subcat ->
                 if (subcat.contains(texto, ignoreCase = true) && texto.isNotBlank()) {
-                    dataclass_resultado_filtrado(catSub.nombre.toString(), subcat)
+                    dataclass_resultado_filtrado(catSub.categoria.toString(), subcat)
                 } else null
             }
         }
 
     is_error = expanded && sugerencias.isEmpty()
     val focusManager = LocalFocusManager.current
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth()  .padding(vertical = 5.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             OutlinedTextField(
                 value = texto,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
                 onValueChange = {
                     texto_filtrado(it)
                     expanded = it.isNotBlank()
@@ -316,6 +338,7 @@ fun filtrado_texto(
                             texto_filtrado("")
                             busquedaAction(emptyList(), false)
                             expanded = false
+                            icono_busqeuda = R.drawable.buscar_icon
                         }) {
                             Icon(
                                 painter = painterResource(id = icono_busqeuda),
@@ -353,10 +376,14 @@ fun filtrado_texto(
 
 @Composable
 fun MostrarSugerencias(
-    item: dataclass_cat_sub,
+    item: encontradas_por_categoria,
     datosCategorias: Map<String, Triple<Int, Int, String>>
 ) {
-    val categoriaKey = item.nombre?.let { normalizarTexto(it) } ?: return
+    Log.d("SUGERENCIAS", "Categoría: ${item.categoria}")
+    Log.d("SUGERENCIAS", "Subcategorías: ${item.subcateogiras}")
+    Log.d("SUGERENCIAS", "activa: ${item.activas}")
+    Log.d("SUGERENCIAS", "Total Tiendas: ${item.cantidad_registradas}")
+    val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
     val triple = datosCategorias.entries.find {
         normalizarTexto(it.key) == categoriaKey
     }?.value
@@ -400,7 +427,7 @@ fun MostrarSugerencias(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            val subcatsUnidos = item.lista_subcategorias?.joinToString(", ") ?: ""
+            val subcatsUnidos = item.subcateogiras?.joinToString(", ") ?: ""
 
             Text(
                 text = subcatsUnidos,
@@ -431,9 +458,9 @@ fun MostrarSugerencias(
 
 fun obtenerResultados(
     texto: String,
-    lista: List<dataclass_cat_sub>
-): List<dataclass_cat_sub> = lista.filter { catSub ->
-    catSub.lista_subcategorias?.any {
+    lista: List<encontradas_por_categoria>
+): List<encontradas_por_categoria> = lista.filter { catSub ->
+    catSub.subcateogiras?.any {
         it.contains(texto, ignoreCase = true)
     } == true
 }

@@ -10,4 +10,6 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Supe", R.drawable.escudo_supe),
         dataclass_localidad_escudos("Pativilca", R.drawable.escudo_pativilca)
     )
+    val dias_sema =
+        listOf("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
 }

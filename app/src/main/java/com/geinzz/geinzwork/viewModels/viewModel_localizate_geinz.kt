@@ -14,34 +14,37 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_localizate_geinz : ViewModel() {
-    private val _subcategorias = MutableLiveData<List<dataclass_cat_sub>>()
-    val subcategorias: LiveData<List<dataclass_cat_sub>> get() = _subcategorias
-    private val _cantiada_tiendas = MutableLiveData<Int>()
-    val cantidad_tiendas: LiveData<Int> get() = _cantiada_tiendas
     val modelo_agregar_cat_sub = modelo_agregar_cat_sub_localizate()
+
+//    private val _subcategorias = MutableLiveData<List<dataclass_cat_sub>>()
+//    val subcategorias: LiveData<List<dataclass_cat_sub>> get() = _subcategorias
+
+//    private val _cantiada_tiendas = MutableLiveData<Int>()
+//    val cantidad_tiendas: LiveData<Int> get() = _cantiada_tiendas
 
     val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
     val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
 
-    val _tiendas_activa = MutableLiveData<List<estadoTienda>>()
-    val tiendas_activa: LiveData<List<estadoTienda>> get() = _tiendas_activa
+//    val _tiendas_activa = MutableLiveData<List<estadoTienda>>()
+//    val tiendas_activa: LiveData<List<estadoTienda>> get() = _tiendas_activa
 
-    fun obtener_cantidad_tiendas_por_localidad(localidad_selecionada: String) {
-        viewModelScope.launch {
-            try {
-                _cantiada_tiendas.value =
-                    modelo_agregar_cat_sub.obtenerCantidadTiendasPorLocalidad(localidad_selecionada)
-            } catch (e: Exception) {
-                _cantiada_tiendas.value = 0
-            }
-        }
-    }
+
+//    fun obtener_cantidad_tiendas_por_localidad(localidad_selecionada: String) {
+//        viewModelScope.launch {
+//            try {
+//                _cantiada_tiendas.value =
+//                    modelo_agregar_cat_sub.obtenerCantidadTiendasPorLocalidad(localidad_selecionada)
+//            } catch (e: Exception) {
+//                _cantiada_tiendas.value = 0
+//            }
+//        }
+//    }
 
     fun obtener_horario_tiendas(localidad_selecionada: String) {
         viewModelScope.launch {
             try {
                 val modelo_horario_tienda =
-                    modelo_agregar_cat_sub.obtenerTiendas_registradas_activas(localidad_selecionada,modelo_agregar_cat_sub.obtener_categorias_subcategorias())
+                    modelo_agregar_cat_sub.obtener_tiendas_categorias_activas_registradas(localidad_selecionada)
                 _encontrados_activos_tiendas.value = modelo_horario_tienda
 //                _tiendas_activa.value = modelo_agregar_cat_sub.verificar_activos_desactivos(modelo_horario_tienda)
             } catch (e: Exception) {

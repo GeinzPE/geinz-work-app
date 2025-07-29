@@ -24,7 +24,8 @@ data class estadoTienda(
 data class encontradas_por_categoria(
     val cantidad_registradas: Int?,
     val activas: Int?,
-    val categoria: String?
+    val categoria: String?,
+    val subcateogiras: List<String>
 )
 
 data class horario_tienda(
