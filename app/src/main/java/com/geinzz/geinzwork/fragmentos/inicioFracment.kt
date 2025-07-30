@@ -333,6 +333,7 @@ class inicioFracment : Fragment() {
                     }
                 }
             }
+
 //            viewModel_info_user_general.dispsitivo.observe(viewLifecycleOwner) { acceso ->
 //                if (!acceso) {
 //
@@ -364,9 +365,8 @@ class inicioFracment : Fragment() {
 //            mContex.startActivity(Intent(mContex, herramientas_geinz::class.java
             mContex.startActivity(Intent(mContex, localizate_geinz_wokr_ui::class.java).apply {
                 putExtra("filtrado_localidad", binding.includeCabezero.filtradoUsuairo.text.toString())
+                putExtra("nombre_user",binding.includeCabezero.usuarioRegsitradoName.text.toString())
             })
-
-
         }
         if (firebaseAuth.currentUser == null && storedValue.isNullOrEmpty() || storedValue.equals("Default Value")) {
             constantesTrabajadoresTiendasInicioFragmet.obtenerLocalida(Variables.General)

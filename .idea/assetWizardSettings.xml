@@ -343,7 +343,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/backspace/outline_backspace_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/visibility/outline_visibility_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -354,7 +354,7 @@
                         <option name="values">
                           <map>
                             <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="vector_eliminar_texto_texfiel" />
+                            <entry key="outputName" value="visibility_preview" />
                             <entry key="sourceFile" value="C:\Users\Benjamin\AndroidStudioProjects\GeinzWork" />
                           </map>
                         </option>
