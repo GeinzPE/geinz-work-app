@@ -6,31 +6,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.animateDecay
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.FlingBehavior
-import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,17 +29,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -58,37 +41,33 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import com.geinzz.geinzwork.R
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -101,12 +80,14 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
+import com.geinzz.geinzwork.data.model.localizate_geinz.registradas_activas_cat_img
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
+import kotlinx.coroutines.delay
 import java.text.Normalizer
 import kotlin.collections.forEach
-
 
 
 class localizate_geinz_wokr_ui : ComponentActivity() {
@@ -118,19 +99,25 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GeinzWorkTheme {
-                val localidad_user = intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
+                val localidad_user =
+                    intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
                 val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
                 var texto_filtrado by rememberSaveable { mutableStateOf("") }
                 val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-                val datosCategorias = remember { mutableStateMapOf<String, Triple<Int, Int, String>>() }
-                val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+                val datosCategorias =
+                    remember { mutableStateMapOf<String, registradas_activas_cat_img>() }
+                val lista_filtrada =
+                    remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
                 val cargando = remember { mutableStateOf(true) }
 
                 val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
+
                 val lista_localidades = constantes_lista_localidades.lista
 
                 var localidadAnterior by remember { mutableStateOf("") }
                 val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
+                val cartaExpandida = remember { mutableStateOf<String?>(null) }
+
 
                 LaunchedEffect(Unit) {
                     if (localidadSeleccionada.value.isEmpty()) {
@@ -142,9 +129,11 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                     if (localidadSeleccionada.value != localidadAnterior) {
                         cargando.value = true
                         localidadAnterior = localidadSeleccionada.value
-                        viewModel.obtener_horario_tiendas(localidadSeleccionada.value)
+                        viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
+
                     }
                 }
+
 
                 LaunchedEffect(encontrados_activos_tiendass) {
                     encontrados_activos_tiendass?.let { listaNueva ->
@@ -152,15 +141,19 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                         lista.clear()
                         lista.addAll(listaNueva)
                         listaNueva.forEach { item ->
-                            datosCategorias[normalizarTexto(item.categoria ?: "Desconocido")] =
-                                Triple(
+                            datosCategorias[(normalizarTexto(item.categoria ?: ""))] =
+                                registradas_activas_cat_img(
                                     item.cantidad_registradas ?: 0,
                                     item.activas ?: 0,
-                                    item.categoria ?: "Desconocido"
+                                    item.categoria ?: "Desconocido",
+                                    item.img_subcategorias
                                 )
                         }
+                        texto_filtrado = ""
                         cargando.value = false
                     }
+
+
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -177,38 +170,55 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                                     cabezero_activity(localidad_user)
                                 }
 
-//                                stickyHeader {
-//                                    Column(
-//                                        modifier = Modifier
-//                                            .background(MaterialTheme.colorScheme.background)
-//                                            .padding(top = 8.dp, bottom = 8.dp)
-//                                    ) {
-//                                        FiltradosChipsLocalidades(
-//                                            lista_localidades,
-//                                            localidadSeleccionada.value
-//                                        ) { nuevaLocalidad -> localidadSeleccionada.value = nuevaLocalidad }
-//
-//                                        filtrado_texto(
-//                                            texto_filtrado,
-//                                            lista,
-//                                            { texto_filtrado = it },
-//                                            { nuevaLista, _ ->
-//                                                lista_filtrada.clear()
-//                                                lista_filtrada.addAll(nuevaLista)
-//                                                Log.d("sugerencias", nuevaLista.toString())
-//                                            }
-//                                        )
-//                                    }
-//                                }
+                                stickyHeader {
+                                    Column(
+                                        modifier = Modifier
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    bottomStart = 16.dp,
+                                                    bottomEnd = 16.dp
+                                                )
+                                            )
+                                            .background(MaterialTheme.colorScheme.background)
+                                            .padding(8.dp)
+                                    ) {
+                                        FiltradosChipsLocalidades(
+                                            lista_localidades,
+                                            localidadSeleccionada.value
+                                        ) { nuevaLocalidad ->
 
-                                val listaParaMostrar = if (texto_filtrado.length > 2) lista_filtrada else lista
+                                            localidadSeleccionada.value = nuevaLocalidad
 
-                                items(listaParaMostrar, key = { it.categoria ?: it.hashCode().toString() }) { item ->
-                                    MostrarSugerencias(item, datosCategorias)
+                                        }
+
+                                        filtrado_texto(
+                                            texto_filtrado,
+                                            lista,
+                                            { texto_filtrado = it },
+                                            { nuevaLista, _ ->
+                                                lista_filtrada.clear()
+                                                lista_filtrada.addAll(nuevaLista)
+                                                Log.d("sugerencias", nuevaLista.toString())
+                                            }
+                                        )
+                                    }
+                                }
+
+                                val listaParaMostrar =
+                                    if (texto_filtrado.length > 2) lista_filtrada else lista
+
+                                items(
+                                    listaParaMostrar,
+                                    key = { it.categoria ?: it.hashCode().toString() }) { item ->
+                                    cartas_categorias(
+                                        item,
+                                        datosCategorias,
+                                        cartaExpandida,
+                                        localidadSeleccionada.value,
+                                        viewModel,
+                                    )
                                 }
                             }
-
-
                         }
                     }
                 }
@@ -218,102 +228,71 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
 }
 
 
-@Composable
-fun FloatingOverlayButtonsRefinado() {
-    var menuOpen by remember { mutableStateOf(false) }
-
-    // Transición del fondo
-    val transition = updateTransition(targetState = menuOpen, label = "menuTransition")
-    val backgroundAlpha by transition.animateFloat(
-        transitionSpec = { tween(durationMillis = 400) },
-        label = "alphaAnim"
-    ) { isOpen -> if (isOpen) 0.9f else 0f }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Fondo oscuro suave
-        if (backgroundAlpha > 0f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = backgroundAlpha))
-                    .clickable { menuOpen = false }
-            )
-        }
-
-        // Botones animados flotantes
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-            AnimatedVisibility(
-                visible = menuOpen,
-                enter = fadeIn(animationSpec = tween(300)) + slideInVertically(initialOffsetY = { it }),
-                exit = fadeOut(animationSpec = tween(200)) + slideOutVertically(targetOffsetY = { it })
-            ) {
-                FloatingActionButton(
-                    onClick = { /* Acción 1 */ },
-                    elevation = FloatingActionButtonDefaults.elevation(6.dp)
-                ) {
-                    Icon(Icons.Default.List, contentDescription = "Nota")
-                }
-            }
-
-            AnimatedVisibility(
-                visible = menuOpen,
-                enter = fadeIn(animationSpec = tween(300)) + slideInVertically(initialOffsetY = { it }),
-                exit = fadeOut(animationSpec = tween(200)) + slideOutVertically(targetOffsetY = { it })
-            ) {
-                FloatingActionButton(
-                    onClick = { /* Acción 2 */ },
-                    elevation = FloatingActionButtonDefaults.elevation(6.dp)
-                ) {
-                    Icon(Icons.Default.List, contentDescription = "Lista")
-                }
-            }
-        }
-
-        // FAB principal (botón +)
-        FloatingActionButton(
-            onClick = { menuOpen = !menuOpen },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = if (menuOpen) Icons.Default.Close else Icons.Default.Add,
-                contentDescription = if (menuOpen) "Cerrar" else "Abrir"
-            )
-        }
-    }
-}
-
-
-
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun cargando_categorias(composision: LottieComposition?, value: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
-            val (texto, loti_animation) = createRefs()
-            Text(
-                text = "Cargando tiendas de $value",
-                fontSize = 20.sp,
-                fontStyle = FontStyle.Italic,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .constrainAs(texto) {
-                        top.linkTo(loti_animation.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    },
-                textAlign = TextAlign.Center
+    Log.d("obtenos value", value)
+
+    var fraseIndex by remember { mutableStateOf(0) }
+    var frases by remember {
+        mutableStateOf(
+            listOf(
+                "Espere un momento",
+                "Cargando tienda...",
+                "No sea impaciente :)"
             )
+        )
+    }
+    var fraseActual by remember { mutableStateOf(frases[0]) }
+
+    LaunchedEffect(value) {
+        frases = listOf(
+            "Espere un momento...",
+            "Cargando tiendas de $value...",
+            "Buscamos lo mejora para ti ..."
+        )
+        fraseIndex = 0
+    }
+
+    LaunchedEffect(value) {
+        frases = listOf(
+            "Espere un momento...",
+            "Cargando tiendas de $value...",
+            "Buscamos lo mejora para ti ..."
+        )
+        fraseIndex = 0
+
+        while (true) {
+            fraseActual = frases[fraseIndex]
+            fraseIndex = (fraseIndex + 1) % frases.size
+            delay(2500L)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
+            val (texto_centrado, loti_animation) = createRefs()
+
+            AnimatedContent(
+                targetState = fraseActual,
+                transitionSpec = { fadeIn() with fadeOut() },
+                label = "frase_animada"
+            ) { texto ->
+                Text(
+                    text = texto,
+                    fontSize = 20.sp,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .constrainAs(texto_centrado) {
+                            top.linkTo(loti_animation.bottom)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+                )
+            }
+
             LottieAnimation(
                 composition = composision,
                 iterations = LottieConstants.IterateForever,
@@ -322,7 +301,6 @@ fun cargando_categorias(composision: LottieComposition?, value: String) {
                     .constrainAs(loti_animation) {}
             )
         }
-
     }
 }
 
@@ -330,7 +308,8 @@ fun cargando_categorias(composision: LottieComposition?, value: String) {
 fun cabezero_activity(localidad_registrado: String) {
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -361,7 +340,8 @@ fun FiltradosChipsLocalidades(
 ) {
     LazyRow(modifier = Modifier.padding(top = 5.dp)) {
         items(lista_localidades) { localidad ->
-            val isSelected = localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
+            val isSelected =
+                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
             FilterChip(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 selected = isSelected,
@@ -391,6 +371,7 @@ fun FiltradosChipsLocalidades(
 
 @Composable
 fun filtrado_texto(
+
     texto: String,
     lista_cargada_filstrado: List<encontradas_por_categoria>,
     texto_filtrado: (String) -> Unit,
@@ -407,7 +388,6 @@ fun filtrado_texto(
                 } else null
             }
         }
-    Log.d("obtener_sugeerncias",sugerencias.toString())
 
 
     is_error = expanded && sugerencias.isEmpty()
@@ -490,90 +470,204 @@ fun filtrado_texto(
     }
 }
 
-
 @Composable
-fun MostrarSugerencias(
+fun cartas_categorias(
     item: encontradas_por_categoria,
-    datosCategorias: Map<String, Triple<Int, Int, String>>
+    datosCategorias: SnapshotStateMap<String, registradas_activas_cat_img>,
+    cartaExpandida: MutableState<String?>,
+    Localidad_selecionada: String,
+    viewModel: viewModel_localizate_geinz,
 ) {
+    val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
     val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
-    val triple = remember(categoriaKey, datosCategorias) {
+    val datos = remember(categoriaKey, datosCategorias) {
         datosCategorias.entries.find {
             normalizarTexto(it.key) == categoriaKey
         }?.value
     }
 
-    val cantidadRegistradas = triple?.first ?: 0
-    val cantidadActivas = triple?.second ?: 0
+    val cantidadRegistradas = datos?.cantidad_registradas ?: 0
+    val cantidadActivas = datos?.catidad_activas ?: 0
+    val nombreSubcategoria = datos?.subcategoria ?: "Desconocido"
+    val imagenes = datos?.img_subcategorias ?: emptyList()
 
-    var expandido by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val expandido = cartaExpandida.value == categoriaKey
+
+    var index = 0
+    LaunchedEffect(expandido) {
+        if (expandido) {
+            while (true) {
+                delay(3000)
+                index = (index + 1) % imagenes.size
+                listState.animateScrollToItem(index)
+            }
+        } else {
+            index = 0
+            listState.animateScrollToItem(index)
+        }
+    }
+
+    LaunchedEffect(key1 = expandido) {
+        if (expandido) {
+            viewModel.T_patrocinadas(Localidad_selecionada, categoriaKey)
+
+
+            delay(300)
+            tiendas_patrocinadas_por_categoria?.let { lista ->
+                if (lista.isNotEmpty()) {
+                    lista.forEach {
+                        Log.d("obtenemos_tiendas_patrocinadas", "${it.id_tienda}, ${it.nombre}")
+                    }
+                } else {
+                    Log.d("obtenemos_tiendas_patrocinadas", "lista vacia")
+                }
+            }
+        }
+    }
 
     Card(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(8.dp)
-            .clickable { expandido = !expandido }
             .animateContentSize()
-            .defaultMinSize(minHeight = 200.dp),
-        shape = MaterialTheme.shapes.small,
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-
+            modifier = Modifier.fillMaxWidth()
         ) {
             Box(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
-                contentAlignment = Alignment.Center
+                    .height(200.dp)
             ) {
-                AsyncImage(
-                    model = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/IMG_CategoriasGeneral%2FcategoriasTienda%2FCuidado%20personal%20(1).png?alt=media&token=4f491879-c2bd-46b9-a197-82652b3bcdde", // tu URL o imagen de categoría
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
+                LazyRow(
+                    state = listState,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp),
-                    placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
-                    error = painterResource(id = R.drawable.sin_qr_icon)
-                )
+                        .height(200.dp)
+                ) {
+                    items(imagenes.size) { i ->
+                        AsyncImage(
+                            model = imagenes[i],
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillParentMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+                            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
+                            error = painterResource(id = R.drawable.sin_qr_icon)
+                        )
+                    }
+                }
+
+                ConstraintLayout(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
+                ) {
+                    val (activos_encontrados, size_carta) = createRefs()
+
+                    activos_y_registrados(
+                        cantidadRegistradas, cantidadActivas,
+                        modifier = Modifier.constrainAs(activos_encontrados) {
+                            top.linkTo(parent.top)
+                            start.linkTo(parent.start)
+                        }
+                    )
+
+                    size_carta_categoria(
+                        modifier = Modifier.constrainAs(size_carta) {
+                            end.linkTo(parent.end)
+                            bottom.linkTo(parent.bottom)
+                        }, expandido, onClick = {
+                            cartaExpandida.value = if (expandido) null else categoriaKey
+                        }
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize() // 👈 Esto hace la animación de altura
+            ) {
+                AnimatedVisibility(visible = expandido) {
+                    val subcatsUnidos = remember(item.subcateogiras) {
+                        item.subcateogiras?.joinToString(", ") ?: ""
+                    }
 
-            val subcatsUnidos = remember(item.subcateogiras) {
-                item.subcateogiras?.joinToString(", ") ?: ""
+                    Text(
+
+                        text = subcatsUnidos,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
-            Text(
-                text = subcatsUnidos,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = if (expandido) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Tiendas Registradas $cantidadRegistradas",
-                modifier = Modifier.padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Tiendas activas $cantidadActivas",
-                modifier = Modifier.padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Green
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
         }
     }
 }
 
+
+@Composable
+fun activos_y_registrados(
+    cantidad_registrados: Int,
+    cantidad_activos: Int,
+    modifier: Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(50),
+    ) {
+        Row(
+            modifier = modifier
+                .background(amarillo30)
+                .padding(horizontal = 10.dp, vertical = 2.dp)
+        ) {
+            Text(
+                "Activos $cantidad_activos",
+                modifier = modifier.padding(horizontal = 2.dp),
+                fontSize = 15.sp,
+                color = Color.Green
+            )
+            Text(
+                "Encontrados $cantidad_registrados",
+                fontSize = 15.sp,
+                modifier = modifier.padding(horizontal = 5.dp), color = Color.Black
+            )
+        }
+
+    }
+}
+
+@Composable
+fun size_carta_categoria(modifier: Modifier, expanddido: Boolean, onClick: () -> Unit) {
+
+    FloatingActionButton(
+        modifier = modifier
+            .size(35.dp)
+            .clip(CircleShape),
+        onClick = onClick,
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 10.dp
+        )
+    ) {
+
+        val icono_cambiante = if (expanddido) {
+            R.drawable.ocultar_abajo
+        } else {
+            R.drawable.ocultar_arriva
+        }
+        Image(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(id = icono_cambiante),
+            contentDescription = "Icono"
+        )
+    }
+}
 
 fun obtenerResultados(
     texto: String,
@@ -594,5 +688,6 @@ fun normalizarTexto(texto: String): String {
         .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
     return textoSinTildes.lowercase().trim()
 }
+
 
 

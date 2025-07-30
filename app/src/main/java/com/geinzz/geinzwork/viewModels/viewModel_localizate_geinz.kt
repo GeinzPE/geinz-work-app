@@ -9,6 +9,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_horarios_atencion_tiendas
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.estadoTienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.model.modelo_agregar_cat_sub_localizate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -39,15 +40,23 @@ class viewModel_localizate_geinz : ViewModel() {
 //        }
 //    }
 
+    val _T_patrocinadas_por_categoria = MutableLiveData<List<tienda_patrocinada>>()
+    val T_patrocinadas_por_categoria: LiveData<List<tienda_patrocinada>> get() = _T_patrocinadas_por_categoria
+
     val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
     val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
 
-    fun obtener_horario_tiendas(localidad_selecionada: String) {
+    fun T_obtener_registrados_activos(localidad_selecionada: String) {
         viewModelScope.launch {
             try {
                 val modelo_horario_tienda =
-                    modelo_agregar_cat_sub.obtener_tiendas_categorias_activas_registradas(localidad_selecionada)
-                Log.d("btenoemos_lista_filtrado_por","$localidad_selecionada $modelo_horario_tienda")
+                    modelo_agregar_cat_sub.obtener_tiendas_categorias_activas_registradas(
+                        localidad_selecionada
+                    )
+                Log.d(
+                    "btenoemos_lista_filtrado_por",
+                    "$localidad_selecionada $modelo_horario_tienda"
+                )
                 _encontrados_activos_tiendas.value = modelo_horario_tienda
             } catch (e: Exception) {
                 _encontrados_activos_tiendas.value = emptyList()
@@ -55,6 +64,22 @@ class viewModel_localizate_geinz : ViewModel() {
         }
     }
 
+
+    fun T_patrocinadas(localidad_selecionada: String, categoria_selecionada: String) {
+        viewModelScope.launch {
+            try {
+                val modelo_patrocinadas = modelo_agregar_cat_sub.obtenerTiendasPatrocinadas(
+                    localidad_selecionada,
+                    categoria_selecionada
+                )
+                _T_patrocinadas_por_categoria.value = modelo_patrocinadas
+                Log.d("obtnermos_tiendas","${_T_patrocinadas_por_categoria.value}")
+
+            } catch (e: Exception) {
+                _T_patrocinadas_por_categoria.value = emptyList()
+            }
+        }
+    }
 //    fun obtener_conincidencias() {
 //        viewModelScope.launch {
 //            delay(300)

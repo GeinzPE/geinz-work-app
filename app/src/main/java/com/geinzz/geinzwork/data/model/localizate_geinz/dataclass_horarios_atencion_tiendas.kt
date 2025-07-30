@@ -25,7 +25,8 @@ data class encontradas_por_categoria(
     val cantidad_registradas: Int?,
     val activas: Int?,
     val categoria: String?,
-    val subcateogiras: List<String>
+    val subcateogiras: List<String>,
+    val img_subcategorias: List<String>
 )
 
 data class horario_tienda(
@@ -33,4 +34,18 @@ data class horario_tienda(
     val dia: String?,
     val h_apertura: String?,
     val h_cierre: String?
+)
+
+data class registradas_activas_cat_img(
+    val cantidad_registradas: Int?,
+    val catidad_activas: Int?,
+    val subcategoria: String?,
+    val img_subcategorias: List<String>
+)
+
+data class tienda_patrocinada(
+    val categoria_tienda: String?,
+    val id_tienda: String?,
+    val img_tienda: String?,
+    val nombre: String?
 )

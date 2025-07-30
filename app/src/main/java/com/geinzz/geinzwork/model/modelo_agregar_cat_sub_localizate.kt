@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.model
 
+import android.R
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_horarios_atencion_tiendas
@@ -7,6 +8,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categori
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.estadoTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -16,6 +18,11 @@ import java.util.Date
 import java.util.Locale
 
 class modelo_agregar_cat_sub_localizate {
+    val lista_img = listOf<String>(
+        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/IMG_CategoriasGeneral%2FcategoriasTienda%2FPresentaci%C3%B3n-Plan-de-Negocio-Restaurante-Profesional-Amarillo.webp?alt=media&token=ca33c26d-bd01-45bf-9c69-f3b12028c9ad",
+        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/anunciosPrincipales%2F6.webp?alt=media&token=f1bb9a5f-def4-4c7d-a93f-c28bc766b8c5",
+        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/anunciosPrincipales%2F4.webp?alt=media&token=d59120c3-091c-4db4-a3c5-e5f2ac600a98"
+    )
     val db = FirebaseFirestore.getInstance()
 //    fun agregar_categorias(lista: List<dataclass_cat_sub>) {
 //        val Cat_sub_tiendas =
@@ -42,11 +49,16 @@ class modelo_agregar_cat_sub_localizate {
             val nombre_categoria = i.nombre.toString()
             val activos_por_localidad = obtenerTiendas_registradas_activas_por_categoria(
                 filtrado_localidad,
-                nombre_categoria,i.lista_subcategorias
+                nombre_categoria, i.lista_subcategorias, i.lista_img
             )
             activos_por_localidad.forEach { i ->
                 val datos =
-                    encontradas_por_categoria(i.cantidad_registradas, i.activas, i.categoria,i.subcateogiras)
+                    encontradas_por_categoria(
+                        i.cantidad_registradas,
+                        i.activas,
+                        i.categoria,
+                        i.subcateogiras, i.img_subcategorias
+                    )
                 lista_activos_registrados_categoria.add(datos)
             }
         }
@@ -63,8 +75,7 @@ class modelo_agregar_cat_sub_localizate {
             if (subcategoriasDoc.exists()) {
                 val data = subcategoriasDoc.data
                 val subcategorias = data?.get("subcategorias") as? List<String>
-
-                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias)
+                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, lista_img)
                 lista.add(datos)
 
             }
@@ -75,7 +86,8 @@ class modelo_agregar_cat_sub_localizate {
     suspend fun obtenerTiendas_registradas_activas_por_categoria(
         categoria_filtrada_localidad: String,
         categoria_filtrada: String,
-        listaSubcategorias: List<String>?
+        listaSubcategorias: List<String>?,
+        listaImg: List<String>
     ): List<encontradas_por_categoria> {
         val lista_encotrado = mutableListOf<encontradas_por_categoria>()
         val categoria = categoria_filtrada_localidad.lowercase()
@@ -119,12 +131,47 @@ class modelo_agregar_cat_sub_localizate {
         val resultado = encontradas_por_categoria(
             cantidad_registradas = cantidadRegistradas,
             activas = cantidadActivas,
-            categoria = categoria_filtrada,listaSubcategorias!!)
+            categoria = categoria_filtrada, listaSubcategorias!!, listaImg
+        )
         lista_encotrado.add(resultado)
 
 
         return lista_encotrado
     }
+
+
+    suspend fun obtenerTiendasPatrocinadas(
+        localidadSeleccionada: String,
+        categoriaSeleccionada: String
+    ): List<tienda_patrocinada> {
+        return try {
+            val snapshot = db.collection("Tiendas")
+                .document(localidadSeleccionada)
+                .collection("patrocinadas")
+                .whereEqualTo("categoria", categoriaSeleccionada)
+                .get()
+                .await()
+
+            snapshot.mapNotNull { doc ->
+                val categoria = doc.getString("categoria") ?: return@mapNotNull null
+                val idTienda = doc.getString("id_tienda") ?: return@mapNotNull null
+                val imgPerfil = doc.getString("img_perfil") ?: return@mapNotNull null
+                val nombre = doc.getString("nombre") ?: return@mapNotNull null
+
+                tienda_patrocinada(
+                    categoria_tienda = categoria,
+                    id_tienda = idTienda,
+                    img_tienda = imgPerfil,
+                    nombre = nombre
+                )
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
 
     suspend fun obtenerCantidadTiendasPorLocalidad(categoria_filtrada_localidad: String): Int {
         val categoria = categoria_filtrada_localidad.lowercase()
@@ -191,7 +238,6 @@ class modelo_agregar_cat_sub_localizate {
 //
 //        return lista_encotrado
 //    }
-
 
 
     suspend fun obtener_verificar_horario_tiendas(tiendas_encontradas: List<dataclass_horarios_atencion_tiendas>) {
