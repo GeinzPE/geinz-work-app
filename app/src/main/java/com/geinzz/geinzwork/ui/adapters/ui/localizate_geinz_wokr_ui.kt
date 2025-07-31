@@ -220,13 +220,14 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
                                         }
 
                                         filtrado_texto(
+
                                             texto_filtrado,
                                             lista,
                                             { texto_filtrado = it },
                                             { nuevaLista, _ ->
                                                 lista_filtrada.clear()
                                                 lista_filtrada.addAll(nuevaLista)
-                                                Log.d("sugerencias", nuevaLista.toString())
+                                                if(texto_filtrado.length>2) cartaExpandida.value=null
                                             }
                                         )
                                     }
@@ -398,6 +399,7 @@ fun FiltradosChipsLocalidades(
 
 @Composable
 fun filtrado_texto(
+
     texto: String,
     lista_cargada_filstrado: List<encontradas_por_categoria>,
     texto_filtrado: (String) -> Unit,
