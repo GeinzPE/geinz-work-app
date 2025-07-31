@@ -157,12 +157,20 @@ class modelo_agregar_cat_sub_localizate {
                 val idTienda = doc.getString("id_tienda") ?: return@mapNotNull null
                 val imgPerfil = doc.getString("img_perfil") ?: return@mapNotNull null
                 val nombre = doc.getString("nombre") ?: return@mapNotNull null
-
+                val coordenadaMap = doc.get("ubicacion") as? Map<*, *>
+                val latitud = coordenadaMap?.get("latitud") as? Number ?: 0
+                val longitud = coordenadaMap?.get("longitud") as? Number ?: 0
+                val direccion = coordenadaMap?.get("direccion") as? String ?: ""
+                val referencia = coordenadaMap?.get("referencia") as? String ?: ""
                 tienda_patrocinada(
                     categoria_tienda = categoria,
                     id_tienda = idTienda,
                     img_tienda = imgPerfil,
-                    nombre = nombre
+                    nombre = nombre,
+                    latitud = latitud,
+                    longitud = longitud,
+                    direccion = direccion,
+                    referencia = referencia
                 )
             }
 

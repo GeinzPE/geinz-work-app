@@ -47,5 +47,9 @@ data class tienda_patrocinada(
     val categoria_tienda: String?,
     val id_tienda: String?,
     val img_tienda: String?,
-    val nombre: String?
+    val nombre: String?,
+    val latitud : Number?,
+    val longitud: Number?,
+    val direccion: String?,
+    val referencia: String?
 )

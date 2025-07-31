@@ -202,4 +202,17 @@ object constantestextos_general {
     }
 
 
+    fun copiarTexto_portapapeles_compouse(texto_copiar: String, context: Context){
+        val clipboard =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("texto", texto_copiar)
+        clipboard.setPrimaryClip(clip)
+
+        Toast.makeText(
+            context,
+            "Texto copiado al portapapeles",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
 }

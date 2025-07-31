@@ -135,8 +135,6 @@ class cuentaFracment : Fragment() {
 
 
 
-
-
         }
         binding.imagenPerfil.setOnClickListener {
             pciMEdia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))

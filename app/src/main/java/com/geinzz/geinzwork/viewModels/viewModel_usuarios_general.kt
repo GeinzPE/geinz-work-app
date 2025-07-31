@@ -53,7 +53,7 @@ class viewModel_usuarios_general : ViewModel() {
         viewModelScope.launch {
             try {
                 val acceso = repo_usauri.encontrar_user(id_android)
-                _encontrar_user.value = acceso  // <- esto debe devolver Pair<Boolean, CollectionReference?>
+                _encontrar_user.value = acceso
             } catch (e: Exception) {
                 _encontrar_user.value = Pair(false, null)  // <- corregido el orden
             }

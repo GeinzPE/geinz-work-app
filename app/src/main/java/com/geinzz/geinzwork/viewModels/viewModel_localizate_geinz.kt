@@ -1,44 +1,20 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_horarios_atencion_tiendas
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.estadoTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.model.modelo_agregar_cat_sub_localizate
-import kotlinx.coroutines.Job
+import androidx.compose.runtime.State
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_localizate_geinz : ViewModel() {
     val modelo_agregar_cat_sub = modelo_agregar_cat_sub_localizate()
-
-//    private val _subcategorias = MutableLiveData<List<dataclass_cat_sub>>()
-//    val subcategorias: LiveData<List<dataclass_cat_sub>> get() = _subcategorias
-
-//    private val _cantiada_tiendas = MutableLiveData<Int>()
-//    val cantidad_tiendas: LiveData<Int> get() = _cantiada_tiendas
-
-
-//    val _tiendas_activa = MutableLiveData<List<estadoTienda>>()
-//    val tiendas_activa: LiveData<List<estadoTienda>> get() = _tiendas_activa
-
-
-//    fun obtener_cantidad_tiendas_por_localidad(localidad_selecionada: String) {
-//        viewModelScope.launch {
-//            try {
-//                _cantiada_tiendas.value =
-//                    modelo_agregar_cat_sub.obtenerCantidadTiendasPorLocalidad(localidad_selecionada)
-//            } catch (e: Exception) {
-//                _cantiada_tiendas.value = 0
-//            }
-//        }
-//    }
 
     val _T_patrocinadas_por_categoria = MutableLiveData<List<tienda_patrocinada>>()
     val T_patrocinadas_por_categoria: LiveData<List<tienda_patrocinada>> get() = _T_patrocinadas_por_categoria
@@ -65,30 +41,24 @@ class viewModel_localizate_geinz : ViewModel() {
     }
 
 
-    fun T_patrocinadas(localidad_selecionada: String, categoria_selecionada: String) {
-        viewModelScope.launch {
-            try {
-                val modelo_patrocinadas = modelo_agregar_cat_sub.obtenerTiendasPatrocinadas(
-                    localidad_selecionada,
-                    categoria_selecionada
-                )
-                _T_patrocinadas_por_categoria.value = modelo_patrocinadas
-                Log.d("obtnermos_tiendas","${_T_patrocinadas_por_categoria.value}")
+    private val _loading = mutableStateOf(false)
+    val loading: State<Boolean> = _loading
 
+    fun T_patrocinadas(localidad: String, categoria: String) {
+        viewModelScope.launch {
+            val tiempoInicio = System.currentTimeMillis()
+            _loading.value = true
+            try {
+                val result = modelo_agregar_cat_sub.obtenerTiendasPatrocinadas(localidad, categoria)
+                _T_patrocinadas_por_categoria.value = result
             } catch (e: Exception) {
                 _T_patrocinadas_por_categoria.value = emptyList()
+            } finally {
+                val tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio
+                val tiempoRestante = 1500 - tiempoTranscurrido
+                delay(tiempoRestante)
+                _loading.value = false
             }
         }
     }
-//    fun obtener_conincidencias() {
-//        viewModelScope.launch {
-//            delay(300)
-//            try {
-//                val subcategorias = modelo_agregar_cat_sub.obtener_categorias_subcategorias()
-//                _subcategorias.value = subcategorias
-//            } catch (e: Exception) {
-//                _subcategorias.value = emptyList()
-//            }
-//        }
-//    }
 }
