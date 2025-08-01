@@ -22,6 +22,7 @@ espressoCore = "3.5.1"
 appcompat = "1.6.1"
 kotlinxCoroutinesCore = "1.9.0-RC"
 kotlinxCoroutinesPlayServices = "1.9.0-RC"
+kotlinxSerializationJson = "1.9.0"
 lifecycleLivedataKtx = "2.7.0"
 lottie = "6.4.1"
 lottieCompose = "6.6.6"
@@ -36,6 +37,7 @@ glide = "4.11.0"
 crashlytic="2.9.5"
 materialVersion = "1.5.4"
 mpandroidchart = "v3.1.0"
+navigationCompose = "2.9.3"
 okhttp = "4.12.0"
 photoview = "1.0.2"
 photoviewVersion = "2.0.0"
@@ -63,6 +65,7 @@ androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", versi
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 ccp = { module = "com.hbb20:ccp", version.ref = "ccp" }
@@ -81,6 +84,8 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -121,4 +126,6 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 crashlytics={id="com.google.firebase.crashlytics", version.ref="crashlytic"}
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
 

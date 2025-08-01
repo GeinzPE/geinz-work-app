@@ -1,18 +1,13 @@
-package com.geinzz.geinzwork.ui.adapters.ui
+package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal
 
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
-import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -24,7 +19,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +39,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,7 +52,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -79,194 +71,162 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import com.geinzz.geinzwork.R
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.core.content.ContextCompat.startActivity
 import coil3.compose.AsyncImage
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.registradas_activas_cat_img
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
+import com.geinzz.geinzwork.ui.adapters.ui.FiltradosChipsLocalidades
+import com.geinzz.geinzwork.ui.adapters.ui.cabezero_activity
+import com.geinzz.geinzwork.ui.adapters.ui.cargando_categorias
+import com.geinzz.geinzwork.ui.adapters.ui.cartas_categorias
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal.PantallaExplorarTiendas
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
+import com.geinzz.geinzwork.ui.adapters.ui.filtrado_texto
+import com.geinzz.geinzwork.ui.adapters.ui.normalizarTexto
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import kotlinx.coroutines.delay
 import java.text.Normalizer
-import kotlin.collections.forEach
+import kotlin.collections.mapNotNull
+import kotlin.collections.orEmpty
+import kotlin.getValue
+import kotlin.text.contains
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaExplorarTiendas(
+    localidadUser: String,
+    nombreUser: String,
+    viewModel: viewModel_localizate_geinz // o el ViewModel que uses
+) {
+    val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
+    var texto_filtrado by rememberSaveable { mutableStateOf("") }
+    val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
+    val datosCategorias = remember { mutableStateMapOf<String, registradas_activas_cat_img>() }
+    val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+    val cargando = remember { mutableStateOf(true) }
 
-class localizate_geinz_wokr_ui : ComponentActivity() {
-    private val viewModel by viewModels<viewModel_localizate_geinz>()
+    val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            GeinzWorkTheme {
-                val localidad_user =
-                    intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
-                val nombre_user = intent.getStringExtra("nombre_user") ?: ""
-                PantallaExplorarTiendas(
-                    localidadUser = localidad_user,
-                    nombreUser = nombre_user,
-                    viewModel = viewModel
-                )
+    val lista_localidades = constantes_lista_localidades.lista
 
+    var localidadAnterior by remember { mutableStateOf("") }
+    val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
+    val cartaExpandida = remember { mutableStateOf<String?>(null) }
 
-//                val localidad_user =
-//                    intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
-//                val nombre_user = intent.getStringExtra("nombre_user") ?: ""
-//                val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
-//                var texto_filtrado by rememberSaveable { mutableStateOf("") }
-//                val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-//                val datosCategorias =
-//                    remember { mutableStateMapOf<String, registradas_activas_cat_img>() }
-//                val lista_filtrada =
-//                    remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
-//                val cargando = remember { mutableStateOf(true) }
-//
-//                val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
-//
-//                val lista_localidades = constantes_lista_localidades.lista
-//
-//                var localidadAnterior by remember { mutableStateOf("") }
-//                val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
-//                val cartaExpandida = remember { mutableStateOf<String?>(null) }
-//
-//
-//                LaunchedEffect(Unit) {
-//                    if (localidadSeleccionada.value.isEmpty()) {
-//                        localidadSeleccionada.value = localidad_user
-//                    }
-//                }
-//
-//                LaunchedEffect(localidadSeleccionada.value) {
-//                    if (localidadSeleccionada.value != localidadAnterior) {
-//                        cargando.value = true
-//                        localidadAnterior = localidadSeleccionada.value
-//                        cartaExpandida.value = null
-//                        viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
-//                    }
-//                }
-//
-//
-//
-//                LaunchedEffect(encontrados_activos_tiendass) {
-//                    encontrados_activos_tiendass?.let { listaNueva ->
-//                        datosCategorias.clear()
-//                        lista.clear()
-//                        lista.addAll(listaNueva)
-//                        listaNueva.forEach { item ->
-//                            datosCategorias[(normalizarTexto(item.categoria ?: ""))] =
-//                                registradas_activas_cat_img(
-//                                    item.cantidad_registradas ?: 0,
-//                                    item.activas ?: 0,
-//                                    item.categoria ?: "Desconocido",
-//                                    item.img_subcategorias
-//                                )
-//                        }
-//                        texto_filtrado = ""
-//                        cargando.value = false
-//                    }
-//                }
-//
-//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    Crossfade(targetState = cargando.value) { isCargando ->
-//                        if (isCargando) {
-//                            cargando_categorias(
-//                                composision,
-//                                localidadSeleccionada.value,
-//                                nombre_user
-//                            )
-//                        } else {
-//                            LazyColumn(
-//                                modifier = Modifier
-//                                    .fillMaxSize()
-//                                    .padding(innerPadding)
-//                            ) {
-//                                item {
-//                                    cabezero_activity(localidad_user)
-//                                }
-//
-//                                stickyHeader {
-//                                    Column(
-//                                        modifier = Modifier
-//                                            .clip(
-//                                                RoundedCornerShape(
-//                                                    bottomStart = 16.dp,
-//                                                    bottomEnd = 16.dp
-//                                                )
-//                                            )
-//                                            .background(MaterialTheme.colorScheme.background)
-//                                            .padding(8.dp)
-//                                    ) {
-//                                        FiltradosChipsLocalidades(
-//                                            lista_localidades,
-//                                            localidadSeleccionada.value
-//                                        ) { nuevaLocalidad ->
-//                                            localidadSeleccionada.value = nuevaLocalidad
-//                                        }
-//
-//                                        filtrado_texto(
-//
-//                                            texto_filtrado,
-//                                            lista,
-//                                            { texto_filtrado = it },
-//                                            { nuevaLista, _ ->
-//                                                lista_filtrada.clear()
-//                                                lista_filtrada.addAll(nuevaLista)
-//                                                if(texto_filtrado.length>2) cartaExpandida.value=null
-//                                            }
-//                                        )
-//                                    }
-//                                }
-//
-//                                val listaParaMostrar =
-//                                    if (texto_filtrado.length > 2) lista_filtrada else lista
-//
-//                                items(
-//                                    listaParaMostrar,
-//                                    key = { it.categoria ?: it.hashCode().toString() }) { item ->
-//                                    cartas_categorias(
-//                                        item,
-//                                        datosCategorias,
-//                                        cartaExpandida,
-//                                        localidadSeleccionada.value,
-//                                        viewModel,
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
+    LaunchedEffect(Unit) {
+        if (localidadSeleccionada.value.isEmpty()) {
+            localidadSeleccionada.value = localidadUser
+        }
+    }
+
+    LaunchedEffect(localidadSeleccionada.value) {
+        if (localidadSeleccionada.value != localidadAnterior) {
+            cargando.value = true
+            localidadAnterior = localidadSeleccionada.value
+            cartaExpandida.value = null
+            viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
+        }
+    }
+
+    LaunchedEffect(encontrados_activos_tiendass) {
+        encontrados_activos_tiendass?.let { listaNueva ->
+            datosCategorias.clear()
+            lista.clear()
+            lista.addAll(listaNueva)
+            listaNueva.forEach { item ->
+                datosCategorias[(normalizarTexto(item.categoria ?: ""))] =
+                    registradas_activas_cat_img(
+                        item.cantidad_registradas ?: 0,
+                        item.activas ?: 0,
+                        item.categoria ?: "Desconocido",
+                        item.img_subcategorias
+                    )
+            }
+            texto_filtrado = ""
+            cargando.value = false
+        }
+    }
+
+    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        Crossfade(targetState = cargando.value) { isCargando ->
+            if (isCargando) {
+                cargando_categorias(composision, localidadSeleccionada.value, nombreUser)
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    item {
+                        cabezero_activity(localidadUser)
+                    }
+
+                    stickyHeader {
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(8.dp)
+                        ) {
+                            FiltradosChipsLocalidades(
+                                lista_localidades,
+                                localidadSeleccionada.value
+                            ) { nuevaLocalidad ->
+                                localidadSeleccionada.value = nuevaLocalidad
+                            }
+
+                            filtrado_texto(
+                                texto_filtrado,
+                                lista,
+                                { texto_filtrado = it },
+                                { nuevaLista, _ ->
+                                    lista_filtrada.clear()
+                                    lista_filtrada.addAll(nuevaLista)
+                                    if (texto_filtrado.length > 2) cartaExpandida.value = null
+                                }
+                            )
+                        }
+                    }
+
+                    val listaParaMostrar =
+                        if (texto_filtrado.length > 2) lista_filtrada else lista
+
+                    items(
+                        listaParaMostrar,
+                        key = { it.categoria ?: it.hashCode().toString() }) { item ->
+                        cartas_categorias(
+                            item,
+                            datosCategorias,
+                            cartaExpandida,
+                            localidadSeleccionada.value,
+                            viewModel,
+                        )
+                    }
+                }
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -718,7 +678,7 @@ fun ListaTiendasPatrocinadas(
     if (mostrarDialog_sin_google_maps.value) {
         dialog_sin_ubi_activa(
             direccion, referencia, onDismis = { mostrarDialog_sin_google_maps.value = false },
-            abrir_maps = { constantes.abrirGoogleMaps(context,direccion)})
+            abrir_maps = { constantes.abrirGoogleMaps(context, direccion) })
 
     }
 
@@ -759,14 +719,14 @@ fun ListaTiendasPatrocinadas(
                     ) {
                         items(tiendas) { tienda ->
                             patrocinadores(item = tienda) { latitud, longitud ->
-                                Log.d("hicimos_clik_ne","${tienda.nombre}")
+                                Log.d("hicimos_clik_ne", "${tienda.nombre}")
                                 if (verificarUbiActiva(context)) {
                                     abrirRutaEnGoogleMaps(context, latitud, longitud)
                                 } else {
                                     mostrarDialogo.value = true
                                 }
-                                    direccion = tienda.direccion ?: ""
-                                    referencia = tienda.referencia ?: ""
+                                direccion = tienda.direccion ?: ""
+                                referencia = tienda.referencia ?: ""
                             }
                         }
                     }
@@ -855,6 +815,7 @@ fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Uni
         }
     }
 }
+
 @Composable
 fun activos_y_registrados(
     cantidad_registrados: Int,
@@ -935,8 +896,4 @@ fun verificarUbiActiva(context: Context): Boolean {
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 }
-
-
-
-
 

@@ -6,6 +6,7 @@ plugins {
     id("com.google.gms.google-services")
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.kotlinCompose)
+    alias(libs.plugins.kotlinSerialization)
 
 }
 
@@ -135,4 +136,8 @@ dependencies {
     implementation(libs.androidx.animation.core)
     implementation(libs.androidx.foundation)
 
+
+    //navigation componets
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 }
