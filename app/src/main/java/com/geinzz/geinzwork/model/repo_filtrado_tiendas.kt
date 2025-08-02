@@ -40,23 +40,24 @@ class repo_filtrado_tiendas {
                 .await()
 
             tiendas.forEach { i ->
-                val subcategorias_list = i.get("subategorias") as? List<String>?:emptyList()
+                val subcategorias_list = i.get("subcategoria") as? List<String> ?: emptyList()
                 val ubicacion = i.get("ubicacion") as? Map<String, Any>
 
                 val direccion = ubicacion?.get("direccion") as? String ?: ""
                 val latitud = ubicacion?.get("latitud") as? Number ?: 0
                 val longitud = ubicacion?.get("longitud") as? Number ?: 0
                 val referencia = ubicacion?.get("referencia") as? String ?: ""
+                val descripcion = i.get("descripcion") as? String ?: ""
 
 
                 lista_tiendas_filtradas.add(
                     tiendas_filtradas(
                         i.get("img_perfil") as? String ?: "",
-                        i.get("nombre") as? String ?: "",
+                        i.get("nombre_tienda") as? String ?: "",
                         direccion,
                         referencia,
                         latitud.toDouble(),
-                        longitud.toDouble(), subcategorias_list
+                        longitud.toDouble(), subcategorias_list,descripcion
                     )
                 )
 

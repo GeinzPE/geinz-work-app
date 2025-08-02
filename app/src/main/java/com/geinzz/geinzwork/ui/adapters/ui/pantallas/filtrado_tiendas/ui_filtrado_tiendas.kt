@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
 
 import androidx.annotation.DrawableRes
@@ -8,13 +6,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
+import android.widget.Toast
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,24 +26,26 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.FloatingActionButtonDefaults
 import androidx.compose.material.Icon
 import com.geinzz.geinzwork.R
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,18 +65,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.FAB_EXPLODE_BOUNDS_KEY
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
+
 
 @Composable
 fun Pantalla_filtrado_tiendas(
     categoria: String,
-    localida: String,  navigation_regresar: () -> Unit,
+    localida: String, navigation_regresar: () -> Unit,
 ) {
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -90,7 +94,6 @@ fun Pantalla_filtrado_tiendas(
         LaunchedEffect(tiendas_filtradas) {
             Log.d("tiendas_encontradas", tiendas_filtradas.toString())
         }
-       FloatingActionButton(onClick = {}) {Text("Hola clik") }
         LazyColumn() {
             item {
                 chips_categorias(
@@ -110,7 +113,6 @@ fun Pantalla_filtrado_tiendas(
         }
 
     }
-
 
 
 }
@@ -209,8 +211,6 @@ fun chips_categorias(
 
                     )
                 }
-
-
             }
 
             item {
@@ -218,6 +218,7 @@ fun chips_categorias(
                 Spacer(modifier = Modifier.height(20.dp))
                 encontradas_activas("Tiendas registradas", "20", R.drawable.icon_tiendas)
 
+//                Button(onClick = {agregar_tiendas("barranca",lista_agregar_tiendas_brca)}) {Text("clikear")}
             }
 
         }
@@ -240,13 +241,21 @@ fun encontradas_activas(texto1: String, texto2: String, @DrawableRes icono: Int)
 @Composable
 fun item_tiendas(item_tiendas: tiendas_filtradas) {
     var detalles_tiend by remember { mutableStateOf(false) }
+    val local_context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .animateContentSize(),
+            .animateContentSize()
+            .clickable {
+                Toast.makeText(
+                    local_context,
+                    item_tiendas.nombre_tienda,
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
         colors = CardDefaults.cardColors(
-            containerColor = Color.LightGray // 👈 tu color predeterminado aquí
+            containerColor = amarillo30
         )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -293,30 +302,26 @@ fun item_tiendas(item_tiendas: tiendas_filtradas) {
                     Btn_Expandir_card { expandir -> detalles_tiend = expandir }
                 }
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize() // 👈 Esto hace la animación de altura
-            ) {
-                AnimatedVisibility(visible = detalles_tiend) {
+            AnimatedVisibility(visible = detalles_tiend) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize() // 👈 Esto hace la animación de altura
+                ) {
+
                     Text(
-                        text = "holasadadadadadasdasdadadadasdasdsadadsadsadasd",
+                        text = "Descripcion : ${item_tiendas.descripcion}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
 //                        style = MaterialTheme.typography.bodySmall,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "holasadadadadadasdasdadadadasdasdsadadsadsadasd",
+                        text = "Subcategorias a la cual pertenece ${item_tiendas.lista_subcategoiras.toString()}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
 //                        style = MaterialTheme.typography.bodySmall,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = "holasadadadadadasdasdadadadasdasdsadadsadsadasd",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-//                        style = MaterialTheme.typography.bodySmall,
-                        overflow = TextOverflow.Ellipsis
-                    )
+
                 }
             }
 
@@ -444,3 +449,185 @@ fun Btn_Expandir_card(expandir_carta: (Boolean) -> Unit) {
     }
 
 }
+
+
+fun agregar_tiendas(localidad: String, listadatos: List<modelo_tienda>) {
+    val db = FirebaseFirestore.getInstance().collection("Tiendas").document(localidad)
+        .collection(localidad)
+
+    listadatos.forEach { i ->
+        val id = i.id_tienda
+
+        db.document(id).set(i)
+            .addOnSuccessListener {
+                Log.d("Firestore", "Tienda agregada correctamente.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error al agregar la tienda ", e)
+            }
+    }
+}
+
+@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+
+fun bottom_sheet_tiendas() {
+    Surface {
+        ModalBottomSheet(
+            onDismissRequest = {},
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(16.dp)
+            ) {
+                item {
+                    cabezero_tiendas()
+                    spacer_vertical(10.dp)
+                }
+
+                item {
+                    Acerca_tienda()
+                    spacer_vertical(10.dp)
+                }
+
+                item {
+                    horario_atencion()
+                    spacer_vertical(10.dp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun cabezero_tiendas() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+
+    ) {
+        AsyncImage(
+            model = "https://via.placeholder.com/300", // imagen temporal
+            contentDescription = "Imagen de la tienda",
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
+            error = painterResource(id = R.drawable.qr_yape),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Verdulería Marcos",
+                )
+                Text(
+                    text = "Categoría: Verdulería",
+                )
+            }
+
+            Icon(
+                painter = painterResource(R.drawable.icon_tienda_icon_general),
+                contentDescription = "Icono tienda",
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(end = 8.dp)
+            )
+
+            FloatingActionButton(
+                onClick = { /* Acción */ },
+                modifier = Modifier.size(36.dp),
+                containerColor = Color(0xFFFFC107), // reemplaza amarillo30 si no está
+                contentColor = Color.White,
+
+                ) {
+                Icon(
+                    painter = painterResource(R.drawable.localidad_icon_general),
+                    contentDescription = "Localidad",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun Acerca_tienda() {
+    Text(text = "Acerca de la tienda")
+    Text(text = "calle localizada : urb san mateo mz i lote 4")
+    Text(text = "referencia : cerna a la loza san mteo")
+    Text(text = "Distancia cercana : 4ML")
+    Text(text = "Tipo de tienda :Fisica")
+}
+
+@Composable
+fun horario_atencion() {
+    Card(
+        modifier = Modifier
+            .height(40.dp),
+        shape = RoundedCornerShape(50),
+        colors = CardDefaults.cardColors(
+            containerColor = amarillo30,
+        ),
+
+    ) {
+        ConstraintLayout(modifier = Modifier.fillMaxWidth(),) {
+            val (texto,btn)=createRefs()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 12.dp).constrainAs(texto){
+
+                }
+            ) {
+                Text(
+                    text = "Horario de atención",
+                    fontSize = 15.sp,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(R.drawable.horario_tienda_vector),
+                    contentDescription = ""
+                )
+            }
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(CircleShape).constrainAs(btn){
+                        end.linkTo(parent.end)
+                    },
+                onClick = {},
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 6.dp,
+                    pressedElevation = 10.dp
+                )
+            ) {
+
+                Image(
+                    modifier = Modifier.size(20.dp),
+                    painter = painterResource(R.drawable.ocultar_abajo), contentDescription = ""
+                )
+
+            }
+        }
+
+
+
+    }
+
+}
+
+
+

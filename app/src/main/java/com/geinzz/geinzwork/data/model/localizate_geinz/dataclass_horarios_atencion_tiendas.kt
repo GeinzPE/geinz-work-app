@@ -68,7 +68,7 @@ data class modelo_tienda(
 
 )
 
-val lista_agregar_tiendas_ramdom = listOf(
+val lista_agregar_tiendas_brca = listOf(
 //barranca
     modelo_tienda(
         nombre_tienda = "Delicias del Norte Barranca",
