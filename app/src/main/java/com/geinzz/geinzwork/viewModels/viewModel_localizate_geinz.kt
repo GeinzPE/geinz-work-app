@@ -8,13 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
-import com.geinzz.geinzwork.model.modelo_agregar_cat_sub_localizate
+import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import androidx.compose.runtime.State
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_localizate_geinz : ViewModel() {
-    val modelo_agregar_cat_sub = modelo_agregar_cat_sub_localizate()
+    val modelo_agregar_cat_sub = repo_agregar_cat_sub_localizate()
 
     val _T_patrocinadas_por_categoria = MutableLiveData<List<tienda_patrocinada>>()
     val T_patrocinadas_por_categoria: LiveData<List<tienda_patrocinada>> get() = _T_patrocinadas_por_categoria

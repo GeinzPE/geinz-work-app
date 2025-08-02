@@ -1,4 +1,6 @@
-package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal
+
+
+package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -8,17 +10,19 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +43,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -92,14 +97,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filt
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.registradas_activas_cat_img
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
-import com.geinzz.geinzwork.ui.adapters.ui.FiltradosChipsLocalidades
-import com.geinzz.geinzwork.ui.adapters.ui.cabezero_activity
-import com.geinzz.geinzwork.ui.adapters.ui.cargando_categorias
-import com.geinzz.geinzwork.ui.adapters.ui.cartas_categorias
+import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
-import com.geinzz.geinzwork.ui.adapters.ui.filtrado_texto
-import com.geinzz.geinzwork.ui.adapters.ui.normalizarTexto
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -108,7 +108,6 @@ import kotlinx.coroutines.delay
 import java.text.Normalizer
 import kotlin.collections.mapNotNull
 import kotlin.collections.orEmpty
-import kotlin.getValue
 import kotlin.text.contains
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,19 +115,18 @@ import kotlin.text.contains
 fun PantallaExplorarTiendas(
     localidadUser: String,
     nombreUser: String,
-    viewModel: viewModel_localizate_geinz // o el ViewModel que uses
+    viewModel: viewModel_localizate_geinz,
+    clik_img: (categoria: String, localidad: String) -> Unit
 ) {
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
     val datosCategorias = remember { mutableStateMapOf<String, registradas_activas_cat_img>() }
-    val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+    val lista_filtrada =
+        remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
     val cargando = remember { mutableStateOf(true) }
-
     val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
-
     val lista_localidades = constantes_lista_localidades.lista
-
     var localidadAnterior by remember { mutableStateOf("") }
     val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
     val cartaExpandida = remember { mutableStateOf<String?>(null) }
@@ -211,15 +209,15 @@ fun PantallaExplorarTiendas(
                     val listaParaMostrar =
                         if (texto_filtrado.length > 2) lista_filtrada else lista
 
-                    items(
-                        listaParaMostrar,
+                    items(listaParaMostrar,
                         key = { it.categoria ?: it.hashCode().toString() }) { item ->
                         cartas_categorias(
+                            texto_filtrado,
                             item,
                             datosCategorias,
                             cartaExpandida,
                             localidadSeleccionada.value,
-                            viewModel,
+                            viewModel, clik_img
                         )
                     }
                 }
@@ -369,15 +367,14 @@ fun FiltradosChipsLocalidades(
 
 @Composable
 fun filtrado_texto(
-
     texto: String,
     lista_cargada_filstrado: List<encontradas_por_categoria>,
     texto_filtrado: (String) -> Unit,
     busquedaAction: (List<encontradas_por_categoria>, Boolean) -> Unit
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var is_error by rememberSaveable { mutableStateOf(false) }
-    var icono_busqeuda by rememberSaveable { mutableStateOf(R.drawable.buscar_icon) }
+    var expanded by remember { mutableStateOf(false) }
+    var is_error by remember { mutableStateOf(false) }
+    var icono_busqeuda by remember { mutableStateOf(R.drawable.buscar_icon) }
     val sugerencias: List<dataclass_resultado_filtrado> = lista_cargada_filstrado
         .flatMap { catSub ->
             catSub.subcateogiras.orEmpty().mapNotNull { subcat ->
@@ -470,11 +467,12 @@ fun filtrado_texto(
 
 @Composable
 fun cartas_categorias(
+    texto_filtrado_texfiel: String,
     item: encontradas_por_categoria,
     datosCategorias: SnapshotStateMap<String, registradas_activas_cat_img>,
     cartaExpandida: MutableState<String?>,
     Localidad_selecionada: String,
-    viewModel: viewModel_localizate_geinz,
+    viewModel: viewModel_localizate_geinz, clik_img: (categoria: String, localidad: String) -> Unit
 ) {
     val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
 
@@ -567,6 +565,9 @@ fun cartas_categorias(
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
+                                .clickable {
+                                    clik_img(item.categoria, Localidad_selecionada)
+                                    texto_filtrado_texfiel==""}
                                 .fillParentMaxWidth()
                                 .height(200.dp)
                                 .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),

@@ -1,6 +1,5 @@
 package com.geinzz.geinzwork.model
 
-import android.R
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_horarios_atencion_tiendas
@@ -17,30 +16,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class modelo_agregar_cat_sub_localizate {
+class repo_agregar_cat_sub_localizate {
     val lista_img = listOf<String>(
         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/IMG_CategoriasGeneral%2FcategoriasTienda%2FPresentaci%C3%B3n-Plan-de-Negocio-Restaurante-Profesional-Amarillo.webp?alt=media&token=ca33c26d-bd01-45bf-9c69-f3b12028c9ad",
         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/anunciosPrincipales%2F6.webp?alt=media&token=f1bb9a5f-def4-4c7d-a93f-c28bc766b8c5",
         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/anunciosPrincipales%2F4.webp?alt=media&token=d59120c3-091c-4db4-a3c5-e5f2ac600a98"
     )
     val db = FirebaseFirestore.getInstance()
-//    fun agregar_categorias(lista: List<dataclass_cat_sub>) {
-//        val Cat_sub_tiendas =
-//            db.collection("Tiendas").document("categorias").collection("categorias")
-//        lista.forEach { i ->
-//            val hasmap = hashMapOf<String, Any>(
-//                "subcategorias" to i.lista_subcategorias
-//            )
-//            Cat_sub_tiendas.document(i.nombre.toString()).set(hasmap).addOnSuccessListener { res ->
-//                Log.d("correcto", "se agregaron toda las categorias correcteamnte")
-//            }.addOnFailureListener { e ->
-//                Log.d("correcto", "ocurrio un arrero al gregar toda las categorias")
-//
-//            }
-//
-//        }
-//    }
-
 
     suspend fun obtener_tiendas_categorias_activas_registradas(filtrado_localidad: String): List<encontradas_por_categoria> {
         val lista_activos_registrados_categoria = mutableListOf<encontradas_por_categoria>()

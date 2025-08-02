@@ -133,7 +133,9 @@ dependencies {
     //dependecia compouse live data
     implementation(libs.androidx.runtime.livedata)
 
-    implementation(libs.androidx.animation.core)
+    implementation(libs.androidx.animation)
+    implementation(libs.accompanist.navigation.animation)
+
     implementation(libs.androidx.foundation)
 
 

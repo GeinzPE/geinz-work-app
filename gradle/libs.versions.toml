@@ -1,7 +1,8 @@
 [versions]
+accompanistNavigationAnimation = "0.34.0"
 activityKtx = "1.9.1"
 agp = "8.11.1"
-animationCore = "1.8.3"
+
 biometric = "1.1.0"
 ccp = "2.7.0"
 circleimageview = "3.1.0"
@@ -57,8 +58,9 @@ activityCompose = "1.10.1"
 composeBom = "2024.09.00"
 versionConstraint="1.1.0"
 [libraries]
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
-androidx-animation-core = { module = "androidx.compose.animation:animation-core", version.ref = "animationCore" }
+androidx-animation = { module = "androidx.compose.animation:animation" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }

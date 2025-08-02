@@ -5,8 +5,11 @@ import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -21,13 +24,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
 import com.geinzz.geinzwork.R
 
-import com.geinzz.geinzwork.ui.adapters.ui.spacer_horizonta
-import com.geinzz.geinzwork.ui.adapters.ui.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import java.nio.file.WatchEvent
 
@@ -150,4 +152,14 @@ fun Calle_referencia(text1: String, text2: String) {
             contentDescription = ""
         )
     }
+}
+@Composable
+fun spacer_vertical(altura: Dp) {
+    Spacer(modifier = Modifier.height(altura))
+}
+
+@Composable
+fun spacer_horizonta(ancho: Dp) {
+    Spacer(modifier = Modifier.width(ancho))
+
 }
