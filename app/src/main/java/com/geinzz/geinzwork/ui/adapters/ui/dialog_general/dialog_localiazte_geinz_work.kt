@@ -47,13 +47,13 @@ fun dialog_sin_ubicacion_activa(
                     abrir_configuracion()
                 },
                 shape = RoundedCornerShape(15)
-            ) { Text(text = "Activar Ubicación") }
+            ) { Text(text = "Activar Ubicación", color = Color.White) }
         },
         dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
-        title = { Text(text = "Ubicación desactivada") },
+        title = { Text(text = "Ubicación desactivada", color = Color.White) },
         text = {
             Column {
-                Text("Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta la tienda en Google Maps.")
+                Text("Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta la tienda en Google Maps.", color = Color.White)
                 spacer_vertical(10.dp)
                 Text(
                     text = "Continuar sin activar ubicación",
@@ -98,14 +98,14 @@ fun dialog_sin_ubi_activa(
             androidx.compose.material3.Button(
                 onClick = { abrir_maps() },
                 shape = RoundedCornerShape(15)
-            ) { Text(text = "Abrir con Google Maps") }
+            ) { Text(text = "Abrir con Google Maps" , color = Color.White) }
         },
         dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
 
-        title = { Text(text = "Dirección y referencia") },
+        title = { Text(text = "Dirección y referencia", color = Color.White) },
         text = {
             Column {
-                Text("Usa esta información de manera responsable. El mal uso será reportado.")
+                Text("Usa esta información de manera responsable. El mal uso será reportado.", color = Color.White)
                 spacer_vertical(10.dp)
                 Calle_referencia("Direccion : ", direccion)
                 spacer_vertical(10.dp)
@@ -139,7 +139,7 @@ fun Calle_referencia(text1: String, text2: String) {
             Text(text = text1)
             Text(
                 text = text2, maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis, color = Color.White
             )
 
         }

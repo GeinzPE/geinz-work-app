@@ -10,5 +10,6 @@ data class tiendas_filtradas(
     val latitud: Double,
     val longitud: Double,
     val lista_subcategoiras: List<String>,
-    val descripcion: String
+    val descripcion: String,
+    val id_tienda: String
 )

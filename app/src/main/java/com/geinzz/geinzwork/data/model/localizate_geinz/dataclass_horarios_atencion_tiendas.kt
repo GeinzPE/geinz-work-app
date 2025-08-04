@@ -26,21 +26,21 @@ data class encontradas_por_categoria(
     val activas: Int?,
     val categoria: String?,
     val subcateogiras: List<String>,
-    val img_subcategorias: List<String>
+    val img_subcategorias: String=""
 )
 
 data class horario_tienda(
-    val id_tienda: String,
-    val dia: String?,
-    val h_apertura: String?,
-    val h_cierre: String?
+    val id_tienda: String="",
+    val dia: String="",
+    val h_apertura: String="",
+    val h_cierre: String=""
 )
 
 data class registradas_activas_cat_img(
     val cantidad_registradas: Int?,
     val catidad_activas: Int?,
     val subcategoria: String?,
-    val img_subcategorias: List<String>
+    val img_subcategorias: String=""
 )
 
 data class tienda_patrocinada(
@@ -51,22 +51,25 @@ data class tienda_patrocinada(
     val latitud: Number?,
     val longitud: Number?,
     val direccion: String?,
-    val referencia: String?
+    val referencia: String?,
+
 )
 
 data class modelo_tienda(
-    val nombre_tienda: String?,
-    val modelo_negocio: Boolean,
-    val localidad: String?,
-    val categoria_tienda: String,
-    val descripcion: String,
-    val id_tienda: String,
-    val img_perfil: String,
-    val subcategoria: List<String>,
-    val ubicacion: Map<String, Any>,
-    val metodo_contacto: Map<String, Any>
+    val nombre_tienda: String="",
+    val modelo_negocio: Boolean=false,
+    val localidad: String?="",
+    val categoria_tienda: String="",
+    val descripcion: String="",
+    val id_tienda: String="",
+    val img_perfil: String="",
+    val subcategoria: List<String> = emptyList(),
+    val ubicacion: Map<String, Any> = emptyMap(),
+    val metodo_contacto: Map<String, Any> = emptyMap()
 
 )
+
+
 
 val lista_agregar_tiendas_brca = listOf(
 //barranca

@@ -17,11 +17,7 @@ import java.util.Date
 import java.util.Locale
 
 class repo_agregar_cat_sub_localizate {
-    val lista_img = listOf<String>(
-        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/IMG_CategoriasGeneral%2FcategoriasTienda%2FPresentaci%C3%B3n-Plan-de-Negocio-Restaurante-Profesional-Amarillo.webp?alt=media&token=ca33c26d-bd01-45bf-9c69-f3b12028c9ad",
-        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/anunciosPrincipales%2F6.webp?alt=media&token=f1bb9a5f-def4-4c7d-a93f-c28bc766b8c5",
-        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/anunciosPrincipales%2F4.webp?alt=media&token=d59120c3-091c-4db4-a3c5-e5f2ac600a98"
-    )
+
     val db = FirebaseFirestore.getInstance()
 
     suspend fun obtener_tiendas_categorias_activas_registradas(filtrado_localidad: String): List<encontradas_por_categoria> {
@@ -57,7 +53,8 @@ class repo_agregar_cat_sub_localizate {
             if (subcategoriasDoc.exists()) {
                 val data = subcategoriasDoc.data
                 val subcategorias = data?.get("subcategorias") as? List<String>
-                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, lista_img)
+                val img_data = data?.get("img_categoria") as? String? ?: ""
+                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, img_data)
                 lista.add(datos)
 
             }
@@ -69,7 +66,7 @@ class repo_agregar_cat_sub_localizate {
         categoria_filtrada_localidad: String,
         categoria_filtrada: String,
         listaSubcategorias: List<String>?,
-        listaImg: List<String>
+        listaImg: String
     ): List<encontradas_por_categoria> {
         val lista_encotrado = mutableListOf<encontradas_por_categoria>()
         val categoria = categoria_filtrada_localidad.lowercase()
@@ -163,161 +160,6 @@ class repo_agregar_cat_sub_localizate {
     }
 
 
-    suspend fun obtenerCantidadTiendasPorLocalidad(categoria_filtrada_localidad: String): Int {
-        val categoria = categoria_filtrada_localidad.lowercase()
-        val collectionTiendas = db
-            .collection("Tiendas")
-            .document(categoria)
-            .collection(categoria)
-        val snapshot = collectionTiendas.get().await()
-        return snapshot.size()
-    }
-
-//    suspend fun obtenerTiendas_registradas_activas(
-//        categoria_filtrada_localidad: String,
-//        lista_categorias: List<dataclass_cat_sub>
-//    ): List<encontradas_por_categoria> {
-//        val lista_encotrado = mutableListOf<encontradas_por_categoria>()
-//        val categoria = categoria_filtrada_localidad.lowercase()
-//        val collectionTiendas = db
-//            .collection("Tiendas")
-//            .document(categoria)
-//            .collection(categoria)
-//
-//        val snapshot = collectionTiendas.get().await()
-//
-//        lista_categorias.forEach { cat ->
-//            val coincidenciasCategoria = snapshot.filter { doc ->
-//                doc.getString("categoria_tienda") == cat.nombre
-//            }
-//            val cantidadRegistradas = coincidenciasCategoria.size
-//            var cantidadActivas = 0
-//
-//            for (datos in coincidenciasCategoria) {
-//                val id_tienda = datos.getString("id_tienda") ?: continue
-//                val horarioSnapshot = collectionTiendas.document(id_tienda)
-//                    .collection("horario_atencio")
-//                    .document("horario_atencion")
-//                    .get()
-//                    .await()
-//                val dias_sema =
-//                    listOf("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
-//                val lista_horario_por_tienda = mutableListOf<horario_tienda>()
-//                for (dias in dias_sema) {
-//                    val diaMap = horarioSnapshot.get(dias) as? Map<*, *>
-//                    val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
-//                    val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
-//                    val datos = horario_tienda(id_tienda, dias, h_apertura, h_cierre)
-//                    lista_horario_por_tienda.add(datos)
-//                }
-//                Log.d("temonos_teindas", lista_horario_por_tienda.toString())
-//                val tienda_activa = verificarSiEstaAbierto(lista_horario_por_tienda)
-//                if (tienda_activa) {
-//                    cantidadActivas++
-//                }
-//
-//            }
-//            // Agregar solo una vez por categoría
-//            val resultado = encontradas_por_categoria(
-//                cantidad_registradas = cantidadRegistradas,
-//                activas = cantidadActivas,
-//                categoria = cat.nombre
-//            )
-//            lista_encotrado.add(resultado)
-//        }
-//
-//        return lista_encotrado
-//    }
-
-
-    suspend fun obtener_verificar_horario_tiendas(tiendas_encontradas: List<dataclass_horarios_atencion_tiendas>) {
-        tiendas_encontradas.forEach { i ->
-            val dias_sema =
-                listOf("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
-            val collectionTiendas = db
-                .collection("Tiendas")
-                .document(i.localidad_tienda.toString())
-                .collection(i.localidad_tienda.toString())
-            val snapshot = collectionTiendas.get().await()
-        }
-    }
-
-//    suspend fun verificar_horario_tienda_activa(categoria_filtrada_localidad: String): List<dataclass_horarios_atencion_tiendas> {
-//        val lista_horarios = mutableListOf<dataclass_horarios_atencion_tiendas>()
-//        val categoria = categoria_filtrada_localidad.lowercase()
-//        val collectionTiendas = db
-//            .collection("Tiendas")
-//            .document(categoria)
-//            .collection(categoria)
-//        val snapshot = collectionTiendas.get().await()
-//        for (datos in snapshot) {
-//            val id_tienda = datos.getString("id_tienda") ?: continue
-//            val categoria_tienda = datos.getString("categoria_tienda") ?: continue
-//            val subategorias = datos?.get("subategorias") as? List<String> ?: emptyList()
-//            val horario_tiendas =
-//                collectionTiendas.document(id_tienda).collection("horario_atencio")
-//                    .document("horario_atencion").get().await()
-//            if (horario_tiendas.exists()) {
-//                val horario_por_dia = mutableMapOf<String, Pair<String, String>>()
-//                for (dias in dias_sema) {
-//                    val diaMap = horario_tiendas.get(dias) as? Map<*, *>
-//                    val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
-//                    val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
-//
-//                    horario_por_dia[dias] = h_apertura to h_cierre
-//                }
-//                subategorias.map { i ->
-//                    horario_por_dia.forEach { (dia, horario) ->
-//                        val lista = dataclass_horarios_atencion_tiendas(
-//                            id_tienda,
-//                            categoria_filtrada_localidad,
-//                            dia,
-//                            horario.first,
-//                            horario.second, categoria_tienda, i
-//                        )
-//                        lista_horarios.add(lista)
-//                    }
-//                }
-//
-//                lista_horarios.forEachIndexed { index, horario ->
-//                    Log.d("horario_tienda", "[$index] $horario")
-//                }
-//            }
-//        }
-//        return lista_horarios
-//    }
-
-//    suspend fun obtener_horarios_tiendas(doc: DocumentSnapshot, subategorias: List<String>) {
-//        val dias_sema =
-//            listOf("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
-//        if (doc.exists()) {
-//            val horario_por_dia = mutableMapOf<String, Pair<String, String>>()
-//            for (dias in dias_sema) {
-//                val diaMap = doc.get(dias) as? Map<*, *>
-//                val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
-//                val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
-//
-//                horario_por_dia[dias] = h_apertura to h_cierre
-//            }
-//            subategorias.map { i ->
-//                horario_por_dia.forEach { (dia, horario) ->
-//                    val lista = dataclass_horarios_atencion_tiendas(
-//                        id_tienda,
-//                        categoria_filtrada_localidad,
-//                        dia,
-//                        horario.first,
-//                        horario.second, categoria_tienda, i
-//                    )
-//                    lista_horarios.add(lista)
-//                }
-//            }
-//
-//            lista_horarios.forEachIndexed { index, horario ->
-//                Log.d("horario_tienda", "[$index] $horario")
-//            }
-//        }
-//    }
-
     fun verificarSiEstaAbierto(lista_horarios_por_tienda: List<horario_tienda>): Boolean {
         return try {
             val diaActualConTilde =
@@ -369,106 +211,19 @@ class repo_agregar_cat_sub_localizate {
     }
 
 
-    fun verificar_activos_desactivos(lista_horarios_tiendas: List<dataclass_horarios_atencion_tiendas>): List<estadoTienda> {
-        val estados_tiendas = mutableListOf<estadoTienda>()
-        val diaActualConTilde =
-            SimpleDateFormat("EEEE", Locale("es", "ES")).format(Date()).lowercase()
-        val diaActual = quitarTildes(diaActualConTilde)
-        val horaActual = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-        val formatoHora = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val ahora = formatoHora.parse(horaActual)
-
-        lista_horarios_tiendas.forEach { i ->
-            val id = i.id_tienda
-            val apertura = i.h_apertura
-            val cierre = i.h_cierre
-            val dia = i.dia
-            val localidad_tienda = i.localidad_tienda
-            val categoria = i.categoria_tienda
-            val subcategoria = i.subcategoria
-
-            if (dia == diaActual && apertura != "sin horario" && cierre != "sin horario") {
-                try {
-                    val horaApertura = formatoHora.parse(apertura)
-                    val horaCierre = formatoHora.parse(cierre)
-
-                    val estaAbierto = if (horaCierre.after(horaApertura)) {
-                        // Caso normal: mismo día
-                        val dentroHorario = ahora in horaApertura..horaCierre
-                        Log.d("DEBUG_HORARIO", "Horario normal (mismo día)")
-                        Log.d("DEBUG_HORARIO", "Hora apertura: $horaApertura")
-                        Log.d("DEBUG_HORARIO", "Hora cierre: $horaCierre")
-                        Log.d("DEBUG_HORARIO", "Hora actual: $ahora")
-                        Log.d("DEBUG_HORARIO", "¿Está abierto?: $dentroHorario")
-                        dentroHorario
-                    } else {
-                        // Caso especial: cierre al día siguiente (madrugada)
-                        val dentroHorario = ahora.after(horaApertura) || ahora.before(horaCierre)
-                        Log.d("DEBUG_HORARIO", "Horario de madrugada (cierra al día siguiente)")
-                        Log.d("DEBUG_HORARIO", "Hora apertura: $horaApertura")
-                        Log.d("DEBUG_HORARIO", "Hora cierre: $horaCierre")
-                        Log.d("DEBUG_HORARIO", "Hora actual: $ahora")
-                        Log.d("DEBUG_HORARIO", "¿Está abierto?: $dentroHorario")
-                        dentroHorario
-                    }
-
-
-                    if (estaAbierto) {
-                        val estado_tienda = estadoTienda(
-                            id_tienda = id,
-                            localidad_tienda = localidad_tienda,
-                            abierto_cerrado = estaAbierto,
-                            categoria,
-                            subcategoria,
-                            ""
-                        )
-                        estados_tiendas.add(estado_tienda)
-                        Log.d("obtenoes_teindas_solo_Aviertas", estado_tienda.toString())
-                    }
-
-                } catch (e: Exception) {
-                    Log.e(
-                        "ErrorHorario",
-                        "Formato de hora inválido en tienda $id: $apertura a $cierre"
-                    )
-                }
-            }
-        }
-        return estados_tiendas
-    }
-
     fun quitarTildes(texto: String): String {
         val normalized = Normalizer.normalize(texto, Normalizer.Form.NFD)
         return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
     }
 
-//    fun formatearTiempoRestante(horaApertura: Date, horaCierre: Date): String {
-//        val ahora = Date()
-//
-//        // Ajustamos si el cierre es al día siguiente
-//        val horaCierreReal = if (horaCierre.before(horaApertura)) {
-//            Calendar.getInstance().apply {
-//                time = horaCierre
-//                add(Calendar.DATE, 1)
-//            }.time
-//        } else {
-//            horaCierre
-//        }
-//
-//        val diferenciaMillis = horaCierreReal.time - ahora.time
-//
-//        if (diferenciaMillis <= 0) return "Ya cerró"
-//
-//        val minutos = diferenciaMillis / (1000 * 60)
-//        val horas = minutos / 60
-//        val dias = horas / 24
-//
-//        return when {
-//            dias > 0 -> "Cierra en $dias día${if (dias > 1) "s" else ""}"
-//            horas > 0 -> "Cierra en $horas hora${if (horas > 1) "s" else ""}"
-//            minutos > 0 -> "Cierra en $minutos minuto${if (minutos > 1) "s" else ""}"
-//            else -> "Ya cerró"
-//        }
-//    }
+    suspend fun obtener_subcategorias(categoria_selecionada: String): List<String> {
 
+        val subcategorias = db.collection("Tiendas").document("categorias").collection("categorias")
+            .document(categoria_selecionada).get().await()
+        return if (subcategorias.exists()) {
+             subcategorias.get("subcategorias") as? List<String> ?: emptyList()
+        }else{
+            emptyList()
+        }
+    }
 }

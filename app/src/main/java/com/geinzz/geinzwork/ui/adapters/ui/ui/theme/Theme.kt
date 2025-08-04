@@ -16,14 +16,40 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
+
+    //primario color de botones ,chips,floatins
+    //background = fondo
+
+    background = fondo_oscuro5,
+    onBackground = color_texto_oscuro_background,
+    primary = btn_floatin40,
+    onPrimary = texto_oscuro100,
+
+    surface = color_carta_oscuro,
+    surfaceVariant = color_carta_oscuro35,
+
+    primaryContainer = color_chips_select,
+
+    secondary = btn_floatin40,
+
     tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
+    background = fondo_calro95,
+
+    onBackground = color_texto_claro_background,
+
+    primary = btn_floatin40,
+    onPrimary = texto_claro0,
+
+    surface = color_carta_claro90,
+    surfaceVariant = color_carta_claro35,
+
+
+    primaryContainer = color_chips_select,
+
+    secondary = btn_floatin40,
     tertiary = Pink40
 
     /* Other default colors to override

@@ -1,12 +1,13 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
@@ -26,12 +27,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.FloatingActionButtonDefaults
 import androidx.compose.material.Icon
@@ -62,8 +64,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -71,11 +77,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.abrirRutaEnGoogleMaps
+
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.verificarUbiActiva
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
+import java.util.Calendar
+import java.util.Locale
 
 
 @Composable
@@ -88,6 +103,24 @@ fun Pantalla_filtrado_tiendas(
         var texto_filtrado by rememberSaveable { mutableStateOf("") }
         val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
         val tiendas_filtradas by viewModelFiltros._tiendas_filtradas.observeAsState(emptyList())
+        val datos_tiendas by viewModelFiltros._datos_tienda.observeAsState(emptyList())
+        val horario_tienda by viewModelFiltros._horario_tienda.observeAsState(emptyList())
+        var showBottomSheet by remember { mutableStateOf(false) }
+        var id_tienda_selecionada by remember { mutableStateOf("") }
+        var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+
+        LaunchedEffect(id_tienda_selecionada, datos_tiendas) {
+            viewModelFiltros.obtener_horario_por_tienda(localida, id_tienda_selecionada)
+            Log.d("el_horario_de_alat", horario_tienda.toString())
+            Log.d("obtenemos_iud_iten", id_tienda_selecionada)
+            viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
+            Log.d("datos_teinda", datos_tiendas.toString())
+            datos_tiendas.find { it.id_tienda == id_tienda_selecionada }?.let {
+                dataclass_tienda_seleccionada = it
+            }
+        }
+
+
         LaunchedEffect(localida, categoria) {
             viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
         }
@@ -106,16 +139,24 @@ fun Pantalla_filtrado_tiendas(
 
             }
             items(tiendas_filtradas) { tiendas ->
-                item_tiendas(tiendas)
-
-
+                item_tiendas(tiendas) { id_tienda, listener ->
+                    showBottomSheet = listener
+                    id_tienda_selecionada = id_tienda
+                }
+            }
+        }
+        if (showBottomSheet) {
+            bottom_sheet_tiendas(
+                viewModelFiltros,
+                dataclass_tienda_seleccionada,
+            ) {
+                showBottomSheet = false
             }
         }
 
     }
-
-
 }
+
 
 @Composable
 fun chips_categorias(
@@ -142,8 +183,6 @@ fun chips_categorias(
         }
 
     }
-
-
 
     Box(modifier = Modifier.padding(innerPadding)) {
         LazyColumn(
@@ -239,20 +278,18 @@ fun encontradas_activas(texto1: String, texto2: String, @DrawableRes icono: Int)
 }
 
 @Composable
-fun item_tiendas(item_tiendas: tiendas_filtradas) {
-    var detalles_tiend by remember { mutableStateOf(false) }
-    val local_context = LocalContext.current
+fun item_tiendas(
+    item_tiendas: tiendas_filtradas,
+    listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean) -> Unit
+) {
+    var detalles_tienda by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .animateContentSize()
             .clickable {
-                Toast.makeText(
-                    local_context,
-                    item_tiendas.nombre_tienda,
-                    Toast.LENGTH_SHORT
-                ).show()
+                listener_botom_sheet(item_tiendas.id_tienda, true)
             },
         colors = CardDefaults.cardColors(
             containerColor = amarillo30
@@ -299,10 +336,10 @@ fun item_tiendas(item_tiendas: tiendas_filtradas) {
                         .fillMaxHeight(),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    Btn_Expandir_card { expandir -> detalles_tiend = expandir }
+                    Btn_Expandir_card { expandir -> detalles_tienda = expandir }
                 }
             }
-            AnimatedVisibility(visible = detalles_tiend) {
+            AnimatedVisibility(visible = detalles_tienda) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -359,23 +396,7 @@ fun Nombre_estado_tienda(nombre_tiendas: String) {
 
         Spacer(modifier = Modifier.width(10.dp))
 
-//        Row(
-//            modifier = Modifier
-//                .clip(RoundedCornerShape(40f))
-//                .background(amarillo30)
-//                .padding(horizontal = 5.dp, vertical = 2.dp)
-//                .weight(1f),
-//            horizontalArrangement = Arrangement.Center,
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Text("Cerca de ti")
-//            Spacer(modifier = Modifier.width(5.dp))
-//            Image(
-//                modifier = Modifier.size(20.dp),
-//                painter = painterResource(R.drawable.localidad_icon_general),
-//                contentDescription = ""
-//            )
-//        }
+
     }
 }
 
@@ -468,57 +489,144 @@ fun agregar_tiendas(localidad: String, listadatos: List<modelo_tienda>) {
     }
 }
 
-@Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
-fun bottom_sheet_tiendas() {
+fun bottom_sheet_tiendas(
+    viewModelFiltros: viewModel_filtado_tiendas,
+    tiendas_filtradas: modelo_tienda,
+    onClose: () -> Unit
+) {
+    var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
+    var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
+    var expander_horario by rememberSaveable { mutableStateOf(false) }
+    val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
+    val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
     Surface {
         ModalBottomSheet(
-            onDismissRequest = {},
-            modifier = Modifier.fillMaxWidth()
+            onDismissRequest = { onClose() },
+            modifier = Modifier.fillMaxWidth(),
+            dragHandle = null
         ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(16.dp)
+                    .fillMaxHeight(0.80f)
+                    .padding(10.dp)
             ) {
                 item {
-                    cabezero_tiendas()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.LightGray)
+                        )
+                    }
+                }
+                item {
+                    cabezero_tiendas(tiendas_filtradas)
+                    spacer_vertical(20.dp)
+                }
+                item {
+                    Text(
+                        text = "Acerca de la tienda",
+                        modifier = Modifier,
+                        fontSize = 18.sp,
+                        fontStyle = FontStyle.Normal
+                    )
+                    spacer_vertical(10.dp)
+                }
+                item {
+                    Expandible_descripcion_tienda(
+                        tiendas_filtradas,
+                        expander_caracterisiticas
+                    ) { expander_caracterisiticas = !expander_caracterisiticas }
+                    spacer_vertical(10.dp)
+                }
+                item {
+
+
+                    if (direccion.isNotBlank() || referencia.isNotBlank()) {
+                        val fisica_virtual =
+                            if (tiendas_filtradas.modelo_negocio) "Fisica" else "Virtual"
+
+                        Column(modifier = Modifier.animateContentSize()) {
+                            Expandible_direccion_ref(
+                                direccion,
+                                referencia,
+                                fisica_virtual,
+                                expandir_descripcion
+                            ) {
+                                expandir_descripcion = !expandir_descripcion
+                            }
+                        }
+                    }
+
+                    spacer_vertical(10.dp)
+                }
+                item {
+                    Expandible_horario_atencion(
+                        tiendas_filtradas.localidad,
+                        tiendas_filtradas.id_tienda,
+                        expander_horario,
+                        viewModelFiltros
+                    ) { expander_horario = !expander_horario }
                     spacer_vertical(10.dp)
                 }
 
-                item {
-                    Acerca_tienda()
-                    spacer_vertical(10.dp)
-                }
-
-                item {
-                    horario_atencion()
-                    spacer_vertical(10.dp)
-                }
             }
         }
     }
 }
 
+//@Preview
 @Composable
-fun cabezero_tiendas() {
+fun cabezero_tiendas(tiendas_filtradas: modelo_tienda) {
+    val context = LocalContext.current
+    val mostrarDialogo = remember { mutableStateOf(false) }
+    val mostrarDialog_sin_google_maps = remember { mutableStateOf(false) }
+    val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
+    val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
+    if (mostrarDialogo.value) {
+        dialog_sin_ubicacion_activa(
+            onDismis = {
+                mostrarDialogo.value = false
+            },
+            abrir_configuracion = {
+                mostrarDialogo.value = false
+                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            },
+            dialog_sin_maps = {
+                mostrarDialogo.value = false
+                mostrarDialog_sin_google_maps.value = true
+            }
+        )
+    }
+    if (mostrarDialog_sin_google_maps.value) {
+        dialog_sin_ubi_activa(
+            direccion, referencia, onDismis = { mostrarDialog_sin_google_maps.value = false },
+            abrir_maps = { constantes.abrirGoogleMaps(context, direccion) })
+
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-
     ) {
         AsyncImage(
-            model = "https://via.placeholder.com/300", // imagen temporal
+            model = "https://via.placeholder.com/300",
             contentDescription = "Imagen de la tienda",
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
             error = painterResource(id = R.drawable.qr_yape),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(200.dp)
                 .clip(RoundedCornerShape(16.dp))
         )
 
@@ -527,32 +635,87 @@ fun cabezero_tiendas() {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Verdulería Marcos",
+                val iconId = "icon"
+
+                val annotatedText = buildAnnotatedString {
+                    append(tiendas_filtradas.nombre_tienda)
+                    append(" ")
+                    appendInlineContent(iconId, "[icon]")
+                }
+
+                val inlineContent = mapOf(
+                    iconId to InlineTextContent(
+                        Placeholder(
+                            width = 20.sp,
+                            height = 20.sp,
+                            placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.icon_tienda_icon_general),
+                            contentDescription = "Icono tienda",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 )
+
                 Text(
-                    text = "Categoría: Verdulería",
+                    text = annotatedText,
+                    inlineContent = inlineContent,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp),
+                    style = TextStyle(fontSize = 16.sp),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-            }
 
-            Icon(
-                painter = painterResource(R.drawable.icon_tienda_icon_general),
-                contentDescription = "Icono tienda",
-                modifier = Modifier
-                    .size(24.dp)
-                    .padding(end = 8.dp)
-            )
+                Text(
+                    text = tiendas_filtradas.categoria_tienda,
+                )
 
-            FloatingActionButton(
-                onClick = { /* Acción */ },
-                modifier = Modifier.size(36.dp),
-                containerColor = Color(0xFFFFC107), // reemplaza amarillo30 si no está
-                contentColor = Color.White,
-
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(40f))
+                        .background(amarillo30)
+                        .padding(horizontal = 5.dp, vertical = 2.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Text("Cerca de ti")
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.localidad_icon_general),
+                        contentDescription = ""
+                    )
+                }
+
+            }
+            spacer_horizonta(10.dp)
+            val latitud =
+                tiendas_filtradas.ubicacion["latitud"]?.toString()?.toDoubleOrNull() ?: 0.0
+            val longitud =
+                tiendas_filtradas.ubicacion["longitud"]?.toString()?.toDoubleOrNull() ?: 0.0
+            FloatingActionButton(
+                onClick = { abrir_google_maps(context, latitud, longitud) { dialogo ->
+                    mostrarDialogo.value=dialogo
+                    if(mostrarDialogo.value){
+                        abrir_google_maps(context, latitud, longitud) { dialogo ->
+                            mostrarDialogo.value = dialogo
+                        }
+                    }
+                } },
+                modifier = Modifier.size(40.dp),
+                containerColor = Color(0xFFFFC107),
+                contentColor = Color.White,
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.localidad_icon_general),
                     contentDescription = "Localidad",
@@ -563,71 +726,321 @@ fun cabezero_tiendas() {
     }
 }
 
+fun abrir_google_maps(
+    context: android.content.Context,
+    latitud: Double,
+    longitud: Double,
+    mostrar_dialog: (Boolean) -> Unit
+) {
+    if (verificarUbiActiva(context)) {
+        abrirRutaEnGoogleMaps(context, latitud, longitud)
+    } else {
+        mostrar_dialog(true)
+    }
+}
+
+
 @Composable
-fun Acerca_tienda() {
-    Text(text = "Acerca de la tienda")
-    Text(text = "calle localizada : urb san mateo mz i lote 4")
-    Text(text = "referencia : cerna a la loza san mteo")
-    Text(text = "Distancia cercana : 4ML")
-    Text(text = "Tipo de tienda :Fisica")
+fun Expandible_descripcion_tienda(
+    item_tiendas: modelo_tienda,
+    expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = amarillo30
+        )
+    ) {
+        Column() {
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp)
+            ) {
+
+                val (texto, btn) = createRefs()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .constrainAs(texto) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.descripcion_tienda_vector),
+                        contentDescription = ""
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Descripcion de tienda")
+                }
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .constrainAs(btn) {
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        },
+                    onClick = { onClickExpand() },
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 10.dp
+                    )
+                ) {
+
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.ocultar_abajo), contentDescription = ""
+                    )
+                }
+            }
+            AnimatedVisibility(visible = expandido) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                        .padding(10.dp)
+                ) {
+                    Text(
+                        text = item_tiendas.descripcion,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 15.sp
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 @Composable
-fun horario_atencion() {
+fun Expandible_direccion_ref(
+    direccion: String,
+    referencia: String,
+    fisica_virtual: String,
+    expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
     Card(
         modifier = Modifier
-            .height(40.dp),
-        shape = RoundedCornerShape(50),
+            .fillMaxWidth()
+            .animateContentSize(),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = amarillo30,
-        ),
-
+            containerColor = amarillo30
+        )
     ) {
-        ConstraintLayout(modifier = Modifier.fillMaxWidth(),) {
-            val (texto,btn)=createRefs()
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 12.dp).constrainAs(texto){
-
-                }
-            ) {
-                Text(
-                    text = "Horario de atención",
-                    fontSize = 15.sp,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    painter = painterResource(R.drawable.horario_tienda_vector),
-                    contentDescription = ""
-                )
-            }
-            FloatingActionButton(
+        Column {
+            ConstraintLayout(
                 modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape).constrainAs(btn){
-                        end.linkTo(parent.end)
-                    },
-                onClick = {},
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 10.dp
-                )
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp)
             ) {
+                val (texto, btn) = createRefs()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.constrainAs(texto) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.location_drawable),
+                        contentDescription = ""
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Dirección y referencia",
+                        fontSize = 15.sp,
+                        color = Color.Black
+                    )
+                }
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .constrainAs(btn) {
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        },
+                    onClick = { onClickExpand() },
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 10.dp
+                    )
+                ) {
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.ocultar_abajo),
+                        contentDescription = ""
+                    )
+                }
+            }
 
-                Image(
-                    modifier = Modifier.size(20.dp),
-                    painter = painterResource(R.drawable.ocultar_abajo), contentDescription = ""
-                )
-
+            AnimatedVisibility(
+                visible = expandido,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 12.dp,
+                            vertical = 8.dp
+                        ) // Importante para no tocar bordes directamente
+                ) {
+                    Text(text = "Dirección: $direccion")
+                    Text(text = "Referencia: $referencia")
+                    Text(text = "Tipo de tienda: $fisica_virtual")
+                }
             }
         }
+    }
+}
 
 
+@Composable
+fun Expandible_horario_atencion(
+    idTienda: String?,
+    id_tienda: String,
+    expandido: Boolean,
+    viewModelFiltros: viewModel_filtado_tiendas,
+    onClickExpand: () -> Unit
+) {
+    val horario_tienda = viewModelFiltros._horario_tienda.observeAsState(emptyList())
+    var cargado by remember { mutableStateOf(false) }
+
+    LaunchedEffect(expandido) {
+        if (expandido && !cargado) {
+            viewModelFiltros.obtener_horario_por_tienda(idTienda!!, id_tienda)
+            cargado = true
+        }
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = amarillo30
+        )
+    ) {
+        Column() {
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp)
+            ) {
+                val (texto, btn) = createRefs()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .constrainAs(texto) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.horario_tienda_vector),
+                        contentDescription = ""
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Horario de atención",
+                        fontSize = 15.sp,
+                        color = Color.Black
+                    )
+                }
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .constrainAs(btn) {
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        },
+                    onClick = { onClickExpand() },
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 10.dp
+                    )
+                ) {
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.ocultar_abajo), contentDescription = ""
+                    )
+                }
+            }
+            AnimatedVisibility(visible = expandido) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                ) {
+
+                    horario_tienda.value.forEach { i ->
+                        val esDiaActual = obtenerDiaActualEnEspañol() == i.dia
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val horario_abierto_cerrado =
+                                if (i.h_apertura.isNotEmpty() && i.h_cierre.isNotEmpty()) "${i.h_apertura} am a ${i.h_cierre} pm " else "Cerrando"
+                            Text(
+                                text = "${i.dia} : $horario_abierto_cerrado",
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 10.dp)
+                                    .weight(1f),
+                                overflow = TextOverflow.Ellipsis, color = Color.Black
+                            )
+                            if (esDiaActual) {
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    painter = painterResource(R.drawable.guardados_icon),
+                                    contentDescription = ""
+                                )
+                            }
+
+                            spacer_horizonta(15.dp)
+                        }
+                    }
+
+
+                }
+            }
+        }
 
     }
 
 }
+
+fun obtenerDiaActualEnEspañol(): String {
+    val locale = Locale("es", "ES")
+    val calendar = Calendar.getInstance()
+    val diaSemana = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale)
+    return diaSemana?.lowercase() ?: ""
+}
+
+
+//@Composable
+//fun Expandible_generar_qr() {
+//    ExtendedFloatingActionButton(
+//        onClick = {}, shape = RoundedCornerShape(20.dp)
+//    ) {
+//        Text("Generar QR")
+//        spacer_horizonta(10.dp)
+//        Icon(painter = painterResource(R.drawable.qr_scaner_icon), contentDescription = "")
+//
+//    }
+//}
 
 
 

@@ -1,5 +1,3 @@
-
-
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.content.ActivityNotFoundException
@@ -8,14 +6,11 @@ import android.content.Intent
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -43,12 +38,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -63,16 +59,16 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -86,6 +82,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -95,16 +92,16 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.registradas_activas_cat_img
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
-import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.Normalizer
 import kotlin.collections.mapNotNull
 import kotlin.collections.orEmpty
@@ -121,15 +118,19 @@ fun PantallaExplorarTiendas(
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-    val datosCategorias = remember { mutableStateMapOf<String, registradas_activas_cat_img>() }
-    val lista_filtrada =
-        remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+    val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
     val cargando = remember { mutableStateOf(true) }
     val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
     val lista_localidades = constantes_lista_localidades.lista
     var localidadAnterior by remember { mutableStateOf("") }
     val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
     val cartaExpandida = remember { mutableStateOf<String?>(null) }
+
+    val listState = rememberLazyListState()
+    var mostrar_fab by remember { mutableStateOf(false) }
+    mostrar_fab = listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 10
+    val coroutineScope = rememberCoroutineScope()
+
 
     LaunchedEffect(Unit) {
         if (localidadSeleccionada.value.isEmpty()) {
@@ -143,29 +144,41 @@ fun PantallaExplorarTiendas(
             localidadAnterior = localidadSeleccionada.value
             cartaExpandida.value = null
             viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
+            mostrar_fab=false
         }
     }
 
     LaunchedEffect(encontrados_activos_tiendass) {
         encontrados_activos_tiendass?.let { listaNueva ->
-            datosCategorias.clear()
             lista.clear()
             lista.addAll(listaNueva)
-            listaNueva.forEach { item ->
-                datosCategorias[(normalizarTexto(item.categoria ?: ""))] =
-                    registradas_activas_cat_img(
-                        item.cantidad_registradas ?: 0,
-                        item.activas ?: 0,
-                        item.categoria ?: "Desconocido",
-                        item.img_subcategorias
-                    )
-            }
             texto_filtrado = ""
             cargando.value = false
         }
     }
-
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            AnimatedVisibility(mostrar_fab==true) {
+                FloatingActionButton(
+                    modifier = Modifier.size(40.dp),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onClick = {
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = 0)
+                        }
+                    },
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.arrow_subir_vector),
+                        contentDescription = ""
+                    )
+                }
+            }
+        }, floatingActionButtonPosition = FabPosition.Start
+    ) { innerPadding ->
         Crossfade(targetState = cargando.value) { isCargando ->
             if (isCargando) {
                 cargando_categorias(composision, localidadSeleccionada.value, nombreUser)
@@ -173,18 +186,21 @@ fun PantallaExplorarTiendas(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
+                        .padding(innerPadding),
+                    state = listState
                 ) {
                     item {
                         cabezero_activity(localidadUser)
                     }
 
-                    stickyHeader {
+                    stickyHeader() {
                         Column(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
                                 .background(MaterialTheme.colorScheme.background)
-                                .padding(8.dp)
+                                .padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
                             FiltradosChipsLocalidades(
                                 lista_localidades,
@@ -192,7 +208,6 @@ fun PantallaExplorarTiendas(
                             ) { nuevaLocalidad ->
                                 localidadSeleccionada.value = nuevaLocalidad
                             }
-
                             filtrado_texto(
                                 texto_filtrado,
                                 lista,
@@ -205,16 +220,11 @@ fun PantallaExplorarTiendas(
                             )
                         }
                     }
-
                     val listaParaMostrar =
                         if (texto_filtrado.length > 2) lista_filtrada else lista
-
-                    items(listaParaMostrar,
-                        key = { it.categoria ?: it.hashCode().toString() }) { item ->
+                    items(listaParaMostrar, key = { it.categoria ?: it.hashCode().toString() }) { item ->
                         cartas_categorias(
-                            texto_filtrado,
                             item,
-                            datosCategorias,
                             cartaExpandida,
                             localidadSeleccionada.value,
                             viewModel, clik_img
@@ -241,14 +251,6 @@ fun cargando_categorias(composision: LottieComposition?, value: String, nombre_u
     }
     var fraseActual by remember { mutableStateOf(frases[0]) }
 
-    LaunchedEffect(value) {
-        frases = listOf(
-            "Espere un momento...",
-            "Cargando tiendas de $value...",
-            "Buscamos lo mejor para ti $nombre_user"
-        )
-        fraseIndex = 0
-    }
 
     LaunchedEffect(value) {
         frases = listOf(
@@ -268,7 +270,6 @@ fun cargando_categorias(composision: LottieComposition?, value: String, nombre_u
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
             val (texto_centrado, loti_animation) = createRefs()
-
             AnimatedContent(
                 targetState = fraseActual,
                 transitionSpec = { fadeIn() with fadeOut() },
@@ -312,17 +313,20 @@ fun cabezero_activity(localidad_registrado: String) {
     ) {
         Text(
             text = "Ubicate $localidad_registrado",
-            fontSize = 25.sp,
+            style = MaterialTheme.typography.titleLarge,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground
 
         )
         Text(
             modifier = Modifier.padding(vertical = 0.dp),
             text = "Explora las diferentes categorías de tiendas\n" +
-                    "registradas en Geinz Work y ubícate fácilmente en $localidad_registrado"
+                    "registradas en Geinz Work y ubícate fácilmente en $localidad_registrado",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
@@ -340,6 +344,10 @@ fun FiltradosChipsLocalidades(
                 localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
             FilterChip(
                 modifier = Modifier.padding(horizontal = 4.dp),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = Color.White
+                ),
                 selected = isSelected,
                 onClick = {
                     if (!isSelected) {
@@ -358,7 +366,8 @@ fun FiltradosChipsLocalidades(
                         )
                     }
                 },
-                shape = RoundedCornerShape(50)
+                shape = RoundedCornerShape(40)
+
             )
         }
     }
@@ -372,6 +381,8 @@ fun filtrado_texto(
     texto_filtrado: (String) -> Unit,
     busquedaAction: (List<encontradas_por_categoria>, Boolean) -> Unit
 ) {
+    var lastInputTime by remember { mutableStateOf(System.currentTimeMillis()) }
+    val focusManager = LocalFocusManager.current
     var expanded by remember { mutableStateOf(false) }
     var is_error by remember { mutableStateOf(false) }
     var icono_busqeuda by remember { mutableStateOf(R.drawable.buscar_icon) }
@@ -383,10 +394,15 @@ fun filtrado_texto(
                 } else null
             }
         }
-
-
     is_error = expanded && sugerencias.isEmpty()
-    val focusManager = LocalFocusManager.current
+    LaunchedEffect(lastInputTime) {
+        delay(2000L)
+        val tiempoInactivo = System.currentTimeMillis() - lastInputTime
+        if (tiempoInactivo >= 5000L) {
+            focusManager.clearFocus()
+            expanded = false
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -404,25 +420,19 @@ fun filtrado_texto(
                 onValueChange = {
                     texto_filtrado(it)
                     expanded = it.isNotBlank()
+                    lastInputTime = System.currentTimeMillis()
                     if (it.isNotBlank()) {
                         icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
                         busquedaAction(obtenerResultados(it, lista_cargada_filstrado), true)
-
                     } else {
                         icono_busqeuda = R.drawable.buscar_icon
                     }
                 },
                 label = {
-                    retornar_pleaceholder_label(
-                        texto = "Ingrese la subcategoría a buscar",
-                        modifier = Modifier
-                    )
+                    retornar_pleaceholder_label("Ingrese la subcategoría a buscar")
                 },
                 placeholder = {
-                    retornar_pleaceholder_label(
-                        texto = "Ingrese la subcategoría a buscar",
-                        modifier = Modifier
-                    )
+                    retornar_pleaceholder_label("Ingrese la subcategoría a buscar")
                 },
                 trailingIcon = {
                     if (icono_busqeuda == R.drawable.vector_eliminar_texto_texfiel) {
@@ -457,7 +467,12 @@ fun filtrado_texto(
             )
 
             if (is_error) {
-                Text("No hay coincidencias", color = Color.Red)
+                Text(
+                    "No hay coincidencias",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(5.dp)
+                )
             }
         }
 
@@ -467,83 +482,34 @@ fun filtrado_texto(
 
 @Composable
 fun cartas_categorias(
-    texto_filtrado_texfiel: String,
     item: encontradas_por_categoria,
-    datosCategorias: SnapshotStateMap<String, registradas_activas_cat_img>,
     cartaExpandida: MutableState<String?>,
     Localidad_selecionada: String,
-    viewModel: viewModel_localizate_geinz, clik_img: (categoria: String, localidad: String) -> Unit
+    viewModel: viewModel_localizate_geinz,
+    clik_img: (categoria: String, localidad: String) -> Unit
 ) {
-    val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
-
-    val listaPatrocinados = remember { mutableStateListOf<tienda_patrocinada>() }
-    val cargandoPatrocinados = remember { mutableStateOf(true) }
     val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
-    val datos = remember(categoriaKey, datosCategorias) {
-        datosCategorias.entries.find {
-            normalizarTexto(it.key) == categoriaKey
-        }?.value
-    }
-
-    val cantidadRegistradas = datos?.cantidad_registradas ?: 0
-    val cantidadActivas = datos?.catidad_activas ?: 0
-    val nombreSubcategoria = datos?.subcategoria ?: "Desconocido"
-    val imagenes = datos?.img_subcategorias ?: emptyList()
-
-    val listState = rememberLazyListState()
     val expandido = cartaExpandida.value == categoriaKey
+    val categoriaYaLlamada = remember { mutableStateOf<String?>(null) }
+    var showLoader by remember { mutableStateOf(true) }
 
-    var index = 0
+    LaunchedEffect(item.img_subcategorias) {
+        showLoader = true
+        delay(5000) // Espera al menos 500 ms antes de permitir que se oculte el loader
+        showLoader = false
+    }
+
     LaunchedEffect(expandido) {
-        if (expandido) {
-            while (true) {
-                delay(3000)
-                index = (index + 1) % imagenes.size
-                listState.animateScrollToItem(index)
-            }
-        } else {
-            index = 0
-            listState.animateScrollToItem(index)
+        if (expandido && categoriaYaLlamada.value != categoriaKey) {
+            categoriaYaLlamada.value = categoriaKey
+            viewModel.T_patrocinadas(localidad = Localidad_selecionada, categoria = categoriaKey)
         }
     }
-
-    LaunchedEffect(key1 = expandido, key2 = cartaExpandida.value) {
-        if (expandido) {
-            Log.d("expandimos_carta", cartaExpandida.value.toString())
-            viewModel.T_patrocinadas(Localidad_selecionada, cartaExpandida.value ?: "")
-        }
-    }
-
-    LaunchedEffect(key1 = tiendas_patrocinadas_por_categoria) {
-        cargandoPatrocinados.value = true
-        val inicio = System.currentTimeMillis()
-        listaPatrocinados.clear()
-        tiendas_patrocinadas_por_categoria?.let { lista ->
-            if (lista.isNotEmpty()) {
-                lista.forEach {
-                    listaPatrocinados.add(
-                        tienda_patrocinada(
-                            it.categoria_tienda,
-                            it.id_tienda,
-                            it.img_tienda,
-                            it.nombre, it.latitud, it.longitud, it.direccion, it.referencia
-                        )
-                    )
-                }
-            }
-        }
-
-        val tiempoTranscurrido = System.currentTimeMillis() - inicio
-        val tiempoRestante = 1000 - tiempoTranscurrido
-        if (tiempoRestante > 0) delay(tiempoRestante)
-        cargandoPatrocinados.value = false
-    }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .animateContentSize()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -553,98 +519,129 @@ fun cartas_categorias(
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                LazyRow(
-                    state = listState,
+                SubcomposeAsyncImage(
+                    model = item.img_subcategorias,
+                    contentDescription = "imagen categoria",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .clickable {
+                            clik_img(item.categoria, Localidad_selecionada)
+                        }
                         .height(200.dp)
-                ) {
-                    items(imagenes.size) { i ->
-                        AsyncImage(
-                            model = imagenes[i],
-                            contentDescription = "",
+                        .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+                    loading = {
+                        if (showLoader) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    },
+                    error = {
+                        Image(
+                            painter = painterResource(id = R.drawable.sin_qr_icon),
+                            contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .clickable {
-                                    clik_img(item.categoria, Localidad_selecionada)
-                                    texto_filtrado_texfiel==""}
-                                .fillParentMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
-                            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
-                            error = painterResource(id = R.drawable.sin_qr_icon)
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
-                }
+                )
                 ConstraintLayout(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(10.dp)
                 ) {
                     val (activos_encontrados, size_carta) = createRefs()
-
                     activos_y_registrados(
-                        cantidadRegistradas, cantidadActivas,
+                        item.cantidad_registradas?:0, item.activas?:0,
                         modifier = Modifier.constrainAs(activos_encontrados) {
                             top.linkTo(parent.top)
                             start.linkTo(parent.start)
                         }
                     )
-
-                    size_carta_categoria(
-                        modifier = Modifier.constrainAs(size_carta) {
-                            end.linkTo(parent.end)
-                            bottom.linkTo(parent.bottom)
-                        }, expandido, onClick = {
+                    val icono_cambiante = if (expandido) {
+                        R.drawable.ocultar_abajo
+                    } else {
+                        R.drawable.ocultar_arriva
+                    }
+                    floatin_actionButton(
+                        modifier = Modifier
+                            .size(35.dp)
+                            .clip(CircleShape)
+                            .constrainAs(size_carta) {
+                                end.linkTo(parent.end)
+                                bottom.linkTo(parent.bottom)
+                            }, icono_cambiante, onClick = {
                             cartaExpandida.value = if (expandido) null else categoriaKey
                         }
                     )
+
                 }
             }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize()
-            ) {
-                AnimatedVisibility(visible = expandido) {
-                    val subcatsUnidos = remember(item.subcateogiras) {
-                        item.subcateogiras?.joinToString(", ") ?: ""
-                    }
-                    Column(modifier = Modifier.fillMaxWidth()) {
-
-                        spacer_vertical(10.dp)
-                        Text(
-                            text = "Subcategorias encontradas",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
-                            fontSize = 15.sp
-                        )
-                        spacer_vertical(5.dp)
-                        Text(
-                            text = subcatsUnidos,
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        spacer_vertical(10.dp)
-                        ListaTiendasPatrocinadas(viewModel = viewModel, tiendas = listaPatrocinados)
-                    }
-                }
-            }
+            obtener_patrocinados(item,expandido,viewModel)
         }
     }
 }
 
 @Composable
-fun spacer_vertical(altura: Dp) {
-    Spacer(modifier = Modifier.height(altura))
-}
+fun obtener_patrocinados(item:encontradas_por_categoria,expandido: Boolean,viewModel: viewModel_localizate_geinz,){
+    val listaPatrocinados = remember { mutableStateListOf<tienda_patrocinada>() }
+    val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
 
-@Composable
-fun spacer_horizonta(ancho: Dp) {
-    Spacer(modifier = Modifier.width(ancho))
+    LaunchedEffect(tiendas_patrocinadas_por_categoria, expandido) {
+        if (expandido && tiendas_patrocinadas_por_categoria != null) {
+            listaPatrocinados.clear()
+            val inicio = System.currentTimeMillis()
+            tiendas_patrocinadas_por_categoria!!.forEach {
+                listaPatrocinados.add(
+                    tienda_patrocinada(
+                        it.categoria_tienda,
+                        it.id_tienda,
+                        it.img_tienda,
+                        it.nombre, it.latitud, it.longitud, it.direccion, it.referencia
+                    )
+                )
+            }
+            val tiempoTranscurrido = System.currentTimeMillis() - inicio
+            val tiempoRestante = 1000 - tiempoTranscurrido
+            if (tiempoRestante > 0) delay(tiempoRestante)
+        }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+    ) {
+        AnimatedVisibility(visible = expandido) {
+            val subcatsUnidos = remember(item.subcateogiras) {
+                item.subcateogiras?.joinToString(", ") ?: ""
+            }
+            Column(modifier = Modifier.fillMaxWidth()) {
+
+                spacer_vertical(10.dp)
+                Text(
+                    text = "Subcategorias encontradas",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                spacer_vertical(5.dp)
+                Text(
+                    text = subcatsUnidos,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                spacer_vertical(10.dp)
+                ListaTiendasPatrocinadas(viewModel = viewModel, tiendas = listaPatrocinados)
+            }
+        }
+    }
 
 }
 
@@ -660,7 +657,6 @@ fun ListaTiendasPatrocinadas(
     val mostrarDialog_sin_google_maps = remember { mutableStateOf(false) }
     var direccion by remember { mutableStateOf("") }
     var referencia by remember { mutableStateOf("") }
-
 
     if (mostrarDialogo.value) {
         dialog_sin_ubicacion_activa(
@@ -682,9 +678,6 @@ fun ListaTiendasPatrocinadas(
             abrir_maps = { constantes.abrirGoogleMaps(context, direccion) })
 
     }
-
-
-
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         if (isLoading) {
             Column(
@@ -693,7 +686,10 @@ fun ListaTiendasPatrocinadas(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row {
-                    Text(text = "Buscando tiendas patrocinadas")
+                    Text(
+                        text = "Buscando tiendas patrocinadas",
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
@@ -711,7 +707,8 @@ fun ListaTiendasPatrocinadas(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
-                        fontSize = 15.sp
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     spacer_vertical(10.dp)
                     LazyRow(
@@ -720,7 +717,6 @@ fun ListaTiendasPatrocinadas(
                     ) {
                         items(tiendas) { tienda ->
                             patrocinadores(item = tienda) { latitud, longitud ->
-                                Log.d("hicimos_clik_ne", "${tienda.nombre}")
                                 if (verificarUbiActiva(context)) {
                                     abrirRutaEnGoogleMaps(context, latitud, longitud)
                                 } else {
@@ -740,24 +736,6 @@ fun ListaTiendasPatrocinadas(
 }
 
 
-fun abrirRutaEnGoogleMaps(context: Context, latitud: Double, longitud: Double) {
-    val uri = Uri.parse("google.navigation:q=$latitud,$longitud&mode=d")
-    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-        setPackage("com.google.android.apps.maps")
-    }
-
-    try {
-        context.startActivity(intent)
-    } catch (e: ActivityNotFoundException) {
-        Toast.makeText(
-            context,
-            "Google Maps no está instalado. Por favor, instálalo desde Play Store.",
-            Toast.LENGTH_LONG
-        ).show()
-    }
-}
-
-
 @Composable
 fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Unit) {
     Card(
@@ -765,7 +743,7 @@ fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Uni
             .width(170.dp)
             .height(215.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE0F7FA)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         AsyncImage(
@@ -790,30 +768,47 @@ fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Uni
                     .fillMaxWidth()
                     .weight(.5f),
                 maxLines = 1,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 12.sp,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.width(3.dp))
-            FloatingActionButton(
+            floatin_actionButton(
                 modifier = Modifier
                     .size(30.dp)
-                    .clip(CircleShape),
-                onClick = {
+                    .clip(CircleShape), R.drawable.localidad_icon_general, null, onClick = {
                     abrir_maps(item.latitud!!.toDouble(), item.longitud!!.toDouble())
-                },
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 10.dp
-                )
-            ) {
-                Image(
-                    modifier = Modifier.size(20.dp),
-                    painter = painterResource(id = R.drawable.localidad_icon_general),
-                    contentDescription = "Icono"
-                )
-            }
+                }
+            )
         }
+    }
+}
+
+
+@Composable
+fun floatin_actionButton(
+    modifier: Modifier,
+    drawable: Int,
+    colorFilter: ColorFilter? = ColorFilter.tint(Color.White),
+    onClick: () -> Unit
+) {
+    FloatingActionButton(
+        modifier = modifier,
+        onClick = {
+            onClick()
+        },
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 10.dp
+        ),
+        containerColor = MaterialTheme.colorScheme.primary,
+
+        ) {
+        Image(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(id = drawable),
+            contentDescription = "Icono", colorFilter = colorFilter
+        )
     }
 }
 
@@ -825,52 +820,41 @@ fun activos_y_registrados(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(50),
+        shape = RoundedCornerShape(30),
     ) {
         Row(
             modifier = modifier
                 .background(amarillo30)
-                .padding(horizontal = 10.dp, vertical = 2.dp)
+                .padding(horizontal = 10.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "Activos $cantidad_activos",
-                modifier = modifier.padding(horizontal = 2.dp),
-                fontSize = 15.sp,
-                color = Color.Green
+            texto_activos_encontrados(
+                modifier,
+                "Tiendas Registradas : $cantidad_registrados",
+                2.dp,
+                Color.Black
             )
-            Text(
-                "Encontrados $cantidad_registrados",
-                fontSize = 15.sp,
-                modifier = modifier.padding(horizontal = 5.dp), color = Color.Black
-            )
-        }
+            texto_activos_encontrados(modifier, "Activos : $cantidad_activos", 5.dp, Color.Green)
 
+        }
     }
 }
 
 @Composable
-fun size_carta_categoria(modifier: Modifier, expanddido: Boolean, onClick: () -> Unit) {
-    FloatingActionButton(
-        modifier = modifier
-            .size(35.dp)
-            .clip(CircleShape),
-        onClick = onClick,
-        elevation = FloatingActionButtonDefaults.elevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 10.dp
-        )
-    ) {
-        val icono_cambiante = if (expanddido) {
-            R.drawable.ocultar_abajo
-        } else {
-            R.drawable.ocultar_arriva
-        }
-        Image(
-            modifier = Modifier.size(20.dp),
-            painter = painterResource(id = icono_cambiante),
-            contentDescription = "Icono"
-        )
-    }
+fun texto_activos_encontrados(modifier: Modifier, texto: String, p_horizontal: Dp, color: Color) {
+    Text(
+        text = texto,
+        modifier = modifier.padding(p_horizontal),
+        style = MaterialTheme.typography.bodyMedium,
+        color = color
+    )
+}
+
+
+@Composable
+fun retornar_pleaceholder_label(texto: String) {
+    Text(texto)
 }
 
 fun obtenerResultados(
@@ -882,15 +866,28 @@ fun obtenerResultados(
     } == true
 }
 
-@Composable
-fun retornar_pleaceholder_label(texto: String, modifier: Modifier) {
-    Text(texto)
-}
 
 fun normalizarTexto(texto: String): String {
     val textoSinTildes = Normalizer.normalize(texto, Normalizer.Form.NFD)
         .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
     return textoSinTildes.lowercase().trim()
+}
+
+fun abrirRutaEnGoogleMaps(context: Context, latitud: Double, longitud: Double) {
+    val uri = Uri.parse("google.navigation:q=$latitud,$longitud&mode=d")
+    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+        setPackage("com.google.android.apps.maps")
+    }
+
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(
+            context,
+            "Google Maps no está instalado. Por favor, instálalo desde Play Store.",
+            Toast.LENGTH_LONG
+        ).show()
+    }
 }
 
 fun verificarUbiActiva(context: Context): Boolean {

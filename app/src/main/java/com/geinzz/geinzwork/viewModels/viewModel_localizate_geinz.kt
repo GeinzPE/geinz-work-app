@@ -22,6 +22,10 @@ class viewModel_localizate_geinz : ViewModel() {
     val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
     val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
 
+
+    val _subcategoria = MutableLiveData<List<String>>()
+    val subcategorias: LiveData<List<String>> get() = _subcategoria
+
     fun T_obtener_registrados_activos(localidad_selecionada: String) {
         viewModelScope.launch {
             try {
@@ -58,6 +62,29 @@ class viewModel_localizate_geinz : ViewModel() {
                 val tiempoRestante = 1500 - tiempoTranscurrido
                 delay(tiempoRestante)
                 _loading.value = false
+            }
+        }
+    }
+
+    private val _loading_subcategorias = mutableStateOf(false)
+    val loading_subcateogiras: State<Boolean> = _loading_subcategorias
+
+    fun obtener_subcategorias(categoria: String) {
+        viewModelScope.launch {
+            val tiempoInicio = System.currentTimeMillis()
+            _loading_subcategorias.value=false
+            try {
+                val datos = modelo_agregar_cat_sub.obtener_subcategorias(categoria)
+                _subcategoria.value = datos
+            } catch (e: Exception) {
+                _subcategoria.value = emptyList()
+            }finally {
+                val tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio
+                val tiempoRestante = 1500 - tiempoTranscurrido
+                if (tiempoRestante > 0) {
+                    delay(tiempoRestante)
+                }
+                _loading_subcategorias.value = true
             }
         }
     }
