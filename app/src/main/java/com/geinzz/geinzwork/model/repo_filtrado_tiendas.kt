@@ -109,7 +109,7 @@ class repo_filtrado_tiendas {
             .document(localidad)
             .collection(localidad)
             .document(idTienda)
-            .collection("horario_atencio")
+            .collection("horario_atencion")
             .document("horario_atencion")
             .get()
             .await()

@@ -81,6 +81,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.LottieComposition
@@ -93,14 +94,17 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escu
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_patrocinadores
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -585,7 +589,7 @@ fun cartas_categorias(
 
                 }
             }
-            obtener_patrocinados(item, expandido, viewModel)
+            obtener_patrocinados(item, expandido, viewModel,Localidad_selecionada)
         }
     }
 }
@@ -594,7 +598,7 @@ fun cartas_categorias(
 fun obtener_patrocinados(
     item: encontradas_por_categoria,
     expandido: Boolean,
-    viewModel: viewModel_localizate_geinz,
+    viewModel: viewModel_localizate_geinz,localidad: String
 ) {
     val listaPatrocinados = remember { mutableStateListOf<tiendas_filtradas>() }
     val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
@@ -613,8 +617,8 @@ fun obtener_patrocinados(
                         longitud = it.longitud,
                         descripcion = it.descripcion,
                         id_tienda = it.id_tienda,
-                        latitud =it.latitud,
-                        lista_subcategoiras =it.lista_subcategoiras
+                        latitud = it.latitud,
+                        lista_subcategoiras = it.lista_subcategoiras
                     )
                 )
 
@@ -653,7 +657,12 @@ fun obtener_patrocinados(
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 spacer_vertical(10.dp)
-                ListaTiendasPatrocinadas(viewModel = viewModel, tiendas = listaPatrocinados)
+                ListaTiendasPatrocinadas(
+                    viewModel = viewModel,
+                    tiendas = listaPatrocinados,
+                    categoria = item.categoria.toString(),
+                    localidad = localidad
+                )
             }
         }
     }
@@ -664,14 +673,17 @@ fun obtener_patrocinados(
 @Composable
 fun ListaTiendasPatrocinadas(
     viewModel: viewModel_localizate_geinz,
-    tiendas: List<tiendas_filtradas>
+    tiendas: List<tiendas_filtradas>, categoria: String, localidad: String
 ) {
     val isLoading by viewModel.loading
     val context = LocalContext.current
+    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val mostrarDialogo = remember { mutableStateOf(false) }
     val mostrarDialog_sin_google_maps = remember { mutableStateOf(false) }
     var direccion by remember { mutableStateOf("") }
     var referencia by remember { mutableStateOf("") }
+    var show_boottom_sheet_dialog by remember { mutableStateOf(false) }
+    var tiendaSeleccionada by remember { mutableStateOf(tiendas_filtradas()) }
 
     if (mostrarDialogo.value) {
         dialog_sin_ubicacion_activa(
@@ -731,16 +743,33 @@ fun ListaTiendasPatrocinadas(
                         contentPadding = PaddingValues(horizontal = 10.dp)
                     ) {
                         items(tiendas) { tienda ->
-                            patrocinadores(item = tienda) { latitud, longitud ->
-                                if (verificarUbiActiva(context)) {
-                                    abrirRutaEnGoogleMaps(context, latitud, longitud)
-                                } else {
-                                    mostrarDialogo.value = true
+                            patrocinadores(
+                                item = tienda,
+                                { latitud, longitud ->
+                                    if (verificarUbiActiva(context)) {
+                                        abrirRutaEnGoogleMaps(context, latitud, longitud)
+                                    } else {
+                                        mostrarDialogo.value = true
+                                    }
+                                    direccion = tienda.direccion ?: ""
+                                    referencia = tienda.referencia ?: ""
+                                },
+                                { tiendas_filtradas, showBottomSheet ->
+                                    tiendaSeleccionada = tiendas_filtradas
+                                    show_boottom_sheet_dialog = showBottomSheet
                                 }
-                                direccion = tienda.direccion ?: ""
-                                referencia = tienda.referencia ?: ""
-                            }
+                            )
                         }
+
+                    }
+
+                    if (show_boottom_sheet_dialog) {
+                        bottom_shet_patrocinadores(
+                            viewModelFiltros,
+                            categoria,
+                            localidad,
+                            tiendaSeleccionada
+                        ) { show_boottom_sheet_dialog = false }
                     }
 
                     spacer_vertical(10.dp)
@@ -752,8 +781,11 @@ fun ListaTiendasPatrocinadas(
 
 
 @Composable
-fun patrocinadores(item: tiendas_filtradas, abrir_maps: (Double, Double) -> Unit) {
-    val contex = LocalContext.current
+fun patrocinadores(
+    item: tiendas_filtradas,
+    abrir_maps: (Double, Double) -> Unit,
+    listener_bottom_sheet: (item: tiendas_filtradas, mostrar: Boolean) -> Unit
+) {
     Card(
         modifier = Modifier
             .width(170.dp)
@@ -763,16 +795,12 @@ fun patrocinadores(item: tiendas_filtradas, abrir_maps: (Double, Double) -> Unit
         )
     ) {
         AsyncImage(
-            model = item.img_tiendas.toString(),
+            model = item.img_tiendas,
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .clickable {
-                    Toast.makeText(
-                        contex,
-                        "selecionaste el ${item.id_tienda}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    listener_bottom_sheet(item, true)
                 }
                 .fillMaxWidth()
                 .height(170.dp)
