@@ -92,7 +92,9 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
+import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
@@ -118,7 +120,8 @@ fun PantallaExplorarTiendas(
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-    val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+    val lista_filtrada =
+        remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
     val cargando = remember { mutableStateOf(true) }
     val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
     val lista_localidades = constantes_lista_localidades.lista
@@ -144,7 +147,7 @@ fun PantallaExplorarTiendas(
             localidadAnterior = localidadSeleccionada.value
             cartaExpandida.value = null
             viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
-            mostrar_fab=false
+            mostrar_fab = false
         }
     }
 
@@ -159,7 +162,7 @@ fun PantallaExplorarTiendas(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
-            AnimatedVisibility(mostrar_fab==true) {
+            AnimatedVisibility(mostrar_fab == true) {
                 FloatingActionButton(
                     modifier = Modifier.size(40.dp),
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -222,7 +225,9 @@ fun PantallaExplorarTiendas(
                     }
                     val listaParaMostrar =
                         if (texto_filtrado.length > 2) lista_filtrada else lista
-                    items(listaParaMostrar, key = { it.categoria ?: it.hashCode().toString() }) { item ->
+                    items(
+                        listaParaMostrar,
+                        key = { it.categoria ?: it.hashCode().toString() }) { item ->
                         cartas_categorias(
                             item,
                             cartaExpandida,
@@ -555,7 +560,7 @@ fun cartas_categorias(
                 ) {
                     val (activos_encontrados, size_carta) = createRefs()
                     activos_y_registrados(
-                        item.cantidad_registradas?:0, item.activas?:0,
+                        item.cantidad_registradas ?: 0, item.activas ?: 0,
                         modifier = Modifier.constrainAs(activos_encontrados) {
                             top.linkTo(parent.top)
                             start.linkTo(parent.start)
@@ -580,14 +585,18 @@ fun cartas_categorias(
 
                 }
             }
-            obtener_patrocinados(item,expandido,viewModel)
+            obtener_patrocinados(item, expandido, viewModel)
         }
     }
 }
 
 @Composable
-fun obtener_patrocinados(item:encontradas_por_categoria,expandido: Boolean,viewModel: viewModel_localizate_geinz,){
-    val listaPatrocinados = remember { mutableStateListOf<tienda_patrocinada>() }
+fun obtener_patrocinados(
+    item: encontradas_por_categoria,
+    expandido: Boolean,
+    viewModel: viewModel_localizate_geinz,
+) {
+    val listaPatrocinados = remember { mutableStateListOf<tiendas_filtradas>() }
     val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
 
     LaunchedEffect(tiendas_patrocinadas_por_categoria, expandido) {
@@ -596,13 +605,19 @@ fun obtener_patrocinados(item:encontradas_por_categoria,expandido: Boolean,viewM
             val inicio = System.currentTimeMillis()
             tiendas_patrocinadas_por_categoria!!.forEach {
                 listaPatrocinados.add(
-                    tienda_patrocinada(
-                        it.categoria_tienda,
-                        it.id_tienda,
-                        it.img_tienda,
-                        it.nombre, it.latitud, it.longitud, it.direccion, it.referencia
+                    tiendas_filtradas(
+                        img_tiendas = it.img_tiendas,
+                        nombre_tienda = it.nombre_tienda,
+                        direccion = it.direccion,
+                        referencia = it.referencia,
+                        longitud = it.longitud,
+                        descripcion = it.descripcion,
+                        id_tienda = it.id_tienda,
+                        latitud =it.latitud,
+                        lista_subcategoiras =it.lista_subcategoiras
                     )
                 )
+
             }
             val tiempoTranscurrido = System.currentTimeMillis() - inicio
             val tiempoRestante = 1000 - tiempoTranscurrido
@@ -649,7 +664,7 @@ fun obtener_patrocinados(item:encontradas_por_categoria,expandido: Boolean,viewM
 @Composable
 fun ListaTiendasPatrocinadas(
     viewModel: viewModel_localizate_geinz,
-    tiendas: List<tienda_patrocinada>
+    tiendas: List<tiendas_filtradas>
 ) {
     val isLoading by viewModel.loading
     val context = LocalContext.current
@@ -737,7 +752,8 @@ fun ListaTiendasPatrocinadas(
 
 
 @Composable
-fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Unit) {
+fun patrocinadores(item: tiendas_filtradas, abrir_maps: (Double, Double) -> Unit) {
+    val contex = LocalContext.current
     Card(
         modifier = Modifier
             .width(170.dp)
@@ -747,10 +763,17 @@ fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Uni
         )
     ) {
         AsyncImage(
-            model = item.img_tienda.toString(),
+            model = item.img_tiendas.toString(),
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
+                .clickable {
+                    Toast.makeText(
+                        contex,
+                        "selecionaste el ${item.id_tienda}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
                 .fillMaxWidth()
                 .height(170.dp)
                 .clip(RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp)),
@@ -763,7 +786,7 @@ fun patrocinadores(item: tienda_patrocinada, abrir_maps: (Double, Double) -> Uni
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = item.nombre.toString(),
+                text = item.nombre_tienda.toString(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(.5f),

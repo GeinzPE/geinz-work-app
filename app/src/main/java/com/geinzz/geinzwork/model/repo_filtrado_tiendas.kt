@@ -46,7 +46,7 @@ class repo_filtrado_tiendas {
                 val subcategorias_list = i.get("subcategoria") as? List<String> ?: emptyList()
                 val ubicacion = i.get("ubicacion") as? Map<String, Any>
 
-                val direccion = ubicacion?.get("direccion") as? String ?: ""
+                val direccion = ubicacion?.get("dirección") as? String ?: ""
                 val latitud = ubicacion?.get("latitud") as? Number ?: 0
                 val longitud = ubicacion?.get("longitud") as? Number ?: 0
                 val referencia = ubicacion?.get("referencia") as? String ?: ""

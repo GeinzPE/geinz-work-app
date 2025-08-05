@@ -45,6 +45,7 @@ data class registradas_activas_cat_img(
 
 data class tienda_patrocinada(
     val categoria_tienda: String?,
+    val localidad_tienda: String?,
     val id_tienda: String?,
     val img_tienda: String?,
     val nombre: String?,
@@ -53,6 +54,11 @@ data class tienda_patrocinada(
     val direccion: String?,
     val referencia: String?,
 
+)
+
+data class tiendas_patrocinadas(
+    val id_tienda: String="",
+    val categoria_tienda: String=""
 )
 
 data class modelo_tienda(

@@ -10,18 +10,22 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categori
 import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import androidx.compose.runtime.State
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
+import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_localizate_geinz : ViewModel() {
     val modelo_agregar_cat_sub = repo_agregar_cat_sub_localizate()
 
-    val _T_patrocinadas_por_categoria = MutableLiveData<List<tienda_patrocinada>>()
-    val T_patrocinadas_por_categoria: LiveData<List<tienda_patrocinada>> get() = _T_patrocinadas_por_categoria
+   private val _T_patrocinadas_por_categoria = MutableLiveData<List<tiendas_filtradas>>()
+    val T_patrocinadas_por_categoria: LiveData<List<tiendas_filtradas>> get() = _T_patrocinadas_por_categoria
 
-    val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
+   private val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
     val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
 
+    private val _datos_tienas_patrocinadas = MutableLiveData<List<tiendas_patrocinadas>>()
+    val datos_tienas_patrocinadas: LiveData<List<tiendas_patrocinadas>> get() = _datos_tienas_patrocinadas
 
     val _subcategoria = MutableLiveData<List<String>>()
     val subcategorias: LiveData<List<String>> get() = _subcategoria
@@ -53,8 +57,9 @@ class viewModel_localizate_geinz : ViewModel() {
             val tiempoInicio = System.currentTimeMillis()
             _loading.value = true
             try {
-                val result = modelo_agregar_cat_sub.obtenerTiendasPatrocinadas(localidad, categoria)
+                val result = modelo_agregar_cat_sub.obtener_datos_tiendas_patrocindas(localidad, categoria)
                 _T_patrocinadas_por_categoria.value = result
+                Log.d("obtenos_resulado",result.toString())
             } catch (e: Exception) {
                 _T_patrocinadas_por_categoria.value = emptyList()
             } finally {
@@ -66,26 +71,30 @@ class viewModel_localizate_geinz : ViewModel() {
         }
     }
 
-    private val _loading_subcategorias = mutableStateOf(false)
-    val loading_subcateogiras: State<Boolean> = _loading_subcategorias
+    fun datos_tiendas_patrocinadas() {
 
-    fun obtener_subcategorias(categoria: String) {
-        viewModelScope.launch {
-            val tiempoInicio = System.currentTimeMillis()
-            _loading_subcategorias.value=false
-            try {
-                val datos = modelo_agregar_cat_sub.obtener_subcategorias(categoria)
-                _subcategoria.value = datos
-            } catch (e: Exception) {
-                _subcategoria.value = emptyList()
-            }finally {
-                val tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio
-                val tiempoRestante = 1500 - tiempoTranscurrido
-                if (tiempoRestante > 0) {
-                    delay(tiempoRestante)
-                }
-                _loading_subcategorias.value = true
-            }
-        }
     }
+
+//    private val _loading_subcategorias = mutableStateOf(false)
+//    val loading_subcateogiras: State<Boolean> = _loading_subcategorias
+//
+//    fun obtener_subcategorias(categoria: String) {
+//        viewModelScope.launch {
+//            val tiempoInicio = System.currentTimeMillis()
+//            _loading_subcategorias.value=false
+//            try {
+//                val datos = modelo_agregar_cat_sub.obtener_subcategorias(categoria)
+//                _subcategoria.value = datos
+//            } catch (e: Exception) {
+//                _subcategoria.value = emptyList()
+//            }finally {
+//                val tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio
+//                val tiempoRestante = 1500 - tiempoTranscurrido
+//                if (tiempoRestante > 0) {
+//                    delay(tiempoRestante)
+//                }
+//                _loading_subcategorias.value = true
+//            }
+//        }
+//    }
 }

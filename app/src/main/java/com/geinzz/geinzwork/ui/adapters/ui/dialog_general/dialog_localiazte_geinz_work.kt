@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -50,10 +53,18 @@ fun dialog_sin_ubicacion_activa(
             ) { Text(text = "Activar Ubicación", color = Color.White) }
         },
         dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
-        title = { Text(text = "Ubicación desactivada", color = Color.White) },
+        title = {
+            Text(
+                text = "Ubicación desactivada",
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        },
         text = {
             Column {
-                Text("Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta la tienda en Google Maps.", color = Color.White)
+                Text(
+                    "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta la tienda en Google Maps.",
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 spacer_vertical(10.dp)
                 Text(
                     text = "Continuar sin activar ubicación",
@@ -98,14 +109,22 @@ fun dialog_sin_ubi_activa(
             androidx.compose.material3.Button(
                 onClick = { abrir_maps() },
                 shape = RoundedCornerShape(15)
-            ) { Text(text = "Abrir con Google Maps" , color = Color.White) }
+            ) { Text(text = "Abrir con Google Maps", color = Color.White) }
         },
         dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
 
-        title = { Text(text = "Dirección y referencia", color = Color.White) },
+        title = {
+            Text(
+                text = "Dirección y referencia",
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        },
         text = {
             Column {
-                Text("Usa esta información de manera responsable. El mal uso será reportado.", color = Color.White)
+                Text(
+                    "Usa esta información de manera responsable. El mal uso será reportado.",
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 spacer_vertical(10.dp)
                 Calle_referencia("Direccion : ", direccion)
                 spacer_vertical(10.dp)
@@ -131,28 +150,30 @@ fun dialog_sin_ubi_activa(
     )
 }
 
+
 @Composable
-fun Calle_referencia(text1: String, text2: String) {
+fun Calle_referencia(texto1: String, texto2: String) {
     val context = LocalContext.current
-    Row {
-        Row(modifier = Modifier.weight(1f)) {
-            Text(text = text1)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            Text(text = texto1, color = MaterialTheme.colorScheme.onBackground)
             Text(
-                text = text2, maxLines = 1,
-                overflow = TextOverflow.Ellipsis, color = Color.White
+                text = texto2, maxLines = 1,
+                overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground
             )
 
         }
         spacer_horizonta(5.dp)
         Icon(
             modifier = Modifier.clickable {
-                constantestextos_general.copiarTexto_portapapeles_compouse(text2, context)
+                constantestextos_general.copiarTexto_portapapeles_compouse(texto2, context)
             },
             painter = painterResource(R.drawable.baseline_content_copy_24),
-            contentDescription = ""
+            contentDescription = "", tint = MaterialTheme.colorScheme.onBackground
         )
     }
 }
+
 @Composable
 fun spacer_vertical(altura: Dp) {
     Spacer(modifier = Modifier.height(altura))
