@@ -56,14 +56,16 @@ fun dialog_sin_ubicacion_activa(
         title = {
             Text(
                 text = "Ubicación desactivada",
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
             )
         },
         text = {
             Column {
                 Text(
                     "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta la tienda en Google Maps.",
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(10.dp)
                 Text(
@@ -116,14 +118,16 @@ fun dialog_sin_ubi_activa(
         title = {
             Text(
                 text = "Dirección y referencia",
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
             )
         },
         text = {
             Column {
                 Text(
                     "Usa esta información de manera responsable. El mal uso será reportado.",
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(10.dp)
                 Calle_referencia("Direccion : ", direccion)
@@ -158,8 +162,11 @@ fun Calle_referencia(texto1: String, texto2: String) {
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(text = texto1, color = MaterialTheme.colorScheme.onBackground)
             Text(
-                text = texto2, maxLines = 1,
-                overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground
+                text = texto2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyMedium
             )
 
         }

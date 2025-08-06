@@ -322,7 +322,7 @@ fun cabezero_activity(localidad_registrado: String) {
     ) {
         Text(
             text = "Ubicate $localidad_registrado",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
@@ -334,7 +334,7 @@ fun cabezero_activity(localidad_registrado: String) {
             modifier = Modifier.padding(vertical = 0.dp),
             text = "Explora las diferentes categorías de tiendas\n" +
                     "registradas en Geinz Work y ubícate fácilmente en $localidad_registrado",
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
     }
@@ -589,7 +589,7 @@ fun cartas_categorias(
 
                 }
             }
-            obtener_patrocinados(item, expandido, viewModel,Localidad_selecionada)
+            obtener_patrocinados(item, expandido, viewModel, Localidad_selecionada)
         }
     }
 }
@@ -598,7 +598,7 @@ fun cartas_categorias(
 fun obtener_patrocinados(
     item: encontradas_por_categoria,
     expandido: Boolean,
-    viewModel: viewModel_localizate_geinz,localidad: String
+    viewModel: viewModel_localizate_geinz, localidad: String
 ) {
     val listaPatrocinados = remember { mutableStateListOf<tiendas_filtradas>() }
     val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
@@ -716,6 +716,7 @@ fun ListaTiendasPatrocinadas(
                     Text(
                         text = "Buscando tiendas patrocinadas",
                         color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     CircularProgressIndicator(
@@ -905,7 +906,9 @@ fun texto_activos_encontrados(modifier: Modifier, texto: String, p_horizontal: D
 
 @Composable
 fun retornar_pleaceholder_label(texto: String) {
-    Text(texto)
+    Text(
+        texto, style = MaterialTheme.typography.bodyMedium
+    )
 }
 
 fun obtenerResultados(

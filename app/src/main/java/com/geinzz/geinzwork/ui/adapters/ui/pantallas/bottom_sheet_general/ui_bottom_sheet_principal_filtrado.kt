@@ -59,6 +59,7 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -128,11 +129,15 @@ fun bottom_sheet_tiendas_filtradas(
                         tiendas_filtradas.categoria_tienda,
                         tiendas_filtradas.nombre_tienda,
                         latitud,
-                        longitud
+                        longitud,tiendas_filtradas.img_perfil
                     )
                     spacer_vertical(20.dp)
                 }
                 item {
+                    text_expandible_wrapp(
+                        "Acerca de la tienda",
+                        MaterialTheme.typography.titleMedium
+                    )
                     Text(
                         text = "Acerca de la tienda",
                         modifier = Modifier,
@@ -228,16 +233,14 @@ fun bottom_shet_patrocinadores(
                     cabezero_tiendas(
                         tiendas_filtradas.direccion, tiendas_filtradas.referencia, categoritienda,
                         tiendas_filtradas.nombre_tienda, tiendas_filtradas.latitud,
-                        tiendas_filtradas.longitud
+                        tiendas_filtradas.longitud,tiendas_filtradas.img_tiendas
                     )
                     spacer_vertical(20.dp)
                 }
                 item {
-                    Text(
-                        text = "Acerca de la tienda",
-                        modifier = Modifier,
-                        fontSize = 18.sp,
-                        fontStyle = FontStyle.Normal
+                    text_expandible_wrapp(
+                        "Acerca de la tienda",
+                        MaterialTheme.typography.titleLarge
                     )
                     spacer_vertical(10.dp)
                 }
@@ -287,7 +290,7 @@ fun cabezero_tiendas(
     direccion: String,
     referencia: String,
     categoritienda: String,
-    nombre_tienda: String, latitud: Double, longitud: Double
+    nombre_tienda: String, latitud: Double, longitud: Double, img_tienda_perfil: String
 ) {
     val context = LocalContext.current
     val mostrarDialogo = remember { mutableStateOf(false) }
@@ -318,14 +321,14 @@ fun cabezero_tiendas(
             .fillMaxWidth()
     ) {
         AsyncImage(
-            model = "https://via.placeholder.com/300",
+            model = img_tienda_perfil,
             contentDescription = "Imagen de la tienda",
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
             error = painterResource(id = R.drawable.qr_yape),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(220.dp)
                 .clip(RoundedCornerShape(16.dp))
         )
 
@@ -340,7 +343,6 @@ fun cabezero_tiendas(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 val iconId = "icon"
-
                 val annotatedText = buildAnnotatedString {
                     append(nombre_tienda)
                     append(" ")
@@ -369,33 +371,17 @@ fun cabezero_tiendas(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 10.dp),
-                    style = TextStyle(fontSize = 16.sp),
+                    style = MaterialTheme.typography.titleLarge,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                Text(
-                    text = categoritienda,
+                text_expandible_wrapp(
+                    "Categoria : $categoritienda",
+                    MaterialTheme.typography.bodyMedium
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(40f))
-                        .background(amarillo30)
-                        .padding(horizontal = 5.dp, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Cerca de ti")
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Image(
-                        modifier = Modifier.size(20.dp),
-                        painter = painterResource(R.drawable.localidad_icon_general),
-                        contentDescription = ""
-                    )
-                }
-
             }
             spacer_horizonta(10.dp)
             FloatingActionButton(
@@ -410,13 +396,12 @@ fun cabezero_tiendas(
                     }
                 },
                 modifier = Modifier.size(40.dp),
-                containerColor = Color(0xFFFFC107),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
             ) {
-                Icon(
+                Image(
                     painter = painterResource(R.drawable.localidad_icon_general),
                     contentDescription = "Localidad",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(35.dp)
                 )
             }
         }
@@ -433,6 +418,28 @@ fun abrir_google_maps(
         abrirRutaEnGoogleMaps(context, latitud, longitud)
     } else {
         mostrar_dialog(true)
+    }
+}
+
+
+@Composable
+fun tienda_cercana() {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(40f))
+            .background(amarillo30)
+            .padding(horizontal = 5.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Text("Cerca de ti")
+        Spacer(modifier = Modifier.width(5.dp))
+        Image(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(R.drawable.localidad_icon_general),
+            contentDescription = ""
+        )
     }
 }
 
@@ -464,7 +471,7 @@ fun Expandible_descripcion_tienda(
                         .animateContentSize()
                         .padding(10.dp)
                 ) {
-                    text_expandible_wrapp(descipcion_tienda)
+                    texto_expandido_wrapp_sin_max_line(descipcion_tienda)
                 }
             }
         }
@@ -506,11 +513,11 @@ fun Expandible_direccion_ref(
                             vertical = 8.dp
                         )
                 ) {
-                    text_expandible_wrapp("Dirección: $direccion")
+                    text_expandible_wrapp("Dirección : $direccion")
                     spacer_vertical(10.dp)
-                    text_expandible_wrapp("Referencia: $referencia")
+                    text_expandible_wrapp("Referencia : $referencia")
                     spacer_vertical(10.dp)
-                    text_expandible_wrapp("Tipo de tienda: $fisica_virtual")
+                    text_expandible_wrapp("Tipo de tienda : $fisica_virtual")
                     spacer_vertical(10.dp)
                 }
             }
@@ -519,11 +526,32 @@ fun Expandible_direccion_ref(
 }
 
 @Composable
-fun text_expandible_wrapp(texto: String) {
+fun text_expandible_wrapp(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    maxlines: Int = 1
+) {
     Text(
         text = texto,
         color = MaterialTheme.colorScheme.onBackground,
-//        style = MaterialTheme.typography.titleLarge
+        style = style,
+        maxLines = maxlines,
+        overflow = TextOverflow.Ellipsis
+
+    )
+}
+
+@Composable
+fun texto_expandido_wrapp_sin_max_line(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.bodyMedium
+) {
+    Text(
+        text = texto,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = style,
+        overflow = TextOverflow.Ellipsis
+
     )
 }
 
@@ -581,9 +609,10 @@ fun Expandible_horario_atencion(
                                     .weight(1f),
                                 overflow = TextOverflow.Ellipsis,
                                 color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             if (esDiaActual) {
-                                Icon(
+                                Image(
                                     modifier = Modifier.size(20.dp),
                                     painter = painterResource(R.drawable.guardados_icon),
                                     contentDescription = ""
