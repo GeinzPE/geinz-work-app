@@ -7,8 +7,7 @@ import kotlinx.serialization.Serializable
 object principal
 
 @Serializable
-data class  screen_filtrado(val categoria: String,val localidad: String)
+data class  screen_filtrado(val categoria: String,val localidad: String,val nombre_user: String)
 
-@Serializable
-data object floating_action_button
+
 

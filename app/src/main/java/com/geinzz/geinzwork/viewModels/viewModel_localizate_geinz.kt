@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import androidx.compose.runtime.State
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
@@ -29,6 +28,26 @@ class viewModel_localizate_geinz : ViewModel() {
 
     val _subcategoria = MutableLiveData<List<String>>()
     val subcategorias: LiveData<List<String>> get() = _subcategoria
+
+
+    fun obtenerFrasesCarga(localidadUser: String, nombreUser: String): List<String> {
+        return listOf(
+            "Espere un momento...",
+            "Cargando tiendas de $localidadUser...",
+            "Buscamos lo mejor para ti $nombreUser"
+        )
+    }
+
+    fun obtenerResultados(
+        texto: String,
+        lista: List<encontradas_por_categoria>
+    ): List<encontradas_por_categoria> = lista.filter { catSub ->
+        catSub.subcateogiras?.any {
+            it.contains(texto, ignoreCase = true)
+        } == true
+    }
+
+
 
     fun T_obtener_registrados_activos(localidad_selecionada: String) {
         viewModelScope.launch {

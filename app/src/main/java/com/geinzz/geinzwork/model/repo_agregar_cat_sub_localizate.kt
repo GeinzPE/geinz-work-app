@@ -2,14 +2,10 @@ package com.geinzz.geinzwork.model
 
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_horarios_atencion_tiendas
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 
-import com.geinzz.geinzwork.data.model.localizate_geinz.estadoTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_tienda
-import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
-import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
 import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
@@ -152,75 +148,47 @@ class repo_agregar_cat_sub_localizate {
         }
     }
 
-//    suspend fun obtener_datos_tiendas_patrocindas(
-//        localidadSeleccionada: String,
-//        lista_patrocinada: List<tienda_patrocinada>
-//    ): List<tiendas_filtradas> {
-//        val lista = mutableListOf<tiendas_filtradas>()
-//        lista_patrocinada.forEach { i ->
-//            val id_tienda = i.id_tienda ?: ""
-//            val campos_tiendas =
-//                db.collection("Tiendas").document(localidadSeleccionada)
-//                    .collection(localidadSeleccionada).document(id_tienda)
-//                    .get().await()
-//
-//            val ubicacion = campos_tiendas.get("ubicacion") as? Map<String, Any>
-//            val direccion = ubicacion?.get("direccion") as? String ?: ""
-//            val latitud = ubicacion?.get("latitud") as? Number ?: 0
-//            val longitud = ubicacion?.get("longitud") as? Number ?: 0
-//            val referencia = ubicacion?.get("referencia") as? String ?: ""
-//            lista.add(
-//                tiendas_filtradas(
-//                    campos_tiendas.get("img_perfil") as? String ?: "",
-//                    campos_tiendas.get("nombre_tienda") as? String ?: "",
-//                    direccion,
-//                    referencia,
-//                    latitud.toDouble(),
-//                    longitud.toDouble(),
-//                    campos_tiendas.get("subcategoria") as? List<String> ?: emptyList(),
-//                    campos_tiendas.get("descripcion") as? String ?: "",
-//                    campos_tiendas.get("id_tienda") as? String ?: "",
-//                )
-//            )
-//        }
-//        return lista
-//    }
-
     suspend fun obtener_datos_tiendas_patrocindas(
         localidadSeleccionada: String,
         categoriaSeleccionada: String
     ): List<tiendas_filtradas> = coroutineScope {
-       val trabajos= obtenerTiendasPatrocinadas(localidadSeleccionada,categoriaSeleccionada).map { tienda ->
-            async {
-                try {
-                    val doc = db.collection("Tiendas")
-                        .document(localidadSeleccionada)
-                        .collection(localidadSeleccionada)
-                        .document(tienda.id_tienda ?: "")
-                        .get().await()
+        val trabajos =
+            obtenerTiendasPatrocinadas(localidadSeleccionada, categoriaSeleccionada).map { tienda ->
+                async {
+                    try {
+                        val doc = db.collection("Tiendas")
+                            .document(localidadSeleccionada)
+                            .collection(localidadSeleccionada)
+                            .document(tienda.id_tienda ?: "")
+                            .get().await()
 
-                    val ubicacion = doc.get("ubicacion") as? Map<String, Any>
-                    val direccion = ubicacion?.get("dirección") as? String ?: ""
-                    val latitud = ubicacion?.get("latitud") as? Number ?: 0
-                    val longitud = ubicacion?.get("longitud") as? Number ?: 0
-                    val referencia = ubicacion?.get("referencia") as? String ?: ""
+                        val ubicacion = doc.get("ubicacion") as? Map<String, Any>
+                        val direccion = ubicacion?.get("dirección") as? String ?: ""
+                        val latitud = ubicacion?.get("latitud") as? Number ?: 0
+                        val longitud = ubicacion?.get("longitud") as? Number ?: 0
+                        val referencia = ubicacion?.get("referencia") as? String ?: ""
+                        val map_img_tienda =
+                            doc.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+                        val logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: ""
+                        val lista_img_tienda =
+                            map_img_tienda.get("lista_img") as? List<String> ?: emptyList()
 
-                    tiendas_filtradas(
-                        doc.getString("img_perfil") ?: "",
-                        doc.getString("nombre_tienda") ?: "",
-                        direccion,
-                        referencia,
-                        latitud.toDouble(),
-                        longitud.toDouble(),
-                        doc.get("subcategoria") as? List<String> ?: emptyList(),
-                        doc.getString("descripcion") ?: "",
-                        doc.getString("id_tienda") ?: ""
-                    )
-                } catch (e: Exception) {
-                    null
+                        tiendas_filtradas(
+                            logo_tienda, lista_img_tienda,
+                            doc.getString("nombre_tienda") ?: "",
+                            direccion,
+                            referencia,
+                            latitud.toDouble(),
+                            longitud.toDouble(),
+                            doc.get("subcategoria") as? List<String> ?: emptyList(),
+                            doc.getString("descripcion") ?: "",
+                            doc.getString("id_tienda") ?: ""
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
             }
-        }
 
         trabajos.awaitAll().filterNotNull()
     }

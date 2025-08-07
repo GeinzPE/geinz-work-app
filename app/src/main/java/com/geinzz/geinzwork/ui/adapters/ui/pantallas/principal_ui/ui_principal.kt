@@ -1,20 +1,12 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
-import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
-import android.location.LocationManager
-import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,8 +42,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,7 +68,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,31 +78,29 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
-import com.airbnb.lottie.LottieComposition
-import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
-import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
-import com.geinzz.geinzwork.data.model.localizate_geinz.tienda_patrocinada
-import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_patrocinadores
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cargando_categorias
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
+import com.geinzz.geinzwork.utils.localizate_geinz.normalizarTexto
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.Normalizer
 import kotlin.collections.mapNotNull
 import kotlin.collections.orEmpty
 import kotlin.text.contains
@@ -119,7 +111,7 @@ fun PantallaExplorarTiendas(
     localidadUser: String,
     nombreUser: String,
     viewModel: viewModel_localizate_geinz,
-    clik_img: (categoria: String, localidad: String) -> Unit
+    clik_img: (categoria: String, localidad: String, nombre_user: String) -> Unit
 ) {
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
@@ -132,7 +124,6 @@ fun PantallaExplorarTiendas(
     var localidadAnterior by remember { mutableStateOf("") }
     val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
     val cartaExpandida = remember { mutableStateOf<String?>(null) }
-
     val listState = rememberLazyListState()
     var mostrar_fab by remember { mutableStateOf(false) }
     mostrar_fab = listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 10
@@ -188,7 +179,12 @@ fun PantallaExplorarTiendas(
     ) { innerPadding ->
         Crossfade(targetState = cargando.value) { isCargando ->
             if (isCargando) {
-                cargando_categorias(composision, localidadSeleccionada.value, nombreUser)
+                cargando_categorias(
+                    composision,
+                    localidadSeleccionada.value,
+                    5.dp,
+                    viewModel.obtenerFrasesCarga(localidadUser, nombreUser)
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -216,6 +212,7 @@ fun PantallaExplorarTiendas(
                                 localidadSeleccionada.value = nuevaLocalidad
                             }
                             filtrado_texto(
+                                viewModel,
                                 texto_filtrado,
                                 lista,
                                 { texto_filtrado = it },
@@ -233,6 +230,7 @@ fun PantallaExplorarTiendas(
                         listaParaMostrar,
                         key = { it.categoria ?: it.hashCode().toString() }) { item ->
                         cartas_categorias(
+                            nombreUser,
                             item,
                             cartaExpandida,
                             localidadSeleccionada.value,
@@ -245,81 +243,14 @@ fun PantallaExplorarTiendas(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun cargando_categorias(composision: LottieComposition?, value: String, nombre_user: String) {
-    var fraseIndex by remember { mutableStateOf(0) }
-    var frases by remember {
-        mutableStateOf(
-            listOf(
-                "Espere un momento...",
-                "Cargando tienda...",
-                "Buscamos lo mejor para ti $nombre_user"
-            )
-        )
-    }
-    var fraseActual by remember { mutableStateOf(frases[0]) }
-
-
-    LaunchedEffect(value) {
-        frases = listOf(
-            "Espere un momento...",
-            "Cargando tiendas de $value...",
-            "Buscamos lo mejor para ti $nombre_user"
-        )
-        fraseIndex = 0
-
-        while (true) {
-            fraseActual = frases[fraseIndex]
-            fraseIndex = (fraseIndex + 1) % frases.size
-            delay(2500L)
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
-            val (texto_centrado, loti_animation) = createRefs()
-            AnimatedContent(
-                targetState = fraseActual,
-                transitionSpec = { fadeIn() with fadeOut() },
-                label = "frase_animada"
-            ) { texto ->
-                Text(
-                    text = texto,
-                    fontSize = 20.sp,
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp)
-                        .constrainAs(texto_centrado) {
-                            top.linkTo(loti_animation.bottom)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                )
-            }
-
-            LottieAnimation(
-                composition = composision,
-                iterations = LottieConstants.IterateForever,
-                modifier = Modifier
-                    .size(400.dp)
-                    .constrainAs(loti_animation) {}
-            )
-        }
-    }
-}
-
 @Composable
 fun cabezero_activity(localidad_registrado: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+
+        ) {
         Text(
             text = "Ubicate $localidad_registrado",
             style = MaterialTheme.typography.headlineSmall,
@@ -363,8 +294,16 @@ fun FiltradosChipsLocalidades(
                         onLocalidadSeleccionada(localidad.nombre_localidad.toString())
                     }
                 },
+                border = if (isSelected) null else BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.onBackground
+                ),
+
                 label = {
-                    Text(text = localidad.nombre_localidad.toString())
+                    Text(
+                        text = localidad.nombre_localidad.toString(),
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
+                    )
                 },
                 trailingIcon = {
                     localidad.escudo_img?.let { imgResId ->
@@ -385,6 +324,7 @@ fun FiltradosChipsLocalidades(
 
 @Composable
 fun filtrado_texto(
+    viewModel: viewModel_localizate_geinz,
     texto: String,
     lista_cargada_filstrado: List<encontradas_por_categoria>,
     texto_filtrado: (String) -> Unit,
@@ -421,28 +361,24 @@ fun filtrado_texto(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            OutlinedTextField(
+            custom_texFiel(
                 value = texto,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
                 onValueChange = {
                     texto_filtrado(it)
                     expanded = it.isNotBlank()
                     lastInputTime = System.currentTimeMillis()
                     if (it.isNotBlank()) {
                         icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
-                        busquedaAction(obtenerResultados(it, lista_cargada_filstrado), true)
+                        busquedaAction(
+                            viewModel.obtenerResultados(it, lista_cargada_filstrado),
+                            true
+                        )
                     } else {
                         icono_busqeuda = R.drawable.buscar_icon
                     }
                 },
-                label = {
-                    retornar_pleaceholder_label("Ingrese la subcategoría a buscar")
-                },
-                placeholder = {
-                    retornar_pleaceholder_label("Ingrese la subcategoría a buscar")
-                },
+                labelText = "Ingrese la subcategoría a buscar",
+                placeholderText = "Ingrese la subcategoría a buscar",
                 trailingIcon = {
                     if (icono_busqeuda == R.drawable.vector_eliminar_texto_texfiel) {
                         IconButton(onClick = {
@@ -462,19 +398,20 @@ fun filtrado_texto(
                             contentDescription = "Buscar por subcategoría"
                         )
                     }
-
                 },
+                isError = is_error,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
                     onSearch = {
-                        busquedaAction(obtenerResultados(texto, lista_cargada_filstrado), true)
+                        busquedaAction(
+                            viewModel.obtenerResultados(texto, lista_cargada_filstrado),
+                            true
+                        )
                         expanded = false
                         focusManager.clearFocus()
                     }
                 ),
-                isError = is_error,
             )
-
             if (is_error) {
                 Text(
                     "No hay coincidencias",
@@ -491,11 +428,12 @@ fun filtrado_texto(
 
 @Composable
 fun cartas_categorias(
+    nombre_user: String,
     item: encontradas_por_categoria,
     cartaExpandida: MutableState<String?>,
     Localidad_selecionada: String,
     viewModel: viewModel_localizate_geinz,
-    clik_img: (categoria: String, localidad: String) -> Unit
+    clik_img: (categoria: String, localidad: String, nombre: String) -> Unit
 ) {
     val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
     val expandido = cartaExpandida.value == categoriaKey
@@ -504,15 +442,18 @@ fun cartas_categorias(
 
     LaunchedEffect(item.img_subcategorias) {
         showLoader = true
-        delay(5000) // Espera al menos 500 ms antes de permitir que se oculte el loader
+        delay(5000)
         showLoader = false
     }
 
     LaunchedEffect(expandido) {
-        if (expandido && categoriaYaLlamada.value != categoriaKey) {
+        if (expandido) {
             categoriaYaLlamada.value = categoriaKey
+            Log.d("cateogira_llamda", "${categoriaYaLlamada.value} == $categoriaKey")
             viewModel.T_patrocinadas(localidad = Localidad_selecionada, categoria = categoriaKey)
         }
+
+
     }
     Card(
         modifier = Modifier
@@ -534,7 +475,7 @@ fun cartas_categorias(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .clickable {
-                            clik_img(item.categoria, Localidad_selecionada)
+                            clik_img(item.categoria, Localidad_selecionada, nombre_user)
                         }
                         .height(200.dp)
                         .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
@@ -602,15 +543,16 @@ fun obtener_patrocinados(
 ) {
     val listaPatrocinados = remember { mutableStateListOf<tiendas_filtradas>() }
     val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
-
+    Log.d("obtenoms_patrocinados", "${tiendas_patrocinadas_por_categoria.toString()}")
     LaunchedEffect(tiendas_patrocinadas_por_categoria, expandido) {
         if (expandido && tiendas_patrocinadas_por_categoria != null) {
-            listaPatrocinados.clear()
             val inicio = System.currentTimeMillis()
+            listaPatrocinados.clear()
             tiendas_patrocinadas_por_categoria!!.forEach {
                 listaPatrocinados.add(
                     tiendas_filtradas(
-                        img_tiendas = it.img_tiendas,
+                        logo_tienda = it.logo_tienda,
+                        img_tienda = it.img_tienda,
                         nombre_tienda = it.nombre_tienda,
                         direccion = it.direccion,
                         referencia = it.referencia,
@@ -796,7 +738,7 @@ fun patrocinadores(
         )
     ) {
         AsyncImage(
-            model = item.img_tiendas,
+            model = item.logo_tienda,
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -905,47 +847,12 @@ fun texto_activos_encontrados(modifier: Modifier, texto: String, p_horizontal: D
 
 
 @Composable
-fun retornar_pleaceholder_label(texto: String) {
+fun retornar_pleaceholder_label(texto: String, color: Color? = null) {
     Text(
-        texto, style = MaterialTheme.typography.bodyMedium
+        texto,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color ?: LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
     )
 }
 
-fun obtenerResultados(
-    texto: String,
-    lista: List<encontradas_por_categoria>
-): List<encontradas_por_categoria> = lista.filter { catSub ->
-    catSub.subcateogiras?.any {
-        it.contains(texto, ignoreCase = true)
-    } == true
-}
-
-
-fun normalizarTexto(texto: String): String {
-    val textoSinTildes = Normalizer.normalize(texto, Normalizer.Form.NFD)
-        .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
-    return textoSinTildes.lowercase().trim()
-}
-
-fun abrirRutaEnGoogleMaps(context: Context, latitud: Double, longitud: Double) {
-    val uri = Uri.parse("google.navigation:q=$latitud,$longitud&mode=d")
-    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-        setPackage("com.google.android.apps.maps")
-    }
-
-    try {
-        context.startActivity(intent)
-    } catch (e: ActivityNotFoundException) {
-        Toast.makeText(
-            context,
-            "Google Maps no está instalado. Por favor, instálalo desde Play Store.",
-            Toast.LENGTH_LONG
-        ).show()
-    }
-}
-
-fun verificarUbiActiva(context: Context): Boolean {
-    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-}
 

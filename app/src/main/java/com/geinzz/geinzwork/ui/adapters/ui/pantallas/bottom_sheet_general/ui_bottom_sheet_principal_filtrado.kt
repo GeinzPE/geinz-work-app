@@ -1,18 +1,32 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,6 +37,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
@@ -30,6 +45,9 @@ import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +62,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +70,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -59,12 +81,14 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -72,11 +96,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.abrirRutaEnGoogleMaps
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.verificarUbiActiva
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
+import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
 
@@ -129,20 +154,14 @@ fun bottom_sheet_tiendas_filtradas(
                         tiendas_filtradas.categoria_tienda,
                         tiendas_filtradas.nombre_tienda,
                         latitud,
-                        longitud,tiendas_filtradas.img_perfil
+                        longitud, tiendas_filtradas.img_perfil,tiendas_filtradas.lista_img
                     )
                     spacer_vertical(20.dp)
                 }
                 item {
                     text_expandible_wrapp(
                         "Acerca de la tienda",
-                        MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "Acerca de la tienda",
-                        modifier = Modifier,
-                        fontSize = 18.sp,
-                        fontStyle = FontStyle.Normal
+                        MaterialTheme.typography.titleLarge
                     )
                     spacer_vertical(10.dp)
                 }
@@ -229,14 +248,17 @@ fun bottom_shet_patrocinadores(
                         )
                     }
                 }
+
+
                 item {
                     cabezero_tiendas(
                         tiendas_filtradas.direccion, tiendas_filtradas.referencia, categoritienda,
                         tiendas_filtradas.nombre_tienda, tiendas_filtradas.latitud,
-                        tiendas_filtradas.longitud,tiendas_filtradas.img_tiendas
+                        tiendas_filtradas.longitud, tiendas_filtradas.logo_tienda,tiendas_filtradas.img_tienda
                     )
                     spacer_vertical(20.dp)
                 }
+
                 item {
                     text_expandible_wrapp(
                         "Acerca de la tienda",
@@ -252,8 +274,6 @@ fun bottom_shet_patrocinadores(
                     spacer_vertical(10.dp)
                 }
                 item {
-
-
                     if (tiendas_filtradas.direccion.isNotBlank() || tiendas_filtradas.referencia.isNotBlank()) {
 
                         Column(modifier = Modifier.animateContentSize()) {
@@ -285,16 +305,71 @@ fun bottom_shet_patrocinadores(
     }
 }
 
+
+
+@Composable
+fun lista_img_tiendas(img: String) {
+    var expandir_img by remember { mutableStateOf(false) }
+
+    if (expandir_img) {
+        ZoomableImageDialogFullScreen(
+            imageUrl = img,
+            onDismiss = { expandir_img = false }
+        )
+    }
+    Box(){
+        AsyncImage(
+            model = img,
+            contentDescription = "Imagen de la tienda",
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
+            error = painterResource(id = R.drawable.qr_yape),
+            modifier = Modifier
+                .width(100.dp)
+                .height(100.dp)
+                .clip(RoundedCornerShape(16.dp))
+            )
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .size(30.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.5f))
+                .align(Alignment.BottomEnd)
+                .clickable { expandir_img=true },
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.verctor_zoom_white),
+                contentDescription = "Ocultar",
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
 @Composable
 fun cabezero_tiendas(
     direccion: String,
     referencia: String,
     categoritienda: String,
-    nombre_tienda: String, latitud: Double, longitud: Double, img_tienda_perfil: String
+    nombre_tienda: String, latitud: Double, longitud: Double, img_tienda_perfil: String,lista_img: List<String>
 ) {
     val context = LocalContext.current
     val mostrarDialogo = remember { mutableStateOf(false) }
     val mostrarDialog_sin_google_maps = remember { mutableStateOf(false) }
+    var expdir_img by remember { mutableStateOf(false) }
+
+
+    var mostrarDialogozoom by remember { mutableStateOf(false) }
+
+    if (mostrarDialogozoom) {
+        ZoomableImageDialogFullScreen(
+            imageUrl = img_tienda_perfil,
+            onDismiss = { mostrarDialogozoom = false }
+        )
+    }
+
     if (mostrarDialogo.value) {
         dialog_sin_ubicacion_activa(
             onDismis = {
@@ -320,19 +395,65 @@ fun cabezero_tiendas(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        AsyncImage(
-            model = img_tienda_perfil,
-            contentDescription = "Imagen de la tienda",
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
-            error = painterResource(id = R.drawable.qr_yape),
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .clip(RoundedCornerShape(16.dp))
-        )
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Box(){
+                AsyncImage(
+                    model = img_tienda_perfil,
+                    contentDescription = "Imagen de la tienda",
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
+                    error = painterResource(id = R.drawable.qr_yape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            expdir_img = !expdir_img
+                        },
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .align(Alignment.BottomEnd)
+                        .clickable { mostrarDialogozoom=true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.verctor_zoom_white),
+                        contentDescription = "Ocultar",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            AnimatedVisibility(expdir_img) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) {
+                    items(lista_img.size) { img ->
+                        val img_unidad = lista_img[img]
+                        lista_img_tiendas(img_unidad)
+                    }
+                }
+
+            }
+        }
+
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -381,7 +502,7 @@ fun cabezero_tiendas(
                     MaterialTheme.typography.bodyMedium
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
             }
             spacer_horizonta(10.dp)
             FloatingActionButton(
@@ -408,8 +529,9 @@ fun cabezero_tiendas(
     }
 }
 
+
 fun abrir_google_maps(
-    context: android.content.Context,
+    context:Context,
     latitud: Double,
     longitud: Double,
     mostrar_dialog: (Boolean) -> Unit
@@ -597,6 +719,7 @@ fun Expandible_horario_atencion(
 
                     horario_tienda.value.forEach { i ->
                         val esDiaActual = obtenerDiaActualEnEspañol() == i.dia
+                        Log.d("vemos_dia_actual","${obtenerDiaActualEnEspañol()} == ${i.dia}")
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -657,13 +780,13 @@ fun expandibles_wrapp(
             Icon(
                 painter = painterResource(icon),
                 contentDescription = "",
-                tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
+                tint = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = texto_params,
                 fontSize = 15.sp,
-                color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -697,7 +820,6 @@ fun expandibles_wrapp(
             )
         }
     }
-
 }
 
 fun obtenerDiaActualEnEspañol(): String {
@@ -706,3 +828,80 @@ fun obtenerDiaActualEnEspañol(): String {
     val diaSemana = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale)
     return diaSemana?.lowercase() ?: ""
 }
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+fun ZoomableImageDialogFullScreen(
+    imageUrl: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            shape = RectangleShape,
+            color = Color.Black
+        ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val maxWidthPx = constraints.maxWidth.toFloat()
+                val maxHeightPx = constraints.maxHeight.toFloat()
+
+                val coroutineScope = rememberCoroutineScope()
+
+                var scale by remember { mutableStateOf(1f) }
+                val offsetX = remember { Animatable(0f) }
+                val offsetY = remember { Animatable(0f) }
+
+                val gestureModifier = Modifier.pointerInput(Unit) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        val newScale = (scale * zoom).coerceIn(1f, 5f)
+                        scale = newScale
+
+                        val maxX = (maxWidthPx * (scale - 1)) / 2
+                        val maxY = (maxHeightPx * (scale - 1)) / 2
+
+                        coroutineScope.launch {
+                            offsetX.snapTo((offsetX.value + pan.x).coerceIn(-maxX, maxX))
+                            offsetY.snapTo((offsetY.value + pan.y).coerceIn(-maxY, maxY))
+                        }
+                    }
+                }
+
+                Image(
+                    painter = rememberAsyncImagePainter(imageUrl),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = offsetX.value,
+                            translationY = offsetY.value
+                        )
+                        .then(gestureModifier)
+                )
+
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+
+
+

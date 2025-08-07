@@ -27,8 +27,8 @@ fun nativationWrapper(
                 localidad_user,
                 nombre_user,
                 viewmodel,
-                clik_img = { categoria, localidada ->
-                    navController.navigate(screen_filtrado(categoria, localidada)) {}
+                clik_img = { categoria, localidada,nombre_user ->
+                    navController.navigate(screen_filtrado(categoria, localidada,nombre_user)) {}
                 })
         }
 
@@ -39,9 +39,8 @@ fun nativationWrapper(
                 Pantalla_filtrado_tiendas(
                     categoria_localidad.categoria,
                     categoria_localidad.localidad,
+                    categoria_localidad.nombre_user,
                     navigation_regresar = { navController.popBackStack() })
-
-
         }
 
     }
