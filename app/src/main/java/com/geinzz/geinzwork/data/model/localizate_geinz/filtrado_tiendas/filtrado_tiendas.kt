@@ -30,3 +30,4 @@ data class tiendas_por_categoria(
     val id_tienda: String = "",
 )
 
+

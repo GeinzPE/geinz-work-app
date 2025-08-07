@@ -38,7 +38,7 @@ class viewModel_filtado_tiendas : ViewModel() {
         private set
 
     fun tiendas_iniciales(lista: List<tiendas_por_categoria>) {
-        Log.d("otbenremos_lista",lista.toString())
+        Log.d("otbenremos_lista", lista.toString())
         todas_tiendas.clear()
         todas_tiendas.addAll(lista)
     }
@@ -47,16 +47,26 @@ class viewModel_filtado_tiendas : ViewModel() {
         return todas_tiendas.filter { it.lista_subcategoiras.contains(subcategoria) }
     }
 
-    fun filtrar_por_nombre_en_lista(nombre: String, lista: List<tiendas_por_categoria>): List<tiendas_por_categoria> {
+    fun filtrar_por_nombre_en_lista(
+        nombre: String,
+        lista: List<tiendas_por_categoria>
+    ): List<tiendas_por_categoria> {
         return lista.filter { it.nombre_tienda.contains(nombre, ignoreCase = true) }
     }
 
 
     fun fraces_loadin(localida: String, nombre_user: String, categoria: String): List<String> {
         return listOf(
-            "Qué bueno verte por aquí en $localida",
-            "Buscando tiendas para ti, $nombre_user...",
+            "Qué bueno verte por aquí en $localida ...",
+            "Buscando tiendas para ti, $nombre_user ...",
             "Buscando tiendas de $categoria ..."
+        )
+    }
+
+    fun fraces_cargando_filtradas(subcategoria: String, nombre_user: String): List<String> {
+        return listOf(
+            "Cargandos todas los negocios de $subcategoria ...",
+            "Espera un momento $nombre_user ..."
         )
     }
 

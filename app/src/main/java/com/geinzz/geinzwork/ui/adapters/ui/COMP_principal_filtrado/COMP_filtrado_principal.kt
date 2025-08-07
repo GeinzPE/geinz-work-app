@@ -8,8 +8,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.retornar_pleaceholder_label
 
@@ -45,5 +47,15 @@ fun custom_texFiel(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             focusedLabelColor = MaterialTheme.colorScheme.primary
         )
+    )
+}
+
+@Composable
+fun existencia_dato(){
+    Text(
+        "No hay coincidencias ingrese otra palabra",
+        color = Color.Red,
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier.padding(5.dp)
     )
 }

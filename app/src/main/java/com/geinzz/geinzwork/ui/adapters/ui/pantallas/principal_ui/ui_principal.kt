@@ -86,6 +86,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filt
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
@@ -413,12 +414,7 @@ fun filtrado_texto(
                 ),
             )
             if (is_error) {
-                Text(
-                    "No hay coincidencias",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(5.dp)
-                )
+                existencia_dato()
             }
         }
 

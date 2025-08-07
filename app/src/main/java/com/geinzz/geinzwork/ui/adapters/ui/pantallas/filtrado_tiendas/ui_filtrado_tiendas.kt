@@ -5,42 +5,32 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import com.geinzz.geinzwork.R
 import androidx.compose.material3.Card
@@ -51,13 +41,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -71,32 +58,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.airbnb.lottie.LottieComposition
-import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoFiltrosUi
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cargando_categorias
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.retornar_pleaceholder_label
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 
 
@@ -118,33 +98,43 @@ fun Pantalla_filtrado_tiendas(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = tiendasFiltradas
     )
+    val estadoCarga =
+        remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var visible_texfiel by remember { mutableStateOf(false) }
-    var cargando = remember { mutableStateOf(true) }
-
-
+    var existe by remember { mutableStateOf(false) }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     var id_tienda_selecionada by remember { mutableStateOf("") }
-    var categoria_seleccionda by remember { mutableStateOf("") }
+    var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
+
 
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var lista_subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
+    var sub_categoria_selecionada by rememberSaveable { mutableStateOf<String?>(null) }
+
+
 
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_tiendas_filtradas))
+    val raw_carga_chips by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_subcategorias_tiendas))
+
 
     var categoria_anterior by remember { mutableStateOf("") }
     var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
     var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
 
-
     LaunchedEffect(categoria_seleccionda) {
+        estadoCarga.value = selec_class_estados_carga.carga_chips
+        delay(6000)
         if (categoria_seleccionda.isNotBlank() && categoria_seleccionda != categoria_anterior) {
             val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
             listaBaseSubcategoria = tiendas_filtradas
             listaMostrar = tiendas_filtradas
             categoria_anterior = categoria_seleccionda
         }
+
+        estadoCarga.value = selec_class_estados_carga.sin_carga
+
     }
 
     LaunchedEffect(texto_filtrado) {
@@ -153,12 +143,13 @@ fun Pantalla_filtrado_tiendas(
         } else {
             viewModelFiltros.filtrar_por_nombre_en_lista(texto_filtrado, listaBaseSubcategoria)
         }
+        existe = (texto_filtrado.length >= 2 && listaMostrar.isEmpty())
     }
 
     LaunchedEffect(estadoFiltrosUi.subcategorias) {
         val subcategorias: List<String> = estadoFiltrosUi.subcategorias.flatMap { it.subcategorias }
         lista_subcategorias = subcategorias
-
+        delay(6000)
     }
 
     LaunchedEffect(showBottomSheet) {
@@ -169,17 +160,17 @@ fun Pantalla_filtrado_tiendas(
 
     LaunchedEffect(datosTienda) {
         if (datosTienda.isNotEmpty()) {
-            Log.d("DatosObtenidos", datosTienda.toString())
             dataclass_tienda_seleccionada = datosTienda.first()
         }
     }
 
     LaunchedEffect(Unit) {
-        cargando.value = true
+        estadoCarga.value = selec_class_estados_carga.carga_principal
         viewModelFiltros.obtener_subcategorias(categoria)
         viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
         delay(6000)
-        cargando.value = false
+        estadoCarga.value = selec_class_estados_carga.sin_carga
+
     }
 
     LaunchedEffect(tiendasFiltradas) {
@@ -187,46 +178,62 @@ fun Pantalla_filtrado_tiendas(
             Log.d("llamos_tiendas_por", tiendasFiltradas.toString())
             viewModelFiltros.tiendas_iniciales(tiendasFiltradas)
             listaMostrar = tiendasFiltradas
-            delay(6000)
-            cargando.value = false
+
         }
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Crossfade(targetState = cargando.value, label = "Cargando transición") { isCargando ->
-            if (isCargando) {
-                cargando_categorias(
-                    composision,
-                    localida,
-                    30.dp,
-                    viewModelFiltros.fraces_loadin(localida, nombre_user, categoria)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .padding(horizontal = 10.dp)
-                ) {
-                    item { encabezado_chis_categorias() }
+        Crossfade(targetState = estadoCarga.value, label = "Cargando transición") { estado ->
+            when (estado) {
+                is selec_class_estados_carga.carga_principal -> {
+                    cargando_categorias(
+                        composision,
+                        localida,
+                        30.dp,
+                        viewModelFiltros.fraces_loadin(localida, nombre_user, categoria)
+                    )
+                    Log.d("llamos_cargad","carga_pricipañ")
+                }
+                is selec_class_estados_carga.carga_chips -> {
+                    cargando_categorias(
+                        raw_carga_chips,
+                        localida,
+                        30.dp,
+                        viewModelFiltros.fraces_cargando_filtradas(
+                            categoria_seleccionda,
+                            nombre_user
+                        )
+                    )
+                }
 
-                    item {
-                        chips_filtrado(lista_subcategorias, { expandir ->
-                            visible_texfiel = expandir
-                        }, { categoria_selecionada ->
-                            categoria_seleccionda = categoria_selecionada
-                        })
-                    }
+                is selec_class_estados_carga.sin_carga -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .padding(horizontal = 10.dp)
+                    ) {
+                        item { encabezado_chis_categorias() }
 
-                    item {
-                        Text_fiel_filtrado(visible_texfiel, texto_filtrado) {
-                            texto_filtrado = it
+                        item {
+                            chips_filtrado(sub_categoria_selecionada,lista_subcategorias, { expandir ->
+                                visible_texfiel = expandir
+                            }, { categoria_selecionada ->
+                                categoria_seleccionda = categoria_selecionada
+                                sub_categoria_selecionada=categoria_seleccionda
+                            })
                         }
-                    }
 
-                    items(listaMostrar) { tienda ->
-                        item_tiendas(tienda) { id_tienda, listener ->
-                            showBottomSheet = listener
-                            id_tienda_selecionada = id_tienda
+                        item {
+                            Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
+                                texto_filtrado = it
+                            }
+                        }
+
+                        items(listaMostrar) { tienda ->
+                            item_tiendas(tienda) { id_tienda, listener ->
+                                showBottomSheet = listener
+                                id_tienda_selecionada = id_tienda
+                            }
                         }
                     }
                 }
@@ -244,6 +251,7 @@ fun Pantalla_filtrado_tiendas(
 
     }
 }
+
 
 @Composable
 fun encabezado_chis_categorias() {
@@ -265,14 +273,16 @@ fun encabezado_chis_categorias() {
 
 @Composable
 fun chips_filtrado(
+    sub_categoria_selecionada: String?,
     lista_subcategorias: List<String>,
     expandir_carta: (Boolean) -> Unit,
     selecionado: (String) -> Unit
 ) {
-    var sub_categoria_selecionada by remember { mutableStateOf<String?>(null) }
-    LazyRow() {
+    val listState = rememberLazyListState()
+    LazyRow(state = listState) {
         items(lista_subcategorias) { subcategorias ->
             val selecionado = sub_categoria_selecionada == subcategorias
+            Log.d("obtnermos_chekead","$sub_categoria_selecionada == $subcategorias")
 
             FilterChip(
                 colors = FilterChipDefaults.filterChipColors(
@@ -282,14 +292,20 @@ fun chips_filtrado(
                 ),
                 modifier = Modifier.padding(horizontal = 4.dp),
                 selected = selecionado,
-                border = if (selecionado) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground   ),
+                border = if (selecionado) null else BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.onBackground
+                ),
                 onClick = {
-                    sub_categoria_selecionada = if (selecionado) null else subcategorias
+                    val valor_nuevo = if (selecionado) null else subcategorias
                     expandir_carta(true)
-                    selecionado(sub_categoria_selecionada.toString())
+                    selecionado(valor_nuevo.toString())
                 },
                 label = {
-                    Text(text = subcategorias, color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground)
+                    Text(
+                        text = subcategorias,
+                        color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
+                    )
                 },
                 shape = RoundedCornerShape(40)
             )
@@ -300,6 +316,7 @@ fun chips_filtrado(
 
 @Composable
 fun Text_fiel_filtrado(
+    existe_texto: Boolean,
     visible_texfiel: Boolean,
     texto_filtrado_txt: String,
     texto_filtrado: (String) -> Unit,
@@ -311,40 +328,46 @@ fun Text_fiel_filtrado(
         enter = expandVertically() + fadeIn(),
         exit = shrinkVertically() + fadeOut()
     ) {
-        custom_texFiel(
-            value = texto_filtrado_txt,
-            onValueChange = {
-                texto_filtrado(it)
-                if (it.isNotBlank()) {
-                    icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
-                } else {
-                    icono_busqeuda = R.drawable.buscar_icon
-                }
-            },
-            labelText = "Ingresa el nombre de la tienda",
-            placeholderText = "Ingresa el nombre",
-            trailingIcon = {
-                if (icono_busqeuda == R.drawable.vector_eliminar_texto_texfiel) {
-                    IconButton(onClick = {
-                        texto_filtrado("")
+        Column() {
+            custom_texFiel(
+                value = texto_filtrado_txt,
+                onValueChange = {
+                    texto_filtrado(it)
+                    if (it.isNotBlank()) {
+                        icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
+                    } else {
                         icono_busqeuda = R.drawable.buscar_icon
-                    }) {
+                    }
+                },
+                labelText = "Ingresa el nombre de la tienda",
+                placeholderText = "Ingresa el nombre",
+                trailingIcon = {
+                    if (icono_busqeuda == R.drawable.vector_eliminar_texto_texfiel) {
+                        IconButton(onClick = {
+                            texto_filtrado("")
+                            icono_busqeuda = R.drawable.buscar_icon
+                        }) {
+                            androidx.compose.material3.Icon(
+                                painter = painterResource(id = icono_busqeuda),
+                                contentDescription = "Eliminar texto"
+                            )
+                        }
+                    } else {
                         androidx.compose.material3.Icon(
                             painter = painterResource(id = icono_busqeuda),
-                            contentDescription = "Eliminar texto"
+                            contentDescription = "Buscar por subcategoría"
                         )
                     }
-                } else {
-                    androidx.compose.material3.Icon(
-                        painter = painterResource(id = icono_busqeuda),
-                        contentDescription = "Buscar por subcategoría"
-                    )
-                }
-            },
-            isError = false,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(),
-        )
+                },
+                isError = false,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(),
+            )
+            AnimatedVisibility(existe_texto) {
+                existencia_dato()
+            }
+
+        }
 
     }
 }

@@ -34,7 +34,7 @@ class viewModel_localizate_geinz : ViewModel() {
         return listOf(
             "Espere un momento...",
             "Cargando tiendas de $localidadUser...",
-            "Buscamos lo mejor para ti $nombreUser"
+            "Buscamos lo mejor para ti $nombreUser ..."
         )
     }
 
