@@ -1,8 +1,15 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
+import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import java.text.Normalizer
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.collections.forEach
 
 object constantes_lista_localidades {
     val lista = listOf(
@@ -13,6 +20,83 @@ object constantes_lista_localidades {
     )
     val dias_sema =
         listOf("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
+
+
+     fun obtenerMetodoContacto(
+        metodo: String,
+        data: Map<String, Any>
+    ): Pair<Boolean, String> {
+        val metodoData = data[metodo] as? Map<String, Any> ?: emptyMap()
+        val estado = metodoData["estado"] as? Boolean ?: false
+        val nombre = metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
+        return estado to nombre
+    }
+
+    fun ocultarNumero(numero: String): String {
+        return if (numero.length >= 9) {
+            val primerosTres = numero.take(3)
+            val ocultos = "*".repeat(numero.length - 3)
+            "$primerosTres$ocultos"
+        } else {
+            numero
+        }
+    }
+
+    fun verificarSiEstaAbierto(lista_horarios_por_tienda: List<horario_Dia>): Boolean {
+        return try {
+            val diaActualConTilde =
+                SimpleDateFormat("EEEE", Locale("es", "ES")).format(Date()).lowercase()
+            val diaActual = quitarTildes(diaActualConTilde)
+            Log.d("HORARIO_CHECK", "Día actual: $diaActual")
+
+            val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val ahora = formato.parse(formato.format(Date())) ?: return false
+            Log.d("HORARIO_CHECK", "Hora actual: ${formato.format(ahora)}")
+
+            lista_horarios_por_tienda.forEach { i ->
+                val dia = i.dia!!.lowercase()
+                val diaSinTilde = quitarTildes(dia)
+                Log.d("HORARIO_CHECK", "Evaluando día: $diaSinTilde")
+
+                if (diaSinTilde == diaActual) {
+                    val apertura = formato.parse(i.h_apertura)
+                    val cierre = formato.parse(i.h_cierre)
+                    Log.d(
+                        "HORARIO_CHECK",
+                        "Horario -> Apertura: ${i.h_apertura}, Cierre: ${i.h_cierre}"
+                    )
+
+                    if (apertura == null || cierre == null) {
+                        Log.w("HORARIO_CHECK", "Horario inválido, se omite este día.")
+                        return@forEach
+                    }
+
+                    val estaAbierto = if (cierre.after(apertura)) {
+                        // Ejemplo: 08:00 - 18:00
+                        ahora in apertura..cierre
+                    } else {
+                        // Ejemplo: 22:00 - 02:00 (día siguiente)
+                        ahora.after(apertura) || ahora.before(cierre)
+                    }
+
+                    Log.d("HORARIO_CHECK", "¿Está abierto hoy? $estaAbierto")
+
+                    if (estaAbierto) return true
+                }
+            }
+
+            false // Ningún horario coincide y está activo
+        } catch (e: Exception) {
+            Log.e("verificarSiEstaAbierto", "Error al verificar horario", e)
+            false
+        }
+    }
+
+    fun quitarTildes(texto: String): String {
+        val normalized = Normalizer.normalize(texto, Normalizer.Form.NFD)
+        return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
+    }
+
 
 
 //    val listaCategorias = listOf(

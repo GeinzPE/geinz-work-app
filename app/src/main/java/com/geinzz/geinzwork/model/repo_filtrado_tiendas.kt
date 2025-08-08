@@ -1,12 +1,13 @@
 package com.geinzz.geinzwork.model
 
 import android.util.Log
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -82,6 +83,27 @@ class repo_filtrado_tiendas {
         if (tienda.exists()) {
             val data = tienda.data
             val map_img = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+            val mapMetodoContacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+            val (estadoFb, nombreFb) = constantes_lista_localidades.obtenerMetodoContacto(
+                "facebook",
+                mapMetodoContacto
+            )
+            val (estadoIg, nombreIg) = constantes_lista_localidades.obtenerMetodoContacto(
+                "instagram",
+                mapMetodoContacto
+            )
+            val (estadoTk, nombreTk) = constantes_lista_localidades.obtenerMetodoContacto(
+                "tiktok",
+                mapMetodoContacto
+            )
+            val (estadoWa, numeroWa) = constantes_lista_localidades.obtenerMetodoContacto(
+                "whatsapp",
+                mapMetodoContacto
+            )
+            val (estadoWeb, urlWeb) = constantes_lista_localidades.obtenerMetodoContacto(
+                "sitio_web",
+                mapMetodoContacto
+            )
             val tiendaModelo = modelo_tienda(
                 categoria_tienda = data?.get("categoria_tienda") as? String ?: "",
                 descripcion = data?.get("descripcion") as? String ?: "",
@@ -93,18 +115,28 @@ class repo_filtrado_tiendas {
                 nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
                 subcategoria = data?.get("subcategoria") as? List<String> ?: emptyList(),
                 ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap(),
-                metodo_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+                metodo_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap(),
+                whatsapp = estadoWa,
+                numero_whatsapp = numeroWa,
+                tiktok = estadoTk,
+                nombre_tiktok = nombreTk,
+                sitio_web = estadoWeb,
+                url_sitio_web = urlWeb,
+                instagram = estadoIg,
+                nombre_user_ig = nombreIg,
+                facebook = estadoFb,
+                nombre_user_fb = nombreFb
             )
             lista_modelo_tienda.add(tiendaModelo)
         }
         return lista_modelo_tienda
 
     }
-
-    suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): List<horario_tienda> {
-        val listaDias =
-            listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
-        val listaHorarios = mutableListOf<horario_tienda>()
+    suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): HorarioTienda? {
+        val listaDias = listOf(
+            "lunes", "martes", "miércoles",
+            "jueves", "viernes", "sábado", "domingo"
+        )
 
         val tiendaSnapshot = db.collection("Tiendas")
             .document(localidad)
@@ -115,18 +147,21 @@ class repo_filtrado_tiendas {
             .get()
             .await()
 
-        if (tiendaSnapshot.exists()) {
-            val data = tiendaSnapshot.data ?: emptyMap()
+        if (!tiendaSnapshot.exists()) return null
 
-            listaDias.forEach { dia ->
-                val infoDia = data[dia] as? Map<*, *>
-                val h_apertura = infoDia?.get("h_apertura") as? String ?: ""
-                val h_cierre = infoDia?.get("h_cierre") as? String ?: ""
-                listaHorarios.add(horario_tienda(idTienda, dia, h_apertura, h_cierre))
-            }
+        val data = tiendaSnapshot.data ?: emptyMap<String, Any>()
+        val listaHorarios = listaDias.map { dia ->
+            val infoDia = data[dia] as? Map<*, *>
+            horario_Dia(
+                dia = dia,
+                h_apertura = infoDia?.get("h_apertura") as? String ?: "",
+                h_cierre = infoDia?.get("h_cierre") as? String ?: ""
+            )
         }
-        return listaHorarios
+
+        return HorarioTienda(idTienda, listaHorarios)
     }
+
 
 
     suspend fun obtener_tiendas_por_subcateogira(

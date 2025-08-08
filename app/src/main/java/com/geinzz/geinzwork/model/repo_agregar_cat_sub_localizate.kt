@@ -3,9 +3,8 @@ package com.geinzz.geinzwork.model
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
-
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
-import com.geinzz.geinzwork.data.model.localizate_geinz.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,10 +12,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
-import java.text.Normalizer
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class repo_agregar_cat_sub_localizate {
 
@@ -88,21 +83,25 @@ class repo_agregar_cat_sub_localizate {
         for (datos in coincidenciasCategoria) {
             val id_tienda = datos.getString("id_tienda") ?: continue
             val horarioSnapshot = collectionTiendas.document(id_tienda)
-                .collection("horario_atencio")
+                .collection("horario_atencion")
                 .document("horario_atencion")
                 .get()
                 .await()
             val dias_sema = constantes_lista_localidades.dias_sema
-            val lista_horario_por_tienda = mutableListOf<horario_tienda>()
+            val lista_horario_por_tienda = mutableListOf<horario_Dia>()
+
             for (dias in dias_sema) {
+
                 val diaMap = horarioSnapshot.get(dias) as? Map<*, *>
                 val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
                 val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
-                val datos = horario_tienda(id_tienda, dias, h_apertura, h_cierre)
+                horario_Dia(dias, h_apertura,h_cierre)
+                val datos = horario_Dia(dias, h_apertura, h_cierre)
                 lista_horario_por_tienda.add(datos)
             }
+
             Log.d("temonos_teindas", lista_horario_por_tienda.toString())
-            val tienda_activa = verificarSiEstaAbierto(lista_horario_por_tienda)
+            val tienda_activa = constantes_lista_localidades.verificarSiEstaAbierto(lista_horario_por_tienda)
             if (tienda_activa) {
                 cantidadActivas++
             }
@@ -173,8 +172,36 @@ class repo_agregar_cat_sub_localizate {
                         val lista_img_tienda =
                             map_img_tienda.get("lista_img") as? List<String> ?: emptyList()
 
+
+                        val mapMetodoContacto =
+                            doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+
+                        val (estadoFb, nombreFb) = constantes_lista_localidades.obtenerMetodoContacto(
+                            "facebook",
+                            mapMetodoContacto
+                        )
+                        val (estadoIg, nombreIg) = constantes_lista_localidades.obtenerMetodoContacto(
+                            "instagram",
+                            mapMetodoContacto
+                        )
+                        val (estadoTk, nombreTk) = constantes_lista_localidades.obtenerMetodoContacto(
+                            "tiktok",
+                            mapMetodoContacto
+                        )
+                        val (estadoWa, numeroWa) = constantes_lista_localidades.obtenerMetodoContacto(
+                            "whatsapp",
+                            mapMetodoContacto
+                        )
+                        val (estadoWeb, urlWeb) = constantes_lista_localidades.obtenerMetodoContacto(
+                            "sitio_web",
+                            mapMetodoContacto
+                        )
+
+
+
                         tiendas_filtradas(
-                            logo_tienda, lista_img_tienda,
+                            logo_tienda,
+                            lista_img_tienda,
                             doc.getString("nombre_tienda") ?: "",
                             direccion,
                             referencia,
@@ -182,7 +209,13 @@ class repo_agregar_cat_sub_localizate {
                             longitud.toDouble(),
                             doc.get("subcategoria") as? List<String> ?: emptyList(),
                             doc.getString("descripcion") ?: "",
-                            doc.getString("id_tienda") ?: ""
+                            doc.getString("id_tienda") ?: "",
+                            estadoWa,
+                            numeroWa,
+                            estadoTk,
+                            nombreTk,
+                            estadoWeb,
+                            urlWeb, estadoIg, nombreIg, estadoFb, nombreFb
                         )
                     } catch (e: Exception) {
                         null
@@ -193,73 +226,5 @@ class repo_agregar_cat_sub_localizate {
         trabajos.awaitAll().filterNotNull()
     }
 
+
 }
-
-
-fun verificarSiEstaAbierto(lista_horarios_por_tienda: List<horario_tienda>): Boolean {
-    return try {
-        val diaActualConTilde =
-            SimpleDateFormat("EEEE", Locale("es", "ES")).format(Date()).lowercase()
-        val diaActual = quitarTildes(diaActualConTilde)
-        Log.d("HORARIO_CHECK", "Día actual: $diaActual")
-
-        val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val ahora = formato.parse(formato.format(Date())) ?: return false
-        Log.d("HORARIO_CHECK", "Hora actual: ${formato.format(ahora)}")
-
-        lista_horarios_por_tienda.forEach { i ->
-            val dia = i.dia!!.lowercase()
-            val diaSinTilde = quitarTildes(dia)
-            Log.d("HORARIO_CHECK", "Evaluando día: $diaSinTilde")
-
-            if (diaSinTilde == diaActual) {
-                val apertura = formato.parse(i.h_apertura)
-                val cierre = formato.parse(i.h_cierre)
-                Log.d(
-                    "HORARIO_CHECK",
-                    "Horario -> Apertura: ${i.h_apertura}, Cierre: ${i.h_cierre}"
-                )
-
-                if (apertura == null || cierre == null) {
-                    Log.w("HORARIO_CHECK", "Horario inválido, se omite este día.")
-                    return@forEach
-                }
-
-                val estaAbierto = if (cierre.after(apertura)) {
-                    // Ejemplo: 08:00 - 18:00
-                    ahora in apertura..cierre
-                } else {
-                    // Ejemplo: 22:00 - 02:00 (día siguiente)
-                    ahora.after(apertura) || ahora.before(cierre)
-                }
-
-                Log.d("HORARIO_CHECK", "¿Está abierto hoy? $estaAbierto")
-
-                if (estaAbierto) return true
-            }
-        }
-
-        false // Ningún horario coincide y está activo
-    } catch (e: Exception) {
-        Log.e("verificarSiEstaAbierto", "Error al verificar horario", e)
-        false
-    }
-}
-
-
-fun quitarTildes(texto: String): String {
-    val normalized = Normalizer.normalize(texto, Normalizer.Form.NFD)
-    return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
-}
-
-//suspend fun obtener_subcategorias(categoria_selecionada: String): List<String> {
-//
-//    val subcategorias = db.collection("Tiendas").document("categorias").collection("categorias")
-//        .document(categoria_selecionada).get().await()
-//    return if (subcategorias.exists()) {
-//        subcategorias.get("subcategorias") as? List<String> ?: emptyList()
-//    } else {
-//        emptyList()
-//    }
-//}
-//}

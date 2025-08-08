@@ -556,7 +556,17 @@ fun obtener_patrocinados(
                         descripcion = it.descripcion,
                         id_tienda = it.id_tienda,
                         latitud = it.latitud,
-                        lista_subcategoiras = it.lista_subcategoiras
+                        lista_subcategoiras = it.lista_subcategoiras,
+                        whatsapp = it.whatsapp,
+                        numero_whatsapp = it.numero_whatsapp,
+                        tiktok = it.tiktok,
+                        nombre_tiktok = it.nombre_tiktok,
+                        sitio_web = it.sitio_web,
+                        url_sitio_web = it.url_sitio_web,
+                        instagram = it.instagram,
+                        nombre_user_ig = it.nombre_user_ig,
+                        facebook = it.facebook,
+                        nombre_user_fb = it.nombre_user_fb,
                     )
                 )
 

@@ -1,7 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,9 +14,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.retornar_pleaceholder_label
 
 @Composable
@@ -58,4 +65,19 @@ fun existencia_dato(){
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.padding(5.dp)
     )
+}
+
+
+@Composable
+fun estados_tiendas(estado: String,color_estado: Color){
+    Row (verticalAlignment = Alignment.CenterVertically){
+        Text(text = estado, color = color_estado, style = MaterialTheme.typography.bodyMedium)
+        spacer_horizonta(5.dp)
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .clip(RoundedCornerShape(50))
+                .background(color_estado)
+        )
+    }
 }

@@ -9,19 +9,29 @@ data class encontradas_por_categoria(
     val img_subcategorias: String=""
 )
 
-data class horario_tienda(
-    val id_tienda: String="",
+data class horario_Dia(
     val dia: String="",
     val h_apertura: String="",
     val h_cierre: String=""
 )
 
+data class HorarioTienda(
+    val id_tienda: String="",
+    val lista_Horario: List<horario_Dia> = emptyList()
+)
+
+data class EstadoTienda(
+    val idTienda: String="",
+    val estaAbierto: Boolean=false
+)
 
 
 data class tiendas_patrocinadas(
     val id_tienda: String="",
     val categoria_tienda: String=""
 )
+
+
 
 data class modelo_tienda(
     val nombre_tienda: String="",
@@ -34,7 +44,17 @@ data class modelo_tienda(
     val lista_img: List<String> =emptyList(),
     val subcategoria: List<String> = emptyList(),
     val ubicacion: Map<String, Any> = emptyMap(),
-    val metodo_contacto: Map<String, Any> = emptyMap()
+    val metodo_contacto: Map<String, Any> = emptyMap(),
+    val whatsapp: Boolean = false,
+    val numero_whatsapp: String = "",
+    val tiktok: Boolean = false,
+    val nombre_tiktok: String = "",
+    val sitio_web: Boolean = false,
+    val url_sitio_web: String = "",
+    val instagram: Boolean = false,
+    val nombre_user_ig: String = "",
+    val facebook: Boolean = false,
+    val nombre_user_fb: String = ""
 
 )
 

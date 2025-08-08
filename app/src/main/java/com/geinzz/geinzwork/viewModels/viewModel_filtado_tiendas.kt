@@ -5,12 +5,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.horario_tienda
+
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.launch
 
 class viewModel_filtado_tiendas : ViewModel() {
@@ -26,12 +27,17 @@ class viewModel_filtado_tiendas : ViewModel() {
     private val datos_tienda = MutableLiveData<List<modelo_tienda>>()
     val _datos_tienda: LiveData<List<modelo_tienda>> get() = datos_tienda
 
-    private val horario_tienda = MutableLiveData<List<horario_tienda>>()
-    val _horario_tienda: LiveData<List<horario_tienda>> get() = horario_tienda
+    // LiveData privado para modificar
+    private val _horarioTienda = MutableLiveData<HorarioTienda?>(null)
+
+    val horarioTienda: LiveData<HorarioTienda?> get() = _horarioTienda
+
+//    private val tiendas_por_subcategoria = MutableLiveData<List<tiendas_por_categoria>>()
+//    val _tiendas_por_subcategoria: LiveData<List<tiendas_por_categoria>> get() = tiendas_por_subcategoria
 
 
-    private val tiendas_por_subcategoria = MutableLiveData<List<tiendas_por_categoria>>()
-    val _tiendas_por_subcategoria: LiveData<List<tiendas_por_categoria>> get() = tiendas_por_subcategoria
+    private val _estadoTiendas = MutableLiveData<Map<String, Boolean>>(emptyMap())
+    val estadoTiendas: LiveData<Map<String, Boolean>> get() = _estadoTiendas
 
 
     var todas_tiendas = mutableListOf<tiendas_por_categoria>()
@@ -111,18 +117,35 @@ class viewModel_filtado_tiendas : ViewModel() {
         }
     }
 
-    fun obtener_horario_por_tienda(localida: String, id_tienda: String) {
+    fun obtenerHorarioPorTienda_activa(localidad: String, idTienda: String) {
         viewModelScope.launch {
             try {
-                val data = repo_filtrado.obtenerHorarioPorTienda(id_tienda, localida)
-                horario_tienda.value = data
+                val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
+                data?.let { horarioTienda ->
+                    val estaAbierto = constantes_lista_localidades.verificarSiEstaAbierto(horarioTienda.lista_Horario)
+                    val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
+                    nuevoMapa[idTienda] = estaAbierto
+                    _estadoTiendas.postValue(nuevoMapa)
+                }
+                Log.d("obtenos_dataios_teindas", _horarioTienda.value.toString())
             } catch (e: Exception) {
-                horario_tienda.value = emptyList()
+
             }
-
         }
-
     }
+    fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
+        viewModelScope.launch {
+            try {
+                val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
+                _horarioTienda.value = data
+            } catch (e: Exception) {
+                _horarioTienda.value = null
+            }
+        }
+    }
+
+
+
 
 
 //    fun obtener_tiendas_por_subcategoria(subcategoria: String, localida: String) {

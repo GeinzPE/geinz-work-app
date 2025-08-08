@@ -78,7 +78,6 @@ class viewModel_localizate_geinz : ViewModel() {
             try {
                 val result = modelo_agregar_cat_sub.obtener_datos_tiendas_patrocindas(localidad, categoria)
                 _T_patrocinadas_por_categoria.value = result
-                Log.d("obtenos_resulado",result.toString())
             } catch (e: Exception) {
                 _T_patrocinadas_por_categoria.value = emptyList()
             } finally {
@@ -90,9 +89,6 @@ class viewModel_localizate_geinz : ViewModel() {
         }
     }
 
-    fun datos_tiendas_patrocinadas() {
-
-    }
 
 //    private val _loading_subcategorias = mutableStateOf(false)
 //    val loading_subcateogiras: State<Boolean> = _loading_subcategorias
