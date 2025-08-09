@@ -115,7 +115,6 @@ class repo_filtrado_tiendas {
                 nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
                 subcategoria = data?.get("subcategoria") as? List<String> ?: emptyList(),
                 ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap(),
-                metodo_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap(),
                 whatsapp = estadoWa,
                 numero_whatsapp = numeroWa,
                 tiktok = estadoTk,

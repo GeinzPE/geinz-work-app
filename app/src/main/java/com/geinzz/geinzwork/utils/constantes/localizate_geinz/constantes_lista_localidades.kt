@@ -1,10 +1,27 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
+import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -95,6 +112,38 @@ object constantes_lista_localidades {
     fun quitarTildes(texto: String): String {
         val normalized = Normalizer.normalize(texto, Normalizer.Form.NFD)
         return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
+    }
+
+    fun abrir_google_maps(
+        context: Context,
+        latitud: Double,
+        longitud: Double,
+        mostrar_dialog: (Boolean) -> Unit
+    ) {
+        if (verificarUbiActiva(context)) {
+            abrirRutaEnGoogleMaps(context, latitud, longitud)
+        } else {
+            mostrar_dialog(true)
+        }
+    }
+
+    @Composable
+    fun ZoomIconButton(mostrarDialogozoom: () -> Unit) {
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .size(30.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.5f))
+                .clickable { mostrarDialogozoom() },
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.verctor_zoom_white),
+                contentDescription = "Ocultar",
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 
 

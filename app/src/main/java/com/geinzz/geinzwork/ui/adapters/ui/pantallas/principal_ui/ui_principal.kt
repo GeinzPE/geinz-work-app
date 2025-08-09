@@ -85,6 +85,8 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escu
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
@@ -99,6 +101,7 @@ import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.normalizarTexto
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewModel_horario_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -198,14 +201,7 @@ fun PantallaExplorarTiendas(
                     }
 
                     stickyHeader() {
-                        Column(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
-                                .background(MaterialTheme.colorScheme.background)
-                                .padding(8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
+                        ColumnContenedorComun{
                             FiltradosChipsLocalidades(
                                 lista_localidades,
                                 localidadSeleccionada.value
@@ -623,6 +619,7 @@ fun ListaTiendasPatrocinadas(
     viewModel: viewModel_localizate_geinz,
     tiendas: List<tiendas_filtradas>, categoria: String, localidad: String
 ) {
+    val viewModel_horario_tienda: viewModel_horario_tienda = viewModel()
     val isLoading by viewModel.loading
     val context = LocalContext.current
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
@@ -660,19 +657,7 @@ fun ListaTiendasPatrocinadas(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row {
-                    Text(
-                        text = "Buscando tiendas patrocinadas",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+                cargando_progess_mas_texto("Buscando tiendas patrocinadas")
             }
 
         } else {

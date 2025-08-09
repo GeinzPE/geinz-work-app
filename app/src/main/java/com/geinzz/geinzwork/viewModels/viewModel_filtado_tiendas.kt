@@ -27,7 +27,7 @@ class viewModel_filtado_tiendas : ViewModel() {
     private val datos_tienda = MutableLiveData<List<modelo_tienda>>()
     val _datos_tienda: LiveData<List<modelo_tienda>> get() = datos_tienda
 
-    // LiveData privado para modificar
+
     private val _horarioTienda = MutableLiveData<HorarioTienda?>(null)
 
     val horarioTienda: LiveData<HorarioTienda?> get() = _horarioTienda
@@ -73,6 +73,14 @@ class viewModel_filtado_tiendas : ViewModel() {
         return listOf(
             "Cargandos todas los negocios de $subcategoria ...",
             "Espera un momento $nombre_user ..."
+        )
+    }
+
+    fun fraces_cargando(nombre_user: String): List<String>{
+        return listOf(
+            "Estamos cargando todas las tiendas ...",
+            "Espera un momento $nombre_user ...",
+            "Gracias por la espera ..."
         )
     }
 

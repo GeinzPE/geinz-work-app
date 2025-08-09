@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -27,12 +29,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -76,12 +79,15 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -90,25 +96,27 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
-import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
-import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
     estadoColor: Color,
     viewModelFiltros: viewModel_filtado_tiendas,
     tiendas_filtradas: modelo_tienda,
+    visible: Boolean,
     onClose: () -> Unit
 ) {
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
     var expander_horario by rememberSaveable { mutableStateOf(false) }
+
     val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
@@ -117,19 +125,27 @@ fun bottom_sheet_tiendas_filtradas(
     val metodoContacto = metodo_contacto_tienda(
         whatsapp = tiendas_filtradas.whatsapp,
         numero_whatsapp = tiendas_filtradas.numero_whatsapp,
-
         tiktok = tiendas_filtradas.tiktok,
         nombre_tiktok = tiendas_filtradas.nombre_tiktok,
-
         sitio_web = tiendas_filtradas.sitio_web,
         url_sitio_web = tiendas_filtradas.url_sitio_web,
-
         instagram = tiendas_filtradas.instagram,
         nombre_user_ig = tiendas_filtradas.nombre_user_ig,
-
         facebook = tiendas_filtradas.facebook,
         nombre_user_fb = tiendas_filtradas.nombre_user_fb
     )
+
+    var cargando by remember { mutableStateOf(true) }
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            cargando = true
+            delay(2000)
+            cargando = false
+        }
+    }
+
+    if (!visible) return
 
     Surface {
         ModalBottomSheet(
@@ -137,93 +153,109 @@ fun bottom_sheet_tiendas_filtradas(
             modifier = Modifier.fillMaxWidth(),
             dragHandle = null
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.80f)
-                    .padding(10.dp)
-            ) {
-                item {
-                    Box(
+            if (cargando) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                AnimatedVisibility(visible = true) { // Aquí sí animamos solo el contenido
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 12.dp),
-                        contentAlignment = Alignment.Center
+                            .fillMaxHeight(0.85f)
+                            .padding(10.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .width(40.dp)
-                                .height(4.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(Color.LightGray)
-                        )
-                    }
-                }
-                item {
-                    cabezero_tiendas(
-                        estadoColor,
-                        direccion,
-                        referencia,
-                        tiendas_filtradas.categoria_tienda,
-                        tiendas_filtradas.nombre_tienda,
-                        latitud,
-                        longitud, tiendas_filtradas.img_perfil, tiendas_filtradas.lista_img
-                    )
-                    spacer_vertical(20.dp)
-                }
-                item {
-                    text_expandible_wrapp(
-                        "Acerca de la tienda",
-                        MaterialTheme.typography.titleLarge
-                    )
-                    spacer_vertical(10.dp)
-                }
-                item {
-                    Expandible_descripcion_tienda(
-                        tiendas_filtradas.descripcion,
-                        expander_caracterisiticas
-                    ) { expander_caracterisiticas = !expander_caracterisiticas }
-                    spacer_vertical(10.dp)
-                }
-                item {
-                    if (direccion.isNotBlank() || referencia.isNotBlank()) {
-                        val fisica_virtual =
-                            if (tiendas_filtradas.modelo_negocio) "Fisica" else "Virtual"
-
-                        Column(modifier = Modifier.animateContentSize()) {
-                            Expandible_direccion_ref(
-                                direccion,
-                                referencia,
-                                fisica_virtual,
-                                expandir_descripcion
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 12.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                expandir_descripcion = !expandir_descripcion
+                                Box(
+                                    modifier = Modifier
+                                        .width(40.dp)
+                                        .height(4.dp)
+                                        .clip(RoundedCornerShape(50))
+                                        .background(Color.LightGray)
+                                )
                             }
                         }
+                        item {
+                            cabezero_tiendas(
+                                estadoColor,
+                                direccion,
+                                referencia,
+                                tiendas_filtradas.categoria_tienda,
+                                tiendas_filtradas.nombre_tienda,
+                                latitud,
+                                longitud,
+                                tiendas_filtradas.img_perfil,
+                                tiendas_filtradas.lista_img,
+                                tiendas_filtradas.subcategoria
+                            )
+                            spacer_vertical(20.dp)
+                        }
+                        item {
+                            text_expandible_wrapp(
+                                "Acerca de la tienda",
+                                MaterialTheme.typography.titleLarge
+                            )
+                            spacer_vertical(10.dp)
+                        }
+                        item {
+                            Expandible_descripcion_tienda(
+                                tiendas_filtradas.descripcion,
+                                expander_caracterisiticas
+                            ) { expander_caracterisiticas = !expander_caracterisiticas }
+                            spacer_vertical(10.dp)
+                        }
+                        item {
+                            if (direccion.isNotBlank() || referencia.isNotBlank()) {
+                                val fisica_virtual =
+                                    if (tiendas_filtradas.modelo_negocio) "Fisica" else "Virtual"
+
+                                Column(modifier = Modifier.animateContentSize()) {
+                                    Expandible_direccion_ref(
+                                        direccion,
+                                        referencia,
+                                        fisica_virtual,
+                                        expandir_descripcion
+                                    ) {
+                                        expandir_descripcion = !expandir_descripcion
+                                    }
+                                }
+                            }
+                            spacer_vertical(10.dp)
+                        }
+                        item {
+                            Expandible_horario_atencion(
+                                estadoColor,
+                                tiendas_filtradas.localidad,
+                                tiendas_filtradas.id_tienda,
+                                expander_horario,
+                                viewModelFiltros
+                            ) { expander_horario = !expander_horario }
+                            spacer_vertical(10.dp)
+                        }
+                        item {
+                            Expandible_Metodo_contacto(
+                                expander_contacto,
+                                metodoContacto
+                            ) { expander_contacto = !expander_contacto }
+                        }
                     }
-
-                    spacer_vertical(10.dp)
                 }
-                item {
-                    Expandible_horario_atencion(
-                        estadoColor,
-                        tiendas_filtradas.localidad,
-                        tiendas_filtradas.id_tienda,
-                        expander_horario,
-                        viewModelFiltros
-                    ) { expander_horario = !expander_horario }
-                    spacer_vertical(10.dp)
-                }
-
-                item {
-                    Expandible_Metodo_contacto(expander_contacto,metodoContacto){expander_contacto = !expander_contacto}
-
-                }
-
             }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -295,7 +327,8 @@ fun bottom_shet_patrocinadores(
                         tiendas_filtradas.latitud,
                         tiendas_filtradas.longitud,
                         tiendas_filtradas.logo_tienda,
-                        tiendas_filtradas.img_tienda
+                        tiendas_filtradas.img_tienda,
+                        tiendas_filtradas.lista_subcategoiras
                     )
                     spacer_vertical(20.dp)
                 }
@@ -331,7 +364,10 @@ fun bottom_shet_patrocinadores(
 
                     spacer_vertical(10.dp)
                 }
-                item {
+                items(
+                    listOf(tiendas_filtradas.id_tienda),
+                    key = { it }
+                ) {
                     Expandible_horario_atencion(
                         Color.Green,
                         localidad_tienda,
@@ -342,8 +378,12 @@ fun bottom_shet_patrocinadores(
                     spacer_vertical(10.dp)
                 }
 
+
                 item {
-                Expandible_Metodo_contacto(expander_contacto,metodoContacto){expander_contacto = !expander_contacto}
+                    Expandible_Metodo_contacto(
+                        expander_contacto,
+                        metodoContacto
+                    ) { expander_contacto = !expander_contacto }
                 }
 
             }
@@ -374,22 +414,11 @@ fun lista_img_tiendas(img: String) {
                 .height(100.dp)
                 .clip(RoundedCornerShape(16.dp))
         )
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .size(30.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.5f))
-                .align(Alignment.BottomEnd)
-                .clickable { expandir_img = true },
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(R.drawable.verctor_zoom_white),
-                contentDescription = "Ocultar",
-                modifier = Modifier.size(18.dp)
-            )
-        }
+
+       Box(modifier = Modifier
+           .align(Alignment.BottomEnd)){
+        ZoomIconButton { expandir_img = true }
+       }
     }
 }
 
@@ -403,14 +432,13 @@ fun cabezero_tiendas(
     latitud: Double,
     longitud: Double,
     img_tienda_perfil: String,
-    lista_img: List<String>
+    lista_img: List<String>,
+    lista_tags: List<String>
 ) {
     val context = LocalContext.current
-    val mostrarDialogo = remember { mutableStateOf(false) }
-    val mostrarDialog_sin_google_maps = remember { mutableStateOf(false) }
+    val mostrarDialogo = rememberSaveable { mutableStateOf(false) }
+    val mostrarDialog_sin_google_maps = rememberSaveable { mutableStateOf(false) }
     var expdir_img by remember { mutableStateOf(false) }
-
-
     var mostrarDialogozoom by remember { mutableStateOf(false) }
 
     if (mostrarDialogozoom) {
@@ -435,12 +463,14 @@ fun cabezero_tiendas(
             }
         )
     }
+
     if (mostrarDialog_sin_google_maps.value) {
         dialog_sin_ubi_activa(
             direccion, referencia, onDismis = { mostrarDialog_sin_google_maps.value = false },
             abrir_maps = { constantes.abrirGoogleMaps(context, direccion) })
 
     }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -453,38 +483,10 @@ fun cabezero_tiendas(
                 containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
-            Box() {
-                AsyncImage(
-                    model = img_tienda_perfil,
-                    contentDescription = "Imagen de la tienda",
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
-                    error = painterResource(id = R.drawable.qr_yape),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable {
-                            expdir_img = !expdir_img
-                        },
-                )
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(30.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .align(Alignment.BottomEnd)
-                        .clickable { mostrarDialogozoom = true },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.verctor_zoom_white),
-                        contentDescription = "Ocultar",
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
+            perfil_img_zooom(
+                img_tienda_perfil,
+                { expdir_img = !expdir_img },
+                { mostrarDialogozoom = true })
 
             AnimatedVisibility(expdir_img) {
                 LazyRow(
@@ -499,12 +501,10 @@ fun cabezero_tiendas(
                         lista_img_tiendas(img_unidad)
                     }
                 }
-
             }
         }
 
-
-        Spacer(modifier = Modifier.height(10.dp))
+        spacer_vertical(10.dp)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -513,109 +513,146 @@ fun cabezero_tiendas(
                 .fillMaxWidth()
 
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                val iconId = "icon"
-                val annotatedText = buildAnnotatedString {
-                    append(nombre_tienda)
-                    append(" ")
-                    appendInlineContent(iconId, "[icon]")
-                }
-
-                val inlineContent = mapOf(
-                    iconId to InlineTextContent(
-                        Placeholder(
-                            width = 20.sp,
-                            height = 20.sp,
-                            placeholderVerticalAlign = PlaceholderVerticalAlign.Center
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(15.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(estadoColor)
-                        )
-                    }
-                )
-
-                Text(
-                    text = annotatedText,
-                    inlineContent = inlineContent,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 10.dp),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                text_expandible_wrapp(
-                    "Categoria : $categoritienda",
-                    MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+            Box(modifier = Modifier.weight(1f)) {
+                perfil_cabezero(nombre_tienda, estadoColor, categoritienda, lista_tags)
             }
+
             spacer_horizonta(10.dp)
-            FloatingActionButton(
-                onClick = {
-                    abrir_google_maps(context, latitud, longitud) { dialogo ->
-                        mostrarDialogo.value = dialogo
-                        if (mostrarDialogo.value) {
-                            abrir_google_maps(context, latitud, longitud) { dialogo ->
-                                mostrarDialogo.value = dialogo
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier.size(40.dp),
-                containerColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.localidad_icon_general),
-                    contentDescription = "Localidad",
-                    modifier = Modifier.size(35.dp)
-                )
+
+            abrir_google_maps(context, latitud, longitud) { dialog_ ->
+                mostrarDialogo.value = dialog_
             }
         }
     }
 }
 
 
+@Composable
+fun perfil_img_zooom(
+    img_tienda_perfil: String,
+    expandido: () -> Unit,
+    mostrarDialogozoom: () -> Unit
+) {
+    Box {
+        AsyncImage(
+            model = img_tienda_perfil,
+            contentDescription = "Imagen de la tienda",
+            contentScale = ContentScale.Crop,
+            // Ya no usas placeholder ni error acá, los manejamos en el `AsyncImagePainter.State`
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { expandido() },
+            // Puedes controlar el estado de carga con un painter
+            onState = { state ->
+                // No es obligatorio, solo para debug o acciones
+            }
+        )
+        // Detectamos estado de carga para mostrar Progress
+        val painterState = rememberAsyncImagePainter(model = img_tienda_perfil).state
+        if (painterState is AsyncImagePainter.State.Loading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        Box(
+            modifier = Modifier.align(Alignment.BottomEnd)
+        ) {
+            ZoomIconButton(mostrarDialogozoom)
+        }
+    }
+
+}
+
+@Composable
+fun perfil_cabezero(
+    nombre_tienda: String,
+    estadoColor: Color,
+    categoritienda: String,
+    lista_tags: List<String>
+) {
+    Column {
+        val iconId = "icon"
+        val annotatedText = buildAnnotatedString {
+            append(nombre_tienda)
+            append(" ")
+            appendInlineContent(iconId, "[icon]")
+        }
+
+        val inlineContent = mapOf(
+            iconId to InlineTextContent(
+                Placeholder(
+                    width = 20.sp,
+                    height = 20.sp,
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(estadoColor)
+                )
+            }
+        )
+
+        Text(
+            text = annotatedText,
+            inlineContent = inlineContent,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+
+        text_expandible_wrapp(
+            "Categoria : $categoritienda",
+            MaterialTheme.typography.bodyMedium
+        )
+        spacer_vertical(10.dp)
+
+        tags_subcateogiras(lista_tags)
+    }
+
+}
+
+@Composable
 fun abrir_google_maps(
     context: Context,
     latitud: Double,
     longitud: Double,
-    mostrar_dialog: (Boolean) -> Unit
+    mostrarDialogo: (Boolean) -> Unit
 ) {
-    if (verificarUbiActiva(context)) {
-        abrirRutaEnGoogleMaps(context, latitud, longitud)
-    } else {
-        mostrar_dialog(true)
-    }
-}
-
-
-@Composable
-fun tienda_cercana() {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(40f))
-            .background(amarillo30)
-            .padding(horizontal = 5.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+    FloatingActionButton(
+        onClick = {
+            constantes_lista_localidades.abrir_google_maps(
+                context,
+                latitud,
+                longitud
+            ) { dialogo ->
+                mostrarDialogo(dialogo)
+            }
+        },
+        modifier = Modifier.size(40.dp),
+        containerColor = MaterialTheme.colorScheme.primary,
     ) {
-
-        Text("Cerca de ti")
-        Spacer(modifier = Modifier.width(5.dp))
         Image(
-            modifier = Modifier.size(20.dp),
             painter = painterResource(R.drawable.localidad_icon_general),
-            contentDescription = ""
+            contentDescription = "Localidad",
+            modifier = Modifier.size(35.dp)
         )
     }
 }
+
 
 @Composable
 fun Expandible_descripcion_tienda(
@@ -723,12 +760,14 @@ fun Expandible_Metodo_contacto(
                 onClickExpand
             )
             AnimatedVisibility(visible = expandido) {
-                Column(  modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 12.dp,
+                            vertical = 8.dp
+                        )
+                ) {
                     if (metodos_contactos.whatsapp) {
                         item_metodo_contacto(
                             R.drawable.whatsapp_icon,
@@ -767,7 +806,7 @@ fun Expandible_Metodo_contacto(
 
 @Composable
 fun item_metodo_contacto(icono_red: Int, texto: String) {
-    var context=LocalContext.current
+    var context = LocalContext.current
     spacer_vertical(5.dp)
     Row(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -791,9 +830,11 @@ fun item_metodo_contacto(icono_red: Int, texto: String) {
         spacer_horizonta(20.dp)
         Image(
             painter = painterResource(R.drawable.baseline_content_copy_24),
-            modifier = Modifier.size(25.dp).clickable {
-                constantestextos_general.copiarTexto_portapapeles_compouse(texto, context)
-            },
+            modifier = Modifier
+                .size(25.dp)
+                .clickable {
+                    constantestextos_general.copiarTexto_portapapeles_compouse(texto, context)
+                },
             contentDescription = ""
 
         )
@@ -843,7 +884,9 @@ fun Expandible_horario_atencion(
     viewModelFiltros: viewModel_filtado_tiendas,
     onClickExpand: () -> Unit
 ) {
-    val horarioTiendaState = viewModelFiltros.horarioTienda.observeAsState(null)
+    val horarioTienda by viewModelFiltros.horarioTienda.observeAsState(null)
+    val horarioRecordado = remember(horarioTienda) { horarioTienda }
+
 
     var cargado by remember { mutableStateOf(false) }
 
@@ -874,8 +917,7 @@ fun Expandible_horario_atencion(
                         .fillMaxWidth()
                         .animateContentSize()
                 ) {
-                    MostrarHorarioTienda(horarioTiendaState.value,estadoColor)
-
+                    MostrarHorarioTienda(horarioRecordado, estadoColor)
                 }
             }
         }
@@ -885,43 +927,87 @@ fun Expandible_horario_atencion(
 }
 
 @Composable
-fun MostrarHorarioTienda(horarioTienda: HorarioTienda?, estadoColor: Color) {
-    if (horarioTienda == null) {
-        Text("No hay horario disponible")
-        return
+fun MostrarHorarioTienda(
+    horarioTienda: HorarioTienda?,
+    estadoColor: Color,
+) {
+    var existeHorario by rememberSaveable { mutableStateOf(false) }
+    var mostrandoCarga by rememberSaveable { mutableStateOf(true) }
+    val idTiendaRecordado = rememberSaveable { mutableStateOf<String?>(null) }
+
+    val idTiendaActual = horarioTienda?.id_tienda
+
+    // Si es un ID nuevo (o el primero), arrancamos siempre cargando
+    if (idTiendaActual != idTiendaRecordado.value) {
+        mostrandoCarga = true
     }
 
-    val diaActual = obtenerDiaActualEnEspañol().lowercase()
+    LaunchedEffect(idTiendaActual) {
+        if (idTiendaActual != idTiendaRecordado.value) {
+            idTiendaRecordado.value = idTiendaActual
 
-    Column (modifier =Modifier.padding(start = 10.dp , end = 10.dp , bottom = 10.dp)){
-        horarioTienda.lista_Horario.forEach { horarioDia ->
-            val esDiaActual = horarioDia.dia.lowercase() == diaActual
-            val horarioTexto =
-                if (horarioDia.h_apertura.isNotEmpty() && horarioDia.h_cierre.isNotEmpty())
-                    "${horarioDia.h_apertura} a.m a ${horarioDia.h_cierre} p.m"
-                else "Cerrado"
+            // Simulación de carga
+            delay(2000)
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
-            ) {
+            // Validar si existe horario
+            existeHorario = horarioTienda?.lista_Horario?.isNotEmpty() == true
+            mostrandoCarga = false
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            mostrandoCarga -> {
+                cargando_progess_mas_texto("Cargando horario ....")
+            }
+
+            !existeHorario -> {
                 Text(
-                    text = "${horarioDia.dia.replaceFirstChar { it.uppercase() }}: $horarioTexto",
-                    modifier = Modifier.weight(1f),
+                    "No hay horario disponible",
+                    modifier = Modifier.padding(vertical = 10.dp),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = MaterialTheme.colorScheme.onBackground
                 )
+            }
 
-                if (esDiaActual) {
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(15.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(estadoColor)
-                    )
+            else -> {
+                val diaActual = obtenerDiaActualEnEspañol().lowercase()
+
+                Column(modifier = Modifier.padding(bottom = 10.dp, start = 10.dp, end = 10.dp)) {
+                    horarioTienda?.lista_Horario?.forEach { horarioDia ->
+                        val esDiaActual = horarioDia.dia.lowercase() == diaActual
+                        val horarioTexto =
+                            if (horarioDia.h_apertura.isNotEmpty() && horarioDia.h_cierre.isNotEmpty())
+                                "${horarioDia.h_apertura} a.m a ${horarioDia.h_cierre} p.m"
+                            else "Cerrado"
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "${horarioDia.dia.replaceFirstChar { it.uppercase() }}: $horarioTexto",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            if (esDiaActual) {
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(15.dp)
+                                        .clip(RoundedCornerShape(50))
+                                        .background(estadoColor)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1072,6 +1158,28 @@ fun ZoomableImageDialogFullScreen(
                 }
             }
         }
+    }
+}
+
+
+@Composable
+fun tienda_cercana() {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(40f))
+            .background(amarillo30)
+            .padding(horizontal = 5.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Text("Cerca de ti")
+        Spacer(modifier = Modifier.width(5.dp))
+        Image(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(R.drawable.localidad_icon_general),
+            contentDescription = ""
+        )
     }
 }
 

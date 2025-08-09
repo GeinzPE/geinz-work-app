@@ -10,12 +10,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -63,7 +61,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -73,10 +70,11 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoF
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cargando_categorias
@@ -97,30 +95,25 @@ fun Pantalla_filtrado_tiendas(
     val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
         emptyList()
     )
-
-
     val estadoFiltrosUi = EstadoFiltrosUi(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = tiendasFiltradas
     )
-
-
     val estadoCarga =
         remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var visible_texfiel by remember { mutableStateOf(false) }
-    var tienda_activa by remember { mutableStateOf(false) }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var existe by remember { mutableStateOf(false) }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
 
-
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+
     var lista_subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
-    var sub_categoria_selecionada by rememberSaveable { mutableStateOf<String?>(null) }
+    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
 
 
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_tiendas_filtradas))
@@ -131,22 +124,25 @@ fun Pantalla_filtrado_tiendas(
     var categoria_anterior by remember { mutableStateOf("") }
     var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
     var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
-
     LaunchedEffect(categoria_seleccionda) {
-        estadoCarga.value = selec_class_estados_carga.carga_chips
-        delay(6000)
-        if (categoria_seleccionda.isNotBlank() && categoria_seleccionda != categoria_anterior) {
+        if (categoria_seleccionda == "Todos") {
+            estadoCarga.value = selec_class_estados_carga.carga_todos
+            delay(6000)
+            listaMostrar = estadoFiltrosUi.tiendasFiltradas
+            estadoCarga.value = selec_class_estados_carga.sin_carga
+        } else if (categoria_seleccionda.isNotBlank() && categoria_seleccionda != categoria_anterior) {
+            estadoCarga.value = selec_class_estados_carga.carga_chips
+            delay(6000)
             val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
             listaBaseSubcategoria = tiendas_filtradas
             listaMostrar = tiendas_filtradas
             categoria_anterior = categoria_seleccionda
+            estadoCarga.value = selec_class_estados_carga.sin_carga
         }
 
         texto_filtrado = ""
-
-        estadoCarga.value = selec_class_estados_carga.sin_carga
-
     }
+
 
     LaunchedEffect(texto_filtrado) {
         listaMostrar = if (texto_filtrado.isBlank()) {
@@ -166,7 +162,6 @@ fun Pantalla_filtrado_tiendas(
     LaunchedEffect(showBottomSheet) {
         if (showBottomSheet) {
             viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
-
         }
     }
 
@@ -188,8 +183,6 @@ fun Pantalla_filtrado_tiendas(
                 tienda.id_tienda
             )
         }
-
-
     }
 
     LaunchedEffect(tiendasFiltradas) {
@@ -197,10 +190,7 @@ fun Pantalla_filtrado_tiendas(
             viewModelFiltros.tiendas_iniciales(tiendasFiltradas)
             listaMostrar = tiendasFiltradas
         }
-
     }
-
-
 
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -228,6 +218,17 @@ fun Pantalla_filtrado_tiendas(
                     )
                 }
 
+                is selec_class_estados_carga.carga_todos -> {
+                    cargando_categorias(
+                        raw_carga_chips,
+                        localida,
+                        30.dp,
+                        viewModelFiltros.fraces_cargando(
+                            nombre_user
+                        )
+                    )
+                }
+
                 is selec_class_estados_carga.sin_carga -> {
                     LazyColumn(
                         modifier = Modifier
@@ -235,32 +236,31 @@ fun Pantalla_filtrado_tiendas(
                             .padding(horizontal = 10.dp)
                     ) {
                         item { encabezado_chis_categorias() }
-
-                        item {
-                            chips_filtrado(
-                                listState,
-                                sub_categoria_selecionada,
-                                lista_subcategorias,
-                                { expandir ->
-                                    visible_texfiel = expandir
-                                },
-                                { categoria_selecionada ->
-                                    categoria_seleccionda = categoria_selecionada
-                                    sub_categoria_selecionada = categoria_seleccionda
-                                })
-                        }
-
-                        item {
-                            Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
-                                texto_filtrado = it
+                        stickyHeader() {
+                            ColumnContenedorComun {
+                                chips_filtrado(
+                                    listState,
+                                    subCategoriaSeleccionada,
+                                    lista_subcategorias,
+                                    { expandir ->
+                                        visible_texfiel = expandir
+                                    },
+                                    { categoria_selecionada ->
+                                        categoria_seleccionda = categoria_selecionada
+                                        subCategoriaSeleccionada = categoria_seleccionda
+                                    })
+                                Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
+                                    texto_filtrado = it
+                                }
                             }
                         }
 
-                        items(listaMostrar) { tienda ->
+                        items(listaMostrar, key = { tienda -> tienda.id_tienda }) { tienda ->
                             item_tiendas(
                                 tienda,
                                 estado_tiendas
                             ) { id_tienda, listener, estado_color ->
+//                                dataclass_tienda_seleccionada = modelo_tienda()
                                 estadoColor = estado_color
                                 showBottomSheet = listener
                                 id_tienda_selecionada = id_tienda
@@ -270,12 +270,11 @@ fun Pantalla_filtrado_tiendas(
                 }
             }
         }
-
         if (showBottomSheet) {
             bottom_sheet_tiendas_filtradas(
                 estadoColor,
                 viewModelFiltros,
-                dataclass_tienda_seleccionada
+                dataclass_tienda_seleccionada,showBottomSheet
             ) {
                 showBottomSheet = false
             }
@@ -291,7 +290,9 @@ fun encabezado_chis_categorias() {
         "Busca tus tiendas favoritas",
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.onBackground,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
         textAlign = TextAlign.Center
     )
     spacer_vertical(5.dp)
@@ -311,11 +312,11 @@ fun chips_filtrado(
     expandir_carta: (Boolean) -> Unit,
     selecionado: (String) -> Unit
 ) {
-    LazyRow(state = listState) {
-        items(lista_subcategorias) { subcategorias ->
-            val selecionado = sub_categoria_selecionada == subcategorias
-            Log.d("obtnermos_chekead", "$sub_categoria_selecionada == $subcategorias")
+    val lista_con_todos = listOf("Todos") + lista_subcategorias
 
+    LazyRow(state = listState) {
+        items(lista_con_todos) { subcategorias ->
+            val selecionado = sub_categoria_selecionada == subcategorias
             FilterChip(
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -329,9 +330,15 @@ fun chips_filtrado(
                     MaterialTheme.colorScheme.onBackground
                 ),
                 onClick = {
-                    val valor_nuevo = if (selecionado) null else subcategorias
-                    expandir_carta(true)
-                    selecionado(valor_nuevo.toString())
+                    if (!selecionado) {
+                        expandir_carta(true)
+                        if (subcategorias == "Todos") {
+                            expandir_carta(false)
+                            selecionado("Todos")
+                        } else {
+                            selecionado(subcategorias)
+                        }
+                    }
                 },
                 label = {
                     Text(
@@ -341,7 +348,6 @@ fun chips_filtrado(
                 },
                 shape = RoundedCornerShape(40)
             )
-
         }
     }
 }
@@ -425,7 +431,7 @@ fun item_tiendas(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .animateContentSize()  // anima el cambio de tamaño (cuando se expande)
+                .animateContentSize()
         ) {
             Row(
                 modifier = Modifier.padding(7.dp),
@@ -437,7 +443,8 @@ fun item_tiendas(
                     contentDescription = "Imagen local",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(80.dp)
+                        .width(80.dp)
+                        .height(110.dp)
                         .clip(RoundedCornerShape(15))
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -483,28 +490,6 @@ fun item_tiendas(
 
 }
 
-@Composable
-fun tags_subcateogiras(lista_tags: List<String>) {
-    LazyRow(   horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        items(lista_tags){ cap->
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Text(
-                    text = cap,
-                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
-                    color = MaterialTheme.colorScheme.onBackground
-                    , style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-
-    }
-
-
-}
 
 @Composable
 fun Nombre_estado_tienda(
