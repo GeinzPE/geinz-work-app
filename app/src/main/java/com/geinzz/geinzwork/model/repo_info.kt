@@ -83,11 +83,13 @@ class repo_info {
             val data = trabajador.data
             val id = data?.get(Variables.id) as? String ?: ""
             if (id == result) {
+                val id = data?.get(Variables.id) as? String ?: ""
                 val nombreUser = data?.get(Variables.nombre) as? String ?: ""
                 val nacionalidad = data?.get(Variables.nacionalidad) as? String ?: ""
                 val categoria = data?.get(Variables.categoriaTrabajo) as? String ?: ""
                 val img = data?.get(Variables.imagenPerfil) as? String ?: ""
                 val data = data_model_trabajador_scanner(
+                    id_trabajador = id,
                     nombre = nombreUser,
                     nacionalidad = nacionalidad,
                     categoria = categoria,
@@ -104,7 +106,10 @@ class repo_info {
 
     }
 
-    suspend fun obtener_mejores_trabajadores(filtrado_shader: String,tiempo:(Long)-> Unit): List<dataClassTrabajosd> {
+    suspend fun obtener_mejores_trabajadores(
+        filtrado_shader: String,
+        tiempo: (Long) -> Unit
+    ): List<dataClassTrabajosd> {
         val tiempoInicio = System.currentTimeMillis()
 
         val lista_trabajadores = mutableListOf<dataClassTrabajosd>()
@@ -158,7 +163,7 @@ class repo_info {
 
     suspend fun obtner_trabajadores_por_categorias(
         filtro: String,
-        categoria_filtado: String,tiempo: (Long) -> Unit
+        categoria_filtado: String, tiempo: (Long) -> Unit
     ): List<dataClassTrabajosd> {
         val tiempoInicio = System.currentTimeMillis()
         val result = mutableListOf<dataClassTrabajosd>()
@@ -192,7 +197,7 @@ class repo_info {
                 verificados = userData["verificado"] as? Boolean
             )
             if ((filtro == "General" || usuario.localidad == filtro) && categoria_filtado == usuario.categoria) {
-                Log.d("obtenos_el_fitraoda","$filtro $categoria_filtado==${usuario.categoria}")
+                Log.d("obtenos_el_fitraoda", "$filtro $categoria_filtado==${usuario.categoria}")
                 usuario
                 result.add(usuario)
             } else null

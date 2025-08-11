@@ -15,12 +15,14 @@ import android.view.View
 import android.view.WindowInsets
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.geinzz.geinzwork.Network_internet.BaseActivity
@@ -36,6 +38,8 @@ import com.geinzz.geinzwork.fragmentos.cuentaFracment
 import com.geinzz.geinzwork.fragmentos.inicioFracment
 
 import com.geinzz.geinzwork.fragmentos.sinRegistroFracment
+import com.geinzz.geinzwork.ui.adapters.ui.localizate_geinz_wokr_ui
+import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
 import com.geinzz.geinzwork.vistaTiendas.VistaTienda
 import com.geinzz.geinzwork.vistaTiendas.vistaProductosGeneralTiendas
@@ -49,8 +53,9 @@ import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import kotlin.getValue
 
-class MainActivity :  BaseActivity() , View.OnApplyWindowInsetsListener {
+class MainActivity : BaseActivity(), View.OnApplyWindowInsetsListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var firebaseAuth: FirebaseAuth
@@ -66,20 +71,21 @@ class MainActivity :  BaseActivity() , View.OnApplyWindowInsetsListener {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var viewPagerAdapter: ViewPagerAdapter
 
+    private lateinit var datos_viewmodel: viewModel_usuarios_general
 
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-
         enableEdgeToEdge()
-
         // ✅ Primero inflas el binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         // ✅ Luego seteas el layout
         setContentView(binding.root)
+        firebaseAuth = FirebaseAuth.getInstance()
+        datos_viewmodel = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
+        datos_viewmodel.obtener_localida_nombre_user(firebaseAuth.uid.toString())
 
-        // ✅ Ahora sí puedes usar binding.root sin error
         ViewCompat.setOnApplyWindowInsetsListener(binding.buttonNavigation) { view, insets ->
             val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
             val statusBars =
@@ -94,13 +100,23 @@ class MainActivity :  BaseActivity() , View.OnApplyWindowInsetsListener {
             insets
         }
 
+
         viewPager = findViewById(R.id.viewPager)
 
         remoteConfig = FirebaseRemoteConfig.getInstance()
-        firebaseAuth = FirebaseAuth.getInstance()
+
         binding.VistaTiendas.setOnClickListener {
-            startActivity(Intent(this, TiendasGenerales::class.java))
+            val datos = datos_viewmodel.nombre_localidad_user.value
+            val nombre = datos?.first ?: ""
+            val localidad = datos?.second ?: ""
+
+            val intent = Intent(this, localizate_geinz_wokr_ui::class.java).apply {
+                putExtra("filtrado_localidad", localidad)
+                putExtra("nombre_user", nombre)
+            }
+            startActivity(intent)
         }
+
         val storyId = intent.getStringExtra("story_id")
         if (storyId != null) {
             println("ID del story recibido en la actividad: $storyId")
@@ -322,7 +338,11 @@ class MainActivity :  BaseActivity() , View.OnApplyWindowInsetsListener {
                         if (intent.resolveActivity(packageManager) != null) {
                             startActivity(intent)
                         } else {
-                            Toast.makeText(this, "No se pudo abrir el enlace de actualización.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "No se pudo abrir el enlace de actualización.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                     .setNegativeButton("Más tarde", null)
@@ -479,8 +499,6 @@ class MainActivity :  BaseActivity() , View.OnApplyWindowInsetsListener {
         window.navigationBarColor = color
         window.statusBarColor = color
     }
-
-
 
 
     override fun onBackPressed() {

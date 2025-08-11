@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,29 +9,56 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.retornar_pleaceholder_label
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 import org.w3c.dom.Text
+
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.Bitmap
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.layout.ContentScale
+
 
 @Composable
 fun custom_texFiel(
@@ -68,7 +96,7 @@ fun custom_texFiel(
 }
 
 @Composable
-fun existencia_dato(){
+fun existencia_dato() {
     Text(
         "No hay coincidencias ingrese otra palabra",
         color = Color.Red,
@@ -79,8 +107,8 @@ fun existencia_dato(){
 
 
 @Composable
-fun estados_tiendas(estado: String,color_estado: Color){
-    Row (verticalAlignment = Alignment.CenterVertically){
+fun estados_tiendas(estado: String, color_estado: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Text(text = estado, color = color_estado, style = MaterialTheme.typography.bodyMedium)
         spacer_horizonta(5.dp)
         Box(
@@ -94,8 +122,8 @@ fun estados_tiendas(estado: String,color_estado: Color){
 
 @Composable
 fun tags_subcateogiras(lista_tags: List<String>) {
-    LazyRow(   horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        items(lista_tags){ cap->
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        items(lista_tags) { cap ->
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
@@ -104,8 +132,8 @@ fun tags_subcateogiras(lista_tags: List<String>) {
                 Text(
                     text = cap,
                     modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
-                    color = MaterialTheme.colorScheme.onBackground
-                    , style = MaterialTheme.typography.bodySmall
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -114,9 +142,9 @@ fun tags_subcateogiras(lista_tags: List<String>) {
 }
 
 @Composable
-fun cargando_progess_mas_texto(text: String){
+fun cargando_progess_mas_texto(text: String) {
 
-    Row (modifier = Modifier.padding(vertical = 10.dp)){
+    Row(modifier = Modifier.padding(vertical = 10.dp)) {
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onBackground,
@@ -129,6 +157,7 @@ fun cargando_progess_mas_texto(text: String){
         )
     }
 }
+
 @Composable
 fun ColumnContenedorComun(
     modifier: Modifier = Modifier,
@@ -143,4 +172,237 @@ fun ColumnContenedorComun(
         verticalArrangement = Arrangement.Center,
         content = content
     )
+}
+
+
+@Composable
+fun texto_activos_encontrados(modifier: Modifier, texto: String, p_horizontal: Dp, color: Color) {
+    Text(
+        text = texto,
+        modifier = modifier.padding(p_horizontal),
+        style = MaterialTheme.typography.bodyMedium,
+        color = color
+    )
+}
+
+
+@Composable
+fun floatin_actionButton(
+    modifier: Modifier,
+    drawable: Int,
+    colorFilter: ColorFilter? = ColorFilter.tint(Color.White),
+    onClick: () -> Unit
+) {
+    FloatingActionButton(
+        modifier = modifier,
+        onClick = {
+            onClick()
+        },
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 10.dp
+        ),
+        containerColor = MaterialTheme.colorScheme.primary,
+
+        ) {
+        Image(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(id = drawable),
+            contentDescription = "Icono", colorFilter = colorFilter
+        )
+    }
+}
+
+@Composable
+fun retornar_pleaceholder_label(texto: String, color: Color? = null) {
+    Text(
+        texto,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color ?: LocalContentColor.current.copy(alpha = LocalContentAlpha.current)
+    )
+}
+
+@Composable
+fun texto_generico_one_line(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.titleMedium, modifier: Modifier = Modifier,
+) {
+    Text(
+        text = texto,
+        modifier = modifier,
+        style = style,
+        color = MaterialTheme.colorScheme.onBackground,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
+@Composable
+fun texto_generico_multilinea(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.titleMedium, modifier: Modifier = Modifier,
+) {
+    Text(
+        text = texto,
+        modifier = modifier,
+        style = style,
+        color = MaterialTheme.colorScheme.onBackground,
+        )
+}
+
+
+@Composable
+fun titulos_genericos_one_line(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.titleMedium, modifier: Modifier = Modifier,
+) {
+    Text(
+        text = texto,
+        modifier = modifier,
+        style = style,
+        color = MaterialTheme.colorScheme.onBackground,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+fun Cartas_expandibles(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+        ) {
+            content()
+        }
+    }
+
+}
+
+@Composable
+fun expandibles_wrapp(
+    texto_params: String,
+    icon: Int,
+    expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(horizontal = 10.dp)
+    ) {
+        val (texto, btn) = createRefs()
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .constrainAs(texto) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                }
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = texto_params,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+
+        FloatingActionButton(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(CircleShape)
+                .constrainAs(btn) {
+                    end.linkTo(parent.end)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                },
+            onClick = { onClickExpand() },
+            elevation = FloatingActionButtonDefaults.elevation(
+                defaultElevation = 6.dp,
+                pressedElevation = 10.dp
+            ),
+            containerColor = MaterialTheme.colorScheme.primary,
+        )
+        {
+            Image(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(
+                    constantes_lista_localidades.cambiar_icono_exapndible(
+                        expandido
+                    )
+                ),
+                contentDescription = "",
+                colorFilter = ColorFilter.tint(Color.White)
+            )
+        }
+    }
+}
+
+@Composable
+fun text_expandible_wrapp(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    maxlines: Int = 1
+) {
+    Text(
+        text = texto,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = style,
+        maxLines = maxlines,
+        overflow = TextOverflow.Ellipsis
+
+    )
+}
+
+@Composable
+fun generar_qr_ubi_tinda(bottom_text: String, content: String, sizeDp: Int = 200, modifier: Modifier = Modifier) {
+    val bitmap = rememberSaveable(content) {
+        val dimension = 512
+        val writer = QRCodeWriter()
+        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, dimension, dimension)
+        val bmp = Bitmap.createBitmap(dimension, dimension, Bitmap.Config.ARGB_8888)
+        for (x in 0 until dimension) {
+            for (y in 0 until dimension) {
+                val color =
+                    if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
+                bmp.setPixel(x, y, color)
+            }
+        }
+        bmp
+    }
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = "QR Code",
+            modifier = modifier
+                .size(sizeDp.dp)
+                .clip(RoundedCornerShape(30f)),
+            contentScale = ContentScale.Fit
+
+        )
+        spacer_vertical(10.dp)
+        texto_generico_multilinea(
+            bottom_text,
+            MaterialTheme.typography.bodyMedium
+        )
+    }
 }

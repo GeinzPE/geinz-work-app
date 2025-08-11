@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
 
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import java.nio.file.WatchEvent
@@ -45,7 +47,7 @@ fun dialog_sin_ubicacion_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            androidx.compose.material3.Button(
+         Button(
                 onClick = {
                     abrir_configuracion()
                 },
@@ -96,6 +98,39 @@ fun dialog_sin_ubicacion_activa(
 
     )
 
+}
+
+
+@Composable
+fun dialog_qr_tienda(qr: String, nombre_tienda: String, onDismis: () -> Unit) {
+    AlertDialog(
+        confirmButton = {},
+        dismissButton = { Button (onClick = { onDismis() }) { Text(text = "Cerrar", color = Color.White) } },
+        onDismissRequest = { onDismis() },
+        icon = {
+            Icon(
+                modifier = Modifier.size(25.dp),
+                painter = painterResource(R.drawable.qr_scaner_icon),
+                contentDescription = "Google maps",
+                tint = Color.White
+            )
+        },
+        title = {
+            Text(
+                text = "Direccion de la tienda",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            spacer_vertical(10.dp)
+        },
+
+        text = {
+                generar_qr_ubi_tinda(
+                    "Escanea el QR de la tienda para llegar a $nombre_tienda rápidamente. Recomendamos que actives tu ubicación antes de escanear.",
+                    qr
+                )
+        },
+    )
 }
 
 @Composable

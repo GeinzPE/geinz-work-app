@@ -87,7 +87,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                             binding.nombreTrabajador.text = "${nombre} ${apellido}"
 
                             // Generar QR después de obtener los datos
-                            val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
+                            val qrColor = ContextCompat.getColor(this, R.color.qr_color)
                             val backgroundColor = ContextCompat.getColor(this, R.color.white)
 
                             val qrCode = generateQRCode(
@@ -102,7 +102,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                             }
 
                             binding.linealImgQr.isVisible = true
-                            binding.popup.isVisible=true
+
                             binding.nombreTrabajador.isVisible = true
                             binding.generarQR.isVisible = false
                             binding.linealCompartirDescargar.isVisible = true
@@ -136,7 +136,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                             binding.nombreTrabajador.text = "${nombre} ${apellido}"
 
                             // Generar QR después de obtener los datos
-                            val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
+                            val qrColor = ContextCompat.getColor(this, R.color.qr_color)
                             val backgroundColor = ContextCompat.getColor(this, R.color.white)
 
                             val qrCode = generateQRCode(
@@ -152,7 +152,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
 
                             // Mostrar y ocultar elementos de UI
                             binding.linealImgQr.isVisible = true
-                            binding.popup.isVisible=true
+
                             binding.nombreTrabajador.isVisible = true
                             binding.generarQR.isVisible = false
                             binding.linealCompartirDescargar.isVisible = true
@@ -188,9 +188,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                 startActivity(vista)
             }
         }
-        binding.popup.setOnClickListener {
-            popup()
-        }
+
 
 
     }
@@ -225,7 +223,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                             binding.nombreTrabajador.text = "${nombre} ${apellido}"
 
                             // Generar QR después de obtener los datos
-                            val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
+                            val qrColor = ContextCompat.getColor(this, R.color.qr_color)
                             val backgroundColor = ContextCompat.getColor(this, R.color.white)
 
                             val qrCode = generateQRCode(
@@ -240,7 +238,6 @@ class GenerarQR_trabajador : AppCompatActivity() {
                             }
 
                             binding.linealImgQr.isVisible = true
-                            binding.popup.isVisible=true
                             binding.nombreTrabajador.isVisible = true
                             binding.generarQR.isVisible = false
                             binding.linealCompartirDescargar.isVisible = true
@@ -274,7 +271,7 @@ class GenerarQR_trabajador : AppCompatActivity() {
                             binding.nombreTrabajador.text = "${nombre} ${apellido}"
 
                             // Generar QR después de obtener los datos
-                            val qrColor = ContextCompat.getColor(this, R.color.violetaQR)
+                            val qrColor = ContextCompat.getColor(this, R.color.qr_color)
                             val backgroundColor = ContextCompat.getColor(this, R.color.white)
 
                             val qrCode = generateQRCode(
@@ -290,7 +287,6 @@ class GenerarQR_trabajador : AppCompatActivity() {
 
                             // Mostrar y ocultar elementos de UI
                             binding.linealImgQr.isVisible = true
-                            binding.popup.isVisible=true
                             binding.nombreTrabajador.isVisible = true
                             binding.generarQR.isVisible = false
                             binding.linealCompartirDescargar.isVisible = true
@@ -323,22 +319,6 @@ class GenerarQR_trabajador : AppCompatActivity() {
                     putExtra("dato", "qr")
                 }
                 startActivity(vista)
-            }
-        }
-    }
-
-    private fun popup() {
-        val popup = PopupMenu(this, binding.popup)
-        popup.menu.add(Menu.NONE, 1, 1, "Crear acceso directo")
-        popup.show()
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                1 -> {
-                    PinShortcut_general.qr_trabajador_accesoDirecto_panel(this)
-                    true
-                }
-
-                else -> true
             }
         }
     }

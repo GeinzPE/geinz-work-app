@@ -694,60 +694,60 @@
 
                     </RelativeLayout>
 
-                    <RelativeLayout
-                        android:id="@+id/lineal_productos_publicados"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+<!--                    <RelativeLayout-->
+<!--                        android:id="@+id/lineal_productos_publicados"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content">-->
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:orientation="vertical">-->
 
-                            <TextView
-                                style="@style/TextoTitulos"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginHorizontal="9dp"
-                                android:text="Productos"
-                                android:textSize="20sp" />
+<!--                            <TextView-->
+<!--                                style="@style/TextoTitulos"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_marginHorizontal="9dp"-->
+<!--                                android:text="Productos"-->
+<!--                                android:textSize="20sp" />-->
 
-                            <TextView
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginHorizontal="9dp"
-                                android:layout_marginVertical="5dp"
-                                android:layout_marginBottom="10dp"
-                                android:text="Explora los productos más recientes ofrecidos por nuestros profesionales."
-                                android:textSize="12sp" />
+<!--                            <TextView-->
+<!--                                style="@style/TextoModoOScuroColor"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_marginHorizontal="9dp"-->
+<!--                                android:layout_marginVertical="5dp"-->
+<!--                                android:layout_marginBottom="10dp"-->
+<!--                                android:text="Explora los productos más recientes ofrecidos por nuestros profesionales."-->
+<!--                                android:textSize="12sp" />-->
 
 
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/productosDestacados"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginHorizontal="7dp"
-                                android:layout_marginTop="5dp" />
+<!--                            <androidx.recyclerview.widget.RecyclerView-->
+<!--                                android:id="@+id/productosDestacados"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_marginHorizontal="7dp"-->
+<!--                                android:layout_marginTop="5dp" />-->
 
-                        </LinearLayout>
+<!--                        </LinearLayout>-->
 
-                        <RelativeLayout
-                            android:id="@+id/linealNo_seEncontraron"
-                            android:layout_width="match_parent"
-                            android:layout_height="220dp"
-                            android:visibility="gone">
+<!--                        <RelativeLayout-->
+<!--                            android:id="@+id/linealNo_seEncontraron"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="220dp"-->
+<!--                            android:visibility="gone">-->
 
-                            <TextView
-                                style="@style/TextoModoOScuroColor"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true"
-                                android:text="No se encontro productos publicados"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-                    </RelativeLayout>
+<!--                            <TextView-->
+<!--                                style="@style/TextoModoOScuroColor"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_centerInParent="true"-->
+<!--                                android:text="No se encontro productos publicados"-->
+<!--                                android:textSize="17sp"-->
+<!--                                android:textStyle="bold" />-->
+<!--                        </RelativeLayout>-->
+<!--                    </RelativeLayout>-->
 
 
                 </LinearLayout>

@@ -17,6 +17,6 @@
     <color name="seleccionadoColor">#FFE082</color>
     <color name="selecion_multiple">#808080</color>
     <color name="inpusBusqueda">#2A2A2A</color>
-
+    <color name="qr_color">#5A156A</color>
 
 </resources>

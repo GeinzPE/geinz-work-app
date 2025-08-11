@@ -86,17 +86,23 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -116,6 +122,7 @@ fun bottom_sheet_tiendas_filtradas(
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
     var expander_horario by rememberSaveable { mutableStateOf(false) }
+    var expander_qr_tienda by rememberSaveable { mutableStateOf(false) }
 
     val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
@@ -134,7 +141,6 @@ fun bottom_sheet_tiendas_filtradas(
         facebook = tiendas_filtradas.facebook,
         nombre_user_fb = tiendas_filtradas.nombre_user_fb
     )
-
     var cargando by remember { mutableStateOf(true) }
 
     LaunchedEffect(visible) {
@@ -248,6 +254,14 @@ fun bottom_sheet_tiendas_filtradas(
                                 expander_contacto,
                                 metodoContacto
                             ) { expander_contacto = !expander_contacto }
+                            spacer_vertical(10.dp)
+                        }
+
+                        item {
+                            Expandible_qr_tienda(
+                                latitud, longitud,
+                                expander_qr_tienda
+                            ) { expander_qr_tienda = !expander_qr_tienda }
                         }
                     }
                 }
@@ -260,6 +274,7 @@ fun bottom_sheet_tiendas_filtradas(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_shet_patrocinadores(
+    estado_color: Color,
     viewModelFiltros: viewModel_filtado_tiendas,
     categoritienda: String,
     localidad_tienda: String,
@@ -270,6 +285,8 @@ fun bottom_shet_patrocinadores(
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_horario by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
+    var expander_qr_tienda by rememberSaveable { mutableStateOf(false) }
+
     val metodoContacto = metodo_contacto_tienda(
         whatsapp = tiendas_filtradas.whatsapp,
         numero_whatsapp = tiendas_filtradas.numero_whatsapp,
@@ -286,6 +303,7 @@ fun bottom_shet_patrocinadores(
         facebook = tiendas_filtradas.facebook,
         nombre_user_fb = tiendas_filtradas.nombre_user_fb
     )
+    val latitul_longitud_String = "${tiendas_filtradas.latitud},${tiendas_filtradas.longitud}"
 
     Surface {
         ModalBottomSheet(
@@ -319,7 +337,7 @@ fun bottom_shet_patrocinadores(
 
                 item {
                     cabezero_tiendas(
-                        Color.Black,
+                        estado_color,
                         tiendas_filtradas.direccion,
                         tiendas_filtradas.referencia,
                         categoritienda,
@@ -349,7 +367,6 @@ fun bottom_shet_patrocinadores(
                 }
                 item {
                     if (tiendas_filtradas.direccion.isNotBlank() || tiendas_filtradas.referencia.isNotBlank()) {
-
                         Column(modifier = Modifier.animateContentSize()) {
                             Expandible_direccion_ref(
                                 tiendas_filtradas.direccion,
@@ -369,7 +386,7 @@ fun bottom_shet_patrocinadores(
                     key = { it }
                 ) {
                     Expandible_horario_atencion(
-                        Color.Green,
+                        estado_color,
                         localidad_tienda,
                         tiendas_filtradas.id_tienda,
                         expander_horario,
@@ -384,6 +401,15 @@ fun bottom_shet_patrocinadores(
                         expander_contacto,
                         metodoContacto
                     ) { expander_contacto = !expander_contacto }
+                    spacer_vertical(10.dp)
+                }
+
+                item {
+                    Expandible_qr_tienda(
+                        tiendas_filtradas.latitud,
+                        tiendas_filtradas.longitud,
+                        expander_qr_tienda
+                    ) { expander_qr_tienda = !expander_qr_tienda }
                 }
 
             }
@@ -415,10 +441,12 @@ fun lista_img_tiendas(img: String) {
                 .clip(RoundedCornerShape(16.dp))
         )
 
-       Box(modifier = Modifier
-           .align(Alignment.BottomEnd)){
-        ZoomIconButton { expandir_img = true }
-       }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+        ) {
+            ZoomIconButton { expandir_img = true }
+        }
     }
 }
 
@@ -516,9 +544,7 @@ fun cabezero_tiendas(
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(nombre_tienda, estadoColor, categoritienda, lista_tags)
             }
-
             spacer_horizonta(10.dp)
-
             abrir_google_maps(context, latitud, longitud) { dialog_ ->
                 mostrarDialogo.value = dialog_
             }
@@ -544,12 +570,9 @@ fun perfil_img_zooom(
                 .height(220.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clickable { expandido() },
-            // Puedes controlar el estado de carga con un painter
             onState = { state ->
-                // No es obligatorio, solo para debug o acciones
             }
         )
-        // Detectamos estado de carga para mostrar Progress
         val painterState = rememberAsyncImagePainter(model = img_tienda_perfil).state
         if (painterState is AsyncImagePainter.State.Loading) {
             Box(
@@ -660,14 +683,7 @@ fun Expandible_descripcion_tienda(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
+    Cartas_expandibles {
         Column() {
             expandibles_wrapp(
                 "Descripcion de tienda",
@@ -698,14 +714,7 @@ fun Expandible_direccion_ref(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
+    Cartas_expandibles {
         Column {
             expandibles_wrapp(
                 "Dirección y referencia",
@@ -743,15 +752,7 @@ fun Expandible_Metodo_contacto(
     metodos_contactos: metodo_contacto_tienda,
     onClickExpand: () -> Unit
 ) {
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
+    Cartas_expandibles {
         Column {
             expandibles_wrapp(
                 "Metodos de contacto",
@@ -799,9 +800,48 @@ fun Expandible_Metodo_contacto(
             }
 
         }
-
     }
 
+}
+
+
+@Composable
+fun Expandible_qr_tienda(
+    latitud: Double,
+    longitud: Double,
+    expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
+    val generador_qr = remember(latitud, longitud) {
+        generar_qr_cordenadas_tienda.codificarCoordenadas(
+            latitud, longitud
+        )
+    }
+    Cartas_expandibles {
+        Column {
+            expandibles_wrapp(
+                "QR de Tienda",
+                R.drawable.qr_scaner_icon,
+                expandido,
+                onClickExpand
+            )
+        }
+        AnimatedVisibility(visible = expandido) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 12.dp,
+                        vertical = 8.dp
+                    )
+            ) {
+                generar_qr_ubi_tinda(
+                    "Escanea el código QR desde Geinz work para obtener la ruta hacia esta tienda. Google maps te guiará con indicaciones paso a paso para que llegues fácilmente",
+                    generador_qr
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -845,22 +885,6 @@ fun item_metodo_contacto(icono_red: Int, texto: String) {
 
 
 @Composable
-fun text_expandible_wrapp(
-    texto: String,
-    style: TextStyle = MaterialTheme.typography.bodyMedium,
-    maxlines: Int = 1
-) {
-    Text(
-        text = texto,
-        color = MaterialTheme.colorScheme.onBackground,
-        style = style,
-        maxLines = maxlines,
-        overflow = TextOverflow.Ellipsis
-
-    )
-}
-
-@Composable
 fun texto_expandido_wrapp_sin_max_line(
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium
@@ -896,14 +920,7 @@ fun Expandible_horario_atencion(
             cargado = true
         }
     }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
+    Cartas_expandibles {
         Column() {
             expandibles_wrapp(
                 "Horario de atención",
@@ -921,9 +938,7 @@ fun Expandible_horario_atencion(
                 }
             }
         }
-
     }
-
 }
 
 @Composable
@@ -976,13 +991,16 @@ fun MostrarHorarioTienda(
             else -> {
                 val diaActual = obtenerDiaActualEnEspañol().lowercase()
 
+
                 Column(modifier = Modifier.padding(bottom = 10.dp, start = 10.dp, end = 10.dp)) {
                     horarioTienda?.lista_Horario?.forEach { horarioDia ->
                         val esDiaActual = horarioDia.dia.lowercase() == diaActual
-                        val horarioTexto =
-                            if (horarioDia.h_apertura.isNotEmpty() && horarioDia.h_cierre.isNotEmpty())
-                                "${horarioDia.h_apertura} a.m a ${horarioDia.h_cierre} p.m"
-                            else "Cerrado"
+                        Log.d("dai_ACtia", "${horarioDia.dia.lowercase()} $diaActual")
+                        val horarioTexto = when {
+                            horarioDia.h_apertura.isEmpty() || horarioDia.h_cierre.isEmpty() -> "Cerrado"
+                            horarioDia.h_apertura == "00:00" && horarioDia.h_cierre == "23:59" -> "Abierto las 24h"
+                            else -> "${horarioDia.h_apertura} a.m a ${horarioDia.h_cierre} p.m"
+                        }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -1014,80 +1032,6 @@ fun MostrarHorarioTienda(
     }
 }
 
-
-@Composable
-fun expandibles_wrapp(
-    texto_params: String,
-    icon: Int,
-    expandido: Boolean,
-    onClickExpand: () -> Unit
-) {
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .padding(horizontal = 10.dp)
-    ) {
-        val (texto, btn) = createRefs()
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .constrainAs(texto) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                }
-        ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = texto_params,
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        val icono_exandido = if (expandido) {
-            R.drawable.ocultar_abajo
-        } else {
-            R.drawable.ocultar_arriva
-        }
-        FloatingActionButton(
-            modifier = Modifier
-                .size(30.dp)
-                .clip(CircleShape)
-                .constrainAs(btn) {
-                    end.linkTo(parent.end)
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                },
-            onClick = { onClickExpand() },
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 10.dp
-            ),
-            containerColor = MaterialTheme.colorScheme.primary,
-        )
-        {
-            Image(
-                modifier = Modifier.size(20.dp),
-                painter = painterResource(icono_exandido),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White)
-            )
-        }
-    }
-}
-
-fun obtenerDiaActualEnEspañol(): String {
-    val locale = Locale("es", "ES")
-    val calendar = Calendar.getInstance()
-    val diaSemana = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale)
-    return diaSemana?.lowercase() ?: ""
-}
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable

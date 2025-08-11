@@ -75,10 +75,12 @@ class viewModel_inicio_fr : ViewModel() {
     }
 
     fun obtenerScannerTrabajador(result: String) {
+        Log.d("obtenosmo_datos_trabahjo",result)
         viewModelScope.launch {
             try {
                 val campos_obtenidos = repo.obtener_res_scanner(result)
                 _scanner_trabajador.value = campos_obtenidos
+                Log.d("obtenosmo_datos_trabahjo",campos_obtenidos.toString())
             } catch (e: Exception) {
                 _scanner_trabajador.value = emptyList()
             }

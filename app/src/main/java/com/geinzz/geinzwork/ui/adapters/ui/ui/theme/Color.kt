@@ -30,4 +30,4 @@ val color_texto_oscuro_background= Color(0xFFFFFFFF)
 
 
 val color_carta_oscuro35= Color(0XFF535252)
-val color_carta_claro35= Color(0XFFBBBAB9)
+val color_carta_claro35= Color(0xFFD7D6D6)

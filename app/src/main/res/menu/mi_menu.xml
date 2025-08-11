@@ -12,7 +12,7 @@
     <item
         android:id="@+id/tienda"
         android:enabled="false"
-        android:title="Tienda" />
+        android:title="Tiendas" />
     <item
         android:id="@+id/Categorias"
         android:icon="@drawable/categoria_icon"

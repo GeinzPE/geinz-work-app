@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -75,9 +77,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFie
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cargando_categorias
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 
@@ -258,13 +266,12 @@ fun Pantalla_filtrado_tiendas(
                         items(listaMostrar, key = { tienda -> tienda.id_tienda }) { tienda ->
                             item_tiendas(
                                 tienda,
-                                estado_tiendas
-                            ) { id_tienda, listener, estado_color ->
-//                                dataclass_tienda_seleccionada = modelo_tienda()
-                                estadoColor = estado_color
-                                showBottomSheet = listener
-                                id_tienda_selecionada = id_tienda
-                            }
+                                estado_tiendas,
+                                 { id_tienda, listener, estado_color ->
+                                    estadoColor = estado_color
+                                    showBottomSheet = listener
+                                    id_tienda_selecionada = id_tienda
+                                })
                         }
                     }
                 }
@@ -274,7 +281,7 @@ fun Pantalla_filtrado_tiendas(
             bottom_sheet_tiendas_filtradas(
                 estadoColor,
                 viewModelFiltros,
-                dataclass_tienda_seleccionada,showBottomSheet
+                dataclass_tienda_seleccionada, showBottomSheet
             ) {
                 showBottomSheet = false
             }
@@ -286,21 +293,18 @@ fun Pantalla_filtrado_tiendas(
 
 @Composable
 fun encabezado_chis_categorias() {
-    Text(
-        "Busca tus tiendas favoritas",
-        style = MaterialTheme.typography.headlineSmall,
-        color = MaterialTheme.colorScheme.onBackground,
+    titulos_genericos_one_line(
+        "Busca tus tiendas favoritas", MaterialTheme.typography.headlineSmall,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
-        textAlign = TextAlign.Center
     )
     spacer_vertical(5.dp)
-    Text(
+    texto_generico_multilinea(
         "Filtra entre nuestras categorías o busca directamente por el nombre de esa tienda que tanto te gusta. ¡Explorar nunca fue tan fácil y rápido!",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onBackground
+        MaterialTheme.typography.bodyMedium
     )
+
     spacer_vertical(5.dp)
 }
 
@@ -421,11 +425,27 @@ fun item_tiendas(
     val estaAbierto = estado_tiendas?.get(item_tiendas.id_tienda) == true
     val estadoTexto = if (estaAbierto) "Abierto" else "Cerrado"
     val estadoColor = if (estaAbierto) Color.Green else Color.Red
+    var showDialog by remember { mutableStateOf(false) }
+
+    val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
+        generar_qr_cordenadas_tienda.codificarCoordenadas(
+            item_tiendas.latitud, item_tiendas.longitud
+        )
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { listener_botom_sheet(item_tiendas.id_tienda, true, estadoColor) },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        showDialog = true
+                    },
+                    onTap = {
+                        listener_botom_sheet(item_tiendas.id_tienda, true, estadoColor)
+                    }
+                )
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
@@ -488,6 +508,14 @@ fun item_tiendas(
         }
     }
 
+    if (showDialog) {
+        dialog_qr_tienda(
+            qr = generador_qr,
+            nombre_tienda = item_tiendas.nombre_tienda,
+            onDismis = { showDialog = false }
+        )
+    }
+
 }
 
 
@@ -495,14 +523,7 @@ fun item_tiendas(
 fun Nombre_estado_tienda(
     nombre_tienda: String,
 ) {
-    Text(
-        text = nombre_tienda,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        color = MaterialTheme.colorScheme.onBackground,
-        style = MaterialTheme.typography.titleMedium,
-    )
-    Spacer(modifier = Modifier.width(4.dp))
+    texto_generico_one_line(nombre_tienda)
     Spacer(modifier = Modifier.width(10.dp))
 }
 
@@ -530,8 +551,6 @@ fun Caracteristicas_tiendas(caracteristica: String, texto: String) {
 @Composable
 fun Btn_Expandir_card(expandir_carta: (Boolean) -> Unit) {
     var expandida_carta by remember { mutableStateOf(false) }
-    val icono_cambiado =
-        if (expandida_carta) R.drawable.ocultar_abajo else R.drawable.ocultar_arriva
     FloatingActionButton(
         modifier = Modifier
             .padding(5.dp)
@@ -549,7 +568,11 @@ fun Btn_Expandir_card(expandir_carta: (Boolean) -> Unit) {
     ) {
         Image(
             modifier = Modifier.size(15.dp),
-            painter = painterResource(icono_cambiado),
+            painter = painterResource(
+                constantes_lista_localidades.cambiar_icono_exapndible(
+                    expandida_carta
+                )
+            ),
             contentDescription = "",
             colorFilter = ColorFilter.tint(Color.White)
         )

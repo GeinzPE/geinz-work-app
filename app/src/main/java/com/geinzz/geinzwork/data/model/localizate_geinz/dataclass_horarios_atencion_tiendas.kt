@@ -20,12 +20,6 @@ data class HorarioTienda(
     val lista_Horario: List<horario_Dia> = emptyList()
 )
 
-data class EstadoTienda(
-    val idTienda: String="",
-    val estaAbierto: Boolean=false
-)
-
-
 data class tiendas_patrocinadas(
     val id_tienda: String="",
     val categoria_tienda: String=""

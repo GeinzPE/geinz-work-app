@@ -125,7 +125,7 @@ object constantes_vinculados {
                         return@addOnSuccessListener
                     }
 
-                    // Crear mapa de datos del nuevo dispositivo
+
                     val hashMap = hashMapOf<String, Any>(
                         "id_dispositivo" to androidId,
                         "dispositivo" to dispositivo,
@@ -146,7 +146,6 @@ object constantes_vinculados {
                             when(tipo_directo){
                                 "directo"->{
                                     val intent = Intent(context, MainActivity::class.java)
-                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                     context.startActivity(intent)
                                 }
                                 "regreso"->{
@@ -154,9 +153,7 @@ object constantes_vinculados {
                                         context.onBackPressed()
                                     }
                                 }
-
                             }
-
                         }
                         .addOnFailureListener { e ->
                             Log.e("ERROR", "Error al subir dispositivo vinculado", e)
@@ -182,10 +179,13 @@ object constantes_vinculados {
         return androidId
     }
 
-    fun cerrarSeccion(context: Context, iduser: String, onFinish: () -> Unit) {
+    fun cerrarSeccion(context: Context, iduser: String) {
         val androidId = obtenerAndroidID(context)
+        Log.d("CERRAR_SESION", "Iniciando cierre para usuario: $iduser y AndroidID: $androidId")
+
         encontrarUser(iduser) { tipo, coleccion ->
-            Log.d("tipo", tipo.toString())
+            Log.d("CERRAR_SESION", "Resultado encontrarUser: tipo=$tipo coleccion=${coleccion != null}")
+
             val docRef = when (tipo) {
                 "trabajador" -> FirebaseFirestore.getInstance()
                     .collection("Trabajadores_Usuarios_Drivers")
@@ -200,23 +200,30 @@ object constantes_vinculados {
                     .document(androidId)
 
                 else -> {
-                    Log.d("RESULT", "No se encontró el usuario")
-                    onFinish()
+                    Log.d("CERRAR_SESION", "No se encontró el usuario en ninguna colección")
+
                     return@encontrarUser
                 }
             }
 
-            Log.d("modeloEXaco", androidId)
+            Log.d("CERRAR_SESION", "Eliminando doc: ${docRef.path}")
+
             docRef.delete()
                 .addOnSuccessListener {
-                    eliminar_token_por_dispositivo(iduser)
-                    Log.d("dispo_vinculado", "Dispositivo eliminado correctamente")
-                    onFinish()
+                    Log.d("CERRAR_SESION", "Documento eliminado correctamente ✅")
+                    try {
+
+                        eliminar_token_por_dispositivo(iduser)
+                    } catch (ex: Exception) {
+                        Log.e("CERRAR_SESION", "Error dentro de success: ${ex.message}", ex)
+                    }
                 }
                 .addOnFailureListener { e ->
-                    Log.d("error_eliminar", "Error al eliminar el dispositivo: ${e.message}")
-                    onFinish()
+                    Log.e("CERRAR_SESION", "Error al eliminar ❌: ${e.message}", e)
+
                 }
+
+
         }
     }
 

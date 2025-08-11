@@ -8,6 +8,7 @@ data class data_model_inicio_fr_(
 )
 
 data class data_model_trabajador_scanner(
+    val id_trabajador: String="",
     val nombre: String?,
     val nacionalidad: String?,
     val categoria: String?,

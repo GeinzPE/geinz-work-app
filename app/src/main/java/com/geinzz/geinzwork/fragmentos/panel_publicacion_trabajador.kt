@@ -78,25 +78,23 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         if (firebaseAuth.currentUser != null) {
             Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
             setear_datos_includes()
-            binding.menuAccesoDirecto.setOnClickListener {
-                popup()
-            }
-            binding.panelMetoods.metodoEntrega.setOnClickListener {
-                dialog = BottomSheetDialog(this)
-                bottomSheet_metodo_entrega()
-                dialog.show()
-            }
-            binding.panelMetoods.metodosPago.setOnClickListener {
-                dialog = BottomSheetDialog(this)
-                bottomSheet_metodos_pago()
-                dialog.show()
 
-            }
-            binding.metodoNumeroNombre.setOnClickListener {
-                dialog = BottomSheetDialog(this)
-                bottomSheet_numero_nombre_pagos()
-                dialog.show()
-            }
+//            binding.panelMetoods.metodoEntrega.setOnClickListener {
+//                dialog = BottomSheetDialog(this)
+//                bottomSheet_metodo_entrega()
+//                dialog.show()
+//            }
+//            binding.panelMetoods.metodosPago.setOnClickListener {
+//                dialog = BottomSheetDialog(this)
+//                bottomSheet_metodos_pago()
+//                dialog.show()
+//
+//            }
+//            binding.metodoNumeroNombre.setOnClickListener {
+//                dialog = BottomSheetDialog(this)
+//                bottomSheet_numero_nombre_pagos()
+//                dialog.show()
+//            }
             binding.agregarRedesSociales.setOnClickListener {
                 dialog = BottomSheetDialog(this)
                 bottomSheet_agregar_redes()
@@ -123,28 +121,29 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         if (firebaseAuth.currentUser != null) {
             Toast.makeText(this, "entramos a la actividad", Toast.LENGTH_SHORT).show()
             setear_datos_includes()
-            if (binding.menuAccesoDirecto.hasOnClickListeners().not()) {
-                binding.menuAccesoDirecto.setOnClickListener { popup() }
-                binding.panelMetoods.metodoEntrega.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
-                    bottomSheet_metodo_entrega()
-                    dialog.show()
-                }
-                binding.panelMetoods.metodosPago.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
-                    bottomSheet_metodos_pago()
-                    dialog.show()
-                }
-                binding.metodoNumeroNombre.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
-                    bottomSheet_numero_nombre_pagos()
-                    dialog.show()
-                }
-                binding.agregarRedesSociales.setOnClickListener {
-                    dialog = BottomSheetDialog(this)
-                    bottomSheet_agregar_redes()
-                    dialog.show()
-                }
+//            if (binding.menuAccesoDirecto.hasOnClickListeners().not()) {
+//                binding.menuAccesoDirecto.setOnClickListener { popup() }
+////                binding.panelMetoods.metodoEntrega.setOnClickListener {
+////                    dialog = BottomSheetDialog(this)
+////                    bottomSheet_metodo_entrega()
+////                    dialog.show()
+////                }
+////                binding.panelMetoods.metodosPago.setOnClickListener {
+////                    dialog = BottomSheetDialog(this)
+////                    bottomSheet_metodos_pago()
+////                    dialog.show()
+////                }
+////                binding.metodoNumeroNombre.setOnClickListener {
+////                    dialog = BottomSheetDialog(this)
+////                    bottomSheet_numero_nombre_pagos()
+////                    dialog.show()
+////                }
+//
+//            }
+            binding.agregarRedesSociales.setOnClickListener {
+                dialog = BottomSheetDialog(this)
+                bottomSheet_agregar_redes()
+                dialog.show()
             }
 
             binding.sinRegistro.isVisible = false
@@ -164,29 +163,6 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
     }
 
-
-    private fun popup() {
-        val popup = PopupMenu(this, binding.menuAccesoDirecto)
-
-        // Agregar opciones al menú
-        popup.menu.add(Menu.NONE, 1, 1, "Crear acceso directo")
-
-
-        // Mostrar el popup
-        popup.show()
-
-        // Manejar clics en los ítems del menú
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                1 -> {
-                    PinShortcut_general.panel_publicacion_trabajador_accesoDirecto_panel(this)
-                    true
-                }
-
-                else -> true
-            }
-        }
-    }
 
     private fun bottomSheet_agregar_redes() {
         val binding_bottom = BottomSheetAgregarRedesBinding.inflate(LayoutInflater.from(this))
@@ -1350,7 +1326,7 @@ class panel_publicacion_trabajador : AppCompatActivity() {
         val plan = intent.getStringExtra(Variables.plan)
         binding.traajosRecientes.tituloServico.text = "Trabajos Recientes"
         binding.publicaciones.tituloServico.text = "Publicaciones"
-        binding.productosVenta.tituloServico.text = "Productos en venta"
+//        binding.productosVenta.tituloServico.text = "Productos en venta"
 
         obtenerTrabajosRecientes(
             binding.traajosRecientes.cargaDatos,
@@ -1446,47 +1422,47 @@ class panel_publicacion_trabajador : AppCompatActivity() {
             })
 
 
-        obtenerTrabajosRecientes(
-            binding.productosVenta.cargaDatos,
-            binding.productosVenta.linealCargaDatos, "productos_venta", "publicados", { valor ->
-                val productos_activos =
-                    SpannableString("Productos activos : ${valor}")
-                constantestextos_general.setearInformacionboldDescripcion(
-                    "Productos activos",
-                    productos_activos, binding.productosVenta.activos
-                )
-            })
+//        obtenerTrabajosRecientes(
+//            binding.productosVenta.cargaDatos,
+//            binding.productosVenta.linealCargaDatos, "productos_venta", "publicados", { valor ->
+//                val productos_activos =
+//                    SpannableString("Productos activos : ${valor}")
+//                constantestextos_general.setearInformacionboldDescripcion(
+//                    "Productos activos",
+//                    productos_activos, binding.productosVenta.activos
+//                )
+//            })
 
-
-        obtenerTrabajosRecientes(
-            binding.productosVenta.cargaDatos,
-            binding.productosVenta.linealCargaDatos, "productos_venta", "archivados", { valor ->
-                val trabajos_activos =
-                    SpannableString("Productos archivados : ${valor}")
-                constantestextos_general.setearInformacionboldDescripcion(
-                    "Productos archivados",
-                    trabajos_activos, binding.productosVenta.archivadas
-                )
-            })
-
-        obtenerTrabajosRecientes(
-            binding.productosVenta.cargaDatos,
-            binding.productosVenta.linealCargaDatos, "productos_venta", "eliminados", { valor ->
-                val trabajos_activos =
-                    SpannableString("Productos eliminados : ${valor}")
-                constantestextos_general.setearInformacionboldDescripcion(
-                    "Productos eliminados",
-                    trabajos_activos, binding.productosVenta.eliminadas
-                )
-            })
+//
+//        obtenerTrabajosRecientes(
+//            binding.productosVenta.cargaDatos,
+//            binding.productosVenta.linealCargaDatos, "productos_venta", "archivados", { valor ->
+//                val trabajos_activos =
+//                    SpannableString("Productos archivados : ${valor}")
+//                constantestextos_general.setearInformacionboldDescripcion(
+//                    "Productos archivados",
+//                    trabajos_activos, binding.productosVenta.archivadas
+//                )
+//            })
+//
+//        obtenerTrabajosRecientes(
+//            binding.productosVenta.cargaDatos,
+//            binding.productosVenta.linealCargaDatos, "productos_venta", "eliminados", { valor ->
+//                val trabajos_activos =
+//                    SpannableString("Productos eliminados : ${valor}")
+//                constantestextos_general.setearInformacionboldDescripcion(
+//                    "Productos eliminados",
+//                    trabajos_activos, binding.productosVenta.eliminadas
+//                )
+//            })
 
 
         val imageView = binding.traajosRecientes.imgServicio
         imageView.setImageResource(R.drawable.crea_publicaciones)
         val imageView2 = binding.publicaciones.imgServicio
         imageView2.setImageResource(R.drawable.agregar_trabajos)
-        val imageView3 = binding.productosVenta.imgServicio
-        imageView3.setImageResource(R.drawable.agrega_productos_perfil)
+//        val imageView3 = binding.productosVenta.imgServicio
+//        imageView3.setImageResource(R.drawable.agrega_productos_perfil)
 
 
 
@@ -1506,12 +1482,12 @@ class panel_publicacion_trabajador : AppCompatActivity() {
 
         }
 
-        imageView3.setOnClickListener {
-            var vista = Intent(this, crear_publicacion_productos_trabajadores::class.java).apply {
-                putExtra(Variables.plan, plan)
-            }
-            startActivity(vista)
-        }
+//        imageView3.setOnClickListener {
+//            var vista = Intent(this, crear_publicacion_productos_trabajadores::class.java).apply {
+//                putExtra(Variables.plan, plan)
+//            }
+//            startActivity(vista)
+//        }
 
     }
 

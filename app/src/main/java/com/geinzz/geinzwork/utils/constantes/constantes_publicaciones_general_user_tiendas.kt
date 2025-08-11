@@ -58,6 +58,8 @@ import com.google.firebase.storage.FirebaseStorage
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 import org.imaginativeworld.whynotimagecarousel.utils.setImage
+import java.util.Calendar
+import java.util.Locale
 
 object constantes_publicaciones_general_user_tiendas {
     private val listaAdapterProductosTRabajdores =
@@ -82,7 +84,7 @@ object constantes_publicaciones_general_user_tiendas {
             .document(id)
             .collection(Variables.trabajos_realizados).document("publicados")
             .collection("publicados")
-        binding.linealProductosPublicados.isVisible = true
+//        binding.linealProductosPublicados.isVisible = true
         obtenerARticulosComprasVerificado(binding, context, id)
         lista.clear()
 
@@ -163,12 +165,12 @@ object constantes_publicaciones_general_user_tiendas {
                     listaAdapterProductosTRabajdores,
                     idTrabajador
                 )
-                binding.linealNoSeEncontraron.isVisible = false
-                binding.productosDestacados.isVisible = true
+//                binding.linealNoSeEncontraron.isVisible = false
+//                binding.productosDestacados.isVisible = true
 
             } else {
-                binding.linealNoSeEncontraron.isVisible = true
-                binding.productosDestacados.isVisible = false
+//                binding.linealNoSeEncontraron.isVisible = true
+//                binding.productosDestacados.isVisible = false
             }
         }.addOnFailureListener { e ->
             println("No se encontraron datos: ${e.message}")
@@ -181,19 +183,19 @@ object constantes_publicaciones_general_user_tiendas {
         listaAdapterProductosTRabajdores: MutableList<dataclas_item_preview_art_comprar>,
         idTrabajador: String
     ) {
-        val recicle = binding.productosDestacados
-        recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        recicle.adapter = adapter_mostra_articulos_trabajadores(
-            listaAdapterProductosTRabajdores
-        ) { item ->
-            dialog = BottomSheetDialog(context)
-            ShowBottomSheetDialogProductosTrabajadores(
-                context,
-                idTrabajador,
-                item.id.toString(), dialog
-            )
-            dialog.show()
-        }
+//        val recicle = binding.productosDestacados
+//        recicle.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+//        recicle.adapter = adapter_mostra_articulos_trabajadores(
+//            listaAdapterProductosTRabajdores
+//        ) { item ->
+//            dialog = BottomSheetDialog(context)
+//            ShowBottomSheetDialogProductosTrabajadores(
+//                context,
+//                idTrabajador,
+//                item.id.toString(), dialog
+//            )
+//            dialog.show()
+//        }
     }
 
     fun ShowBottomSheetDialogProductosTrabajadores(
@@ -1601,5 +1603,11 @@ object constantes_publicaciones_general_user_tiendas {
 
     }
 
+    fun obtenerDiaActualEnEspañol(): String {
+        val locale = Locale("es", "ES")
+        val calendar = Calendar.getInstance()
+        val diaSemana = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale)
+        return diaSemana?.lowercase() ?: ""
+    }
 
 }

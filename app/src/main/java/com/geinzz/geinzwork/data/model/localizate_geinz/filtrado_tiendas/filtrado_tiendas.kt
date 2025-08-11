@@ -37,6 +37,8 @@ data class tiendas_por_categoria(
     val direccion: String = "",
     val referencia: String = "",
     val logo_tienda: String = "",
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
     val lista_subcategoiras: List<String> = emptyList(),
     val descripcion: String = "",
     val id_tienda: String = "",

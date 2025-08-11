@@ -137,7 +137,7 @@ class viewModel_filtado_tiendas : ViewModel() {
                 }
                 Log.d("obtenos_dataios_teindas", _horarioTienda.value.toString())
             } catch (e: Exception) {
-
+                Log.d("obtenos_dataios_teindas", "no se econtroa datos")
             }
         }
     }

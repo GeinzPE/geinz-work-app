@@ -218,10 +218,10 @@ class info : Fragment() {
 
 
 
-            val recicle = binding.productosDestacados
-            val customLayoutManager =
-                classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
-            recicle.layoutManager = customLayoutManager
+//            val recicle = binding.productosDestacados
+//            val customLayoutManager =
+//                classcustomscrool(mContex, LinearLayoutManager.HORIZONTAL, false)
+//            recicle.layoutManager = customLayoutManager
 
             binding.linealSiguiendo.setOnClickListener {
                 dialog = BottomSheetDialog(mContex)
@@ -1574,7 +1574,7 @@ class info : Fragment() {
 
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
-                binding.linealProductosPublicados.isVisible = false
+//                binding.linealProductosPublicados.isVisible = false
                 constantes_servicios.verificarEstado_vericiacion(
                     binding.verificadoIcon,
                     id
@@ -1634,7 +1634,7 @@ class info : Fragment() {
                     binding.verificadoTXT.text = "noverificado"
                 }
             } else {
-                binding.linealProductosPublicados.isVisible = false
+//                binding.linealProductosPublicados.isVisible = false
                 binding.verificadoTXT.text = "noverificado"
                 banerPublicacionesRecientes.isVisible = false
                 trabajosRealizados.isVisible = false

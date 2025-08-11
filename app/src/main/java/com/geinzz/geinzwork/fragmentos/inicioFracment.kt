@@ -22,6 +22,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -58,6 +59,7 @@ import com.geinzz.geinzwork.databinding.ItemPublicaiconesRecientesTrabajadoresIn
 import com.geinzz.geinzwork.model.dataClassCategoriasInicio
 import com.geinzz.geinzwork.model.dataClassTrabajosd
 import com.geinzz.geinzwork.ui.adapters.ui.localizate_geinz_wokr_ui
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.abrir_google_maps
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.actualizarVisibilidadCargando
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.actualizarVisibilidadPorCategoria
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.inicializarRecicleMejoresTrabajadores
@@ -65,9 +67,12 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTi
 import com.geinzz.geinzwork.utils.constantes.constantes.constantesTrabajadoresTiendasInicioFragmet.obtenerTrabajoscategoria
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados.obtenerAndroidID
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados.setar_hora_fecha_ultimaConexion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_inicio_fr
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
+import com.geinzz.geinzwork.vistaTrabajador.ver_promociones
 import com.geinzz.geinzwork.vistaTrabajador.vistaTrabajador
 import com.geinzz.geinzwork.vistaTrabajador.vista_CategoriasT
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -117,6 +122,7 @@ class inicioFracment : Fragment() {
         viewModel_info_user_general =
             ViewModelProvider(this)[viewModel_usuarios_general::class.java]
         viewModel.cargar_categorias()
+
         binding.progresCargaCat.isVisible = true
         binding.RecicleCategoria.isVisible = false
         binding.noEncontradocat.isVisible = false
@@ -190,7 +196,8 @@ class inicioFracment : Fragment() {
         viewModel.scaner.observe(viewLifecycleOwner) { trabajador ->
             for (trb in trabajador) {
                 val intent = Intent(requireContext(), vistaTrabajador::class.java).apply {
-                    putExtra(Variables.id, trb.nombre)
+                    Log.d("datos_uiser","${trb.nombre} ${trb.id_trabajador}")
+                    putExtra(Variables.id, trb.id_trabajador)
                     putExtra(Variables.nombreUSer, trb.nombre)
                     putExtra(Variables.nacionalidad, trb.nacionalidad)
                     putExtra(Variables.categoria, trb.categoria)
@@ -292,7 +299,7 @@ class inicioFracment : Fragment() {
         }
 
         SetAnuncios()
-        obtenerProductos_trabajadores()
+//        obtenerProductos_trabajadores()
         obterTrabajosRecientes_trabajadores()
 
 
@@ -360,14 +367,10 @@ class inicioFracment : Fragment() {
         binding.includeCabezero.relativenotifica.setOnClickListener {
             initScanner()
         }
-        binding.Tiendas.setOnClickListener {
+//        binding.Tiendas.setOnClickListener {
 //            mContex.startActivity(Intent(mContex, ver_promociones::class.java))
-//            mContex.startActivity(Intent(mContex, herramientas_geinz::class.java
-            mContex.startActivity(Intent(mContex, localizate_geinz_wokr_ui::class.java).apply {
-                putExtra("filtrado_localidad", binding.includeCabezero.filtradoUsuairo.text.toString())
-                putExtra("nombre_user",binding.includeCabezero.usuarioRegsitradoName.text.toString())
-            })
-        }
+//            mContex.startActivity(Intent(mContex, herramientas_geinz::class.java))
+//        }
         if (firebaseAuth.currentUser == null && storedValue.isNullOrEmpty() || storedValue.equals("Default Value")) {
             constantesTrabajadoresTiendasInicioFragmet.obtenerLocalida(Variables.General)
             binding.includeCabezero.filtradoUsuairo.text = Variables.General
@@ -477,7 +480,7 @@ class inicioFracment : Fragment() {
         setupImageCarouselTouchListener(binding.carrusel, activity!!)
         setupImageCarouselTouchListener(binding.carruse2, activity!!)
         setupImageCarouselTouchListener(binding.carrucelPublicacionesRecientes, activity!!)
-        setupImageCarouselTouchListener(binding.carrucelProductosTrabajdores, activity!!)
+//        setupImageCarouselTouchListcarrucelProductosTrabajdores, activity!!)
         setupImageCarouselTouchListener(binding.IncludeAnunciosTercero.carrucel, activity!!)
         setupImageCarouselTouchListener(binding.IncludeAnunciosCuarto.carrucel, activity!!)
         setupImageCarouselTouchListener(binding.IncludeAnunciosQuinto.carrucel, activity!!)
@@ -501,6 +504,7 @@ class inicioFracment : Fragment() {
 
     val permisoNotificaion =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { esConcedido -> }
+
 
 
     private fun obtener_mensajes_destacados(verificado: String) {
@@ -657,6 +661,7 @@ class inicioFracment : Fragment() {
         integrator.initiateScan()
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
 
@@ -664,12 +669,35 @@ class inicioFracment : Fragment() {
             if (result.contents == null) {
                 Toast.makeText(requireContext(), "Escaneo cancelado", Toast.LENGTH_SHORT).show()
             } else {
-                viewModel.obtenerScannerTrabajador(result.contents)
+                val contenidoEscaneado = result.contents
+                Log.d("obtenoemos_resutlado", contenidoEscaneado)
+
+                if (contenidoEscaneado.startsWith("Tienda|")) {
+                    val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")
+                    try {
+                        val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(base64Coordenadas)
+                        constantes_lista_localidades.abrir_google_maps(
+                            mContex,
+                            lat,
+                            lng
+                        ) { dialogo ->
+                            if(dialogo){
+                                Toast.makeText(mContex, "Activa tu ubicacion primero", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), "Error al decodificar coordenadas", Toast.LENGTH_SHORT).show()
+                        e.printStackTrace()
+                    }
+                } else {
+                    viewModel.obtenerScannerTrabajador(contenidoEscaneado)
+                }
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
+
 
     private fun confSwipe(storedValue: String) {
         binding.swipe.setOnRefreshListener {
@@ -679,7 +707,7 @@ class inicioFracment : Fragment() {
                 SetAnuncios()
 //                obtenerTrabajosCat()
                 obtnerFiltrado(binding.includeCabezero.filtradoUsuairo.text.toString())
-                obtenerProductos_trabajadores()
+//                obtenerProductos_trabajadores()
                 obterTrabajosRecientes_trabajadores()
                 obtener_mensajes_destacados(binding.verificadoBoolean.text.toString())
             }, 2000)
@@ -963,232 +991,232 @@ class inicioFracment : Fragment() {
     }
 
 
-    private fun obtenerProductos_trabajadores() {
-        val lista = mutableListOf<CarouselItem>()
-        val documentosFirestore = mutableListOf<DocumentSnapshot>()
-        val idTrabajadoresPorDocumento = mutableListOf<String>()
-
-        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
-            .document("verificaciones").collection("activos")
-
-        db.get().addOnSuccessListener { res ->
-            val trabajadores = res.documents
-            if (trabajadores.isEmpty()) {
-                binding.carrucelProductosTrabajdores.isVisible = false
-                binding.linealNoEncontradoProductos.isVisible = true
-                binding.noEncontradoProducto.text = "No se encontraron productos"
-                return@addOnSuccessListener
-            }
-
-            var trabajadoresProcesados = 0
-
-            for (document in trabajadores) {
-                val id_trabajador = document.id
-
-                val dbUsers = FirebaseFirestore.getInstance()
-                    .collection("Trabajadores_Usuarios_Drivers")
-                    .document("trabajadores")
-                    .collection("trabajadores")
-                    .document(id_trabajador)
-                    .collection("productos_venta")
-                    .document("publicados")
-                    .collection("publicados")
-
-                dbUsers.get().addOnSuccessListener { productos ->
-                    if (!productos.isEmpty) {
-                        val aleatorio = productos.documents.random()
-                        val img_producto = aleatorio.get("img_url") as? String ?: ""
-
-                        lista.add(CarouselItem(img_producto))
-                        documentosFirestore.add(aleatorio)
-                        idTrabajadoresPorDocumento.add(id_trabajador)
-                    }
-
-                    trabajadoresProcesados++
-
-                    if (trabajadoresProcesados == trabajadores.size) {
-                        if (lista.isNotEmpty()) {
-                            binding.carrucelProductosTrabajdores.isVisible = true
-                            binding.linealNoEncontradoProductos.isVisible = false
-                            configurarCarrusel(
-                                idTrabajadoresPorDocumento,
-                                lista,
-                                documentosFirestore
-                            )
-                        } else {
-                            binding.carrucelProductosTrabajdores.isVisible = false
-                            binding.linealNoEncontradoProductos.isVisible = true
-                            binding.noEncontradoProducto.text =
-                                "No se encontraron productos"
-                        }
-                    }
-
-                }.addOnFailureListener {
-                    trabajadoresProcesados++
-
-                    if (trabajadoresProcesados == trabajadores.size) {
-                        if (lista.isNotEmpty()) {
-                            binding.carrucelProductosTrabajdores.isVisible = true
-                            binding.linealNoEncontradoProductos.isVisible = false
-                            configurarCarrusel(
-                                idTrabajadoresPorDocumento,
-                                lista,
-                                documentosFirestore
-                            )
-                        } else {
-                            binding.carrucelProductosTrabajdores.isVisible = false
-                            binding.linealNoEncontradoProductos.isVisible = true
-                            binding.noEncontradoProducto.text =
-                                "No se encontraron productos"
-                        }
-                    }
-                }
-            }
-
-        }.addOnFailureListener { e ->
-            Log.e("ProductosVerificados", "Error al obtener documentos", e)
-            binding.carrucelProductosTrabajdores.isVisible = false
-            binding.linealNoEncontradoProductos.isVisible = true
-            binding.noEncontradoProducto.text = "No se encontraron productos"
-        }
-    }
-
-
-    private fun configurarCarrusel(
-        id_trabajador: List<String>,
-        lista: List<CarouselItem>,
-        documentos: List<DocumentSnapshot>,
-    ) {
-        binding.carrucelProductosTrabajdores.registerLifecycle(lifecycle)
-        binding.carrucelProductosTrabajdores.carouselListener = object : CarouselListener {
-            override fun onCreateViewHolder(
-                layoutInflater: LayoutInflater,
-                parent: ViewGroup,
-            ): ViewBinding? {
-                return ItemProductsTrabajadoresPrincipalBinding.inflate(
-                    layoutInflater,
-                    parent,
-                    false
-                )
-            }
-
-            override fun onBindViewHolder(
-                binding: ViewBinding,
-                item: CarouselItem,
-                position: Int,
-            ) {
-                val currentBinding = binding as ItemProductsTrabajadoresPrincipalBinding
-                val doc = documentos[position]
-                val id_trabajador = id_trabajador[position]
-                val titulo: String = doc.get("nombre") as? String ?: ""
-                val descripcionTitulo =
-                    doc["descripcion_titulo"] as? Map<String, Any> ?: emptyMap()
-                val tituloDescripcion =
-                    descripcionTitulo["titulo_descripcion"] as? String ?: ""
-                val img_producto: String = doc.get("img_url") as? String ?: ""
-                val precio: Number = doc.get("precio") as? Number ?: 0
-                val descuento_porcentajeProducto: Number =
-                    doc.get("cantidad_porcentaje_descuento") as? Number ?: 0
-                val descuentoBoolean: Boolean = doc.get("descuento") as? Boolean ?: false
-                val precio_descuento: Number = doc.get("precio_descuento") as? Number ?: 0
-                val metodoEntrega: String = doc.get("metodoEntrega") as? String ?: ""
-                val id: String = doc.get("id") as? String ?: ""
-
-                constantes_servicios.verificarEstado_vericiacion(
-                    currentBinding.verificado,
-                    id_trabajador
-                ) { v, plan ->
-                    when (plan) {
-                        Variables.plaA -> {
-                            currentBinding.verificado.setImageResource(R.drawable.verificado_a)
-
-                        }
-
-                        Variables.planB -> {
-                            currentBinding.verificado.setImageResource(R.drawable.icon_verificado)
-                        }
-
-                        Variables.PlanC -> {
-                            currentBinding.verificado.setImageResource(R.drawable.verificado_c)
-
-                        }
-                    }
-
-                }
-
-                constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
-                    currentBinding.NombreVerificado.text = nombre
-                }
-
-                currentBinding.tituloProducto.text = titulo
-                currentBinding.descripcionProducto.text = tituloDescripcion
-
-                if (descuentoBoolean) {
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-                        precio_descuento,
-                        currentBinding.precioProducto,
-                        precio,
-                        currentBinding.precioDescuento,
-                        descuento_porcentajeProducto,
-                        currentBinding.descuentoPorcentaje
-                    )
-                    currentBinding.precioDescuento.isVisible = true
-                    currentBinding.descuentoPorcentaje.isVisible = true
-                    constantestextos_general.marcarDescuentoTxt(currentBinding.precioDescuento)
-                } else {
-                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
-                        precio,
-                        currentBinding.precioProducto
-                    )
-                    currentBinding.precioDescuento.isVisible = false
-                    currentBinding.descuentoPorcentaje.isVisible = false
-                }
-                obtener_metodoEntrega(
-                    id_trabajador, metodoEntrega,
-                    callback = { metodo_entrega ->
-                    },
-                    evio_gratis = { delivery_gratis ->
-                        if (delivery_gratis) {
-                            currentBinding.envioGratis.isVisible = true
-                        } else {
-                            currentBinding.envioGratis.isVisible = false
-                        }
-                    }
-                )
+//    private fun obtenerProductos_trabajadores() {
+//        val lista = mutableListOf<CarouselItem>()
+//        val documentosFirestore = mutableListOf<DocumentSnapshot>()
+//        val idTrabajadoresPorDocumento = mutableListOf<String>()
+//
+//        val db = FirebaseFirestore.getInstance().collection("solicitudes_servicios")
+//            .document("verificaciones").collection("activos")
+//
+//        db.get().addOnSuccessListener { res ->
+//            val trabajadores = res.documents
+//            if (trabajadores.isEmpty()) {
+//                binding.carrucelProductosTrabajdores.isVisible = false
+//                binding.linealNoEncontradoProductos.isVisible = true
+//                binding.noEncontradoProducto.text = "No se encontraron productos"
+//                return@addOnSuccessListener
+//            }
+//
+//            var trabajadoresProcesados = 0
+//
+//            for (document in trabajadores) {
+//                val id_trabajador = document.id
+//
+//                val dbUsers = FirebaseFirestore.getInstance()
+//                    .collection("Trabajadores_Usuarios_Drivers")
+//                    .document("trabajadores")
+//                    .collection("trabajadores")
+//                    .document(id_trabajador)
+//                    .collection("productos_venta")
+//                    .document("publicados")
+//                    .collection("publicados")
+//
+//                dbUsers.get().addOnSuccessListener { productos ->
+//                    if (!productos.isEmpty) {
+//                        val aleatorio = productos.documents.random()
+//                        val img_producto = aleatorio.get("img_url") as? String ?: ""
+//
+//                        lista.add(CarouselItem(img_producto))
+//                        documentosFirestore.add(aleatorio)
+//                        idTrabajadoresPorDocumento.add(id_trabajador)
+//                    }
+//
+//                    trabajadoresProcesados++
+//
+//                    if (trabajadoresProcesados == trabajadores.size) {
+//                        if (lista.isNotEmpty()) {
+////                            binding.carrucelProductosTrabajdores.isVisible = true
+////                            binding.linealNoEncontradoProductos.isVisible = false
+//                            configurarCarrusel(
+//                                idTrabajadoresPorDocumento,
+//                                lista,
+//                                documentosFirestore
+//                            )
+//                        } else {
+////                            binding.carrucelProductosTrabajdores.isVisible = false
+//                            binding.linealNoEncontradoProductos.isVisible = true
+//                            binding.noEncontradoProducto.text =
+//                                "No se encontraron productos"
+//                        }
+//                    }
+//
+//                }.addOnFailureListener {
+//                    trabajadoresProcesados++
+//
+//                    if (trabajadoresProcesados == trabajadores.size) {
+//                        if (lista.isNotEmpty()) {
+//                            binding.carrucelProductosTrabajdores.isVisible = true
+//                            binding.linealNoEncontradoProductos.isVisible = false
+//                            configurarCarrusel(
+//                                idTrabajadoresPorDocumento,
+//                                lista,
+//                                documentosFirestore
+//                            )
+//                        } else {
+//                            binding.carrucelProductosTrabajdores.isVisible = false
+//                            binding.linealNoEncontradoProductos.isVisible = true
+//                            binding.noEncontradoProducto.text =
+//                                "No se encontraron productos"
+//                        }
+//                    }
+//                }
+//            }
+//
+//        }.addOnFailureListener { e ->
+//            Log.e("ProductosVerificados", "Error al obtener documentos", e)
+//            binding.carrucelProductosTrabajdores.isVisible = false
+//            binding.linealNoEncontradoProductos.isVisible = true
+//            binding.noEncontradoProducto.text = "No se encontraron productos"
+//        }
+//    }
 
 
-                currentBinding.cargarContenido.postDelayed({
-                    currentBinding.imgProducto.isVisible = true
-                    currentBinding.cargarContenido.isVisible = false
-                    currentBinding.linealProductosPublicados.isVisible = true
-                    currentBinding.descuentoPorcentaje.isVisible = descuentoBoolean
-                }, 2000)
-                constatnes_carga_imagenes_general.changer_img(
-                    currentBinding.cargaImg,
-                    mContex,
-                    img_producto,
-                    null,
-                    currentBinding.imgProducto as ImageView,
-                    "portada",
-                    null
-                ) {}
-                currentBinding.listener.setOnClickListener {
-                    val vista =
-                        Intent(
-                            mContex,
-                            vista_ver_productos_trabajadores::class.java
-                        ).apply {
-                            putExtra("id_trabajador", id_trabajador)
-                                .putExtra("id_publicacion", id)
-                                .putExtra("tipo_ubicado", "publicados")
-                        }
-                    startActivity(vista)
-                }
-            }
-        }
-
-        binding.carrucelProductosTrabajdores.setData(lista)
-    }
+//    private fun configurarCarrusel(
+//        id_trabajador: List<String>,
+//        lista: List<CarouselItem>,
+//        documentos: List<DocumentSnapshot>,
+//    ) {
+//        binding.carrucelProductosTrabajdores.registerLifecycle(lifecycle)
+//        binding.carrucelProductosTrabajdores.carouselListener = object : CarouselListener {
+//            override fun onCreateViewHolder(
+//                layoutInflater: LayoutInflater,
+//                parent: ViewGroup,
+//            ): ViewBinding? {
+//                return ItemProductsTrabajadoresPrincipalBinding.inflate(
+//                    layoutInflater,
+//                    parent,
+//                    false
+//                )
+//            }
+//
+//            override fun onBindViewHolder(
+//                binding: ViewBinding,
+//                item: CarouselItem,
+//                position: Int,
+//            ) {
+//                val currentBinding = binding as ItemProductsTrabajadoresPrincipalBinding
+//                val doc = documentos[position]
+//                val id_trabajador = id_trabajador[position]
+//                val titulo: String = doc.get("nombre") as? String ?: ""
+//                val descripcionTitulo =
+//                    doc["descripcion_titulo"] as? Map<String, Any> ?: emptyMap()
+//                val tituloDescripcion =
+//                    descripcionTitulo["titulo_descripcion"] as? String ?: ""
+//                val img_producto: String = doc.get("img_url") as? String ?: ""
+//                val precio: Number = doc.get("precio") as? Number ?: 0
+//                val descuento_porcentajeProducto: Number =
+//                    doc.get("cantidad_porcentaje_descuento") as? Number ?: 0
+//                val descuentoBoolean: Boolean = doc.get("descuento") as? Boolean ?: false
+//                val precio_descuento: Number = doc.get("precio_descuento") as? Number ?: 0
+//                val metodoEntrega: String = doc.get("metodoEntrega") as? String ?: ""
+//                val id: String = doc.get("id") as? String ?: ""
+//
+//                constantes_servicios.verificarEstado_vericiacion(
+//                    currentBinding.verificado,
+//                    id_trabajador
+//                ) { v, plan ->
+//                    when (plan) {
+//                        Variables.plaA -> {
+//                            currentBinding.verificado.setImageResource(R.drawable.verificado_a)
+//
+//                        }
+//
+//                        Variables.planB -> {
+//                            currentBinding.verificado.setImageResource(R.drawable.icon_verificado)
+//                        }
+//
+//                        Variables.PlanC -> {
+//                            currentBinding.verificado.setImageResource(R.drawable.verificado_c)
+//
+//                        }
+//                    }
+//
+//                }
+//
+//                constantesCarrito.setearDatosUsuarioImgNombre(id_trabajador) { nombre, img, apellido, nacionalidad, categoria, verificado, trabajador_user ->
+//                    currentBinding.NombreVerificado.text = nombre
+//                }
+//
+//                currentBinding.tituloProducto.text = titulo
+//                currentBinding.descripcionProducto.text = tituloDescripcion
+//
+//                if (descuentoBoolean) {
+//                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+//                        precio_descuento,
+//                        currentBinding.precioProducto,
+//                        precio,
+//                        currentBinding.precioDescuento,
+//                        descuento_porcentajeProducto,
+//                        currentBinding.descuentoPorcentaje
+//                    )
+//                    currentBinding.precioDescuento.isVisible = true
+//                    currentBinding.descuentoPorcentaje.isVisible = true
+//                    constantestextos_general.marcarDescuentoTxt(currentBinding.precioDescuento)
+//                } else {
+//                    constantestextos_general.setearPrecioDescuentoPrecioAntiguo(
+//                        precio,
+//                        currentBinding.precioProducto
+//                    )
+//                    currentBinding.precioDescuento.isVisible = false
+//                    currentBinding.descuentoPorcentaje.isVisible = false
+//                }
+//                obtener_metodoEntrega(
+//                    id_trabajador, metodoEntrega,
+//                    callback = { metodo_entrega ->
+//                    },
+//                    evio_gratis = { delivery_gratis ->
+//                        if (delivery_gratis) {
+//                            currentBinding.envioGratis.isVisible = true
+//                        } else {
+//                            currentBinding.envioGratis.isVisible = false
+//                        }
+//                    }
+//                )
+//
+//
+//                currentBinding.cargarContenido.postDelayed({
+//                    currentBinding.imgProducto.isVisible = true
+//                    currentBinding.cargarContenido.isVisible = false
+//                    currentBinding.linealProductosPublicados.isVisible = true
+//                    currentBinding.descuentoPorcentaje.isVisible = descuentoBoolean
+//                }, 2000)
+//                constatnes_carga_imagenes_general.changer_img(
+//                    currentBinding.cargaImg,
+//                    mContex,
+//                    img_producto,
+//                    null,
+//                    currentBinding.imgProducto as ImageView,
+//                    "portada",
+//                    null
+//                ) {}
+//                currentBinding.listener.setOnClickListener {
+//                    val vista =
+//                        Intent(
+//                            mContex,
+//                            vista_ver_productos_trabajadores::class.java
+//                        ).apply {
+//                            putExtra("id_trabajador", id_trabajador)
+//                                .putExtra("id_publicacion", id)
+//                                .putExtra("tipo_ubicado", "publicados")
+//                        }
+//                    startActivity(vista)
+//                }
+//            }
+//        }
+//
+//        binding.carrucelProductosTrabajdores.setData(lista)
+//    }
 
     private fun configurarCarruselPublicaicones_ralziadas(
         lista: List<CarouselItem>,

@@ -22,8 +22,15 @@ class viewModel_usuarios_general : ViewModel() {
     val encontrar_user: LiveData<Pair<Boolean, CollectionReference?>> get() = _encontrar_user
 
 
+    val nombre_localidad_user = MutableLiveData<Pair<String, String>>()
+    val _nombre_localidad_user: LiveData<Pair<String, String>> get() = nombre_localidad_user
+
     val _accesoPermitido = MutableStateFlow<Boolean?>(null)
     val accesoPermitido: StateFlow<Boolean?> = _accesoPermitido
+
+    val usuarioName = MutableLiveData<String>()
+    val usuarioFiltrado = MutableLiveData<String>()
+
 
     fun ver_verificaro(id: String) {
         viewModelScope.launch {
@@ -73,6 +80,17 @@ class viewModel_usuarios_general : ViewModel() {
         }
     }
 
+
+    fun obtener_localida_nombre_user(id: String) {
+        viewModelScope.launch {
+            try {
+                nombre_localidad_user.value = repo_usauri.nombra_localidad_user(id)
+            } catch (e: Exception) {
+                nombre_localidad_user.value= Pair("","")
+
+            }
+        }
+    }
 
 
 }

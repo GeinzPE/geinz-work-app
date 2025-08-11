@@ -36,16 +36,20 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
     val dias_sema =
-        listOf("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo")
+        listOf(
+            "lunes", "martes", "miércoles",
+            "jueves", "viernes", "sábado", "domingo"
+        )
 
 
-     fun obtenerMetodoContacto(
+    fun obtenerMetodoContacto(
         metodo: String,
         data: Map<String, Any>
     ): Pair<Boolean, String> {
         val metodoData = data[metodo] as? Map<String, Any> ?: emptyMap()
         val estado = metodoData["estado"] as? Boolean ?: false
-        val nombre = metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
+        val nombre =
+            metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
         return estado to nombre
     }
 
@@ -63,7 +67,7 @@ object constantes_lista_localidades {
         return try {
             val diaActualConTilde =
                 SimpleDateFormat("EEEE", Locale("es", "ES")).format(Date()).lowercase()
-            val diaActual = quitarTildes(diaActualConTilde)
+            val diaActual = diaActualConTilde
             Log.d("HORARIO_CHECK", "Día actual: $diaActual")
 
             val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -72,10 +76,8 @@ object constantes_lista_localidades {
 
             lista_horarios_por_tienda.forEach { i ->
                 val dia = i.dia!!.lowercase()
-                val diaSinTilde = quitarTildes(dia)
-                Log.d("HORARIO_CHECK", "Evaluando día: $diaSinTilde")
-
-                if (diaSinTilde == diaActual) {
+                Log.d("HORARIO_CHECK", "Evaluando día: $dia")
+                if (dia == diaActual) {
                     val apertura = formato.parse(i.h_apertura)
                     val cierre = formato.parse(i.h_cierre)
                     Log.d(
@@ -146,6 +148,15 @@ object constantes_lista_localidades {
         }
     }
 
+
+    fun cambiar_icono_exapndible(expandido: Boolean): Int {
+
+        return if (expandido) {
+            R.drawable.ocultar_abajo
+        } else {
+            R.drawable.ocultar_arriva
+        }
+    }
 
 
 //    val listaCategorias = listOf(

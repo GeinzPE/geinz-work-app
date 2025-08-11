@@ -41,13 +41,7 @@
                         android:text="Dispositivos vinculados"
                         android:textSize="27sp" />
 
-                    <ImageView
-                        android:id="@+id/popup"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/menu_puntos" />
+
                 </RelativeLayout>
 
 
@@ -60,14 +54,6 @@
                     android:text="Estos son los dispositivos donde has iniciado sesión. Toca uno si quieres cerrar sesión desde ahí.\nSi no inicias sesión antes, no podrás cerrar sesión en ningún dispositivo."
                     android:textSize="15sp" />
 
-                <TextView
-                    android:id="@+id/TotalDispo"
-                    style="@style/TextoModoOScuroColor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:fontFamily="@font/fuente_para_texto_special_gothic"
-                    android:textSize="15sp" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recicle_dispositivos"

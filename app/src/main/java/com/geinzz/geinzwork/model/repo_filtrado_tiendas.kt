@@ -10,6 +10,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import kotlin.Number
 
 class repo_filtrado_tiendas {
     val db = FirebaseFirestore.getInstance()
@@ -47,10 +48,13 @@ class repo_filtrado_tiendas {
                 val ubicacion = i.get("ubicacion") as? Map<String, Any>
                 val direccion = ubicacion?.get("dirección") as? String ?: ""
                 val referencia = ubicacion?.get("referencia") as? String ?: ""
+                val latitud=ubicacion?.get("latitud") as? Number ?: 0
+                val longitud=ubicacion?.get("longitud") as? Number ?: 0
                 val descripcion = i.get("descripcion") as? String ?: ""
                 val id_tienda = i.get("id_tienda") as? String ?: ""
                 val map_img_tienda = i.get("img_tienda") as? Map<String, Any> ?: emptyMap()
                 val logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: ""
+
 
                 lista_tiendas_filtradas.add(
                     tiendas_por_categoria(
@@ -58,6 +62,8 @@ class repo_filtrado_tiendas {
                         direccion = direccion,
                         referencia = referencia,
                         logo_tienda = logo_tienda,
+                        latitud = latitud.toDouble(),
+                        longitud = longitud.toDouble(),
                         lista_subcategoiras = subcategorias_list,
                         descripcion = descripcion,
                         id_tienda = id_tienda
@@ -174,11 +180,15 @@ class repo_filtrado_tiendas {
             val data = document.data
             val ubicacion = data?.get("ubicacion") as? Map<String, Any>
             val map_img_tienda = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+            val latitud=ubicacion?.get("latitud") as? Number ?: 0
+            val longitud=ubicacion?.get("longitud") as? Number ?: 0
             lista_por_subcateogira.add(
                 tiendas_por_categoria(
                     nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
                     direccion = ubicacion?.get("dirección") as? String ?: "",
                     referencia = ubicacion?.get("referencia") as? String ?: "",
+                    latitud = latitud.toDouble(),
+                    longitud = longitud.toDouble(),
                     logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: "",
                     lista_subcategoiras = data?.get("subcategoria") as? List<String> ?: emptyList(),
                     descripcion = data?.get("descripcion") as? String ?: "",

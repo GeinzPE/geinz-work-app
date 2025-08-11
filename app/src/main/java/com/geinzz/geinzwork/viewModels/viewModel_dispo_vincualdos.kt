@@ -14,8 +14,7 @@ import kotlinx.coroutines.launch
 class viewModel_dispo_vincualdos : ViewModel() {
     val instance_repo_vincualdos = repo_dispo_vinculados()
     val _obtener_dispo_vinculados = MutableStateFlow<List<dataclass_dispo_vinculados?>>(emptyList())
-    val obtener_dispo_vinculados: StateFlow<List<dataclass_dispo_vinculados?>> =
-        _obtener_dispo_vinculados
+    val obtener_dispo_vinculados: StateFlow<List<dataclass_dispo_vinculados?>> = _obtener_dispo_vinculados
     val encontra_user_colection = repo_info_user()
 
     val _buscar_primario = MutableLiveData<String>()

@@ -2,10 +2,13 @@ package com.geinzz.geinzwork.fragmentos.cuenta_config
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -32,6 +35,8 @@ import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.R
 
 import com.geinzz.geinzwork.databinding.ActivityCuentaConfigBinding
+import com.geinzz.geinzwork.databinding.BottomSheetAunProduccionBinding
+import com.geinzz.geinzwork.databinding.BottomSheetEditarCamposBinding
 import com.geinzz.geinzwork.noticias_y_review
 import com.geinzz.geinzwork.problemas_soporte_politicas.verificacion_cuenta_trabajador
 import com.geinzz.geinzwork.servicios_geinz.serviciosGeinz
@@ -39,9 +44,15 @@ import com.geinzz.geinzwork.utils.constantes.constantes.Variables
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_cuenta_user
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados.encontrarUser
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados.obtenerAndroidID
 import com.geinzz.geinzwork.vistaTiendas.direccion_entrega_lat_log
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
     private lateinit var dialog: BottomSheetDialog
@@ -91,7 +102,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                     "QR trabajador" -> abrirQRTrabajador()
                     "Accesos directos" -> abrirAccesosDirectos()
                     "Dispositivos vinculados" -> abrirDispositivosVinculados()
-                    "Cerrar sesión" -> mostrarDialogCerrarSesion()
+                    "Cerrar seccion" -> mostrarDialogCerrarSesion()
                     "Eliminar cuenta" -> mostrarDialogEliminarCuenta(tipo_cuenta, this)
                     "Guardados" -> abrirGuardados()
                     "Reseñas" -> abrirReseñas()
@@ -185,26 +196,23 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
 
     private fun mostrarDialogCerrarSesion() {
         val alerta = AlertDialog.Builder(this)
-        alerta.setTitle("Cerrar sesión")
+        alerta.setTitle("Cerrar Sesión")
         alerta.setMessage("¿Está seguro de que desea cerrar sesión?")
-        alerta.setPositiveButton("Sí") { dialog, which ->
-            constantes_vinculados.cerrarSeccion(
-                this,
-                firebaseAuth.uid.toString()
-            ) {
-                firebaseAuth.signOut()
-                startActivity(Intent(this, MainActivity::class.java))
-                finishAffinity()
-            }
-        }
-
-
-        alerta.setNegativeButton("No") { dialog, which ->
+        alerta.setPositiveButton("Sí") { dialog, _ ->
+            constantes_vinculados.cerrarSeccion(this, firebaseAuth.uid.toString())
+            firebaseAuth.signOut()
+            startActivity(Intent(this, MainActivity::class.java))
+            finishAffinity()
             dialog.dismiss()
         }
-        alerta.show()
 
+        alerta.setNegativeButton("No") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        alerta.show()
     }
+
 
     private fun mostrarDialogEliminarCuenta(tipoCuenta: String, activity: Activity) {
         val builder = AlertDialog.Builder(this)
@@ -267,10 +275,10 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                 "Gestiona los dispositivos que tienen acceso a tu cuenta."
             ),
             dataclass_cuenta_config_filtrado(
-                "Cerrar sesión",
+                "Cerrar seccion",
                 R.drawable.cerra_seccion_icon,
                 null,
-                "Cierra tu sesión actual de forma segura en Geinz Work."
+                "Cierra tu seccion actual de forma segura en Geinz Work."
             ),
             dataclass_cuenta_config_filtrado(
                 "Eliminar cuenta",
@@ -469,7 +477,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
                 "QR trabajador" -> abrirQRTrabajador()
                 "Accesos directos" -> abrirAccesosDirectos()
                 "Dispositivos vinculados" -> abrirDispositivosVinculados()
-                "Cerrar sesión" -> mostrarDialogCerrarSesion()
+                "Cerrar seccion" -> mostrarDialogCerrarSesion()
                 "Eliminar cuenta" -> mostrarDialogEliminarCuenta(
                     tipoCuenta = tipo_cuenta,
                     activity = this
@@ -477,7 +485,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
 
                 "Guardados" -> abrirGuardados()
                 "Reseñas" -> abrirReseñas()
-                "Direccion de envios" -> abrirDireccionEnvios()
+                "Dirección de envíos" -> abrirDireccionEnvios()
                 "Reportes" -> abrirReportes(plan)
                 "Historial de compra" -> abrirHistorialCompra()
                 "Historial de venta" -> abrirHistorialVenta()
@@ -491,12 +499,19 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
     }
 
     private fun abrirHistorialVenta() {
-        startActivity(Intent(this, venta_trabajador::class.java))
+        dialog = BottomSheetDialog(this)
+        bottom_shet_en_desarrollo()
+//        startActivity(Intent(this, venta_trabajador::class.java))
+        dialog.show()
+
 
     }
 
     private fun abrirHistorialCompra() {
-        startActivity(Intent(this, compra_trabajador::class.java))
+        dialog = BottomSheetDialog(this)
+        bottom_shet_en_desarrollo()
+        dialog.show()
+//        startActivity(Intent(this, compra_trabajador::class.java))
 
     }
 
@@ -655,6 +670,12 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
         prefs.edit().putBoolean(id, true).apply()
     }
 
+    private fun bottom_shet_en_desarrollo(){
+        val bottomSheet = BottomSheetAunProduccionBinding.inflate(LayoutInflater.from(this))
+        val view = bottomSheet.root
+        dialog.setContentView(view)
+    }
+
     private fun ocultar_apartado(prefs: SharedPreferences) {
         binding.funcionamientoGeinz.linealPadre.setOnLongClickListener {
             prefs.edit().putBoolean("funcionamiento_geinz", false).apply()
@@ -696,11 +717,6 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
             binding.pagosGeinz.lineaApartado.isVisible,
             binding.cuentaVerifica.lineaApartado.isVisible
         ).count { it }
-
-        // Mostrar estado en consola (opcional)
-        Log.d("visibilidad_apartados", "Visibles: $visibles")
-
-        // Si no queda ninguno visible, ocultar contenedores
         val mostrar = visibles > 0
         binding.soloGeinz.isVisible = mostrar
         binding.lineaView.isVisible = mostrar
@@ -899,7 +915,7 @@ class cuenta_config : AppCompatActivity(), OnIncludeSeleccionadoListener {
             binding.containerCerrarSeccion.linealPadre,
             binding.containerCerrarSeccion.ocultarP1,
             binding.containerCerrarSeccion.textoOcultar,
-            "Finaliza tu sesión de forma segura y protege tu cuenta.", true
+            "Finaliza tu seccion de forma segura y protege tu cuenta.", true
         )
 
         setear_datos_include(

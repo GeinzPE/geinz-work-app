@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.model
 
 import android.util.Log
+import androidx.compose.ui.graphics.Paint
 import com.geinzz.geinzwork.data.model.dataclass_user.data_class_usuario_general
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -56,6 +57,7 @@ class repo_info_user {
 
         return lista
     }
+
 
     suspend fun verificado_user(id_trabajador: String): Boolean {
         var verificado = false
@@ -152,6 +154,22 @@ class repo_info_user {
         awaitClose {
             listenerRegistration.remove()
         }
+    }
+
+    suspend fun nombra_localidad_user(id: String): Pair<String, String> {
+        val posiblesColecciones = listOf("usuarios", "trabajadores")
+        for (nombreCol in posiblesColecciones) {
+            val docSnapshot = db.collection("Trabajadores_Usuarios_Drivers").document(nombreCol)
+                .collection(nombreCol).document(id).get().await()
+            if (docSnapshot.exists()) {
+                val nombre = docSnapshot.get("nombre") as? String ?: ""
+                val localidad = docSnapshot.get("localidad") as? String ?: ""
+                return Pair(
+                    nombre, localidad
+                )
+            }
+        }
+        return Pair("", "")
     }
 
 }

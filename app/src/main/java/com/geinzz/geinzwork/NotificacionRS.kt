@@ -112,11 +112,11 @@ class NotificacionRS {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("noti", "Error al enviar notificación: ${e.message}")
+                Log.e("noti_evadad", "Error al enviar notificación: ${e.message}")
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d("noti", "Respuesta: ${response.body?.string()}")
+                Log.d("noti_evadad", "Respuesta: ${response.body?.string()}")
             }
         })
     }
