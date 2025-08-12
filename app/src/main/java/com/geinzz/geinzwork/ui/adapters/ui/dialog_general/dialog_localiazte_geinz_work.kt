@@ -112,7 +112,7 @@ fun dialog_qr_tienda(qr: String, nombre_tienda: String, onDismis: () -> Unit) {
                 modifier = Modifier.size(25.dp),
                 painter = painterResource(R.drawable.qr_scaner_icon),
                 contentDescription = "Google maps",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onBackground
             )
         },
         title = {

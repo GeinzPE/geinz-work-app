@@ -437,7 +437,7 @@ fun cartas_categorias(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.img_subcategorias)
                         .crossfade(true)
-                        .placeholder(R.drawable.cargando_img)
+                        .placeholder(R.drawable.cargando_img_categorias)
                         .error(R.drawable.sin_item_carrito)
                         .build(),
                     contentDescription = "Imagen de la tienda",

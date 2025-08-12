@@ -33,33 +33,38 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(innerPadding).padding(10.dp)
     ) {
         item {
-            Box() {
-                Image(
-                    painter = painterResource(R.drawable.logo_geinz_circular),
-                    contentDescription = "",
-                    modifier = Modifier.size(40.dp)
-                )
-                Column(
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                titulos_genericos_one_line(
+                    "Geinz work", MaterialTheme.typography.headlineMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.Center)
-                ) {
-                    titulos_genericos_one_line(
-                        "Geinz work", MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    titulos_genericos_one_line(
-                        "Crea-Diseña-Crece", MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    spacer_vertical(10.dp)
-                }
+                )
+                titulos_genericos_one_line(
+                    "Crea-Diseña-Crece", MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+                spacer_vertical(10.dp)
             }
+
+        }
+        item {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Image(
+                    painter = painterResource(R.drawable.logo_geinz_500x500),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(150.dp)
+                        .align ( Alignment.Center )
+                )
+            }
+            spacer_vertical(15.dp)
         }
         item {
             texto_generico_multilinea("Quienes somos?", MaterialTheme.typography.titleMedium)
@@ -102,9 +107,32 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
                 MaterialTheme.typography.titleMedium
             )
             spacer_vertical(5.dp)
+
+            texto_generico_multilinea(
+                "Elige la guía que necesitas y aprende a usar Geinz Work de forma sencilla. Si eres trabajador, descubre cómo ofrecer tus servicios y gestionar tus reservas. Si eres usuario, conoce cómo explorar tiendas, aprovechar promociones y hacer compras rápidas.",
+                MaterialTheme.typography.bodyMedium
+            )
+            spacer_vertical(5.dp)
         }
         item {
             btn_acciones_rapidas()
+            spacer_vertical(10.dp)
+        }
+
+        item {
+            texto_generico_multilinea(
+                "Mejora tu crecimiento en Geinz",
+                MaterialTheme.typography.titleMedium
+            )
+            spacer_vertical(5.dp)
+            texto_generico_multilinea(
+                "Potencia la visibilidad de tu negocio en Geinz Work. Registra tu tienda para llegar a más clientes, crea publicidad para destacar tus ofertas y comparte noticias para mantener a tus seguidores informados.",
+                MaterialTheme.typography.bodyMedium
+            )
+            spacer_vertical(5.dp)
+        }
+        item {
+            btn_acciones_de_geinz()
         }
     }
 
@@ -112,12 +140,13 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
 }
 
 @Composable
-fun btn_acciones_rapidas() {
+fun btn_acciones_de_geinz() {
     val context = LocalContext.current
+
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             btn_clasico_shap_50f("Registra tu tienda en Geinz work") {
-           }
+            }
         }
         item {
             btn_clasico_shap_50f("Crea tu publicidad") {
@@ -127,6 +156,13 @@ fun btn_acciones_rapidas() {
         item {
             btn_clasico_shap_50f("Crea tu noticia") {}
         }
+    }
+}
+
+@Composable
+fun btn_acciones_rapidas() {
+    val context = LocalContext.current
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             btn_clasico_shap_50f("Como usar Geinz (Trabajadores)") {
                 context.startActivity(Intent(context, comoUsar::class.java))

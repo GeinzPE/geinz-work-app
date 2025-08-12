@@ -415,7 +415,7 @@ fun generar_qr_ubi_tinda(
 
 @Composable
 fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
-    Button(onClick = { onClick() }, modifier = Modifier.clip(CircleShape)) {
+    Button(onClick = { onClick() }, modifier = Modifier, shape = RoundedCornerShape(40)) {
         Text(
             text,
             color = Color.White, style = MaterialTheme.typography.bodyMedium
