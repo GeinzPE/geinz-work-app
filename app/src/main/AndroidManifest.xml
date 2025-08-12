@@ -38,6 +38,16 @@
         android:theme="@style/Theme.GeinzWork"
         tools:targetApi="31">
         <activity
+            android:name=".ui.adapters.ui.quienes_somos_geinz_work"
+            android:exported="false"
+            android:label="@string/title_activity_quienes_somos_geinz_work"
+            android:theme="@style/Theme.GeinzWork" />
+        <activity
+            android:name=".ui.adapters.ui.nosotros_geinz_work.nosotros_geinz_work"
+            android:exported="false"
+            android:label="@string/title_activity_nosotros_geinz_work"
+            android:theme="@style/Theme.GeinzWork" />
+        <activity
             android:name=".ui.adapters.ui.localizate_geinz_wokr_ui"
             android:exported="false"
             android:label="@string/title_activity_localizate_geinz_wokr_ui"

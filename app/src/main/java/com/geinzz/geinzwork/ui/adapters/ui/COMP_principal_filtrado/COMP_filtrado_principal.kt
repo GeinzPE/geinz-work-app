@@ -56,6 +56,7 @@ import org.w3c.dom.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import androidx.compose.material.Button
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.layout.ContentScale
 
@@ -247,7 +248,7 @@ fun texto_generico_multilinea(
         modifier = modifier,
         style = style,
         color = MaterialTheme.colorScheme.onBackground,
-        )
+    )
 }
 
 
@@ -371,7 +372,12 @@ fun text_expandible_wrapp(
 }
 
 @Composable
-fun generar_qr_ubi_tinda(bottom_text: String, content: String, sizeDp: Int = 200, modifier: Modifier = Modifier) {
+fun generar_qr_ubi_tinda(
+    bottom_text: String,
+    content: String,
+    sizeDp: Int = 200,
+    modifier: Modifier = Modifier
+) {
     val bitmap = rememberSaveable(content) {
         val dimension = 512
         val writer = QRCodeWriter()
@@ -403,6 +409,16 @@ fun generar_qr_ubi_tinda(bottom_text: String, content: String, sizeDp: Int = 200
         texto_generico_multilinea(
             bottom_text,
             MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
+    Button(onClick = { onClick() }, modifier = Modifier.clip(CircleShape)) {
+        Text(
+            text,
+            color = Color.White, style = MaterialTheme.typography.bodyMedium
         )
     }
 }

@@ -262,6 +262,7 @@ fun bottom_sheet_tiendas_filtradas(
                                 latitud, longitud,
                                 expander_qr_tienda
                             ) { expander_qr_tienda = !expander_qr_tienda }
+                            spacer_vertical(10.dp)
                         }
                     }
                 }
@@ -303,7 +304,6 @@ fun bottom_shet_patrocinadores(
         facebook = tiendas_filtradas.facebook,
         nombre_user_fb = tiendas_filtradas.nombre_user_fb
     )
-    val latitul_longitud_String = "${tiendas_filtradas.latitud},${tiendas_filtradas.longitud}"
 
     Surface {
         ModalBottomSheet(
@@ -410,6 +410,7 @@ fun bottom_shet_patrocinadores(
                         tiendas_filtradas.longitud,
                         expander_qr_tienda
                     ) { expander_qr_tienda = !expander_qr_tienda }
+                    spacer_vertical(10.dp)
                 }
 
             }
@@ -603,7 +604,7 @@ fun perfil_cabezero(
     Column {
         val iconId = "icon"
         val annotatedText = buildAnnotatedString {
-            append(nombre_tienda)
+            append(nombre_tienda.uppercase())
             append(" ")
             appendInlineContent(iconId, "[icon]")
         }

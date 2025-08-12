@@ -19,9 +19,10 @@ import com.bumptech.glide.Glide
 import com.geinzz.geinzwork.Crea_tu_publicidad
 import com.geinzz.geinzwork.CuentaFreelancer
 import com.geinzz.geinzwork.Login
-import com.geinzz.geinzwork.Nosotros
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.databinding.ItemCustomFixedSizeLayout3Binding
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nosotros_geinz_work
+import com.geinzz.geinzwork.ui.adapters.ui.quienes_somos_geinz_work
 import com.geinzz.geinzwork.vistaTiendas.tienda_no_lanzada_spasl
 import com.geinzz.geinzwork.vistasPubliciadesGeinz.crear_cuenta_Tienda
 import com.geinzz.geinzwork.vistas_anuncios_general
@@ -68,7 +69,8 @@ object constantesPublicidad {
                 super.onClick(position, carouselItem)
                 when (carouselItem.caption) {
                     "img1" -> {
-                        contexto.startActivity(Intent(contexto, Nosotros::class.java))
+                        contexto.startActivity(Intent(contexto, quienes_somos_geinz_work::class.java))
+
                     }
 
                     "img2" -> {
@@ -88,7 +90,6 @@ object constantesPublicidad {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-
                     }
 
                     "img4" -> {
