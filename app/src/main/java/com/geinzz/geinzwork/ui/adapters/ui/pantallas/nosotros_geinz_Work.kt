@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.Crea_tu_publicidad
 import com.geinzz.geinzwork.FuncionalidadGeinz.comoUsar
@@ -27,13 +27,16 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_clasico_s
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.uso_geinz.como_usar_geinz_trabajadores
+import com.geinzz.geinzwork.ui.adapters.ui.uso_geinz.como_usar_geinz_work
 
 @Composable
 fun nosotros_geinz_work(innerPadding: PaddingValues) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding).padding(10.dp)
+            .padding(innerPadding)
+            .padding(10.dp)
     ) {
         item {
             Column(
@@ -41,12 +44,12 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
                     .fillMaxWidth()
             ) {
                 titulos_genericos_one_line(
-                    "Geinz work", MaterialTheme.typography.headlineMedium,
+                    stringResource(R.string.generalGeinz), MaterialTheme.typography.headlineMedium,
                     modifier = Modifier
                         .fillMaxWidth()
                 )
                 titulos_genericos_one_line(
-                    "Crea-Diseña-Crece", MaterialTheme.typography.titleMedium,
+                    stringResource(R.string.crea_diseña), MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .fillMaxWidth()
                 )
@@ -61,18 +64,18 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
                     contentDescription = "",
                     modifier = Modifier
                         .size(150.dp)
-                        .align ( Alignment.Center )
+                        .align(Alignment.Center)
                 )
             }
             spacer_vertical(15.dp)
         }
         item {
-            texto_generico_multilinea("Quienes somos?", MaterialTheme.typography.titleMedium)
             texto_generico_multilinea(
-                "Geinz es una empresa especializada en el desarrollo de soluciones digitales, " +
-                        "desde aplicaciones Android hasta sitios web dinámicos y funcionales. " +
-                        "Nuestro equipo combina experiencia técnica y creatividad para ofrecer " +
-                        "herramientas innovadoras que impulsan el éxito de nuestros clientes en el mundo digital.",
+                stringResource(R.string.titulo_quienes_somos_GW),
+                MaterialTheme.typography.titleMedium
+            )
+            texto_generico_multilinea(
+                stringResource(R.string.descripcion_quienes_somos_GW),
                 MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(10.dp)
@@ -80,12 +83,12 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
 
         }
         item {
-            texto_generico_multilinea("Nuestro Enfoque", MaterialTheme.typography.titleMedium)
             texto_generico_multilinea(
-                "Nos comprometemos a comprender a fondo las necesidades y objetivos " +
-                        "de nuestros clientes. Nuestro equipo de profesionales combina experiencia, " +
-                        "creatividad y dedicación para desarrollar soluciones digitales que generen valor " +
-                        "y fortalezcan su presencia en línea.",
+                stringResource(R.string.titulo_nuestro_enfoque_GW),
+                MaterialTheme.typography.titleMedium
+            )
+            texto_generico_multilinea(
+                stringResource(R.string.descripcion_nuestro_enfoque_GWT),
                 MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(10.dp)
@@ -93,23 +96,24 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
 
         }
         item {
-            texto_generico_multilinea("Contáctanos", MaterialTheme.typography.titleMedium)
             texto_generico_multilinea(
-                "¿Tienes una idea o proyecto en mente? ¡Estamos aquí para convertirlo en realidad! " +
-                        "Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos " +
-                        "y destacar en el mundo digital.", MaterialTheme.typography.bodyMedium
+                stringResource(R.string.boton_contactanos_GWT),
+                MaterialTheme.typography.titleMedium
+            )
+            texto_generico_multilinea(
+                stringResource(R.string.mensaje_variedad_GWT), MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(10.dp)
         }
         item {
             texto_generico_multilinea(
-                "Acciones rapidas en Geinz work",
+                stringResource(R.string.titulo_acciones_rapidas_BWT),
                 MaterialTheme.typography.titleMedium
             )
             spacer_vertical(5.dp)
 
             texto_generico_multilinea(
-                "Elige la guía que necesitas y aprende a usar Geinz Work de forma sencilla. Si eres trabajador, descubre cómo ofrecer tus servicios y gestionar tus reservas. Si eres usuario, conoce cómo explorar tiendas, aprovechar promociones y hacer compras rápidas.",
+                stringResource(R.string.descripcion_acciones_rapidas_GWT),
                 MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(5.dp)
@@ -121,12 +125,12 @@ fun nosotros_geinz_work(innerPadding: PaddingValues) {
 
         item {
             texto_generico_multilinea(
-                "Mejora tu crecimiento en Geinz",
+                stringResource(R.string.titulo_crecimiento_GWT),
                 MaterialTheme.typography.titleMedium
             )
             spacer_vertical(5.dp)
             texto_generico_multilinea(
-                "Potencia la visibilidad de tu negocio en Geinz Work. Registra tu tienda para llegar a más clientes, crea publicidad para destacar tus ofertas y comparte noticias para mantener a tus seguidores informados.",
+                stringResource(R.string.descripcion_registro_tiendas_GWT),
                 MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(5.dp)
@@ -145,16 +149,16 @@ fun btn_acciones_de_geinz() {
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
-            btn_clasico_shap_50f("Registra tu tienda en Geinz work") {
+            btn_clasico_shap_50f(stringResource(R.string.boton_registro_tiendas_GWT)) {
             }
         }
         item {
-            btn_clasico_shap_50f("Crea tu publicidad") {
+            btn_clasico_shap_50f(stringResource(R.string.accion_crear_publicidad_GWT)) {
                 context.startActivity(Intent(context, Crea_tu_publicidad::class.java))
             }
         }
         item {
-            btn_clasico_shap_50f("Crea tu noticia") {}
+            btn_clasico_shap_50f(stringResource(R.string.accion_crear_noticia_GWT)) {}
         }
     }
 }
@@ -164,12 +168,12 @@ fun btn_acciones_rapidas() {
     val context = LocalContext.current
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
-            btn_clasico_shap_50f("Como usar Geinz (Trabajadores)") {
-                context.startActivity(Intent(context, comoUsar::class.java))
+            btn_clasico_shap_50f(stringResource(R.string.accion_uso_trabajadores_GWT)) {
+                context.startActivity(Intent(context, como_usar_geinz_trabajadores::class.java))
             }
         }
         item {
-            btn_clasico_shap_50f("Como usar Geinz (Tiendas)") {}
+            btn_clasico_shap_50f(stringResource(R.string.accion_uso_tiendas_GWT)) {}
         }
     }
 }

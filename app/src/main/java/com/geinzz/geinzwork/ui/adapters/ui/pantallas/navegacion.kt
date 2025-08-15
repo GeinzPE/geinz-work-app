@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
+import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 
 
@@ -21,7 +22,10 @@ fun nativationWrapper(
 ) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = principal) {
+    NavHost(navController = navController, startDestination = pantalla_principal) {
+        composable <pantalla_principal>{
+            pantalla_principal()
+        }
         composable<principal> {
             PantallaExplorarTiendas(
                 localidad_user,

@@ -480,6 +480,72 @@
     <string name="title_activity_localizate_geinz_wokr_ui">localizate_geinz_wokr_ui</string>
     <string name="title_activity_nosotros_geinz_work">nosotros_geinz_work</string>
     <string name="title_activity_quienes_somos_geinz_work">quienes_somos_geinz_work</string>
+    <string name="title_activity_como_usar_geinz_trabajadores">como_usar_geinz_trabajadores</string>
+
+
+    <!-- QUIÉNES SOMOS GEINZ WORK -->
+    <string name="titulo_quienes_somos_GW"><u>¿Quiénes somos?</u></string>
+    <string name="descripcion_quienes_somos_GW">Geinz es una empresa especializada en el desarrollo de soluciones digitales,
+    desde aplicaciones Android hasta sitios web dinámicos y funcionales.
+    Nuestro equipo combina experiencia técnica y creatividad para ofrecer
+    herramientas innovadoras que impulsan el éxito de nuestros clientes en el mundo digital.</string>
+
+    <!-- NUESTRO ENFOQUE -->
+    <string name="titulo_nuestro_enfoque_GW">Nuestro enfoque</string>
+    <string name="descripcion_nuestro_enfoque_GWT">Nos comprometemos a comprender a fondo las necesidades y objetivos
+    de nuestros clientes. Nuestro equipo de profesionales combina experiencia,
+    creatividad y dedicación para desarrollar soluciones digitales que generen valor
+    y fortalezcan su presencia en línea.</string>
+
+    <!-- CONTACTO -->
+    <string name="boton_contactanos_GWT">Contáctanos</string>
+
+    <!-- VARIEDAD / PROYECTOS -->
+    <string name="mensaje_variedad_GWT">¿Tienes una idea o proyecto en mente? ¡Estamos aquí para convertirlo en realidad!
+    Contáctanos hoy mismo y descubre cómo podemos ayudarte a alcanzar tus objetivos
+    y destacar en el mundo digital.</string>
+
+    <!-- ACCIONES RÁPIDAS -->
+    <string name="titulo_acciones_rapidas_BWT">Acciones rápidas en Geinz Work</string>
+    <string name="descripcion_acciones_rapidas_GWT">Elige la guía que necesitas y aprende a usar Geinz Work de forma sencilla.
+    Si eres trabajador, descubre cómo ofrecer tus servicios y gestionar tus reservas.
+    Si eres usuario, conoce cómo explorar tiendas, aprovechar promociones y hacer compras rápidas.</string>
+
+    <!-- CRECIMIENTO -->
+    <string name="titulo_crecimiento_GWT">Mejora tu crecimiento en Geinz</string>
+
+    <!-- REGISTRO DE TIENDAS -->
+    <string name="descripcion_registro_tiendas_GWT">Potencia la visibilidad de tu negocio en Geinz Work.
+    Registra tu tienda para llegar a más clientes, crea publicidad para destacar tus ofertas
+    y comparte noticias para mantener a tus seguidores informados.</string>
+    <string name="boton_registro_tiendas_GWT">Registra tu tienda en Geinz Work</string>
+
+    <!-- ACCIONES DE LA APP -->
+    <string name="accion_crear_publicidad_GWT">Crea tu publicidad</string>
+    <string name="accion_crear_noticia_GWT">Crea tu noticia</string>
+    <string name="accion_uso_trabajadores_GWT">Cómo usar Geinz (Trabajadores)</string>
+    <string name="accion_uso_tiendas_GWT">Cómo usar Geinz (Tiendas)</string>
+
+
+    <!--COMO USAR GEINZ WOKR TRABAJADORES-->
+    <string name="titulo_GWT"><u>Como usar Geinz work Trabajadores</u></string>
+    <string name="simplifica_GWT">Geinz Work Trabajadores: Simplifica la Búsqueda Trabajadores Freelancer</string>
+    <string name="texto_simplifica_GWT">Geinz Work es una innovadora aplicación diseñada para facilitar la búsqueda y contratación de trabajadores cercanos. Nuestra plataforma conecta a los usuarios con una variedad de trabajadores , permitiéndoles encontrar y contratar servicios de manera rápida y sencilla. Ya sea que necesites un electricista, un artesano o cualquier otro tipo de trabajo, Geinz Work hace que el proceso sea más eficiente y accesible.</string>
+    <string name="funcionalidades_GWT">Funcionalidades Clave de Geinz Work:</string>
+    <string name="busqueda_localizada_GWT">Búsqueda Localizada:</string>
+    <string name="text_busqueda_localizada_GWT">Encuentra trabajadores cerca de tu ubicación para obtener servicios rápidos y convenientes</string>
+
+    <string name="variedad_GWT">Variedad de Profesionales: </string>
+    <string name="texto_variedad_BWT">Accede a una amplia gama de profesionales, desde electricistas hasta artesanos, todos listos para atender tus necesidades.</string>
+    <string name="facil_contratacion_GWT">Fácil Contratación:</string>
+
+
+    <string name="texto_facil_contratacion_GWT">Con solo unos pocos toques, puedes contactar y contratar al profesional adecuado para tu trabajo.</string>
+    <string name="review_GWT">Reseñas y Calificaciones: </string>
+    <string name="texto_review_GWT">Consulta reseñas y calificaciones de otros usuarios para asegurarte de contratar a los mejores profesionales.</string>
+
+    <string name="Actividad_aplicacion_GWT">Actividades de la aplicacion</string>
+    <string name="title_activity_map_google">map_google</string>
 
 
 </resources>

@@ -106,9 +106,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordena
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.Locale
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
@@ -565,7 +562,6 @@ fun perfil_img_zooom(
             model = img_tienda_perfil,
             contentDescription = "Imagen de la tienda",
             contentScale = ContentScale.Crop,
-            // Ya no usas placeholder ni error acá, los manejamos en el `AsyncImagePainter.State`
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp)

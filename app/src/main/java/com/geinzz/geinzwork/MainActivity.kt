@@ -77,10 +77,8 @@ class MainActivity : BaseActivity(), View.OnApplyWindowInsetsListener {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
-        // ✅ Primero inflas el binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
-        // ✅ Luego seteas el layout
         setContentView(binding.root)
         firebaseAuth = FirebaseAuth.getInstance()
         datos_viewmodel = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
