@@ -51,12 +51,12 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY" />
+            android:value="AIzaSyC0Jsr7dV5sHvE7HQpX5-RhSIxhwsZ1wOA" />
 
-        <activity
-            android:name=".ui.adapters.ui.map.map_google"
-            android:exported="false"
-            android:label="@string/title_activity_map_google" />
+<!--        <activity-->
+<!--            android:name=".ui.adapters.ui.map.map_google"-->
+<!--            android:exported="false"-->
+<!--            android:label="@string/title_activity_map_google" />-->
         <activity
             android:name=".ui.adapters.ui.uso_geinz.como_usar_geinz_trabajadores"
             android:exported="false"
@@ -67,11 +67,11 @@
             android:exported="false"
             android:label="@string/title_activity_quienes_somos_geinz_work"
             android:theme="@style/Theme.GeinzWork" />
-        <activity
-            android:name=".ui.adapters.ui.nosotros_geinz_work.nosotros_geinz_work"
-            android:exported="false"
-            android:label="@string/title_activity_nosotros_geinz_work"
-            android:theme="@style/Theme.GeinzWork" />
+<!--        <activity-->
+<!--            android:name=".ui.adapters.ui.nosotros_geinz_work.nosotros_geinz_work"-->
+<!--            android:exported="false"-->
+<!--            android:label="@string/title_activity_nosotros_geinz_work"-->
+<!--            android:theme="@style/Theme.GeinzWork" />-->
         <activity
             android:name=".ui.adapters.ui.localizate_geinz_wokr_ui"
             android:exported="false"

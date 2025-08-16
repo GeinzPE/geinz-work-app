@@ -1,12 +1,14 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -38,6 +40,10 @@ class viewModel_filtado_tiendas : ViewModel() {
 
     private val _estadoTiendas = MutableLiveData<Map<String, Boolean>>(emptyMap())
     val estadoTiendas: LiveData<Map<String, Boolean>> get() = _estadoTiendas
+
+
+    private val obtener_tiendas_filtradas = MutableLiveData<List<obtener_tiendas_lat_log_id>>()
+    val _obtener_datos_tienda: LiveData<List<obtener_tiendas_lat_log_id>> get() = obtener_tiendas_filtradas
 
 
     var todas_tiendas = mutableListOf<tiendas_por_categoria>()
@@ -76,7 +82,7 @@ class viewModel_filtado_tiendas : ViewModel() {
         )
     }
 
-    fun fraces_cargando(nombre_user: String): List<String>{
+    fun fraces_cargando(nombre_user: String): List<String> {
         return listOf(
             "Estamos cargando todas las tiendas ...",
             "Espera un momento $nombre_user ...",
@@ -118,7 +124,7 @@ class viewModel_filtado_tiendas : ViewModel() {
             try {
                 val data = repo_filtrado.obtenner_campos_tiendas_espesifica(localida, id_tienda)
                 datos_tienda.value = data
-                Log.d("obtemos_tienda_Selecionda", "${datos_tienda.value}")
+                Log.d("obtemos_tienda_Selecionda", "${datos_tienda.value}  $localida,$id_tienda")
             } catch (e: Exception) {
                 datos_tienda.value = emptyList()
             }
@@ -130,7 +136,8 @@ class viewModel_filtado_tiendas : ViewModel() {
             try {
                 val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
                 data?.let { horarioTienda ->
-                    val estaAbierto = constantes_lista_localidades.verificarSiEstaAbierto(horarioTienda.lista_Horario)
+                    val estaAbierto =
+                        constantes_lista_localidades.verificarSiEstaAbierto(horarioTienda.lista_Horario)
                     val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
                     nuevoMapa[idTienda] = estaAbierto
                     _estadoTiendas.postValue(nuevoMapa)
@@ -141,6 +148,7 @@ class viewModel_filtado_tiendas : ViewModel() {
             }
         }
     }
+
     fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
         viewModelScope.launch {
             try {
@@ -153,7 +161,17 @@ class viewModel_filtado_tiendas : ViewModel() {
     }
 
 
+    fun obtener_tiendas_registradas(localidad: String) {
+        viewModelScope.launch {
+            try {
+                val datos = repo_filtrado.obtener_tienas_filtradas(localidad)
+                obtener_tiendas_filtradas.value = datos
+            } catch (e: Exception) {
+                obtener_tiendas_filtradas.value = emptyList()
+            }
+        }
 
+    }
 
 
 //    fun obtener_tiendas_por_subcategoria(subcategoria: String, localida: String) {

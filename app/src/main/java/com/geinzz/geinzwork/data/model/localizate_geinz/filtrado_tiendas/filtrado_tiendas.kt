@@ -62,6 +62,15 @@ data class metodo_contacto_tienda(
     val nombre_user_fb: String = ""
 )
 
+data class obtener_tiendas_lat_log_id(
+    val lat: Double,
+    val log: Double,
+    val id_tienda: String,
+    val direccion: String,
+    val referencia: String,
+    val nombre_tienda: String
+)
+
 
 
 

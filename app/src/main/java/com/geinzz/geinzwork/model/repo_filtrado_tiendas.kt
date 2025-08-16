@@ -4,6 +4,7 @@ import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -48,8 +49,8 @@ class repo_filtrado_tiendas {
                 val ubicacion = i.get("ubicacion") as? Map<String, Any>
                 val direccion = ubicacion?.get("dirección") as? String ?: ""
                 val referencia = ubicacion?.get("referencia") as? String ?: ""
-                val latitud=ubicacion?.get("latitud") as? Number ?: 0
-                val longitud=ubicacion?.get("longitud") as? Number ?: 0
+                val latitud = ubicacion?.get("latitud") as? Number ?: 0
+                val longitud = ubicacion?.get("longitud") as? Number ?: 0
                 val descripcion = i.get("descripcion") as? String ?: ""
                 val id_tienda = i.get("id_tienda") as? String ?: ""
                 val map_img_tienda = i.get("img_tienda") as? Map<String, Any> ?: emptyMap()
@@ -86,6 +87,8 @@ class repo_filtrado_tiendas {
         val tienda =
             db.collection("Tiendas").document(localidad).collection(localidad).document(id_tienda)
                 .get().await()
+        val rutaCompleta = tienda.reference.path
+        Log.d("RutaTienda", rutaCompleta)
         if (tienda.exists()) {
             val data = tienda.data
             val map_img = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
@@ -137,6 +140,7 @@ class repo_filtrado_tiendas {
         return lista_modelo_tienda
 
     }
+
     suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): HorarioTienda? {
         val listaDias = listOf(
             "lunes", "martes", "miércoles",
@@ -168,7 +172,6 @@ class repo_filtrado_tiendas {
     }
 
 
-
     suspend fun obtener_tiendas_por_subcateogira(
         subcategoria: String,
         localidad: String
@@ -180,8 +183,8 @@ class repo_filtrado_tiendas {
             val data = document.data
             val ubicacion = data?.get("ubicacion") as? Map<String, Any>
             val map_img_tienda = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
-            val latitud=ubicacion?.get("latitud") as? Number ?: 0
-            val longitud=ubicacion?.get("longitud") as? Number ?: 0
+            val latitud = ubicacion?.get("latitud") as? Number ?: 0
+            val longitud = ubicacion?.get("longitud") as? Number ?: 0
             lista_por_subcateogira.add(
                 tiendas_por_categoria(
                     nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
@@ -198,5 +201,33 @@ class repo_filtrado_tiendas {
 
         }
         return lista_por_subcateogira
+    }
+
+
+    suspend fun obtener_tienas_filtradas(
+        localidad: String,
+    ): List<obtener_tiendas_lat_log_id> {
+        val lista_lat_log = mutableListOf<obtener_tiendas_lat_log_id>()
+        val ref = db.collection("Tiendas").document(localidad).collection(localidad).get().await()
+        for (datos in ref) {
+            val data = datos.data
+            val id_tienda = data?.get("id_tienda") as? String ?: ""
+            val nombre_tienda = data.get("nombre_tienda") as? String ?: ""
+            val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+            val lat = ubicacion.get("latitud") as? Number ?: 0
+            val log = ubicacion.get("longitud") as? Number ?: 0
+            val direccion = ubicacion.get("dirección") as? String ?: ""
+            val referencia = ubicacion.get("referencia") as? String ?: ""
+            val dataclass = obtener_tiendas_lat_log_id(
+                lat.toDouble(),
+                log.toDouble(),
+                id_tienda,
+                direccion,
+                referencia,
+                nombre_tienda
+            )
+            lista_lat_log.add(dataclass)
+        }
+        return lista_lat_log
     }
 }

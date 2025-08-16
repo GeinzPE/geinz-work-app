@@ -1,5 +1,7 @@
 [versions]
 accompanistNavigationAnimation = "0.34.0"
+accompanistPager = "0.30.1"
+accompanistPagerIndicators = "0.30.1"
 activityKtx = "1.9.1"
 agp = "8.11.1"
 
@@ -27,6 +29,7 @@ kotlinxSerializationJson = "1.9.0"
 lifecycleLivedataKtx = "2.7.0"
 lottie = "6.4.1"
 lottieCompose = "6.6.6"
+mapsCompose = "4.4.1"
 material = "1.11.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
@@ -62,6 +65,8 @@ googleAndroidLibrariesMapsplatformSecretsGradlePlugin = "2.0.1"
 playServicesMaps = "19.2.0"
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
+accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPagerIndicators" }
+accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistPager" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-animation = { module = "androidx.compose.animation:animation" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -93,6 +98,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

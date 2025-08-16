@@ -1,5 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.principal
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -25,32 +29,73 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.floatin_actionButton
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.tasks.await
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal() {
+    val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
+    val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
+
+    LaunchedEffect(Unit) {
+        viewModel_cordenadas.lugares_turisticos("barranca")
+    }
+
     val lista_localidades = constantes_lista_localidades.lista
     val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
 
     Scaffold() { innerPadding ->
+//        MyGoogle_maps()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -61,57 +106,73 @@ fun pantalla_principal() {
                 nombre_texto_img_perfil()
             }
 
-                stickyHeader(){
-                    ColumnContenedorComun {
-                        texfiel_filtrado()
-                        FiltradosChipsLocalidades(
-                            lista_localidades,
-                            localidadSeleccionada.value
-                        ) { nuevaLocalidad -> }
-                    }
-
-
+            stickyHeader() {
+                ColumnContenedorComun {
+                    texfiel_filtrado()
+                    FiltradosChipsLocalidades(
+                        lista_localidades,
+                        localidadSeleccionada.value
+                    ) { nuevaLocalidad -> }
                 }
+            }
 
             item {
-                apartado_turismo()
+                apartado_turismo(_lugares_turisticos)
             }
-            item {
-                apartado_explora_cat()
-            }
+//            item {
+//                apartado_explora_cat()
+//            }
             item {
                 rutas_turismo()
             }
-            item { recomendado_por_vistitantes() }
+//            item { recomendado_por_vistitantes() }
         }
     }
 
 }
 
 
+//@Composable
+//fun apartado_explora_cat() {
+//    spacer_vertical(10.dp)
+//    Column {
+//        texto_generico_one_line("Explora", MaterialTheme.typography.titleLarge)
+//        spacer_vertical(5.dp)
+//        cartas_turismo(5, 150.dp, 300.dp)
+//    }
+//}
+
 @Composable
-fun apartado_explora_cat() {
-    spacer_vertical(10.dp)
+fun apartado_turismo(lugares: List<lugares_turisticos>) {
+    val lugaresSeleccionados = remember(lugares) {
+        lugares.shuffled().take(5)
+    }
+
     Column {
-        texto_generico_one_line("Explora", MaterialTheme.typography.titleLarge)
+        texto_generico_one_line(
+            "Lugares turísticos",
+            MaterialTheme.typography.titleLarge
+        )
         spacer_vertical(5.dp)
-        cartas_turismo(5, 150.dp, 300.dp)
+
+        LazyRow {
+            items(lugaresSeleccionados) { lugar ->
+                cartas_turismo(
+                    lugar.titulo.orEmpty(),
+                    lugar.descripcion.orEmpty(),
+                    lugar.img_ref.orEmpty(),
+                    5,
+                    300.dp,
+                    300.dp
+                ) {}
+                spacer_horizonta(8.dp)
+            }
+        }
     }
 }
 
-@Composable
-fun apartado_turismo() {
-    spacer_vertical(10.dp)
 
-    Column {
-        texto_generico_one_line("Lugares turisticos", MaterialTheme.typography.titleLarge)
-        spacer_vertical(5.dp)
-        cartas_turismo(5, 230.dp, 200.dp)
-    }
-    spacer_vertical(10.dp)
-
-}
-
+//@Preview(showBackground = true)
 @Composable
 fun rutas_turismo() {
     spacer_vertical(10.dp)
@@ -131,57 +192,119 @@ fun rutas_turismo() {
                 .fillMaxWidth()
                 .height(400.dp)
         ) {
-
         }
-
+        texto_encimado(modifier = Modifier.align(Alignment.BottomStart), "barranca")
     }
 }
 
+//@Composable
+//fun recomendado_por_vistitantes() {
+//    spacer_vertical(20.dp)
+//    texto_generico_one_line("Recomendado por vistitantes", MaterialTheme.typography.titleLarge)
+//    spacer_vertical(5.dp)
+//    Column {
+//        cartas_turismo(5, 205.dp, 320.dp)
+//    }
+//
+//}
+
+
 @Composable
-fun recomendado_por_vistitantes() {
-    spacer_vertical(20.dp)
-    texto_generico_one_line("Recomendado por vistitantes", MaterialTheme.typography.titleLarge)
-    spacer_vertical(5.dp)
-    Column {
-        cartas_turismo(5, 205.dp, 320.dp)
-    }
-
-}
-
-
-@Composable
-fun cartas_turismo(rounder: Int, alto: Dp, ancho: Dp) {
-    Box() {
-        Image(
-            painter = painterResource(R.drawable.cargar_foto_500x500),
+fun cartas_turismo(
+    titulo: String,
+    texto: String,
+    img: String,
+    rounder: Int,
+    alto: Dp,
+    ancho: Dp,
+    listener: () -> Unit
+) {
+    Box( modifier = Modifier
+        .width(ancho)
+        .height(alto)) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img)
+                .size(ancho.value.toInt(), alto.value.toInt())
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.sin_item_carrito)
+                .build(),
+            contentDescription = null,
             modifier = Modifier
                 .width(ancho)
                 .height(alto)
                 .clip(RoundedCornerShape(rounder)),
-            contentDescription = "",
+            contentScale = ContentScale.Crop
         )
+
         mascara_img(rounder, alto, ancho)
+        texto_encimado_cartas(modifier = Modifier.align(Alignment.BottomStart), titulo, texto, listener)
 
     }
 }
 
+@Composable
+fun texto_encimado_cartas(
+    modifier: Modifier,
+    titulo: String,
+    descripcion: String,
+    listener: () -> Unit
+) {
+    Row(modifier=modifier.padding(10.dp)) {
+        Column {
+            text_expandible_wrapp(
+                titulo,
+                MaterialTheme.typography.titleLarge
+            )
+            text_expandible_wrapp(
+                descripcion,
+                MaterialTheme.typography.bodyMedium, maxlines = 2
+            )
+        }
+        floatin_actionButton(modifier= Modifier, R.drawable.arrow_subir_vector) { }
+    }
+
+}
+
+
+@Composable
+fun texto_encimado(modifier: Modifier, localidad: String) {
+    Column(modifier = modifier.padding(10.dp)) {
+        texto_generico_multilinea(
+            "Encuentra Rutas de turismo en $localidad",
+            MaterialTheme.typography.headlineSmall
+        )
+        spacer_vertical(10.dp)
+        Button(onClick = {}, modifier = Modifier.clip(RoundedCornerShape(50))) {
+            texto_generico_one_line("Ver rutas")
+        }
+    }
+
+}
 
 @Composable
 fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(rounder))
-            .background(Color.Black.copy(alpha = 0.5f))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black.copy(alpha = 0.5f),
+                        Color.Black
+                    )
+                )
+            )
             .width(ancho)
             .height(alto)
-    ) {
-
-    }
+    )
 }
+
 
 @Composable
 fun texfiel_filtrado() {
-    spacer_vertical(10.dp)
     OutlinedTextField(
         value = "",
         modifier = Modifier.fillMaxWidth(),
@@ -195,7 +318,7 @@ fun texfiel_filtrado() {
             )
         }, shape = RoundedCornerShape(50)
     )
-    spacer_vertical(10.dp)
+
 
 }
 
@@ -290,4 +413,96 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
     }
 
 
+}
+
+@Composable
+fun MyGoogle_maps() {
+    val viewModel_cordenadas: viewModel_filtado_tiendas = viewModel()
+    val cordenadas by viewModel_cordenadas._obtener_datos_tienda.observeAsState(emptyList())
+    val datosTienda by viewModel_cordenadas._datos_tienda.observeAsState(emptyList())
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    var show_bottom_sheeet by remember { mutableStateOf(false) }
+    var id_tienda = remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val properties by remember {
+        mutableStateOf(
+            MapProperties(
+                isMyLocationEnabled = true // Esto activa el círculo azul y la flecha
+            )
+        )
+    }
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            com.google.android.gms.maps.model.LatLng(
+                -10.747981,
+                -77.754218
+            ), 15f
+        )
+    }
+
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        properties = properties,
+    ) {
+        cordenadas.forEach { tienda ->
+            Marker(
+                state = MarkerState(
+                    com.google.android.gms.maps.model.LatLng(
+                        tienda.lat,
+                        tienda.log
+                    )
+                ),
+                title = "${tienda.nombre_tienda}",
+                snippet = "Dirección: ${tienda.direccion}\nReferencia: ${tienda.referencia}",
+                onClick = {
+                    id_tienda.value = tienda.id_tienda
+                    Log.d("MarkerClick", "Marcador ${tienda.id_tienda} tocado")
+                    show_bottom_sheeet = true
+                    false
+                }
+            )
+        }
+    }
+    LaunchedEffect(datosTienda) {
+        if (datosTienda.isNotEmpty()) {
+            Log.d("obtenoemos_datos_tienda", datosTienda.toString())
+            dataclass_tienda_seleccionada = datosTienda.first()
+        }
+    }
+
+    LaunchedEffect(show_bottom_sheeet) {
+        if (show_bottom_sheeet) {
+            viewModel_cordenadas.obtener_campos_tiendas_por_id("barranca", id_tienda.value)
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        viewModel_cordenadas.obtener_tiendas_registradas("barranca")
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val location =
+                fusedLocationClient.lastLocation.await()
+            location?.let {
+                val userLatLng = com.google.android.gms.maps.model.LatLng(it.latitude, it.longitude)
+                cameraPositionState.animate(
+                    update = CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
+                )
+            }
+        }
+    }
+    if (show_bottom_sheeet) {
+        bottom_sheet_tiendas_filtradas(
+            Color.Red,
+            viewModel_cordenadas,
+            dataclass_tienda_seleccionada, show_bottom_sheeet
+        ) {
+            show_bottom_sheeet = false
+        }
+    }
 }
