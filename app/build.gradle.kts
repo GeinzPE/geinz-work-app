@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlinCompose)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.googleAndroidLibrariesMapsplatformSecretsGradlePlugin)
-
+    id("kotlin-parcelize")
 }
 
 android {

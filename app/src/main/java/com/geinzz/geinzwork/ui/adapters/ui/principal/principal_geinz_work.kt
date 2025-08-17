@@ -1,9 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.principal
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -23,12 +25,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -51,7 +54,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -70,15 +72,16 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContene
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.floatin_actionButton
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulo_referenciales_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.color_carta_oscuro
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.android.gms.location.LocationServices
@@ -89,15 +92,20 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun pantalla_principal() {
+fun pantalla_principal(categorias: () -> Unit) {
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.lugares_turisticos("barranca")
@@ -107,7 +115,10 @@ fun pantalla_principal() {
     val lista_localidades = constantes_lista_localidades.lista
     val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
 
-    Scaffold() { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = { ScannerButton() }, floatingActionButtonPosition = FabPosition.End
+    ) { innerPadding ->
 //        MyGoogle_maps()
         LazyColumn(
             modifier = Modifier
@@ -117,6 +128,7 @@ fun pantalla_principal() {
         ) {
             item {
                 nombre_texto_img_perfil()
+
             }
 
             stickyHeader() {
@@ -130,14 +142,32 @@ fun pantalla_principal() {
             }
 
             item {
+                spacer_vertical(10.dp)
                 apartado_turismo(_lugares_turisticos)
                 spacer_vertical(10.dp)
             }
+
             item {
-                apartado_explora_cat(_categorias_tiendas)
+
+                rutas_turismo(
+                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
+                    "ver rutas",
+                    "descubre barranca"
+                ) {}
+                spacer_vertical(20.dp)
             }
+
             item {
-                rutas_turismo()
+                apartado_explora_cat(_categorias_tiendas, categorias)
+                spacer_vertical(10.dp)
+            }
+
+            item {
+                rutas_turismo(
+                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
+                    "ver eventos",
+                    "Eventos proximos"
+                ) {}
             }
 //            item { recomendado_por_vistitantes() }
         }
@@ -147,27 +177,86 @@ fun pantalla_principal() {
 
 
 @Composable
-fun apartado_explora_cat(categorias_tienda: List<dataclass_cat_sub>) {
-    val categoiras_principales = remember(categorias_tienda) {
+fun ScannerButton() {
+    val context = LocalContext.current
+
+    val startScanner = rememberLauncherForActivityResult(
+        contract = ScanContract(),
+        onResult = { result -> handleScanResult(context, result?.contents) }
+    )
+
+    FloatingActionButton(
+        onClick = { startScanner.launch(ScanOptions()) },
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape),
+        containerColor = MaterialTheme.colorScheme.primary,
+    ) {
+        val painter = painterResource(id = R.drawable.qr_scaner_icon)
+        Image(painter = painter, contentDescription = "Escanear QR", modifier = Modifier.size(28.dp))
+    }
+}
+
+
+
+private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
+    if (contenidoEscaneado.isNullOrEmpty()) {
+        Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    Log.d("obtenoemos_resultado", contenidoEscaneado)
+
+    try {
+        if (contenidoEscaneado.startsWith("Tienda|")) {
+            val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")
+            val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(base64Coordenadas)
+            constantes_lista_localidades.abrir_google_maps(context, lat, lng) { dialogo ->
+                if (dialogo) Toast.makeText(
+                    context,
+                    "Activa tu ubicación primero",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            // Aquí podrías llamar al ViewModel si fuera necesario
+            Log.d("Scanner", "Otro tipo de QR: $contenidoEscaneado")
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Error al decodificar coordenadas", Toast.LENGTH_SHORT).show()
+        e.printStackTrace()
+    }
+}
+
+@Composable
+fun apartado_explora_cat(categorias_tienda: List<dataclass_cat_sub>, categorias1: () -> Unit) {
+    Log.d("obtemloms_lista", categorias_tienda.toString())
+    val categoriasPrincipales = remember {
         categorias_tienda.shuffled().take(5)
     }
     spacer_vertical(10.dp)
     Column {
-        texto_generico_one_line("Explora establecimientos", MaterialTheme.typography.titleLarge)
+        titulo_referenciales_geinz_work("Explora categorias", "Ver todos") { categorias1() }
         spacer_vertical(10.dp)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(categoiras_principales) { categorias_tienda ->
+            items(
+                items = categoriasPrincipales,
+                key = { it.nombre.toString() } // 🔑 clave única para que Compose recuerde cada item
+            ) { categorias ->
                 apartado_categorias_tiendas(
-                    categorias_tienda.lista_img,
-                    categorias_tienda.nombre.toString(), categorias_tienda.lista_subcategorias,
+                    categorias.lista_img,
+                    categorias.nombre.toString(),
+                    categorias.lista_subcategorias,
                     300.dp,
                     150.dp,
                     5
                 )
             }
         }
+
     }
 }
+
 
 @Composable
 fun apartado_categorias_tiendas(
@@ -274,18 +363,14 @@ fun texto_categorias(
 
 @Composable
 fun apartado_turismo(lugares: List<lugares_turisticos>) {
-    val lugaresSeleccionados = remember(lugares) {
+    val lugaresSeleccionados = rememberSaveable(lugares.hashCode()) {
         lugares.shuffled().take(5)
     }
-
     Column {
-        texto_generico_one_line(
-            "Lugares turísticos",
-            MaterialTheme.typography.titleLarge
-        )
+        titulo_referenciales_geinz_work("Lugares turísticos", "Ver lugares") {}
         spacer_vertical(10.dp)
 
-        LazyRow (horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(lugaresSeleccionados) { lugar ->
                 cartas_turismo(
                     lugar.titulo.orEmpty(),
@@ -302,37 +387,40 @@ fun apartado_turismo(lugares: List<lugares_turisticos>) {
 
 
 //@Preview(showBackground = true)
-@Composable
-fun rutas_turismo() {
-    spacer_vertical(10.dp)
-    Box() {
-
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data("https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860")
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .clip(RoundedCornerShape(5)),
-            contentScale = ContentScale.Crop
-        )
-
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(5))
-                .background(Color.Black.copy(alpha = 0.5f))
-                .fillMaxWidth()
-                .height(400.dp)
-        ) {
-        }
-        texto_encimado(modifier = Modifier.align(Alignment.BottomStart), "barranca")
-    }
-}
+//@Composable
+//fun rutas_turismo(localidad: String) {
+//    spacer_vertical(10.dp)
+//    Box() {
+//        AsyncImage(
+//            model = ImageRequest.Builder(LocalContext.current)
+//                .data("")
+//                .crossfade(true)
+//                .placeholder(R.drawable.cargando_img_categorias)
+//                .error(R.drawable.cargando_img_categorias)
+//                .build(),
+//            contentDescription = null,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(400.dp)
+//                .clip(RoundedCornerShape(5)),
+//            contentScale = ContentScale.Crop
+//        )
+//
+//        Box(
+//            modifier = Modifier
+//                .clip(RoundedCornerShape(5))
+//                .background(Color.Black.copy(alpha = 0.5f))
+//                .fillMaxWidth()
+//                .height(400.dp)
+//        ) {
+//        }
+//        texto_encimado(
+//            modifier = Modifier.align(Alignment.BottomStart),
+//            "Ver rutas",
+//            "descubre $localidad"
+//        ) {}
+//    }
+//}
 
 //@Composable
 //fun recomendado_por_vistitantes() {
@@ -404,7 +492,7 @@ fun texto_encimado_cartas(
             spacer_vertical(5.dp)
             TextoSubrayado(
                 descripcion,
-                MaterialTheme.typography.bodySmall,
+                MaterialTheme.typography.bodySmall, modifier = Modifier
             )
         }
 
@@ -412,21 +500,6 @@ fun texto_encimado_cartas(
 
 }
 
-
-@Composable
-fun texto_encimado(modifier: Modifier, localidad: String) {
-    Column(modifier = modifier.padding(10.dp)) {
-        texto_generico_multilinea(
-            "Descubre $localidad".uppercase(),
-            MaterialTheme.typography.headlineSmall
-        )
-        spacer_vertical(10.dp)
-        Button(onClick = {}, modifier = Modifier.clip(RoundedCornerShape(50))) {
-            texto_generico_one_line("Ver rutas",MaterialTheme.typography.titleSmall )
-        }
-    }
-
-}
 
 @Composable
 fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
@@ -525,6 +598,7 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .padding(bottom = 10.dp, top = 10.dp)
         ) {
             texto_generico_one_line(
                 texto = "Hola $nombre_user",
@@ -532,8 +606,8 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
             )
             spacer_vertical(10.dp)
             texto_generico_one_line(
-                texto = "A donde quieres llegar ?",
-                MaterialTheme.typography.headlineSmall
+                texto = "Encuentra tu lugar",
+                MaterialTheme.typography.busquedaGeinzWork
             )
         }
         Image(

@@ -656,11 +656,10 @@ class inicioFracment : Fragment() {
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
         integrator.setPrompt("Escanea un código QR")
         integrator.setCameraId(0)
-        integrator.setBeepEnabled(false)
+        integrator.setBeepEnabled(true)
         integrator.setBarcodeImageEnabled(true)
         integrator.initiateScan()
     }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)

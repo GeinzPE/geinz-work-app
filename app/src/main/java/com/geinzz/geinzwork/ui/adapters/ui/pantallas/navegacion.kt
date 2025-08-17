@@ -24,7 +24,7 @@ fun nativationWrapper(
 
     NavHost(navController = navController, startDestination = pantalla_principal) {
         composable <pantalla_principal>{
-            pantalla_principal()
+            pantalla_principal{navController.navigate(principal)}
         }
         composable<principal> {
             PantallaExplorarTiendas(

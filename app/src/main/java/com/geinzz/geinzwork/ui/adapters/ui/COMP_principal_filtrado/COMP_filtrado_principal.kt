@@ -32,7 +32,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -55,11 +54,22 @@ import org.w3c.dom.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import androidx.compose.foundation.clickable
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
+import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 
 
 @Composable
@@ -424,12 +434,97 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 
 
 @Composable
-fun TextoSubrayado(texto: String, style: TextStyle = MaterialTheme.typography.bodyMedium) {
+fun TextoSubrayado(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    modifier: Modifier
+) {
     Text(
         text = texto,
-
+        modifier = modifier,
         textDecoration = TextDecoration.Underline,
         color = MaterialTheme.colorScheme.onBackground,
         style = style,
     )
+}
+
+@Composable
+fun rutas_turismo(
+    img_baner: String,
+    texto_button: String,
+    texto_baner: String,
+    clik_button: () -> Unit
+) {
+    spacer_vertical(10.dp)
+    Box() {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img_baner)
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .clip(RoundedCornerShape(5)),
+            contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(5))
+                .background(Color.Black.copy(alpha = 0.5f))
+                .fillMaxWidth()
+                .height(400.dp)
+        ) {
+        }
+        texto_encimado(
+            modifier = Modifier.align(Alignment.BottomStart),
+            texto_button,
+            texto_baner
+        ) { clik_button() }
+    }
+}
+
+
+@Composable
+fun texto_encimado(
+    modifier: Modifier,
+    texto_button: String,
+    texto_apartado: String,
+    onClick: () -> Unit
+) {
+    Column(modifier = modifier.padding(10.dp)) {
+        texto_generico_multilinea(
+            texto_apartado.uppercase(),
+            MaterialTheme.typography.banerGeinzWork
+        )
+        spacer_vertical(10.dp)
+        androidx.compose.material3.Button(
+            onClick = { onClick() },
+            modifier = Modifier.clip(RoundedCornerShape(50))
+        ) {
+            texto_generico_one_line(texto_button, MaterialTheme.typography.titleSmall)
+        }
+    }
+
+}
+
+@Composable
+fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, listener: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        texto_generico_one_line(
+            texto,
+            MaterialTheme.typography.textosTituloGeinzWork,
+            modifier = Modifier.weight(1f)
+        )
+        TextoSubrayado(
+            texto_subrallado,
+            MaterialTheme.typography.bodySmall,
+            modifier = Modifier.clickable {listener()})
+
+    }
+
 }
