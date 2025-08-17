@@ -49,7 +49,7 @@ class repo_agregar_cat_sub_localizate {
             val subcategoriasDoc = categoriasRef.document(cate.id).get().await()
             if (subcategoriasDoc.exists()) {
                 val data = subcategoriasDoc.data
-                val subcategorias = data?.get("subcategorias") as? List<String>
+                val subcategorias = data?.get("subcategorias") as? List<String> ?:emptyList()
                 val img_data = data?.get("img_categoria") as? String? ?: ""
                 val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, img_data)
                 lista.add(datos)

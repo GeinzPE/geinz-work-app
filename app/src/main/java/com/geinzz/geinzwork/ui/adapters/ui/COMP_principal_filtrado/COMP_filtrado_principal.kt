@@ -427,7 +427,7 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 fun TextoSubrayado(texto: String, style: TextStyle = MaterialTheme.typography.bodyMedium) {
     Text(
         text = texto,
-        fontSize = 18.sp,
+
         textDecoration = TextDecoration.Underline,
         color = MaterialTheme.colorScheme.onBackground,
         style = style,
