@@ -27,7 +27,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -57,8 +56,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
 import androidx.compose.material.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextDecoration
 
 
 @Composable
@@ -322,8 +323,6 @@ fun expandibles_wrapp(
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
-
-
         FloatingActionButton(
             modifier = Modifier
                 .size(30.dp)
@@ -421,4 +420,16 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
             color = Color.White, style = MaterialTheme.typography.bodyMedium
         )
     }
+}
+
+
+@Composable
+fun TextoSubrayado(texto: String, style: TextStyle = MaterialTheme.typography.bodyMedium) {
+    Text(
+        text = texto,
+        fontSize = 18.sp,
+        textDecoration = TextDecoration.Underline,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = style,
+    )
 }

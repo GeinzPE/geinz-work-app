@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -41,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -55,10 +59,12 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.floatin_actionButton
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
@@ -86,9 +92,11 @@ import kotlinx.coroutines.tasks.await
 fun pantalla_principal() {
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
+    val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.lugares_turisticos("barranca")
+        viewModel_cordenadas.obtener_subcategorias()
     }
 
     val lista_localidades = constantes_lista_localidades.lista
@@ -119,9 +127,9 @@ fun pantalla_principal() {
             item {
                 apartado_turismo(_lugares_turisticos)
             }
-//            item {
-//                apartado_explora_cat()
-//            }
+            item {
+                apartado_explora_cat(_categorias_tiendas)
+            }
             item {
                 rutas_turismo()
             }
@@ -132,15 +140,92 @@ fun pantalla_principal() {
 }
 
 
-//@Composable
-//fun apartado_explora_cat() {
-//    spacer_vertical(10.dp)
-//    Column {
-//        texto_generico_one_line("Explora", MaterialTheme.typography.titleLarge)
-//        spacer_vertical(5.dp)
-//        cartas_turismo(5, 150.dp, 300.dp)
-//    }
-//}
+@Composable
+fun apartado_explora_cat(categorias_tienda: List<dataclass_cat_sub>) {
+    val categoiras_principales = remember(categorias_tienda) {
+        categorias_tienda.shuffled().take(5)
+    }
+    spacer_vertical(10.dp)
+    Column {
+        texto_generico_one_line("Explora establecimientos", MaterialTheme.typography.titleLarge)
+        spacer_vertical(10.dp)
+        LazyRow ( horizontalArrangement = Arrangement.spacedBy(8.dp)){
+            items(categoiras_principales) { categorias_tienda ->
+                apartado_categorias_tiendas(
+                    categorias_tienda.lista_img,
+                    categorias_tienda.nombre.toString(),
+                    300.dp,
+                    150.dp,
+                    5
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun apartado_categorias_tiendas(
+    img: String,
+    nombre_categoria: String,
+    ancho: Dp,
+    alto: Dp,
+    rounder: Int
+) {
+    Box(
+        modifier = Modifier
+            .width(ancho)
+            .height(alto)
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img)
+                .size(ancho.value.toInt(), alto.value.toInt())
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .width(ancho)
+                .height(alto)
+                .clip(RoundedCornerShape(rounder)),
+            contentScale = ContentScale.Crop
+        )
+        mascara_img(rounder, alto, ancho)
+        texto_categorias(modifier = Modifier.align(Alignment.BottomStart).padding(10.dp),nombre_categoria,false){}
+
+    }
+}
+
+@Composable
+fun texto_categorias(modifier: Modifier, nombre_categoria: String, expandido: Boolean, onClickExpand:()-> Unit) {
+    Row (modifier, verticalAlignment = Alignment.CenterVertically){
+    texto_generico_one_line(nombre_categoria.uppercase(), MaterialTheme.typography.titleMedium,
+        Modifier.weight(1f).padding(end = 10.dp))
+        FloatingActionButton(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(CircleShape),
+            onClick = { onClickExpand() },
+            elevation = FloatingActionButtonDefaults.elevation(
+                defaultElevation = 6.dp,
+                pressedElevation = 10.dp
+            ),
+            containerColor = MaterialTheme.colorScheme.primary,
+        )   {
+            Image(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(
+                    constantes_lista_localidades.cambiar_icono_exapndible(
+                        expandido
+                    )
+                ),
+                contentDescription = "",
+                colorFilter = ColorFilter.tint(Color.White)
+            )
+        }
+    }
+}
 
 @Composable
 fun apartado_turismo(lugares: List<lugares_turisticos>) {
@@ -159,7 +244,7 @@ fun apartado_turismo(lugares: List<lugares_turisticos>) {
             items(lugaresSeleccionados) { lugar ->
                 cartas_turismo(
                     lugar.titulo.orEmpty(),
-                    lugar.descripcion.orEmpty(),
+                    "Ver mas",
                     lugar.img_ref.orEmpty(),
                     5,
                     300.dp,
@@ -219,9 +304,11 @@ fun cartas_turismo(
     ancho: Dp,
     listener: () -> Unit
 ) {
-    Box( modifier = Modifier
-        .width(ancho)
-        .height(alto)) {
+    Box(
+        modifier = Modifier
+            .width(ancho)
+            .height(alto)
+    ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(img)
@@ -239,7 +326,12 @@ fun cartas_turismo(
         )
 
         mascara_img(rounder, alto, ancho)
-        texto_encimado_cartas(modifier = Modifier.align(Alignment.BottomStart), titulo, texto, listener)
+        texto_encimado_cartas(
+            modifier = Modifier.align(Alignment.BottomStart),
+            titulo,
+            texto,
+            listener
+        )
 
     }
 }
@@ -251,18 +343,19 @@ fun texto_encimado_cartas(
     descripcion: String,
     listener: () -> Unit
 ) {
-    Row(modifier=modifier.padding(10.dp)) {
+    Row(modifier = modifier.padding(start = 10.dp, end = 20.dp, bottom = 30.dp)) {
         Column {
-            text_expandible_wrapp(
+            texto_generico_multilinea(
                 titulo,
                 MaterialTheme.typography.titleLarge
             )
-            text_expandible_wrapp(
+            spacer_vertical(5.dp)
+            TextoSubrayado(
                 descripcion,
-                MaterialTheme.typography.bodyMedium, maxlines = 2
+                MaterialTheme.typography.bodySmall,
             )
         }
-        floatin_actionButton(modifier= Modifier, R.drawable.arrow_subir_vector) { }
+
     }
 
 }
