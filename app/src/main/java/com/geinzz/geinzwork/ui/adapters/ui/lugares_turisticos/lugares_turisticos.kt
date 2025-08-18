@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos
 
 import android.widget.Button
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,23 +45,35 @@ import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 
 @Composable
 fun pantalla_lugares_turisticos(abrir_mapa: (String) -> Unit) {
+    val contex = LocalContext.current
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
+    var permiso_location_aceptado by remember { mutableStateOf(false) }
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     LaunchedEffect(Unit) {
         viewModel_cordenadas.lugares_turisticos("barranca")
     }
+    val permisos =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { graden ->
+            if (graden) {
+                permiso_location_aceptado = true
+            } else {
+                permiso_location_aceptado = false
+            }
+        }
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Box( modifier = Modifier
-            .padding(innerPadding)
-            .padding(10.dp)) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(10.dp)
+        ) {
             LazyColumn(
-                   verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(_lugares_turisticos) { lugares ->
                     carta_lugares_turisticosa(200.dp, 10, lugares)
                 }
-            }
-            open_map_perzonlizado(abrir_mapa)
+            }  open_map_perzonlizado(abrir_mapa)
+
         }
     }
 }

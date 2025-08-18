@@ -54,6 +54,7 @@ import org.w3c.dom.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
@@ -69,6 +70,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 
@@ -524,7 +526,7 @@ fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, lis
         TextoSubrayado(
             texto_subrallado,
             MaterialTheme.typography.bodySmall,
-            modifier = Modifier.clickable {listener()})
+            modifier = Modifier.clickable { listener() })
 
     }
 
@@ -547,4 +549,58 @@ fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
             .width(ancho)
             .height(alto)
     )
+}
+
+
+@Composable
+fun carta_turismo_google_mpa(
+    datos: lugares_turisticos,
+    clikeado: (id: String, lat: Double, log: Double) -> Unit
+) {
+    val context = LocalContext.current
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                clikeado(datos.id_lugar_turistico, datos.latitud, datos.longitud)
+            }) {
+        Row {
+            img_carta_google_maps(datos.img_ref)
+            datos_lugares_google_maps(datos.titulo, datos.descripcion)
+            floatin_actionButton(modifier = Modifier, R.drawable.localidad_icon_general) {
+            }
+        }
+
+    }
+}
+
+@Composable
+fun img_carta_google_maps(img: String) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(img)
+            .size(80, 80)
+            .crossfade(true)
+            .placeholder(R.drawable.cargando_img_categorias)
+            .error(R.drawable.sin_item_carrito)
+            .build(),
+        contentDescription = null,
+        modifier = Modifier
+            .width(80.dp)
+            .height(80.dp)
+            .clip(RoundedCornerShape(10)),
+//                .clickable {
+//                    listener(true, lugar)
+//                },
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun datos_lugares_google_maps(texto: String, descripcion: String) {
+    Column(modifier = Modifier.padding(start = 10.dp , end = 20.dp, top = 5.dp , bottom = 5.dp)) {
+        texto_generico_one_line(texto = texto, MaterialTheme.typography.titleLarge)
+        spacer_vertical(5.dp)
+        text_expandible_wrapp(descripcion, maxlines = 2)
+    }
 }
