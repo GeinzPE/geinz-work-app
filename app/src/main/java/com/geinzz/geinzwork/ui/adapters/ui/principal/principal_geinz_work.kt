@@ -1,8 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.principal
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -56,7 +54,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -67,10 +64,9 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
-import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.floatin_actionButton
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
@@ -78,30 +74,18 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulo_referenciales_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
-import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun pantalla_principal(categorias: () -> Unit) {
+fun pantalla_principal(categorias: () -> Unit, ver_lugares:()-> Unit) {
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
@@ -119,7 +103,6 @@ fun pantalla_principal(categorias: () -> Unit) {
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = { ScannerButton() }, floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-//        MyGoogle_maps()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,12 +126,11 @@ fun pantalla_principal(categorias: () -> Unit) {
 
             item {
                 spacer_vertical(10.dp)
-                apartado_turismo(_lugares_turisticos)
+                apartado_turismo(_lugares_turisticos,ver_lugares)
                 spacer_vertical(10.dp)
             }
 
             item {
-
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
                     "ver rutas",
@@ -193,10 +175,13 @@ fun ScannerButton() {
         containerColor = MaterialTheme.colorScheme.primary,
     ) {
         val painter = painterResource(id = R.drawable.qr_scaner_icon)
-        Image(painter = painter, contentDescription = "Escanear QR", modifier = Modifier.size(28.dp))
+        Image(
+            painter = painter,
+            contentDescription = "Escanear QR",
+            modifier = Modifier.size(28.dp)
+        )
     }
 }
-
 
 
 private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
@@ -241,7 +226,7 @@ fun apartado_explora_cat(categorias_tienda: List<dataclass_cat_sub>, categorias1
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(
                 items = categoriasPrincipales,
-                key = { it.nombre.toString() } // 🔑 clave única para que Compose recuerde cada item
+                key = { it.nombre.toString() }
             ) { categorias ->
                 apartado_categorias_tiendas(
                     categorias.lista_img,
@@ -362,87 +347,46 @@ fun texto_categorias(
 }
 
 @Composable
-fun apartado_turismo(lugares: List<lugares_turisticos>) {
+fun apartado_turismo(lugares: List<lugares_turisticos>,ver_lugares:()-> Unit) {
     val lugaresSeleccionados = rememberSaveable(lugares.hashCode()) {
         lugares.shuffled().take(5)
     }
+    var bottom_sheet_cartas by remember { mutableStateOf(false) }
+
+    var datos_lugares by remember { mutableStateOf(lugares_turisticos()) }
+
     Column {
-        titulo_referenciales_geinz_work("Lugares turísticos", "Ver lugares") {}
+        titulo_referenciales_geinz_work("Lugares turísticos", "Ver lugares") {ver_lugares()}
         spacer_vertical(10.dp)
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(lugaresSeleccionados) { lugar ->
                 cartas_turismo(
-                    lugar.titulo.orEmpty(),
-                    "ir y conocer".uppercase(),
-                    lugar.img_ref.orEmpty(),
+                    lugar,
                     5,
                     300.dp,
                     300.dp
-                ) {}
+                ) { bottom_sheet_listener, datos_selecionado ->
+                    bottom_sheet_cartas = bottom_sheet_listener
+                    datos_lugares = datos_selecionado
+                }
             }
         }
     }
+    if (bottom_sheet_cartas) {
+        bottom_sheet_lugares_turisticos(datos_lugares) { bottom_sheet_cartas = false }
+    }
+
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun rutas_turismo(localidad: String) {
-//    spacer_vertical(10.dp)
-//    Box() {
-//        AsyncImage(
-//            model = ImageRequest.Builder(LocalContext.current)
-//                .data("")
-//                .crossfade(true)
-//                .placeholder(R.drawable.cargando_img_categorias)
-//                .error(R.drawable.cargando_img_categorias)
-//                .build(),
-//            contentDescription = null,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(400.dp)
-//                .clip(RoundedCornerShape(5)),
-//            contentScale = ContentScale.Crop
-//        )
-//
-//        Box(
-//            modifier = Modifier
-//                .clip(RoundedCornerShape(5))
-//                .background(Color.Black.copy(alpha = 0.5f))
-//                .fillMaxWidth()
-//                .height(400.dp)
-//        ) {
-//        }
-//        texto_encimado(
-//            modifier = Modifier.align(Alignment.BottomStart),
-//            "Ver rutas",
-//            "descubre $localidad"
-//        ) {}
-//    }
-//}
-
-//@Composable
-//fun recomendado_por_vistitantes() {
-//    spacer_vertical(20.dp)
-//    texto_generico_one_line("Recomendado por vistitantes", MaterialTheme.typography.titleLarge)
-//    spacer_vertical(5.dp)
-//    Column {
-//        cartas_turismo(5, 205.dp, 320.dp)
-//    }
-//
-//}
 
 
 @Composable
 fun cartas_turismo(
-    titulo: String,
-    texto: String,
-    img: String,
+    lugar: lugares_turisticos,
     rounder: Int,
     alto: Dp,
     ancho: Dp,
-    listener: () -> Unit
+    listener: (Boolean, lugares_turisticos) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -451,7 +395,7 @@ fun cartas_turismo(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(img)
+                .data(lugar.img_ref)
                 .size(ancho.value.toInt(), alto.value.toInt())
                 .crossfade(true)
                 .placeholder(R.drawable.cargando_img_categorias)
@@ -461,27 +405,29 @@ fun cartas_turismo(
             modifier = Modifier
                 .width(ancho)
                 .height(alto)
-                .clip(RoundedCornerShape(rounder)),
+                .clip(RoundedCornerShape(rounder))
+                .clickable {
+                    listener(true, lugar)
+                },
             contentScale = ContentScale.Crop
         )
 
         mascara_img(rounder, alto, ancho)
         texto_encimado_cartas(
             modifier = Modifier.align(Alignment.BottomStart),
-            titulo,
-            texto,
-            listener
+            lugar.titulo,
+            "ir y conocer".uppercase(),
         )
 
     }
 }
+
 
 @Composable
 fun texto_encimado_cartas(
     modifier: Modifier,
     titulo: String,
     descripcion: String,
-    listener: () -> Unit
 ) {
     Row(modifier = modifier.padding(start = 20.dp, end = 20.dp, bottom = 40.dp)) {
         Column {
@@ -501,24 +447,7 @@ fun texto_encimado_cartas(
 }
 
 
-@Composable
-fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(rounder))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color.Black.copy(alpha = 0.5f),
-                        Color.Black
-                    )
-                )
-            )
-            .width(ancho)
-            .height(alto)
-    )
-}
+
 
 
 @Composable
@@ -617,111 +546,9 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
                 .clip(CircleShape),
             contentDescription = ""
         )
-//        AsyncImage(
-//            model = "",
-//            contentDescription = "Imagen de la tienda",
-//            contentScale = ContentScale.Crop,
-//            error = painterResource(R.drawable.qr_yape),
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(50.dp)
-//                .clip(RoundedCornerShape(50.dp)),
-//
-//            )
 
     }
 
 
 }
 
-@Composable
-fun MyGoogle_maps() {
-    val viewModel_cordenadas: viewModel_filtado_tiendas = viewModel()
-    val cordenadas by viewModel_cordenadas._obtener_datos_tienda.observeAsState(emptyList())
-    val datosTienda by viewModel_cordenadas._datos_tienda.observeAsState(emptyList())
-    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    var show_bottom_sheeet by remember { mutableStateOf(false) }
-    var id_tienda = remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    val properties by remember {
-        mutableStateOf(
-            MapProperties(
-                isMyLocationEnabled = true // Esto activa el círculo azul y la flecha
-            )
-        )
-    }
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(
-            com.google.android.gms.maps.model.LatLng(
-                -10.747981,
-                -77.754218
-            ), 15f
-        )
-    }
-
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        properties = properties,
-    ) {
-        cordenadas.forEach { tienda ->
-            Marker(
-                state = MarkerState(
-                    com.google.android.gms.maps.model.LatLng(
-                        tienda.lat,
-                        tienda.log
-                    )
-                ),
-                title = "${tienda.nombre_tienda}",
-                snippet = "Dirección: ${tienda.direccion}\nReferencia: ${tienda.referencia}",
-                onClick = {
-                    id_tienda.value = tienda.id_tienda
-                    Log.d("MarkerClick", "Marcador ${tienda.id_tienda} tocado")
-                    show_bottom_sheeet = true
-                    false
-                }
-            )
-        }
-    }
-    LaunchedEffect(datosTienda) {
-        if (datosTienda.isNotEmpty()) {
-            Log.d("obtenoemos_datos_tienda", datosTienda.toString())
-            dataclass_tienda_seleccionada = datosTienda.first()
-        }
-    }
-
-    LaunchedEffect(show_bottom_sheeet) {
-        if (show_bottom_sheeet) {
-            viewModel_cordenadas.obtener_campos_tiendas_por_id("barranca", id_tienda.value)
-        }
-    }
-
-
-    LaunchedEffect(Unit) {
-        viewModel_cordenadas.obtener_tiendas_registradas("barranca")
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val location =
-                fusedLocationClient.lastLocation.await()
-            location?.let {
-                val userLatLng = com.google.android.gms.maps.model.LatLng(it.latitude, it.longitude)
-                cameraPositionState.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
-                )
-            }
-        }
-    }
-    if (show_bottom_sheeet) {
-        bottom_sheet_tiendas_filtradas(
-            Color.Red,
-            viewModel_cordenadas,
-            dataclass_tienda_seleccionada, show_bottom_sheeet
-        ) {
-            show_bottom_sheeet = false
-        }
-    }
-}

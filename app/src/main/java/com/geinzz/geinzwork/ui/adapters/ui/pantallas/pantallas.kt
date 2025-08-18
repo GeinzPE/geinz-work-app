@@ -7,10 +7,17 @@ import kotlinx.serialization.Serializable
 object principal
 
 @Serializable
-data class  screen_filtrado(val categoria: String,val localidad: String,val nombre_user: String)
+object lugares_turisticos
+
+@Serializable
+data class screen_filtrado(val categoria: String, val localidad: String, val nombre_user: String)
 
 @Serializable
 object pantalla_principal
+
+@Serializable
+data class map_perzonalizado(val tipo: String)
+
 
 
 

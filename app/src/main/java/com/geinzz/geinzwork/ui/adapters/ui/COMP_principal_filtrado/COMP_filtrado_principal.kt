@@ -59,6 +59,7 @@ import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
@@ -527,4 +528,23 @@ fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, lis
 
     }
 
+}
+
+@Composable
+fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(rounder))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black.copy(alpha = 0.5f),
+                        Color.Black
+                    )
+                )
+            )
+            .width(ancho)
+            .height(alto)
+    )
 }

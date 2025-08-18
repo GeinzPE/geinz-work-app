@@ -14,6 +14,7 @@ class repo_principal_geinz_work {
                 .get().await()
         for (datos in lugares_turisticos) {
             val data = datos.data
+            val id= data?.get("id") as? String ?: ""
             val titulo = data?.get("titulo") as? String ?: ""
             val descripcion = data?.get("descripcion") as? String ?: ""
             val img_refencia = data?.get("img") as? String ?: ""
@@ -24,17 +25,20 @@ class repo_principal_geinz_work {
             val latitud = ubicacion?.get("latitud") as? Number ?: 0
 
             val lista = lugares_turisticos(
+                id,
                 titulo,
                 descripcion,
                 img_refencia,
                 dirección,
                 referencia,
+                latitud.toDouble(),
                 longitud.toDouble(),
-                latitud.toDouble()
             )
             lista_lugares.add(lista)
         }
 
         return lista_lugares
     }
+
+
 }

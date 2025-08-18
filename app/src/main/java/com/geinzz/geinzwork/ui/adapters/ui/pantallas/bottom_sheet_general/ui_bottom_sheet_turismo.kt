@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -33,7 +34,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.geinzz.geinzwork.R
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -41,7 +41,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.info_turismo
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
@@ -50,32 +50,44 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun bottom_sheet_lugares_turisticos(datos: info_turismo) {
+fun bottom_sheet_lugares_turisticos(
+    datos: lugares_turisticos,
+    onClose: () -> Unit,
+) {
     Surface {
         ModalBottomSheet(
-            onDismissRequest = {},
+            onDismissRequest = { onClose() },
             modifier = Modifier.fillMaxWidth(),
             dragHandle = null,
             containerColor = MaterialTheme.colorScheme.background
         ) {
             card_img_container(datos)
-
-
         }
     }
 }
 
 
 @Composable
-fun card_img_container(datos: info_turismo) {
-
+fun card_img_container(datos: lugares_turisticos) {
+    var dialogo_ubi_enable by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        img_principal(datos.img_principal)
+        img_principal(datos.img_ref)
         texto_Descripcion_ref(datos.titulo, datos.descripcion)
-        buttom_open_map(datos.latitud,datos.longitud)
+        buttom_open_map("Crear ruta") {
+            constantes_lista_localidades.abrir_google_maps(
+                context,
+                datos.latitud,
+                datos.longitud
+            ) { dialogo ->
+                dialogo_ubi_enable=dialogo
+            }
+        }
+        Log.d("obtemos_cordenads","${datos.latitud}, ${datos.longitud}")
+//        buttom_open_map("Mostrar mapa") {map_personalizado(datos.titulo,datos.latitud,datos.longitud)}
     }
 }
 
@@ -98,10 +110,12 @@ fun img_principal(img_principal: String) {
             .clickable { estadolistener = !estadolistener },
     )
     AnimatedVisibility(estadolistener) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize()
-            .padding(10.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+                .padding(10.dp)
+        ) {
 //            galeria_img()
         }
     }
@@ -144,17 +158,15 @@ fun texto_Descripcion_ref(titulo: String, texto: String) {
 
 }
 
+
 @Composable
-fun buttom_open_map(latitud: Double, longitud: Double, mostrarDialogo: (Boolean) -> Unit) {
-    val context = LocalContext.current
+fun buttom_open_map(
+    texto_button: String,
+    clik_listener:()-> Unit,
+) {
+
     ExtendedFloatingActionButton(onClick = {
-        constantes_lista_localidades.abrir_google_maps(
-            context,
-            latitud,
-            longitud
-        ) { dialogo ->
-            mostrarDialogo(dialogo)
-        }
+        clik_listener()
     }) {
         Icon(
             painter = painterResource(id = R.drawable.localidad_icon_general),
@@ -162,6 +174,7 @@ fun buttom_open_map(latitud: Double, longitud: Double, mostrarDialogo: (Boolean)
             modifier = Modifier.size(25.dp),
             tint = Color.Unspecified
         )
-        texto_generico_one_line("Abrir mapa")
+        texto_generico_one_line(texto_button)
     }
 }
+
