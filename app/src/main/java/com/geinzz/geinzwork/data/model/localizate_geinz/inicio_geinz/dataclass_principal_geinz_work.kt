@@ -23,6 +23,7 @@ data class dataclass_cat_sub(
     val lista_subcategorias: List<String>?,
     val lista_img: String = ""
 )
+
 @Parcelize
 data class lugares_turisticos(
     val titulo: String?,
@@ -32,4 +33,14 @@ data class lugares_turisticos(
     val referencia: String?,
     val longitud: Double = 0.0,
     val latitud: Double = 0.0
-): Parcelable
+) : Parcelable
+
+
+data class info_turismo(
+    val img_principal: String,
+    val titulo: String,
+    val descripcion: String,
+    val direccion: String,
+    val latitud: Double,
+    val longitud: Double
+)
