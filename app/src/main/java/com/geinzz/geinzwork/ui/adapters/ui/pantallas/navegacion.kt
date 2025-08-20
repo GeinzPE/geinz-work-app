@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,6 +15,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplor
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
+import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
+import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 
 
 @Composable
@@ -23,12 +26,14 @@ fun nativationWrapper(
     viewmodel: viewModel_localizate_geinz
 ) {
     val navController = rememberNavController()
+    val viewModelLugares: viewModel_lugares_turisticos = viewModel()
+    val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
 
     NavHost(navController = navController, startDestination = pantalla_principal) {
         composable<pantalla_principal> {
             pantalla_principal(
                 { navController.navigate(principal) },
-              { navController.navigate(lugares_turisticos) })
+                { navController.navigate(lugares_turisticos) })
         }
         composable<principal> {
             PantallaExplorarTiendas(
@@ -42,7 +47,7 @@ fun nativationWrapper(
         composable<map_perzonalizado> { navback ->
             val direcciones = navback.toRoute<map_perzonalizado>()
             pantalla_mapa_perzonalizado(
-                direcciones.tipo
+                direcciones.tipo,viewModelCordenadas,viewModelLugares
             )
         }
         composable<screen_filtrado> { navback ->
@@ -54,9 +59,8 @@ fun nativationWrapper(
                 navigation_regresar = { navController.popBackStack() })
         }
         composable<lugares_turisticos> { navback ->
-            pantalla_lugares_turisticos("barranca"){ tipo->
+            pantalla_lugares_turisticos("barranca", viewModelLugares, viewModelCordenadas) { tipo ->
                 navController.navigate(map_perzonalizado(tipo)) {}
-
             }
         }
 

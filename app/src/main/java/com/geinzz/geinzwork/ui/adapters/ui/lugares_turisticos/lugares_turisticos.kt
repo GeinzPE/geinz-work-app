@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -53,28 +54,82 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import androidx.core.content.ContextCompat
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Estados_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import java.nio.file.WatchEvent
 
 
 @Composable
-fun pantalla_lugares_turisticos(localidad_selecionada: String, abrir_mapa: (String) -> Unit) {
-    val contex = LocalContext.current
-    val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
-    val viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel()
+fun pantalla_lugares_turisticos(
+    localidad_selecionada: String,
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
+    viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
+    abrir_mapa: (String) -> Unit,
+    ) {
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
+
     val filtrado_lugares_turisticos by viewmodel_lugares_turisticos._categorias_filtrados.observeAsState(
         emptyList()
     )
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var buttom_mapa by remember { mutableStateOf(false) }
     val lista_con_todos = listOf("Todos") + filtrado_lugares_turisticos
+    var listaMostrar by remember { mutableStateOf<List<lugares_turisticos>>(emptyList()) }
+
+
+    var lista_base_turisticos by remember { mutableStateOf(emptyList<lugares_turisticos>()) }
+
+    val estado_fitlrado_datos = Estados_lugares_turisticos(
+        subcategorias = filtrado_lugares_turisticos,
+        lista_filtrada = _lugares_turisticos
+    )
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.lugares_turisticos("barranca")
         viewmodel_lugares_turisticos.obtener_categorias()
     }
+
+    LaunchedEffect(_lugares_turisticos) {
+        if (_lugares_turisticos.isNotEmpty()) {
+            viewmodel_lugares_turisticos.todos_lugares(_lugares_turisticos)
+            listaMostrar = if (subCategoriaSeleccionada == "Todos") {
+                _lugares_turisticos
+            } else {
+                _lugares_turisticos.filter { it.subcategoria_filtrado.contains(subCategoriaSeleccionada) }
+            }
+        }
+    }
+
+    // Cuando cambie la subcategoría
+    LaunchedEffect(subCategoriaSeleccionada) {
+        viewmodel_lugares_turisticos.filtrar_por_subcategoria(subCategoriaSeleccionada)
+        // Actualizamos la variable local para LazyColumn
+        listaMostrar = viewmodel_lugares_turisticos.listaFiltrada.value
+    }
+
+
+// Cuando cambies de chip
+//    LaunchedEffect(subCategoriaSeleccionada) {
+//        val lugares_filtrados=viewmodel_lugares_turisticos.filtrar_por_subcategoria(subCategoriaSeleccionada)
+//        lista_base_turisticos=lugares_filtrados
+//
+//    }
+
+//    LaunchedEffect(_lugares_turisticos) {
+//
+//    }
+//
+//    LaunchedEffect(subCategoriaSeleccionada) {
+
+//        Log.d("lugares_fitlrado",lista_base_turisticos.toString())
+//    }
+//
+//    LaunchedEffect(subCategoriaSeleccionada, _lugares_turisticos) {
+//        viewmodel_lugares_turisticos.lista_filtrada_por_subcategoira(subCategoriaSeleccionada, _lugares_turisticos)
+//    }
+
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
@@ -111,7 +166,6 @@ fun pantalla_lugares_turisticos(localidad_selecionada: String, abrir_mapa: (Stri
                                         if (subcategorias == "Todos") {
                                             subCategoriaSeleccionada = "Todos"
                                             buttom_mapa = false
-
                                         } else {
                                             buttom_mapa = true
                                             subCategoriaSeleccionada = subcategorias
@@ -129,7 +183,7 @@ fun pantalla_lugares_turisticos(localidad_selecionada: String, abrir_mapa: (Stri
                         }
                     }
                 }
-                items(_lugares_turisticos) { lugares ->
+                items(listaMostrar) { lugares ->
                     carta_lugares_turisticosa(200.dp, 10, lugares)
                 }
             }

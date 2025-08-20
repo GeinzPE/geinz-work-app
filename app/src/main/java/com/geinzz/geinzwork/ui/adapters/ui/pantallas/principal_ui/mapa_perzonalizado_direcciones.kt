@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -66,18 +68,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @Composable
-fun pantalla_mapa_perzonalizado(tipo: String) {
+fun pantalla_mapa_perzonalizado(
+    tipo: String,
+    viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
+) {
     Scaffold { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            MyGoogle_maps(tipo)
+            MyGoogle_maps(tipo,viewmodel_lugares_turisticos,viewModel_cordenadas)
         }
     }
 }
 
 @Composable
-fun MyGoogle_maps(tipo: String) {
-    val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
-    val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
+fun MyGoogle_maps(
+    tipo: String, viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
+    viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
+) {
+
+//    val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
+    val lista_filtrada by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
+    Log.d("obteneoms_listA_fitlrado", lista_filtrada.toString())
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var dialogo_ubi_Activa by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
@@ -105,9 +116,9 @@ fun MyGoogle_maps(tipo: String) {
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
                 constantes_lista_localidades.abrir_google_maps(
-                    context, latitud,longitud,
+                    context, latitud, longitud,
                 ) { dialogo ->
-                    dialogo_ubi_Activa =dialogo
+                    dialogo_ubi_Activa = dialogo
                 }
             } else {
                 dialogo_ubi_Activa = true
@@ -139,7 +150,7 @@ fun MyGoogle_maps(tipo: String) {
             ) {
 
 
-                _lugares_turisticos.forEach { lugar ->
+                lista_filtrada.forEach { lugar ->
                     Marker(
                         state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
                         title = lugar.titulo,
@@ -149,7 +160,7 @@ fun MyGoogle_maps(tipo: String) {
                         ),
                         onClick = {
                             dialog_Crear_ruta = true
-                            seleccionadoId= lugar.id_lugar_turistico
+                            seleccionadoId = lugar.id_lugar_turistico
                             true
                         }
                     )
@@ -210,12 +221,15 @@ fun MyGoogle_maps(tipo: String) {
                     )
                     spacer_vertical(5.dp)
                 }
-                items(_lugares_turisticos) { lugar ->
-                    carta_turismo_google_mpa(lugar, seleccionado = (seleccionadoId == lugar.id_lugar_turistico)) { id, lat, log ->
+                items(lista_filtrada) { lugar ->
+                    carta_turismo_google_mpa(
+                        lugar,
+                        seleccionado = (seleccionadoId == lugar.id_lugar_turistico)
+                    ) { id, lat, log ->
                         val nuevaUbicacion = LatLng(lat, log)
                         seleccionadoId = id
-                        latitud=lat
-                        longitud=log
+                        latitud = lat
+                        longitud = log
                         scope.launch {
                             cameraPositionState.animate(
                                 CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
