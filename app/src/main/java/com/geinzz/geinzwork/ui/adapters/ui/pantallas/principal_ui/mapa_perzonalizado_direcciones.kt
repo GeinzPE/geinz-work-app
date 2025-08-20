@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,12 +42,17 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
@@ -71,11 +78,17 @@ fun pantalla_mapa_perzonalizado(tipo: String) {
 fun MyGoogle_maps(tipo: String) {
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
+    var dialog_Crear_ruta by remember { mutableStateOf(false) }
+    var dialogo_ubi_Activa by remember { mutableStateOf(false) }
+    var latitud by remember { mutableStateOf(0.0) }
+    var longitud by remember { mutableStateOf(0.0) }
 //    val cordenadas by viewModel_cordenadas._obtener_datos_tienda.observeAsState(emptyList())
 //    val datosTienda by viewModel_cordenadas._datos_tienda.observeAsState(emptyList())
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     var id_tienda = remember { mutableStateOf("") }
+    var seleccionadoId by remember { mutableStateOf<String?>(null) }
+
 
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -85,6 +98,28 @@ fun MyGoogle_maps(tipo: String) {
                 isMyLocationEnabled = true // Esto activa el círculo azul y la flecha
             )
         )
+    }
+
+    if (dialog_Crear_ruta) {
+        dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
+            dialog_Crear_ruta = false
+            if (crear_ruta && verificarUbiActiva(context)) {
+                constantes_lista_localidades.abrir_google_maps(
+                    context, latitud,longitud,
+                ) { dialogo ->
+                    dialogo_ubi_Activa =dialogo
+                }
+            } else {
+                dialogo_ubi_Activa = true
+            }
+        })
+    }
+
+    if (dialogo_ubi_Activa) {
+        dialog_sin_ubi__rutas({ dialogo_ubi_Activa = false }, {
+            dialogo_ubi_Activa = false
+            context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        })
     }
 
     val defaultLocation = LatLng(-10.8500, -77.7500) // coordenadas de Barranca
@@ -102,12 +137,33 @@ fun MyGoogle_maps(tipo: String) {
                 cameraPositionState = cameraPositionState,
                 properties = properties,
             ) {
-                _lugares_turisticos.forEach { tienda ->
+
+
+                _lugares_turisticos.forEach { lugar ->
                     Marker(
-                        state = MarkerState(LatLng(tienda.latitud, tienda.longitud)),
-                        title = tienda.titulo
+                        state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
+                        title = lugar.titulo,
+                        icon = BitmapDescriptorFactory.defaultMarker(
+                            if (seleccionadoId == lugar.id_lugar_turistico) BitmapDescriptorFactory.HUE_BLUE
+                            else BitmapDescriptorFactory.HUE_RED
+                        ),
+                        onClick = {
+                            dialog_Crear_ruta = true
+                            seleccionadoId= lugar.id_lugar_turistico
+                            true
+                        }
                     )
                 }
+
+//                _lugares_turisticos.forEach { tienda ->
+//                    Marker(
+//                        state = MarkerState(LatLng(tienda.latitud, tienda.longitud)),
+//                        title = tienda.titulo,
+//                        onClick = {
+//                            true
+//                        }
+//                    )
+//                }
 
                 MapEffect {
                     try {
@@ -143,28 +199,32 @@ fun MyGoogle_maps(tipo: String) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
-                    texto_generico_one_line("Lugares turisticos de barranca",MaterialTheme.typography.titleLarge)
+                    texto_generico_one_line(
+                        "Lugares turisticos de barranca",
+                        MaterialTheme.typography.titleLarge
+                    )
                     spacer_vertical(5.dp)
-                    texto_generico_multilinea("Selecciona tu lugar turístico favorito y ubícate fácilmente en el mapa. También puedes crear tu propia ruta directa con solo un botón.",
-                        MaterialTheme.typography.bodyMedium)
+                    texto_generico_multilinea(
+                        "Selecciona tu lugar turístico favorito y ubícate fácilmente en el mapa. También puedes crear tu propia ruta directa con solo un botón.",
+                        MaterialTheme.typography.bodyMedium
+                    )
                     spacer_vertical(5.dp)
                 }
                 items(_lugares_turisticos) { lugar ->
-                    carta_turismo_google_mpa(lugar) { id, lat, log ->
+                    carta_turismo_google_mpa(lugar, seleccionado = (seleccionadoId == lugar.id_lugar_turistico)) { id, lat, log ->
                         val nuevaUbicacion = LatLng(lat, log)
-
+                        seleccionadoId = id
+                        latitud=lat
+                        longitud=log
                         scope.launch {
                             cameraPositionState.animate(
                                 CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
-                                1000 // duración en ms
+                                1000
                             )
                         }
                     }
                 }
-
             }
-
-
         }
     }
 

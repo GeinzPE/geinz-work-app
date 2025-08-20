@@ -54,7 +54,7 @@ fun nativationWrapper(
                 navigation_regresar = { navController.popBackStack() })
         }
         composable<lugares_turisticos> { navback ->
-            pantalla_lugares_turisticos{ tipo->
+            pantalla_lugares_turisticos("barranca"){ tipo->
                 navController.navigate(map_perzonalizado(tipo)) {}
 
             }

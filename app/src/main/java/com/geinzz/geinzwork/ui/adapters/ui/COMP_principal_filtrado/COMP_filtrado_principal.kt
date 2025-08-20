@@ -55,6 +55,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
@@ -555,22 +557,34 @@ fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
 @Composable
 fun carta_turismo_google_mpa(
     datos: lugares_turisticos,
-    clikeado: (id: String, lat: Double, log: Double) -> Unit
+    seleccionado: Boolean,
+    onClick: (id: String, lat: Double, log: Double) -> Unit,
 ) {
-    val context = LocalContext.current
+    val targetColor = if (seleccionado) {
+        MaterialTheme.colorScheme.surfaceVariant
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    val animatedColor by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = tween(durationMillis = 500)
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                clikeado(datos.id_lugar_turistico, datos.latitud, datos.longitud)
-            }) {
+                onClick(datos.id_lugar_turistico, datos.latitud, datos.longitud)
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = animatedColor
+        )
+    ) {
         Row {
             img_carta_google_maps(datos.img_ref)
             datos_lugares_google_maps(datos.titulo, datos.descripcion)
-            floatin_actionButton(modifier = Modifier, R.drawable.localidad_icon_general) {
-            }
         }
-
     }
 }
 
@@ -598,7 +612,7 @@ fun img_carta_google_maps(img: String) {
 
 @Composable
 fun datos_lugares_google_maps(texto: String, descripcion: String) {
-    Column(modifier = Modifier.padding(start = 10.dp , end = 20.dp, top = 5.dp , bottom = 5.dp)) {
+    Column(modifier = Modifier.padding(start = 10.dp, end = 20.dp, top = 5.dp, bottom = 5.dp)) {
         texto_generico_one_line(texto = texto, MaterialTheme.typography.titleLarge)
         spacer_vertical(5.dp)
         text_expandible_wrapp(descripcion, maxlines = 2)

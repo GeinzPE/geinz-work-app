@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +35,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import java.nio.file.WatchEvent
@@ -47,7 +50,7 @@ fun dialog_sin_ubicacion_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-         Button(
+            Button(
                 onClick = {
                     abrir_configuracion()
                 },
@@ -65,7 +68,7 @@ fun dialog_sin_ubicacion_activa(
         text = {
             Column {
                 Text(
-                    "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta la tienda en Google Maps.",
+                    "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -100,12 +103,99 @@ fun dialog_sin_ubicacion_activa(
 
 }
 
+@Composable
+fun dialog_sin_ubi__rutas(onDismis: () -> Unit,abrir_configuracion: () -> Unit){
+    AlertDialog(
+        onDismissRequest = { onDismis() },
+        confirmButton = {
+            Button(
+                onClick = {
+                    abrir_configuracion()
+                },
+                shape = RoundedCornerShape(15)
+            ) { Text(text = "Activar Ubicación", color = Color.White) }
+        },
+        dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
+        title = {
+            Text(
+                text = "Ubicación desactivada",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(10.dp)
+            }
+        },
+        shape = RoundedCornerShape(10),
+        icon = {
+            Icon(
+                modifier = Modifier.size(25.dp),
+                painter = painterResource(R.drawable.google_maps_icono),
+                contentDescription = "Google maps",
+                tint = Color.Unspecified
+            )
+        },
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+
+    )
+
+}
+
+@Composable
+fun dialog_crear_ruta_lugares(onDismis: () -> Unit, crear_ruta: (Boolean) -> Unit) {
+    AlertDialog(
+        confirmButton = {
+            Button(
+                onClick = { crear_ruta(true) },
+                shape = RoundedCornerShape(15)
+            ) { Text(text = "Crear ruta", color = Color.White) }
+        },
+        dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
+        onDismissRequest = { onDismis() },
+        icon = {
+            Icon(
+                modifier = Modifier.size(25.dp),
+                painter = painterResource(R.drawable.vector_ruta_icon),
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+        },
+        title = {
+            texto_generico_one_line("Crear ruta", MaterialTheme.typography.titleLarge)
+            spacer_vertical(10.dp)
+        },
+
+        text = {
+            texto_generico_multilinea(
+                "Estás a punto de generar una ruta desde tu ubicación actual hasta este destino en el mapa. La ruta te mostrará el recorrido paso a paso para que puedas llegar de manera sencilla. Recuerda que necesitas tener tu ubicación activada para que el sistema pueda calcular el camino correctamente.",
+                MaterialTheme.typography.bodyMedium
+            )
+        },
+    )
+}
 
 @Composable
 fun dialog_qr_tienda(qr: String, nombre_tienda: String, onDismis: () -> Unit) {
     AlertDialog(
         confirmButton = {},
-        dismissButton = { Button (onClick = { onDismis() }) { Text(text = "Cerrar", color = Color.White) } },
+        dismissButton = {
+            Button(onClick = { onDismis() }) {
+                Text(
+                    text = "Cerrar",
+                    color = Color.White
+                )
+            }
+        },
         onDismissRequest = { onDismis() },
         icon = {
             Icon(
@@ -125,10 +215,10 @@ fun dialog_qr_tienda(qr: String, nombre_tienda: String, onDismis: () -> Unit) {
         },
 
         text = {
-                generar_qr_ubi_tinda(
-                    "Escanea el QR de la tienda para llegar a $nombre_tienda rápidamente. Recomendamos que actives tu ubicación antes de escanear.",
-                    qr
-                )
+            generar_qr_ubi_tinda(
+                "Escanea el QR de la tienda para llegar a $nombre_tienda rápidamente. Recomendamos que actives tu ubicación antes de escanear.",
+                qr
+            )
         },
     )
 }
@@ -143,7 +233,7 @@ fun dialog_sin_ubi_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            androidx.compose.material3.Button(
+            Button(
                 onClick = { abrir_maps() },
                 shape = RoundedCornerShape(15)
             ) { Text(text = "Abrir con Google Maps", color = Color.White) }
