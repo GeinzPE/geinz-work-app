@@ -67,7 +67,7 @@ fun pantalla_lugares_turisticos(
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
     viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
     abrir_mapa: (String) -> Unit,
-    ) {
+) {
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
 
     val filtrado_lugares_turisticos by viewmodel_lugares_turisticos._categorias_filtrados.observeAsState(
@@ -97,7 +97,11 @@ fun pantalla_lugares_turisticos(
             listaMostrar = if (subCategoriaSeleccionada == "Todos") {
                 _lugares_turisticos
             } else {
-                _lugares_turisticos.filter { it.subcategoria_filtrado.contains(subCategoriaSeleccionada) }
+                _lugares_turisticos.filter {
+                    it.subcategoria_filtrado.contains(
+                        subCategoriaSeleccionada
+                    )
+                }
             }
         }
     }

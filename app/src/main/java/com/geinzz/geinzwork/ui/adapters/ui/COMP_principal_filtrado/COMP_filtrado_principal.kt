@@ -54,6 +54,7 @@ import org.w3c.dom.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -627,7 +628,7 @@ fun carta_filtrado_localidades(
     img: List<String>,
     rounder: Int,
     alto: Dp,
-    ancho: Dp,
+    ancho: Dp,listener: (String) -> Unit
 ) {
     val randomImg = remember(img) { img.randomOrNull() }
     Box(
@@ -647,10 +648,11 @@ fun carta_filtrado_localidades(
             modifier = Modifier
                 .width(ancho)
                 .height(alto)
-                .clip(RoundedCornerShape(rounder)),
-//                .clickable {
-//                    listener(true, lugar)
-//                },
+                .clip(RoundedCornerShape(rounder))
+                .clickable {
+                    listener(nombre_localidad)
+                    Log.d("reronatamos1",nombre_localidad.toString())
+                },
             contentScale = ContentScale.Crop
         )
 

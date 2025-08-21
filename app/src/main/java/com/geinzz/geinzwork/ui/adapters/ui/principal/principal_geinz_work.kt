@@ -104,7 +104,9 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
     }
 
     val lista_localidades = constantes_lista_localidades.lista
-    val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
+    val localidadSeleccionada = remember { mutableStateOf("") }
+    Log.d("localida_selecionada",localidadSeleccionada.value)
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -131,7 +133,9 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
             }
 
             item {
-                filtrado_localidades(_obtener_filtrado_localidades)
+                filtrado_localidades(_obtener_filtrado_localidades) { localidad_selecionada ->
+                    localidadSeleccionada.value = localidad_selecionada
+                }
                 spacer_vertical(10.dp)
             }
             item {
@@ -144,7 +148,7 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
                     "ver rutas",
                     "descubre barranca"
-                ) {ver_lugares()}
+                ) { ver_lugares() }
                 spacer_vertical(20.dp)
             }
 
@@ -161,9 +165,6 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
 //                apartado_turismo(_lugares_turisticos, ver_lugares)
 //                spacer_vertical(10.dp)
 //            }
-
-
-
 
 
 //            item { recomendado_por_vistitantes() }
@@ -197,7 +198,6 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
 //        )
 //    }
 //}
-
 
 
 @Composable
@@ -454,56 +454,59 @@ fun texfiel_filtrado() {
 }
 
 
-@ExperimentalMaterial3Api
+//@ExperimentalMaterial3Api
+//@Composable
+//fun FiltradosChipsLocalidades(
+//    lista_localidades: List<dataclass_localidad_escudos>,
+//    localidadSeleccionada: String,
+//    onLocalidadSeleccionada: (String) -> Unit
+//) {
+//    LazyRow(modifier = Modifier.padding(top = 5.dp)) {
+//        items(lista_localidades) { localidad ->
+//            val isSelected =
+//                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
+//            FilterChip(
+//                modifier = Modifier.padding(horizontal = 4.dp),
+//                colors = FilterChipDefaults.filterChipColors(
+//                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    selectedLabelColor = Color.White,
+//                    containerColor = MaterialTheme.colorScheme.surface
+//                ),
+//                border = null,
+//                selected = isSelected,
+//                onClick = {
+//                    if (!isSelected) {
+//                        onLocalidadSeleccionada(localidad.nombre_localidad.toString())
+//                    }
+//                },
+//
+//                label = {
+//                    Text(
+//                        text = localidad.nombre_localidad.toString(),
+//                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
+//                    )
+//                },
+//                trailingIcon = {
+//                    localidad.escudo_img?.let { imgResId ->
+//                        Image(
+//                            painter = painterResource(id = imgResId),
+//                            contentDescription = null,
+//                            modifier = Modifier.size(24.dp)
+//                        )
+//                    }
+//                },
+//                shape = RoundedCornerShape(40)
+//
+//            )
+//        }
+//    }
+//}
+
 @Composable
-fun FiltradosChipsLocalidades(
-    lista_localidades: List<dataclass_localidad_escudos>,
-    localidadSeleccionada: String,
-    onLocalidadSeleccionada: (String) -> Unit
+fun filtrado_localidades(
+    lista_localidades: List<localidades_filtrado>,
+    nombre_localidad_selecionado: (String) -> Unit
 ) {
-    LazyRow(modifier = Modifier.padding(top = 5.dp)) {
-        items(lista_localidades) { localidad ->
-            val isSelected =
-                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
-            FilterChip(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = Color.White,
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                border = null,
-                selected = isSelected,
-                onClick = {
-                    if (!isSelected) {
-                        onLocalidadSeleccionada(localidad.nombre_localidad.toString())
-                    }
-                },
-
-                label = {
-                    Text(
-                        text = localidad.nombre_localidad.toString(),
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                trailingIcon = {
-                    localidad.escudo_img?.let { imgResId ->
-                        Image(
-                            painter = painterResource(id = imgResId),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-                shape = RoundedCornerShape(40)
-
-            )
-        }
-    }
-}
-
-@Composable
-fun filtrado_localidades(lista_localidades: List<localidades_filtrado>) {
     Column {
         spacer_vertical(10.dp)
         texto_generico_one_line(
@@ -511,13 +514,23 @@ fun filtrado_localidades(lista_localidades: List<localidades_filtrado>) {
             MaterialTheme.typography.textosTituloGeinzWork,
             modifier = Modifier.weight(1f)
         )
-        spacer_vertical (5.dp)
+        spacer_vertical(5.dp)
         LazyRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(lista_localidades) { items ->
-                carta_filtrado_localidades(items.nombre, items.lista_img, 10, 300.dp, 300.dp)
+                carta_filtrado_localidades(
+                    items.nombre,
+                    items.lista_img,
+                    10,
+                    300.dp,
+                    300.dp
+                ) { nombre_localidad ->
+                    nombre_localidad_selecionado(nombre_localidad)
+                    Log.d("reronatamos1",nombre_localidad.toString())
+
+                }
             }
         }
     }
