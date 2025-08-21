@@ -37,12 +37,9 @@ data class lugares_turisticos(
     val subcategoria_filtrado: List<String> = emptyList()
 ) : Parcelable
 
-data class lugares_turisticos_maps(
-    val id_lugar: String,
-    val nombre: String,
-    val descripcion: String,
-    val lat: Double,
-    val log: Double
+data class localidades_filtrado(
+    val nombre: String = "",
+    val lista_img: List<String> = emptyList(),
 )
 
 data class Estados_lugares_turisticos(

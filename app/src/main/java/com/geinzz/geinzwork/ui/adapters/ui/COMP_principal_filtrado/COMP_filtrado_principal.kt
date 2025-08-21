@@ -73,6 +73,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.ui.adapters.ui.principal.texto_encimado_cartas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 
@@ -618,3 +619,49 @@ fun datos_lugares_google_maps(texto: String, descripcion: String) {
         text_expandible_wrapp(descripcion, maxlines = 2)
     }
 }
+
+
+@Composable
+fun carta_filtrado_localidades(
+    nombre_localidad: String,
+    img: List<String>,
+    rounder: Int,
+    alto: Dp,
+    ancho: Dp,
+) {
+    val randomImg = remember(img) { img.randomOrNull() }
+    Box(
+        modifier = Modifier
+            .width(ancho)
+            .height(alto)
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(randomImg)
+                .size(ancho.value.toInt(), alto.value.toInt())
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.sin_item_carrito)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .width(ancho)
+                .height(alto)
+                .clip(RoundedCornerShape(rounder)),
+//                .clickable {
+//                    listener(true, lugar)
+//                },
+            contentScale = ContentScale.Crop
+        )
+
+        mascara_img(rounder, alto, ancho)
+        texto_encimado_cartas(
+            modifier = Modifier.align(Alignment.BottomStart),
+            nombre_localidad.uppercase(),
+            "conocer".uppercase(),
+        )
+
+    }
+
+}
+

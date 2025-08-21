@@ -5,6 +5,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
@@ -49,7 +50,7 @@ class repo_agregar_cat_sub_localizate {
             val subcategoriasDoc = categoriasRef.document(cate.id).get().await()
             if (subcategoriasDoc.exists()) {
                 val data = subcategoriasDoc.data
-                val subcategorias = data?.get("subcategorias") as? List<String> ?:emptyList()
+                val subcategorias = data?.get("subcategorias") as? List<String> ?: emptyList()
                 val img_data = data?.get("img_categoria") as? String? ?: ""
                 val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, img_data)
                 lista.add(datos)
@@ -95,13 +96,14 @@ class repo_agregar_cat_sub_localizate {
                 val diaMap = horarioSnapshot.get(dias) as? Map<*, *>
                 val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
                 val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
-                horario_Dia(dias, h_apertura,h_cierre)
+                horario_Dia(dias, h_apertura, h_cierre)
                 val datos = horario_Dia(dias, h_apertura, h_cierre)
                 lista_horario_por_tienda.add(datos)
             }
 
             Log.d("temonos_teindas", lista_horario_por_tienda.toString())
-            val tienda_activa = constantes_lista_localidades.verificarSiEstaAbierto(lista_horario_por_tienda)
+            val tienda_activa =
+                constantes_lista_localidades.verificarSiEstaAbierto(lista_horario_por_tienda)
             if (tienda_activa) {
                 cantidadActivas++
             }
@@ -225,6 +227,8 @@ class repo_agregar_cat_sub_localizate {
 
         trabajos.awaitAll().filterNotNull()
     }
+
+
 
 
 }
