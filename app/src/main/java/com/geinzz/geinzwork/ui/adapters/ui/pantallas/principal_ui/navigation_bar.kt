@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -57,8 +59,15 @@ fun bottom_navigation() {
         onResult = { result -> handleScanResult(context, result?.contents) }
     )
     Box {
-        NavigationBar {
-            // Primer ítem
+        NavigationBar(
+            modifier = Modifier.clip(
+                RoundedCornerShape(
+                    topStart = 10.dp,
+                    topEnd = 10.dp
+                )
+            ), containerColor = Color(0xFF744ACB)
+        ) {
+
             Geinz_bottom_var(items[0], selecionado = selected_item == 0) {
                 selected_item = 0
             }
@@ -66,22 +75,23 @@ fun bottom_navigation() {
                 selected_item = 1
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // espacio para el botón central
+            Spacer(modifier = Modifier.weight(1f))
 
-            // Últimos ítems
+
             Geinz_bottom_var(items[2], selecionado = selected_item == 2) {
                 selected_item = 2
             }
+
             Geinz_bottom_var(items[3], selecionado = selected_item == 3) {
                 selected_item = 3
             }
         }
 
-        val navigationBarHeight = 80.dp // o el alto real de tu bottom bar
+        val navigationBarHeight = 80.dp
 
         FloatingActionButton(
-            onClick = {startScanner.launch(ScanOptions())},
-            containerColor = Color.Red,
+            onClick = { startScanner.launch(ScanOptions()) },
+            containerColor = Color(0xFF4F378B),
             contentColor = Color.White,
             shape = CircleShape,
             modifier = Modifier
@@ -89,12 +99,15 @@ fun bottom_navigation() {
                 .offset(y = -(navigationBarHeight / 2))
         ) {
             Icon(
-               painter = painterResource(R.drawable.qr_scaner_icon), contentDescription = "Agregar", modifier = Modifier.size(35.dp)
+                painter = painterResource(R.drawable.qr_scaner_icon),
+                contentDescription = "Agregar",
+                modifier = Modifier.size(35.dp)
             )
         }
 
     }
 }
+
 private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
     if (contenidoEscaneado.isNullOrEmpty()) {
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
@@ -134,10 +147,10 @@ fun RowScope.Geinz_bottom_var(navItem: nav_item, selecionado: Boolean, clikeado:
         label = { texto_generico_one_line(navItem.nombre_item) },
         alwaysShowLabel = false,
         colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = Color.White,      // Ícono seleccionado
-            unselectedIconColor = Color.Gray,  // Ícono no seleccionado
+            selectedIconColor = Color.White,
+            unselectedIconColor = Color.White,
             selectedTextColor = Color.White,
-            indicatorColor = Color.Red
+            indicatorColor = Color(0xFF4A4458)
         )
     )
 }

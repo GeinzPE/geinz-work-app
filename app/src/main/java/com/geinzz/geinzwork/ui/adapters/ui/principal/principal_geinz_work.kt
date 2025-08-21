@@ -104,20 +104,17 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
     }
 
     val lista_localidades = constantes_lista_localidades.lista
-    val localidadSeleccionada = remember { mutableStateOf("") }
-    Log.d("localida_selecionada",localidadSeleccionada.value)
-
+    val localidadSeleccionada = remember { mutableStateOf("barranca") }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-//        floatingActionButton = { ScannerButton() }, floatingActionButtonPosition = FabPosition.End,
         bottomBar = { bottom_navigation() }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(10.dp)
+                .padding(start = 10.dp ,end=10.dp , top = 10.dp)
         ) {
             item {
                 nombre_texto_img_perfil()
@@ -139,7 +136,7 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
                 spacer_vertical(10.dp)
             }
             item {
-                apartado_explora_cat(_categorias_tiendas, categorias)
+                apartado_explora_cat(_categorias_tiendas, localidadSeleccionada.value, categorias)
                 spacer_vertical(10.dp)
             }
 
@@ -147,17 +144,18 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
                     "ver rutas",
-                    "descubre barranca"
+                    "descubre ${localidadSeleccionada.value}"
                 ) { ver_lugares() }
-                spacer_vertical(20.dp)
+                spacer_vertical(10.dp)
             }
 
             item {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
                     "ver eventos",
-                    "Eventos proximos"
+                    "Eventos proximos de ${localidadSeleccionada.value}"
                 ) {}
+                spacer_vertical(20.dp)
             }
 
 //            item {
@@ -201,14 +199,21 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
 
 
 @Composable
-fun apartado_explora_cat(categorias_tienda: List<dataclass_cat_sub>, categorias1: () -> Unit) {
+fun apartado_explora_cat(
+    categorias_tienda: List<dataclass_cat_sub>,
+    localidad_selecionada: String,
+    categorias1: () -> Unit
+) {
     Log.d("obtemloms_lista", categorias_tienda.toString())
     val categoriasPrincipales = remember {
         categorias_tienda.shuffled().take(5)
     }
     spacer_vertical(10.dp)
     Column {
-        titulo_referenciales_geinz_work("Explora categorias", "Ver todos") { categorias1() }
+        titulo_referenciales_geinz_work(
+            "Explora $localidad_selecionada",
+            "Ver todos"
+        ) { categorias1() }
         spacer_vertical(10.dp)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(
@@ -528,7 +533,7 @@ fun filtrado_localidades(
                     300.dp
                 ) { nombre_localidad ->
                     nombre_localidad_selecionado(nombre_localidad)
-                    Log.d("reronatamos1",nombre_localidad.toString())
+                    Log.d("reronatamos1", nombre_localidad.toString())
 
                 }
             }

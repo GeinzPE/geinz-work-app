@@ -148,4 +148,7 @@ dependencies {
     implementation(libs.accompanist.pager.indicators)
 
 
+    implementation("io.github.joelkanyi:komposecountrycodepicker:1.4.4")
+
+
 }
