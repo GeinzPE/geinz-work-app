@@ -135,11 +135,9 @@ fun pantalla_lugares_turisticos(
 //    }
 
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .padding(10.dp)
         ) {
             LazyColumn(
@@ -200,7 +198,7 @@ fun pantalla_lugares_turisticos(
                 )
             }
         }
-    }
+
 }
 
 @Composable

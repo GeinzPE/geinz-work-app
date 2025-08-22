@@ -3,12 +3,17 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,55 +40,65 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 
 @Composable
-fun bottom_navigation() {
+fun bottom_navigation(navController: NavController) {
     val context = LocalContext.current
     val items = listOf(
-        nav_item("Inicio", Icons.Default.Home),
-        nav_item("Buscar", Icons.Default.Search),
-        nav_item("Favoritos", Icons.Default.Star),
-        nav_item("Cuenta", Icons.Default.Person),
+        Items_menu.pantalla1,
+        Items_menu.pantalla2,
+        Items_menu.pantalla3,
+        Items_menu.pantalla4
     )
 
+
     var selected_item by remember { mutableIntStateOf(0) }
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
         onResult = { result -> handleScanResult(context, result?.contents) }
     )
+    Toast.makeText(context, "el item_selecioando fue  $selected_item" , Toast.LENGTH_SHORT).show()
     Box {
         NavigationBar(
-            modifier = Modifier.clip(
-                RoundedCornerShape(
-                    topStart = 10.dp,
-                    topEnd = 10.dp
-                )
-            ), containerColor = Color(0xFF744ACB)
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
+            containerColor = Color(0xFF744ACB)
         ) {
 
-            Geinz_bottom_var(items[0], selecionado = selected_item == 0) {
-                selected_item = 0
-            }
-            Geinz_bottom_var(items[1], selecionado = selected_item == 1) {
-                selected_item = 1
-            }
 
-            Spacer(modifier = Modifier.weight(1f))
+            items.forEachIndexed { index, item ->
+                // Inserta Spacer en el medio
+                if (index == 2) {
+                    Spacer(modifier = Modifier.width(80.dp)) // espacio para el FAB
+                }
 
-
-            Geinz_bottom_var(items[2], selecionado = selected_item == 2) {
-                selected_item = 2
-            }
-
-            Geinz_bottom_var(items[3], selecionado = selected_item == 3) {
-                selected_item = 3
+                Geinz_bottom_var(
+                    navItem = nav_item(item.titulo, item.icono),
+                    selecionado = currentRoute == item.ruta
+                ) {
+                    navController.navigate(item.ruta) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             }
         }
 
@@ -104,8 +119,10 @@ fun bottom_navigation() {
                 modifier = Modifier.size(35.dp)
             )
         }
-
     }
+
+
+
 }
 
 private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
@@ -128,7 +145,6 @@ private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
                 ).show()
             }
         } else {
-            // Aquí podrías llamar al ViewModel si fuera necesario
             Log.d("Scanner", "Otro tipo de QR: $contenidoEscaneado")
         }
     } catch (e: Exception) {
@@ -136,6 +152,28 @@ private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
         e.printStackTrace()
     }
 }
+
+@Composable
+fun HandleBackPress(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    BackHandler {
+        when (currentRoute) {
+            "pantalla_principal" -> {
+                // salir de la app
+                (navController.context as? android.app.Activity)?.finish()
+            }
+            else -> {
+                // volver a la pantalla anterior
+                navController.popBackStack()
+            }
+        }
+    }
+}
+
+
+
 
 
 @Composable
@@ -145,7 +183,7 @@ fun RowScope.Geinz_bottom_var(navItem: nav_item, selecionado: Boolean, clikeado:
         onClick = { clikeado() },
         icon = { Icon(imageVector = navItem.icon, contentDescription = "") },
         label = { texto_generico_one_line(navItem.nombre_item) },
-        alwaysShowLabel = false,
+        alwaysShowLabel = true,
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = Color.White,
             unselectedIconColor = Color.White,

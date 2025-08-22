@@ -54,6 +54,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -89,7 +91,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
+fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit,navController: NavController) {
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
@@ -106,15 +108,12 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
     val lista_localidades = constantes_lista_localidades.lista
     val localidadSeleccionada = remember { mutableStateOf("barranca") }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = { bottom_navigation() }
-    ) { innerPadding ->
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(start = 10.dp ,end=10.dp , top = 10.dp)
+
+                .padding(start = 10.dp, end = 10.dp, top = 10.dp)
         ) {
             item {
                 nombre_texto_img_perfil()
@@ -167,7 +166,7 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit) {
 
 //            item { recomendado_por_vistitantes() }
         }
-    }
+
 
 }
 

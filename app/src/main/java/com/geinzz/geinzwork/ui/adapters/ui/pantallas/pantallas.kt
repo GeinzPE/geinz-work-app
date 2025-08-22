@@ -10,10 +10,14 @@ object principal
 object lugares_turisticos
 
 @Serializable
+object login_principal
+
+
+@Serializable
 data class screen_filtrado(val categoria: String, val localidad: String, val nombre_user: String)
 
 @Serializable
-object pantalla_principal
+object mostrar_tiendas
 
 @Serializable
 data class map_perzonalizado(val tipo: String)

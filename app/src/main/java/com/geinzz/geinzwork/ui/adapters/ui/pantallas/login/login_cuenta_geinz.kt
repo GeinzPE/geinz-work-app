@@ -1,25 +1,23 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
-import android.R.attr.phoneNumber
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,25 +27,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
 
+@Composable
+fun login_principal() {
 
-@Preview
+        login_screen()
+
+}
+
+
 @Composable
 fun login_screen() {
     var text by remember { mutableStateOf("") }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
     val state = rememberKomposeCountryCodePickerState()
     var phone by rememberSaveable { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var genero by remember { mutableStateOf("") }
+    var localidad by remember { mutableStateOf("") }
+    var fechaNacimiento by remember { mutableStateOf("") }
 
-    LazyColumn {
-        item{
+
+    LazyColumn(modifier = Modifier
+        .padding(10.dp)) {
+        item {
             texto_generico_one_line("Login")
         }
         item {
@@ -55,31 +66,48 @@ fun login_screen() {
         }
         item {
             MyOutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
+                value = nombre,
+                onValueChange = { nombre = it },
                 labelText = "Nombre",
                 placeholderText = "Escribe tu nombre completo",
-                isError = text.isEmpty()
+                isError = nombre.isEmpty()
             )
         }
+
+        // Apellido
         item {
             MyOutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
+                value = apellido,
+                onValueChange = { apellido = it },
                 labelText = "Apellido",
                 placeholderText = "Escribe tu apellido",
-                isError = text.isEmpty()
+                isError = apellido.isEmpty()
             )
         }
+
+        // Nombre de usuario
         item {
             MyOutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                labelText = "Correo electronico",
-                placeholderText = "Escribe tu correo electronico",
-                isError = text.isEmpty()
+                value = username,
+                onValueChange = { username = it },
+                labelText = "Nombre de usuario",
+                placeholderText = "Escribe tu nombre de usuario",
+                isError = username.isEmpty()
             )
         }
+
+        // Correo electrónico
+        item {
+            MyOutlinedTextField(
+                value = correo,
+                onValueChange = { correo = it },
+                labelText = "Correo electrónico",
+                placeholderText = "Escribe tu correo electrónico",
+                isError = correo.isEmpty()
+            )
+        }
+
+        // Número celular
         item {
             PhoneNumberWithPicker(
                 phoneNumber = phone,
@@ -87,9 +115,41 @@ fun login_screen() {
             )
         }
 
-    }
+        // Género
+        item {
+            MyOutlinedTextField(
+                value = genero,
+                onValueChange = { genero = it },
+                labelText = "Selecciona tu género",
+                placeholderText = "Selecciona tu género",
+                isError = genero.isEmpty()
+            )
+        }
 
+        // Localidad
+        item {
+            MyOutlinedTextField(
+                value = localidad,
+                onValueChange = { localidad = it },
+                labelText = "Selecciona tu localidad",
+                placeholderText = "Selecciona tu localidad",
+                isError = localidad.isEmpty()
+            )
+        }
+
+        // Fecha de nacimiento
+        item {
+            MyOutlinedTextField(
+                value = fechaNacimiento,
+                onValueChange = { fechaNacimiento = it },
+                labelText = "Ingresa tu fecha de nacimiento",
+                placeholderText = "Ingresa tu fecha de nacimiento",
+                isError = fechaNacimiento.isEmpty()
+            )
+        }
+    }
 }
+
 @Composable
 fun MyOutlinedTextField(
     value: String,
@@ -127,6 +187,7 @@ fun MyOutlinedTextField(
         )
     )
 }
+
 @Composable
 fun PhoneNumberWithPicker(
     phoneNumber: String,
@@ -143,7 +204,7 @@ fun PhoneNumberWithPicker(
         // Aquí el picker ocupa su propio espacio
         KomposeCountryCodePicker(
             state = state,
-            modifier = Modifier.width(120.dp), // ajusta ancho
+            modifier = Modifier.width(120.dp).height(60.dp), // ajusta ancho
             text = phoneNumber,
             onValueChange = { /* opcional: actualizar text si quieres */ }
         )

@@ -73,11 +73,10 @@ fun pantalla_mapa_perzonalizado(
     viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
 ) {
-    Scaffold { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        Box() {
             MyGoogle_maps(tipo,viewmodel_lugares_turisticos,viewModel_cordenadas)
         }
-    }
+
 }
 
 @Composable
