@@ -25,6 +25,7 @@ import androidx.navigation.toRoute
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPress
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
@@ -34,6 +35,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
+import com.google.firebase.auth.FirebaseAuth
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,15 +45,14 @@ fun nativationWrapper(
     nombre_user: String,
     viewmodel: viewModel_localizate_geinz
 ) {
+    val firebase_auth= FirebaseAuth.getInstance()
     val navController = rememberNavController()
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
 
-    // Obtenemos la ruta actual
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Mostrar BottomNavigation solo en estas pantallas
     val showBottomBar = when (currentRoute) {
         "pantalla_principal", "principal", "login_principal" -> true
         else -> false
@@ -76,8 +77,11 @@ fun nativationWrapper(
             }
             // Login
             composable("login_principal") {
-                login_principal()
+                IniciarSeccion({},{},{})
             }
+
+            //sin cuenta
+
 
 
             // Explorar tiendas
@@ -125,7 +129,6 @@ fun currentRoute(navController: NavController): String? {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     return navBackStackEntry?.destination?.route
 }
-
 
 
 

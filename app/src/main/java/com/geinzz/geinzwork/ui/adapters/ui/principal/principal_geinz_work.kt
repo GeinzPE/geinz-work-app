@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -87,11 +88,16 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordena
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit,navController: NavController) {
+fun pantalla_principal(
+    categorias: () -> Unit,
+    ver_lugares: () -> Unit,
+    navController: NavController
+) {
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
@@ -109,53 +115,53 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit,navContro
     val localidadSeleccionada = remember { mutableStateOf("barranca") }
 
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
 
-                .padding(start = 10.dp, end = 10.dp, top = 10.dp)
-        ) {
-            item {
-                nombre_texto_img_perfil()
-            }
-            stickyHeader() {
-                ColumnContenedorComun {
-                    texfiel_filtrado()
+            .padding(start = 10.dp, end = 10.dp, top = 10.dp)
+    ) {
+        item {
+            nombre_texto_img_perfil()
+        }
+        stickyHeader() {
+            ColumnContenedorComun {
+                texfiel_filtrado()
 //                    FiltradosChipsLocalidades(
 //                        lista_localidades,
 //                        localidadSeleccionada.value
 //                    ) { nuevaLocalidad -> }
-                }
             }
+        }
 
-            item {
-                filtrado_localidades(_obtener_filtrado_localidades) { localidad_selecionada ->
-                    localidadSeleccionada.value = localidad_selecionada
-                }
-                spacer_vertical(10.dp)
+        item {
+            filtrado_localidades(_obtener_filtrado_localidades) { localidad_selecionada ->
+                localidadSeleccionada.value = localidad_selecionada
             }
-            item {
-                apartado_explora_cat(_categorias_tiendas, localidadSeleccionada.value, categorias)
-                spacer_vertical(10.dp)
-            }
+            spacer_vertical(10.dp)
+        }
+        item {
+            apartado_explora_cat(_categorias_tiendas, localidadSeleccionada.value, categorias)
+            spacer_vertical(10.dp)
+        }
 
-            item {
-                rutas_turismo(
-                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
-                    "ver rutas",
-                    "descubre ${localidadSeleccionada.value}"
-                ) { ver_lugares() }
-                spacer_vertical(10.dp)
-            }
+        item {
+            rutas_turismo(
+                "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
+                "ver rutas",
+                "descubre ${localidadSeleccionada.value}"
+            ) { ver_lugares() }
+            spacer_vertical(10.dp)
+        }
 
-            item {
-                rutas_turismo(
-                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
-                    "ver eventos",
-                    "Eventos proximos de ${localidadSeleccionada.value}"
-                ) {}
-                spacer_vertical(20.dp)
-            }
+        item {
+            rutas_turismo(
+                "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
+                "ver eventos",
+                "Eventos proximos de ${localidadSeleccionada.value}"
+            ) {}
+            spacer_vertical(20.dp)
+        }
 
 //            item {
 //                spacer_vertical(10.dp)
@@ -165,7 +171,7 @@ fun pantalla_principal(categorias: () -> Unit, ver_lugares: () -> Unit,navContro
 
 
 //            item { recomendado_por_vistitantes() }
-        }
+    }
 
 
 }
@@ -544,6 +550,15 @@ fun filtrado_localidades(
 //@Preview(showBackground = true)
 @Composable
 fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: String = "") {
+    val fraces = constantes_lista_localidades.lista_fraces_inicio
+    var index by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(4000L)
+            index = (index + 1) % fraces.size
+        }
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(
             modifier = Modifier
@@ -552,14 +567,18 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
                 .padding(bottom = 10.dp, top = 10.dp)
         ) {
             texto_generico_one_line(
-                texto = "Hola $nombre_user",
+
+                texto =constantes_lista_localidades.saludo_user_principal(nombre_user),
                 MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(10.dp)
-            texto_generico_one_line(
-                texto = "Encuentra tu lugar",
-                MaterialTheme.typography.busquedaGeinzWork
-            )
+            Crossfade(targetState = fraces[index], label = "fraces") { txt ->
+                texto_generico_one_line(
+                    texto = txt,
+                    MaterialTheme.typography.busquedaGeinzWork
+                )
+            }
+
         }
         Image(
             painter = painterResource(R.drawable.cargar_foto_500x500),

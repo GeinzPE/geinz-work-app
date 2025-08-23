@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +25,7 @@ import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import java.text.Normalizer
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.forEach
@@ -158,6 +160,41 @@ object constantes_lista_localidades {
         }
     }
 
+    val lista_img_local = listOf(
+        R.drawable.f1,
+        R.drawable.f2,
+        R.drawable.f4,
+        R.drawable.f5,
+        R.drawable.f6,
+        R.drawable.f7,
+        R.drawable.f8
+    )
+
+    val lista_frances_inicio_seccion = listOf(
+        "Encuentra tu lugar favorito",
+        "Descubre nuevos destinos",
+        "Encuentra lo que necesitas hoy",
+        "Vive momentos inolvidables",
+        "Tu próxima aventura comienza aquí"
+    )
+
+    val lista_fraces_inicio = listOf(
+        "A dónde quieres llegar ?",
+        "Tu próxima parada",
+        "Lo mejor está aquí",
+        "Encuentra tu lugar"
+    )
+
+    fun saludo_user_principal(nombre: String): String {
+        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val saludo = when (hora) {
+            in 6..11 -> "Hola buenos dias"
+            in 12..18 -> "Hola buenas tardes"
+            else -> "Hola buenas noches"
+        }
+
+        return "$saludo, $nombre 👋"
+    }
 
 //    val listaCategorias = listOf(
 //        dataclass_cat_sub(

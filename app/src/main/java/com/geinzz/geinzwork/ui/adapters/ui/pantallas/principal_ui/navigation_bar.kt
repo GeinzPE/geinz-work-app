@@ -84,9 +84,8 @@ fun bottom_navigation(navController: NavController) {
 
 
             items.forEachIndexed { index, item ->
-                // Inserta Spacer en el medio
                 if (index == 2) {
-                    Spacer(modifier = Modifier.width(80.dp)) // espacio para el FAB
+                    Spacer(modifier = Modifier.width(80.dp))
                 }
 
                 Geinz_bottom_var(
