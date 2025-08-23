@@ -55,9 +55,6 @@ fun crear_cuenta_bottom_Sheet(onClose: () -> Unit) {
 
 @Composable
 fun componentes_crear_cuenta() {
-    var text by remember { mutableStateOf("") }
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
-    val state = rememberKomposeCountryCodePickerState()
     var phone by rememberSaveable { mutableStateOf("") }
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
@@ -67,7 +64,14 @@ fun componentes_crear_cuenta() {
     var localidad by remember { mutableStateOf("") }
     var fechaNacimiento by remember { mutableStateOf("") }
 
-
+    var errorNombre by remember { mutableStateOf(false) }
+    var errorApellido by remember { mutableStateOf(false) }
+    var errorUsername by remember { mutableStateOf(false) }
+    var errorCorreo by remember { mutableStateOf(false) }
+    var errorGenero by remember { mutableStateOf(false) }
+    var errorLocalidad by remember { mutableStateOf(false) }
+    var errorFechaNacimiento by remember { mutableStateOf(false) }
+    var errorTelefono by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier
             .padding(10.dp)
@@ -79,8 +83,9 @@ fun componentes_crear_cuenta() {
                 onValueChange = { nombre = it },
                 labelText = "Nombre",
                 placeholderText = "Escribe tu nombre completo",
-
-                )
+                texto_error = "El campo es obligatorio",
+                isError = errorNombre
+            )
         }
         // Apellido
         item {
@@ -89,6 +94,8 @@ fun componentes_crear_cuenta() {
                 onValueChange = { apellido = it },
                 labelText = "Apellido",
                 placeholderText = "Escribe tu apellido",
+                texto_error = "El campo es obligatorio",
+                isError = errorApellido
             )
         }
         // Nombre de usuario
@@ -98,7 +105,8 @@ fun componentes_crear_cuenta() {
                 onValueChange = { username = it },
                 labelText = "Nombre de usuario",
                 placeholderText = "Escribe tu nombre de usuario",
-
+                texto_error = "El campo es obligatorio",
+                isError = errorUsername
                 )
         }
         // Correo electrónico
@@ -124,6 +132,7 @@ fun componentes_crear_cuenta() {
                 onValueChange = { genero = it },
                 labelText = "Selecciona tu género",
                 placeholderText = "Selecciona tu género",
+              
             )
         }
         // Localidad
@@ -146,7 +155,34 @@ fun componentes_crear_cuenta() {
         }
         //crear cuenta
         item {
-            Button(onClick = {}) { texto_generico_one_line("Crear cuenta") }
+            Button(onClick = {
+                // Validaciones campo por campo
+                errorNombre = verificarCampo(nombre)
+                errorApellido = verificarCampo(apellido)
+                errorUsername = verificarCampo(username)
+                errorCorreo = verificarCampo(correo)
+                errorGenero = verificarCampo(genero)
+                errorLocalidad = verificarCampo(localidad)
+                errorFechaNacimiento = verificarCampo(fechaNacimiento)
+                errorTelefono = verificarCampo(phone)
+
+                val hayError = listOf(
+                    errorNombre,
+                    errorApellido,
+                    errorUsername,
+                    errorCorreo,
+                    errorGenero,
+                    errorLocalidad,
+                    errorFechaNacimiento,
+                    errorTelefono
+                ).any { it }
+
+                if (!hayError) {
+                    // ✅ Aquí llamas tu lógica para crear la cuenta
+                }
+            }) {
+                texto_generico_one_line("Crear cuenta")
+            }
         }
     }
 }
@@ -157,7 +193,7 @@ fun MyOutlinedTextField(
     onValueChange: (String) -> Unit,
     labelText: String = "Label",
     placeholderText: String = "Escribe aquí",
-    texto_error: String="",
+    texto_error: String = "",
     isError: Boolean = false
 ) {
     Column {
@@ -190,7 +226,7 @@ fun MyOutlinedTextField(
             )
         )
         AnimatedVisibility(isError) {
-            retornar_pleaceholder_label(texto_error,Color.Red)
+            retornar_pleaceholder_label(texto_error, Color.Red)
         }
     }
 }
@@ -230,6 +266,10 @@ fun PhoneNumberWithPicker(
     }
 }
 
+
+fun verificarCampo(valor: String): Boolean {
+    return valor.isBlank()
+}
 
 @Composable
 fun iniciar_seccion() {
