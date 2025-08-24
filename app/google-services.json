@@ -1,18 +1,32 @@
 {
   "project_info": {
     "project_number": "921389328767",
+    "firebase_url": "https://geinzworkapp-default-rtdb.firebaseio.com",
     "project_id": "geinzworkapp",
     "storage_bucket": "geinzworkapp.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:921389328767:android:f27b990f323000425b524a",
+        "mobilesdk_app_id": "1:921389328767:android:3f520ad046aff2dc5b524a",
         "android_client_info": {
-          "package_name": "com.geinzz.geinzwork"
+          "package_name": "com.adminGeinz.administrador"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "921389328767-n4ag6venapgvca5r3pr5g4t59oqsfc6m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.adminGeinz.administrador",
+            "certificate_hash": "8249ef353a1cb26258218376a695c2aac6df869d"
+          }
+        },
+        {
+          "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80"
@@ -20,7 +34,123 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921389328767:android:d459b581582dd76e5b524a",
+        "android_client_info": {
+          "package_name": "com.geinzDriver.aplicaciondriver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "921389328767-hinef0a2u5a4lg3t94l6nj73ubna47d1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geinzDriver.aplicaciondriver",
+            "certificate_hash": "320f3d392d7dfd933398598e46cff1749053c3d7"
+          }
+        },
+        {
+          "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921389328767:android:3997dc85c0c064db5b524a",
+        "android_client_info": {
+          "package_name": "com.geinzTienda.tiendasgeinzadmin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "921389328767-sipm8qc2h2f0orvkd1ghfngjg1od5ql8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geinzTienda.tiendasgeinzadmin",
+            "certificate_hash": "8249ef353a1cb26258218376a695c2aac6df869d"
+          }
+        },
+        {
+          "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921389328767:android:f27b990f323000425b524a",
+        "android_client_info": {
+          "package_name": "com.geinzz.geinzwork"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "921389328767-vj3gc09d6vsmpcaa49uf8ft4lil5imk4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geinzz.geinzwork",
+            "certificate_hash": "8249ef353a1cb26258218376a695c2aac6df869d"
+          }
+        },
+        {
+          "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO-dk7LQE8BdF-JXjgNhaN6_GJkXhPu80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

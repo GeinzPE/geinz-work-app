@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.icu.util.Calendar
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.IconButton
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -44,10 +49,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
 import java.text.SimpleDateFormat
@@ -75,14 +87,18 @@ fun crear_cuenta_bottom_Sheet(onClose: () -> Unit) {
 
 @Composable
 fun componentes_crear_cuenta() {
+    val context= LocalContext.current
+    val viewmodel_login: viewModel_login_user = viewModel()
     var phone by rememberSaveable { mutableStateOf("") }
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var genero by remember { mutableStateOf("") }
-    var localidad by remember { mutableStateOf("") }
-    var fechaNacimiento by remember { mutableStateOf("") }
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var apellido by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var password2 by rememberSaveable { mutableStateOf("") }
+    var correo by rememberSaveable { mutableStateOf("") }
+    var genero by rememberSaveable { mutableStateOf("") }
+    var localidad by rememberSaveable { mutableStateOf("") }
+    var fechaNacimiento by rememberSaveable { mutableStateOf("") }
 
     var errorNombre by remember { mutableStateOf(false) }
     var errorApellido by remember { mutableStateOf(false) }
@@ -92,11 +108,15 @@ fun componentes_crear_cuenta() {
     var errorLocalidad by remember { mutableStateOf(false) }
     var errorFechaNacimiento by remember { mutableStateOf(false) }
     var errorTelefono by remember { mutableStateOf(false) }
+    var error_pass1 by remember { mutableStateOf(false) }
+    var error_pass2 by remember { mutableStateOf(false) }
+
 
     var show_dialog by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier
-            .padding(10.dp).fillMaxHeight(0.90f)
+            .padding(10.dp)
+            .fillMaxHeight(0.90f)
     ) {
         // nombre
         item {
@@ -106,8 +126,9 @@ fun componentes_crear_cuenta() {
                 labelText = "Nombre",
                 placeholderText = "Escribe tu nombre completo",
                 texto_error = "El campo es obligatorio",
-                isError = errorNombre
-            )
+                isError = errorNombre,
+
+                )
         }
         // Apellido
         item {
@@ -117,8 +138,9 @@ fun componentes_crear_cuenta() {
                 labelText = "Apellido",
                 placeholderText = "Escribe tu apellido",
                 texto_error = "El campo es obligatorio",
-                isError = errorApellido
-            )
+                isError = errorApellido,
+
+                )
         }
         // Nombre de usuario
         item {
@@ -131,15 +153,7 @@ fun componentes_crear_cuenta() {
                 isError = errorUsername
             )
         }
-        // Correo electrónico
-        item {
-            MyOutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                labelText = "Correo electrónico",
-                placeholderText = "Escribe tu correo electrónico",
-            )
-        }
+
         // Número celular
         item {
             PhoneNumberWithPicker(
@@ -149,23 +163,58 @@ fun componentes_crear_cuenta() {
         }
         // Género
         item {
-            ExpandDropDown(options_genero, "Seleciona tu genero")
+            ExpandDropDown(options_genero, "Seleciona tu genero") { genero_selecionado ->
+                genero = genero_selecionado
+            }
         }
         // Localidad
         item {
-            ExpandDropDown(opciones_localida, "Seleciona tu localidad")
+            ExpandDropDown(opciones_localida, "Seleciona tu localidad") { localida_selecionada ->
+                localidad = localida_selecionada
+            }
         }
-        // Fecha de nacimiento
-        item {
-//            MyOutlinedTextField(
-//                value = fechaNacimiento,
-//                onValueChange = { fechaNacimiento = it },
-//                labelText = "Ingresa tu fecha de nacimiento",
-//                placeholderText = "Ingresa tu fecha de nacimiento",
-//            )
-            DateButton()
 
+        item {
+
+            DateButton { fecha_obtenida ->
+                fechaNacimiento = fecha_obtenida
+            }
         }
+
+
+        // Correo electrónico
+        item {
+            MyOutlinedTextField(
+                value = correo,
+                onValueChange = { correo = it },
+                labelText = "Correo electrónico",
+                placeholderText = "Escribe tu correo electrónico", keyboardType = KeyboardType.Email
+            )
+        }
+
+        // Nombre de usuario
+        item {
+            MyOutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                labelText = "Escriba su contraseña",
+                placeholderText = "Escriba su contraseña",
+                texto_error = "El campo es obligatorio",
+                isError = error_pass1
+            )
+        }
+        item {
+            MyOutlinedTextField(
+                value = password2,
+                onValueChange = { password2 = it },
+                labelText = "Escriba su contraseña",
+                placeholderText = "Escriba su contraseña",
+                texto_error = "El campo es obligatorio",
+                isError = error_pass2
+            )
+        }
+
+
         //crear cuenta
         item {
             Button(onClick = {
@@ -179,6 +228,7 @@ fun componentes_crear_cuenta() {
                 errorFechaNacimiento = verificarCampo(fechaNacimiento)
                 errorTelefono = verificarCampo(phone)
 
+
                 val hayError = listOf(
                     errorNombre,
                     errorApellido,
@@ -191,7 +241,29 @@ fun componentes_crear_cuenta() {
                 ).any { it }
 
                 if (!hayError) {
-                    // ✅ Aquí llamas tu lógica para crear la cuenta
+
+                    Log.d(
+                        "datos_para_firebase",
+                        "Phone: $phone, Nombre: $nombre, Apellido: $apellido, Username: $username, Correo: $correo, Genero: $genero, Localidad: $localidad, Fecha de Nacimiento: $fechaNacimiento"
+                    )
+                    val datos = login_user(
+                        nombre,
+                        apellido,
+                        username,
+                        correo,
+                        phone.toInt(),
+                        genero,
+                        "+51",
+                        localidad,
+                        fechaNacimiento,
+                        password
+                    )
+                    viewmodel_login.agregar_user(datos,context)
+                } else {
+                    Log.d(
+                        "datos_para_firebase",
+                        "hay un error econtrado \"Phone: $phone, Nombre: $nombre, Apellido: $apellido, Username: $username, Correo: $correo, Genero: $genero, Localidad: $localidad, Fecha de Nacimiento: $fechaNacimiento\""
+                    )
                 }
             }) {
                 texto_generico_one_line("Crear cuenta")
@@ -207,7 +279,9 @@ fun MyOutlinedTextField(
     labelText: String = "Label",
     placeholderText: String = "Escribe aquí",
     texto_error: String = "",
-    isError: Boolean = false
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
 ) {
     Column {
         OutlinedTextField(
@@ -230,6 +304,8 @@ fun MyOutlinedTextField(
             },
             textStyle = MaterialTheme.typography.bodyMedium,
             isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -244,6 +320,12 @@ fun MyOutlinedTextField(
     }
 }
 
+
+//@Composable
+//fun password_Field(){
+//
+//}
+
 @Composable
 fun PhoneNumberWithPicker(
     phoneNumber: String,
@@ -257,14 +339,13 @@ fun PhoneNumberWithPicker(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Aquí el picker ocupa su propio espacio
         KomposeCountryCodePicker(
             state = state,
             modifier = Modifier
                 .width(120.dp)
-                .height(60.dp), // ajusta ancho
+                .height(60.dp),
             text = phoneNumber,
-            onValueChange = { /* opcional: actualizar text si quieres */ }
+            onValueChange = {}
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -274,7 +355,7 @@ fun PhoneNumberWithPicker(
             onValueChange = onPhoneNumberChange,
             modifier = Modifier.weight(1f),
             placeholder = { Text("Número de teléfono") },
-            singleLine = true
+            singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
     }
 }
@@ -312,14 +393,11 @@ fun dop_down_menu_genero() {
 }
 
 @Composable
-fun DateButton() {
+fun DateButton(fecha: (String) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf("") }
 
-    Button(onClick = { showDialog = true }) {
-        Text(if (selectedDate.isEmpty()) "Seleccionar fecha" else selectedDate)
-    }
-
+    // Dialog para escoger fecha
     DatePickerExample(
         showDialog = showDialog,
         onDismiss = { showDialog = false },
@@ -327,6 +405,25 @@ fun DateButton() {
             millis?.let {
                 val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 selectedDate = sdf.format(Date(it))
+                fecha(selectedDate) // 👈 devolvemos la fecha al padre
+            }
+        }
+    )
+
+
+    OutlinedTextField(
+        value = selectedDate,
+        onValueChange = {}, // no editable
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        placeholder = { Text("Selecciona tu fecha de nacimiento") },
+        singleLine = true,
+        readOnly = true,
+        enabled = true,
+        trailingIcon = {
+            IconButton(onClick = { showDialog = true }) { // 👈 ahora el ícono abre el diálogo
+                Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
             }
         }
     )
@@ -334,7 +431,7 @@ fun DateButton() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpandDropDown(lista: List<String>, lable: String) {
+fun ExpandDropDown(lista: List<String>, lable: String, selecionado: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf("") }
 
@@ -344,7 +441,7 @@ fun ExpandDropDown(lista: List<String>, lable: String) {
         onExpandedChange = { expanded = !expanded },
         modifier = Modifier
             .padding(10.dp)
-            .clip(RoundedCornerShape(30)) // alterna entre abrir/cerrar
+            .clip(RoundedCornerShape(30))
     ) {
         TextField(
             value = selected,
@@ -370,6 +467,7 @@ fun ExpandDropDown(lista: List<String>, lable: String) {
                     onClick = {
                         selected = option
                         expanded = false
+                        selecionado(option)
                     }
                 )
             }

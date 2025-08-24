@@ -63,6 +63,7 @@ versionConstraint="1.1.0"
 uiText = "1.8.3"
 googleAndroidLibrariesMapsplatformSecretsGradlePlugin = "2.0.1"
 playServicesMaps = "19.2.0"
+uiTextVersion = "1.9.0"
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPagerIndicators" }
@@ -132,6 +133,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 constaints_layout = { module = "androidx.constraintlayout:constraintlayout-compose",version.ref="versionConstraint" }
 androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiTextVersion" }
 
 
 [plugins]
