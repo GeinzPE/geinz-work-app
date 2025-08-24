@@ -2,6 +2,10 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.icu.util.Calendar
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -60,6 +64,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
 import java.text.SimpleDateFormat
@@ -87,8 +94,9 @@ fun crear_cuenta_bottom_Sheet(onClose: () -> Unit) {
 
 @Composable
 fun componentes_crear_cuenta() {
-    val context= LocalContext.current
+    val context = LocalContext.current
     val viewmodel_login: viewModel_login_user = viewModel()
+
     var phone by rememberSaveable { mutableStateOf("") }
     var nombre by rememberSaveable { mutableStateOf("") }
     var apellido by rememberSaveable { mutableStateOf("") }
@@ -258,7 +266,7 @@ fun componentes_crear_cuenta() {
                         fechaNacimiento,
                         password
                     )
-                    viewmodel_login.agregar_user(datos,context)
+                    viewmodel_login.agregar_user(datos, context)
                 } else {
                     Log.d(
                         "datos_para_firebase",

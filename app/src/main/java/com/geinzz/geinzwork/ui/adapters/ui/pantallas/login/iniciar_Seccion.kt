@@ -2,6 +2,8 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
 import android.graphics.drawable.Icon
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -47,6 +49,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -57,7 +60,13 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.crear_cuenta_bottom_Sheet
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.viewModels.viewModel_login_user
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -67,6 +76,22 @@ fun IniciarSeccion(
     listener_iniciar_seccion: () -> Unit,
     listener_continuar_con_google: () -> Unit
 ) {
+    val token_google="921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com"
+    val context=LocalContext.current
+    val viewmodel_login: viewModel_login_user = viewModel()
+    val laucher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
+            try {
+                val acount = task.getResult(ApiException::class.java)
+                val credencial = GoogleAuthProvider.getCredential(acount.idToken, null)
+                viewmodel_login.login_con_google(credencial) {
+                    //nageamos al nav controler
+                }
+            } catch (e: Exception) {
+                Log.d("fallot_login_google", "fallo el login con google")
+            }
+        }
     var mostrar_dialog_crear_cuenta by remember { mutableStateOf(false) }
     val listaImg = constantes_lista_localidades.lista_img_local
     var currentImageIndex by remember { mutableStateOf(0) }
@@ -115,7 +140,12 @@ fun IniciarSeccion(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp),
             { mostrar_dialog_crear_cuenta = true },
-            { listener_iniciar_seccion() },
+            {
+                val opciones = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(token_google).requestEmail().build()
+                val google_sing= GoogleSignIn.getClient(context,opciones)
+                laucher.launch(google_sing.signInIntent)
+            },
             { listener_continuar_con_google() }
         )
     }
@@ -140,7 +170,7 @@ fun crear_cuenta(
             R.drawable.gmail_img
         ) { listener_continuar_con_google() }
         spacer_vertical(10.dp)
-        crear_cuenta{listener_Crear_cuenta()}
+        crear_cuenta { listener_Crear_cuenta() }
     }
 }
 
