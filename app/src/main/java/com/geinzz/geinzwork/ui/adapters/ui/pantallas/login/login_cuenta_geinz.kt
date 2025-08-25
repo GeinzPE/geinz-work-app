@@ -54,12 +54,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
+import com.google.firebase.auth.FirebaseAuth
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
 import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
@@ -69,9 +71,10 @@ import java.util.Locale
 
 val options_genero = listOf("Masculino", "Femenino", "Otro")
 val opciones_localida = listOf("Barranca", "Supe", "Puerto supe", "Paramonga", "Pativilca")
-
+private lateinit var firebaseAuth: FirebaseAuth
 @Composable
 fun login_principal(tipo_cuenta: String) {
+    Log.d("tipo_cuenta",tipo_cuenta)
     componentes_crear_cuenta(tipo_cuenta)
 }
 
@@ -79,7 +82,14 @@ fun login_principal(tipo_cuenta: String) {
 fun componentes_crear_cuenta(tipo_cuenta: String) {
     val context = LocalContext.current
     val viewmodel_login: viewModel_login_user = viewModel()
-
+    var correo by rememberSaveable(tipo_cuenta) {
+        mutableStateOf(
+            if (tipo_cuenta == "crear") "" else tipo_cuenta
+        )
+    }
+    var enable_correo by rememberSaveable(tipo_cuenta) {  mutableStateOf(
+        if (tipo_cuenta == "crear") true else false
+    ) }
     var phone by rememberSaveable { mutableStateOf("") }
     var nombre by rememberSaveable { mutableStateOf("") }
     var apellido by rememberSaveable { mutableStateOf("") }
@@ -87,7 +97,6 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
     var genero by rememberSaveable { mutableStateOf("") }
     var localidad by rememberSaveable { mutableStateOf("") }
     var fechaNacimiento by rememberSaveable { mutableStateOf("") }
-    var correo by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var password2 by rememberSaveable { mutableStateOf("") }
 
@@ -186,22 +195,30 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
         }
 
         item {
-
             DateButton { fecha_obtenida ->
                 fechaNacimiento = fecha_obtenida
             }
         }
 
+        item {
+            MyOutlinedTextField(
+                value = correo,
+                onValueChange = {correo=it},
+                labelText = "Correo electrónico",
+                placeholderText = "Escribe tu correo electrónico",
+                keyboardType = KeyboardType.Email,
+                isError = errorCorreo,
+                enabled =enable_correo
+            )
+        }
+
         if (tipo_cuenta.equals("crear")) {
             item {
                 campos_correo_contra(
-                    correo = correo,
-                    onCorreoChange = { correo = it },
                     password = password,
                     onPasswordChange = { password = it },
                     password2 = password2,
                     onPassword2Change = { password2 = it },
-                    errorCorreo,
                     error_pass1,
                     error_pass2
                 )
@@ -209,55 +226,106 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
         }
 
 
-        //crear cuenta
-        item {
-            Button(onClick = {
-                // Validaciones campo por campo
-                errorNombre = verificarCampo(nombre)
-                errorApellido = verificarCampo(apellido)
-                errorUsername = verificarCampo(username)
-                errorCorreo = verificarCampo(correo)
-                errorGenero = verificarCampo(genero)
-                errorLocalidad = verificarCampo(localidad)
-                errorFechaNacimiento = verificarCampo(fechaNacimiento)
-                errorTelefono = verificarCampo(phone)
+        if(tipo_cuenta.equals("crear")){
+            //crear cuenta
+            item {
+                Button(onClick = {
+                    errorNombre = verificarCampo(nombre)
+                    errorApellido = verificarCampo(apellido)
+                    errorUsername = verificarCampo(username)
+                    errorCorreo = verificarCampo(correo)
+                    errorGenero = verificarCampo(genero)
+                    errorLocalidad = verificarCampo(localidad)
+                    errorFechaNacimiento = verificarCampo(fechaNacimiento)
+                    errorTelefono = verificarCampo(phone)
 
 
-                val hayError = listOf(
-                    errorNombre,
-                    errorApellido,
-                    errorUsername,
-                    errorCorreo,
-                    errorGenero,
-                    errorLocalidad,
-                    errorFechaNacimiento,
-                    errorTelefono
-                ).any { it }
+                    val hayError = listOf(
+                        errorNombre,
+                        errorApellido,
+                        errorUsername,
+                        errorCorreo,
+                        errorGenero,
+                        errorLocalidad,
+                        errorFechaNacimiento,
+                        errorTelefono
+                    ).any { it }
 
-                if (!hayError) {
-                    val datos = login_user(
-                        nombre,
-                        apellido,
-                        username,
-                        correo,
-                        phone.toInt(),
-                        genero,
-                        "+51",
-                        localidad,
-                        fechaNacimiento,
-                        password
-                    )
-                    viewmodel_login.agregar_user(datos, context)
-                } else {
-                    Log.d(
-                        "datos_para_firebase",
-                        "hay un error econtrado \"Phone: $phone, Nombre: $nombre, Apellido: $apellido, Username: $username, Correo: $correo, Genero: $genero, Localidad: $localidad, Fecha de Nacimiento: $fechaNacimiento\""
-                    )
+                    if (!hayError) {
+                        val datos = login_user(
+                            nombre,
+                            apellido,
+                            username,
+                            correo,
+                            phone.toInt(),
+                            genero,
+                            "+51",
+                            localidad,
+                            fechaNacimiento,
+                            password
+                        )
+                        viewmodel_login.agregar_user(datos, context)
+                    } else {
+                        Log.d(
+                            "datos_para_firebase",
+                            "hay un error econtrado \"Phone: $phone, Nombre: $nombre, Apellido: $apellido, Username: $username, Correo: $correo, Genero: $genero, Localidad: $localidad, Fecha de Nacimiento: $fechaNacimiento\""
+                        )
+                    }
+                }) {
+                    texto_generico_one_line("Crear cuenta")
                 }
-            }) {
-                texto_generico_one_line("Crear cuenta")
+            }
+        }else{
+            item {
+                Button(onClick = {
+                    errorNombre = verificarCampo(nombre)
+                    errorApellido = verificarCampo(apellido)
+                    errorUsername = verificarCampo(username)
+                    errorGenero = verificarCampo(genero)
+                    errorLocalidad = verificarCampo(localidad)
+                    errorFechaNacimiento = verificarCampo(fechaNacimiento)
+                    errorTelefono = verificarCampo(phone)
+
+                    val hayError = listOf(
+                        errorNombre,
+                        errorApellido,
+                        errorUsername,
+                        errorCorreo,
+                        errorGenero,
+                        errorLocalidad,
+                        errorFechaNacimiento,
+                        errorTelefono
+                    ).any { it }
+
+                    if (!hayError) {
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@Button
+                        val datos = login_google(
+                            nombre = nombre,
+                            apellido = apellido,
+                            nombre_user = username,
+                            correo = correo,
+                            id = uid,
+                            genero = genero,
+                            cod_pais = "+51",
+                            localidad = localidad,
+                            fecha_nac = fechaNacimiento
+                        )
+                        Log.d("campos_login_google",datos.toString())
+                        viewmodel_login.agregar_user_google(datos,context)
+                    } else {
+                        Log.d(
+                            "datos_para_firebase",
+                            "hay un error econtrado \"Phone: $phone, Nombre: $nombre, Apellido: $apellido, Username: $username, Correo: $correo, Genero: $genero, Localidad: $localidad, Fecha de Nacimiento: $fechaNacimiento\""
+                        )
+                    }
+                }) {
+                    texto_generico_one_line("terminar de configurar")
+                }
+
             }
         }
+
+
     }
 }
 
@@ -270,7 +338,8 @@ fun MyOutlinedTextField(
     texto_error: String = "",
     isError: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    enabled: Boolean=true
 ) {
     Column {
         OutlinedTextField(
@@ -291,6 +360,7 @@ fun MyOutlinedTextField(
                     )
                 }
             },
+            enabled=enabled,
             textStyle = MaterialTheme.typography.bodyMedium,
             isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
@@ -349,25 +419,15 @@ fun PhoneNumberWithPicker(
 
 @Composable
 fun campos_correo_contra(
-    correo: String,
-    onCorreoChange: (String) -> Unit,
     password: String,
     onPasswordChange: (String) -> Unit,
     password2: String,
     onPassword2Change: (String) -> Unit,
-    error_correo: Boolean,
     error_pass1: Boolean,
     error_pass2: Boolean
 ) {
     Column {
-        MyOutlinedTextField(
-            value = correo,
-            onValueChange = onCorreoChange,
-            labelText = "Correo electrónico",
-            placeholderText = "Escribe tu correo electrónico",
-            keyboardType = KeyboardType.Email,
-            isError = error_correo
-        )
+
         MyOutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,

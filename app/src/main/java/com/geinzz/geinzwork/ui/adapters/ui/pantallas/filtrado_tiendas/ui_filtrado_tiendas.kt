@@ -304,7 +304,6 @@ fun encabezado_chis_categorias() {
         "Filtra entre nuestras categorías o busca directamente por el nombre de esa tienda que tanto te gusta. ¡Explorar nunca fue tan fácil y rápido!",
         MaterialTheme.typography.bodyMedium
     )
-
     spacer_vertical(5.dp)
 }
 

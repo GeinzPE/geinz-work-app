@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.model
 
+import android.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,7 +36,7 @@ class repo_principal_geinz_work {
                 dirección,
                 referencia,
                 latitud.toDouble(),
-                longitud.toDouble(),lista_categorias
+                longitud.toDouble(), lista_categorias
             )
             lista_lugares.add(lista)
         }
@@ -55,4 +57,21 @@ class repo_principal_geinz_work {
         }
         return lista_localidades
     }
+
+
+    suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
+        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(idUser)
+            .get()
+            .await()
+
+        return if (ref.exists()) {
+            ref.toObject(datos_principales_user::class.java)
+        } else {
+            null
+        }
+    }
+
 }

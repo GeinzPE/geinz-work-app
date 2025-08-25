@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
@@ -23,6 +24,8 @@ class viewModel_principal_geinz_work : ViewModel() {
     val _sub_cat_tiendas: LiveData<List<com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub>> get() = sub_cat_tiendas
 
 
+    private val _userData = MutableLiveData<datos_principales_user?>()
+    val userData: LiveData<datos_principales_user?> = _userData
 
     private val lista_filtrado_localida = MutableLiveData<List<localidades_filtrado>>()
     val _lista_filtrado_localidades: LiveData<List<localidades_filtrado>> get() = lista_filtrado_localida
@@ -32,6 +35,16 @@ class viewModel_principal_geinz_work : ViewModel() {
                 lugares_turisiticos.value = instacia.obtener_lugares_turisticos(localidad)
             } catch (e: Exception) {
                 lugares_turisiticos.value = emptyList()
+            }
+        }
+    }
+
+    fun obtener_datos_user_registrado(id_user: String) {
+        viewModelScope.launch {
+            try {
+                _userData.value = instacia.obtenerDatosUser(id_user)
+            } catch (e: Exception) {
+                _userData.value = null
             }
         }
     }

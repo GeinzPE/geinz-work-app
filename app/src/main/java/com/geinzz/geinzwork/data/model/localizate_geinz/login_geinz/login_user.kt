@@ -10,5 +10,19 @@ data class login_user(
     val cod_pais: String = "",
     val localidad: String = "",
     val fecha_nac: String = "",
-    val password: String=""
+    val password: String = ""
 )
+
+data class login_google(
+    val nombre: String = "",
+    val apellido: String = "",
+    val nombre_user: String = "",
+    val correo: String = "",
+    val id: String = "",
+    val numero_celular: Int = 0,
+    val genero: String = "",
+    val cod_pais: String = "",
+    val localidad: String = "",
+    val fecha_nac: String = "",
+)
+

@@ -46,3 +46,9 @@ data class Estados_lugares_turisticos(
     val subcategorias: List<String> = emptyList(),
     val lista_filtrada: List<lugares_turisticos> = emptyList()
 )
+
+data class datos_principales_user(
+    val nombre: String="Usuario",
+    val img_perfil: String="",
+    val localida: String="barranca"
+)

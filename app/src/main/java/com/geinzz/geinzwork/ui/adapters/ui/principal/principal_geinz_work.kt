@@ -72,8 +72,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
+
+private lateinit var firebaseAuth: FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,21 +85,23 @@ fun pantalla_principal(
     ver_lugares: () -> Unit,
     navController: NavController
 ) {
+    firebaseAuth = FirebaseAuth.getInstance()
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
-    val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(emptyList())
+    val datos_user by viewModel_cordenadas.userData.observeAsState(null)
+    val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
+        emptyList()
+    )
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.lugares_turisticos("barranca")
         viewModel_cordenadas.obtener_subcategorias()
         viewModel_cordenadas.obtner_filtrado_localidades()
+        viewModel_cordenadas.obtener_datos_user_registrado(firebaseAuth.uid.toString())
     }
 
-    val lista_localidades = constantes_lista_localidades.lista
     val localidadSeleccionada = remember { mutableStateOf("barranca") }
-
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -104,7 +109,7 @@ fun pantalla_principal(
             .padding(start = 10.dp, end = 10.dp, top = 10.dp)
     ) {
         item {
-            nombre_texto_img_perfil()
+            nombre_texto_img_perfil(datos_user?.nombre ?: "", datos_user?.img_perfil ?: "")
         }
         stickyHeader() {
             ColumnContenedorComun {
@@ -531,7 +536,7 @@ fun filtrado_localidades(
 
 //@Preview(showBackground = true)
 @Composable
-fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: String = "") {
+fun nombre_texto_img_perfil(nombre_user: String , img_url: String = "") {
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
 
@@ -549,8 +554,7 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
                 .padding(bottom = 10.dp, top = 10.dp)
         ) {
             texto_generico_one_line(
-
-                texto =constantes_lista_localidades.saludo_user_principal(nombre_user),
+                texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
                 MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(10.dp)
@@ -562,12 +566,19 @@ fun nombre_texto_img_perfil(nombre_user: String = "Benjamin lopez", img_url: Str
             }
 
         }
-        Image(
-            painter = painterResource(R.drawable.cargar_foto_500x500),
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img_url)
+                .size(40)
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.sin_item_carrito)
+                .build(),
+            contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape),
-            contentDescription = ""
+            contentScale = ContentScale.Crop
         )
 
     }
