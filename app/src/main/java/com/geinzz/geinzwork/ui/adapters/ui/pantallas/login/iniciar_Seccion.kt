@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
 import android.graphics.drawable.Icon
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -58,12 +59,12 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.crear_cuenta_bottom_Sheet
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -72,26 +73,52 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun IniciarSeccion(
-    listener_Crear_cuenta: () -> Unit,
+    listener_Crear_cuenta: (String) -> Unit,
     listener_iniciar_seccion: () -> Unit,
     listener_continuar_con_google: () -> Unit
 ) {
-    val token_google="921389328767-56gj9kengmkh16sqt9ukpb3km8mt3r5v.apps.googleusercontent.com"
-    val context=LocalContext.current
+    val context = LocalContext.current
     val viewmodel_login: viewModel_login_user = viewModel()
-    val laucher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
-            try {
-                val acount = task.getResult(ApiException::class.java)
-                val credencial = GoogleAuthProvider.getCredential(acount.idToken, null)
-                viewmodel_login.login_con_google(credencial) {
-                    //nageamos al nav controler
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id)) // 👈 importante
+        .requestEmail()
+        .build()
+
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+
+        try {
+            val account = task.getResult(ApiException::class.java)!!
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+
+            // 🔥 Iniciar sesión en Firebase con la credencial de Google
+            FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
+                        Toast.makeText(context, "✅ Sesión iniciada con Google", Toast.LENGTH_SHORT)
+                            .show()
+                        listener_Crear_cuenta("completar")
+                        val user = FirebaseAuth.getInstance().currentUser
+                        Log.d("LOGIN_GOOGLE", "Usuario: ${user?.displayName} - ${user?.email}")
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "❌ Error al autenticar en Firebase",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        Log.e("LOGIN_GOOGLE", "Error: ${authTask.exception?.message}")
+                    }
                 }
-            } catch (e: Exception) {
-                Log.d("fallot_login_google", "fallo el login con google")
-            }
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "❌ Falló el login con Google", Toast.LENGTH_SHORT).show()
+            Log.e("LOGIN_GOOGLE", "Excepción: ${e.message}", e)
         }
+    }
+
     var mostrar_dialog_crear_cuenta by remember { mutableStateOf(false) }
     val listaImg = constantes_lista_localidades.lista_img_local
     var currentImageIndex by remember { mutableStateOf(0) }
@@ -139,18 +166,15 @@ fun IniciarSeccion(
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp),
-            { mostrar_dialog_crear_cuenta = true },
+            { listener_Crear_cuenta("crear") },
             {
-                val opciones = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(token_google).requestEmail().build()
-                val google_sing= GoogleSignIn.getClient(context,opciones)
-                laucher.launch(google_sing.signInIntent)
+                listener_continuar_con_google()
             },
-            { listener_continuar_con_google() }
+            {
+                val signInIntent = googleSignInClient.signInIntent
+                launcher.launch(signInIntent)
+            }
         )
-    }
-    if (mostrar_dialog_crear_cuenta) {
-        crear_cuenta_bottom_Sheet { mostrar_dialog_crear_cuenta = false }
     }
 }
 

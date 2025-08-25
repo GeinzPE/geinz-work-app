@@ -46,7 +46,6 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.journeyapps.barcodescanner.ScanContract
@@ -68,12 +67,10 @@ fun bottom_navigation(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
         onResult = { result -> handleScanResult(context, result?.contents) }
     )
-    Toast.makeText(context, "el item_selecioando fue  $selected_item" , Toast.LENGTH_SHORT).show()
     Box {
         NavigationBar(
             modifier = Modifier
@@ -81,7 +78,6 @@ fun bottom_navigation(navController: NavController) {
                 .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
             containerColor = Color(0xFF744ACB)
         ) {
-
 
             items.forEachIndexed { index, item ->
                 if (index == 2) {

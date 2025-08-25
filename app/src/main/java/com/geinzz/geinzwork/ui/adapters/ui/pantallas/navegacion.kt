@@ -45,7 +45,7 @@ fun nativationWrapper(
     nombre_user: String,
     viewmodel: viewModel_localizate_geinz
 ) {
-    val firebase_auth= FirebaseAuth.getInstance()
+    val firebase_auth = FirebaseAuth.getInstance()
     val navController = rememberNavController()
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
@@ -77,10 +77,10 @@ fun nativationWrapper(
             }
             // Login
             composable("login_principal") {
-                IniciarSeccion({},{},{})
+                IniciarSeccion({ tipo_cuenta->
+                    navController.navigate(crear_cuenta_geinz(tipo_cuenta)) }, {}, {})
             }
 
-            //sin cuenta
 
 
 
@@ -119,6 +119,11 @@ fun nativationWrapper(
                 ) { tipo ->
                     navController.navigate(map_perzonalizado(tipo))
                 }
+            }
+
+            composable<crear_cuenta_geinz> { navback->
+                val tipo_crear_cuenta=navback.toRoute<crear_cuenta_geinz>()
+                login_principal(tipo_crear_cuenta.tipo_completado)
             }
         }
     }

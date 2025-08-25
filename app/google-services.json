@@ -126,6 +126,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "921389328767-d3724s6j7h2e4kjbecs19g8sfui5da79.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geinzz.geinzwork",
+            "certificate_hash": "fb5e4e28f22d8ec495044fa5dcb366e3db685ec7"
+          }
+        },
+        {
           "client_id": "921389328767-vj3gc09d6vsmpcaa49uf8ft4lil5imk4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

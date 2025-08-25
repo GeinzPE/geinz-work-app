@@ -10,6 +10,9 @@ object principal
 object lugares_turisticos
 
 @Serializable
+data class crear_cuenta_geinz(val tipo_completado: String)
+
+@Serializable
 object login_principal
 
 

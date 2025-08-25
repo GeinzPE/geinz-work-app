@@ -1,23 +1,43 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
+import android.icu.util.Calendar
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.IconButton
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,54 +46,101 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
+import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+val options_genero = listOf("Masculino", "Femenino", "Otro")
+val opciones_localida = listOf("Barranca", "Supe", "Puerto supe", "Paramonga", "Pativilca")
 
 @Composable
-fun login_principal() {
-
-        login_screen()
-
+fun login_principal(tipo_cuenta: String) {
+    componentes_crear_cuenta(tipo_cuenta)
 }
 
-
 @Composable
-fun login_screen() {
-    var text by remember { mutableStateOf("") }
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
-    val state = rememberKomposeCountryCodePickerState()
+fun componentes_crear_cuenta(tipo_cuenta: String) {
+    val context = LocalContext.current
+    val viewmodel_login: viewModel_login_user = viewModel()
+
     var phone by rememberSaveable { mutableStateOf("") }
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var genero by remember { mutableStateOf("") }
-    var localidad by remember { mutableStateOf("") }
-    var fechaNacimiento by remember { mutableStateOf("") }
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var apellido by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
+    var genero by rememberSaveable { mutableStateOf("") }
+    var localidad by rememberSaveable { mutableStateOf("") }
+    var fechaNacimiento by rememberSaveable { mutableStateOf("") }
+    var correo by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var password2 by rememberSaveable { mutableStateOf("") }
 
+    var errorNombre by remember { mutableStateOf(false) }
+    var errorApellido by remember { mutableStateOf(false) }
+    var errorUsername by remember { mutableStateOf(false) }
+    var errorCorreo by remember { mutableStateOf(false) }
+    var errorGenero by remember { mutableStateOf(false) }
+    var errorLocalidad by remember { mutableStateOf(false) }
+    var errorFechaNacimiento by remember { mutableStateOf(false) }
+    var errorTelefono by remember { mutableStateOf(false) }
+    var error_pass1 by remember { mutableStateOf(false) }
+    var error_pass2 by remember { mutableStateOf(false) }
 
-    LazyColumn(modifier = Modifier
-        .padding(10.dp)) {
-        item {
-            texto_generico_one_line("Login")
+    LazyColumn(
+        modifier = Modifier.padding(10.dp)
+    ) {
+        if (tipo_cuenta.equals("crear")) {
+            item {
+                texto_generico_one_line(
+                    "Crea tu cuenta en Geinz Work",
+                    MaterialTheme.typography.headlineSmall
+                )
+                spacer_vertical(10.dp)
+            }
+        } else {
+            item {
+                texto_generico_one_line(
+                    "Termina de crear tu cuenta Geinz",
+                    MaterialTheme.typography.headlineSmall
+                )
+                spacer_vertical(10.dp)
+            }
         }
         item {
-            texto_generico_multilinea("Registrate gratis en geinz work y empieza a explora diferentes lugares de tu localidad favortita")
+            texto_generico_multilinea(
+                "Descubre las novedades de tu localidad, conecta con las tiendas de tu zona y mantente siempre al tanto de lo que sucede cerca de ti.",
+                MaterialTheme.typography.bodyMedium
+            )
+            spacer_vertical(10.dp)
         }
+        // nombre
         item {
             MyOutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 labelText = "Nombre",
                 placeholderText = "Escribe tu nombre completo",
-                isError = nombre.isEmpty()
-            )
-        }
+                texto_error = "El campo es obligatorio",
+                isError = errorNombre,
 
+                )
+        }
         // Apellido
         item {
             MyOutlinedTextField(
@@ -81,10 +148,11 @@ fun login_screen() {
                 onValueChange = { apellido = it },
                 labelText = "Apellido",
                 placeholderText = "Escribe tu apellido",
-                isError = apellido.isEmpty()
-            )
-        }
+                texto_error = "El campo es obligatorio",
+                isError = errorApellido,
 
+                )
+        }
         // Nombre de usuario
         item {
             MyOutlinedTextField(
@@ -92,18 +160,8 @@ fun login_screen() {
                 onValueChange = { username = it },
                 labelText = "Nombre de usuario",
                 placeholderText = "Escribe tu nombre de usuario",
-                isError = username.isEmpty()
-            )
-        }
-
-        // Correo electrónico
-        item {
-            MyOutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                labelText = "Correo electrónico",
-                placeholderText = "Escribe tu correo electrónico",
-                isError = correo.isEmpty()
+                texto_error = "El campo es obligatorio",
+                isError = errorUsername
             )
         }
 
@@ -114,38 +172,91 @@ fun login_screen() {
                 onPhoneNumberChange = { phone = it }
             )
         }
-
         // Género
         item {
-            MyOutlinedTextField(
-                value = genero,
-                onValueChange = { genero = it },
-                labelText = "Selecciona tu género",
-                placeholderText = "Selecciona tu género",
-                isError = genero.isEmpty()
-            )
+            ExpandDropDown(options_genero, "Seleciona tu genero") { genero_selecionado ->
+                genero = genero_selecionado
+            }
         }
-
         // Localidad
         item {
-            MyOutlinedTextField(
-                value = localidad,
-                onValueChange = { localidad = it },
-                labelText = "Selecciona tu localidad",
-                placeholderText = "Selecciona tu localidad",
-                isError = localidad.isEmpty()
-            )
+            ExpandDropDown(opciones_localida, "Seleciona tu localidad") { localida_selecionada ->
+                localidad = localida_selecionada
+            }
         }
 
-        // Fecha de nacimiento
         item {
-            MyOutlinedTextField(
-                value = fechaNacimiento,
-                onValueChange = { fechaNacimiento = it },
-                labelText = "Ingresa tu fecha de nacimiento",
-                placeholderText = "Ingresa tu fecha de nacimiento",
-                isError = fechaNacimiento.isEmpty()
-            )
+
+            DateButton { fecha_obtenida ->
+                fechaNacimiento = fecha_obtenida
+            }
+        }
+
+        if (tipo_cuenta.equals("crear")) {
+            item {
+                campos_correo_contra(
+                    correo = correo,
+                    onCorreoChange = { correo = it },
+                    password = password,
+                    onPasswordChange = { password = it },
+                    password2 = password2,
+                    onPassword2Change = { password2 = it },
+                    errorCorreo,
+                    error_pass1,
+                    error_pass2
+                )
+            }
+        }
+
+
+        //crear cuenta
+        item {
+            Button(onClick = {
+                // Validaciones campo por campo
+                errorNombre = verificarCampo(nombre)
+                errorApellido = verificarCampo(apellido)
+                errorUsername = verificarCampo(username)
+                errorCorreo = verificarCampo(correo)
+                errorGenero = verificarCampo(genero)
+                errorLocalidad = verificarCampo(localidad)
+                errorFechaNacimiento = verificarCampo(fechaNacimiento)
+                errorTelefono = verificarCampo(phone)
+
+
+                val hayError = listOf(
+                    errorNombre,
+                    errorApellido,
+                    errorUsername,
+                    errorCorreo,
+                    errorGenero,
+                    errorLocalidad,
+                    errorFechaNacimiento,
+                    errorTelefono
+                ).any { it }
+
+                if (!hayError) {
+                    val datos = login_user(
+                        nombre,
+                        apellido,
+                        username,
+                        correo,
+                        phone.toInt(),
+                        genero,
+                        "+51",
+                        localidad,
+                        fechaNacimiento,
+                        password
+                    )
+                    viewmodel_login.agregar_user(datos, context)
+                } else {
+                    Log.d(
+                        "datos_para_firebase",
+                        "hay un error econtrado \"Phone: $phone, Nombre: $nombre, Apellido: $apellido, Username: $username, Correo: $correo, Genero: $genero, Localidad: $localidad, Fecha de Nacimiento: $fechaNacimiento\""
+                    )
+                }
+            }) {
+                texto_generico_one_line("Crear cuenta")
+            }
         }
     }
 }
@@ -156,37 +267,48 @@ fun MyOutlinedTextField(
     onValueChange: (String) -> Unit,
     labelText: String = "Label",
     placeholderText: String = "Escribe aquí",
-    isError: Boolean = false
+    texto_error: String = "",
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        shape = RoundedCornerShape(8.dp),
-        label = { Text(text = labelText) },
-        placeholder = { Text(text = placeholderText) },
-        trailingIcon = {
-            if (isError) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Error",
-                    tint = Color.Red
-                )
-            }
-        },
-        textStyle = MaterialTheme.typography.bodyMedium,
-        isError = isError,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
+            shape = RoundedCornerShape(30),
+            label = { Text(text = labelText) },
+            placeholder = { Text(text = placeholderText) },
+            trailingIcon = {
+                if (isError) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Error",
+                        tint = Color.Red
+                    )
+                }
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
         )
-    )
+        AnimatedVisibility(isError) {
+            retornar_pleaceholder_label(texto_error, Color.Red)
+        }
+    }
 }
+
 
 @Composable
 fun PhoneNumberWithPicker(
@@ -195,29 +317,202 @@ fun PhoneNumberWithPicker(
 ) {
     val state = rememberKomposeCountryCodePickerState()
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 8.dp),
     ) {
-        // Aquí el picker ocupa su propio espacio
         KomposeCountryCodePicker(
             state = state,
-            modifier = Modifier.width(120.dp).height(60.dp), // ajusta ancho
+            modifier = Modifier.fillMaxWidth(),
             text = phoneNumber,
-            onValueChange = { /* opcional: actualizar text si quieres */ }
+            onValueChange = { numero ->
+                onPhoneNumberChange(numero)
+            }, placeholder = { Text("Número de teléfono") },
+            selectedCountryFlagSize= FlagSize(width = 20.dp, height = 20.dp)
+
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        OutlinedTextField(
-            value = phoneNumber,
-            onValueChange = onPhoneNumberChange,
-            modifier = Modifier.weight(1f),
-            placeholder = { Text("Número de teléfono") },
-            singleLine = true
+//        OutlinedTextField(
+//            value = phoneNumber,
+//            onValueChange = onPhoneNumberChange,
+//            modifier = Modifier.weight(1f),
+//            placeholder = { Text("Número de teléfono") },
+//            singleLine = true,
+//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//            shape = RoundedCornerShape(30)
+//        )
+    }
+}
+
+@Composable
+fun campos_correo_contra(
+    correo: String,
+    onCorreoChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    password2: String,
+    onPassword2Change: (String) -> Unit,
+    error_correo: Boolean,
+    error_pass1: Boolean,
+    error_pass2: Boolean
+) {
+    Column {
+        MyOutlinedTextField(
+            value = correo,
+            onValueChange = onCorreoChange,
+            labelText = "Correo electrónico",
+            placeholderText = "Escribe tu correo electrónico",
+            keyboardType = KeyboardType.Email,
+            isError = error_correo
+        )
+        MyOutlinedTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            labelText = "Escriba su contraseña",
+            placeholderText = "Escriba su contraseña",
+            texto_error = "El campo es obligatorio",
+            isError = error_pass1
+        )
+        MyOutlinedTextField(
+            value = password2,
+            onValueChange = onPassword2Change,
+            labelText = "Repita su contraseña",
+            placeholderText = "Repita su contraseña",
+            texto_error = "El campo es obligatorio",
+            isError = error_pass2
         )
     }
 }
+
+fun verificarCampo(valor: String): Boolean {
+    return valor.isBlank()
+}
+
+
+@Composable
+fun DateButton(fecha: (String) -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf("") }
+
+    // Dialog para escoger fecha
+    DatePickerExample(
+        showDialog = showDialog,
+        onDismiss = { showDialog = false },
+        onDateSelected = { millis ->
+            millis?.let {
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                selectedDate = sdf.format(Date(it))
+                fecha(selectedDate) // 👈 devolvemos la fecha al padre
+            }
+        }
+    )
+
+
+    OutlinedTextField(
+        value = selectedDate,
+        onValueChange = {},
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        placeholder = { Text("Selecciona tu fecha de nacimiento") },
+        singleLine = true,
+        readOnly = true,
+        enabled = true,
+        leadingIcon = { IconButton(onClick = { showDialog=true}) {
+            Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+        }},
+
+        shape = RoundedCornerShape(30)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandDropDown(lista: List<String>, lable: String, selecionado: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf("") }
+
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier
+            .padding(vertical = 10.dp)
+            .clip(RoundedCornerShape(30))
+    ) {
+        TextField(
+
+            value = selected,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(lable) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors()
+        )
+
+        ExposedDropdownMenu(
+
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+        ) {
+            lista.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        selected = option
+                        expanded = false
+                        selecionado(option)
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerExample(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onDateSelected: (Long?) -> Unit
+) {
+    val calendar = Calendar.getInstance().apply {
+        add(Calendar.DAY_OF_YEAR, +1)
+        set(Calendar.MONTH, Calendar.JANUARY)
+    }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = calendar.timeInMillis,
+        initialDisplayedMonthMillis = calendar.timeInMillis,
+        yearRange = 2024..2025
+    )
+
+    if (showDialog) {
+        DatePickerDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = {
+                    onDateSelected(datePickerState.selectedDateMillis)
+                    onDismiss()
+                }) {
+                    texto_generico_one_line("Confirmar")
+                }
+            },
+            colors = DatePickerDefaults.colors()
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
 
