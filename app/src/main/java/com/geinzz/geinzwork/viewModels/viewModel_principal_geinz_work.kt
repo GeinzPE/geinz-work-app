@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -40,6 +41,7 @@ class viewModel_principal_geinz_work : ViewModel() {
     }
 
     fun obtener_datos_user_registrado(id_user: String) {
+        Log.d("id_user","$id_user")
         viewModelScope.launch {
             try {
                 _userData.value = instacia.obtenerDatosUser(id_user)

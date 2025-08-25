@@ -537,6 +537,7 @@ fun filtrado_localidades(
 //@Preview(showBackground = true)
 @Composable
 fun nombre_texto_img_perfil(nombre_user: String , img_url: String = "") {
+    Log.d("datos_8ser","$nombre_user $img_url")
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
 
