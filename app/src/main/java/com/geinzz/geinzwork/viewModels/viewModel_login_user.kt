@@ -27,12 +27,32 @@ class viewModel_login_user : ViewModel() {
 
     private val auth: FirebaseAuth = Firebase.auth
 
+    private val _registrado = MutableLiveData<Boolean>()
+
+    val registrado_boolean: LiveData<Boolean> get() = _registrado
+
+
+    private val _registrado_google = MutableLiveData<Boolean>()
+
+    val registrado_google: LiveData<Boolean> get() = _registrado_google
     fun agregar_user(login_user: login_user, context: Context) {
-        repo_agregar_user.agregar_user(login_user, context)
+        try {
+            repo_agregar_user.agregar_user(login_user, context) { registrado ->
+                _registrado.value = registrado
+            }
+        } catch (e: Exception) {
+            _registrado.value = false
+        }
     }
 
     fun agregar_user_google(login_google: login_google, context: Context) {
-        repo_agregar_user.agregar_user_google(login_google, context)
+        try {
+            repo_agregar_user.agregar_user_google(login_google, context) { cuenta_creada ->
+                _registrado_google.value = cuenta_creada
+            }
+        } catch (e: Exception) {
+            _registrado_google.value = false
+        }
     }
 
     fun loginWithGoogle(idToken: String?) {

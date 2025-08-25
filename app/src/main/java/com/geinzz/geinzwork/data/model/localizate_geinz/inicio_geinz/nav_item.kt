@@ -18,5 +18,6 @@ sealed class Items_menu(
     object pantalla2: Items_menu("Buscar",Icons.Default.Search,"buscar")
     object pantalla3: Items_menu("Favoritos",Icons.Default.Star,"favortios")
     object pantalla4: Items_menu("Cuenta",Icons.Default.Person,"login_principal")
+
 }
 

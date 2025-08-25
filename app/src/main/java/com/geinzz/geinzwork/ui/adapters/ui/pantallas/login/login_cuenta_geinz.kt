@@ -3,15 +3,10 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 import android.icu.util.Calendar
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,17 +29,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -54,6 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
@@ -72,24 +68,47 @@ import java.util.Locale
 val options_genero = listOf("Masculino", "Femenino", "Otro")
 val opciones_localida = listOf("Barranca", "Supe", "Puerto supe", "Paramonga", "Pativilca")
 private lateinit var firebaseAuth: FirebaseAuth
+
 @Composable
-fun login_principal(tipo_cuenta: String) {
-    Log.d("tipo_cuenta",tipo_cuenta)
-    componentes_crear_cuenta(tipo_cuenta)
+fun login_principal(tipo_cuenta: String, navController: NavController) {
+    Log.d("tipo_cuenta", tipo_cuenta)
+    componentes_crear_cuenta(tipo_cuenta, navController)
 }
 
 @Composable
-fun componentes_crear_cuenta(tipo_cuenta: String) {
+fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) {
     val context = LocalContext.current
     val viewmodel_login: viewModel_login_user = viewModel()
+    val registrado = viewmodel_login.registrado_boolean.observeAsState()
+    val registrado_google=viewmodel_login.registrado_google.observeAsState()
     var correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(
             if (tipo_cuenta == "crear") "" else tipo_cuenta
         )
     }
-    var enable_correo by rememberSaveable(tipo_cuenta) {  mutableStateOf(
-        if (tipo_cuenta == "crear") true else false
-    ) }
+
+    var enable_correo by rememberSaveable(tipo_cuenta) {
+        mutableStateOf(
+            if (tipo_cuenta == "crear") true else false
+        )
+    }
+
+    LaunchedEffect(registrado.value) {
+        if (registrado.value == true) {
+            navController.navigate("pantalla_principal") {
+                popUpTo("login_principal") { inclusive = true }
+            }
+        }
+    }
+
+    LaunchedEffect(registrado_google.value) {
+        if (registrado_google.value == true) {
+            navController.navigate("pantalla_principal") {
+                popUpTo("login_principal") { inclusive = true }
+            }
+        }
+    }
+
     var phone by rememberSaveable { mutableStateOf("") }
     var nombre by rememberSaveable { mutableStateOf("") }
     var apellido by rememberSaveable { mutableStateOf("") }
@@ -203,12 +222,12 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
         item {
             MyOutlinedTextField(
                 value = correo,
-                onValueChange = {correo=it},
+                onValueChange = { correo = it },
                 labelText = "Correo electrónico",
                 placeholderText = "Escribe tu correo electrónico",
                 keyboardType = KeyboardType.Email,
                 isError = errorCorreo,
-                enabled =enable_correo
+                enabled = enable_correo
             )
         }
 
@@ -226,7 +245,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
         }
 
 
-        if(tipo_cuenta.equals("crear")){
+        if (tipo_cuenta.equals("crear")) {
             //crear cuenta
             item {
                 Button(onClick = {
@@ -265,6 +284,8 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
                             password
                         )
                         viewmodel_login.agregar_user(datos, context)
+
+
                     } else {
                         Log.d(
                             "datos_para_firebase",
@@ -275,7 +296,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
                     texto_generico_one_line("Crear cuenta")
                 }
             }
-        }else{
+        } else {
             item {
                 Button(onClick = {
                     errorNombre = verificarCampo(nombre)
@@ -310,8 +331,9 @@ fun componentes_crear_cuenta(tipo_cuenta: String) {
                             localidad = localidad,
                             fecha_nac = fechaNacimiento
                         )
-                        Log.d("campos_login_google",datos.toString())
-                        viewmodel_login.agregar_user_google(datos,context)
+                        Log.d("campos_login_google", datos.toString())
+                        viewmodel_login.agregar_user_google(datos, context)
+
                     } else {
                         Log.d(
                             "datos_para_firebase",
@@ -339,7 +361,7 @@ fun MyOutlinedTextField(
     isError: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
-    enabled: Boolean=true
+    enabled: Boolean = true
 ) {
     Column {
         OutlinedTextField(
@@ -360,7 +382,7 @@ fun MyOutlinedTextField(
                     )
                 }
             },
-            enabled=enabled,
+            enabled = enabled,
             textStyle = MaterialTheme.typography.bodyMedium,
             isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
@@ -399,7 +421,7 @@ fun PhoneNumberWithPicker(
             onValueChange = { numero ->
                 onPhoneNumberChange(numero)
             }, placeholder = { Text("Número de teléfono") },
-            selectedCountryFlagSize= FlagSize(width = 20.dp, height = 20.dp)
+            selectedCountryFlagSize = FlagSize(width = 20.dp, height = 20.dp)
 
         )
 
@@ -481,9 +503,11 @@ fun DateButton(fecha: (String) -> Unit) {
         singleLine = true,
         readOnly = true,
         enabled = true,
-        leadingIcon = { IconButton(onClick = { showDialog=true}) {
-            Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
-        }},
+        leadingIcon = {
+            IconButton(onClick = { showDialog = true }) {
+                Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+            }
+        },
 
         shape = RoundedCornerShape(30)
     )

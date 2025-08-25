@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
@@ -37,6 +38,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.firebase.auth.FirebaseAuth
 
+private lateinit var firebaseAuth: FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +47,7 @@ fun nativationWrapper(
     nombre_user: String,
     viewmodel: viewModel_localizate_geinz
 ) {
-    val firebase_auth = FirebaseAuth.getInstance()
+    firebaseAuth = FirebaseAuth.getInstance()
     val navController = rememberNavController()
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
@@ -77,11 +79,14 @@ fun nativationWrapper(
             }
             // Login
             composable("login_principal") {
-                IniciarSeccion({ tipo_cuenta->
-                    navController.navigate(crear_cuenta_geinz(tipo_cuenta)) }, {}, {})
+                if (firebaseAuth.currentUser != null) {
+                    cuenta_user()
+                } else {
+                    IniciarSeccion({ tipo_cuenta ->
+                        navController.navigate(crear_cuenta_geinz(tipo_cuenta))
+                    }, {}, {})
+                }
             }
-
-
 
 
             // Explorar tiendas
@@ -121,9 +126,9 @@ fun nativationWrapper(
                 }
             }
 
-            composable<crear_cuenta_geinz> { navback->
-                val tipo_crear_cuenta=navback.toRoute<crear_cuenta_geinz>()
-                login_principal(tipo_crear_cuenta.tipo_completado)
+            composable<crear_cuenta_geinz> { navback ->
+                val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()
+                login_principal(tipo_crear_cuenta.tipo_completado,navController)
             }
         }
     }
