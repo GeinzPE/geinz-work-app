@@ -117,8 +117,7 @@ fun PantallaExplorarTiendas(
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-    val lista_filtrada =
-        remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+    val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
     val cargando = remember { mutableStateOf(true) }
     val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
     val lista_localidades = constantes_lista_localidades.lista
@@ -130,28 +129,30 @@ fun PantallaExplorarTiendas(
     val localidadSeleccionada = remember { mutableStateOf("") }
 
     val primeraVez = remember { mutableStateOf(true) }
+    var fraces_localidad by remember { mutableStateOf(listOf("Espere un momento...")) }
 
+    // Primera carga
     LaunchedEffect(Unit) {
         if (localidadSeleccionada.value.isEmpty()) {
             localidadSeleccionada.value = localidadUser
+            fraces_localidad = viewModel.obtenerFrasesCarga(localidadUser, nombreUser)
         }
     }
 
+    // Cambio de localidad
     LaunchedEffect(localidadSeleccionada.value) {
         if (primeraVez.value) {
-            // Solo la primera vez -> usar el valor por defecto sin recargar nada
             primeraVez.value = false
         } else {
-            // Cuando el usuario cambie de localidad
             cargando.value = true
             cartaExpandida.value = null
             viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
+            fraces_localidad = viewModel.obtenerFrasesCarga(localidadSeleccionada.value, nombreUser)
             mostrar_fab = false
         }
     }
 
-
-
+    // Respuesta de las tiendas
     LaunchedEffect(encontrados_activos_tiendass) {
         encontrados_activos_tiendass?.let { listaNueva ->
             lista.clear()
@@ -164,27 +165,29 @@ fun PantallaExplorarTiendas(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
-            AnimatedVisibility(mostrar_fab == true) {
+            AnimatedVisibility(mostrar_fab) {
                 floatin_actionButton(
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CircleShape), R.drawable.arrow_subir_vector, null, onClick = {
-                        coroutineScope.launch {
-                            listState.animateScrollToItem(index = 0)
-                        }
+                        .clip(CircleShape),
+                    R.drawable.arrow_subir_vector,
+                    null
+                ) {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(index = 0)
                     }
-                )
+                }
             }
-        }, floatingActionButtonPosition = FabPosition.Start
+        },
+        floatingActionButtonPosition = FabPosition.Start
     ) { innerPadding ->
         Crossfade(targetState = cargando.value) { isCargando ->
-            if (isCargando) {
-                Log.d("cagramodslo",localidadSeleccionada.value)
+            if (isCargando && fraces_localidad.isNotEmpty()) {
                 cargando_categorias(
                     composision,
-                    localidadSeleccionada.value,
+                    localidadSeleccionada.value, // ✅ ahora usa la seleccionada
                     5.dp,
-                    viewModel.obtenerFrasesCarga(localidadSeleccionada.value, nombreUser)
+                    fraces_localidad
                 )
             } else {
                 LazyColumn(
@@ -194,9 +197,9 @@ fun PantallaExplorarTiendas(
                     state = listState
                 ) {
                     item {
-                        cabezero_activity(localidadUser)
+                        cabezero_activity(localidadSeleccionada.value) // ✅ lo mismo aquí
                     }
-                    stickyHeader() {
+                    stickyHeader {
                         ColumnContenedorComun {
                             FiltradosChipsLocalidades(
                                 lista_localidades,
@@ -221,13 +224,15 @@ fun PantallaExplorarTiendas(
                         if (texto_filtrado.length > 2) lista_filtrada else lista
                     items(
                         listaParaMostrar,
-                        key = { it.categoria ?: it.hashCode().toString() }) { item ->
+                        key = { it.categoria ?: it.hashCode().toString() }
+                    ) { item ->
                         cartas_categorias(
                             nombreUser,
                             item,
                             cartaExpandida,
                             localidadSeleccionada.value,
-                            viewModel, clik_img
+                            viewModel,
+                            clik_img
                         )
                     }
                 }
@@ -235,6 +240,7 @@ fun PantallaExplorarTiendas(
         }
     }
 }
+
 
 @Composable
 fun cabezero_activity(localidad_registrado: String) {

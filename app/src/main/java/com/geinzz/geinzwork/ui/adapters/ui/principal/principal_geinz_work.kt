@@ -78,6 +78,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 
@@ -122,7 +123,11 @@ fun pantalla_principal(
 
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
-        .collectAsState(initial = localida_user)
+        .map { valor ->
+            if (valor.isNullOrEmpty()) "barranca" else valor
+        }
+        .collectAsState(initial = "barranca")
+
 
     val localidadSeleccionada = remember { mutableStateOf("barranca") }
     LazyColumn(
