@@ -44,7 +44,6 @@ fun cargando_categorias(
 
     LaunchedEffect(value) {
         fraseIndex = 0
-
         while (true) {
             fraseActual = frases[fraseIndex]
             fraseIndex = (fraseIndex + 1) % frases.size

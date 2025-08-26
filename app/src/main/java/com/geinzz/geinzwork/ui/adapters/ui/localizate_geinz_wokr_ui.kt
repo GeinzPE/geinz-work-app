@@ -19,10 +19,7 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GeinzWorkTheme {
-                val localidad_user =
-                    intent.getStringExtra("filtrado_localidad")?.lowercase() ?: "barranca"
-                val nombre_user = intent.getStringExtra("nombre_user") ?: ""
-                nativationWrapper(localidad_user, nombre_user, viewModel)
+                nativationWrapper(viewModel)
 
             }
         }

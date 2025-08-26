@@ -43,8 +43,6 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun nativationWrapper(
-    localidad_user: String,
-    nombre_user: String,
     viewmodel: viewModel_localizate_geinz
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
@@ -72,7 +70,7 @@ fun nativationWrapper(
             // Pantalla principal
             composable("pantalla_principal") {
                 pantalla_principal(
-                    categorias = { navController.navigate(mostrar_tiendas) },
+                    categorias = { localidad,nombre->navController.navigate(mostrar_tiendas(nombre,localidad)) },
                     ver_lugares = { navController.navigate(lugares_turisticos) },
                     navController = navController
                 )
@@ -90,10 +88,11 @@ fun nativationWrapper(
 
 
             // Explorar tiendas
-            composable<mostrar_tiendas> {
+            composable<mostrar_tiendas> { navback->
+                val datos_user=navback.toRoute<mostrar_tiendas>()
                 PantallaExplorarTiendas(
-                    localidad_user,
-                    nombre_user,
+                    datos_user.localidad,
+                    datos_user.nombre_user,
                     viewmodel,
                     clik_img = { categoria, localidada, nombre_user ->
                         navController.navigate(screen_filtrado(categoria, localidada, nombre_user))

@@ -31,6 +31,7 @@ class viewModel_localizate_geinz : ViewModel() {
 
 
     fun obtenerFrasesCarga(localidadUser: String, nombreUser: String): List<String> {
+        Log.d("obtenmoms_frace",localidadUser)
         return listOf(
             "Espere un momento...",
             "Cargando tiendas de $localidadUser...",

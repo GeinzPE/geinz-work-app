@@ -122,13 +122,14 @@ fun PantallaExplorarTiendas(
     val cargando = remember { mutableStateOf(true) }
     val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
     val lista_localidades = constantes_lista_localidades.lista
-    var localidadAnterior by remember { mutableStateOf("") }
-    val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
     val cartaExpandida = remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     var mostrar_fab by remember { mutableStateOf(false) }
     mostrar_fab = listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 10
     val coroutineScope = rememberCoroutineScope()
+    val localidadSeleccionada = remember { mutableStateOf("") }
+
+    val primeraVez = remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         if (localidadSeleccionada.value.isEmpty()) {
@@ -137,14 +138,19 @@ fun PantallaExplorarTiendas(
     }
 
     LaunchedEffect(localidadSeleccionada.value) {
-        if (localidadSeleccionada.value != localidadAnterior) {
+        if (primeraVez.value) {
+            // Solo la primera vez -> usar el valor por defecto sin recargar nada
+            primeraVez.value = false
+        } else {
+            // Cuando el usuario cambie de localidad
             cargando.value = true
-            localidadAnterior = localidadSeleccionada.value
             cartaExpandida.value = null
             viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
             mostrar_fab = false
         }
     }
+
+
 
     LaunchedEffect(encontrados_activos_tiendass) {
         encontrados_activos_tiendass?.let { listaNueva ->
@@ -173,11 +179,12 @@ fun PantallaExplorarTiendas(
     ) { innerPadding ->
         Crossfade(targetState = cargando.value) { isCargando ->
             if (isCargando) {
+                Log.d("cagramodslo",localidadSeleccionada.value)
                 cargando_categorias(
                     composision,
                     localidadSeleccionada.value,
                     5.dp,
-                    viewModel.obtenerFrasesCarga(localidadUser, nombreUser)
+                    viewModel.obtenerFrasesCarga(localidadSeleccionada.value, nombreUser)
                 )
             } else {
                 LazyColumn(

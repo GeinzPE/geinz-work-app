@@ -4,9 +4,10 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,10 +30,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,10 +58,11 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrado_localidades
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
@@ -66,14 +70,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulo_referenciales_geinz_work
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 private lateinit var firebaseAuth: FirebaseAuth
@@ -81,18 +86,32 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
-    categorias: () -> Unit,
+    categorias: (localidad: String, nombre_user: String) -> Unit,
     ver_lugares: () -> Unit,
     navController: NavController
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
-    val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
     val datos_user by viewModel_cordenadas.userData.observeAsState(null)
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
+    var nombre_user: String by rememberSaveable { mutableStateOf("") }
+    var localida_user: String by rememberSaveable { mutableStateOf("") }
+    var img_perfil by rememberSaveable { mutableStateOf("") }
+
+    if (firebaseAuth.currentUser != null) {
+        nombre_user = datos_user?.nombre ?: "Usuario"
+        localida_user = datos_user?.localida ?: "Barranca"
+        img_perfil = datos_user?.img_perfil ?: ""
+    } else {
+        nombre_user = "Usuario"
+        localida_user = "Barranca"
+        img_perfil = ""
+    }
+
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.lugares_turisticos("barranca")
@@ -101,37 +120,40 @@ fun pantalla_principal(
         viewModel_cordenadas.obtener_datos_user_registrado(firebaseAuth.uid.toString())
     }
 
+    val ultimaLocalidad by data_store_localidad
+        .obtener_localidad(context)
+        .collectAsState(initial = localida_user)
+
     val localidadSeleccionada = remember { mutableStateOf("barranca") }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-
             .padding(start = 10.dp, end = 10.dp, top = 10.dp)
     ) {
         item {
-            nombre_texto_img_perfil(datos_user?.nombre ?: "", datos_user?.img_perfil ?: "")
+            nombre_texto_img_perfil(nombre_user, img_perfil)
         }
         stickyHeader() {
             ColumnContenedorComun {
                 texfiel_filtrado()
-//                    FiltradosChipsLocalidades(
-//                        lista_localidades,
-//                        localidadSeleccionada.value
-//                    ) { nuevaLocalidad -> }
             }
         }
-
         item {
             filtrado_localidades(
-                datos_user?.localida
-                    ?: "", _obtener_filtrado_localidades
+                ultimaLocalidad, _obtener_filtrado_localidades
             ) { localidad_selecionada ->
                 localidadSeleccionada.value = localidad_selecionada
             }
             spacer_vertical(10.dp)
         }
         item {
-            apartado_explora_cat(_categorias_tiendas, localidadSeleccionada.value, categorias)
+            apartado_explora_cat(
+                _categorias_tiendas,
+                ultimaLocalidad,
+                nombre_user,
+            ) { nombre, localidad ->
+                categorias(localidad, nombre)
+            }
             spacer_vertical(10.dp)
         }
 
@@ -139,7 +161,7 @@ fun pantalla_principal(
             rutas_turismo(
                 "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
                 "ver rutas",
-                "descubre ${localidadSeleccionada.value}"
+                "descubre ${ultimaLocalidad}"
             ) { ver_lugares() }
             spacer_vertical(10.dp)
         }
@@ -148,57 +170,21 @@ fun pantalla_principal(
             rutas_turismo(
                 "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
                 "ver eventos",
-                "Eventos proximos de ${localidadSeleccionada.value}"
+                "Eventos proximos de ${ultimaLocalidad}"
             ) {}
             spacer_vertical(20.dp)
         }
-
-//            item {
-//                spacer_vertical(10.dp)
-//                apartado_turismo(_lugares_turisticos, ver_lugares)
-//                spacer_vertical(10.dp)
-//            }
-
-
-//            item { recomendado_por_vistitantes() }
     }
-
-
 }
-
-
-//@Composable
-//fun ScannerButton() {
-//    val context = LocalContext.current
-//
-//    val startScanner = rememberLauncherForActivityResult(
-//        contract = ScanContract(),
-//        onResult = { result -> handleScanResult(context, result?.contents) }
-//    )
-//
-//    FloatingActionButton(
-//        onClick = { startScanner.launch(ScanOptions()) },
-//        modifier = Modifier
-//            .size(40.dp)
-//            .clip(CircleShape),
-//        containerColor = MaterialTheme.colorScheme.primary,
-//    ) {
-//        val painter = painterResource(id = R.drawable.qr_scaner_icon)
-//        Image(
-//            painter = painter,
-//            contentDescription = "Escanear QR",
-//            modifier = Modifier.size(28.dp)
-//        )
-//    }
-//}
-
 
 @Composable
 fun apartado_explora_cat(
     categorias_tienda: List<dataclass_cat_sub>,
-    localidad_selecionada: String,
-    categorias1: () -> Unit
-) {
+    localidad_selecionada: String?,
+    nombre_user: String,
+    categorias1: (String, String) -> Unit,
+
+    ) {
     Log.d("obtemloms_lista", categorias_tienda.toString())
     val categoriasPrincipales = remember {
         categorias_tienda.shuffled().take(5)
@@ -208,7 +194,7 @@ fun apartado_explora_cat(
         titulo_referenciales_geinz_work(
             "Explora $localidad_selecionada",
             "Ver todos"
-        ) { categorias1() }
+        ) { categorias1(nombre_user, localidad_selecionada ?: "barranca") }
         spacer_vertical(10.dp)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(
@@ -333,95 +319,29 @@ fun texto_categorias(
     }
 }
 
-@Composable
-fun apartado_turismo(lugares: List<lugares_turisticos>, ver_lugares: () -> Unit) {
-    val lugaresSeleccionados = rememberSaveable(lugares.hashCode()) {
-        lugares.shuffled().take(5)
-    }
-    var bottom_sheet_cartas by remember { mutableStateOf(false) }
-
-    var datos_lugares by remember { mutableStateOf(lugares_turisticos()) }
-
-    Column {
-        titulo_referenciales_geinz_work("Lugares turísticos", "Ver lugares") { ver_lugares() }
-        spacer_vertical(10.dp)
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(lugaresSeleccionados) { lugar ->
-                cartas_turismo(
-                    lugar,
-                    5,
-                    300.dp,
-                    300.dp
-                ) { bottom_sheet_listener, datos_selecionado ->
-                    bottom_sheet_cartas = bottom_sheet_listener
-                    datos_lugares = datos_selecionado
-                }
-            }
-        }
-    }
-    if (bottom_sheet_cartas) {
-        bottom_sheet_lugares_turisticos(datos_lugares) { bottom_sheet_cartas = false }
-    }
-
-}
-
-
-@Composable
-fun cartas_turismo(
-    lugar: lugares_turisticos,
-    rounder: Int,
-    alto: Dp,
-    ancho: Dp,
-    listener: (Boolean, lugares_turisticos) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .width(ancho)
-            .height(alto)
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(lugar.img_ref)
-                .size(ancho.value.toInt(), alto.value.toInt())
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.sin_item_carrito)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .width(ancho)
-                .height(alto)
-                .clip(RoundedCornerShape(rounder))
-                .clickable {
-                    listener(true, lugar)
-                },
-            contentScale = ContentScale.Crop
-        )
-
-        mascara_img(rounder, alto, ancho)
-        texto_encimado_cartas(
-            modifier = Modifier.align(Alignment.BottomStart),
-            lugar.titulo,
-            "ir y conocer".uppercase(),
-        )
-
-    }
-}
-
 
 @Composable
 fun texto_encimado_cartas(
+    defecto_selecionado: Boolean,
     modifier: Modifier,
     titulo: String,
     descripcion: String,
 ) {
     Row(modifier = modifier.padding(start = 20.dp, end = 20.dp, bottom = 40.dp)) {
         Column {
-            texto_generico_multilinea(
-                titulo,
-                MaterialTheme.typography.titleMedium
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                texto_generico_multilinea(
+                    titulo,
+                    MaterialTheme.typography.titleMedium
+                )
+                spacer_horizonta(5.dp)
+                AnimatedVisibility(
+                    defecto_selecionado, enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    localidad_Selecionada()
+                }
+            }
             spacer_vertical(5.dp)
             TextoSubrayado(
                 descripcion,
@@ -454,60 +374,22 @@ fun texfiel_filtrado() {
 }
 
 
-//@ExperimentalMaterial3Api
-//@Composable
-//fun FiltradosChipsLocalidades(
-//    lista_localidades: List<dataclass_localidad_escudos>,
-//    localidadSeleccionada: String,
-//    onLocalidadSeleccionada: (String) -> Unit
-//) {
-//    LazyRow(modifier = Modifier.padding(top = 5.dp)) {
-//        items(lista_localidades) { localidad ->
-//            val isSelected =
-//                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
-//            FilterChip(
-//                modifier = Modifier.padding(horizontal = 4.dp),
-//                colors = FilterChipDefaults.filterChipColors(
-//                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    selectedLabelColor = Color.White,
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                ),
-//                border = null,
-//                selected = isSelected,
-//                onClick = {
-//                    if (!isSelected) {
-//                        onLocalidadSeleccionada(localidad.nombre_localidad.toString())
-//                    }
-//                },
-//
-//                label = {
-//                    Text(
-//                        text = localidad.nombre_localidad.toString(),
-//                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
-//                    )
-//                },
-//                trailingIcon = {
-//                    localidad.escudo_img?.let { imgResId ->
-//                        Image(
-//                            painter = painterResource(id = imgResId),
-//                            contentDescription = null,
-//                            modifier = Modifier.size(24.dp)
-//                        )
-//                    }
-//                },
-//                shape = RoundedCornerShape(40)
-//
-//            )
-//        }
-//    }
-//}
-
 @Composable
 fun filtrado_localidades(
-    localidad_defecto: String,
+    ultimaLocalidad: String?,
     lista_localidades: List<localidades_filtrado>,
     nombre_localidad_selecionado: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+
+    var localidad_defecto by remember { mutableStateOf(ultimaLocalidad) }
+
+    LaunchedEffect(ultimaLocalidad) {
+        localidad_defecto = ultimaLocalidad
+    }
+
     Column {
         spacer_vertical(10.dp)
         texto_generico_one_line(
@@ -520,28 +402,30 @@ fun filtrado_localidades(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            items(lista_localidades) { items ->
+            items(lista_localidades, key = { it.nombre }) { items ->
                 carta_filtrado_localidades(
-                    if (localidad_defecto.lowercase() == items.nombre.lowercase()) { true } else { false },
+                    defecto_selecionado = localidad_defecto.equals(items.nombre, ignoreCase = true),
                     items.nombre,
                     items.lista_img,
                     10,
                     300.dp,
                     300.dp
                 ) { nombre_localidad ->
+                    localidad_defecto = nombre_localidad
                     nombre_localidad_selecionado(nombre_localidad)
+
+                    scope.launch {
+                        data_store_localidad.guardar_localida(context, nombre_localidad)
+                    }
                 }
             }
         }
     }
-
 }
 
-//@Preview(showBackground = true)
+
 @Composable
 fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
-    Log.d("datos_8ser", "$nombre_user $img_url")
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
 
@@ -569,7 +453,6 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                     MaterialTheme.typography.busquedaGeinzWork
                 )
             }
-
         }
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -585,10 +468,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
-
     }
-
-
 }
 
 

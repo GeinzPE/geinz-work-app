@@ -49,15 +49,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import org.w3c.dom.Text
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
-import android.util.Log
-import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
@@ -639,9 +639,9 @@ fun carta_filtrado_localidades(
         modifier = Modifier
             .width(ancho)
             .height(alto)
+            .clip(RoundedCornerShape(rounder))
             .clickable {
                 listener(nombre_localidad)
-                Log.d("reronatamos1", nombre_localidad)
             }
     ) {
         AsyncImage(
@@ -659,16 +659,15 @@ fun carta_filtrado_localidades(
                 .clip(RoundedCornerShape(rounder)),
             contentScale = ContentScale.Crop
         )
-
         mascara_img(rounder, alto, ancho)
         texto_encimado_cartas(
+            defecto_selecionado,
             modifier = Modifier.align(Alignment.BottomStart),
             nombre_localidad.uppercase(),
             "conocer".uppercase(),
         )
-        if (defecto_selecionado) {
-            localidad_Selecionada()
-        }
+
+
     }
 }
 
@@ -677,10 +676,7 @@ fun carta_filtrado_localidades(
 fun localidad_Selecionada() {
     Box(
         modifier = Modifier
-            .padding(10.dp)
-            .clip(CircleShape)
-            .background(amarillo30)
-    ) {
-        texto_generico_one_line("Selecionado", MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp))
-    }
+            .clip(CircleShape).size(10.dp)
+            .background(Color.Green)
+    )
 }

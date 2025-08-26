@@ -153,4 +153,6 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-auth:21.4.0")
 
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
 }
