@@ -122,7 +122,10 @@ fun pantalla_principal(
         }
 
         item {
-            filtrado_localidades(_obtener_filtrado_localidades) { localidad_selecionada ->
+            filtrado_localidades(
+                datos_user?.localida
+                    ?: "", _obtener_filtrado_localidades
+            ) { localidad_selecionada ->
                 localidadSeleccionada.value = localidad_selecionada
             }
             spacer_vertical(10.dp)
@@ -501,6 +504,7 @@ fun texfiel_filtrado() {
 
 @Composable
 fun filtrado_localidades(
+    localidad_defecto: String,
     lista_localidades: List<localidades_filtrado>,
     nombre_localidad_selecionado: (String) -> Unit
 ) {
@@ -516,8 +520,10 @@ fun filtrado_localidades(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
             items(lista_localidades) { items ->
                 carta_filtrado_localidades(
+                    if (localidad_defecto.lowercase() == items.nombre.lowercase()) { true } else { false },
                     items.nombre,
                     items.lista_img,
                     10,
@@ -525,8 +531,6 @@ fun filtrado_localidades(
                     300.dp
                 ) { nombre_localidad ->
                     nombre_localidad_selecionado(nombre_localidad)
-                    Log.d("reronatamos1", nombre_localidad.toString())
-
                 }
             }
         }
@@ -536,8 +540,8 @@ fun filtrado_localidades(
 
 //@Preview(showBackground = true)
 @Composable
-fun nombre_texto_img_perfil(nombre_user: String , img_url: String = "") {
-    Log.d("datos_8ser","$nombre_user $img_url")
+fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
+    Log.d("datos_8ser", "$nombre_user $img_url")
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
 

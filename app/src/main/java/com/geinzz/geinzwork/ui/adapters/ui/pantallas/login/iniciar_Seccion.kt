@@ -109,12 +109,12 @@ fun IniciarSeccion(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(10.dp),
+                    .blur(40.dp),
                 contentScale = ContentScale.Crop
             )
         }
         Box(
-            modifier = Modifier.blur(15.dp)
+            modifier = Modifier.blur(40.dp)
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(

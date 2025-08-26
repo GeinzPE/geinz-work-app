@@ -75,6 +75,7 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.principal.texto_encimado_cartas
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 
@@ -624,17 +625,24 @@ fun datos_lugares_google_maps(texto: String, descripcion: String) {
 
 @Composable
 fun carta_filtrado_localidades(
+    defecto_selecionado: Boolean,
     nombre_localidad: String,
     img: List<String>,
     rounder: Int,
     alto: Dp,
-    ancho: Dp,listener: (String) -> Unit
+    ancho: Dp,
+    listener: (String) -> Unit
 ) {
     val randomImg = remember(img) { img.randomOrNull() }
+
     Box(
         modifier = Modifier
             .width(ancho)
             .height(alto)
+            .clickable {
+                listener(nombre_localidad)
+                Log.d("reronatamos1", nombre_localidad)
+            }
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -648,11 +656,7 @@ fun carta_filtrado_localidades(
             modifier = Modifier
                 .width(ancho)
                 .height(alto)
-                .clip(RoundedCornerShape(rounder))
-                .clickable {
-                    listener(nombre_localidad)
-                    Log.d("reronatamos1",nombre_localidad.toString())
-                },
+                .clip(RoundedCornerShape(rounder)),
             contentScale = ContentScale.Crop
         )
 
@@ -662,7 +666,21 @@ fun carta_filtrado_localidades(
             nombre_localidad.uppercase(),
             "conocer".uppercase(),
         )
-
+        if (defecto_selecionado) {
+            localidad_Selecionada()
+        }
     }
+}
 
+
+@Composable
+fun localidad_Selecionada() {
+    Box(
+        modifier = Modifier
+            .padding(10.dp)
+            .clip(CircleShape)
+            .background(amarillo30)
+    ) {
+        texto_generico_one_line("Selecionado", MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp))
+    }
 }
