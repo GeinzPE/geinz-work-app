@@ -52,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -61,6 +62,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
 import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -80,7 +82,12 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     val context = LocalContext.current
     val viewmodel_login: viewModel_login_user = viewModel()
     val registrado = viewmodel_login.registrado_boolean.observeAsState()
-    val registrado_google=viewmodel_login.registrado_google.observeAsState()
+    val registrado_google = viewmodel_login.registrado_google.observeAsState()
+    val usernameExiste by viewmodel_login._nombre_userexists.observeAsState(false)
+    var errorUsername by remember { mutableStateOf(false) }
+
+    var error_texto_username by remember { mutableStateOf("") }
+
     var correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(
             if (tipo_cuenta == "crear") "" else tipo_cuenta
@@ -92,6 +99,32 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
             if (tipo_cuenta == "crear") true else false
         )
     }
+    var username by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(username) {
+        val usernameSanitizado = username.replace(" ", "")
+
+        if (usernameSanitizado != username) {
+            username = usernameSanitizado
+            error_texto_username = "No puede contener espacios"
+            errorUsername = true
+            return@LaunchedEffect // no seguimos validando mientras haya espacios
+        }
+
+        // Solo validar si tiene más de 4 caracteres
+        if (usernameSanitizado.length > 3) {
+            delay(500) // debounce
+            errorUsername = true
+            viewmodel_login.verificar_exist_nombre_user(usernameSanitizado)
+            error_texto_username = if (usernameExiste) "Nombre de usuario ya existe" else ""
+//        } else {
+//            // si es muy corto
+//            errorUsername = true
+//            error_texto_username = "Debe tener al menos 5 caracteres"
+//        }
+        }
+    }
+
 
     LaunchedEffect(registrado.value) {
         if (registrado.value == true) {
@@ -112,7 +145,6 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     var phone by rememberSaveable { mutableStateOf("") }
     var nombre by rememberSaveable { mutableStateOf("") }
     var apellido by rememberSaveable { mutableStateOf("") }
-    var username by rememberSaveable { mutableStateOf("") }
     var genero by rememberSaveable { mutableStateOf("") }
     var localidad by rememberSaveable { mutableStateOf("") }
     var fechaNacimiento by rememberSaveable { mutableStateOf("") }
@@ -121,7 +153,6 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
 
     var errorNombre by remember { mutableStateOf(false) }
     var errorApellido by remember { mutableStateOf(false) }
-    var errorUsername by remember { mutableStateOf(false) }
     var errorCorreo by remember { mutableStateOf(false) }
     var errorGenero by remember { mutableStateOf(false) }
     var errorLocalidad by remember { mutableStateOf(false) }
@@ -129,6 +160,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     var errorTelefono by remember { mutableStateOf(false) }
     var error_pass1 by remember { mutableStateOf(false) }
     var error_pass2 by remember { mutableStateOf(false) }
+
 
     LazyColumn(
         modifier = Modifier.padding(10.dp)
@@ -185,10 +217,12 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         item {
             MyOutlinedTextField(
                 value = username,
-                onValueChange = { username = it },
+                onValueChange = {
+                    username = it
+                },
                 labelText = "Nombre de usuario",
                 placeholderText = "Escribe tu nombre de usuario",
-                texto_error = "El campo es obligatorio",
+                texto_error = error_texto_username,
                 isError = errorUsername
             )
         }
@@ -350,57 +384,6 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
 
     }
 }
-
-@Composable
-fun MyOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    labelText: String = "Label",
-    placeholderText: String = "Escribe aquí",
-    texto_error: String = "",
-    isError: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false,
-    enabled: Boolean = true
-) {
-    Column {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
-            shape = RoundedCornerShape(30),
-            label = { Text(text = labelText) },
-            placeholder = { Text(text = placeholderText) },
-            trailingIcon = {
-                if (isError) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Error",
-                        tint = Color.Red
-                    )
-                }
-            },
-            enabled = enabled,
-            textStyle = MaterialTheme.typography.bodyMedium,
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            )
-        )
-        AnimatedVisibility(isError) {
-            retornar_pleaceholder_label(texto_error, Color.Red)
-        }
-    }
-}
-
 
 @Composable
 fun PhoneNumberWithPicker(

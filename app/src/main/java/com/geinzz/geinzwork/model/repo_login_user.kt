@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.model
 
+import android.R
 import android.content.Context
 import android.os.Build
 import android.util.Log
@@ -8,9 +9,11 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
@@ -23,37 +26,76 @@ class repo_login_user {
     val collection_user =
         db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("users")
 
+    fun logear_user(
+        correoRaw: String,
+        password: String,
+        result: (Boolean, String) -> Unit
+    ) {
+        val auth = FirebaseAuth.getInstance()
+        val correo = correoRaw.trim()
 
-    fun logear_user(correo: String, password: String, logeado: (Boolean, String) -> Unit) {
-        firebaseAuth = FirebaseAuth.getInstance()
+        auth.signInWithEmailAndPassword(correo, password)
+            .addOnCompleteListener { loginTask ->
+                buscar_correo(correo) { existe ->
+                    if (!existe) {
+                        result(false, "correo_no_existe")
+                        return@buscar_correo
+                    }
 
-        firebaseAuth.signInWithEmailAndPassword(correo, password).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val user = firebaseAuth.currentUser
-                Log.d("Auth", "Usuario logueado: ${user?.email}")
-                logeado(true, "logeado")
-            } else {
-                task.exception?.let {
-                    when (it) {
-                        is FirebaseAuthInvalidUserException -> {
-                            Log.e("Auth", "El correo no está registrado")
-                            logeado(false, "Correo no registrado")
-                        }
+                    if (loginTask.isSuccessful) {
+                        result(true, "logeado")
+                    } else {
+                        val ex = loginTask.exception
+                        Log.e(
+                            "AUTH",
+                            "Login falló: ${ex?.javaClass?.name} - ${ex?.localizedMessage}"
+                        )
 
-                        is FirebaseAuthInvalidCredentialsException -> {
-                            Log.e("Auth", "Contraseña incorrecta")
-                            logeado(false, "Contraseña incorrecta")
-                        }
+                        when (ex) {
+                            is FirebaseAuthInvalidCredentialsException -> {
+                                result(false, "pass_incorrecta")
+                            }
 
-                        else -> {
-                            Log.e("Auth", "Error: ${it.message}")
+                            else -> result(false, ex?.message ?: "error_desconocido")
                         }
                     }
                 }
+
             }
-        }
 
     }
+
+
+    fun agregar_correo_registrado(id_user: String, correo: String) {
+        val ref =
+            db.collection("Trabajadores_Usuarios_Drivers").document("correos").collection("correos")
+                .document(id_user)
+        val hasmap = hashMapOf<String, Any>(
+            "correo" to correo
+        )
+        ref.set(hasmap, SetOptions.merge())
+            .addOnSuccessListener { Log.d("correo", "correo_guardado_correctamente") }
+            .addOnFailureListener { e ->
+                Log.d("correo", "error al guardar el correo")
+            }
+    }
+
+    fun buscar_correo(correo: String, onResult: (Boolean) -> Unit) {
+        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("correos")
+            .collection("correos")
+
+        ref.whereEqualTo("correo", correo)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val existe = !querySnapshot.isEmpty
+                onResult(existe)
+            }
+            .addOnFailureListener {
+                onResult(false)
+            }
+    }
+
 
     fun agregar_user(login_user: login_user, context: Context, terminado: (Boolean) -> Unit) {
         val firebaseAuth = FirebaseAuth.getInstance()
@@ -83,7 +125,7 @@ class repo_login_user {
                                 "Usuario registrado correctamente con UID: ${user.uid}"
                             )
 
-                            // agregar dispositivo vinculado usando el UID
+                            agregar_correo_registrado(user.uid, login_user.correo)
                             agregar_dispo_viculado(user.uid, context)
 
                             Toast.makeText(
@@ -112,8 +154,6 @@ class repo_login_user {
                 Log.e("REGISTRO_USER", "Error al crear usuario en FirebaseAuth: ${e.message}")
             }
     }
-
-
     fun agregar_user_google(
         login_google: login_google,
         context: Context,
@@ -137,6 +177,7 @@ class repo_login_user {
                 "REGISTRO_USER",
                 "Campo id_user actualizado correctamente con: ${login_google.id}"
             )
+
             cuenta_creada(true)
             agregar_dispo_viculado(login_google.id, context)
         }.addOnFailureListener { e ->
@@ -144,6 +185,19 @@ class repo_login_user {
             Log.e("REGISTRO_USER", "Error al crear usuario en FirebaseAuth: ${e.message}")
         }
 
+    }
+
+    fun buscar_nombre_user(nombre_user_escrito: String,existe_nombre:(Boolean)-> Unit) {
+        val ref = db.collection("Trabajadores_Usuarios_Drivers").document("nombres_user")
+            .collection("nombres_user").whereEqualTo("nombres_user", nombre_user_escrito)
+        ref.get()
+            .addOnSuccessListener { querySnapshot ->
+                val existe = !querySnapshot.isEmpty
+                existe_nombre(existe)
+            }
+            .addOnFailureListener { e ->
+                existe_nombre(false)
+            }
     }
 
     private fun agregar_dispo_viculado(id_user: String, context: Context) {
@@ -173,7 +227,6 @@ class repo_login_user {
     }
 
     private fun obtener_token_FCM(token_user: (String) -> Unit) {
-
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -47,11 +48,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.LoginState
+import com.geinzz.geinzwork.viewModels.LoginState_inicio
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -158,9 +161,7 @@ fun IniciarSeccion(
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             }
 
-            null -> {
-                // estado inicial, nada
-            }
+            null -> {}
         }
     }
 }
@@ -173,52 +174,69 @@ fun crear_cuenta(
     navController: NavController,
     listener_Crear_cuenta: () -> Unit,
     listener_continuar_con_google: () -> Unit,
-
 ) {
     val context = LocalContext.current
-
-    val loginState by viewmodelLoginUser.loginState.observeAsState()
+    var password by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var error_correo by remember { mutableStateOf(false) }
+    var error_pass by remember { mutableStateOf(false) }
+    var texto_error_correo by remember { mutableStateOf("") }
+    var texto_error_contra by remember { mutableStateOf("") }
+    val loginState by viewmodelLoginUser.loginStateCamposInicial.observeAsState()
 
     LaunchedEffect(loginState) {
         when (val state = loginState) {
-            is LoginState.Success -> {
+            is LoginState_inicio.Succes -> {
                 Toast.makeText(context, "Bienvenido ${state.name}", Toast.LENGTH_SHORT).show()
                 navController.navigate("pantalla_principal") {
                     popUpTo("login_principal") { inclusive = true }
                 }
             }
-            is LoginState.Error -> {
-                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+            is LoginState_inicio.error -> {
+                when(state.tipo){
+                    "correo_no_existe"->{
+                        error_correo=true
+                        texto_error_correo=state.msje
+                        viewmodelLoginUser.resetLoginState()
+                    }
+                    "pass_incorrecta"->{
+                        error_pass=true
+                        texto_error_contra=state.msje
+                        viewmodelLoginUser.resetLoginState()
+                    }
+                    else->{}
+                }
             }
-            LoginState.Loading -> {
-                // puedes mostrar un loading si quieres
-            }
+            LoginState_inicio.Loading -> {}
             null -> Unit
         }
     }
 
     Column(modifier = modifier) {
-        var password by remember { mutableStateOf("") }
-        var correo by remember { mutableStateOf("") }
-        var error_correo by remember { mutableStateOf(false) }
-        var error_pass by remember { mutableStateOf(false) }
-
         MyOutlinedTextField(
             value = correo,
-            onValueChange = { correo = it },
+            onValueChange = { correo = it
+                if (error_correo) {
+                    error_correo = false
+                }},
             labelText = "Correo electrónico",
             placeholderText = "Escribe tu correo electrónico",
+            texto_error = texto_error_correo,
             keyboardType = KeyboardType.Email,
             isError = error_correo,
         )
 
         MyOutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { password = it
+                if (error_pass) {
+                    error_pass = false
+                }},
             labelText = "Escriba su contraseña",
             placeholderText = "Escriba su contraseña",
-            texto_error = "El campo es obligatorio",
-            isError = error_pass
+            texto_error = texto_error_contra,
+            isError = error_pass,
+
         )
         Button(onClick = { viewmodelLoginUser.logear_user(correo, password) }) {
             texto_generico_one_line("Iniciar seccion")

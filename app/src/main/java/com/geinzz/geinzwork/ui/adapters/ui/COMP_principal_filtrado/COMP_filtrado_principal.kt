@@ -62,6 +62,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.material.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -69,6 +71,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -694,11 +699,60 @@ fun carta_filtrado_localidades(
 
 @Composable
 fun localidad_Selecionada() {
-
     Image(
         painter = painterResource(R.drawable.localidad_icon_general),
         contentDescription = "",
         modifier = Modifier.size(17.dp)
     )
+}
 
+
+@Composable
+fun MyOutlinedTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    labelText: String = "Label",
+    placeholderText: String = "Escribe aquí",
+    texto_error: String = "",
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false,
+    enabled: Boolean = true
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
+            shape = RoundedCornerShape(30),
+            label = { Text(text = labelText) },
+            placeholder = { Text(text = placeholderText) },
+            trailingIcon = {
+                if (isError) {
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Error",
+                        tint = Color.Red
+                    )
+                }
+            },
+            enabled = enabled,
+            textStyle = MaterialTheme.typography.bodyMedium,
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
+        )
+        AnimatedVisibility(isError) {
+            retornar_pleaceholder_label(texto_error, Color.Red)
+        }
+    }
 }
