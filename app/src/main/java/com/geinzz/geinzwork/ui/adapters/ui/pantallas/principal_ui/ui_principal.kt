@@ -126,7 +126,7 @@ fun PantallaExplorarTiendas(
     var mostrar_fab by remember { mutableStateOf(false) }
     mostrar_fab = listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 10
     val coroutineScope = rememberCoroutineScope()
-    val localidadSeleccionada = remember { mutableStateOf("") }
+    val localidadSeleccionada = rememberSaveable { mutableStateOf("") }
 
     val primeraVez = remember { mutableStateOf(true) }
     var fraces_localidad by remember { mutableStateOf(listOf("Espere un momento...")) }

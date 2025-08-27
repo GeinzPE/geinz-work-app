@@ -58,12 +58,15 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
@@ -142,7 +145,11 @@ fun estados_tiendas(estado: String, color_estado: Color) {
 
 @Composable
 fun tags_subcateogiras(lista_tags: List<String>) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+    LazyRow(modifier = Modifier.pointerInput(Unit) {
+        detectHorizontalDragGestures { change, dragAmount ->
+            change.consume()
+        }
+    }, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         items(lista_tags) { cap ->
             Box(
                 modifier = Modifier
@@ -185,7 +192,7 @@ fun ColumnContenedorComun(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+            .clip(RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
             .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -634,7 +641,10 @@ fun carta_filtrado_localidades(
     listener: (String) -> Unit
 ) {
     val randomImg = remember(img) { img.randomOrNull() }
-
+    val borderColor by animateColorAsState(
+        if (defecto_selecionado) MaterialTheme.colorScheme.primary else Color.Transparent,
+        animationSpec = tween(durationMillis = 300)
+    )
     Box(
         modifier = Modifier
             .width(ancho)
@@ -643,6 +653,11 @@ fun carta_filtrado_localidades(
             .clickable {
                 listener(nombre_localidad)
             }
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(rounder)
+            )
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -660,11 +675,16 @@ fun carta_filtrado_localidades(
             contentScale = ContentScale.Crop
         )
         mascara_img(rounder, alto, ancho)
+        val titulo = if (defecto_selecionado) {
+            "Estás aquí 👋"
+        } else {
+            "explorar"
+        }
         texto_encimado_cartas(
             defecto_selecionado,
             modifier = Modifier.align(Alignment.BottomStart),
             nombre_localidad.uppercase(),
-            "conocer".uppercase(),
+            titulo.uppercase(),
         )
 
 
@@ -674,9 +694,11 @@ fun carta_filtrado_localidades(
 
 @Composable
 fun localidad_Selecionada() {
-    Box(
-        modifier = Modifier
-            .clip(CircleShape).size(10.dp)
-            .background(Color.Green)
+
+    Image(
+        painter = painterResource(R.drawable.localidad_icon_general),
+        contentDescription = "",
+        modifier = Modifier.size(17.dp)
     )
+
 }

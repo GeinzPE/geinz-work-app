@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -100,16 +101,14 @@ fun pantalla_principal(
         emptyList()
     )
     var nombre_user: String by rememberSaveable { mutableStateOf("") }
-    var localida_user: String by rememberSaveable { mutableStateOf("") }
     var img_perfil by rememberSaveable { mutableStateOf("") }
 
     if (firebaseAuth.currentUser != null) {
         nombre_user = datos_user?.nombre ?: "Usuario"
-        localida_user = datos_user?.localida ?: "Barranca"
         img_perfil = datos_user?.img_perfil ?: ""
     } else {
         nombre_user = "Usuario"
-        localida_user = "Barranca"
+
         img_perfil = ""
     }
 
@@ -261,14 +260,21 @@ fun apartado_categorias_tiendas(
             )
 
             mascara_img(rounder, alto, ancho)
-
-            texto_categorias(
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(10.dp),
-                nombre_categoria,
-                expandir_subcategorias
-            ) { expandir_subcategorias = !expandir_subcategorias }
+                    .padding(10.dp)
+            ) {
+                Column () {
+                    texto_categorias(nombre_categoria)
+                    spacer_vertical(10.dp)
+                    tags_subcateogiras(lista_subcateogiras)
+
+                }
+
+            }
+
+
         }
 
         AnimatedVisibility(expandir_subcategorias) {
@@ -287,41 +293,40 @@ fun apartado_categorias_tiendas(
 
 @Composable
 fun texto_categorias(
-    modifier: Modifier,
+//    modifier: Modifier,
     nombre_categoria: String,
-    expandido: Boolean,
-    onClickExpand: () -> Unit
+
 ) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+//    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         texto_generico_one_line(
             nombre_categoria.uppercase(), MaterialTheme.typography.titleSmall,
             Modifier
-                .weight(1f)
+//                .weight(1f)
                 .padding(end = 10.dp)
         )
-        FloatingActionButton(
-            modifier = Modifier
-                .size(30.dp)
-                .clip(CircleShape),
-            onClick = { onClickExpand() },
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 10.dp
-            ),
-            containerColor = MaterialTheme.colorScheme.primary,
-        ) {
-            Image(
-                modifier = Modifier.size(20.dp),
-                painter = painterResource(
-                    constantes_lista_localidades.cambiar_icono_exapndible(
-                        expandido
-                    )
-                ),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White)
-            )
-        }
-    }
+//        FloatingActionButton(
+//            modifier = Modifier
+//                .size(30.dp)
+//                .clip(CircleShape),
+//            onClick = { onClickExpand() },
+//            elevation = FloatingActionButtonDefaults.elevation(
+//                defaultElevation = 6.dp,
+//                pressedElevation = 10.dp
+//            ),
+//            containerColor = MaterialTheme.colorScheme.primary,
+//        ) {
+//            Image(
+//                modifier = Modifier.size(20.dp),
+//                painter = painterResource(
+//                    constantes_lista_localidades.cambiar_icono_exapndible(
+//                        expandido
+//                    )
+//                ),
+//                contentDescription = "",
+//                colorFilter = ColorFilter.tint(Color.White)
+//            )
+//        }
+//    }
 }
 
 
@@ -348,10 +353,15 @@ fun texto_encimado_cartas(
                 }
             }
             spacer_vertical(5.dp)
-            TextoSubrayado(
-                descripcion,
-                MaterialTheme.typography.bodySmall, modifier = Modifier
-            )
+            Crossfade(
+                targetState = descripcion,
+                animationSpec = tween(durationMillis = 500) // O la duración que prefieras
+            ) { textoAnimado ->
+                TextoSubrayado(
+                    textoAnimado.uppercase(), // Usamos el texto animado y lo convertimos a mayúsculas
+                    MaterialTheme.typography.bodySmall, modifier = Modifier
+                )
+            }
         }
 
     }
@@ -395,14 +405,10 @@ fun filtrado_localidades(
         localidad_defecto = ultimaLocalidad
     }
 
+
+
     Column {
         spacer_vertical(10.dp)
-        texto_generico_one_line(
-            "Explora",
-            MaterialTheme.typography.textosTituloGeinzWork,
-            modifier = Modifier.weight(1f)
-        )
-        spacer_vertical(5.dp)
         LazyRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -412,13 +418,12 @@ fun filtrado_localidades(
                     defecto_selecionado = localidad_defecto.equals(items.nombre, ignoreCase = true),
                     items.nombre,
                     items.lista_img,
-                    10,
+                    5,
                     300.dp,
                     300.dp
                 ) { nombre_localidad ->
                     localidad_defecto = nombre_localidad
                     nombre_localidad_selecionado(nombre_localidad)
-
                     scope.launch {
                         data_store_localidad.guardar_localida(context, nombre_localidad)
                     }

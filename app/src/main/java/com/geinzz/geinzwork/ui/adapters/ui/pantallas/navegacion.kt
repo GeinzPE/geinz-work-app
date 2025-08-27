@@ -78,11 +78,11 @@ fun nativationWrapper(
             // Login
             composable("login_principal") {
                 if (firebaseAuth.currentUser != null) {
-                    cuenta_user()
+                    cuenta_user(navController)
                 } else {
-                    IniciarSeccion({ tipo_cuenta ->
+                    IniciarSeccion(navController,{ tipo_cuenta ->
                         navController.navigate(crear_cuenta_geinz(tipo_cuenta))
-                    }, {}, {})
+                    })
                 }
             }
 

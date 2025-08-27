@@ -1,23 +1,16 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.model.repo_login_user
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.launch
 
 class viewModel_login_user : ViewModel() {
     val repo_agregar_user = repo_login_user()
@@ -31,10 +24,12 @@ class viewModel_login_user : ViewModel() {
 
     val registrado_boolean: LiveData<Boolean> get() = _registrado
 
-
     private val _registrado_google = MutableLiveData<Boolean>()
 
     val registrado_google: LiveData<Boolean> get() = _registrado_google
+
+    private val login_registrado = MutableLiveData<Boolean>()
+    val _login_registrado: LiveData<Boolean> get() = login_registrado
     fun agregar_user(login_user: login_user, context: Context) {
         try {
             repo_agregar_user.agregar_user(login_user, context) { registrado ->
@@ -72,6 +67,27 @@ class viewModel_login_user : ViewModel() {
                 }
             }
     }
+
+    fun logear_user(correo: String, password: String) {
+        _loginState.value = LoginState.Loading
+        try {
+            repo_agregar_user.logear_user(correo, password) { registrado, texto_registrado ->
+                if (registrado) {
+                    val user = auth.currentUser
+                    _loginState.value = LoginState.Success(
+                        email = user?.email ?: correo,
+                        name = user?.displayName,
+                        photoUrl = user?.photoUrl?.toString()
+                    )
+                } else {
+                    _loginState.value = LoginState.Error("Correo o contraseña incorrectos")
+                }
+            }
+        } catch (e: Exception) {
+            _loginState.value = LoginState.Error(e.message)
+        }
+    }
+
 }
 
 sealed class LoginState {

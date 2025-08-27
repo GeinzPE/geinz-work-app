@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.runtime.Composable
@@ -40,12 +41,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.LoginState
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -60,9 +64,8 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun IniciarSeccion(
+    navController : NavController,
     listener_Crear_cuenta: (String) -> Unit,
-    listener_iniciar_seccion: () -> Unit,
-    listener_continuar_con_google: () -> Unit
 ) {
     val context = LocalContext.current
     val viewmodel_login: viewModel_login_user = viewModel()
@@ -109,12 +112,13 @@ fun IniciarSeccion(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(40.dp),
+                    .blur(10.dp),
                 contentScale = ContentScale.Crop
             )
         }
         Box(
-            modifier = Modifier.blur(40.dp)
+            modifier = Modifier
+                .blur(40.dp)
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
@@ -128,15 +132,13 @@ fun IniciarSeccion(
                     )
                 )
         )
-
-
         crear_cuenta(
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp),
+                .padding(bottom = 20.dp), viewmodel_login, navController,
             { listener_Crear_cuenta("crear") },
-            {  },
-            { val signInIntent = googleSignInClient.signInIntent
+            {
+                val signInIntent = googleSignInClient.signInIntent
                 launcher.launch(signInIntent)
             }
         )
@@ -167,12 +169,61 @@ fun IniciarSeccion(
 @Composable
 fun crear_cuenta(
     modifier: Modifier,
+    viewmodelLoginUser: viewModel_login_user,
+    navController: NavController,
     listener_Crear_cuenta: () -> Unit,
-    listener_iniciar_seccion: () -> Unit,
-    listener_continuar_con_google: () -> Unit
+    listener_continuar_con_google: () -> Unit,
+
 ) {
+    val context = LocalContext.current
+
+    val loginState by viewmodelLoginUser.loginState.observeAsState()
+
+    LaunchedEffect(loginState) {
+        when (val state = loginState) {
+            is LoginState.Success -> {
+                Toast.makeText(context, "Bienvenido ${state.name}", Toast.LENGTH_SHORT).show()
+                navController.navigate("pantalla_principal") {
+                    popUpTo("login_principal") { inclusive = true }
+                }
+            }
+            is LoginState.Error -> {
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+            }
+            LoginState.Loading -> {
+                // puedes mostrar un loading si quieres
+            }
+            null -> Unit
+        }
+    }
+
     Column(modifier = modifier) {
-        btn_secciones("Iniciar seccion", R.drawable.sin_item_carrito) { listener_iniciar_seccion() }
+        var password by remember { mutableStateOf("") }
+        var correo by remember { mutableStateOf("") }
+        var error_correo by remember { mutableStateOf(false) }
+        var error_pass by remember { mutableStateOf(false) }
+
+        MyOutlinedTextField(
+            value = correo,
+            onValueChange = { correo = it },
+            labelText = "Correo electrónico",
+            placeholderText = "Escribe tu correo electrónico",
+            keyboardType = KeyboardType.Email,
+            isError = error_correo,
+        )
+
+        MyOutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            labelText = "Escriba su contraseña",
+            placeholderText = "Escriba su contraseña",
+            texto_error = "El campo es obligatorio",
+            isError = error_pass
+        )
+        Button(onClick = { viewmodelLoginUser.logear_user(correo, password) }) {
+            texto_generico_one_line("Iniciar seccion")
+        }
+
         spacer_vertical(10.dp)
         btn_secciones(
             "Continuar con Google",
@@ -193,7 +244,7 @@ fun btn_secciones(texto: String, icono: Int = 0, listener_btn: () -> Unit) {
             Icon(
                 painter = painterResource(icono),
                 contentDescription = "",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp), tint = Color.Unspecified
             )
         }
     )

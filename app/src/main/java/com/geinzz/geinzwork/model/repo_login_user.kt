@@ -9,6 +9,8 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_vinculados
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
@@ -21,6 +23,37 @@ class repo_login_user {
     val collection_user =
         db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("users")
 
+
+    fun logear_user(correo: String, password: String, logeado: (Boolean, String) -> Unit) {
+        firebaseAuth = FirebaseAuth.getInstance()
+
+        firebaseAuth.signInWithEmailAndPassword(correo, password).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val user = firebaseAuth.currentUser
+                Log.d("Auth", "Usuario logueado: ${user?.email}")
+                logeado(true, "logeado")
+            } else {
+                task.exception?.let {
+                    when (it) {
+                        is FirebaseAuthInvalidUserException -> {
+                            Log.e("Auth", "El correo no está registrado")
+                            logeado(false, "Correo no registrado")
+                        }
+
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            Log.e("Auth", "Contraseña incorrecta")
+                            logeado(false, "Contraseña incorrecta")
+                        }
+
+                        else -> {
+                            Log.e("Auth", "Error: ${it.message}")
+                        }
+                    }
+                }
+            }
+        }
+
+    }
 
     fun agregar_user(login_user: login_user, context: Context, terminado: (Boolean) -> Unit) {
         val firebaseAuth = FirebaseAuth.getInstance()
