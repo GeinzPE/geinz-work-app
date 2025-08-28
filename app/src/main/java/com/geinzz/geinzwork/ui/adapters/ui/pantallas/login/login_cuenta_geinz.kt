@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -257,7 +258,9 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
 
 
     LazyColumn(
-        modifier = Modifier.padding(10.dp)
+        modifier = Modifier
+            .padding(10.dp)
+            .imePadding()
     ) {
         if (tipo_cuenta.equals("crear")) {
             item {
@@ -676,6 +679,13 @@ fun DateButton(error_fecha: Boolean, campo_error: String, fecha: (String) -> Uni
                     Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
                 }
             },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = if (error_fecha) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedLabelColor = if (error_fecha) Color.Red else MaterialTheme.colorScheme.primary
+            ),
             isError = error_fecha,
 
             shape = RoundedCornerShape(30)

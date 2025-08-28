@@ -1,7 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -753,12 +752,12 @@ fun MyOutlinedTextField(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
+                focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
             )
         )
         AnimatedVisibility(isError) {
-            val campo_error=if(texto_error.isEmpty())"El campo es obligatorio" else texto_error
+            val campo_error = if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
             retornar_pleaceholder_label(campo_error, Color.Red)
         }
     }
@@ -799,8 +798,8 @@ fun input_email_user_name(
             )
         )
         AnimatedVisibility(isError) {
-            val campo_error=if(texto_error.isEmpty())"El campo es obligatorio" else texto_error
-            Log.d("obtenos_erro",campo_error)
+            val campo_error = if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
+            Log.d("obtenos_erro", campo_error)
             retornar_pleaceholder_label(campo_error, Color.Red)
         }
     }
@@ -827,7 +826,7 @@ fun input_password(
             textStyle = MaterialTheme.typography.bodyMedium,
             shape = RoundedCornerShape(30),
             label = { Text("Ingresa tu contraseña") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if (contra_oculta) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
                 val icon = if (contra_oculta) {
@@ -837,6 +836,7 @@ fun input_password(
                 }
 
                 Icon(
+                    tint = MaterialTheme.colorScheme.onBackground,
                     imageVector = icon,
                     contentDescription = if (contra_oculta) "Mostrar contraseña" else "Ocultar contraseña",
                     modifier = Modifier.clickable { mostrar_ocultar_contra() }
@@ -851,7 +851,7 @@ fun input_password(
             )
         )
         AnimatedVisibility(isError) {
-            val campo_error=if(texto_error.isEmpty())"El campo es obligatorio" else texto_error
+            val campo_error = if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
             retornar_pleaceholder_label(campo_error, Color.Red)
         }
     }
