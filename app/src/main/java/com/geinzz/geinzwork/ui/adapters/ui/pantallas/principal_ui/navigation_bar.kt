@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -81,7 +82,7 @@ fun bottom_navigation(navController: NavController) {
 
             items.forEachIndexed { index, item ->
                 if (index == 2) {
-                    Spacer(modifier = Modifier.width(80.dp))
+                    Spacer(modifier = Modifier.width(50.dp))
                 }
 
                 Geinz_bottom_var(
@@ -97,7 +98,7 @@ fun bottom_navigation(navController: NavController) {
             }
         }
 
-        val navigationBarHeight = 80.dp
+        val navigationBarHeight = 100.dp
 
         FloatingActionButton(
             onClick = { startScanner.launch(ScanOptions()) },
@@ -106,7 +107,7 @@ fun bottom_navigation(navController: NavController) {
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(y = -(navigationBarHeight / 2))
+                .offset(y = -(navigationBarHeight / 2)).size(60.dp)
         ) {
             Icon(
                 painter = painterResource(R.drawable.qr_scaner_icon),
@@ -177,7 +178,7 @@ fun RowScope.Geinz_bottom_var(navItem: nav_item, selecionado: Boolean, clikeado:
         selected = selecionado,
         onClick = { clikeado() },
         icon = { Icon(imageVector = navItem.icon, contentDescription = "") },
-        label = { texto_generico_one_line(navItem.nombre_item) },
+        label = { texto_generico_one_line(navItem.nombre_item, MaterialTheme.typography.bodyMedium) },
         alwaysShowLabel = true,
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = Color.White,

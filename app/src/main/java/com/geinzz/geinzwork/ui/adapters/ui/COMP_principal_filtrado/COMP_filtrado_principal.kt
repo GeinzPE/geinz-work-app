@@ -663,11 +663,11 @@ fun carta_filtrado_localidades(
             .clickable {
                 listener(nombre_localidad)
             }
-            .border(
-                width = 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(rounder)
-            )
+//            .border(
+//                width = 1.dp,
+//                color = borderColor,
+//                shape = RoundedCornerShape(rounder)
+//            )
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)

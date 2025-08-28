@@ -196,7 +196,7 @@ fun apartado_explora_cat(
     spacer_vertical(10.dp)
     Column {
         titulo_referenciales_geinz_work(
-            "Explora $localidad_selecionada",
+            "Explora $localidad_selecionada".uppercase(),
             "Ver todos"
         ) { categorias1(nombre_user, localidad_selecionada ?: "barranca") }
         spacer_vertical(10.dp)
@@ -342,7 +342,7 @@ fun texto_encimado_cartas(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 texto_generico_multilinea(
                     titulo,
-                    MaterialTheme.typography.titleMedium
+                    MaterialTheme.typography.titleLarge
                 )
                 spacer_horizonta(5.dp)
                 AnimatedVisibility(
@@ -357,7 +357,7 @@ fun texto_encimado_cartas(
                 targetState = descripcion,
                 animationSpec = tween(durationMillis = 500) // O la duración que prefieras
             ) { textoAnimado ->
-                TextoSubrayado(
+                texto_generico_one_line(
                     textoAnimado.uppercase(), // Usamos el texto animado y lo convertimos a mayúsculas
                     MaterialTheme.typography.bodySmall, modifier = Modifier
                 )
