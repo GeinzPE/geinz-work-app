@@ -246,20 +246,7 @@ fun crear_cuenta(
                     error_pass = false
                 }
             })
-//        MyOutlinedTextField(
-//            value = password,
-//            onValueChange = {
-//                password = it
-//                if (error_pass) {
-//                    error_pass = false
-//                }
-//            },
-//            labelText = "Escriba su contraseña",
-//            placeholderText = "Escriba su contraseña",
-//            texto_error = texto_error_contra,
-//            isError = error_pass,
-//
-//            )
+
         Button(onClick = { viewmodelLoginUser.logear_user(correo, password) }) {
             texto_generico_one_line("Iniciar seccion")
         }

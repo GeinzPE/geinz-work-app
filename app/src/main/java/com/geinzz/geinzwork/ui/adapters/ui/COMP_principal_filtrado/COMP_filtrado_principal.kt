@@ -55,6 +55,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -757,7 +758,8 @@ fun MyOutlinedTextField(
             )
         )
         AnimatedVisibility(isError) {
-            retornar_pleaceholder_label(texto_error, Color.Red)
+            val campo_error=if(texto_error.isEmpty())"El campo es obligatorio" else texto_error
+            retornar_pleaceholder_label(campo_error, Color.Red)
         }
     }
 }
@@ -797,7 +799,9 @@ fun input_email_user_name(
             )
         )
         AnimatedVisibility(isError) {
-            retornar_pleaceholder_label(texto_error, Color.Red)
+            val campo_error=if(texto_error.isEmpty())"El campo es obligatorio" else texto_error
+            Log.d("obtenos_erro",campo_error)
+            retornar_pleaceholder_label(campo_error, Color.Red)
         }
     }
 }
@@ -810,7 +814,6 @@ fun input_password(
     user_contra: String,
     mostrar_ocultar_contra: () -> Unit,
     valor_contra: (String) -> Unit
-
 ) {
     Column {
 
@@ -848,7 +851,8 @@ fun input_password(
             )
         )
         AnimatedVisibility(isError) {
-            retornar_pleaceholder_label(texto_error, Color.Red)
+            val campo_error=if(texto_error.isEmpty())"El campo es obligatorio" else texto_error
+            retornar_pleaceholder_label(campo_error, Color.Red)
         }
     }
 }

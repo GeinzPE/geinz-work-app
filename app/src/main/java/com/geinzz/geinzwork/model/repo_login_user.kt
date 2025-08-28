@@ -116,7 +116,8 @@ class repo_login_user {
                         "localida" to login_user.localidad,
                         "fecha_registrada" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
                         "fecha_nac" to login_user.fecha_nac,
-                        "id_user" to user.uid
+                        "id_user" to user.uid,
+                        "nombre_pais_numero" to login_user.nacionalidad_numero
                     )
 
                     collection_user.document(user.uid).set(hasmp)
@@ -173,7 +174,8 @@ class repo_login_user {
             "localida" to login_google.localidad,
             "fecha_registrada" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
             "fecha_nac" to login_google.fecha_nac,
-            "id_user" to login_google.id
+            "id_user" to login_google.id,
+            "nombre_pais_numero" to login_google.nacionalidad_numero
         )
         collection_user.document(login_google.id).set(hasmap).addOnSuccessListener {
             Log.d(
