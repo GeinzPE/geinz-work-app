@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,9 +16,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.IconButton
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -53,10 +57,13 @@ import androidx.navigation.NavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_email_user_name
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.firebase.auth.FirebaseAuth
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
@@ -84,47 +91,113 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     val registrado = viewmodel_login.registrado_boolean.observeAsState()
     val registrado_google = viewmodel_login.registrado_google.observeAsState()
     val usernameExiste by viewmodel_login._nombre_userexists.observeAsState(false)
-    var errorUsername by remember { mutableStateOf(false) }
-
-    var error_texto_username by remember { mutableStateOf("") }
-
     var correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(
             if (tipo_cuenta == "crear") "" else tipo_cuenta
         )
     }
-
     var enable_correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(
             if (tipo_cuenta == "crear") true else false
         )
     }
+    var phone by rememberSaveable { mutableStateOf("") }
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var apellido by rememberSaveable { mutableStateOf("") }
+    var genero by rememberSaveable { mutableStateOf("") }
+    var localidad by rememberSaveable { mutableStateOf("") }
+    var fechaNacimiento by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var password2 by rememberSaveable { mutableStateOf("") }
+    var error_texto_username by remember { mutableStateOf("") }
     var username by rememberSaveable { mutableStateOf("") }
+    var  error_texto_correo by remember { mutableStateOf("") }
 
-    LaunchedEffect(username) {
-        val usernameSanitizado = username.replace(" ", "")
+    var errorNombre by remember { mutableStateOf(false) }
+    var errorApellido by remember { mutableStateOf(false) }
+    var errorCorreo by remember { mutableStateOf(false) }
+    var errorGenero by remember { mutableStateOf(false) }
+    var errorLocalidad by remember { mutableStateOf(false) }
+    var errorFechaNacimiento by remember { mutableStateOf(false) }
+    var errorTelefono by remember { mutableStateOf(false) }
+    var error_pass1 by remember { mutableStateOf(false) }
+    var error_pass2 by remember { mutableStateOf(false) }
+    var errorUsername by remember { mutableStateOf(false) }
 
-        if (usernameSanitizado != username) {
-            username = usernameSanitizado
-            error_texto_username = "No puede contener espacios"
-            errorUsername = true
-            return@LaunchedEffect // no seguimos validando mientras haya espacios
-        }
+    var nombreTocado by remember { mutableStateOf(false) }
+    var apellido_tocado by remember { mutableStateOf(false) }
+    val genero_tocado by remember { mutableStateOf(false) }
+    val localidad_tocado by remember { mutableStateOf(false) }
+    val fecha_tocada by remember { mutableStateOf(false) }
+    var correo_tocado by remember { mutableStateOf(false) }
+    var contra1_tocado by remember { mutableStateOf(false) }
+    var contra2_tocado by remember { mutableStateOf(false) }
 
-        // Solo validar si tiene más de 4 caracteres
-        if (usernameSanitizado.length > 3) {
-            delay(500) // debounce
-            errorUsername = true
-            viewmodel_login.verificar_exist_nombre_user(usernameSanitizado)
-            error_texto_username = if (usernameExiste) "Nombre de usuario ya existe" else ""
-//        } else {
-//            // si es muy corto
-//            errorUsername = true
-//            error_texto_username = "Debe tener al menos 5 caracteres"
-//        }
+    var cargandoUsername by remember { mutableStateOf(false) }
+    var username_tocado by remember { mutableStateOf(false) }
+
+    var error_texto_pass1 by remember { mutableStateOf("") }
+    var error_texto_pass2 by remember { mutableStateOf("") }
+
+    errorNombre = nombreTocado && nombre.length == 0
+    errorApellido = apellido_tocado && apellido.length == 0
+
+    // Validación inicial
+    errorCorreo = correo_tocado && correo.isEmpty()
+
+    LaunchedEffect(correo, correo_tocado) {
+        if (correo_tocado) {
+            if (correo.isEmpty()) {
+                errorCorreo = true
+                error_texto_correo = "El campo es obligatorio"
+            } else if (!constantes_lista_localidades.esGmailValido(correo)) {
+                errorCorreo = true
+                error_texto_correo = "Debe ser un correo Gmail válido"
+            } else {
+                errorCorreo = false
+                error_texto_correo = ""
+            }
         }
     }
 
+    // Función para validar correo
+
+
+
+
+    LaunchedEffect(username) {
+        // Primero validamos si el usuario ya tocó el campo y lo dejó vacío
+        if (username_tocado && username.isEmpty()) {
+            errorUsername = true
+            cargandoUsername = false
+            error_texto_username = "El campo es obligatorio"
+            return@LaunchedEffect
+        }
+
+        // Verificamos si hay espacios
+        if (username.contains(" ")) {
+            error_texto_username = "No puede contener espacios"
+            errorUsername = true
+            return@LaunchedEffect
+        }
+
+        // Solo validar si tiene más de 3 caracteres
+        if (username.length > 3) {
+            cargandoUsername = true
+            delay(500) // debounce
+            viewmodel_login.verificar_exist_nombre_user(username)
+            cargandoUsername = false
+        } else {
+            // No mostrar error si aún no está tocado o longitud insuficiente pero no vacío
+            errorUsername = false
+            error_texto_username = "Tiene que ser mayor a 3 letras"
+        }
+    }
+
+    LaunchedEffect(usernameExiste) {
+        error_texto_username = if (usernameExiste) "Nombre de usuario ya existe" else ""
+        errorUsername = usernameExiste
+    }
 
     LaunchedEffect(registrado.value) {
         if (registrado.value == true) {
@@ -142,24 +215,48 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         }
     }
 
-    var phone by rememberSaveable { mutableStateOf("") }
-    var nombre by rememberSaveable { mutableStateOf("") }
-    var apellido by rememberSaveable { mutableStateOf("") }
-    var genero by rememberSaveable { mutableStateOf("") }
-    var localidad by rememberSaveable { mutableStateOf("") }
-    var fechaNacimiento by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var password2 by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(password, password2, contra1_tocado, contra2_tocado) {
+        // Validar primer campo
+        if (contra1_tocado) {
+            when {
+                password.isEmpty() -> {
+                    error_pass1 = true
+                    error_texto_pass1 = "Este campo es obligatorio"
+                }
 
-    var errorNombre by remember { mutableStateOf(false) }
-    var errorApellido by remember { mutableStateOf(false) }
-    var errorCorreo by remember { mutableStateOf(false) }
-    var errorGenero by remember { mutableStateOf(false) }
-    var errorLocalidad by remember { mutableStateOf(false) }
-    var errorFechaNacimiento by remember { mutableStateOf(false) }
-    var errorTelefono by remember { mutableStateOf(false) }
-    var error_pass1 by remember { mutableStateOf(false) }
-    var error_pass2 by remember { mutableStateOf(false) }
+                password.length < 3 -> {
+                    error_pass1 = true
+                    error_texto_pass1 = "La contraseña debe tener al menos 3 caracteres"
+                }
+
+                else -> {
+                    error_pass1 = false
+                    error_texto_pass1 = ""
+                }
+            }
+        }
+
+        // Validar segundo campo
+        if (contra2_tocado) {
+            when {
+                password2.isEmpty() -> {
+                    error_pass2 = true
+                    error_texto_pass2 = "Este campo es obligatorio"
+                }
+
+                password != password2 -> {
+                    error_pass2 = true
+                    error_texto_pass2 = "Las contraseñas no coinciden"
+                }
+
+                else -> {
+                    error_pass2 = false
+                    error_texto_pass2 = ""
+                }
+            }
+        }
+    }
+
 
 
     LazyColumn(
@@ -193,37 +290,69 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         item {
             MyOutlinedTextField(
                 value = nombre,
-                onValueChange = { nombre = it },
+                onValueChange = {
+                    nombre = it
+                    if (!nombreTocado) {
+                        nombreTocado = true
+                    }
+                },
                 labelText = "Nombre",
                 placeholderText = "Escribe tu nombre completo",
                 texto_error = "El campo es obligatorio",
                 isError = errorNombre,
-
-                )
+            )
         }
         // Apellido
         item {
             MyOutlinedTextField(
                 value = apellido,
-                onValueChange = { apellido = it },
+                onValueChange = {
+                    apellido = it
+                    if (!apellido_tocado) {
+                        apellido_tocado = true
+                    }
+                },
                 labelText = "Apellido",
                 placeholderText = "Escribe tu apellido",
                 texto_error = "El campo es obligatorio",
                 isError = errorApellido,
-
-                )
+            )
         }
         // Nombre de usuario
         item {
-            MyOutlinedTextField(
+            input_email_user_name(
                 value = username,
                 onValueChange = {
                     username = it
+                    if (!username_tocado) {
+                        username_tocado = true
+                    }
                 },
                 labelText = "Nombre de usuario",
                 placeholderText = "Escribe tu nombre de usuario",
                 texto_error = error_texto_username,
-                isError = errorUsername
+                isError = errorUsername,
+                trailingIconContent = {
+                    when {
+                        cargandoUsername -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .padding(2.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        errorUsername -> {
+                            Icon(Icons.Filled.Error, "Error", tint = Color.Red)
+                        }
+
+                        username.length > 3 -> {
+                            Icon(Icons.Default.Check, "Correcto", tint = Color(0xFF4CAF50))
+                        }
+                    }
+                }
             )
         }
 
@@ -235,6 +364,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
             )
         }
         // Género
+
         item {
             ExpandDropDown(options_genero, "Seleciona tu genero") { genero_selecionado ->
                 genero = genero_selecionado
@@ -242,7 +372,10 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         }
         // Localidad
         item {
-            ExpandDropDown(opciones_localida, "Seleciona tu localidad") { localida_selecionada ->
+            ExpandDropDown(
+                opciones_localida,
+                "Seleciona tu localidad"
+            ) { localida_selecionada ->
                 localidad = localida_selecionada
             }
         }
@@ -256,8 +389,14 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         item {
             MyOutlinedTextField(
                 value = correo,
-                onValueChange = { correo = it },
+                onValueChange = {
+                    correo = it
+                    if (!correo_tocado) {
+                    correo_tocado = true
+                }
+                },
                 labelText = "Correo electrónico",
+                texto_error = error_texto_correo,
                 placeholderText = "Escribe tu correo electrónico",
                 keyboardType = KeyboardType.Email,
                 isError = errorCorreo,
@@ -269,11 +408,21 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
             item {
                 campos_correo_contra(
                     password = password,
-                    onPasswordChange = { password = it },
+                    onPasswordChange = {
+                        password = it
+                        if (!contra1_tocado) {
+                            contra1_tocado = true
+                        }
+                    },
                     password2 = password2,
-                    onPassword2Change = { password2 = it },
+                    onPassword2Change = {
+                        password2 = it
+                        if (!contra2_tocado) {
+                            contra2_tocado = true
+                        }
+                    },
                     error_pass1,
-                    error_pass2
+                    error_pass2, error_texto_pass1, error_texto_pass2
                 )
             }
         }
@@ -429,26 +578,44 @@ fun campos_correo_contra(
     password2: String,
     onPassword2Change: (String) -> Unit,
     error_pass1: Boolean,
-    error_pass2: Boolean
+    error_pass2: Boolean,
+    texto_error_pass1: String,
+    texto_error_pass2: String
 ) {
-    Column {
+    var contra_oculta by rememberSaveable { mutableStateOf(true) }
+    var contra_oculta2 by rememberSaveable { mutableStateOf(true) }
 
-        MyOutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            labelText = "Escriba su contraseña",
-            placeholderText = "Escriba su contraseña",
-            texto_error = "El campo es obligatorio",
-            isError = error_pass1
-        )
-        MyOutlinedTextField(
-            value = password2,
-            onValueChange = onPassword2Change,
-            labelText = "Repita su contraseña",
-            placeholderText = "Repita su contraseña",
-            texto_error = "El campo es obligatorio",
-            isError = error_pass2
-        )
+    Column {
+        input_password(
+            contra_oculta,
+            error_pass1, texto_error_pass1,
+            password,
+            { contra_oculta = !contra_oculta },
+            { it -> onPasswordChange(it) })
+
+        input_password(
+            contra_oculta2,
+            error_pass2, texto_error_pass2,
+            password2,
+            { contra_oculta2 = !contra_oculta2 },
+            { it -> onPassword2Change(it) })
+
+//        MyOutlinedTextField(
+//            value = password,
+//            onValueChange = onPasswordChange,
+//            labelText = "Escriba su contraseña",
+//            placeholderText = "Escriba su contraseña",
+//            texto_error = "El campo es obligatorio",
+//            isError = error_pass1
+//        )
+//        MyOutlinedTextField(
+//            value = password2,
+//            onValueChange = onPassword2Change,
+//            labelText = "Repita su contraseña",
+//            placeholderText = "Repita su contraseña",
+//            texto_error = "El campo es obligatorio",
+//            isError = error_pass2
+//        )
     }
 }
 
@@ -581,5 +748,6 @@ fun DatePickerExample(
         }
     }
 }
+
 
 

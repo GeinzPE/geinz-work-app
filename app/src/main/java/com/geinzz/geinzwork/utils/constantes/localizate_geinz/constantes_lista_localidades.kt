@@ -196,6 +196,12 @@ object constantes_lista_localidades {
         return "$saludo, $nombre 👋"
     }
 
+    fun esGmailValido(correo: String): Boolean {
+        val regex = Regex("^[A-Za-z0-9._%+-]+@gmail\\.com$")
+        return regex.matches(correo)
+    }
+
+
 //    val listaCategorias = listOf(
 //        dataclass_cat_sub(
 //            "belleza", listOf(

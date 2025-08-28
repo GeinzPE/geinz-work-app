@@ -75,6 +75,26 @@ class viewModel_login_user : ViewModel() {
     }
 
     fun logear_user(correo: String, password: String) {
+        // Primero validamos campos vacíos
+        when {
+//            correo.isBlank() && password.isBlank() -> {
+//                _loginStateCamposInicial.value =
+//                    LoginState_inicio.error("correo_no_existe", "Correo y contraseña no pueden estar vacíos")
+//                return
+//            }
+            correo.isBlank() -> {
+                _loginStateCamposInicial.value =
+                    LoginState_inicio.error("correo_no_existe", "El correo no puede estar vacío")
+                return
+            }
+            password.isBlank() -> {
+                _loginStateCamposInicial.value =
+                    LoginState_inicio.error("pass_incorrecta", "La contraseña no puede estar vacía")
+                return
+            }
+        }
+
+        // Si pasan la validación, procedemos con Firebase
         _loginStateCamposInicial.value = LoginState_inicio.Loading
         try {
             repo_agregar_user.logear_user(correo, password) { registrado, texto_registrado ->
@@ -114,6 +134,7 @@ class viewModel_login_user : ViewModel() {
                 LoginState_inicio.error("", "Error desconocido")
         }
     }
+
 
     fun resetLoginState() {
         _loginStateCamposInicial.value = null

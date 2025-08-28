@@ -17,6 +17,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import okio.Options
 
 class repo_login_user {
 
@@ -126,6 +127,7 @@ class repo_login_user {
                             )
 
                             agregar_correo_registrado(user.uid, login_user.correo)
+                            agregar_nombre_user(login_user.nombre_user,user.uid)
                             agregar_dispo_viculado(user.uid, context)
 
                             Toast.makeText(
@@ -154,6 +156,7 @@ class repo_login_user {
                 Log.e("REGISTRO_USER", "Error al crear usuario en FirebaseAuth: ${e.message}")
             }
     }
+
     fun agregar_user_google(
         login_google: login_google,
         context: Context,
@@ -180,6 +183,7 @@ class repo_login_user {
 
             cuenta_creada(true)
             agregar_dispo_viculado(login_google.id, context)
+            agregar_nombre_user(login_google.nombre_user,login_google.id)
         }.addOnFailureListener { e ->
             cuenta_creada(false)
             Log.e("REGISTRO_USER", "Error al crear usuario en FirebaseAuth: ${e.message}")
@@ -187,9 +191,9 @@ class repo_login_user {
 
     }
 
-    fun buscar_nombre_user(nombre_user_escrito: String,existe_nombre:(Boolean)-> Unit) {
+    fun buscar_nombre_user(nombre_user_escrito: String, existe_nombre: (Boolean) -> Unit) {
         val ref = db.collection("Trabajadores_Usuarios_Drivers").document("nombres_user")
-            .collection("nombres_user").whereEqualTo("nombres_user", nombre_user_escrito)
+            .collection("nombres_user").whereEqualTo("nombres_user", "@$nombre_user_escrito")
         ref.get()
             .addOnSuccessListener { querySnapshot ->
                 val existe = !querySnapshot.isEmpty
@@ -236,6 +240,22 @@ class repo_login_user {
                 token_user("")
             }
         }
+    }
+
+    fun agregar_nombre_user(nombre_user: String, id: String) {
+        val ref = db.collection("Trabajadores_Usuarios_Drivers").document("nombres_user").collection("nombres_user").document(id)
+        val hasmap=hashMapOf<String, Any>(
+            "id_registrado" to id,
+            "nombres_user" to "@$nombre_user"
+        )
+        ref.set(hasmap, SetOptions.merge()).addOnSuccessListener {
+            Log.d("agregar_nombre_user","agregado correcamtner")
+        }.addOnFailureListener { e->
+            Log.d("agregar_nombre_user","error al agregar el user")
+
+        }
+
+
     }
 
 }

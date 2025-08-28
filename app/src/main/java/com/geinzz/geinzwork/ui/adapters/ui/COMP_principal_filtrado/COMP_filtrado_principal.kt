@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
+
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +65,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.material.Button
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -732,7 +737,7 @@ fun MyOutlinedTextField(
             trailingIcon = {
                 if (isError) {
                     androidx.compose.material3.Icon(
-                        imageVector = Icons.Default.Star,
+                        imageVector = Icons.Filled.Error,
                         contentDescription = "Error",
                         tint = Color.Red
                     )
@@ -743,6 +748,97 @@ fun MyOutlinedTextField(
             isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
+        )
+        AnimatedVisibility(isError) {
+            retornar_pleaceholder_label(texto_error, Color.Red)
+        }
+    }
+}
+
+@Composable
+fun input_email_user_name(
+    value: String,
+    onValueChange: (String) -> Unit,
+    labelText: String = "Label",
+    placeholderText: String = "Escribe aquí",
+    texto_error: String = "",
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    trailingIconContent: @Composable (() -> Unit)? = null
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
+            shape = RoundedCornerShape(30),
+            label = { Text(text = labelText) },
+            placeholder = { Text(text = placeholderText) },
+            trailingIcon = trailingIconContent,
+
+            textStyle = MaterialTheme.typography.bodyMedium,
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
+            )
+        )
+        AnimatedVisibility(isError) {
+            retornar_pleaceholder_label(texto_error, Color.Red)
+        }
+    }
+}
+
+@Composable
+fun input_password(
+    contra_oculta: Boolean,
+    isError: Boolean,
+    texto_error: String = "",
+    user_contra: String,
+    mostrar_ocultar_contra: () -> Unit,
+    valor_contra: (String) -> Unit
+
+) {
+    Column {
+
+        OutlinedTextField(
+            value = user_contra,
+            onValueChange = { valor_contra(it) },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Ingresa tu contraseña") },
+            maxLines = 1,
+            isError = isError,
+            textStyle = MaterialTheme.typography.bodyMedium,
+            shape = RoundedCornerShape(30),
+            label = { Text("Ingresa tu contraseña") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            visualTransformation = if (contra_oculta) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = {
+                val icon = if (contra_oculta) {
+                    Icons.Filled.Visibility   // 👁 mostrar contraseña
+                } else {
+                    Icons.Filled.VisibilityOff // 👁‍🗨 ocultar contraseña
+                }
+
+                Icon(
+                    imageVector = icon,
+                    contentDescription = if (contra_oculta) "Mostrar contraseña" else "Ocultar contraseña",
+                    modifier = Modifier.clickable { mostrar_ocultar_contra() }
+                )
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,

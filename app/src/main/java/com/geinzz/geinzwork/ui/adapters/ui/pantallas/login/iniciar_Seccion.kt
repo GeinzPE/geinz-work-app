@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.blur
@@ -49,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
@@ -67,7 +69,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun IniciarSeccion(
-    navController : NavController,
+    navController: NavController,
     listener_Crear_cuenta: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -182,6 +184,7 @@ fun crear_cuenta(
     var error_pass by remember { mutableStateOf(false) }
     var texto_error_correo by remember { mutableStateOf("") }
     var texto_error_contra by remember { mutableStateOf("") }
+    var contra_oculta by rememberSaveable { mutableStateOf(true) }
     val loginState by viewmodelLoginUser.loginStateCamposInicial.observeAsState()
 
     LaunchedEffect(loginState) {
@@ -192,21 +195,25 @@ fun crear_cuenta(
                     popUpTo("login_principal") { inclusive = true }
                 }
             }
+
             is LoginState_inicio.error -> {
-                when(state.tipo){
-                    "correo_no_existe"->{
-                        error_correo=true
-                        texto_error_correo=state.msje
+                when (state.tipo) {
+                    "correo_no_existe" -> {
+                        error_correo = true
+                        texto_error_correo = state.msje
                         viewmodelLoginUser.resetLoginState()
                     }
-                    "pass_incorrecta"->{
-                        error_pass=true
-                        texto_error_contra=state.msje
+
+                    "pass_incorrecta" -> {
+                        error_pass = true
+                        texto_error_contra = state.msje
                         viewmodelLoginUser.resetLoginState()
                     }
-                    else->{}
+
+                    else -> {}
                 }
             }
+
             LoginState_inicio.Loading -> {}
             null -> Unit
         }
@@ -215,10 +222,12 @@ fun crear_cuenta(
     Column(modifier = modifier) {
         MyOutlinedTextField(
             value = correo,
-            onValueChange = { correo = it
+            onValueChange = {
+                correo = it
                 if (error_correo) {
                     error_correo = false
-                }},
+                }
+            },
             labelText = "Correo electrónico",
             placeholderText = "Escribe tu correo electrónico",
             texto_error = texto_error_correo,
@@ -226,18 +235,31 @@ fun crear_cuenta(
             isError = error_correo,
         )
 
-        MyOutlinedTextField(
-            value = password,
-            onValueChange = { password = it
+        input_password(
+            contra_oculta,
+            error_pass,
+            texto_error_contra,
+            password,
+            { contra_oculta = !contra_oculta }, { it ->
+                password = it
                 if (error_pass) {
                     error_pass = false
-                }},
-            labelText = "Escriba su contraseña",
-            placeholderText = "Escriba su contraseña",
-            texto_error = texto_error_contra,
-            isError = error_pass,
-
-        )
+                }
+            })
+//        MyOutlinedTextField(
+//            value = password,
+//            onValueChange = {
+//                password = it
+//                if (error_pass) {
+//                    error_pass = false
+//                }
+//            },
+//            labelText = "Escriba su contraseña",
+//            placeholderText = "Escriba su contraseña",
+//            texto_error = texto_error_contra,
+//            isError = error_pass,
+//
+//            )
         Button(onClick = { viewmodelLoginUser.logear_user(correo, password) }) {
             texto_generico_one_line("Iniciar seccion")
         }
