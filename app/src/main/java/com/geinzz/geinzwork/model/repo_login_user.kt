@@ -67,12 +67,13 @@ class repo_login_user {
     }
 
 
-    fun agregar_correo_registrado(id_user: String, correo: String) {
+    fun agregar_correo_registrado(id_user: String, correo: String, tipo: String) {
         val ref =
-            db.collection("Trabajadores_Usuarios_Drivers").document("correos").collection("correos")
+            db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("correos")
                 .document(id_user)
         val hasmap = hashMapOf<String, Any>(
-            "correo" to correo
+            "correo" to correo,
+            "tipo" to tipo
         )
         ref.set(hasmap, SetOptions.merge())
             .addOnSuccessListener { Log.d("correo", "correo_guardado_correctamente") }
@@ -83,7 +84,7 @@ class repo_login_user {
 
     fun buscar_correo(correo: String, onResult: (Boolean) -> Unit) {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")
-            .document("correos")
+            .document("users")
             .collection("correos")
 
         ref.whereEqualTo("correo", correo)
@@ -127,8 +128,8 @@ class repo_login_user {
                                 "Usuario registrado correctamente con UID: ${user.uid}"
                             )
 
-                            agregar_correo_registrado(user.uid, login_user.correo)
-                            agregar_nombre_user(login_user.nombre_user,user.uid)
+                            agregar_correo_registrado(user.uid, login_user.correo, "normal")
+                            agregar_nombre_user(login_user.nombre_user, user.uid)
                             agregar_dispo_viculado(user.uid, context)
 
                             Toast.makeText(
@@ -185,7 +186,9 @@ class repo_login_user {
 
             cuenta_creada(true)
             agregar_dispo_viculado(login_google.id, context)
-            agregar_nombre_user(login_google.nombre_user,login_google.id)
+            agregar_nombre_user(login_google.nombre_user, login_google.id)
+            agregar_correo_registrado(login_google.id, login_google.correo, "google")
+
         }.addOnFailureListener { e ->
             cuenta_creada(false)
             Log.e("REGISTRO_USER", "Error al crear usuario en FirebaseAuth: ${e.message}")
@@ -194,7 +197,7 @@ class repo_login_user {
     }
 
     fun buscar_nombre_user(nombre_user_escrito: String, existe_nombre: (Boolean) -> Unit) {
-        val ref = db.collection("Trabajadores_Usuarios_Drivers").document("nombres_user")
+        val ref = db.collection("Trabajadores_Usuarios_Drivers").document("users")
             .collection("nombres_user").whereEqualTo("nombres_user", "@$nombre_user_escrito")
         ref.get()
             .addOnSuccessListener { querySnapshot ->
@@ -205,6 +208,7 @@ class repo_login_user {
                 existe_nombre(false)
             }
     }
+
 
     private fun agregar_dispo_viculado(id_user: String, context: Context) {
         val nombre_dispo = "${Build.MANUFACTURER} ${Build.MODEL}"
@@ -245,19 +249,31 @@ class repo_login_user {
     }
 
     fun agregar_nombre_user(nombre_user: String, id: String) {
-        val ref = db.collection("Trabajadores_Usuarios_Drivers").document("nombres_user").collection("nombres_user").document(id)
-        val hasmap=hashMapOf<String, Any>(
+        val ref = db.collection("Trabajadores_Usuarios_Drivers").document("users")
+            .collection("nombres_user").document(id)
+        val hasmap = hashMapOf<String, Any>(
             "id_registrado" to id,
             "nombres_user" to "@$nombre_user"
         )
         ref.set(hasmap, SetOptions.merge()).addOnSuccessListener {
-            Log.d("agregar_nombre_user","agregado correcamtner")
-        }.addOnFailureListener { e->
-            Log.d("agregar_nombre_user","error al agregar el user")
+            Log.d("agregar_nombre_user", "agregado correcamtner")
+        }.addOnFailureListener { e ->
+            Log.d("agregar_nombre_user", "error al agregar el user")
 
         }
+    }
 
-
+    fun validar_cuenta_existente_provider_google(
+        correo: String,
+        cuenta_existente: (Boolean) -> Unit
+    ) {
+            db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("users")
+                .whereEqualTo("correo", correo).get().addOnSuccessListener { task ->
+                    val existe = !task.isEmpty
+                    cuenta_existente(existe)
+                }.addOnFailureListener { e ->
+                    cuenta_existente(false)
+                }
     }
 
 }

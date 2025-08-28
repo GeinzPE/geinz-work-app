@@ -1,45 +1,18 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
-import android.icu.util.Calendar
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.IconButton
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,34 +22,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.DateButton
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.PhoneNumberWithPicker
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.campos_correo_contra
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_email_user_name
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.verificarCampo
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.firebase.auth.FirebaseAuth
-import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
-import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
-import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 val options_genero = listOf("Masculino", "Femenino", "Otro")
 val opciones_localida = listOf("Barranca", "Supe", "Puerto supe", "Paramonga", "Pativilca")
@@ -94,6 +61,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     val viewmodel_login: viewModel_login_user = viewModel()
     val registrado = viewmodel_login.registrado_boolean.observeAsState()
     val registrado_google = viewmodel_login.registrado_google.observeAsState()
+    val correo_exsit = viewmodel_login._correo_exist.observeAsState()
     val usernameExiste by viewmodel_login._nombre_userexists.observeAsState(false)
     var correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(
@@ -153,15 +121,36 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
             if (correo.isEmpty()) {
                 errorCorreo = true
                 error_texto_correo = "El campo es obligatorio"
-            } else if (!constantes_lista_localidades.esGmailValido(correo)) {
+                return@LaunchedEffect
+            }
+
+            if (!constantes_lista_localidades.esGmailValido(correo)) {
                 errorCorreo = true
                 error_texto_correo = "Debe ser un correo Gmail válido"
-            } else {
-                errorCorreo = false
-                error_texto_correo = ""
+                return@LaunchedEffect
             }
+
+            // Si está ok localmente, recién consultamos en Firestore
+            viewmodel_login.verificar_exist_correo(correo)
         }
     }
+
+    LaunchedEffect(correo_exsit.value, correo) {
+        if (!constantes_lista_localidades.esGmailValido(correo)) {
+            // Si el correo ya no es válido, reseteamos el error remoto
+            return@LaunchedEffect
+        }
+
+        if (correo_exsit.value == true) {
+            errorCorreo = true
+            error_texto_correo = "El correo ya está registrado"
+        } else {
+            errorCorreo = false
+            error_texto_correo = ""
+        }
+    }
+
+
 
     LaunchedEffect(username) {
         // Primero validamos si el usuario ya tocó el campo y lo dejó vacío
@@ -191,6 +180,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
             error_texto_username = "Tiene que ser mayor a 3 letras"
         }
     }
+
 
     LaunchedEffect(usernameExiste) {
         error_texto_username = if (usernameExiste) "Nombre de usuario ya existe" else ""
@@ -301,6 +291,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 texto_error = "El campo es obligatorio",
                 isError = errorNombre,
             )
+            spacer_vertical(8.dp)
         }
         // Apellido
         item {
@@ -317,6 +308,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 texto_error = "El campo es obligatorio",
                 isError = errorApellido,
             )
+            spacer_vertical(8.dp)
         }
         // Nombre de usuario
         item {
@@ -354,6 +346,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                     }
                 }
             )
+            spacer_vertical(10.dp)
         }
         // Número celular
         item {
@@ -372,6 +365,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                     nombre_pais_params = nombre_pais
                 }
             )
+            spacer_vertical(10.dp)
         }
         // Género
         item {
@@ -384,6 +378,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 genero = genero_selecionado
                 errorGenero = false
             }
+            spacer_vertical(12.dp)
         }
         // Localidad
         item {
@@ -396,6 +391,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 localidad = localida_selecionada
                 errorLocalidad = false
             }
+            spacer_vertical(12.dp)
         }
         //Fecha
         item {
@@ -403,6 +399,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 fechaNacimiento = fecha_obtenida
                 errorFechaNacimiento = false
             }
+            spacer_vertical(10.dp)
         }
         //Correo electronico
         item {
@@ -421,6 +418,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 isError = errorCorreo,
                 enabled = enable_correo
             )
+            spacer_vertical(10.dp)
         }
 
         if (tipo_cuenta.equals("crear")) {
@@ -443,6 +441,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                     error_pass1,
                     error_pass2, error_texto_pass1, error_texto_pass2
                 )
+                spacer_vertical(10.dp)
             }
         }
 
@@ -479,7 +478,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                             apellido = apellido,
                             nombre_user = username,
                             correo = correo,
-                            numero_celular = phone.toInt(),
+                            numero_celular = phone.toIntOrNull() ?: 0,
                             cod_pais = cod_pais_params,
                             nacionalidad_numero = nombre_pais_params,
                             genero = genero,
@@ -528,7 +527,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                             nombre_user = username,
                             correo = correo,
                             id = uid,
-                            numero_celular = phone.toInt(),
+                            numero_celular = phone.toIntOrNull() ?: 0,
                             cod_pais = cod_pais_params,
                             nacionalidad_numero = nombre_pais_params,
                             genero = genero,
@@ -555,260 +554,13 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     }
 }
 
-@Composable
-fun PhoneNumberWithPicker(
-    phoneNumber: String,
-    onPhoneNumberChange: (String) -> Unit,
-    isError: Boolean, texto_error: String,
-    datos: (cod_pais: String, nombre_pais: String) -> Unit
-) {
-    val state = rememberKomposeCountryCodePickerState()
-    datos(state.getCountryPhoneCode(), state.getCountryName())
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-    ) {
-        Column {
-
-            KomposeCountryCodePicker(
-                state = state,
-                modifier = Modifier.fillMaxWidth(),
-                text = phoneNumber,
-                onValueChange = { numero ->
-                    onPhoneNumberChange(numero)
-                },
-                placeholder = { Text("Número de teléfono") },
-                selectedCountryFlagSize = FlagSize(width = 20.dp, height = 20.dp),
-
-                error = isError,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
-                ),
-                trailingIcon = {
-                    if (isError) {
-                        Icon(
-                            imageVector = Icons.Filled.Error,
-                            contentDescription = "Error",
-                            tint = Color.Red
-                        )
-                    }
-                },
-            )
-            AnimatedVisibility(isError) {
-                retornar_pleaceholder_label(texto_error, Color.Red)
-            }
-
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-    }
-}
-
-@Composable
-fun campos_correo_contra(
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    password2: String,
-    onPassword2Change: (String) -> Unit,
-    error_pass1: Boolean,
-    error_pass2: Boolean,
-    texto_error_pass1: String,
-    texto_error_pass2: String
-) {
-    var contra_oculta by rememberSaveable { mutableStateOf(true) }
-    var contra_oculta2 by rememberSaveable { mutableStateOf(true) }
-
-    Column {
-        input_password(
-            contra_oculta,
-            error_pass1, texto_error_pass1,
-            password,
-            { contra_oculta = !contra_oculta },
-            { it -> onPasswordChange(it) })
-
-        input_password(
-            contra_oculta2,
-            error_pass2, texto_error_pass2,
-            password2,
-            { contra_oculta2 = !contra_oculta2 },
-            { it -> onPassword2Change(it) })
-    }
-}
-
-fun verificarCampo(valor: String): Boolean {
-    return valor.isBlank()
-}
-
-
-@Composable
-fun DateButton(error_fecha: Boolean, campo_error: String, fecha: (String) -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf("") }
-
-    // Dialog para escoger fecha
-    DatePickerExample(
-        showDialog = showDialog,
-        onDismiss = { showDialog = false },
-        onDateSelected = { millis ->
-            millis?.let {
-                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                selectedDate = sdf.format(Date(it))
-                fecha(selectedDate)
-            }
-        }
-    )
-
-    Column {
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = {},
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
-            placeholder = { Text("Selecciona tu fecha de nacimiento") },
-            singleLine = true,
-            readOnly = true,
-            enabled = true,
-            leadingIcon = {
-                IconButton(onClick = { showDialog = true }) {
-                    Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
-                }
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = if (error_fecha) Color.Red else MaterialTheme.colorScheme.primary,
-                focusedLabelColor = if (error_fecha) Color.Red else MaterialTheme.colorScheme.primary
-            ),
-            isError = error_fecha,
-
-            shape = RoundedCornerShape(30)
-        )
-        AnimatedVisibility(error_fecha) {
-
-            retornar_pleaceholder_label(campo_error, Color.Red)
-        }
-    }
-
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExpandDropDown(
-    lista: List<String>,
-    isError: Boolean,
-    texto_error: String,
-    lable: String,
-    selecionado: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var selected by remember { mutableStateOf("") }
-
-    Column {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-            modifier = Modifier
-                .padding(vertical = 10.dp)
-                .clip(RoundedCornerShape(30))
-        ) {
-            TextField(
-                value = selected,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(lable) },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                isError = isError,
-            )
-
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
-            ) {
-                lista.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            selected = option
-                            expanded = false
-                            selecionado(option)
-                        }
-                    )
-                }
-            }
-
-        }
-        AnimatedVisibility(isError) {
-            retornar_pleaceholder_label(texto_error, Color.Red)
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerExample(
-    showDialog: Boolean,
-    onDismiss: () -> Unit,
-    onDateSelected: (Long?) -> Unit
-) {
-    val calendar = Calendar.getInstance().apply {
-        set(Calendar.YEAR, 2007)
-        set(Calendar.MONTH, 0)
-        set(Calendar.DAY_OF_MONTH, 1)
-    }
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = calendar.timeInMillis,
-        initialDisplayedMonthMillis = calendar.timeInMillis,
-        yearRange = 1927..2007
-    )
-    val colors = DatePickerDefaults.colors(
-        containerColor = MaterialTheme.colorScheme.surface,
-        titleContentColor = MaterialTheme.colorScheme.onBackground,
-        weekdayContentColor = MaterialTheme.colorScheme.onBackground,
-        headlineContentColor = MaterialTheme.colorScheme.onBackground,
-        navigationContentColor = MaterialTheme.colorScheme.onBackground,
-        todayContentColor = Color.Red,
-        selectedDayContentColor = Color.White,
-        dayInSelectionRangeContentColor = Color.White,
-        selectedDayContainerColor = Color(0xFF6200EE),
-        selectedYearContentColor = MaterialTheme.colorScheme.onBackground
-    )
 
 
 
-    if (showDialog) {
-        DatePickerDialog(
-            colors = colors,
-            onDismissRequest = onDismiss,
-            confirmButton = {
-                TextButton(onClick = {
-                    onDateSelected(datePickerState.selectedDateMillis)
-                    onDismiss()
-                }) {
-                    texto_generico_one_line("Confirmar")
-                }
-            },
 
-            ) {
-            DatePicker(state = datePickerState, colors = colors)
-        }
-    }
-}
+
+
+
 
 
 

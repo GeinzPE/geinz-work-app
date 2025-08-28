@@ -145,14 +145,23 @@ fun IniciarSeccion(
             {
                 val signInIntent = googleSignInClient.signInIntent
                 launcher.launch(signInIntent)
+
             }
         )
         when (loginState) {
             is LoginState.Success -> {
                 val user = loginState as LoginState.Success
-                Toast.makeText(context, "Bienvenido ${user.name}", Toast.LENGTH_SHORT).show()
-                listener_Crear_cuenta("${user.email}")
+                viewmodel_login.verificar_cuenta_google_provider(user.email.toString()) { existe ->
+                    if (existe) {
+                        navController.navigate("pantalla_principal") {
+                            popUpTo("login_principal") { inclusive = true }
+                        }
+                    } else {
+                        listener_Crear_cuenta(user.email.toString())
+                    }
+                }
             }
+
 
             is LoginState.Error -> {
                 val error = loginState as LoginState.Error

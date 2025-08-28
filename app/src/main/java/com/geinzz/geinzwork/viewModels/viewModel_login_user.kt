@@ -28,6 +28,10 @@ class viewModel_login_user : ViewModel() {
 
     private val _registrado = MutableLiveData<Boolean>()
 
+
+    private val google_provider = MutableLiveData<Boolean>()
+    val _google_provider: LiveData<Boolean> get() = google_provider
+
     val registrado_boolean: LiveData<Boolean> get() = _registrado
 
     private val _registrado_google = MutableLiveData<Boolean>()
@@ -36,6 +40,9 @@ class viewModel_login_user : ViewModel() {
 
     private val nombre_userexists = MutableLiveData<Boolean>()
     val _nombre_userexists: LiveData<Boolean> get() = nombre_userexists
+
+    private val correo_exist = MutableLiveData<Boolean>()
+    val _correo_exist: LiveData<Boolean> get() = correo_exist
     fun agregar_user(login_user: login_user, context: Context) {
         try {
             repo_agregar_user.agregar_user(login_user, context) { registrado ->
@@ -58,7 +65,6 @@ class viewModel_login_user : ViewModel() {
 
     fun loginWithGoogle(idToken: String?) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -87,6 +93,7 @@ class viewModel_login_user : ViewModel() {
                     LoginState_inicio.error("correo_no_existe", "El correo no puede estar vacío")
                 return
             }
+
             password.isBlank() -> {
                 _loginStateCamposInicial.value =
                     LoginState_inicio.error("pass_incorrecta", "La contraseña no puede estar vacía")
@@ -110,7 +117,7 @@ class viewModel_login_user : ViewModel() {
                             _loginStateCamposInicial.value =
                                 LoginState_inicio.error(
                                     texto_registrado,
-                                    "El correo no esta registrado"
+                                    "El correo no esta registrado, primero crea una cuenta"
                                 )
                         }
 
@@ -148,6 +155,30 @@ class viewModel_login_user : ViewModel() {
                 }
             } catch (e: Exception) {
                 nombre_userexists.value = false
+            }
+        }
+    }
+
+    fun verificar_exist_correo(correo: String) {
+        viewModelScope.launch {
+            try {
+                repo_agregar_user.buscar_correo(correo) { existe ->
+                    correo_exist.value = existe
+                }
+            } catch (e: Exception) {
+                correo_exist.value = false
+            }
+        }
+    }
+
+    fun verificar_cuenta_google_provider(correo: String, exista: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                repo_agregar_user.validar_cuenta_existente_provider_google(correo) { existe ->
+                    exista(existe)
+                }
+            } catch (e: Exception) {
+                exista(false)
             }
         }
     }

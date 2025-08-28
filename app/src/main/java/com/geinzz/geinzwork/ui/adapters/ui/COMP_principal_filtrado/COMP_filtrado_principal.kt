@@ -50,25 +50,14 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.material.Button
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -76,9 +65,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -88,7 +74,6 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.principal.texto_encimado_cartas
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 
@@ -712,147 +697,5 @@ fun localidad_Selecionada() {
 }
 
 
-@Composable
-fun MyOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    labelText: String = "Label",
-    placeholderText: String = "Escribe aquí",
-    texto_error: String = "",
-    isError: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false,
-    enabled: Boolean = true
-) {
-    Column {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
-            shape = RoundedCornerShape(30),
-            label = { Text(text = labelText) },
-            placeholder = { Text(text = placeholderText) },
-            trailingIcon = {
-                if (isError) {
-                    androidx.compose.material3.Icon(
-                        imageVector = Icons.Filled.Error,
-                        contentDescription = "Error",
-                        tint = Color.Red
-                    )
-                }
-            },
-            enabled = enabled,
-            textStyle = MaterialTheme.typography.bodyMedium,
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
-                focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
-            )
-        )
-        AnimatedVisibility(isError) {
-            val campo_error = if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
-            retornar_pleaceholder_label(campo_error, Color.Red)
-        }
-    }
-}
 
-@Composable
-fun input_email_user_name(
-    value: String,
-    onValueChange: (String) -> Unit,
-    labelText: String = "Label",
-    placeholderText: String = "Escribe aquí",
-    texto_error: String = "",
-    isError: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    trailingIconContent: @Composable (() -> Unit)? = null
-) {
-    Column {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
-            shape = RoundedCornerShape(30),
-            label = { Text(text = labelText) },
-            placeholder = { Text(text = placeholderText) },
-            trailingIcon = trailingIconContent,
 
-            textStyle = MaterialTheme.typography.bodyMedium,
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
-                focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
-            )
-        )
-        AnimatedVisibility(isError) {
-            val campo_error = if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
-            Log.d("obtenos_erro", campo_error)
-            retornar_pleaceholder_label(campo_error, Color.Red)
-        }
-    }
-}
-
-@Composable
-fun input_password(
-    contra_oculta: Boolean,
-    isError: Boolean,
-    texto_error: String = "",
-    user_contra: String,
-    mostrar_ocultar_contra: () -> Unit,
-    valor_contra: (String) -> Unit
-) {
-    Column {
-
-        OutlinedTextField(
-            value = user_contra,
-            onValueChange = { valor_contra(it) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = "Ingresa tu contraseña") },
-            maxLines = 1,
-            isError = isError,
-            textStyle = MaterialTheme.typography.bodyMedium,
-            shape = RoundedCornerShape(30),
-            label = { Text("Ingresa tu contraseña") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = if (contra_oculta) PasswordVisualTransformation() else VisualTransformation.None,
-            trailingIcon = {
-                val icon = if (contra_oculta) {
-                    Icons.Filled.Visibility   // 👁 mostrar contraseña
-                } else {
-                    Icons.Filled.VisibilityOff // 👁‍🗨 ocultar contraseña
-                }
-
-                Icon(
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    imageVector = icon,
-                    contentDescription = if (contra_oculta) "Mostrar contraseña" else "Ocultar contraseña",
-                    modifier = Modifier.clickable { mostrar_ocultar_contra() }
-                )
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            )
-        )
-        AnimatedVisibility(isError) {
-            val campo_error = if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
-            retornar_pleaceholder_label(campo_error, Color.Red)
-        }
-    }
-}
