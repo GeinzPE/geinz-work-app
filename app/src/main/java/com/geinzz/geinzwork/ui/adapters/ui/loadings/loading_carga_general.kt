@@ -1,4 +1,4 @@
-package com.geinzz.geinzwork.ui.adapters.ui.pantallas
+package com.geinzz.geinzwork.ui.adapters.ui.loadings
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi

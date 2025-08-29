@@ -17,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +54,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTex
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.LoginState
@@ -151,17 +154,21 @@ fun IniciarSeccion(
         when (loginState) {
             is LoginState.Success -> {
                 val user = loginState as LoginState.Success
-                viewmodel_login.verificar_cuenta_google_provider(user.email.toString()) { existe ->
-                    if (existe) {
-                        navController.navigate("pantalla_principal") {
-                            popUpTo("login_principal") { inclusive = true }
+
+                // 👇 Solo lanzamos el efecto, no mostramos UI
+                LaunchedEffect(user.email) {
+                    viewmodel_login.setLoading()
+                    viewmodel_login.verificar_cuenta_google_provider(user.email.toString()) { existe ->
+                        if (existe) {
+                            navController.navigate("pantalla_principal") {
+                                popUpTo("login_principal") { inclusive = true }
+                            }
+                        } else {
+                            listener_Crear_cuenta(user.email.toString())
                         }
-                    } else {
-                        listener_Crear_cuenta(user.email.toString())
                     }
                 }
             }
-
 
             is LoginState.Error -> {
                 val error = loginState as LoginState.Error
@@ -169,11 +176,14 @@ fun IniciarSeccion(
             }
 
             LoginState.Loading -> {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
             }
+            LoginState.Idle -> {}
 
             null -> {}
         }
+
+
+
     }
 }
 
@@ -219,16 +229,18 @@ fun crear_cuenta(
                         viewmodelLoginUser.resetLoginState()
                     }
 
-                    else -> {}
+                    else -> { }
                 }
             }
 
-            LoginState_inicio.Loading -> {}
+            LoginState_inicio.Loading -> {
+
+            }
             null -> Unit
         }
     }
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.imePadding()) {
         MyOutlinedTextField(
             value = correo,
             onValueChange = {

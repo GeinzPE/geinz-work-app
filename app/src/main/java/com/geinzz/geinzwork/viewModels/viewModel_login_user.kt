@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.viewModels
 
 import android.R
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,13 +14,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_login_user : ViewModel() {
     val repo_agregar_user = repo_login_user()
 
-    private val _loginState = MutableLiveData<LoginState>()
-    val loginState: LiveData<LoginState> = _loginState
+    private val _loginState = MutableLiveData<LoginState?>()
+    val loginState: LiveData<LoginState?> = _loginState
 
     private val _loginStateCamposInicial = MutableLiveData<LoginState_inicio?>()
     val loginStateCamposInicial: LiveData<LoginState_inicio?> = _loginStateCamposInicial
@@ -27,12 +29,12 @@ class viewModel_login_user : ViewModel() {
     private val auth: FirebaseAuth = Firebase.auth
 
     private val _registrado = MutableLiveData<Boolean>()
+    val registrado_boolean: LiveData<Boolean> get() = _registrado
 
 
     private val google_provider = MutableLiveData<Boolean>()
     val _google_provider: LiveData<Boolean> get() = google_provider
 
-    val registrado_boolean: LiveData<Boolean> get() = _registrado
 
     private val _registrado_google = MutableLiveData<Boolean>()
 
@@ -43,6 +45,8 @@ class viewModel_login_user : ViewModel() {
 
     private val correo_exist = MutableLiveData<Boolean>()
     val _correo_exist: LiveData<Boolean> get() = correo_exist
+
+
     fun agregar_user(login_user: login_user, context: Context) {
         try {
             repo_agregar_user.agregar_user(login_user, context) { registrado ->
@@ -64,23 +68,26 @@ class viewModel_login_user : ViewModel() {
     }
 
     fun loginWithGoogle(idToken: String?) {
+
+        _loginState.value = LoginState.Loading
+
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
-                    _loginState.value = LoginState.Success(
-                        email = user?.email,
-                        name = user?.displayName,
-                        photoUrl = user?.photoUrl.toString()
-                    )
+                    _loginState.postValue(LoginState.Success(user?.email, user?.displayName, user?.photoUrl.toString()))
                 } else {
-                    _loginState.value = LoginState.Error(task.exception?.message)
+                    _loginState.postValue(LoginState.Error(task.exception?.message))
                 }
             }
     }
 
+
     fun logear_user(correo: String, password: String) {
+        Log.d("cagamos,loas","asdadasdad")
+
+        _loginState.value = LoginState.Loading
         // Primero validamos campos vacíos
         when {
 //            correo.isBlank() && password.isBlank() -> {
@@ -182,11 +189,26 @@ class viewModel_login_user : ViewModel() {
             }
         }
     }
+    fun setLoading() {
+        _loginState.value = LoginState.Loading
+    }
 
+    fun setSuccess(email: String?, name: String?, photoUrl: String?) {
+        _loginState.value = LoginState.Success(email, name, photoUrl)
+    }
+
+    fun setError(message: String?) {
+        _loginState.value = LoginState.Error(message)
+    }
+
+    fun clearState() {
+        _loginState.value = null
+    }
 }
 
 
 sealed class LoginState {
+    object Idle : LoginState()
     data class Success(val email: String?, val name: String?, val photoUrl: String?) : LoginState()
     data class Error(val message: String?) : LoginState()
     object Loading : LoginState()

@@ -40,6 +40,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.verificarCampo
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.firebase.auth.FirebaseAuth
@@ -186,13 +187,20 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         error_texto_username = if (usernameExiste) "Nombre de usuario ya existe" else ""
         errorUsername = usernameExiste
     }
+    var mostrarCarga by remember { mutableStateOf(false) }
 
     LaunchedEffect(registrado.value) {
+
         if (registrado.value == true) {
+            mostrarCarga = true
+            delay(5000)
             navController.navigate("pantalla_principal") {
                 popUpTo("login_principal") { inclusive = true }
             }
         }
+    }
+    if (mostrarCarga) {
+        pantalla_carga_login() // 👈 aquí tu logo respirando
     }
 
     LaunchedEffect(registrado_google.value) {

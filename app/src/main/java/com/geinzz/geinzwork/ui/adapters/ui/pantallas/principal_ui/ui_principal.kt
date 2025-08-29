@@ -2,11 +2,9 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.content.Intent
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,7 +34,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -91,7 +88,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_patrocinadores
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cargando_categorias
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
