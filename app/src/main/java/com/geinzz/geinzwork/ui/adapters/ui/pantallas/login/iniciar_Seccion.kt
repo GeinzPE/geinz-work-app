@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -47,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
@@ -76,6 +73,9 @@ fun IniciarSeccion(
     val context = LocalContext.current
 
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.observeAsState()
+    val listaImg = constantes_lista_localidades.lista_img_local
+    var currentImageIndex by remember { mutableStateOf(0) }
+
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id))
         .requestEmail()
@@ -95,9 +95,6 @@ fun IniciarSeccion(
         }
     }
 
-    val listaImg = constantes_lista_localidades.lista_img_local
-    var currentImageIndex by remember { mutableStateOf(0) }
-
     LaunchedEffect(Unit) {
         while (true) {
             delay(3000)
@@ -112,18 +109,15 @@ fun IniciarSeccion(
                 fadeIn(animationSpec = tween(1000)) with
                         fadeOut(animationSpec = tween(1000))
             }
-        ) { index ->
-            Image(
+        ) { index -> Image(
                 painter = painterResource(id = listaImg[index]),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
                     .blur(10.dp),
                 contentScale = ContentScale.Crop
-            )
-        }
-        Box(
-            modifier = Modifier
+            ) }
+        Box(modifier = Modifier
                 .blur(40.dp)
                 .fillMaxSize()
                 .background(
@@ -136,33 +130,36 @@ fun IniciarSeccion(
                         startY = 0f,
                         endY = 400f
                     )
-                )
-        )
-        crear_cuenta(
+                ))
+        login_principal_apartado(
+            loginState_principal,
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp), viewModel_login_user, navController,
-            { listener_Crear_cuenta("crear") },
+            {},
             {
+                listener_Crear_cuenta("crear")
+            }, {
                 val signInIntent = googleSignInClient.signInIntent
                 launcher.launch(signInIntent)
-
             }
         )
+
+//estado de cuenta google
         LaunchedEffect(loginState_principal) {
+            Toast.makeText(context, "pasamos nuevo user ajja", Toast.LENGTH_SHORT).show()
             when (loginState_principal) {
                 is LoginState_inicio.Succes -> {
-
                     val user = loginState_principal as LoginState_inicio.Succes
-                        viewModel_login_user.verificar_cuenta_google_provider(user.email.toString()) { existe ->
-                            if (existe) {
-                                navController.navigate("pantalla_principal") {
-                                    popUpTo("login_principal") { inclusive = true }
-                                }
-                            } else {
-                                listener_Crear_cuenta(user.email.toString())
+                    viewModel_login_user.verificar_cuenta_google_provider(user.email.toString()) { existe ->
+                        if (existe) {
+                            navController.navigate("pantalla_principal") {
+                                popUpTo("login_principal") { inclusive = true }
                             }
+                        } else {
+                            listener_Crear_cuenta(user.email.toString())
                         }
+                    }
 
                 }
 
@@ -177,10 +174,110 @@ fun IniciarSeccion(
 
                 LoginState_inicio.LoggedOut -> {
                 }
+
                 null -> Unit
             }
         }
 
+//login normal
+        LaunchedEffect(loginState_principal) {
+            when (val state = loginState_principal) {
+                is LoginState_inicio.Succes -> {
+                    navController.navigate("pantalla_principal") {
+                        popUpTo("login_principal") { inclusive = true }
+                    }
+                    delay(10_000)
+                    Log.d("pasamos_parametros", "completado")
+                }
+
+                is LoginState_inicio.error -> {
+                    Log.d("pasamos_parametros", "error")
+                    when (state.tipo) {
+                        "correo_no_existe" -> {
+                            error_correo = true
+                            texto_error_correo = state.msje
+                            viewmodelLoginUser.resetLoginState()
+                        }
+
+                        "pass_incorrecta" -> {
+                            error_pass = true
+                            texto_error_contra = state.msje
+                            viewmodelLoginUser.resetLoginState()
+                        }
+
+                        else -> {}
+                    }
+                }
+
+                LoginState_inicio.Loading -> {
+                    Log.d("pasamos_parametros", "cargando")
+                }
+
+                LoginState_inicio.LoggedOut -> {
+                }
+
+                null -> Unit
+            }
+        }
+
+        LaunchedEffect(loginState_principal) {
+            when (val state = loginState_principal) {
+                is LoginState_inicio.Succes -> {
+                    // 🔹 Si el login viene de Google
+                    if (state.proveedor == "google") {
+                        viewModel_login_user.verificar_cuenta_google_provider(state.email) { existe ->
+                            if (existe) {
+                                navController.navigate("pantalla_principal") {
+                                    popUpTo("login_principal") { inclusive = true }
+                                }
+                            } else {
+                                // Si no existe, crea cuenta nueva con Google
+                                listener_Crear_cuenta(state.email)
+                            }
+                        }
+                    } else {
+                        // 🔹 Si es login normal (correo + contraseña)
+                        navController.navigate("pantalla_principal") {
+                            popUpTo("login_principal") { inclusive = true }
+                        }
+                        // Si quieres un pequeño log o delay aquí
+                        delay(100)
+                        Log.d("pasamos_parametros", "Login normal completado")
+                    }
+                }
+
+                is LoginState_inicio.error -> {
+                    Log.d("pasamos_parametros", "Error de login: ${state.msje}")
+                    when (state.tipo) {
+                        "correo_no_existe" -> {
+                            error_correo = true
+                            texto_error_correo = state.msje
+                            viewmodelLoginUser.resetLoginState()
+                        }
+
+                        "pass_incorrecta" -> {
+                            error_pass = true
+                            texto_error_contra = state.msje
+                            viewmodelLoginUser.resetLoginState()
+                        }
+
+                        else -> {
+                            Toast.makeText(context, "Error: ${state.msje}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+
+                LoginState_inicio.Loading -> {
+                    Log.d("pasamos_parametros", "Cargando...")
+                }
+
+                LoginState_inicio.LoggedOut -> {
+                    Log.d("pasamos_parametros", "Sesión cerrada")
+                }
+
+                null -> Unit
+            }
+        }
 
 
     }
@@ -188,11 +285,13 @@ fun IniciarSeccion(
 
 
 @Composable
-fun crear_cuenta(
+fun login_principal_apartado(
+    loginState_principal: LoginState_inicio?,
     modifier: Modifier,
     viewmodelLoginUser: viewModel_login_user,
     navController: NavController,
-    listener_Crear_cuenta: () -> Unit,
+    listener_iniciar_seccion_geinz: () -> Unit,
+    listener_Crear_cuenta_geinz: () -> Unit,
     listener_continuar_con_google: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -203,51 +302,7 @@ fun crear_cuenta(
     var texto_error_correo by remember { mutableStateOf("") }
     var texto_error_contra by remember { mutableStateOf("") }
     var contra_oculta by rememberSaveable { mutableStateOf(true) }
-    val loginState by viewmodelLoginUser.loginStateCamposInicial.observeAsState()
 
-    var mostrarCarga by remember { mutableStateOf(false) }
-
-    LaunchedEffect(loginState) {
-        when (val state = loginState) {
-            is LoginState_inicio.Succes -> {
-                navController.navigate("pantalla_principal") {
-                    popUpTo("login_principal") { inclusive = true }
-                }
-
-                delay(10_000)
-                Toast.makeText(context, "Bienvenido ${state.name}", Toast.LENGTH_SHORT).show()
-                Log.d("pasamos_parametros", "completado")
-            }
-
-            is LoginState_inicio.error -> {
-                Log.d("pasamos_parametros", "error")
-                when (state.tipo) {
-                    "correo_no_existe" -> {
-                        error_correo = true
-                        texto_error_correo = state.msje
-                        viewmodelLoginUser.resetLoginState()
-                    }
-
-                    "pass_incorrecta" -> {
-                        error_pass = true
-                        texto_error_contra = state.msje
-                        viewmodelLoginUser.resetLoginState()
-                    }
-
-                    else -> {}
-                }
-            }
-
-            LoginState_inicio.Loading -> {
-                Log.d("pasamos_parametros", "cargando")
-            }
-
-            LoginState_inicio.LoggedOut -> {
-            }
-
-            null -> Unit
-        }
-    }
     Column(modifier = modifier.imePadding()) {
         MyOutlinedTextField(
             value = correo,
@@ -276,17 +331,12 @@ fun crear_cuenta(
                 }
             })
 
-        Button(onClick = { viewmodelLoginUser.logear_user(correo, password) }) {
-            texto_generico_one_line("Iniciar seccion")
-        }
 
+        iniciar_seccion_normal { listener_iniciar_seccion_geinz() }
         spacer_vertical(10.dp)
-        btn_secciones(
-            "Continuar con Google",
-            R.drawable.gmail_img
-        ) { listener_continuar_con_google() }
+        iniciar_seccion_google { listener_continuar_con_google() }
         spacer_vertical(10.dp)
-        crear_cuenta { listener_Crear_cuenta() }
+        crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
     }
 }
 
@@ -316,4 +366,23 @@ fun crear_cuenta(listner_crear_cuenta: () -> Unit) {
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
+}
+
+@Composable
+fun iniciar_seccion_normal(listener_logear_user: () -> Unit) {
+    Button(onClick = { listener_logear_user() }) {
+        texto_generico_one_line("Iniciar seccion")
+    }
+}
+
+@Composable
+fun iniciar_seccion_google(listener_continuar_con_google: () -> Unit) {
+    btn_secciones("Continuar con Google", R.drawable.gmail_img) { listener_continuar_con_google() }
+}
+
+
+@Composable
+fun crear_cuenta_geinz(listener_Crear_cuenta: () -> Unit) {
+    crear_cuenta { listener_Crear_cuenta() }
+
 }

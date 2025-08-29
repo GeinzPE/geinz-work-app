@@ -34,7 +34,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplor
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
-import com.geinzz.geinzwork.viewModels.LoginState
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
@@ -93,9 +92,12 @@ fun nativationWrapper(
                     if (firebaseAuth.currentUser != null) {
                         cuenta_user(viewModel_login_user,navController)
                     } else {
-                        IniciarSeccion(viewModel_login_user, navController) { tipo_cuenta ->
-                            navController.navigate(crear_cuenta_geinz(tipo_cuenta))
-                        }
+                        IniciarSeccion(
+                            viewModel_login_user, navController,
+                            { tipo_cuenta ->
+                                navController.navigate(crear_cuenta_geinz(tipo_cuenta))
+                            },
+                        )
                     }
                 }
 
