@@ -40,7 +40,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.verificarCampo
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.firebase.auth.FirebaseAuth
@@ -198,9 +197,6 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                 popUpTo("login_principal") { inclusive = true }
             }
         }
-    }
-    if (mostrarCarga) {
-        pantalla_carga_login() // 👈 aquí tu logo respirando
     }
 
     LaunchedEffect(registrado_google.value) {
@@ -360,19 +356,21 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         item {
             PhoneNumberWithPicker(
                 phoneNumber = phone,
-                onPhoneNumberChange = {
-                    phone = it
-                    if (!numero_tocado) {
-                        numero_tocado = true
+                onPhoneNumberChange = { nuevo ->
+                    if (nuevo.all { it.isDigit() }) {
+                        phone = nuevo
+                        if (!numero_tocado) {
+                            numero_tocado = true
+                        }
                     }
                 },
                 isError = errorTelefono,
-                texto_error = "El campo es obligatorio",
-                { cod_pais, nombre_pais ->
-                    cod_pais_params = cod_pais
-                    nombre_pais_params = nombre_pais
-                }
-            )
+                texto_error = "El campo es obligatorio"
+            ) { cod_pais, nombre_pais ->
+                cod_pais_params = cod_pais
+                nombre_pais_params = nombre_pais
+            }
+
             spacer_vertical(10.dp)
         }
         // Género

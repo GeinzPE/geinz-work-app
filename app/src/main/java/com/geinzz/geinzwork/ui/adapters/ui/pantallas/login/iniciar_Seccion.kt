@@ -54,9 +54,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTex
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.carga_login
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
+
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.LoginState
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
@@ -64,20 +62,20 @@ import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
+
 import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun IniciarSeccion(
+    viewModel_login_user: viewModel_login_user,
     navController: NavController,
     listener_Crear_cuenta: (String) -> Unit,
 ) {
     val context = LocalContext.current
-    val viewmodel_login: viewModel_login_user = viewModel()
-    val loginState by viewmodel_login.loginState.observeAsState()
+
+    val loginState_principal by viewModel_login_user.loginStateCamposInicial.observeAsState()
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id))
         .requestEmail()
@@ -91,7 +89,7 @@ fun IniciarSeccion(
         try {
             val account = task.getResult(ApiException::class.java)!!
             Log.d("LOGIN_GOOGLE", "Correo de Google: ${account.email}")
-            viewmodel_login.loginWithGoogle(account.idToken)
+            viewModel_login_user.loginWithGoogle(account.idToken)
         } catch (e: Exception) {
             Log.e("LOGIN_GOOGLE", "Excepción: ${e.message}", e)
         }
@@ -143,7 +141,7 @@ fun IniciarSeccion(
         crear_cuenta(
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp), viewmodel_login, navController,
+                .padding(bottom = 20.dp), viewModel_login_user, navController,
             { listener_Crear_cuenta("crear") },
             {
                 val signInIntent = googleSignInClient.signInIntent
@@ -151,35 +149,36 @@ fun IniciarSeccion(
 
             }
         )
-        when (loginState) {
-            is LoginState.Success -> {
-                val user = loginState as LoginState.Success
+        LaunchedEffect(loginState_principal) {
+            when (loginState_principal) {
+                is LoginState_inicio.Succes -> {
 
-                // 👇 Solo lanzamos el efecto, no mostramos UI
-                LaunchedEffect(user.email) {
-                    viewmodel_login.setLoading()
-                    viewmodel_login.verificar_cuenta_google_provider(user.email.toString()) { existe ->
-                        if (existe) {
-                            navController.navigate("pantalla_principal") {
-                                popUpTo("login_principal") { inclusive = true }
+                    val user = loginState_principal as LoginState_inicio.Succes
+                        viewModel_login_user.verificar_cuenta_google_provider(user.email.toString()) { existe ->
+                            if (existe) {
+                                navController.navigate("pantalla_principal") {
+                                    popUpTo("login_principal") { inclusive = true }
+                                }
+                            } else {
+                                listener_Crear_cuenta(user.email.toString())
                             }
-                        } else {
-                            listener_Crear_cuenta(user.email.toString())
                         }
-                    }
+
                 }
-            }
 
-            is LoginState.Error -> {
-                val error = loginState as LoginState.Error
-                Toast.makeText(context, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
-            }
+                is LoginState_inicio.error -> {
+                    val error = loginState_principal as LoginState.Error
+                    Toast.makeText(context, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
+                }
 
-            LoginState.Loading -> {
-            }
-            LoginState.Idle -> {}
+                LoginState_inicio.Loading -> {
+                    Log.d("pasamos_parametros", "cargando")
+                }
 
-            null -> {}
+                LoginState_inicio.LoggedOut -> {
+                }
+                null -> Unit
+            }
         }
 
 
@@ -206,16 +205,22 @@ fun crear_cuenta(
     var contra_oculta by rememberSaveable { mutableStateOf(true) }
     val loginState by viewmodelLoginUser.loginStateCamposInicial.observeAsState()
 
+    var mostrarCarga by remember { mutableStateOf(false) }
+
     LaunchedEffect(loginState) {
         when (val state = loginState) {
             is LoginState_inicio.Succes -> {
-                Toast.makeText(context, "Bienvenido ${state.name}", Toast.LENGTH_SHORT).show()
                 navController.navigate("pantalla_principal") {
                     popUpTo("login_principal") { inclusive = true }
                 }
+
+                delay(10_000)
+                Toast.makeText(context, "Bienvenido ${state.name}", Toast.LENGTH_SHORT).show()
+                Log.d("pasamos_parametros", "completado")
             }
 
             is LoginState_inicio.error -> {
+                Log.d("pasamos_parametros", "error")
                 when (state.tipo) {
                     "correo_no_existe" -> {
                         error_correo = true
@@ -229,17 +234,20 @@ fun crear_cuenta(
                         viewmodelLoginUser.resetLoginState()
                     }
 
-                    else -> { }
+                    else -> {}
                 }
             }
 
             LoginState_inicio.Loading -> {
-
+                Log.d("pasamos_parametros", "cargando")
             }
+
+            LoginState_inicio.LoggedOut -> {
+            }
+
             null -> Unit
         }
     }
-
     Column(modifier = modifier.imePadding()) {
         MyOutlinedTextField(
             value = correo,

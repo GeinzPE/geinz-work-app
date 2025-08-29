@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.loadings
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,33 +26,69 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 @Composable
 fun pantalla_carga_login() {
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        respiracion_logo()
+        respiracion_logo_profesional()
 
         texto_generico_one_line("espere un momento")
     }
 }
 
 @Composable
-fun respiracion_logo() {
+fun respiracion_logo_profesional() {
     val infiniteTransition = rememberInfiniteTransition(label = "logo breathing")
 
+    // Escala: pequeño-inflado-pequeño
     val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2000,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    // Opacidad: ligeramente parpadeante
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
+            animation = tween(
+                durationMillis = 2000,
+                easing = LinearEasing
+            ),
             repeatMode = RepeatMode.Reverse
-        ), label = "scale"
+        ),
+        label = "alpha"
+    )
+
+    // Desplazamiento vertical leve: sube y baja suavemente
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2000,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetY"
     )
 
     Image(
         painter = painterResource(R.drawable.logo_geinz_500x500),
-        contentDescription = "",
+        contentDescription = "Logo Geinz",
         modifier = Modifier
             .size(150.dp)
             .graphicsLayer(
                 scaleX = scale,
-                scaleY = scale
+                scaleY = scale,
+                alpha = alpha,
+                translationY = offsetY
             )
     )
 }
+

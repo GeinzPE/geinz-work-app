@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_login_user : ViewModel() {
+
     val repo_agregar_user = repo_login_user()
 
     private val _loginState = MutableLiveData<LoginState?>()
@@ -68,40 +69,48 @@ class viewModel_login_user : ViewModel() {
     }
 
     fun loginWithGoogle(idToken: String?) {
-
-        _loginState.value = LoginState.Loading
+        _mostrarCarga.value = true
+        _loginStateCamposInicial.value = LoginState_inicio.Loading
 
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
-                    _loginState.postValue(LoginState.Success(user?.email, user?.displayName, user?.photoUrl.toString()))
+                    _loginStateCamposInicial.postValue(LoginState_inicio.Succes(user?.email, user?.displayName, user?.photoUrl.toString()))
+                    viewModelScope.launch {
+                        delay(10_000)
+                        _mostrarCarga.value = false // 🔥 desactivar después de 10 seg
+                    }
                 } else {
-                    _loginState.postValue(LoginState.Error(task.exception?.message))
+                    _mostrarCarga.value = false
+                    _loginStateCamposInicial.postValue(LoginState_inicio.error("",task.exception?.message.toString()))
                 }
             }
     }
 
 
-    fun logear_user(correo: String, password: String) {
-        Log.d("cagamos,loas","asdadasdad")
+    private val _mostrarCarga = MutableLiveData(false)
+    val mostrarCarga: LiveData<Boolean> = _mostrarCarga
 
-        _loginState.value = LoginState.Loading
-        // Primero validamos campos vacíos
+    fun logear_user(correo: String, password: String) {
+        _mostrarCarga.value = true
         when {
-//            correo.isBlank() && password.isBlank() -> {
-//                _loginStateCamposInicial.value =
-//                    LoginState_inicio.error("correo_no_existe", "Correo y contraseña no pueden estar vacíos")
-//                return
-//            }
+            correo.isBlank() && password.isBlank() -> {
+                _mostrarCarga.value = false
+                _loginStateCamposInicial.value =
+                    LoginState_inicio.error("correo_no_existe", "Correo y contraseña no pueden estar vacíos")
+                return
+            }
             correo.isBlank() -> {
+                _mostrarCarga.value = false
                 _loginStateCamposInicial.value =
                     LoginState_inicio.error("correo_no_existe", "El correo no puede estar vacío")
                 return
             }
 
             password.isBlank() -> {
+                _mostrarCarga.value = false
                 _loginStateCamposInicial.value =
                     LoginState_inicio.error("pass_incorrecta", "La contraseña no puede estar vacía")
                 return
@@ -115,9 +124,14 @@ class viewModel_login_user : ViewModel() {
                 if (registrado) {
                     val user = auth.currentUser
                     _loginStateCamposInicial.value = LoginState_inicio.Succes(
+                        email = "",
                         name = user?.displayName,
                         photoUrl = user?.photoUrl?.toString()
                     )
+                    viewModelScope.launch {
+                        delay(10_000)
+                        _mostrarCarga.value = false // 🔥 desactivar después de 10 seg
+                    }
                 } else {
                     when (texto_registrado) {
                         "correo_no_existe" -> {
@@ -126,6 +140,7 @@ class viewModel_login_user : ViewModel() {
                                     texto_registrado,
                                     "El correo no esta registrado, primero crea una cuenta"
                                 )
+                            _mostrarCarga.value = false
                         }
 
                         "pass_incorrecta" -> {
@@ -134,11 +149,13 @@ class viewModel_login_user : ViewModel() {
                                     texto_registrado,
                                     "La contraseña es incorrecta"
                                 )
+                            _mostrarCarga.value = false
                         }
 
                         else -> {
                             _loginStateCamposInicial.value =
                                 LoginState_inicio.error("", "Error desconocido")
+                            _mostrarCarga.value = false
                         }
                     }
                 }
@@ -146,12 +163,17 @@ class viewModel_login_user : ViewModel() {
         } catch (e: Exception) {
             _loginStateCamposInicial.value =
                 LoginState_inicio.error("", "Error desconocido")
+            _mostrarCarga.value = false
         }
     }
 
 
     fun resetLoginState() {
         _loginStateCamposInicial.value = null
+    }
+    fun logout() {
+
+        _loginStateCamposInicial.value = LoginState_inicio.LoggedOut
     }
 
     fun verificar_exist_nombre_user(nombre_user: String) {
@@ -178,7 +200,7 @@ class viewModel_login_user : ViewModel() {
         }
     }
 
-    fun verificar_cuenta_google_provider(correo: String, exista: (Boolean) -> Unit) {
+    suspend fun verificar_cuenta_google_provider(correo: String, exista: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
                 repo_agregar_user.validar_cuenta_existente_provider_google(correo) { existe ->
@@ -208,14 +230,15 @@ class viewModel_login_user : ViewModel() {
 
 
 sealed class LoginState {
-    object Idle : LoginState()
     data class Success(val email: String?, val name: String?, val photoUrl: String?) : LoginState()
     data class Error(val message: String?) : LoginState()
     object Loading : LoginState()
+    object LoggedOut : LoginState()
 }
 
 sealed class LoginState_inicio {
-    data class Succes(val name: String?, val photoUrl: String?) : LoginState_inicio()
+    data class Succes(val email: String?,val name: String?, val photoUrl: String?) : LoginState_inicio()
     data class error(val tipo: String, val msje: String) : LoginState_inicio()
     object Loading : LoginState_inicio()
+    object LoggedOut : LoginState_inicio()
 }
