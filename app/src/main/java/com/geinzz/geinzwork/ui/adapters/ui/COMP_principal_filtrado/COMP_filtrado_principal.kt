@@ -57,8 +57,10 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
@@ -71,6 +73,11 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.principal.texto_encimado_cartas
@@ -686,14 +693,24 @@ fun carta_filtrado_localidades(
     }
 }
 
-
 @Composable
-fun localidad_Selecionada() {
-    Image(
-        painter = painterResource(R.drawable.localidad_icon_general),
-        contentDescription = "",
-        modifier = Modifier.size(17.dp)
-    )
+fun localidad_Selecionada(modifier: Modifier = Modifier) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
+
+    Box(
+        modifier = modifier
+            .height(25.dp), // altura constante
+        contentAlignment = Alignment.Center
+    ) {
+        LottieAnimation(
+            composition = composition,
+            iterations = 3,
+            modifier = modifier
+                .size(23.dp)
+                .offset(y = (-4).dp) // sube 2dp
+        )
+
+    }
 }
 
 

@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class viewModel_login_user : ViewModel() {
+    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     val repo_agregar_user = repo_login_user()
 
@@ -33,9 +34,6 @@ class viewModel_login_user : ViewModel() {
     val registrado_boolean: LiveData<Boolean> get() = _registrado
 
 
-    private val google_provider = MutableLiveData<Boolean>()
-    val _google_provider: LiveData<Boolean> get() = google_provider
-
 
     private val _registrado_google = MutableLiveData<Boolean>()
 
@@ -47,6 +45,8 @@ class viewModel_login_user : ViewModel() {
     private val correo_exist = MutableLiveData<Boolean>()
     val _correo_exist: LiveData<Boolean> get() = correo_exist
 
+    private val _mostrarCarga = MutableLiveData(false)
+    val mostrarCarga: LiveData<Boolean> = _mostrarCarga
 
     fun agregar_user(login_user: login_user, context: Context) {
         try {
@@ -76,22 +76,27 @@ class viewModel_login_user : ViewModel() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    Log.d("correo_compatile","1234")
                     val user = auth.currentUser
-                    _loginStateCamposInicial.postValue(LoginState_inicio.Succes(user?.email, user?.displayName, user?.photoUrl.toString()))
+                    _loginStateCamposInicial.value=LoginState_inicio.Succes(
+                        user?.email,
+                        user?.displayName,
+                        user?.photoUrl.toString(),
+                        "google")
                     viewModelScope.launch {
                         delay(10_000)
-                        _mostrarCarga.value = false // 🔥 desactivar después de 10 seg
+                        _mostrarCarga.value = false
                     }
                 } else {
+                    Log.d("correo_compatile","4321")
                     _mostrarCarga.value = false
-                    _loginStateCamposInicial.postValue(LoginState_inicio.error("",task.exception?.message.toString()))
+                    _loginStateCamposInicial.value=LoginState_inicio.error("",task.exception?.message.toString())
                 }
             }
     }
 
 
-    private val _mostrarCarga = MutableLiveData(false)
-    val mostrarCarga: LiveData<Boolean> = _mostrarCarga
+
 
     fun logear_user(correo: String, password: String) {
         _mostrarCarga.value = true
@@ -117,7 +122,6 @@ class viewModel_login_user : ViewModel() {
             }
         }
 
-        // Si pasan la validación, procedemos con Firebase
         _loginStateCamposInicial.value = LoginState_inicio.Loading
         try {
             repo_agregar_user.logear_user(correo, password) { registrado, texto_registrado ->
@@ -126,11 +130,11 @@ class viewModel_login_user : ViewModel() {
                     _loginStateCamposInicial.value = LoginState_inicio.Succes(
                         email = "",
                         name = user?.displayName,
-                        photoUrl = user?.photoUrl?.toString()
+                        photoUrl = user?.photoUrl?.toString(),"normal"
                     )
                     viewModelScope.launch {
                         delay(10_000)
-                        _mostrarCarga.value = false // 🔥 desactivar después de 10 seg
+                        _mostrarCarga.value = false
                     }
                 } else {
                     when (texto_registrado) {
@@ -172,9 +176,18 @@ class viewModel_login_user : ViewModel() {
         _loginStateCamposInicial.value = null
     }
     fun logout() {
-
-        _loginStateCamposInicial.value = LoginState_inicio.LoggedOut
+        viewModelScope.launch {
+            _mostrarCarga.value = true
+            _loginStateCamposInicial.value = LoginState_inicio.Loading
+            firebaseAuth.signOut()
+            delay(1000)
+            _loginStateCamposInicial.value = LoginState_inicio.LoggedOut
+            delay(1000)
+            _mostrarCarga.value = false
+        }
     }
+
+
 
     fun verificar_exist_nombre_user(nombre_user: String) {
         viewModelScope.launch {
@@ -200,7 +213,7 @@ class viewModel_login_user : ViewModel() {
         }
     }
 
-    suspend fun verificar_cuenta_google_provider(correo: String, exista: (Boolean) -> Unit) {
+    fun verificar_cuenta_google_provider(correo: String, exista: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
                 repo_agregar_user.validar_cuenta_existente_provider_google(correo) { existe ->
@@ -211,6 +224,7 @@ class viewModel_login_user : ViewModel() {
             }
         }
     }
+
     fun setLoading() {
         _loginState.value = LoginState.Loading
     }
@@ -237,7 +251,7 @@ sealed class LoginState {
 }
 
 sealed class LoginState_inicio {
-    data class Succes(val email: String?,val name: String?, val photoUrl: String?) : LoginState_inicio()
+    data class Succes(val email: String?,val name: String?, val photoUrl: String?,val proveedor: String?) : LoginState_inicio()
     data class error(val tipo: String, val msje: String) : LoginState_inicio()
     object Loading : LoginState_inicio()
     object LoggedOut : LoginState_inicio()

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,9 +14,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,6 +59,11 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
@@ -215,7 +223,6 @@ fun apartado_explora_cat(
                 )
             }
         }
-
     }
 }
 
@@ -265,7 +272,7 @@ fun apartado_categorias_tiendas(
                     .align(Alignment.BottomStart)
                     .padding(10.dp)
             ) {
-                Column () {
+                Column() {
                     texto_categorias(nombre_categoria)
                     spacer_vertical(10.dp)
                     tags_subcateogiras(lista_subcateogiras)
@@ -293,40 +300,15 @@ fun apartado_categorias_tiendas(
 
 @Composable
 fun texto_categorias(
-//    modifier: Modifier,
     nombre_categoria: String,
 
-) {
-//    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        texto_generico_one_line(
-            nombre_categoria.uppercase(), MaterialTheme.typography.titleSmall,
-            Modifier
-//                .weight(1f)
-                .padding(end = 10.dp)
-        )
-//        FloatingActionButton(
-//            modifier = Modifier
-//                .size(30.dp)
-//                .clip(CircleShape),
-//            onClick = { onClickExpand() },
-//            elevation = FloatingActionButtonDefaults.elevation(
-//                defaultElevation = 6.dp,
-//                pressedElevation = 10.dp
-//            ),
-//            containerColor = MaterialTheme.colorScheme.primary,
-//        ) {
-//            Image(
-//                modifier = Modifier.size(20.dp),
-//                painter = painterResource(
-//                    constantes_lista_localidades.cambiar_icono_exapndible(
-//                        expandido
-//                    )
-//                ),
-//                contentDescription = "",
-//                colorFilter = ColorFilter.tint(Color.White)
-//            )
-//        }
-//    }
+    ) {
+    texto_generico_one_line(
+        nombre_categoria.uppercase(), MaterialTheme.typography.titleSmall,
+        Modifier
+
+            .padding(end = 10.dp)
+    )
 }
 
 
@@ -339,34 +321,44 @@ fun texto_encimado_cartas(
 ) {
     Row(modifier = modifier.padding(start = 20.dp, end = 20.dp, bottom = 40.dp)) {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Animamos el salto del texto de arriba
+                val offsetY by animateDpAsState(
+                    targetValue = if (defecto_selecionado) (-1).dp else 0.dp, // pequeño salto hacia arriba
+                    animationSpec = tween(durationMillis = 300),
+                    label = "offsetY"
+                )
+
                 texto_generico_multilinea(
                     titulo,
-                    MaterialTheme.typography.titleLarge
+                    MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.offset(y = offsetY) // aplicamos el salto suave
                 )
-                spacer_horizonta(5.dp)
-                AnimatedVisibility(
-                    defecto_selecionado, enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
+
+                if (defecto_selecionado) {
                     localidad_Selecionada()
                 }
             }
+
             spacer_vertical(5.dp)
+
+            // Aquí NO tocamos nada
             Crossfade(
                 targetState = descripcion,
-                animationSpec = tween(durationMillis = 500) // O la duración que prefieras
+                animationSpec = tween(durationMillis = 500)
             ) { textoAnimado ->
                 texto_generico_one_line(
-                    textoAnimado.uppercase(), // Usamos el texto animado y lo convertimos a mayúsculas
-                    MaterialTheme.typography.bodySmall, modifier = Modifier
+                    textoAnimado.uppercase(),
+                    MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
                 )
             }
         }
-
     }
-
 }
+
 
 
 @Composable
@@ -397,7 +389,6 @@ fun filtrado_localidades(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
 
     var localidad_defecto by remember { mutableStateOf(ultimaLocalidad) }
 
@@ -439,6 +430,12 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
 
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.saludo_user))
+
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever // se repite infinito
+    )
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000L)
@@ -452,10 +449,18 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 .weight(1f)
                 .padding(bottom = 10.dp, top = 10.dp)
         ) {
-            texto_generico_one_line(
-                texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
-                MaterialTheme.typography.bodyMedium
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.size(15.dp).padding(bottom = 3.dp)
+                )
+                spacer_horizonta(5.dp)
+                texto_generico_one_line(
+                    texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
+                    MaterialTheme.typography.bodyMedium
+                )
+            }
             spacer_vertical(10.dp)
             Crossfade(targetState = fraces[index], label = "fraces") { txt ->
                 texto_generico_one_line(

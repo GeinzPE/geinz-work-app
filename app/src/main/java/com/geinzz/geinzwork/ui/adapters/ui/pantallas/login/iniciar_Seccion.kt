@@ -95,6 +95,7 @@ fun IniciarSeccion(
         }
     }
 
+
     LaunchedEffect(Unit) {
         while (true) {
             delay(3000)
@@ -109,15 +110,18 @@ fun IniciarSeccion(
                 fadeIn(animationSpec = tween(1000)) with
                         fadeOut(animationSpec = tween(1000))
             }
-        ) { index -> Image(
+        ) { index ->
+            Image(
                 painter = painterResource(id = listaImg[index]),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
                     .blur(10.dp),
                 contentScale = ContentScale.Crop
-            ) }
-        Box(modifier = Modifier
+            )
+        }
+        Box(
+            modifier = Modifier
                 .blur(40.dp)
                 .fillMaxSize()
                 .background(
@@ -130,109 +134,31 @@ fun IniciarSeccion(
                         startY = 0f,
                         endY = 400f
                     )
-                ))
+                )
+        )
         login_principal_apartado(
             loginState_principal,
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp), viewModel_login_user, navController,
-            {},
-            {
-                listener_Crear_cuenta("crear")
-            }, {
-                val signInIntent = googleSignInClient.signInIntent
-                launcher.launch(signInIntent)
-            }
+                .padding(bottom = 20.dp),
+            { correo, contra -> viewModel_login_user.logear_user(correo, contra) },
+            { listener_Crear_cuenta("crear") },
+            {     val signInIntent = googleSignInClient.signInIntent
+                launcher.launch(signInIntent) }
         )
-
-//estado de cuenta google
-        LaunchedEffect(loginState_principal) {
-            Toast.makeText(context, "pasamos nuevo user ajja", Toast.LENGTH_SHORT).show()
-            when (loginState_principal) {
-                is LoginState_inicio.Succes -> {
-                    val user = loginState_principal as LoginState_inicio.Succes
-                    viewModel_login_user.verificar_cuenta_google_provider(user.email.toString()) { existe ->
-                        if (existe) {
-                            navController.navigate("pantalla_principal") {
-                                popUpTo("login_principal") { inclusive = true }
-                            }
-                        } else {
-                            listener_Crear_cuenta(user.email.toString())
-                        }
-                    }
-
-                }
-
-                is LoginState_inicio.error -> {
-                    val error = loginState_principal as LoginState.Error
-                    Toast.makeText(context, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
-                }
-
-                LoginState_inicio.Loading -> {
-                    Log.d("pasamos_parametros", "cargando")
-                }
-
-                LoginState_inicio.LoggedOut -> {
-                }
-
-                null -> Unit
-            }
-        }
-
-//login normal
-        LaunchedEffect(loginState_principal) {
-            when (val state = loginState_principal) {
-                is LoginState_inicio.Succes -> {
-                    navController.navigate("pantalla_principal") {
-                        popUpTo("login_principal") { inclusive = true }
-                    }
-                    delay(10_000)
-                    Log.d("pasamos_parametros", "completado")
-                }
-
-                is LoginState_inicio.error -> {
-                    Log.d("pasamos_parametros", "error")
-                    when (state.tipo) {
-                        "correo_no_existe" -> {
-                            error_correo = true
-                            texto_error_correo = state.msje
-                            viewmodelLoginUser.resetLoginState()
-                        }
-
-                        "pass_incorrecta" -> {
-                            error_pass = true
-                            texto_error_contra = state.msje
-                            viewmodelLoginUser.resetLoginState()
-                        }
-
-                        else -> {}
-                    }
-                }
-
-                LoginState_inicio.Loading -> {
-                    Log.d("pasamos_parametros", "cargando")
-                }
-
-                LoginState_inicio.LoggedOut -> {
-                }
-
-                null -> Unit
-            }
-        }
-
         LaunchedEffect(loginState_principal) {
             when (val state = loginState_principal) {
                 is LoginState_inicio.Succes -> {
                     // 🔹 Si el login viene de Google
                     if (state.proveedor == "google") {
-                        viewModel_login_user.verificar_cuenta_google_provider(state.email) { existe ->
+                        viewModel_login_user.verificar_cuenta_google_provider(state.email.toString()) { existe ->
                             if (existe) {
                                 navController.navigate("pantalla_principal") {
                                     popUpTo("login_principal") { inclusive = true }
                                 }
                             } else {
                                 // Si no existe, crea cuenta nueva con Google
-                                listener_Crear_cuenta(state.email)
+                                listener_Crear_cuenta(state.email.toString())
                             }
                         }
                     } else {
@@ -240,31 +166,30 @@ fun IniciarSeccion(
                         navController.navigate("pantalla_principal") {
                             popUpTo("login_principal") { inclusive = true }
                         }
-                        // Si quieres un pequeño log o delay aquí
                         delay(100)
                         Log.d("pasamos_parametros", "Login normal completado")
                     }
                 }
 
                 is LoginState_inicio.error -> {
-                    Log.d("pasamos_parametros", "Error de login: ${state.msje}")
-                    when (state.tipo) {
-                        "correo_no_existe" -> {
-                            error_correo = true
-                            texto_error_correo = state.msje
-                            viewmodelLoginUser.resetLoginState()
-                        }
-
-                        "pass_incorrecta" -> {
-                            error_pass = true
-                            texto_error_contra = state.msje
-                            viewmodelLoginUser.resetLoginState()
-                        }
-
-                        else -> {
-                            Toast.makeText(context, "Error: ${state.msje}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+//                    Log.d("pasamos_parametros", "Error de login: ${state.msje}")
+//                    when (state.tipo) {
+//                        "correo_no_existe" -> {
+//                            error_correo = true
+//                            texto_error_correo = state.msje
+//                            viewmodelLoginUser.resetLoginState()
+//                        }
+//
+//                        "pass_incorrecta" -> {
+//                            error_pass = true
+//                            texto_error_contra = state.msje
+//                            viewmodelLoginUser.resetLoginState()
+//                        }
+//
+//                        else -> {
+//                            Toast.makeText(context, "Error: ${state.msje}", Toast.LENGTH_SHORT).show()
+//                        }
+//                    }
                 }
 
                 LoginState_inicio.Loading -> {
@@ -278,8 +203,6 @@ fun IniciarSeccion(
                 null -> Unit
             }
         }
-
-
     }
 }
 
@@ -288,13 +211,10 @@ fun IniciarSeccion(
 fun login_principal_apartado(
     loginState_principal: LoginState_inicio?,
     modifier: Modifier,
-    viewmodelLoginUser: viewModel_login_user,
-    navController: NavController,
-    listener_iniciar_seccion_geinz: () -> Unit,
+    listener_iniciar_seccion_geinz: (correo: String, contra: String) -> Unit,
     listener_Crear_cuenta_geinz: () -> Unit,
     listener_continuar_con_google: () -> Unit,
 ) {
-    val context = LocalContext.current
     var password by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var error_correo by remember { mutableStateOf(false) }
@@ -302,6 +222,42 @@ fun login_principal_apartado(
     var texto_error_correo by remember { mutableStateOf("") }
     var texto_error_contra by remember { mutableStateOf("") }
     var contra_oculta by rememberSaveable { mutableStateOf(true) }
+
+    LaunchedEffect(loginState_principal) {
+        when (val state = loginState_principal) {
+            is LoginState_inicio.error -> {
+                when (state.tipo) {
+                    "correo_no_existe" -> {
+                        error_correo = true
+                        texto_error_correo = state.msje
+                        error_pass = false
+                        texto_error_contra = ""
+                    }
+
+                    "pass_incorrecta" -> {
+                        error_pass = true
+                        texto_error_contra = state.msje
+                        error_correo = false
+                        texto_error_correo = ""
+                    }
+
+                    else -> {
+                        error_correo = false
+                        texto_error_correo = ""
+                        error_pass = false
+                        texto_error_contra = ""
+                    }
+                }
+            }
+
+            else -> {
+                error_correo = false
+                texto_error_correo = ""
+                error_pass = false
+                texto_error_contra = ""
+            }
+        }
+    }
 
     Column(modifier = modifier.imePadding()) {
         MyOutlinedTextField(
@@ -324,21 +280,23 @@ fun login_principal_apartado(
             error_pass,
             texto_error_contra,
             password,
-            { contra_oculta = !contra_oculta }, { it ->
+            { contra_oculta = !contra_oculta },
+            {
                 password = it
                 if (error_pass) {
                     error_pass = false
                 }
-            })
+            }
+        )
 
-
-        iniciar_seccion_normal { listener_iniciar_seccion_geinz() }
+        iniciar_seccion_normal { listener_iniciar_seccion_geinz(correo, password) }
         spacer_vertical(10.dp)
         iniciar_seccion_google { listener_continuar_con_google() }
         spacer_vertical(10.dp)
         crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
     }
 }
+
 
 @Composable
 fun btn_secciones(texto: String, icono: Int = 0, listener_btn: () -> Unit) {

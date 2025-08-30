@@ -47,8 +47,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.joelkanyi.jcomposecountrycodepicker.component.CountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
+import com.joelkanyi.jcomposecountrycodepicker.data.Country
 import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -210,6 +212,32 @@ fun PhoneNumberWithPicker(
     }
 }
 
+
+@Composable
+fun SeleccionarPais(onCountrySelected: (Country) -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedCountry by remember { mutableStateOf<Country?>(null) }
+
+    Column {
+        Button(onClick = { showDialog = true }) {
+            Text(selectedCountry?.name ?: "Seleccionar país")
+        }
+
+        if (showDialog) {
+            CountryPickerDialog(
+                showCountryCode = false, // ❌ no muestra +51
+                showFlag = true,          // ✅ muestra banderas
+                showCountryName = true,   // ✅ nombre del país
+                onDismissRequest = { showDialog = false },
+                onCountrySelected = { country ->
+                    selectedCountry = country
+                    onCountrySelected(country)
+                    showDialog = false
+                }
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

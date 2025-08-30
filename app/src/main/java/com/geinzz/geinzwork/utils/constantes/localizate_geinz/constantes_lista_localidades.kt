@@ -187,14 +187,15 @@ object constantes_lista_localidades {
 
     fun saludo_user_principal(nombre: String): String {
         val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val saludo = when (hora) {
-            in 6..11 -> "Hola buenos dias"
-            in 12..18 -> "Hola buenas tardes"
-            else -> "Hola buenas noches"
+        val (saludo, emojiExtra) = when (hora) {
+            in 6..11 -> "Hola, buenos días" to "🌞"
+            in 12..18 -> "Hola, buenas tardes" to "\uD83C\uDF24\uFE0F"
+            else -> "Hola, buenas noches" to "🌙"
         }
 
-        return "$saludo, $nombre 👋"
+        return "$saludo, $nombre $emojiExtra"
     }
+
 
     fun esGmailValido(correo: String): Boolean {
         val regex = Regex("^[A-Za-z0-9._%+-]+@gmail\\.com$")
