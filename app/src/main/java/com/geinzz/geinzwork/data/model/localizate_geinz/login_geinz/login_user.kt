@@ -6,12 +6,14 @@ data class login_user(
     val nombre_user: String = "",
     val correo: String = "",
     val numero_celular: Int = 0,
-    val cod_pais: String = "",
+    val cod_telefeno: String = "",
     val nacionalidad_numero: String = "",
     val genero: String = "",
     val localidad: String = "",
     val fecha_nac: String = "",
-    val password: String = ""
+    val password: String = "",
+    val nacionalidad_nacimiento: String="",
+    val cod_pais: String=""
 )
 
 data class login_google(
@@ -21,10 +23,12 @@ data class login_google(
     val correo: String = "",
     val id: String = "",
     val numero_celular: Int = 0,
-    val cod_pais: String = "",
+    val cod_telefeno: String = "",
     val nacionalidad_numero: String = "",
     val genero: String = "",
     val localidad: String = "",
     val fecha_nac: String = "",
+    val nacionalidad_nacimiento: String="",
+    val cod_pais: String=""
 )
 

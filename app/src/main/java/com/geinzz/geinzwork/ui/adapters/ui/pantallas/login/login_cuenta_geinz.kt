@@ -34,6 +34,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.DateButton
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.PhoneNumberWithPicker
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.SeleccionarPais
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.campos_correo_contra
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_email_user_name
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -87,6 +88,10 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     var cod_pais_params by remember { mutableStateOf("") }
     var nombre_pais_params by remember { mutableStateOf("") }
 
+
+    var nombre_pais_nacionalidad by remember { mutableStateOf("") }
+    var cod_pais_nacionalidad by remember { mutableStateOf("") }
+
     var errorNombre by remember { mutableStateOf(false) }
     var errorApellido by remember { mutableStateOf(false) }
     var errorCorreo by remember { mutableStateOf(false) }
@@ -97,6 +102,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
     var error_pass1 by remember { mutableStateOf(false) }
     var error_pass2 by remember { mutableStateOf(false) }
     var errorUsername by remember { mutableStateOf(false) }
+    var error_nacionalidad by remember { mutableStateOf(false) }
 
     var nombreTocado by remember { mutableStateOf(false) }
     var apellido_tocado by remember { mutableStateOf(false) }
@@ -399,6 +405,18 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
             }
             spacer_vertical(12.dp)
         }
+        //nacionalidad
+        item {
+            SeleccionarPais(
+                { nombre_pais, cod_pais ->
+                    nombre_pais_nacionalidad = nombre_pais
+                    cod_pais_nacionalidad = cod_pais
+                },
+                error_nacionalidad, nombre_pais_nacionalidad,
+            )
+            spacer_vertical(10.dp)
+        }
+
         //Fecha
         item {
             DateButton(errorFechaNacimiento, "El campo es obligatorio") { fecha_obtenida ->
@@ -465,6 +483,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                     errorTelefono = verificarCampo(phone)
                     error_pass1 = verificarCampo(password)
                     error_pass2 = verificarCampo(password2)
+                    error_nacionalidad = verificarCampo(nombre_pais_nacionalidad)
 
 
                     val hayError = listOf(
@@ -475,7 +494,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                         errorGenero,
                         errorLocalidad,
                         errorFechaNacimiento,
-                        errorTelefono, error_pass1, error_pass2
+                        errorTelefono, error_pass1, error_pass2, error_nacionalidad
                     ).any { it }
 
                     if (!hayError) {
@@ -485,12 +504,14 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                             nombre_user = username,
                             correo = correo,
                             numero_celular = phone.toIntOrNull() ?: 0,
-                            cod_pais = cod_pais_params,
+                            cod_telefeno = cod_pais_params,
                             nacionalidad_numero = nombre_pais_params,
                             genero = genero,
                             localidad = localidad,
                             fecha_nac = fechaNacimiento,
-                            password = password
+                            password = password,
+                            nacionalidad_nacimiento = nombre_pais_nacionalidad,
+                            cod_pais = cod_pais_nacionalidad
                         )
                         viewmodel_login.agregar_user(datos, context)
 
@@ -513,6 +534,8 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                     errorLocalidad = verificarCampo(localidad)
                     errorFechaNacimiento = verificarCampo(fechaNacimiento)
                     errorTelefono = verificarCampo(phone)
+                    error_nacionalidad = verificarCampo(nombre_pais_nacionalidad)
+
 
                     val hayError = listOf(
                         errorNombre,
@@ -522,7 +545,7 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                         errorGenero,
                         errorLocalidad,
                         errorFechaNacimiento,
-                        errorTelefono
+                        errorTelefono, error_nacionalidad
                     ).any { it }
 
                     if (!hayError) {
@@ -534,11 +557,14 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
                             correo = correo,
                             id = uid,
                             numero_celular = phone.toIntOrNull() ?: 0,
-                            cod_pais = cod_pais_params,
+                            cod_telefeno = cod_pais_params,
                             nacionalidad_numero = nombre_pais_params,
                             genero = genero,
                             localidad = localidad,
-                            fecha_nac = fechaNacimiento
+                            fecha_nac = fechaNacimiento,
+                            nacionalidad_nacimiento = nombre_pais_nacionalidad,
+                            cod_pais = cod_pais_nacionalidad
+
 
                         )
                         Log.d("campos_login_google", datos.toString())

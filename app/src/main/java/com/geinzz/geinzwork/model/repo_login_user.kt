@@ -106,20 +106,27 @@ class repo_login_user {
             .addOnSuccessListener { authResult ->
                 val user = firebaseAuth.currentUser
                 if (user != null) {
+                    val contacto = hashMapOf(
+                        "cod_telefonico" to login_user.cod_telefeno,
+                        "numero_user" to login_user.numero_celular,
+                        "nombre_pais_numero" to login_user.nacionalidad_numero
+                    )
+
                     val hasmp = hashMapOf<String, Any>(
                         "nombre" to login_user.nombre,
                         "apellido" to login_user.apellido,
                         "nombre_user" to login_user.nombre_user,
                         "correo" to login_user.correo,
-                        "numero_user" to login_user.numero_celular,
                         "genero" to login_user.genero,
-                        "cod_pais" to login_user.cod_pais,
                         "localida" to login_user.localidad,
                         "fecha_registrada" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
                         "fecha_nac" to login_user.fecha_nac,
                         "id_user" to user.uid,
-                        "nombre_pais_numero" to login_user.nacionalidad_numero
+                        "cod_pais" to login_user.cod_pais,
+                        "nacionalidad_nacimiento" to login_user.nacionalidad_nacimiento,
+                        "contacto" to contacto
                     )
+
 
                     collection_user.document(user.uid).set(hasmp)
                         .addOnSuccessListener {
@@ -164,20 +171,27 @@ class repo_login_user {
         context: Context,
         cuenta_creada: (Boolean) -> Unit
     ) {
+        val contacto = hashMapOf(
+            "cod_telefonico" to login_google.cod_pais, // código telefónico, ej: +51
+            "numero_user" to login_google.numero_celular,
+            "nombre_pais_numero" to login_google.nacionalidad_numero // ej: Perú +51
+        )
+
         val hasmap = hashMapOf<String, Any>(
             "nombre" to login_google.nombre,
             "apellido" to login_google.apellido,
             "nombre_user" to login_google.nombre_user,
             "correo" to login_google.correo,
-            "numero_user" to login_google.numero_celular,
             "genero" to login_google.genero,
-            "cod_pais" to login_google.cod_pais,
             "localida" to login_google.localidad,
             "fecha_registrada" to mostrarFechaDialog_horaDialog.obtenerFechaActual(),
             "fecha_nac" to login_google.fecha_nac,
             "id_user" to login_google.id,
-            "nombre_pais_numero" to login_google.nacionalidad_numero
+            "cod_pais" to login_google.cod_pais,                // ISO del país
+            "nacionalidad_nacimiento" to login_google.nacionalidad_nacimiento, // nombre del país
+            "contacto" to contacto
         )
+
         collection_user.document(login_google.id).set(hasmap).addOnSuccessListener {
             Log.d(
                 "REGISTRO_USER",

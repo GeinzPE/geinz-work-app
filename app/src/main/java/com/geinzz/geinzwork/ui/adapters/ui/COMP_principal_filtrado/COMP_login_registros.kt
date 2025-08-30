@@ -4,13 +4,16 @@ import android.icu.util.Calendar
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.IconButton
 import androidx.compose.material.TextButton
@@ -27,13 +30,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,17 +48,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.joelkanyi.jcomposecountrycodepicker.component.CountryCodePicker
+import com.joelkanyi.jcomposecountrycodepicker.annotation.RestrictedApi
+import com.joelkanyi.jcomposecountrycodepicker.component.CountrySelectionDialog
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
 import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryCodePickerState
-import com.joelkanyi.jcomposecountrycodepicker.data.Country
 import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -212,32 +224,95 @@ fun PhoneNumberWithPicker(
     }
 }
 
-
+@OptIn(RestrictedApi::class)
 @Composable
-fun SeleccionarPais(onCountrySelected: (Country) -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedCountry by remember { mutableStateOf<Country?>(null) }
+fun SeleccionarPais(
+    datos: (String, String) -> Unit,
+    isError: Boolean,
+    seleccionado: String
+) {
+    val state = rememberKomposeCountryCodePickerState(
+        showCountryCode = false,
+        showCountryFlag = true
+    )
+
+    var touched by remember { mutableStateOf(false) }
+    var country by remember { mutableStateOf(seleccionado) }
+    var openCountrySelectionDialog by remember { mutableStateOf(false) }
+
+    val focusManager = LocalFocusManager.current
+
+    // Siempre actualizar el nombre del país cuando cambie el código
+    LaunchedEffect(state.countryCode) {
+        if (state.countryCode.isNotEmpty()) {
+            val nombre = state.getCountryName()
+            country = nombre
+            touched = true
+            datos(nombre, state.countryCode)
+            Log.d("SeleccionPais", "País seleccionado: $nombre - ${state.countryCode}")
+        }
+    }
+
+    // Mostrar el diálogo cuando openCountrySelectionDialog sea true
+    if (openCountrySelectionDialog) {
+        CountrySelectionDialog(
+            countryList = state.countryList,
+            onDismissRequest = { openCountrySelectionDialog = false },
+            onSelect = { countryItem ->
+                state.setCode(countryItem.code) // bandera se actualiza
+                openCountrySelectionDialog = false
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground
+        )
+    }
 
     Column {
-        Button(onClick = { showDialog = true }) {
-            Text(selectedCountry?.name ?: "Seleccionar país")
-        }
-
-        if (showDialog) {
-            CountryPickerDialog(
-                showCountryCode = false, // ❌ no muestra +51
-                showFlag = true,          // ✅ muestra banderas
-                showCountryName = true,   // ✅ nombre del país
-                onDismissRequest = { showDialog = false },
-                onCountrySelected = { country ->
-                    selectedCountry = country
-                    onCountrySelected(country)
-                    showDialog = false
+        KomposeCountryCodePicker(
+            state = state,
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        openCountrySelectionDialog = true
+                        focusManager.clearFocus()
+                    }
+                },
+            text = if (touched) country else "",
+            placeholder = {
+                if (!touched) Text("Nacionalidad")
+            },
+            selectedCountryFlagSize = FlagSize(width = 20.dp, height = 20.dp),
+            onValueChange = {},
+            error = isError,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
+            ),
+            trailingIcon = {
+                if (isError) {
+                    Icon(
+                        imageVector = Icons.Filled.Error,
+                        contentDescription = "Error",
+                        tint = Color.Red
+                    )
                 }
-            )
+            }
+        )
+
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                retornar_pleaceholder_label("El campo es obligatorio", Color.Red)
+            }
         }
     }
 }
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
