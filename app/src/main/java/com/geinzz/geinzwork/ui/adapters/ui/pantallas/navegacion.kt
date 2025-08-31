@@ -152,7 +152,7 @@ fun nativationWrapper(
 
                 composable<crear_cuenta_geinz> { navback ->
                     val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()
-                    login_principal(tipo_crear_cuenta.tipo_completado, navController)
+                    login_principal(viewModel_login_user,tipo_crear_cuenta.tipo_completado, navController)
                 }
 
                 composable<carga_login> {

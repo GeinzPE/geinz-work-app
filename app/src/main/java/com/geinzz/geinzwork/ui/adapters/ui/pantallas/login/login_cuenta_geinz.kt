@@ -42,6 +42,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.verificarCampo
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.viewModels.LoginState_inicio
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -51,19 +52,24 @@ val opciones_localida = listOf("Barranca", "Supe", "Puerto supe", "Paramonga", "
 private lateinit var firebaseAuth: FirebaseAuth
 
 @Composable
-fun login_principal(tipo_cuenta: String, navController: NavController) {
+fun login_principal(viewModel_login_user: viewModel_login_user,tipo_cuenta: String, navController: NavController) {
     Log.d("tipo_cuenta", tipo_cuenta)
-    componentes_crear_cuenta(tipo_cuenta, navController)
+    componentes_crear_cuenta(viewModel_login_user,tipo_cuenta, navController)
 }
 
 @Composable
-fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) {
+fun componentes_crear_cuenta(
+    viewmodel_login: viewModel_login_user,
+    tipo_cuenta: String,
+    navController: NavController
+) {
     val context = LocalContext.current
-    val viewmodel_login: viewModel_login_user = viewModel()
     val registrado = viewmodel_login.registrado_boolean.observeAsState()
+    val loginState_principal by viewmodel_login.loginStateCamposInicial.observeAsState()
     val registrado_google = viewmodel_login.registrado_google.observeAsState()
     val correo_exsit = viewmodel_login._correo_exist.observeAsState()
     val usernameExiste by viewmodel_login._nombre_userexists.observeAsState(false)
+
     var correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(
             if (tipo_cuenta == "crear") "" else tipo_cuenta
@@ -192,26 +198,44 @@ fun componentes_crear_cuenta(tipo_cuenta: String, navController: NavController) 
         error_texto_username = if (usernameExiste) "Nombre de usuario ya existe" else ""
         errorUsername = usernameExiste
     }
-    var mostrarCarga by remember { mutableStateOf(false) }
 
-    LaunchedEffect(registrado.value) {
+//    LaunchedEffect(registrado.value) {
+//        if (registrado.value == true) {
+//            delay(5000)
+//            navController.navigate("pantalla_principal") {
+//                popUpTo("login_principal") { inclusive = true }
+//            }
+//        }
+//    }
+//    LaunchedEffect(loginState_principal) {
+//        when (val state = loginState_principal) {
+//            is LoginState_inicio.Succes -> {
+//                navController.navigate("pantalla_principal") {
+//                    popUpTo("login_principal") { inclusive = true }
+//                }
+//            }
+//
+//            is LoginState_inicio.error -> {}
+//
+//            LoginState_inicio.Loading -> {
+//                Log.d("pasamos_parametros", "Cargando...")
+//            }
+//
+//            LoginState_inicio.LoggedOut -> {
+//                Log.d("pasamos_parametros", "Sesión cerrada")
+//            }
+//
+//            null -> Unit
+//        }
+//    }
 
-        if (registrado.value == true) {
-            mostrarCarga = true
-            delay(5000)
-            navController.navigate("pantalla_principal") {
-                popUpTo("login_principal") { inclusive = true }
-            }
-        }
-    }
-
-    LaunchedEffect(registrado_google.value) {
-        if (registrado_google.value == true) {
-            navController.navigate("pantalla_principal") {
-                popUpTo("login_principal") { inclusive = true }
-            }
-        }
-    }
+//    LaunchedEffect(registrado_google.value) {
+//        if (registrado_google.value == true) {
+//            navController.navigate("pantalla_principal") {
+//                popUpTo("login_principal") { inclusive = true }
+//            }
+//        }
+//    }
 
     LaunchedEffect(password, password2, contra1_tocado, contra2_tocado) {
 

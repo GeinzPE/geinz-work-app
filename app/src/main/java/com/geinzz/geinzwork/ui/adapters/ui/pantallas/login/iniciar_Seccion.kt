@@ -1,7 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -25,7 +24,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,9 +49,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTex
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
-import com.geinzz.geinzwork.viewModels.LoginState
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -143,7 +139,7 @@ fun IniciarSeccion(
                 .padding(bottom = 20.dp),
             { correo, contra -> viewModel_login_user.logear_user(correo, contra) },
             { listener_Crear_cuenta("crear") },
-            {     val signInIntent = googleSignInClient.signInIntent
+            { val signInIntent = googleSignInClient.signInIntent
                 launcher.launch(signInIntent) }
         )
         LaunchedEffect(loginState_principal) {
@@ -153,11 +149,12 @@ fun IniciarSeccion(
                     if (state.proveedor == "google") {
                         viewModel_login_user.verificar_cuenta_google_provider(state.email.toString()) { existe ->
                             if (existe) {
+                                Log.d("obtenemos_exsit",existe.toString())
                                 navController.navigate("pantalla_principal") {
                                     popUpTo("login_principal") { inclusive = true }
                                 }
                             } else {
-                                // Si no existe, crea cuenta nueva con Google
+                                Log.d("obtenemos_exsit",existe.toString())
                                 listener_Crear_cuenta(state.email.toString())
                             }
                         }

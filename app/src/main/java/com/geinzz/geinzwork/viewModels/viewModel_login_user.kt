@@ -34,7 +34,6 @@ class viewModel_login_user : ViewModel() {
     val registrado_boolean: LiveData<Boolean> get() = _registrado
 
 
-
     private val _registrado_google = MutableLiveData<Boolean>()
 
     val registrado_google: LiveData<Boolean> get() = _registrado_google
@@ -49,23 +48,46 @@ class viewModel_login_user : ViewModel() {
     val mostrarCarga: LiveData<Boolean> = _mostrarCarga
 
     fun agregar_user(login_user: login_user, context: Context) {
-        try {
-            repo_agregar_user.agregar_user(login_user, context) { registrado ->
-                _registrado.value = registrado
+        viewModelScope.launch {
+            _mostrarCarga.value = true // mostrar loader desde ya
+            try {
+                repo_agregar_user.agregar_user(login_user, context) { registrado ->
+                    // 🔹 esperar medio segundo antes de actualizar el estado
+                    viewModelScope.launch {
+                        delay(2000)
+                        _loginStateCamposInicial.value = LoginState_inicio.Succes("", "", "", "")
+                        delay(2000)
+                        _registrado.value = registrado
+                        _mostrarCarga.value = false // ocultar loader
+                    }
+                }
+            } catch (e: Exception) {
+                _registrado.value = false
+                _mostrarCarga.value = false
+                _loginStateCamposInicial.value = LoginState_inicio.error("", "")
             }
-        } catch (e: Exception) {
-            _registrado.value = false
         }
     }
 
+
     fun agregar_user_google(login_google: login_google, context: Context) {
+        _mostrarCarga.value = true
         try {
+
             repo_agregar_user.agregar_user_google(login_google, context) { cuenta_creada ->
-                _registrado_google.value = cuenta_creada
+                viewModelScope.launch {
+                    delay(2000)
+                    _loginStateCamposInicial.value = LoginState_inicio.Succes("", "", "", "")
+                    delay(2000)
+                    _registrado_google.value = cuenta_creada
+                    _mostrarCarga.value = false
+                }
+
             }
         } catch (e: Exception) {
-            _registrado_google.value = false
-        }
+            _registrado.value = false
+            _mostrarCarga.value = false
+            _loginStateCamposInicial.value = LoginState_inicio.error("", "")        }
     }
 
     fun loginWithGoogle(idToken: String?) {
@@ -76,26 +98,26 @@ class viewModel_login_user : ViewModel() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("correo_compatile","1234")
+                    Log.d("correo_compatile", "1234")
                     val user = auth.currentUser
-                    _loginStateCamposInicial.value=LoginState_inicio.Succes(
+                    _loginStateCamposInicial.value = LoginState_inicio.Succes(
                         user?.email,
                         user?.displayName,
                         user?.photoUrl.toString(),
-                        "google")
+                        "google"
+                    )
                     viewModelScope.launch {
                         delay(10_000)
                         _mostrarCarga.value = false
                     }
                 } else {
-                    Log.d("correo_compatile","4321")
+                    Log.d("correo_compatile", "4321")
                     _mostrarCarga.value = false
-                    _loginStateCamposInicial.value=LoginState_inicio.error("",task.exception?.message.toString())
+                    _loginStateCamposInicial.value =
+                        LoginState_inicio.error("", task.exception?.message.toString())
                 }
             }
     }
-
-
 
 
     fun logear_user(correo: String, password: String) {
@@ -104,9 +126,13 @@ class viewModel_login_user : ViewModel() {
             correo.isBlank() && password.isBlank() -> {
                 _mostrarCarga.value = false
                 _loginStateCamposInicial.value =
-                    LoginState_inicio.error("correo_no_existe", "Correo y contraseña no pueden estar vacíos")
+                    LoginState_inicio.error(
+                        "correo_no_existe",
+                        "Correo y contraseña no pueden estar vacíos"
+                    )
                 return
             }
+
             correo.isBlank() -> {
                 _mostrarCarga.value = false
                 _loginStateCamposInicial.value =
@@ -130,7 +156,7 @@ class viewModel_login_user : ViewModel() {
                     _loginStateCamposInicial.value = LoginState_inicio.Succes(
                         email = "",
                         name = user?.displayName,
-                        photoUrl = user?.photoUrl?.toString(),"normal"
+                        photoUrl = user?.photoUrl?.toString(), "normal"
                     )
                     viewModelScope.launch {
                         delay(10_000)
@@ -175,6 +201,7 @@ class viewModel_login_user : ViewModel() {
     fun resetLoginState() {
         _loginStateCamposInicial.value = null
     }
+
     fun logout() {
         viewModelScope.launch {
             _mostrarCarga.value = true
@@ -186,7 +213,6 @@ class viewModel_login_user : ViewModel() {
             _mostrarCarga.value = false
         }
     }
-
 
 
     fun verificar_exist_nombre_user(nombre_user: String) {
@@ -251,7 +277,13 @@ sealed class LoginState {
 }
 
 sealed class LoginState_inicio {
-    data class Succes(val email: String?,val name: String?, val photoUrl: String?,val proveedor: String?) : LoginState_inicio()
+    data class Succes(
+        val email: String?,
+        val name: String?,
+        val photoUrl: String?,
+        val proveedor: String?
+    ) : LoginState_inicio()
+
     data class error(val tipo: String, val msje: String) : LoginState_inicio()
     object Loading : LoginState_inicio()
     object LoggedOut : LoginState_inicio()
