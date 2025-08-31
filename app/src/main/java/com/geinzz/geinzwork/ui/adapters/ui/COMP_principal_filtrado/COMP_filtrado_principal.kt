@@ -706,8 +706,8 @@ fun localidad_Selecionada(modifier: Modifier = Modifier) {
             composition = composition,
             iterations = 3,
             modifier = modifier
-                .size(23.dp)
-                .offset(y = (-4).dp) // sube 2dp
+                .size(30.dp)
+                .offset(y = (-5).dp) // sube 2dp
         )
 
     }

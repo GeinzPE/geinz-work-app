@@ -179,7 +179,7 @@ object constantes_lista_localidades {
     )
 
     val lista_fraces_inicio = listOf(
-        "A dónde quieres llegar ?",
+        "Explora sin límites",
         "Tu próxima parada",
         "Lo mejor está aquí",
         "Encuentra tu lugar"

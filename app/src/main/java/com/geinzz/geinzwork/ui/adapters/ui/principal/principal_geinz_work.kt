@@ -208,7 +208,7 @@ fun apartado_explora_cat(
             "Ver todos"
         ) { categorias1(nombre_user, localidad_selecionada ?: "barranca") }
         spacer_vertical(10.dp)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(
                 items = categoriasPrincipales,
                 key = { it.nombre.toString() }
@@ -367,8 +367,8 @@ fun texfiel_filtrado() {
         value = "",
         modifier = Modifier.fillMaxWidth(),
         onValueChange = {},
-        placeholder = { retornar_pleaceholder_label(" A donde quieres llegar") },
-        label = { retornar_pleaceholder_label(" A donde quieres llegar") },
+        placeholder = { retornar_pleaceholder_label(" A dónde quieres llegar?") },
+        label = { retornar_pleaceholder_label(" A dónde quieres llegar?") },
         leadingIcon = {
             Image(
                 painter = painterResource(R.drawable.buscar_icon),
@@ -410,7 +410,7 @@ fun filtrado_localidades(
                     items.nombre,
                     items.lista_img,
                     5,
-                    300.dp,
+                    320.dp,
                     300.dp
                 ) { nombre_localidad ->
                     localidad_defecto = nombre_localidad
@@ -453,7 +453,9 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
-                    modifier = Modifier.size(15.dp).padding(bottom = 3.dp)
+                    modifier = Modifier
+                        .size(15.dp)
+                        .padding(bottom = 3.dp)
                 )
                 spacer_horizonta(5.dp)
                 texto_generico_one_line(
@@ -461,7 +463,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                     MaterialTheme.typography.bodyMedium
                 )
             }
-            spacer_vertical(10.dp)
+            spacer_vertical(15.dp)
             Crossfade(targetState = fraces[index], label = "fraces") { txt ->
                 texto_generico_one_line(
                     texto = txt,
@@ -475,7 +477,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 .size(40)
                 .crossfade(true)
                 .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.sin_item_carrito)
+                .error(R.drawable.img_perfil)
                 .build(),
             contentDescription = null,
             modifier = Modifier

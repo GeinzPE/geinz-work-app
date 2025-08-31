@@ -29,6 +29,7 @@ data class login_google(
     val localidad: String = "",
     val fecha_nac: String = "",
     val nacionalidad_nacimiento: String="",
-    val cod_pais: String=""
+    val cod_pais: String="",
+
 )
 

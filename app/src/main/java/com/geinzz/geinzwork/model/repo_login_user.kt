@@ -17,6 +17,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.tasks.await
 import okio.Options
 
 class repo_login_user {
@@ -27,44 +28,35 @@ class repo_login_user {
     val collection_user =
         db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("users")
 
-    fun logear_user(
-        correoRaw: String,
-        password: String,
-        result: (Boolean, String) -> Unit
-    ) {
+    suspend fun logear_user(correoRaw: String, password: String): Pair<Boolean, String> {
         val auth = FirebaseAuth.getInstance()
         val correo = correoRaw.trim()
 
-        auth.signInWithEmailAndPassword(correo, password)
-            .addOnCompleteListener { loginTask ->
-                buscar_correo(correo) { existe ->
-                    if (!existe) {
-                        result(false, "correo_no_existe")
-                        return@buscar_correo
-                    }
+        return try {
+            // 🔹 Primero validar en tu colección personalizada
+            val existe = buscar_correo_suspense(correo)
+            Log.d("existe_correo", existe.toString())
 
-                    if (loginTask.isSuccessful) {
-                        result(true, "logeado")
-                    } else {
-                        val ex = loginTask.exception
-                        Log.e(
-                            "AUTH",
-                            "Login falló: ${ex?.javaClass?.name} - ${ex?.localizedMessage}"
-                        )
-
-                        when (ex) {
-                            is FirebaseAuthInvalidCredentialsException -> {
-                                result(false, "pass_incorrecta")
-                            }
-
-                            else -> result(false, ex?.message ?: "error_desconocido")
-                        }
-                    }
-                }
-
+            if (!existe) {
+                // 🚨 Si no existe en Firestore, ni intentamos logear
+                return Pair(false, "correo_no_existe")
             }
 
+            // 🔹 Recién aquí intentamos login en FirebaseAuth
+            auth.signInWithEmailAndPassword(correo, password).await()
+
+            Pair(true, "logeado")
+
+        } catch (ex: FirebaseAuthInvalidCredentialsException) {
+            Log.e("login_error", "Contraseña incorrecta: ${ex.message}")
+            Pair(false, "pass_incorrecta")
+
+        } catch (ex: Exception) {
+            Log.e("login_error", "Error desconocido: ${ex.message}", ex)
+            Pair(false, ex.message ?: "error_desconocido")
+        }
     }
+
 
 
     fun agregar_correo_registrado(id_user: String, correo: String, tipo: String) {
@@ -82,20 +74,17 @@ class repo_login_user {
             }
     }
 
-    fun buscar_correo(correo: String, onResult: (Boolean) -> Unit) {
-        val ref = db.collection("Trabajadores_Usuarios_Drivers")
-            .document("users")
-            .collection("correos")
+    suspend fun buscar_correo_suspense(correo: String): Boolean {
+        return try {
+            val ref = db.collection("Trabajadores_Usuarios_Drivers")
+                .document("users")
+                .collection("correos")
 
-        ref.whereEqualTo("correo", correo)
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val existe = !querySnapshot.isEmpty
-                onResult(existe)
-            }
-            .addOnFailureListener {
-                onResult(false)
-            }
+            val querySnapshot = ref.whereEqualTo("correo", correo).get().await()
+            !querySnapshot.isEmpty
+        } catch (e: Exception) {
+            false
+        }
     }
 
 
@@ -163,6 +152,7 @@ class repo_login_user {
             }
             .addOnFailureListener { e ->
                 Log.e("REGISTRO_USER", "Error al crear usuario en FirebaseAuth: ${e.message}")
+                terminado(false)
             }
     }
 
@@ -189,7 +179,7 @@ class repo_login_user {
             "id_user" to login_google.id,
             "cod_pais" to login_google.cod_pais,                // ISO del país
             "nacionalidad_nacimiento" to login_google.nacionalidad_nacimiento, // nombre del país
-            "contacto" to contacto
+            "contacto" to contacto,
         )
 
         collection_user.document(login_google.id).set(hasmap).addOnSuccessListener {
@@ -277,17 +267,19 @@ class repo_login_user {
         }
     }
 
-    fun validar_cuenta_existente_provider_google(
-        correo: String,
-        cuenta_existente: (Boolean) -> Unit
-    ) {
-            db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("users")
-                .whereEqualTo("correo", correo).get().addOnSuccessListener { task ->
-                    val existe = !task.isEmpty
-                    cuenta_existente(existe)
-                }.addOnFailureListener { e ->
-                    cuenta_existente(false)
-                }
+    suspend fun verificar_cuenta_google(correo: String): Boolean {
+        return try {
+            val task = db.collection("Trabajadores_Usuarios_Drivers")
+                .document("users")
+                .collection("users")
+                .whereEqualTo("correo", correo)
+                .get()
+                .await()  // 🔹 necesita 'kotlinx-coroutines-play-services'
+            !task.isEmpty
+        } catch (e: Exception) {
+            false
+        }
     }
+
 
 }

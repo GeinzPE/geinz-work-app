@@ -39,7 +39,7 @@ val Typography.busquedaGeinzWork: TextStyle
     get() = TextStyle(
         fontFamily = busqueda_principal_geinz_work,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
+        fontSize = 32.sp,
     )
 
 // Set of Material typography styles to start with

@@ -199,6 +199,30 @@ fun componentes_crear_cuenta(
         errorUsername = usernameExiste
     }
 
+    LaunchedEffect(loginState_principal) {
+        when (loginState_principal) {
+            is LoginState_inicio.Succes -> {
+                navController.navigate("pantalla_principal") {
+                    popUpTo("login_principal") { inclusive = true }
+                }
+            }
+
+            is LoginState_inicio.error -> {
+                Log.d("pasamos_parametros", "ocurrio un error vuelva a intentarlo mas tarde")
+            }
+
+            LoginState_inicio.Loading -> {
+                Log.d("pasamos_parametros", "Cargando...")
+            }
+
+            LoginState_inicio.LoggedOut -> {
+                Log.d("pasamos_parametros", "Sesión cerrada")
+            }
+
+            null -> Unit
+        }
+    }
+
 //    LaunchedEffect(registrado.value) {
 //        if (registrado.value == true) {
 //            delay(5000)
@@ -440,7 +464,6 @@ fun componentes_crear_cuenta(
             )
             spacer_vertical(10.dp)
         }
-
         //Fecha
         item {
             DateButton(errorFechaNacimiento, "El campo es obligatorio") { fecha_obtenida ->
@@ -587,7 +610,8 @@ fun componentes_crear_cuenta(
                             localidad = localidad,
                             fecha_nac = fechaNacimiento,
                             nacionalidad_nacimiento = nombre_pais_nacionalidad,
-                            cod_pais = cod_pais_nacionalidad
+                            cod_pais = cod_pais_nacionalidad,
+
 
 
                         )

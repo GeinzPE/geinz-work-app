@@ -85,7 +85,9 @@ fun IniciarSeccion(
         try {
             val account = task.getResult(ApiException::class.java)!!
             Log.d("LOGIN_GOOGLE", "Correo de Google: ${account.email}")
-            viewModel_login_user.loginWithGoogle(account.idToken)
+            viewModel_login_user.loginWithGoogle(navController,account.idToken){correo->
+                listener_Crear_cuenta(correo)
+            }
         } catch (e: Exception) {
             Log.e("LOGIN_GOOGLE", "Excepción: ${e.message}", e)
         }
@@ -137,69 +139,68 @@ fun IniciarSeccion(
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp),
-            { correo, contra -> viewModel_login_user.logear_user(correo, contra) },
+            { correo, contra -> viewModel_login_user.logear_user(navController,correo, contra) },
             { listener_Crear_cuenta("crear") },
             { val signInIntent = googleSignInClient.signInIntent
                 launcher.launch(signInIntent) }
         )
-        LaunchedEffect(loginState_principal) {
-            when (val state = loginState_principal) {
-                is LoginState_inicio.Succes -> {
-                    // 🔹 Si el login viene de Google
-                    if (state.proveedor == "google") {
-                        viewModel_login_user.verificar_cuenta_google_provider(state.email.toString()) { existe ->
-                            if (existe) {
-                                Log.d("obtenemos_exsit",existe.toString())
-                                navController.navigate("pantalla_principal") {
-                                    popUpTo("login_principal") { inclusive = true }
-                                }
-                            } else {
-                                Log.d("obtenemos_exsit",existe.toString())
-                                listener_Crear_cuenta(state.email.toString())
-                            }
-                        }
-                    } else {
-                        // 🔹 Si es login normal (correo + contraseña)
-                        navController.navigate("pantalla_principal") {
-                            popUpTo("login_principal") { inclusive = true }
-                        }
-                        delay(100)
-                        Log.d("pasamos_parametros", "Login normal completado")
-                    }
-                }
-
-                is LoginState_inicio.error -> {
-//                    Log.d("pasamos_parametros", "Error de login: ${state.msje}")
-//                    when (state.tipo) {
-//                        "correo_no_existe" -> {
-//                            error_correo = true
-//                            texto_error_correo = state.msje
-//                            viewmodelLoginUser.resetLoginState()
+//        LaunchedEffect(loginState_principal) {
+//            when (val state = loginState_principal) {
+//                is LoginState_inicio.Succes -> {
+//                    // 🔹 Si el login viene de Google
+//                    if (state.proveedor == "google") {
+//                        val existe = viewModel_login_user.verificar_cuenta_google_provider(state.email.toString())
+//                        if (existe) {
+//                            Log.d("obtenemos_exist", existe.toString())
+//                            navController.navigate("pantalla_principal") {
+//                                popUpTo("login_principal") { inclusive = true }
+//                            }
+//                        } else {
+//                            Log.d("obtenemos_exist", existe.toString())
+//                            listener_Crear_cuenta(state.email.toString())
 //                        }
-//
-//                        "pass_incorrecta" -> {
-//                            error_pass = true
-//                            texto_error_contra = state.msje
-//                            viewmodelLoginUser.resetLoginState()
+//                    } else {
+//                        // 🔹 Si es login normal (correo + contraseña)
+//                        navController.navigate("pantalla_principal") {
+//                            popUpTo("login_principal") { inclusive = true }
 //                        }
-//
-//                        else -> {
-//                            Toast.makeText(context, "Error: ${state.msje}", Toast.LENGTH_SHORT).show()
-//                        }
+//                        delay(100)
+//                        Log.d("pasamos_parametros", "Login normal completado")
 //                    }
-                }
-
-                LoginState_inicio.Loading -> {
-                    Log.d("pasamos_parametros", "Cargando...")
-                }
-
-                LoginState_inicio.LoggedOut -> {
-                    Log.d("pasamos_parametros", "Sesión cerrada")
-                }
-
-                null -> Unit
-            }
-        }
+//                }
+//
+//                is LoginState_inicio.error -> {
+////                    Log.d("pasamos_parametros", "Error de login: ${state.msje}")
+////                    when (state.tipo) {
+////                        "correo_no_existe" -> {
+////                            error_correo = true
+////                            texto_error_correo = state.msje
+////                            viewmodelLoginUser.resetLoginState()
+////                        }
+////
+////                        "pass_incorrecta" -> {
+////                            error_pass = true
+////                            texto_error_contra = state.msje
+////                            viewmodelLoginUser.resetLoginState()
+////                        }
+////
+////                        else -> {
+////                            Toast.makeText(context, "Error: ${state.msje}", Toast.LENGTH_SHORT).show()
+////                        }
+////                    }
+//                }
+//
+//                LoginState_inicio.Loading -> {
+//                    Log.d("pasamos_parametros", "Cargando...")
+//                }
+//
+//                LoginState_inicio.LoggedOut -> {
+//                    Log.d("pasamos_parametros", "Sesión cerrada")
+//                }
+//
+//                null -> Unit
+//            }
+//        }
     }
 }
 
