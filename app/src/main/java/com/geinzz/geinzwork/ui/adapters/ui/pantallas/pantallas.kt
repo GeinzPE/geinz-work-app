@@ -15,6 +15,9 @@ data class crear_cuenta_geinz(val tipo_completado: String)
 @Serializable
 object carga_login
 
+@Serializable
+object onboarding
+
 
 @Serializable
 data class screen_filtrado(val categoria: String, val localidad: String, val nombre_user: String)

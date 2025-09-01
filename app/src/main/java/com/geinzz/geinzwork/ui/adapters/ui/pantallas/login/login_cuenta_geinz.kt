@@ -222,45 +222,6 @@ fun componentes_crear_cuenta(
             null -> Unit
         }
     }
-
-//    LaunchedEffect(registrado.value) {
-//        if (registrado.value == true) {
-//            delay(5000)
-//            navController.navigate("pantalla_principal") {
-//                popUpTo("login_principal") { inclusive = true }
-//            }
-//        }
-//    }
-//    LaunchedEffect(loginState_principal) {
-//        when (val state = loginState_principal) {
-//            is LoginState_inicio.Succes -> {
-//                navController.navigate("pantalla_principal") {
-//                    popUpTo("login_principal") { inclusive = true }
-//                }
-//            }
-//
-//            is LoginState_inicio.error -> {}
-//
-//            LoginState_inicio.Loading -> {
-//                Log.d("pasamos_parametros", "Cargando...")
-//            }
-//
-//            LoginState_inicio.LoggedOut -> {
-//                Log.d("pasamos_parametros", "Sesión cerrada")
-//            }
-//
-//            null -> Unit
-//        }
-//    }
-
-//    LaunchedEffect(registrado_google.value) {
-//        if (registrado_google.value == true) {
-//            navController.navigate("pantalla_principal") {
-//                popUpTo("login_principal") { inclusive = true }
-//            }
-//        }
-//    }
-
     LaunchedEffect(password, password2, contra1_tocado, contra2_tocado) {
 
         if (contra1_tocado) {

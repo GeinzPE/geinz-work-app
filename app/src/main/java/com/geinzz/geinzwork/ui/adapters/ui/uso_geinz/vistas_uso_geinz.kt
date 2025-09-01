@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun PagerConBotones(innerPadding: PaddingValues) {
     val pagerState = rememberPagerState()
-    val coroutineScope = rememberCoroutineScope() // <-- para lanzar coroutines
 
     Column(
         modifier = Modifier

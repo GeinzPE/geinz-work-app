@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.OnboardingPrincipal
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
@@ -76,12 +77,13 @@ fun nativationWrapper(
                 composable("pantalla_principal") {
                     pantalla_principal(
                         categorias = { localidad, nombre ->
-                            navController.navigate(
-                                mostrar_tiendas(
-                                    nombre,
-                                    localidad
-                                )
-                            )
+//                            navController.navigate(
+//                                mostrar_tiendas(
+//                                    nombre,
+//                                    localidad
+//                                )
+//                            )
+                            navController.navigate(onboarding)
                         },
                         ver_lugares = { navController.navigate(lugares_turisticos) },
                         navController = navController
@@ -90,7 +92,7 @@ fun nativationWrapper(
                 // Login
                 composable("login_principal") {
                     if (firebaseAuth.currentUser != null) {
-                        cuenta_user(viewModel_login_user,navController)
+                        cuenta_user(viewModel_login_user, navController)
                     } else {
                         IniciarSeccion(
                             viewModel_login_user, navController,
@@ -152,13 +154,20 @@ fun nativationWrapper(
 
                 composable<crear_cuenta_geinz> { navback ->
                     val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()
-                    login_principal(viewModel_login_user,tipo_crear_cuenta.tipo_completado, navController)
+                    login_principal(
+                        viewModel_login_user,
+                        tipo_crear_cuenta.tipo_completado,
+                        navController
+                    )
                 }
 
                 composable<carga_login> {
                     pantalla_carga_login()
                 }
 
+                composable<onboarding> {
+                    OnboardingPrincipal()
+                }
             }
         }
         AnimatedVisibility(
