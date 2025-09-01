@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.ui.text)
     implementation(libs.play.services.maps)
     implementation(libs.ui.text)
+    implementation(libs.androidx.animation.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

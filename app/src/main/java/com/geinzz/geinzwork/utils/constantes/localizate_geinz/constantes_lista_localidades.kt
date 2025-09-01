@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escu
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import java.text.Normalizer
@@ -168,6 +170,39 @@ object constantes_lista_localidades {
         R.drawable.f6,
         R.drawable.f7,
         R.drawable.f8
+    )
+
+
+    val lista_img_localidades_local = listOf(
+        R.drawable.f2,
+        R.drawable.f4,
+        R.drawable.f5,
+        R.drawable.f7,
+        R.drawable.f8,
+    )
+    val lista_img_localidades_nombre = listOf(
+        dataclass_onboarding(R.drawable.f2, "Barranca ", "Plaza de armas barranca"),
+        dataclass_onboarding(R.drawable.f4, "Puerto ", "Playa de puerto supe"),
+        dataclass_onboarding(R.drawable.f5, "pativilca ", "Paza de armas de pativilca"),
+        dataclass_onboarding(R.drawable.f7, "Supe ", "Casa de las brujas supe"),
+        dataclass_onboarding(R.drawable.f8, "Paramonga ", "Plaza de armas de paramonga"),
+    )
+
+    val lista_color_degradado_bottom = listOf(
+        Color.Black.copy(alpha = 1f),   // arriba: oscuro
+        Color.Black.copy(alpha = 0.7f),   // ligeramente menos oscuro
+        Color.Black.copy(alpha = 0.5f),   // medio oscuro
+        Color.Black.copy(alpha = 0.25f),  // casi transparente
+        Color.Transparent
+    )
+    val lista_color_degradado_top = listOf(
+        Color.Transparent,
+        // inicio
+        Color.Black.copy(alpha = 0.2f),        // un poco oscuro
+        Color.Black.copy(alpha = 0.5f),        // intermedio
+        Color.Black.copy(alpha = 0.85f),       // ya casi negro
+        Color.Black.copy(alpha = 0.95f),       // más negro aún
+        Color.Black.copy(alpha = 1f)
     )
 
     val lista_frances_inicio_seccion = listOf(

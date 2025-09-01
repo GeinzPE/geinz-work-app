@@ -1,10 +1,10 @@
 package com.geinzz.geinzwork.ui.adapters.ui.loadings
 
-import android.R.attr.translationX
-import android.text.Layout
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -19,27 +19,28 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,33 +53,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.floatin_actionButton
+import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.nio.file.WatchEvent
 
 @Composable
 fun OnboardingPrincipal() {
     val pagerState = rememberPagerState(pageCount = { 2 }) // 2 pantallas
     val scope = rememberCoroutineScope()
+    val lista_colores_degradado_bottom = constantes_lista_localidades.lista_color_degradado_bottom
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
 
     VerticalPager(
         state = pagerState,
@@ -86,7 +93,7 @@ fun OnboardingPrincipal() {
     ) { page ->
         Box(modifier = Modifier.fillMaxSize()) {
             when (page) {
-                0 -> pantalla1 {
+                0 -> pantalla1(lista_colores_degradado_top) {
                     scope.launch {
                         pagerState.animateScrollToPage(
                             page = 1,
@@ -96,10 +103,9 @@ fun OnboardingPrincipal() {
                             )
                         )
                     }
-
                 }
 
-                1 -> pantalla2()
+                1 -> pantalla2(lista_colores_degradado_bottom)
             }
         }
     }
@@ -107,16 +113,17 @@ fun OnboardingPrincipal() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun pantalla1(onNext: () -> Unit) {
-    val listaImg = constantes_lista_localidades.lista_img_local
+fun pantalla1(lista_colores_degradado: List<Color>, onNext: () -> Unit) {
+    val lista_localidades = constantes_lista_localidades.lista_img_localidades_nombre
     var currentImageIndex by rememberSaveable { mutableStateOf(0) }
     LaunchedEffect(Unit) {
         while (true) {
             delay(5000)
-            currentImageIndex = (currentImageIndex + 1) % listaImg.size
+            currentImageIndex = (currentImageIndex + 1) % lista_localidades.size
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
+
         AnimatedContent(
             targetState = currentImageIndex,
             transitionSpec = {
@@ -124,60 +131,120 @@ fun pantalla1(onNext: () -> Unit) {
                         fadeOut(animationSpec = tween(1500))
             }
         ) { index ->
-            Image(
-                painter = painterResource(id = listaImg[index]),
+            AsyncImage(
+                model = lista_localidades[index].img,
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(4.dp),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         }
-        Box(
+        fondo_osucro(lista_colocares = lista_colores_degradado)
+        Column(
             modifier = Modifier
-                .blur(40.dp)
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.5f),
-                            Color.Black.copy(alpha = 0.55f)
-                        ),
-                        startY = 0f,
-                        endY = 400f
-                    )
-                )
-        )
-        Column( modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.BottomStart)
-            .padding(10.dp) ) {
+                .fillMaxWidth()
+                .align(Alignment.BottomStart)
+                .padding(10.dp)
+        ) {
+
             spacer_vertical(20.dp)
-            Box(modifier = Modifier.fillMaxWidth(0.7f)){
+            Box(modifier = Modifier.fillMaxWidth(0.7f)) {
                 texto_generico_multilinea(
-                "Bienvenido a geinz".uppercase(), MaterialTheme.typography.busquedaGeinzWork
-            )
+                    "Bienvenido a geinz".uppercase(), MaterialTheme.typography.busquedaGeinzWork
+                )
             }
             spacer_vertical(15.dp)
             texto_generico_multilinea(
                 "Explora Barranca, Supe, Puerto Supe, Pativilca y Paramonga. Descubre tiendas, lugares turísticos y los eventos más próximos en cada localidad. Mantente al día con todo lo que sucede cerca de ti y encuentra fácilmente los sitios que quieres visitar",
-           MaterialTheme.typography.bodyMedium
+                MaterialTheme.typography.bodyMedium
             )
             spacer_vertical(20.dp)
-            Box(modifier = Modifier.fillMaxWidth()){
-                CelularAnimacion(modifier = Modifier.align(Alignment.BottomCenter)){
-                    onNext()
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    galeria_img(lista_localidades, currentImageIndex) { index ->
+                        currentImageIndex = index
+                    }
+                }
+                Box(Modifier.padding(horizontal = 20.dp)) {
+                    CelularAnimacion(modifier = Modifier.align(Alignment.BottomCenter)) {
+                        onNext()
+                    }
                 }
             }
             spacer_vertical(30.dp)
+        }
+        CartaLocalizacion(
+            lugar = lista_localidades[currentImageIndex].nombre_lugar,
+            localida = lista_localidades[currentImageIndex].nombre_localidad
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+
+        ) {
+            AsyncImage(
+                model = R.drawable.logo_geinz_blanco,
+                contentDescription = null,
+                modifier = Modifier.size(55.dp),
+                contentScale = ContentScale.Inside
+            )
         }
 
     }
 }
 
 @Composable
-fun pantalla2() {
+fun CartaLocalizacion(
+    lugar: String,
+    localida: String,
+) {
+    Column (modifier = Modifier.padding(10.dp)){
+        Text(
+            text = lugar.uppercase(),
+            color = Color.White,
+            style = MaterialTheme.typography.titleSmall
+        )
+        spacer_vertical(5.dp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = localida.uppercase(),
+                color = Color.White,
+                style = MaterialTheme.typography.titleSmall
+            )
+            spacer_horizonta(5.dp)
+
+            Image(
+                painter = painterResource(R.drawable.location_drawable),
+                contentDescription = null,
+                modifier = Modifier.size(15.dp),
+                colorFilter = ColorFilter.tint(Color.White)
+            )
+        }
+    }
+}
+
+
+@Composable
+fun fondo_osucro(scale: Float = 1f, lista_colocares: List<Color>) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .blur(40.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = lista_colocares,
+                    startY = 0f,
+                    endY = Float.POSITIVE_INFINITY
+                )
+            )
+    )
+}
+
+@Composable
+fun pantalla2(lista_colores_degradaro: List<Color>) {
     val pagerState = rememberPagerState(pageCount = { 4 })
 
     HorizontalPager(
@@ -186,10 +253,10 @@ fun pantalla2() {
     ) { page ->
         Box(modifier = Modifier.fillMaxSize()) {
             when (page) {
-                0 -> pantalla3()
-                1 -> pantalla4()
-                2 -> pantalla5()
-                3 -> pantalla6()
+                0 -> pantalla3(pagerState = pagerState, page = page, lista_colores_degradaro)
+                1 -> pantalla4(pagerState = pagerState, page = page, lista_colores_degradaro)
+                2 -> pantalla5(pagerState = pagerState, page = page, lista_colores_degradaro)
+                3 -> pantalla6(pagerState = pagerState, page = page, lista_colores_degradaro)
             }
         }
     }
@@ -197,13 +264,29 @@ fun pantalla2() {
 
 
 @Composable
-fun pantalla3() {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CameraZoomSobreImagen()
+fun pantalla3(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
 
-        // 🔹 Texto sobre la imagen
+    val scaleAnim = remember { Animatable(1f) }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == page) {
+            scaleAnim.animateTo(
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(10000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        } else {
+            scaleAnim.snapTo(1f)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        CameraZoomSobreImagen(scale = scaleAnim.value)
+
+        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
+
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -213,12 +296,29 @@ fun pantalla3() {
     }
 }
 
+
 @Composable
-fun pantalla4() {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CameraZoomSobreImagen()
+fun pantalla4(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+    val scaleAnim = remember { Animatable(1f) }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == page) {
+            scaleAnim.animateTo(
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(10000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        } else {
+            scaleAnim.snapTo(1f)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        CameraZoomSobreImagen(scale = scaleAnim.value)
+
+        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -230,60 +330,82 @@ fun pantalla4() {
 }
 
 @Composable
-fun pantalla5() {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CameraZoomSobreImagen()
+fun pantalla5(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+    val scaleAnim = remember { Animatable(1f) }
 
-        // 🔹 Texto sobre la imagen
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == page) {
+            scaleAnim.animateTo(
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(10000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        } else {
+            scaleAnim.snapTo(1f)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Imagen con zoom
+        CameraZoomSobreImagen(scale = scaleAnim.value)
+
+        // Overlay superior con el mismo zoom
+        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
+
+        // Texto centrado
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            texto_generico_multilinea("hola3")
+            texto_generico_multilinea("hola2")
         }
     }
 }
 
 @Composable
-fun pantalla6() {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CameraZoomSobreImagen()
+fun pantalla6(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+    val scaleAnim = remember { Animatable(1f) }
 
-        // 🔹 Texto sobre la imagen
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == page) {
+            scaleAnim.animateTo(
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(10000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        } else {
+            scaleAnim.snapTo(1f)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        CameraZoomSobreImagen(scale = scaleAnim.value)
+
+        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
+
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            texto_generico_multilinea("hola4")
+            texto_generico_multilinea("hola2")
         }
     }
 }
 
-
 @Composable
-fun CameraZoomSobreImagen() {
-    val infiniteTransition = rememberInfiniteTransition()
-
-    // 👇 escala animada (zoom in y zoom out)
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,       // tamaño normal
-        targetValue = 1.3f,      // hasta 30% de zoom
-        animationSpec = infiniteRepeatable(
-            animation = tween(10000, easing = LinearEasing), // duración 10s
-            repeatMode = RepeatMode.Reverse                  // zoom in -> zoom out
-        )
-    )
+fun CameraZoomSobreImagen(scale: Float) {
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.f4),
+        AsyncImage(
+            model = R.drawable.f1,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -293,22 +415,23 @@ fun CameraZoomSobreImagen() {
                     scaleY = scale
                 }
         )
+
     }
 }
 
 @Composable
-fun CelularAnimacion(modifier: Modifier = Modifier,onclick:()-> Unit) {
+fun CelularAnimacion(modifier: Modifier = Modifier, onclick: () -> Unit) {
     val cellHeight = 60.dp
     val cellWidth = 40.dp
     val dotSize = 5.dp
-    val maxOffset = 15f // ajusta para que no llegue al borde
+    val maxOffset = 15f
 
     Box(
         modifier = modifier
             .height(cellHeight)
             .width(cellWidth)
             .clip(RoundedCornerShape(10.dp))
-            .clickable{onclick()}
+            .clickable { onclick() }
             .background(Color.Transparent)
             .border(1.dp, color = Color.White, RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
@@ -319,8 +442,8 @@ fun CelularAnimacion(modifier: Modifier = Modifier,onclick:()-> Unit) {
             targetValue = maxOffset,
             animationSpec = infiniteRepeatable(
                 animation = tween(
-                    durationMillis = 1500, // más rápido y fluido
-                    easing = LinearOutSlowInEasing // suaviza el movimiento
+                    durationMillis = 1500,
+                    easing = LinearOutSlowInEasing
                 ),
                 repeatMode = RepeatMode.Reverse
             )
@@ -331,6 +454,79 @@ fun CelularAnimacion(modifier: Modifier = Modifier,onclick:()-> Unit) {
                 .size(dotSize)
                 .offset(y = offsetY.dp)
                 .background(Color.White, shape = CircleShape)
+        )
+    }
+}
+
+
+@Composable
+fun galeria_img(
+    lista_img: List<dataclass_onboarding>,
+    imgSeleccionada: Int,
+    img_selecionada: (Int) -> Unit
+) {
+    LazyRow(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        itemsIndexed(lista_img) { index, img ->
+            carta_img_preview(img, index == imgSeleccionada) {
+                img_selecionada(index)
+            }
+        }
+    }
+}
+@Composable
+fun carta_img_preview(
+    img: dataclass_onboarding,
+    isSelected: Boolean,
+    img_selecionada: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .height(60.dp)
+                .width(60.dp)
+                .clip(RoundedCornerShape(10))
+                .clickable {
+                    img_selecionada()
+                }
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(img.img)
+                    .size(60, 60)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            this@Column.AnimatedVisibility(
+                visible = !isSelected,
+                enter = fadeIn(animationSpec = tween(500)),
+                exit = fadeOut(animationSpec = tween(500))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                )
+            }
+        }
+
+
+        Text(
+            text = img.nombre_localidad.uppercase(),
+            fontSize = 10.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+           style = MaterialTheme.typography.bodyMedium,
+            color = if (isSelected) Color.White else Color.Gray,
+            modifier = Modifier.padding(top = 6.dp).width(60.dp),
+            textAlign = TextAlign.Center
         )
     }
 }
