@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.loadings
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -19,9 +20,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,6 +72,7 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -82,7 +86,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingPrincipal() {
-    val pagerState = rememberPagerState(pageCount = { 2 }) // 2 pantallas
+    val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
     val lista_colores_degradado_bottom = constantes_lista_localidades.lista_color_degradado_bottom
     val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
@@ -132,7 +136,10 @@ fun pantalla1(lista_colores_degradado: List<Color>, onNext: () -> Unit) {
             }
         ) { index ->
             AsyncImage(
-                model = lista_localidades[index].img,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_localidades[index].img)
+                    .crossfade(false)
+                    .build(),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
@@ -165,16 +172,16 @@ fun pantalla1(lista_colores_degradado: List<Color>, onNext: () -> Unit) {
                     }
                 }
                 Box(Modifier.padding(horizontal = 20.dp)) {
-                    CelularAnimacion(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    CelularAnimacion(modifier = Modifier.align(Alignment.BottomCenter), {
                         onNext()
-                    }
+                    }, orientation = Orientation.Vertical)
                 }
             }
             spacer_vertical(30.dp)
         }
         CartaLocalizacion(
             lugar = lista_localidades[currentImageIndex].nombre_lugar,
-            localida = lista_localidades[currentImageIndex].nombre_localidad
+            localida = lista_localidades[currentImageIndex].nombre_localidad, true
         )
         Box(
             modifier = Modifier
@@ -196,8 +203,9 @@ fun pantalla1(lista_colores_degradado: List<Color>, onNext: () -> Unit) {
 fun CartaLocalizacion(
     lugar: String,
     localida: String,
+    icon: Boolean
 ) {
-    Column (modifier = Modifier.padding(10.dp)){
+    Column(modifier = Modifier.padding(10.dp)) {
         Text(
             text = lugar.uppercase(),
             color = Color.White,
@@ -211,13 +219,14 @@ fun CartaLocalizacion(
                 style = MaterialTheme.typography.titleSmall
             )
             spacer_horizonta(5.dp)
-
-            Image(
-                painter = painterResource(R.drawable.location_drawable),
-                contentDescription = null,
-                modifier = Modifier.size(15.dp),
-                colorFilter = ColorFilter.tint(Color.White)
-            )
+            if (icon) {
+                Image(
+                    painter = painterResource(R.drawable.location_drawable),
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
         }
     }
 }
@@ -228,10 +237,10 @@ fun fondo_osucro(scale: Float = 1f, lista_colocares: List<Color>) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
+//            .graphicsLayer {
+//                scaleX = scale
+//                scaleY = scale
+//            }
             .blur(40.dp)
             .background(
                 brush = Brush.verticalGradient(
@@ -243,9 +252,29 @@ fun fondo_osucro(scale: Float = 1f, lista_colocares: List<Color>) {
     )
 }
 
+
+@Composable
+fun FondoOscuroAlto(listaColores: List<Color>) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp) // dale más altura para suavizar el corte
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listaColores,
+                    startY = 0f,
+                    endY = Float.POSITIVE_INFINITY
+                )
+            )
+            .blur(80.dp) // aumenta el blur después
+    )
+}
+
+
 @Composable
 fun pantalla2(lista_colores_degradaro: List<Color>) {
     val pagerState = rememberPagerState(pageCount = { 4 })
+    val scope = rememberCoroutineScope()
 
     HorizontalPager(
         state = pagerState,
@@ -253,147 +282,562 @@ fun pantalla2(lista_colores_degradaro: List<Color>) {
     ) { page ->
         Box(modifier = Modifier.fillMaxSize()) {
             when (page) {
-                0 -> pantalla3(pagerState = pagerState, page = page, lista_colores_degradaro)
-                1 -> pantalla4(pagerState = pagerState, page = page, lista_colores_degradaro)
-                2 -> pantalla5(pagerState = pagerState, page = page, lista_colores_degradaro)
-                3 -> pantalla6(pagerState = pagerState, page = page, lista_colores_degradaro)
+                0 -> pantalla3(pagerState = pagerState, page = page, lista_colores_degradaro) {
+                    scope.launch {
+                        pagerState.animateScrollToPage(
+                            page = 1,
+                            animationSpec = tween(
+                                durationMillis = 800,
+                                easing = LinearOutSlowInEasing
+                            )
+                        )
+                    }
+                }
+
+                1 -> pantalla4(pagerState = pagerState, page = page, lista_colores_degradaro){
+                    scope.launch {
+                        pagerState.animateScrollToPage(
+                            page = 2,
+                            animationSpec = tween(
+                                durationMillis = 800,
+                                easing = LinearOutSlowInEasing
+                            )
+                        )
+                    }
+                }
+                2 -> pantalla5(pagerState = pagerState, page = page, lista_colores_degradaro){
+                    scope.launch {
+                        pagerState.animateScrollToPage(
+                            page = 3,
+                            animationSpec = tween(
+                                durationMillis = 800,
+                                easing = LinearOutSlowInEasing
+                            )
+                        )
+                    }
+                }
+                3 -> pantalla6(pagerState = pagerState, page = page, lista_colores_degradaro){
+
+                }
             }
         }
     }
 }
 
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun pantalla3(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+fun pantalla3(
+    pagerState: PagerState,
+    page: Int,
+    lista_colores_degradado: List<Color>,
+    onNext: () -> Unit
+) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
 
+    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
     val scaleAnim = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage == page) {
-            scaleAnim.animateTo(
-                targetValue = 1.15f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(10000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
+            while (true) {
+                // Zoom hacia 1.15f
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = tween(2500, easing = LinearEasing)
                 )
-            )
+                // Zoom de regreso a 1f
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Cambia la imagen solo cuando vuelve a su tamaño normal
+                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+            }
         } else {
             scaleAnim.snapTo(1f)
         }
     }
 
+
     Box(modifier = Modifier.fillMaxSize()) {
-        CameraZoomSobreImagen(scale = scaleAnim.value)
+        // Imagen
+        AnimatedContent(
+            targetState = currentImageIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+            }
+        ) { index ->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_sub_pantallas[index].img)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
 
-        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            texto_generico_multilinea("hola1")
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(bottom = 20.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Crossfade(
+                            targetState = currentImageIndex,
+                            animationSpec = tween(1500)
+                        ) { index ->
+                            texto_generico_multilinea(
+                                lista_sub_pantallas[index].titulo.uppercase(),
+                                MaterialTheme.typography.busquedaGeinzWork
+                            )
+                        }
+                    }
+
+                    spacer_vertical(15.dp)
+                    Crossfade(
+                        targetState = currentImageIndex,
+                        animationSpec = tween(1500)
+                    ) { index ->
+                        texto_generico_multilinea(
+                            lista_sub_pantallas[index].texto,
+                            MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+
+                }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Explora a tu manera",
+            localida = "Geinz", false
+        )
+
     }
 }
 
-
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun pantalla4(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+fun pantalla4(    pagerState: PagerState,
+                  page: Int,
+                  lista_colores_degradado: List<Color>,
+                  onNext: () -> Unit) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
+
+    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
     val scaleAnim = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage == page) {
-            scaleAnim.animateTo(
-                targetValue = 1.15f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(10000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
+            while (true) {
+                // Zoom hacia 1.15f
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = tween(2500, easing = LinearEasing)
                 )
-            )
+                // Zoom de regreso a 1f
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Cambia la imagen solo cuando vuelve a su tamaño normal
+                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+            }
         } else {
             scaleAnim.snapTo(1f)
         }
     }
 
+
     Box(modifier = Modifier.fillMaxSize()) {
-        CameraZoomSobreImagen(scale = scaleAnim.value)
+        // Imagen
+        AnimatedContent(
+            targetState = currentImageIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+            }
+        ) { index ->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_sub_pantallas[index].img)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
 
-        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            texto_generico_multilinea("hola2")
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(bottom = 20.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Crossfade(
+                            targetState = currentImageIndex,
+                            animationSpec = tween(1500)
+                        ) { index ->
+                            texto_generico_multilinea(
+                                lista_sub_pantallas[index].titulo.uppercase(),
+                                MaterialTheme.typography.busquedaGeinzWork
+                            )
+                        }
+                    }
+
+                    spacer_vertical(15.dp)
+                    Crossfade(
+                        targetState = currentImageIndex,
+                        animationSpec = tween(1500)
+                    ) { index ->
+                        texto_generico_multilinea(
+                            lista_sub_pantallas[index].texto,
+                            MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+
+                }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Explora a tu manera",
+            localida = "Geinz", false
+        )
+
     }
 }
-
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun pantalla5(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+fun pantalla5(    pagerState: PagerState,
+                  page: Int,
+                  lista_colores_degradado: List<Color>,
+                  onNext: () -> Unit) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
+
+    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
     val scaleAnim = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage == page) {
-            scaleAnim.animateTo(
-                targetValue = 1.15f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(10000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
+            while (true) {
+                // Zoom hacia 1.15f
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = tween(2500, easing = LinearEasing)
                 )
-            )
+                // Zoom de regreso a 1f
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Cambia la imagen solo cuando vuelve a su tamaño normal
+                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+            }
         } else {
             scaleAnim.snapTo(1f)
         }
     }
 
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Imagen con zoom
-        CameraZoomSobreImagen(scale = scaleAnim.value)
+        // Imagen
+        AnimatedContent(
+            targetState = currentImageIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+            }
+        ) { index ->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_sub_pantallas[index].img)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
 
-        // Overlay superior con el mismo zoom
-        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
-
-        // Texto centrado
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            texto_generico_multilinea("hola2")
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(bottom = 20.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Crossfade(
+                            targetState = currentImageIndex,
+                            animationSpec = tween(1500)
+                        ) { index ->
+                            texto_generico_multilinea(
+                                lista_sub_pantallas[index].titulo.uppercase(),
+                                MaterialTheme.typography.busquedaGeinzWork
+                            )
+                        }
+                    }
+
+                    spacer_vertical(15.dp)
+                    Crossfade(
+                        targetState = currentImageIndex,
+                        animationSpec = tween(1500)
+                    ) { index ->
+                        texto_generico_multilinea(
+                            lista_sub_pantallas[index].texto,
+                            MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+
+                }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Explora a tu manera",
+            localida = "Geinz", false
+        )
+
     }
 }
-
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun pantalla6(pagerState: PagerState, page: Int, lista_colores_degradado: List<Color>) {
+fun pantalla6(    pagerState: PagerState,
+                  page: Int,
+                  lista_colores_degradado: List<Color>,
+                  onNext: () -> Unit) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
+
+    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
     val scaleAnim = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage == page) {
-            scaleAnim.animateTo(
-                targetValue = 1.15f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(10000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
+            while (true) {
+                // Zoom hacia 1.15f
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = tween(2500, easing = LinearEasing)
                 )
-            )
+                // Zoom de regreso a 1f
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Cambia la imagen solo cuando vuelve a su tamaño normal
+                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+            }
         } else {
             scaleAnim.snapTo(1f)
         }
     }
 
+
     Box(modifier = Modifier.fillMaxSize()) {
+        // Imagen
+        AnimatedContent(
+            targetState = currentImageIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+            }
+        ) { index ->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_sub_pantallas[index].img)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
 
-        CameraZoomSobreImagen(scale = scaleAnim.value)
-
-        fondo_osucro(scale = scaleAnim.value, lista_colores_degradado)
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            texto_generico_multilinea("hola2")
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(bottom = 20.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Crossfade(
+                            targetState = currentImageIndex,
+                            animationSpec = tween(1500)
+                        ) { index ->
+                            texto_generico_multilinea(
+                                lista_sub_pantallas[index].titulo.uppercase(),
+                                MaterialTheme.typography.busquedaGeinzWork
+                            )
+                        }
+                    }
+
+                    spacer_vertical(15.dp)
+                    Crossfade(
+                        targetState = currentImageIndex,
+                        animationSpec = tween(1500)
+                    ) { index ->
+                        texto_generico_multilinea(
+                            lista_sub_pantallas[index].texto,
+                            MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+
+                }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Explora a tu manera",
+            localida = "Geinz", false
+        )
+
     }
 }
 
@@ -420,11 +864,17 @@ fun CameraZoomSobreImagen(scale: Float) {
 }
 
 @Composable
-fun CelularAnimacion(modifier: Modifier = Modifier, onclick: () -> Unit) {
+fun CelularAnimacion(
+    modifier: Modifier = Modifier,
+    onclick: () -> Unit,
+    orientation: Orientation = Orientation.Vertical
+) {
     val cellHeight = 60.dp
     val cellWidth = 40.dp
     val dotSize = 5.dp
-    val maxOffset = 15f
+
+
+    val maxOffset = if (orientation == Orientation.Vertical) 15f else 6f
 
     Box(
         modifier = modifier
@@ -437,7 +887,7 @@ fun CelularAnimacion(modifier: Modifier = Modifier, onclick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         val infiniteTransition = rememberInfiniteTransition()
-        val offsetY by infiniteTransition.animateFloat(
+        val offset by infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = maxOffset,
             animationSpec = infiniteRepeatable(
@@ -452,7 +902,13 @@ fun CelularAnimacion(modifier: Modifier = Modifier, onclick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(dotSize)
-                .offset(y = offsetY.dp)
+                .then(
+                    if (orientation == Orientation.Vertical) {
+                        Modifier.offset(y = offset.dp)
+                    } else {
+                        Modifier.offset(x = offset.dp)
+                    }
+                )
                 .background(Color.White, shape = CircleShape)
         )
     }
@@ -476,6 +932,7 @@ fun galeria_img(
         }
     }
 }
+
 @Composable
 fun carta_img_preview(
     img: dataclass_onboarding,
@@ -523,9 +980,11 @@ fun carta_img_preview(
             fontSize = 10.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-           style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium,
             color = if (isSelected) Color.White else Color.Gray,
-            modifier = Modifier.padding(top = 6.dp).width(60.dp),
+            modifier = Modifier
+                .padding(top = 6.dp)
+                .width(60.dp),
             textAlign = TextAlign.Center
         )
     }

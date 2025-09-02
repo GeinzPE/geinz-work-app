@@ -9,20 +9,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
+import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import java.text.Normalizer
@@ -30,7 +28,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.collections.forEach
 
 object constantes_lista_localidades {
     val lista = listOf(
@@ -190,9 +187,9 @@ object constantes_lista_localidades {
 
     val lista_color_degradado_bottom = listOf(
         Color.Black.copy(alpha = 1f),   // arriba: oscuro
-        Color.Black.copy(alpha = 0.7f),   // ligeramente menos oscuro
-        Color.Black.copy(alpha = 0.5f),   // medio oscuro
-        Color.Black.copy(alpha = 0.25f),  // casi transparente
+        Color.Black.copy(alpha = 0.85f), // muy oscuro
+        Color.Black.copy(alpha = 0.6f),  // intermedio
+        Color.Black.copy(alpha = 0.3f),// casi transparente
         Color.Transparent
     )
     val lista_color_degradado_top = listOf(
@@ -219,6 +216,26 @@ object constantes_lista_localidades {
         "Lo mejor está aquí",
         "Encuentra tu lugar"
     )
+
+    val fracespantalla1 = listOf(
+        dataclass_pantalla1(
+            "Tu camino más fácil",
+            "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
+            R.drawable.p1_1
+        ),
+        dataclass_pantalla1(
+            "Explora tu zona",
+            "Descubre restaurantes, tiendas y servicios en tu ciudad. Aprovecha promociones exclusivas y conoce lo que tienes alrededor.",
+            R.drawable.p1_2
+        ),
+        dataclass_pantalla1(
+            "Rutas rápidas",
+            "Sigue rutas directas y seguras para llegar más rápido a tu destino. Encuentra siempre lo que buscas sin complicaciones.",
+            R.drawable.p1_3
+        )
+    )
+
+
 
     fun saludo_user_principal(nombre: String): String {
         val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
