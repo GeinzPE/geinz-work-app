@@ -2,77 +2,38 @@ package com.geinzz.geinzwork
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.geinzz.geinzwork.ui.adapters.adaoter_onboarding
-import com.geinzz.geinzwork.model.dataclass_onboarding
-import com.geinzz.geinzwork.databinding.ActivityOnboardingBinding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.OnboardingPrincipal
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 
-class OnboardingActivity : AppCompatActivity() {
+class OnboardingActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityOnboardingBinding
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivityOnboardingBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-        // Verifica si ya vio el onboarding
+
         if (isOnboardingFinished()) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
 
-
-        val items = listOf(
-            dataclass_onboarding(
-                "¡Bienvenido a Geinz Work!",
-                "Gracias por unirte a nuestra comunidad. Estamos aquí para ayudarte a conectar, comprar y crecer.",
-                R.raw.corazon_gracias_animation
-            ),
-            dataclass_onboarding(
-                "Conecta con trabajadores de tu localidad",
-                "Contamos con profesionales en Barranca, Supe, Pativilca y Paramonga",
-                R.raw.trabajadores_localidad_animation
-            ),
-            dataclass_onboarding(
-                "Encuentra negocios de tu localidad",
-                "Descubre tiendas y negocios cercanos. Tenemos registrados negocios de Barranca, Supe, Pativilca y Paramonga.",
-                R.raw.tiendas_geinz_animation
-            ),
-
-            dataclass_onboarding(
-                "Compra porductos en Geinz work",
-                "Adquiere fácilmente lo que necesitas en tiendas cercanas. Ofertas, promociones y más te esperan.",
-                R.raw.carrito_animacion
-            ),
-            dataclass_onboarding(
-                "Registrate gratis en Geinz work",
-                "Crea tu cuenta como usuario o trabajador y empieza a disfrutar de todos los beneficios .",
-                R.raw.user_registre_animation
-            )
-        )
-
-        binding.viewPager.adapter = adaoter_onboarding(items)
-
-        binding.btnNext.setOnClickListener {
-            if (binding.viewPager.currentItem + 1 < items.size) {
-                binding.viewPager.currentItem += 1
-            } else {
-                finishOnboarding()
+        setContent {
+            GeinzWorkTheme {
+                Scaffold { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        OnboardingPrincipal(
+                            onFinish = { finishOnboarding() }
+                        )
+                    }
+                }
             }
-        }
-
-        binding.btnSkip.setOnClickListener {
-            finishOnboarding()
         }
     }
 

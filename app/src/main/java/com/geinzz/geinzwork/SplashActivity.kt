@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.OnboardingPrincipal
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,6 +23,8 @@ class SplashActivity : ComponentActivity() {
 
         if (isFirstTime) {
             startActivity(Intent(this, OnboardingActivity::class.java))
+
+
         } else {
             startActivity(Intent(this, MainActivity::class.java))
         }

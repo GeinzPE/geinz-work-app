@@ -85,7 +85,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun OnboardingPrincipal() {
+fun OnboardingPrincipal(onFinish:()-> Unit) {
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
     val lista_colores_degradado_bottom = constantes_lista_localidades.lista_color_degradado_bottom
@@ -109,7 +109,9 @@ fun OnboardingPrincipal() {
                     }
                 }
 
-                1 -> pantalla2(lista_colores_degradado_bottom)
+                1 -> pantalla2(lista_colores_degradado_bottom){
+                    onFinish()
+                }
             }
         }
     }
@@ -272,7 +274,7 @@ fun FondoOscuroAlto(listaColores: List<Color>) {
 
 
 @Composable
-fun pantalla2(lista_colores_degradaro: List<Color>) {
+fun pantalla2(lista_colores_degradaro: List<Color>,onFinish:()-> Unit) {
     val pagerState = rememberPagerState(pageCount = { 4 })
     val scope = rememberCoroutineScope()
 
@@ -317,7 +319,7 @@ fun pantalla2(lista_colores_degradaro: List<Color>) {
                     }
                 }
                 3 -> pantalla6(pagerState = pagerState, page = page, lista_colores_degradaro){
-
+                    onFinish()
                 }
             }
         }

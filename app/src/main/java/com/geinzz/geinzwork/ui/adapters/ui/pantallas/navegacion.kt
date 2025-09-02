@@ -77,13 +77,12 @@ fun nativationWrapper(
                 composable("pantalla_principal") {
                     pantalla_principal(
                         categorias = { localidad, nombre ->
-//                            navController.navigate(
-//                                mostrar_tiendas(
-//                                    nombre,
-//                                    localidad
-//                                )
-//                            )
-                            navController.navigate(onboarding)
+                            navController.navigate(
+                                mostrar_tiendas(
+                                    nombre,
+                                    localidad
+                                )
+                            )
                         },
                         ver_lugares = { navController.navigate(lugares_turisticos) },
                         navController = navController
@@ -165,9 +164,7 @@ fun nativationWrapper(
                     pantalla_carga_login()
                 }
 
-                composable<onboarding> {
-                    OnboardingPrincipal()
-                }
+
             }
         }
         AnimatedVisibility(
