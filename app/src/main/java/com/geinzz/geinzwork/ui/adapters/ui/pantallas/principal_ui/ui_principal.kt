@@ -189,8 +189,8 @@ fun PantallaExplorarTiendas(
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
+                        .fillMaxSize(),
+
                     state = listState
                 ) {
                     item {
@@ -250,7 +250,7 @@ fun cabezero_activity(localidad_registrado: String) {
             "Ubicate $localidad_registrado", MaterialTheme.typography.headlineSmall,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(top=5.dp, bottom = 10.dp),
         )
         spacer_vertical(5.dp)
         texto_generico_multilinea(
