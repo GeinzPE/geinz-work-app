@@ -1,5 +1,8 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
 
 data class filtrado_tiendas_cat_sub(val categoria: String, val subcategorias: List<String>)
 
@@ -32,6 +35,7 @@ data class EstadoFiltrosUi(
     val tiendasFiltradas: List<tiendas_por_categoria> = emptyList(),
 )
 
+@Parcelize
 data class tiendas_por_categoria(
     val nombre_tienda: String = "",
     val direccion: String = "",
@@ -42,7 +46,7 @@ data class tiendas_por_categoria(
     val lista_subcategoiras: List<String> = emptyList(),
     val descripcion: String = "",
     val id_tienda: String = "",
-)
+): Parcelable
 
 
 data class metodo_contacto_tienda(

@@ -122,7 +122,6 @@ fun pantalla_principal(
 
 
     LaunchedEffect(Unit) {
-        viewModel_cordenadas.lugares_turisticos("barranca")
         viewModel_cordenadas.obtener_subcategorias()
         viewModel_cordenadas.obtner_filtrado_localidades()
         viewModel_cordenadas.obtener_datos_user_registrado(firebaseAuth.uid.toString())

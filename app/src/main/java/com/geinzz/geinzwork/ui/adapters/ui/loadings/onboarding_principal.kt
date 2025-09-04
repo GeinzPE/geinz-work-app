@@ -158,13 +158,14 @@ fun pantalla1(lista_colores_degradado: List<Color>, onNext: () -> Unit) {
             spacer_vertical(20.dp)
             Box(modifier = Modifier.fillMaxWidth(0.7f)) {
                 texto_generico_multilinea(
-                    "Bienvenido a geinz".uppercase(), MaterialTheme.typography.busquedaGeinzWork
+                    "Bienvenido a geinz".uppercase(), MaterialTheme.typography.busquedaGeinzWork,
+                    Color = Color.White
                 )
             }
             spacer_vertical(15.dp)
             texto_generico_multilinea(
                 "Explora Barranca, Supe, Puerto Supe, Pativilca y Paramonga. Descubre tiendas, lugares turísticos y los eventos más próximos en cada localidad. Mantente al día con todo lo que sucede cerca de ti y encuentra fácilmente los sitios que quieres visitar",
-                MaterialTheme.typography.bodyMedium
+                MaterialTheme.typography.bodyMedium,Color = Color.White
             )
             spacer_vertical(20.dp)
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -211,7 +212,7 @@ fun CartaLocalizacion(
         Text(
             text = lugar.uppercase(),
             color = Color.White,
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
         )
         spacer_vertical(5.dp)
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -417,7 +418,7 @@ fun pantalla3(
                         ) { index ->
                             texto_generico_multilinea(
                                 lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork
+                                MaterialTheme.typography.busquedaGeinzWork,Color = Color.White
                             )
                         }
                     }
@@ -429,7 +430,7 @@ fun pantalla3(
                     ) { index ->
                         texto_generico_multilinea(
                             lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium
+                            MaterialTheme.typography.bodyMedium,Color = Color.White
                         )
                     }
 
@@ -546,7 +547,7 @@ fun pantalla4(    pagerState: PagerState,
                         ) { index ->
                             texto_generico_multilinea(
                                 lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork
+                                MaterialTheme.typography.busquedaGeinzWork,Color = Color.White
                             )
                         }
                     }
@@ -558,7 +559,7 @@ fun pantalla4(    pagerState: PagerState,
                     ) { index ->
                         texto_generico_multilinea(
                             lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium
+                            MaterialTheme.typography.bodyMedium,Color = Color.White
                         )
                     }
 
@@ -674,7 +675,7 @@ fun pantalla5(    pagerState: PagerState,
                         ) { index ->
                             texto_generico_multilinea(
                                 lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork
+                                MaterialTheme.typography.busquedaGeinzWork,Color = Color.White
                             )
                         }
                     }
@@ -686,7 +687,7 @@ fun pantalla5(    pagerState: PagerState,
                     ) { index ->
                         texto_generico_multilinea(
                             lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium
+                            MaterialTheme.typography.bodyMedium,Color = Color.White
                         )
                     }
 
@@ -802,7 +803,7 @@ fun pantalla6(    pagerState: PagerState,
                         ) { index ->
                             texto_generico_multilinea(
                                 lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork
+                                MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
                             )
                         }
                     }
@@ -814,7 +815,7 @@ fun pantalla6(    pagerState: PagerState,
                     ) { index ->
                         texto_generico_multilinea(
                             lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium
+                            MaterialTheme.typography.bodyMedium,Color = Color.White
                         )
                     }
 

@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import com.geinzz.geinzwork.R
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
@@ -90,11 +93,11 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun Pantalla_filtrado_tiendas(
+    viewModelFiltros:viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
-    nombre_user: String, navigation_regresar: () -> Unit,
+    nombre_user: String, navigation_regresar: () -> Unit, abrir_mapa: () -> Unit,
 ) {
-    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
@@ -109,7 +112,7 @@ fun Pantalla_filtrado_tiendas(
         remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
-    var visible_texfiel by remember { mutableStateOf(false) }
+    var visible_texfiel by rememberSaveable { mutableStateOf(false) }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var existe by remember { mutableStateOf(false) }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
@@ -119,24 +122,37 @@ fun Pantalla_filtrado_tiendas(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
 
     var lista_subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
-    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var subCategoriaSeleccionada by rememberSaveable { mutableStateOf("Todos") }
 
+    var btn_mostrar_mapa by rememberSaveable { mutableStateOf(false) }
 
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_tiendas_filtradas))
     val raw_carga_chips by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_subcategorias_tiendas))
 
     val listState = rememberLazyListState()
 
-    var categoria_anterior by remember { mutableStateOf("") }
+    var categoria_anterior by rememberSaveable { mutableStateOf("") }
     var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
     var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
+
+
+
+
     LaunchedEffect(categoria_seleccionda) {
         if (categoria_seleccionda == "Todos") {
             estadoCarga.value = selec_class_estados_carga.carga_todos
             delay(6000)
             listaMostrar = estadoFiltrosUi.tiendasFiltradas
             estadoCarga.value = selec_class_estados_carga.sin_carga
+            // 👇 Solo poner false si es la primera vez
+            if (btn_mostrar_mapa == false) {
+                btn_mostrar_mapa = false
+            }
         } else if (categoria_seleccionda.isNotBlank() && categoria_seleccionda != categoria_anterior) {
+            // 👇 No fuerces siempre true
+            if (!btn_mostrar_mapa) {
+                btn_mostrar_mapa = true
+            }
             estadoCarga.value = selec_class_estados_carga.carga_chips
             delay(6000)
             val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
@@ -145,9 +161,9 @@ fun Pantalla_filtrado_tiendas(
             categoria_anterior = categoria_seleccionda
             estadoCarga.value = selec_class_estados_carga.sin_carga
         }
-
         texto_filtrado = ""
     }
+
 
 
     LaunchedEffect(texto_filtrado) {
@@ -157,6 +173,9 @@ fun Pantalla_filtrado_tiendas(
             viewModelFiltros.filtrar_por_nombre_en_lista(texto_filtrado, listaBaseSubcategoria)
         }
         existe = (texto_filtrado.length >= 2 && listaMostrar.isEmpty())
+        if (texto_filtrado.isNotBlank()) {
+            btn_mostrar_mapa = listaMostrar.isNotEmpty()
+        }
     }
 
     LaunchedEffect(estadoFiltrosUi.subcategorias) {
@@ -198,48 +217,51 @@ fun Pantalla_filtrado_tiendas(
         }
     }
 
+    LaunchedEffect(listaMostrar) {
+        viewModelFiltros.actualizarListaFiltrada(listaMostrar)
+    }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Crossfade(targetState = estadoCarga.value, label = "Cargando transición") { estado ->
-            when (estado) {
-                is selec_class_estados_carga.carga_principal -> {
-                    cargando_categorias(
-                        composision,
-                        localida,
-                        30.dp,
-                        viewModelFiltros.fraces_loadin(localida, nombre_user, categoria)
+    Crossfade(targetState = estadoCarga.value, label = "Cargando transición") { estado ->
+        when (estado) {
+            is selec_class_estados_carga.carga_principal -> {
+                cargando_categorias(
+                    composision,
+                    localida,
+                    30.dp,
+                    viewModelFiltros.fraces_loadin(localida, nombre_user, categoria)
+                )
+                Log.d("llamos_cargad", "carga_pricipañ")
+            }
+
+            is selec_class_estados_carga.carga_chips -> {
+                cargando_categorias(
+                    raw_carga_chips,
+                    localida,
+                    30.dp,
+                    viewModelFiltros.fraces_cargando_filtradas(
+                        categoria_seleccionda,
+                        nombre_user
                     )
-                    Log.d("llamos_cargad", "carga_pricipañ")
-                }
+                )
+            }
 
-                is selec_class_estados_carga.carga_chips -> {
-                    cargando_categorias(
-                        raw_carga_chips,
-                        localida,
-                        30.dp,
-                        viewModelFiltros.fraces_cargando_filtradas(
-                            categoria_seleccionda,
-                            nombre_user
-                        )
+            is selec_class_estados_carga.carga_todos -> {
+                cargando_categorias(
+                    raw_carga_chips,
+                    localida,
+                    30.dp,
+                    viewModelFiltros.fraces_cargando(
+                        nombre_user
                     )
-                }
+                )
+            }
 
-                is selec_class_estados_carga.carga_todos -> {
-                    cargando_categorias(
-                        raw_carga_chips,
-                        localida,
-                        30.dp,
-                        viewModelFiltros.fraces_cargando(
-                            nombre_user
-                        )
-                    )
-                }
-
-                is selec_class_estados_carga.sin_carga -> {
+            is selec_class_estados_carga.sin_carga -> {
+                Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         modifier = Modifier
-                            .padding(innerPadding)
                             .padding(horizontal = 10.dp)
+                            .padding(bottom = 70.dp)
                     ) {
                         item { encabezado_chis_categorias() }
                         stickyHeader() {
@@ -260,32 +282,68 @@ fun Pantalla_filtrado_tiendas(
                                 }
                             }
                         }
-
-                        items(listaMostrar, key = { tienda -> tienda.id_tienda }) { tienda ->
+                        val listaOrdenada = listaMostrar.sortedByDescending { tienda ->
+                            estado_tiendas?.get(tienda.id_tienda) == true
+                        }
+                        items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
                             item_tiendas(
                                 tienda,
                                 estado_tiendas,
-                                 { id_tienda, listener, estado_color ->
+                                { id_tienda, listener, estado_color ->
                                     estadoColor = estado_color
                                     showBottomSheet = listener
                                     id_tienda_selecionada = id_tienda
                                 })
                         }
                     }
+
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(30.dp) // altura del difuminado
+//                            .background(
+//                                brush = Brush.verticalGradient(
+//                                    colors = listOf(
+//                                        Color.Transparent    ,             // se desvanece
+//                                        Color.Black.copy(alpha = 0.15f), // sombreado arriba
+//                                    )
+//                                )
+//                            )
+//                            .align(Alignment.BottomCenter)
+//                    )
+
+                    AnimatedVisibility(btn_mostrar_mapa) {
+
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+
+                            Button(
+                                onClick = { abrir_mapa() },
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 16.dp)
+                            ) {
+                                texto_generico_one_line("mostrar mapa")
+                            }
+                        }
+                    }
+
                 }
             }
         }
-        if (showBottomSheet) {
-            bottom_sheet_tiendas_filtradas(
-                estadoColor,
-                viewModelFiltros,
-                dataclass_tienda_seleccionada, showBottomSheet
-            ) {
-                showBottomSheet = false
-            }
-        }
-
     }
+    if (showBottomSheet) {
+        bottom_sheet_tiendas_filtradas(
+            estadoColor,
+            viewModelFiltros,
+            dataclass_tienda_seleccionada, showBottomSheet
+        ) {
+            showBottomSheet = false
+        }
+    }
+
+
 }
 
 

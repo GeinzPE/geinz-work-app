@@ -14,17 +14,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,13 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -47,8 +41,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
-import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -66,46 +60,40 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun pantalla_mapa_perzonalizado(
+    viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     tipo: String,
-    viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
 ) {
-        Box() {
-            MyGoogle_maps(tipo,viewmodel_lugares_turisticos,viewModel_cordenadas)
-        }
+    Box() {
+        MyGoogle_maps(tipo, viewmodel_lugares_turisticos, viewModel_filtrado_tiendas)
+    }
 
 }
 
 @Composable
 fun MyGoogle_maps(
-    tipo: String, viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
-    viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
+    tipo: String,
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
+    viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
 ) {
-
-//    val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
     val lista_filtrada by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
-    Log.d("obteneoms_listA_fitlrado", lista_filtrada.toString())
+    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var dialogo_ubi_Activa by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
-//    val cordenadas by viewModel_cordenadas._obtener_datos_tienda.observeAsState(emptyList())
-//    val datosTienda by viewModel_cordenadas._datos_tienda.observeAsState(emptyList())
-    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    var show_bottom_sheeet by remember { mutableStateOf(false) }
-    var id_tienda = remember { mutableStateOf("") }
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
-
 
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val properties by remember {
         mutableStateOf(
             MapProperties(
-                isMyLocationEnabled = true // Esto activa el círculo azul y la flecha
+                isMyLocationEnabled = true
             )
         )
     }
+    Log.d("obtenoemos_tienda", lista_filtrada_tiendas.toString())
 
     if (dialog_Crear_ruta) {
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
@@ -146,17 +134,33 @@ fun MyGoogle_maps(
             ) {
 
 
-                lista_filtrada.forEach { lugar ->
+//                lista_filtrada.forEach { lugar ->
+//                    Marker(
+//                        state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
+//                        title = lugar.titulo,
+//                        icon = BitmapDescriptorFactory.defaultMarker(
+//                            if (seleccionadoId == lugar.id_lugar_turistico) BitmapDescriptorFactory.HUE_BLUE
+//                            else BitmapDescriptorFactory.HUE_RED
+//                        ),
+//                        onClick = {
+//                            dialog_Crear_ruta = true
+//                            seleccionadoId = lugar.id_lugar_turistico
+//                            true
+//                        }
+//                    )
+//                }
+
+                lista_filtrada_tiendas.forEach { tienda ->
                     Marker(
-                        state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
-                        title = lugar.titulo,
+                        state = MarkerState(LatLng(tienda.latitud, tienda.longitud)),
+                        title = tienda.nombre_tienda,
                         icon = BitmapDescriptorFactory.defaultMarker(
-                            if (seleccionadoId == lugar.id_lugar_turistico) BitmapDescriptorFactory.HUE_BLUE
+                            if (seleccionadoId == tienda.id_tienda) BitmapDescriptorFactory.HUE_BLUE
                             else BitmapDescriptorFactory.HUE_RED
                         ),
                         onClick = {
                             dialog_Crear_ruta = true
-                            seleccionadoId = lugar.id_lugar_turistico
+                            seleccionadoId = tienda.id_tienda
                             true
                         }
                     )
@@ -217,10 +221,38 @@ fun MyGoogle_maps(
                     )
                     spacer_vertical(5.dp)
                 }
-                items(lista_filtrada) { lugar ->
+//                items(lista_filtrada) { lugar ->
+//                    carta_turismo_google_mpa(
+//                        lugar.id_lugar_turistico,
+//                        lugar.latitud,
+//                        lugar.longitud,
+//                        lugar.img_ref,
+//                        lugar.titulo,
+//                        lugar.descripcion,
+//                        seleccionado = (seleccionadoId == lugar.id_lugar_turistico)
+//                    ) { id, lat, log ->
+//                        val nuevaUbicacion = LatLng(lat, log)
+//                        seleccionadoId = id
+//                        latitud = lat
+//                        longitud = log
+//                        scope.launch {
+//                            cameraPositionState.animate(
+//                                CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
+//                                1000
+//                            )
+//                        }
+//                    }
+//                }
+
+                items(lista_filtrada_tiendas) { tiendas ->
                     carta_turismo_google_mpa(
-                        lugar,
-                        seleccionado = (seleccionadoId == lugar.id_lugar_turistico)
+                        tiendas.id_tienda,
+                        tiendas.latitud,
+                        tiendas.longitud,
+                        tiendas.logo_tienda,
+                        tiendas.nombre_tienda,
+                        tiendas.descripcion,
+                        seleccionado = (seleccionadoId == tiendas.id_tienda)
                     ) { id, lat, log ->
                         val nuevaUbicacion = LatLng(lat, log)
                         seleccionadoId = id
@@ -239,7 +271,7 @@ fun MyGoogle_maps(
     }
 
     LaunchedEffect(Unit) {
-        viewModel_cordenadas.lugares_turisticos("barranca")
+//        viewModel_cordenadas.lugares_turisticos("barranca")
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION

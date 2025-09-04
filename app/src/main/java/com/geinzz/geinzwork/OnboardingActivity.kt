@@ -24,6 +24,7 @@ class OnboardingActivity : ComponentActivity() {
             return
         }
 
+
         setContent {
             GeinzWorkTheme {
                 Scaffold { innerPadding ->

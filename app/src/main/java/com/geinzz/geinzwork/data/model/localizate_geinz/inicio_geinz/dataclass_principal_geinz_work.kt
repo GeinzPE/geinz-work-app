@@ -37,6 +37,21 @@ data class lugares_turisticos(
     val subcategoria_filtrado: List<String> = emptyList()
 ) : Parcelable
 
+
+@Parcelize
+data class tiendas_mapa(
+    val id_lugar_turistico: String = "",
+    val titulo: String = "",
+    val descripcion: String = "",
+    val img_ref: String = "",
+    val direcccion: String = "",
+    val referencia: String = "",
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
+    val subcategoria_filtrado: List<String> = emptyList()
+) : Parcelable
+
+
 data class localidades_filtrado(
     val nombre: String = "",
     val lista_img: List<String> = emptyList(),
@@ -48,7 +63,7 @@ data class Estados_lugares_turisticos(
 )
 
 data class datos_principales_user(
-    val nombre: String="Usuario",
-    val img_perfil: String="",
-    val localida: String="barranca"
+    val nombre: String = "Usuario",
+    val img_perfil: String = "",
+    val localida: String = "barranca"
 )

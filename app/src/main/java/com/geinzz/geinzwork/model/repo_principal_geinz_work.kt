@@ -58,7 +58,6 @@ class repo_principal_geinz_work {
         return lista_localidades
     }
 
-
     suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")
             .document("users")

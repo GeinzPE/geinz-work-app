@@ -7,12 +7,15 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -23,7 +26,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.geinzz.geinzwork.ui.adapters.ui.loadings.OnboardingPrincipal
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
@@ -35,6 +37,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplor
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
@@ -53,7 +57,15 @@ fun nativationWrapper(
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_login_user: viewModel_login_user = viewModel()
+    val viewModel_filtrado_tiendas: viewModel_filtado_tiendas= viewModel()
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color =fondo_oscuro5,
+            darkIcons = false
+        )
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -125,8 +137,8 @@ fun nativationWrapper(
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
+                        viewModel_filtrado_tiendas,
                         direcciones.tipo,
-                        viewModelCordenadas,
                         viewModelLugares
                     )
                 }
@@ -134,10 +146,12 @@ fun nativationWrapper(
                 composable<screen_filtrado> { navback ->
                     val categoria_localidad = navback.toRoute<screen_filtrado>()
                     Pantalla_filtrado_tiendas(
+                        viewModel_filtrado_tiendas,
                         categoria_localidad.categoria,
                         categoria_localidad.localidad,
                         categoria_localidad.nombre_user,
-                        navigation_regresar = { navController.popBackStack() }
+                        navigation_regresar = { navController.popBackStack() },
+                        abrir_mapa = {navController.navigate(map_perzonalizado("tiendas"))}
                     )
                 }
 

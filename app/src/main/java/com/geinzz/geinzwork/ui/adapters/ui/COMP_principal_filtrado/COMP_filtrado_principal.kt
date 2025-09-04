@@ -64,6 +64,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -269,13 +270,15 @@ fun texto_generico_one_line(
 @Composable
 fun texto_generico_multilinea(
     texto: String,
-    style: TextStyle = MaterialTheme.typography.titleMedium, modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.titleMedium,
+    modifier: Modifier = Modifier,
+    Color: Color = MaterialTheme.colorScheme.onBackground
 ) {
     Text(
         text = texto,
         modifier = modifier,
         style = style,
-        color = MaterialTheme.colorScheme.onBackground,
+        color = Color,
     )
 }
 
@@ -319,7 +322,8 @@ fun Cartas_expandibles(
 @Composable
 fun expandibles_wrapp(
     texto_params: String,
-    icon: Int,
+    iconRes: Int? = null,           // para R.drawable
+    iconVector: ImageVector? = null, // para Material Icons
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
@@ -330,26 +334,41 @@ fun expandibles_wrapp(
             .padding(horizontal = 10.dp)
     ) {
         val (texto, btn) = createRefs()
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .constrainAs(texto) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                }
+            modifier = Modifier.constrainAs(texto) {
+                top.linkTo(parent.top)
+                bottom.linkTo(parent.bottom)
+            }
         ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
+            when {
+                iconRes != null -> {
+                    Icon(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                iconVector != null -> {
+                    Icon(
+                        imageVector = iconVector,
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Text(
                 text = texto_params,
                 fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
+
         FloatingActionButton(
             modifier = Modifier
                 .size(30.dp)
@@ -365,14 +384,11 @@ fun expandibles_wrapp(
                 pressedElevation = 10.dp
             ),
             containerColor = MaterialTheme.colorScheme.primary,
-        )
-        {
+        ) {
             Image(
                 modifier = Modifier.size(20.dp),
                 painter = painterResource(
-                    constantes_lista_localidades.cambiar_icono_exapndible(
-                        expandido
-                    )
+                    constantes_lista_localidades.cambiar_icono_exapndible(expandido)
                 ),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(Color.White)
@@ -380,6 +396,7 @@ fun expandibles_wrapp(
         }
     }
 }
+
 
 @Composable
 fun text_expandible_wrapp(
@@ -568,7 +585,12 @@ fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
 
 @Composable
 fun carta_turismo_google_mpa(
-    datos: lugares_turisticos,
+    id_lugar: String,
+    latitud: Double,
+    longitud: Double,
+    img_ref: String,
+    titulo: String,
+    datos_descripcion: String,
     seleccionado: Boolean,
     onClick: (id: String, lat: Double, log: Double) -> Unit,
 ) {
@@ -587,15 +609,15 @@ fun carta_turismo_google_mpa(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onClick(datos.id_lugar_turistico, datos.latitud, datos.longitud)
+                onClick(id_lugar, latitud, longitud)
             },
         colors = CardDefaults.cardColors(
             containerColor = animatedColor
         )
     ) {
         Row {
-            img_carta_google_maps(datos.img_ref)
-            datos_lugares_google_maps(datos.titulo, datos.descripcion)
+            img_carta_google_maps(img_ref)
+            datos_lugares_google_maps(titulo, datos_descripcion)
         }
     }
 }

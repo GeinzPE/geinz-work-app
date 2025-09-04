@@ -106,6 +106,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordena
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
@@ -684,7 +685,8 @@ fun Expandible_descripcion_tienda(
         Column() {
             expandibles_wrapp(
                 "Descripcion de tienda",
-                R.drawable.descripcion_tienda_vector,
+                iconRes = R.drawable.descripcion_tienda_vector,
+                null,
                 expandido,
                 onClickExpand
             )
@@ -715,7 +717,8 @@ fun Expandible_direccion_ref(
         Column {
             expandibles_wrapp(
                 "Dirección y referencia",
-                R.drawable.location_drawable,
+                iconRes = R.drawable.location_drawable,
+                null,
                 expandido,
                 onClickExpand
             )
@@ -753,7 +756,8 @@ fun Expandible_Metodo_contacto(
         Column {
             expandibles_wrapp(
                 "Metodos de contacto",
-                R.drawable.baseline_call_24,
+                iconRes = R.drawable.baseline_call_24,
+                null,
                 expandido,
                 onClickExpand
             )
@@ -818,7 +822,8 @@ fun Expandible_qr_tienda(
         Column {
             expandibles_wrapp(
                 "QR de Tienda",
-                R.drawable.qr_scaner_icon,
+                iconRes =  R.drawable.qr_scaner_icon,
+                null,
                 expandido,
                 onClickExpand
             )
@@ -921,7 +926,8 @@ fun Expandible_horario_atencion(
         Column() {
             expandibles_wrapp(
                 "Horario de atención",
-                R.drawable.horario_tienda_vector,
+                iconRes = R.drawable.horario_tienda_vector,
+                null,
                 expandido,
                 onClickExpand
             )

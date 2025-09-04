@@ -10,10 +10,14 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.tiendas_mapa
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class viewModel_filtado_tiendas : ViewModel() {
@@ -29,6 +33,8 @@ class viewModel_filtado_tiendas : ViewModel() {
     private val datos_tienda = MutableLiveData<List<modelo_tienda>>()
     val _datos_tienda: LiveData<List<modelo_tienda>> get() = datos_tienda
 
+    private val _listaFiltrada = MutableStateFlow<List<tiendas_por_categoria>>(emptyList())
+    val listaFiltrada: StateFlow<List<tiendas_por_categoria>> = _listaFiltrada
 
     private val _horarioTienda = MutableLiveData<HorarioTienda?>(null)
 
@@ -36,6 +42,10 @@ class viewModel_filtado_tiendas : ViewModel() {
 
 //    private val tiendas_por_subcategoria = MutableLiveData<List<tiendas_por_categoria>>()
 //    val _tiendas_por_subcategoria: LiveData<List<tiendas_por_categoria>> get() = tiendas_por_subcategoria
+
+    fun actualizarListaFiltrada(nuevaLista: List<tiendas_por_categoria>) {
+        _listaFiltrada.value = nuevaLista
+    }
 
 
     private val _estadoTiendas = MutableLiveData<Map<String, Boolean>>(emptyMap())
