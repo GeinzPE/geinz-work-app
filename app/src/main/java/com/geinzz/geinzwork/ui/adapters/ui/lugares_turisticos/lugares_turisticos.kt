@@ -56,6 +56,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Estados_lugares_turisticos
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import java.nio.file.WatchEvent
@@ -193,7 +194,7 @@ fun pantalla_lugares_turisticos(
                 open_map_perzonlizado(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = 16.dp),"turismo",
                     abrir_mapa
                 )
             }
@@ -237,30 +238,3 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos)
     }
 }
 
-@Composable
-fun open_map_perzonlizado(modifier: Modifier, abrir_mapa: (String) -> Unit) {
-    val context = LocalContext.current
-    val permisoLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            abrir_mapa("turismo")
-        } else {
-            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    Button(modifier = modifier, onClick = {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            abrir_mapa("turismo")
-        } else {
-            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-    }) {
-        texto_generico_one_line("Ver en mapa")
-    }
-}

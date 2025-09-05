@@ -185,6 +185,17 @@ object constantes_lista_localidades {
         dataclass_onboarding(R.drawable.f8, "Paramonga ", "Plaza de armas de paramonga"),
     )
 
+    val lista_img_carga = listOf(
+        dataclass_onboarding(R.drawable.f1, "Barranca ", "Plaza de armas barranca"),
+        dataclass_onboarding(R.drawable.f2, "Barranca ", "Plaza de armas barranca"),
+        dataclass_onboarding(R.drawable.f3, "Barranca ", "Plaza de armas barranca"),
+        dataclass_onboarding(R.drawable.f4, "Puerto ", "Playa de puerto supe"),
+        dataclass_onboarding(R.drawable.f5, "pativilca ", "Paza de armas de pativilca"),
+        dataclass_onboarding(R.drawable.f7, "Supe ", "Casa de las brujas supe"),
+        dataclass_onboarding(R.drawable.f8, "Paramonga ", "Plaza de armas de paramonga"),
+    )
+
+
     val lista_color_degradado_bottom = listOf(
         Color.Black.copy(alpha = 1f),   // arriba: oscuro
         Color.Black.copy(alpha = 0.85f), // muy oscuro
@@ -201,6 +212,30 @@ object constantes_lista_localidades {
         Color.Black.copy(alpha = 0.95f),       // más negro aún
         Color.Black.copy(alpha = 1f)
     )
+
+    val frasesCarga = listOf(
+        "Bienvenido, tu espacio te espera.",
+        "Relájate, estamos preparando todo para ti.",
+        "Cada lugar tiene su historia, la tuya empieza aquí.",
+        "Explora y disfruta de lo que tu ciudad ofrece.",
+        "Tu tiempo es valioso, lo cuidamos por ti.",
+        "Descubre algo nuevo en cada esquina.",
+        "Pequeños momentos, grandes experiencias.",
+        "Cerca de ti, todo lo que necesitas.",
+        "Bienvenido de vuelta, te hemos extrañado.",
+        "Tu próxima aventura comienza aquí.",
+        "Calles, luces y lugares para descubrir.",
+        "Tu ciudad tiene secretos, vamos a encontrarlos.",
+        "Cada paso cuenta, explora sin prisa.",
+        "Lo que buscas, lo encuentras cerca.",
+        "Entre tiendas y locales, todo tiene su encanto.",
+        "Sabores, colores y momentos por descubrir.",
+        "Aquí, tu rutina se convierte en experiencia.",
+        "Cada esquina guarda algo especial para ti.",
+        "Siente la ciudad, vive cada momento.",
+        "La aventura urbana empieza en tu pantalla."
+    )
+
 
     val lista_frances_inicio_seccion = listOf(
         "Encuentra tu lugar favorito",

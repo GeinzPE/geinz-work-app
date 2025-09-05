@@ -14,6 +14,7 @@ val amarillo30=Color(0XFFF3D88D)
 
 val fondo_oscuro5=Color(0xFF1A1A1A)
 val fondo_calro95=Color(0xFFF7F7F7)
+val fondo_oscuro5_s=Color(0xFF000000)
 
 
 val btn_floatin40=Color(0xFF693EFF)

@@ -77,6 +77,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContene
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -96,7 +97,7 @@ fun Pantalla_filtrado_tiendas(
     viewModelFiltros:viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
-    nombre_user: String, navigation_regresar: () -> Unit, abrir_mapa: () -> Unit,
+    nombre_user: String, navigation_regresar: () -> Unit, abrir_mapa: (String) -> Unit,
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
@@ -132,8 +133,8 @@ fun Pantalla_filtrado_tiendas(
     val listState = rememberLazyListState()
 
     var categoria_anterior by rememberSaveable { mutableStateOf("") }
-    var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
-    var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
+    var listaMostrar by rememberSaveable { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
+    var listaBaseSubcategoria by rememberSaveable { mutableStateOf(emptyList<tiendas_por_categoria>()) }
 
 
 
@@ -211,7 +212,7 @@ fun Pantalla_filtrado_tiendas(
     }
 
     LaunchedEffect(tiendasFiltradas) {
-        if (tiendasFiltradas.isNotEmpty()) {
+        if (tiendasFiltradas.isNotEmpty() && listaMostrar.isEmpty()) {
             viewModelFiltros.tiendas_iniciales(tiendasFiltradas)
             listaMostrar = tiendasFiltradas
         }
@@ -314,19 +315,25 @@ fun Pantalla_filtrado_tiendas(
 
                     AnimatedVisibility(btn_mostrar_mapa) {
 
-                        Box(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-
-                            Button(
-                                onClick = { abrir_mapa() },
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 16.dp)
-                            ) {
-                                texto_generico_one_line("mostrar mapa")
-                            }
-                        }
+                        open_map_perzonlizado(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 16.dp),"tiendas",
+                            abrir_mapa
+                        )
+//                        Box(
+//                            modifier = Modifier.fillMaxSize()
+//                        ) {
+//
+//                            Button(
+//                                onClick = { },
+//                                modifier = Modifier
+//                                    .align(Alignment.BottomCenter)
+//                                    .padding(bottom = 16.dp)
+//                            ) {
+//                                texto_generico_one_line("mostrar mapa")
+//                            }
+//                        }
                     }
 
                 }

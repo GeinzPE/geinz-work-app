@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.ui.text)
     implementation(libs.androidx.animation.core)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -131,6 +132,11 @@ dependencies {
     //coil
     implementation(libs.coil.compose)
     implementation(libs.coil3.coil.network.okhttp)
+    // Coil 3.x para Compose
+//    implementation("io.coil-kt:coil-compose:3.3.0")
+//    implementation("io.coil-kt:coil:3.3.0") // si necesitas ImageLoader o requests
+//    implementation("io.coil-kt:coil-okhttp3:3.3.0") // soporte con OkHttp
+
     //lotti file
     implementation(libs.lottie.compose)
     //dependecia compouse live data
@@ -160,6 +166,9 @@ dependencies {
 
 //    implementation("com.github.mukeshsolanki:compose-country-code-picker:2.0.2")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation("androidx.palette:palette:1.0.0")
+
+
 
 
 }

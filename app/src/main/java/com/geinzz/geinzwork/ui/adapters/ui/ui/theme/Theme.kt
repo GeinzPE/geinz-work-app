@@ -20,7 +20,7 @@ private val DarkColorScheme = darkColorScheme(
     //primario color de botones ,chips,floatins
     //background = fondo
 
-    background = fondo_oscuro5,
+    background = fondo_oscuro5_s,
     onBackground = color_texto_oscuro_background,
     primary = btn_floatin40,
     onPrimary = texto_oscuro100,

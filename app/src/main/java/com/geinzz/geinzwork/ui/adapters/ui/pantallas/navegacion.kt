@@ -2,13 +2,13 @@
 
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,7 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.ui_pantalla_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos.iu_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
@@ -38,6 +41,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigat
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -53,16 +57,25 @@ fun nativationWrapper(
     viewmodel: viewModel_localizate_geinz
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
     val navController = rememberNavController()
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_login_user: viewModel_login_user = viewModel()
-    val viewModel_filtrado_tiendas: viewModel_filtado_tiendas= viewModel()
+    val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     SideEffect {
-        systemUiController.setSystemBarsColor(
-            color =fondo_oscuro5,
+        val colorBarraInferior = Color(0xFF744ACB)
+        // Barra de estado (arriba)
+        systemUiController.setStatusBarColor(
+            color = fondo_oscuro5_s,
+            darkIcons = false
+        )
+
+        // Barra de navegación (abajo)
+        systemUiController.setNavigationBarColor(
+            color = colorBarraInferior,
             darkIcons = false
         )
     }
@@ -71,7 +84,7 @@ fun nativationWrapper(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = when (currentRoute) {
-        "pantalla_principal", "principal", "login_principal" -> true
+        "pantalla_principal", "buscar", "favoritos", "principal", "login_principal" -> true
         else -> false
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -96,7 +109,27 @@ fun nativationWrapper(
                                 )
                             )
                         },
+                        clikear_cartas = { categoira, localidad, nombre_user ->
+                            if (firebaseAuth.currentUser != null) {
+                                navController.navigate(
+                                    screen_filtrado(
+                                        categoira,
+                                        localidad,
+                                        nombre_user
+                                    )
+                                )
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Registrate primero bro",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
                         ver_lugares = { navController.navigate(lugares_turisticos) },
+                        listner_busqueda = {
+                            navController.navigate("buscar")
+                        },
                         navController = navController
                     )
                 }
@@ -114,6 +147,14 @@ fun nativationWrapper(
                     }
                 }
 
+                composable("buscar") {
+                    ui_pantalla_busqueda()
+                }
+
+                composable("favoritos") {
+                    iu_favoritos()
+                }
+
 
                 // Explorar tiendas
                 composable<mostrar_tiendas> { navback ->
@@ -123,13 +164,22 @@ fun nativationWrapper(
                         datos_user.nombre_user,
                         viewmodel,
                         clik_img = { categoria, localidada, nombre_user ->
-                            navController.navigate(
-                                screen_filtrado(
-                                    categoria,
-                                    localidada,
-                                    nombre_user
+                            if (firebaseAuth.currentUser != null) {
+                                navController.navigate(
+                                    screen_filtrado(
+                                        categoria,
+                                        localidada,
+                                        nombre_user
+                                    )
                                 )
-                            )
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Registrate primero bro",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
                         }
                     )
                 }
@@ -151,7 +201,9 @@ fun nativationWrapper(
                         categoria_localidad.localidad,
                         categoria_localidad.nombre_user,
                         navigation_regresar = { navController.popBackStack() },
-                        abrir_mapa = {navController.navigate(map_perzonalizado("tiendas"))}
+                        abrir_mapa = { tipo ->
+                            navController.navigate(map_perzonalizado(tipo))
+                        }
                     )
                 }
 
@@ -174,9 +226,9 @@ fun nativationWrapper(
                     )
                 }
 
-                composable<carga_login> {
-                    pantalla_carga_login()
-                }
+//                composable<carga_login> {
+//                    pantalla_carga_login()
+//                }
 
 
             }

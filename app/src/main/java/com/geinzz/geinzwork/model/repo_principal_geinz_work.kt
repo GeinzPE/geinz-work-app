@@ -44,19 +44,22 @@ class repo_principal_geinz_work {
         return lista_lugares
     }
 
-    suspend fun obtenerlocalidades_filtrados(): List<localidades_filtrado> {
-        val lista_localidades = mutableListOf<localidades_filtrado>()
-        val localidades =
-            db.collection("Tiendas").document("categorias").collection("localidades").get().await()
-        for (localidad in localidades) {
-            val data = localidad.data
-            val nombre = data?.get("nombre") as? String ?: ""
-            val lista_img = data?.get("img") as? List<String> ?: emptyList()
-            val datos = localidades_filtrado(nombre, lista_img)
-            lista_localidades.add(datos)
+
+    suspend fun obtenerLocalidadesFiltrados(): List<localidades_filtrado> {
+        val localidadesSnapshot = db.collection("Tiendas")
+            .document("categorias")
+            .collection("localidades")
+            .get()
+            .await()
+
+        return localidadesSnapshot.documents.mapNotNull { doc ->
+            val nombre = doc.getString("nombre") ?: return@mapNotNull null
+            val listaImg = doc.get("img") as? List<String> ?: emptyList()
+            val imgPrincipal = listaImg.randomOrNull() ?: ""
+            localidades_filtrado(nombre, listOf(imgPrincipal))
         }
-        return lista_localidades
     }
+
 
     suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")

@@ -55,9 +55,9 @@ class viewModel_login_user : ViewModel() {
                 repo_agregar_user.agregar_user(login_user, context) { registrado ->
                     // 🔹 esperar medio segundo antes de actualizar el estado
                     viewModelScope.launch {
-                        delay(2000)
+                        delay(5000)
                         _loginStateCamposInicial.value = LoginState_inicio.Succes("", "", "", "")
-                        delay(2000)
+                        delay(5000)
                         _registrado.value = registrado
                         _mostrarCarga.value = false // ocultar loader
                     }
@@ -77,9 +77,9 @@ class viewModel_login_user : ViewModel() {
             repo_agregar_user.agregar_user_google(login_google, context) { cuenta_creada ->
                 viewModelScope.launch {
                     if (cuenta_creada) {  // ✅ solo si la cuenta se creó correctamente
-                        delay(2000)        // mostrar loader
+                        delay(5000)        // mostrar loader
                         _loginStateCamposInicial.value = LoginState_inicio.Succes("", "", "", "")
-                        delay(2000)
+                        delay(5000)
                         _registrado_google.value = true
                     } else {
                         _registrado_google.value = false
@@ -114,7 +114,7 @@ class viewModel_login_user : ViewModel() {
 
                 val existe =
                     repo_agregar_user.verificar_cuenta_google(correo) // suspend function que chequea Firestore
-
+                delay(5000)
                 if (existe) {
                     _loginStateCamposInicial.value = LoginState_inicio.Succes(
                         correo,
@@ -229,9 +229,9 @@ class viewModel_login_user : ViewModel() {
             _mostrarCarga.value = true
             _loginStateCamposInicial.value = LoginState_inicio.Loading
             firebaseAuth.signOut()
-            delay(1000)
+            delay(5000)
             _loginStateCamposInicial.value = LoginState_inicio.LoggedOut
-            delay(1000)
+            delay(5000)
             _mostrarCarga.value = false
         }
     }

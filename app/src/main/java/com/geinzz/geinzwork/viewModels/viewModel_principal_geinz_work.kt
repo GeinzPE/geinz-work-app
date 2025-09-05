@@ -51,10 +51,10 @@ class viewModel_principal_geinz_work : ViewModel() {
         }
     }
 
-    fun obtener_subcategorias() {
+    fun obtener_subcategorias(solo5: Boolean = true) {
         viewModelScope.launch {
             try {
-                sub_cat_tiendas.value = instacia_repo_cat_sub.obtener_categorias_subcategorias()
+                sub_cat_tiendas.value = instacia_repo_cat_sub.obtener_categorias_subcategorias(solo5)
             } catch (e: Exception) {
                 sub_cat_tiendas.value = emptyList()
             }
@@ -64,7 +64,7 @@ class viewModel_principal_geinz_work : ViewModel() {
     fun obtner_filtrado_localidades() {
         viewModelScope.launch {
             try {
-                lista_filtrado_localida.value = instacia.obtenerlocalidades_filtrados()
+                lista_filtrado_localida.value = instacia.obtenerLocalidadesFiltrados()
             } catch (e: java.lang.Exception) {
                 lista_filtrado_localida.value = emptyList()
             }

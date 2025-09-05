@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +55,9 @@ import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -69,6 +74,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -732,6 +738,35 @@ fun localidad_Selecionada(modifier: Modifier = Modifier) {
                 .offset(y = (-5).dp) // sube 2dp
         )
 
+    }
+}
+
+
+@Composable
+fun open_map_perzonlizado(modifier: Modifier, tipo: String, abrir_mapa: (String) -> Unit) {
+    val context = LocalContext.current
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            abrir_mapa(tipo)
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    androidx.compose.material3.Button(modifier = modifier, onClick = {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            abrir_mapa(tipo)
+        } else {
+            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }) {
+        texto_generico_one_line("Ver en mapa")
     }
 }
 
