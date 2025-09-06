@@ -97,20 +97,20 @@ fun Pantalla_filtrado_tiendas(
     viewModelFiltros:viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
-    nombre_user: String, navigation_regresar: () -> Unit, abrir_mapa: (String) -> Unit,
+    nombre_user: String, navigation_regresar: () -> Unit,
+    abrir_mapa: (String) -> Unit,
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
-        emptyList()
-    )
+    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(emptyList())
+
     val estadoFiltrosUi = EstadoFiltrosUi(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = tiendasFiltradas
     )
-    val estadoCarga =
-        remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
+    Log.d("estadoFiltrosUi",estadoFiltrosUi.tiendasFiltradas.toString())
+    val estadoCarga = remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var visible_texfiel by rememberSaveable { mutableStateOf(false) }

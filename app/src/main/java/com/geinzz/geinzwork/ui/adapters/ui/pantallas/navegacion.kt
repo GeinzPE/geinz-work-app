@@ -2,6 +2,7 @@
 
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -40,7 +41,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplor
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
@@ -65,8 +65,21 @@ fun nativationWrapper(
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     SideEffect {
-        val colorBarraInferior = Color(0xFF744ACB)
+        val colorBarraInferior =
+            if (currentRoute == "pantalla_principal" ||
+                currentRoute == "buscar" ||
+                currentRoute == "favoritos" ||
+                currentRoute == "principal" ||
+                currentRoute == "login_principal"
+            ) {
+                Color(0xFF744ACB)
+            } else {
+                fondo_oscuro5_s
+            }
+
         // Barra de estado (arriba)
         systemUiController.setStatusBarColor(
             color = fondo_oscuro5_s,
@@ -80,8 +93,6 @@ fun nativationWrapper(
         )
     }
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = when (currentRoute) {
         "pantalla_principal", "buscar", "favoritos", "principal", "login_principal" -> true
@@ -109,13 +120,14 @@ fun nativationWrapper(
                                 )
                             )
                         },
-                        clikear_cartas = { categoira, localidad, nombre_user ->
+                        clikear_cartas = { categoira, nombre, localidad ->
+                            Log.d("obtenos_datos","$categoira $localidad $nombre")
                             if (firebaseAuth.currentUser != null) {
                                 navController.navigate(
                                     screen_filtrado(
                                         categoira,
                                         localidad,
-                                        nombre_user
+                                        nombre
                                     )
                                 )
                             } else {
@@ -225,12 +237,6 @@ fun nativationWrapper(
                         navController
                     )
                 }
-
-//                composable<carga_login> {
-//                    pantalla_carga_login()
-//                }
-
-
             }
         }
         AnimatedVisibility(

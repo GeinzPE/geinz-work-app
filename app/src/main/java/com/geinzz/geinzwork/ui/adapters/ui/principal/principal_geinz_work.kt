@@ -1,33 +1,23 @@
 package com.geinzz.geinzwork.ui.adapters.ui.principal
 
-import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
 
 import androidx.compose.ui.unit.dp
 
 
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,13 +33,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,24 +57,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.palette.graphics.Palette
-import coil3.Bitmap
-import coil3.ImageLoader
 import coil3.compose.AsyncImage
-import coil3.compose.AsyncImagePainter
-import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
@@ -101,7 +81,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContene
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrado_localidades
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -111,14 +90,14 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
-
-
 
 
 private lateinit var firebaseAuth: FirebaseAuth
@@ -130,7 +109,7 @@ fun pantalla_principal(
     clikear_cartas: (String, String, String) -> Unit,
     ver_lugares: () -> Unit,
     listner_busqueda: () -> Unit,
-    navController: NavController
+    navController: NavController,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -157,21 +136,19 @@ fun pantalla_principal(
         viewModel_cordenadas.obtner_filtrado_localidades()
         viewModel_cordenadas.obtener_datos_user_registrado(firebaseAuth.uid.toString())
     }
-
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
-        .map { valor ->
-            if (valor.isNullOrEmpty()) "barranca" else valor
-        }
-        .collectAsState(initial = "barranca")
+        .collectAsState(initial = null)
 
+
+Log.d("ultima_localioda_selecionada",ultimaLocalidad.toString())
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
-    val localidadSeleccionada = remember { mutableStateOf("barranca") }
+    val localidadSeleccionada = rememberSaveable { mutableStateOf("barranca") }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -262,7 +239,7 @@ fun apartado_explora_cat(
         titulo_referenciales_geinz_work(
             "Explora $localidad_selecionada".uppercase(),
             "Ver todos"
-        ) { categorias1(nombre_user, localidad_selecionada ?: "barranca") }
+        ) { categorias1(nombre_user, localidad_selecionada ?: "") }
         spacer_vertical(10.dp)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(
@@ -455,6 +432,97 @@ fun texFiel_fake(listner_busqueda: () -> Unit) {
     }
 
 }
+//@Composable
+//fun filtrado_localidades(
+//    ultimaLocalidad: String?,
+//    lista_localidades: List<localidades_filtrado>,
+//    nombre_localidad_selecionado: (String) -> Unit
+//) {
+//    val context = LocalContext.current
+//    val scope = rememberCoroutineScope()
+//    val listState = rememberLazyListState()
+//
+//    // selección (igual que antes, la cargamos desde DataStore)
+//    var localidad_defecto by remember { mutableStateOf<String?>(null) }
+//
+//    // guardamos aquí sólo el orden como List<String> (nombres). rememberSaveable lo soporta.
+//    var ordenGuardado by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+//
+//    // estado visible de la lista (orden dinámico)
+//    var listaLocalidadesState by remember { mutableStateOf(lista_localidades) }
+//
+//    // Inicialización: cargar selección y/o reconstruir orden desde ordenGuardado
+//    LaunchedEffect(Unit) {
+//        // cargar selección guardada en DataStore (si aún no la tenemos)
+//        if (localidad_defecto == null) {
+//            val guardada = data_store_localidad.obtener_localidad(context) as? String
+//            localidad_defecto = guardada ?: ultimaLocalidad
+//        }
+//
+//        if (ordenGuardado.isNotEmpty()) {
+//            // reconstruir la lista en base a los nombres guardados
+//            val reconstruida = ordenGuardado.mapNotNull { nombre ->
+//                lista_localidades.find { it.nombre.equals(nombre, ignoreCase = true) }
+//            }
+//            // añadir cualquier elemento nuevo que no estuviera en el orden guardado
+//            val restantes = lista_localidades.filterNot { l ->
+//                reconstruida.any { it.nombre.equals(l.nombre, ignoreCase = true) }
+//            }
+//            listaLocalidadesState = reconstruida + restantes
+//        } else {
+//            // si no hay orden guardado, aplicar la selección (si existe) como primera posición
+//            localidad_defecto?.let { sel ->
+//                val seleccionada = lista_localidades.find { it.nombre.equals(sel, ignoreCase = true) }
+//                val resto = lista_localidades.filterNot { it.nombre.equals(sel, ignoreCase = true) }
+//                listaLocalidadesState = listOfNotNull(seleccionada) + resto
+//            }
+//        }
+//
+//        // opcional: asegurarnos que el primer item esté visible
+//        if (listaLocalidadesState.isNotEmpty()) {
+//            listState.scrollToItem(0)
+//        }
+//    }
+//
+//    Column {
+//        Spacer(modifier = Modifier.height(10.dp))
+//        LazyRow(
+//            state = listState,
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.spacedBy(12.dp)
+//        ) {
+//            items(listaLocalidadesState, key = { it.nombre }) { item ->
+//                carta_filtrado_localidades(
+//                    defecto_selecionado = localidad_defecto.equals(item.nombre, ignoreCase = true),
+//                    item.nombre,
+//                    item.lista_img,
+//                    5,
+//                    320.dp,
+//                    300.dp
+//                ) { nombre_localidad ->
+//                    // cuando el usuario selecciona una localidad:
+//                    localidad_defecto = nombre_localidad
+//                    nombre_localidad_selecionado(nombre_localidad)
+//
+//                    // reordenar la lista para que la seleccionada quede al inicio
+//                    val seleccionada = lista_localidades.find { it.nombre.equals(nombre_localidad, ignoreCase = true) }
+//                    val resto = lista_localidades.filterNot { it.nombre.equals(nombre_localidad, ignoreCase = true) }
+//                    listaLocalidadesState = listOfNotNull(seleccionada) + resto
+//
+//                    // Guardar el nuevo orden (solo nombres) para que rememberSaveable lo restaure
+//                    ordenGuardado = listaLocalidadesState.map { it.nombre }
+//
+//                    scope.launch {
+//                        // guardar selección persistente en tu DataStore (como ya tenías)
+//                        data_store_localidad.guardar_localida(context, nombre_localidad)
+//                        listState.animateScrollToItem(0)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
 @Composable
 fun filtrado_localidades(
     ultimaLocalidad: String?,
@@ -464,30 +532,26 @@ fun filtrado_localidades(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Estado de la localidad seleccionada
-    var localidad_defecto by remember { mutableStateOf<String?>(null) }
-
-    // Estado de la lista reordenada
-    var listaLocalidadesState by remember { mutableStateOf(lista_localidades) }
-
     // Estado del scroll
     val listState = rememberLazyListState()
 
-    // Cargar la localidad guardada al iniciar
-    LaunchedEffect(Unit) {
-        val guardada = data_store_localidad.obtener_localidad(context) as? String
-        localidad_defecto = guardada ?: ultimaLocalidad
+    // Estado de la localidad seleccionada
+    var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad ?: "barranca") }
 
-        // Reordenar lista para que el item guardado vaya primero
-        localidad_defecto?.let { sel ->
-            listaLocalidadesState = listaLocalidadesState
-                .sortedWith(compareByDescending { it.nombre == sel })
+    LaunchedEffect(ultimaLocalidad) {
+        ultimaLocalidad?.let { seleccionada ->
+            localidad_defecto = seleccionada
 
-            // Opcional: mover scroll al primer item
-            listState.animateScrollToItem(0)
+            // Buscar índice de la localidad guardada
+            val index = lista_localidades.indexOfFirst {
+                it.nombre.equals(seleccionada, ignoreCase = true)
+            }
+            if (index >= 0) {
+                // Mover scroll directamente a la posición guardada
+                listState.scrollToItem(index)
+            }
         }
     }
-
 
     Column {
         Spacer(modifier = Modifier.height(10.dp))
@@ -496,7 +560,7 @@ fun filtrado_localidades(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(listaLocalidadesState, key = { it.nombre }) { item ->
+            items(lista_localidades, key = { it.nombre }) { item ->
                 carta_filtrado_localidades(
                     defecto_selecionado = localidad_defecto.equals(item.nombre, ignoreCase = true),
                     item.nombre,
@@ -508,33 +572,21 @@ fun filtrado_localidades(
                     localidad_defecto = nombre_localidad
                     nombre_localidad_selecionado(nombre_localidad)
 
-                    // Reordenar lista para mover la seleccionada al inicio
-                    listaLocalidadesState = listaLocalidadesState
-                        .sortedWith(compareByDescending { it.nombre == nombre_localidad })
-
                     scope.launch {
+                        // Guardar selección en DataStore
                         data_store_localidad.guardar_localida(context, nombre_localidad)
 
-                        // Espera a que el layout esté listo
-                        listState.layoutInfo.totalItemsCount.takeIf { it > 0 }?.let {
-                            val firstIndex = listState.firstVisibleItemIndex
-                            val firstOffset = listState.firstVisibleItemScrollOffset
-
-                            // Animación suave usando animateScrollToItem
-                            listState.animateScrollToItem(
-                                index = 0,
-                                scrollOffset = 0
-                            )
+                        // Encontrar índice y mover scroll
+                        val index = lista_localidades.indexOfFirst { it.nombre == nombre_localidad }
+                        if (index >= 0) {
+                            listState.animateScrollToItem(index)
                         }
                     }
-
-
                 }
             }
         }
     }
 }
-
 
 
 //@Composable
@@ -550,8 +602,7 @@ fun filtrado_localidades(
 //    var colorFondo by remember { mutableStateOf(Color.Black) }
 //    var colorTopBar by remember { mutableStateOf(Color.Black) }
 //
-//    val animatedFondo by animateColorAsState(targetValue = colorFondo)
-//    val animatedTopBar by animateColorAsState(targetValue = colorTopBar)
+//
 //
 //    LaunchedEffect(ultimaLocalidad) {
 //        localidad_defecto = ultimaLocalidad
@@ -603,9 +654,6 @@ fun filtrado_localidades(
 //        }
 //    }
 //}
-
-
-
 
 
 @Composable

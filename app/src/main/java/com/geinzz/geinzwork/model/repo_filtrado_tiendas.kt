@@ -35,6 +35,7 @@ class repo_filtrado_tiendas {
         localidad: String,
         categoria: String
     ): List<tiendas_por_categoria> {
+        Log.d("localida","$localidad $categoria")
         val lista_tiendas_filtradas = mutableListOf<tiendas_por_categoria>()
         try {
             val tiendas = db.collection("Tiendas")

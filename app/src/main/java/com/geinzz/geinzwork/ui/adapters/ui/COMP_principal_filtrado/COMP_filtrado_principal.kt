@@ -55,6 +55,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -670,6 +671,7 @@ fun carta_filtrado_localidades(
     ancho: Dp,
     listener: (String) -> Unit
 ) {
+    Log.d("selecionados","$defecto_selecionado $nombre_localidad")
     val randomImg = remember(img) { img.randomOrNull() }
     val borderColor by animateColorAsState(
         if (defecto_selecionado) MaterialTheme.colorScheme.primary else Color.Transparent,

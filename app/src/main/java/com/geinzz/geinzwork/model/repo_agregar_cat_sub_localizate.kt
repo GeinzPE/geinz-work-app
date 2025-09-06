@@ -61,8 +61,20 @@ class repo_agregar_cat_sub_localizate {
             }
         }
 
-        return if (solo5) lista.shuffled().take(5) else lista
+        // Buscar si existe "comida y restaurantes"
+        val comida = lista.firstOrNull { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
+
+        // Resto de categorías sin la de comida
+        val resto = lista.filterNot { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
+            .shuffled()
+
+        val resultado = mutableListOf<dataclass_cat_sub>()
+        comida?.let { resultado.add(it) }  // primero comida
+        resultado.addAll(resto)            // después el resto
+
+        return if (solo5) resultado.take(5) else resultado
     }
+
 
 
     suspend fun obtenerTiendas_registradas_activas_por_categoria(
