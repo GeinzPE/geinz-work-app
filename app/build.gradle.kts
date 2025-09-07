@@ -4,9 +4,10 @@ plugins {
     id("com.google.gms.google-services")
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.kotlinCompose)
-    alias(libs.plugins.kotlinSerialization)
+//    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.googleAndroidLibrariesMapsplatformSecretsGradlePlugin)
     id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
 }
 
 android {
@@ -169,6 +170,12 @@ dependencies {
     implementation("androidx.palette:palette:1.0.0")
 
 
+// Algolia Search Client para Kotlin
+    implementation("com.algolia:algoliasearch-client-kotlin:3.27.0")
+
+
+// Motor HTTP Ktor
+    implementation("io.ktor:ktor-client-okhttp:2.3.4")
 
 
 }

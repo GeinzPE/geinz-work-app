@@ -141,7 +141,7 @@ fun pantalla_principal(
         .collectAsState(initial = null)
 
 
-Log.d("ultima_localioda_selecionada",ultimaLocalidad.toString())
+    Log.d("ultima_localioda_selecionada",ultimaLocalidad.toString())
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
@@ -232,14 +232,15 @@ fun apartado_explora_cat(
     categorias1: (String, String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
 ) {
+    val localidad_defaul=localidad_selecionada?:"barranca"
     Log.d("obtemloms_lista", categorias_tienda.toString())
     val categoriasPrincipales = categorias_tienda
     spacer_vertical(10.dp)
     Column {
         titulo_referenciales_geinz_work(
-            "Explora $localidad_selecionada".uppercase(),
+            "Explora $localidad_defaul".uppercase(),
             "Ver todos"
-        ) { categorias1(nombre_user, localidad_selecionada ?: "") }
+        ) { categorias1(nombre_user, localidad_defaul) }
         spacer_vertical(10.dp)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(
@@ -718,6 +719,5 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
         )
     }
 }
-
 
 

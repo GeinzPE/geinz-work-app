@@ -1,3 +1,4 @@
+
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import android.content.Context
@@ -195,6 +196,23 @@ object constantes_lista_localidades {
         dataclass_onboarding(R.drawable.f8, "Paramonga ", "Plaza de armas de paramonga"),
     )
 
+    val lista_frases_busqueda = listOf(
+        "¿Qué buscas?",
+        "Descubre algo",
+        "Explora tu ciudad",
+        "¿Qué descubrir?",
+        "Busca tiendas",
+        "Explora promos",
+        "Todo en un lugar",
+        "Descubre cerca",
+        "¿Qué explorar?"
+    )
+
+
+    val chips_filtrado_busqueda=listOf(
+        "Todos","Restaurantes","Hoteles"
+    )
+
 
     val lista_color_degradado_bottom = listOf(
         Color.Black.copy(alpha = 1f),   // arriba: oscuro
@@ -269,7 +287,6 @@ object constantes_lista_localidades {
             R.drawable.p1_3
         )
     )
-
 
 
     fun saludo_user_principal(nombre: String): String {
