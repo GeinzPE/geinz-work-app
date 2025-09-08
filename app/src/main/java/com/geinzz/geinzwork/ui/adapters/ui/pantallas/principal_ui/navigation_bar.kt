@@ -89,10 +89,12 @@ fun bottom_navigation(navController: NavController) {
                     navItem = nav_item(item.titulo, item.icono),
                     selecionado = currentRoute == item.ruta
                 ) {
-                    navController.navigate(item.ruta) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (currentRoute != item.ruta) {
+                        navController.navigate(item.ruta) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 }
             }
@@ -107,7 +109,8 @@ fun bottom_navigation(navController: NavController) {
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(y = -(navigationBarHeight / 2)).size(60.dp)
+                .offset(y = -(navigationBarHeight / 2))
+                .size(60.dp)
         ) {
             Icon(
                 painter = painterResource(R.drawable.qr_scaner_icon),
@@ -116,7 +119,6 @@ fun bottom_navigation(navController: NavController) {
             )
         }
     }
-
 
 
 }
@@ -160,6 +162,7 @@ fun HandleBackPress(navController: NavController) {
                 // salir de la app
                 (navController.context as? android.app.Activity)?.finish()
             }
+
             else -> {
                 // volver a la pantalla anterior
                 navController.popBackStack()
@@ -169,16 +172,18 @@ fun HandleBackPress(navController: NavController) {
 }
 
 
-
-
-
 @Composable
 fun RowScope.Geinz_bottom_var(navItem: nav_item, selecionado: Boolean, clikeado: () -> Unit) {
     NavigationBarItem(
         selected = selecionado,
         onClick = { clikeado() },
         icon = { Icon(imageVector = navItem.icon, contentDescription = "") },
-        label = { texto_generico_one_line(navItem.nombre_item, MaterialTheme.typography.bodyMedium) },
+        label = {
+            texto_generico_one_line(
+                navItem.nombre_item,
+                MaterialTheme.typography.bodyMedium
+            )
+        },
         alwaysShowLabel = true,
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = Color.White,

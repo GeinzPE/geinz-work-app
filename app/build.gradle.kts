@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -170,12 +172,13 @@ dependencies {
     implementation("androidx.palette:palette:1.0.0")
 
 
-// Algolia Search Client para Kotlin
-    implementation("com.algolia:algoliasearch-client-kotlin:3.27.0")
 
+    // Algolia Kotlin API Client v2
+    implementation("com.algolia:algoliasearch-client-kotlin:2.1.2")
 
-// Motor HTTP Ktor
-    implementation("io.ktor:ktor-client-okhttp:2.3.4")
+    // Motor HTTP Ktor para Android
+    implementation("io.ktor:ktor-client-okhttp:2.0.1")
+
 
 
 }

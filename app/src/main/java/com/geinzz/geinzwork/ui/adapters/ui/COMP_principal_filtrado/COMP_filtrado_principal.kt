@@ -63,6 +63,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.Button
 import androidx.compose.material3.MaterialTheme
@@ -75,6 +76,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -154,28 +156,69 @@ fun estados_tiendas(estado: String, color_estado: Color) {
 }
 
 @Composable
-fun tags_subcateogiras(lista_tags: List<String>) {
-    LazyRow(modifier = Modifier.pointerInput(Unit) {
-        detectHorizontalDragGestures { change, dragAmount ->
-            change.consume()
-        }
-    }, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        items(lista_tags) { cap ->
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Text(
-                    text = cap,
-                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.bodySmall
-                )
+fun tags_subcateogiras(lista_tags: List<String>,modifier: Modifier= Modifier) {
+    Box() {
+        LazyRow(modifier = modifier.clip(RoundedCornerShape(50)).fillMaxWidth().pointerInput(Unit) {
+            detectHorizontalDragGestures { change, dragAmount ->
+                change.consume()
+            }
+        }, horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+            items(lista_tags) { cap ->
+
+                Box(
+                    modifier = Modifier.height(25.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Text(
+                        text = cap,
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
 
     }
+}
+
+@Composable
+fun ShadowTagsCategoriasstart(modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .width(40.dp)
+            .height(25.dp)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Black.copy(alpha = 1f),   // negro sólido
+                        Color.Black.copy(alpha = 0.6f), // intermedio
+                        Color.Black.copy(alpha = 0.3f), // más suave
+                        Color.Transparent               // totalmente transparente
+                    )
+                )
+            )
+    )
+}
+
+@Composable
+fun ShadowTagsCategoriassEnd(modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .width(40.dp)
+            .height(25.dp)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,               // centro transparente
+                        Color.Black.copy(alpha = 0.3f), // más suave
+                        Color.Black.copy(alpha = 0.6f), // intermedio
+                        Color.Black.copy(alpha = 1f)    // negro sólido
+                    )
+                )
+            )
+    )
 }
 
 @Composable
@@ -571,17 +614,19 @@ fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, lis
 }
 
 @Composable
-fun mascara_img(rounder: Int, alto: Dp, ancho: Dp) {
+fun mascara_img(rounder: Int, alto: Dp, ancho: Dp,modifier: Modifier= Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(rounder))
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color.Transparent,
-                        Color.Black.copy(alpha = 0.5f),
-                        Color.Black
-                    )
+                        Color.Black,                   // negro sólido abajo
+                        Color.Black.copy(alpha = 0.7f),// transición
+                        Color.Transparent              // transparente arriba
+                    ),
+                    startY = Float.POSITIVE_INFINITY, // fuerza el gradiente desde abajo
+                    endY = 0f
                 )
             )
             .width(ancho)
@@ -671,7 +716,7 @@ fun carta_filtrado_localidades(
     ancho: Dp,
     listener: (String) -> Unit
 ) {
-    Log.d("selecionados","$defecto_selecionado $nombre_localidad")
+    Log.d("selecionados", "$defecto_selecionado $nombre_localidad")
     val randomImg = remember(img) { img.randomOrNull() }
     val borderColor by animateColorAsState(
         if (defecto_selecionado) MaterialTheme.colorScheme.primary else Color.Transparent,

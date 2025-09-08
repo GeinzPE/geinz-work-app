@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -67,6 +70,8 @@ fun nativationWrapper(
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val focusRequester = remember { FocusRequester() }
+
     SideEffect {
         val colorBarraInferior =
             if (currentRoute == "pantalla_principal" ||
@@ -141,6 +146,7 @@ fun nativationWrapper(
                         ver_lugares = { navController.navigate(lugares_turisticos) },
                         listner_busqueda = {
                             navController.navigate("buscar")
+
                         },
                         navController = navController
                     )
@@ -160,7 +166,8 @@ fun nativationWrapper(
                 }
 
                 composable("buscar") {
-                    ui_pantalla_busqueda()
+
+                    ui_pantalla_busqueda(focusRequester = focusRequester)
                 }
 
                 composable("favoritos") {

@@ -547,5 +547,9 @@
     <string name="Actividad_aplicacion_GWT">Actividades de la aplicacion</string>
     <string name="title_activity_map_google">map_google</string>
 
+    <string name="APPID_ALGOLIA" translatable="false">C2DY0JRDRH</string>
+    <string name="APIKEY_ALGOLIA_SEARCH" translatable="false">7c989e9a6dd8f1dd4cba071072b80cd4</string>
+    <string name="APIKEY_ALGOLIA_FIRESTORE" translatable="false">f6c3e7ab203d80bb6bbe130c3b2da386</string>
+    <string name="IDEX_NAME_ALGOLIA" translatable="false">lugares</string>
 
 </resources>

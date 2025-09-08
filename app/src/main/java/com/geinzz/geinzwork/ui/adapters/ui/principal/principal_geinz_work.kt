@@ -61,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -78,6 +79,8 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriassEnd
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriasstart
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrado_localidades
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
@@ -148,6 +151,7 @@ fun pantalla_principal(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
+    val localidad_defaul=ultimaLocalidad?:"barranca"
     val localidadSeleccionada = rememberSaveable { mutableStateOf("barranca") }
     Box(
         modifier = Modifier
@@ -177,7 +181,7 @@ fun pantalla_principal(
             item {
                 apartado_explora_cat(
                     _categorias_tiendas,
-                    ultimaLocalidad,
+                    localidad_defaul,
                     nombre_user,
                     { nombre, localidad ->
                         categorias(localidad, nombre)
@@ -191,7 +195,7 @@ fun pantalla_principal(
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
                     "ver rutas",
-                    "descubre ${ultimaLocalidad}"
+                    "descubre ${localidad_defaul}"
                 ) { ver_lugares() }
                 spacer_vertical(10.dp)
             }
@@ -200,7 +204,7 @@ fun pantalla_principal(
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
                     "ver eventos",
-                    "Eventos proximos de ${ultimaLocalidad}"
+                    "Eventos proximos de ${localidad_defaul}"
                 ) {}
                 spacer_vertical(20.dp)
             }
@@ -303,18 +307,18 @@ fun apartado_categorias_tiendas(
                 contentScale = ContentScale.Crop
             )
 
-            mascara_img(rounder, alto, ancho)
+            mascara_img(rounder, alto, ancho,Modifier.align(Alignment.BottomStart))
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(10.dp)
             ) {
-                Column() {
+                Column(modifier = Modifier.padding(vertical = 0.dp, horizontal = 10.dp) ) {
                     texto_categorias(nombre_categoria)
                     spacer_vertical(10.dp)
                     tags_subcateogiras(lista_subcateogiras)
 
                 }
+
 
             }
 
