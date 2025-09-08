@@ -6,8 +6,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.foundation.layout.Box
@@ -16,11 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -71,19 +77,27 @@ fun nativationWrapper(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val focusRequester = remember { FocusRequester() }
+    var isvisble_buttomvar by rememberSaveable { mutableStateOf(true) }
 
     SideEffect {
-        val colorBarraInferior =
-            if (currentRoute == "pantalla_principal" ||
-                currentRoute == "buscar" ||
-                currentRoute == "favoritos" ||
-                currentRoute == "principal" ||
-                currentRoute == "login_principal"
-            ) {
-                Color(0xFF744ACB)
+        // Si la ruta actual es de las principales...
+        val colorBarraInferior = if (
+            currentRoute == "pantalla_principal" ||
+            currentRoute == "buscar" ||
+            currentRoute == "favoritos" ||
+            currentRoute == "principal" ||
+            currentRoute == "login_principal"
+        ) {
+            // ...dependemos del estado de la BottomBar
+            if (isvisble_buttomvar) {
+                Color(0xFF744ACB) // visible → color normal
             } else {
-                fondo_oscuro5_s
+                Color.Black       // oculta → negro
             }
+        } else {
+            // En otras pantallas → tu color oscuro por defecto
+            fondo_oscuro5_s
+        }
 
         // Barra de estado (arriba)
         systemUiController.setStatusBarColor(
@@ -100,13 +114,34 @@ fun nativationWrapper(
 
 
     val showBottomBar = when (currentRoute) {
-        "pantalla_principal", "buscar", "favoritos", "principal", "login_principal" -> true
+        "pantalla_principal", "buscar", "favoritos", "principal", "login_principal" -> isvisble_buttomvar
         else -> false
     }
     Box(modifier = Modifier.fillMaxSize()) {
 
         Scaffold(
-            bottomBar = { if (showBottomBar) bottom_navigation(navController) },
+            bottomBar = {
+                AnimatedVisibility(
+                    visible = showBottomBar,
+                    enter = slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(
+                            durationMillis = 400,
+                            easing = FastOutSlowInEasing
+                        )
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(
+                            durationMillis = 400,
+                            easing = FastOutSlowInEasing
+                        )
+                    )
+                ) {
+                    bottom_navigation(navController)
+                }
+
+            },
         ) { innerPadding ->
             HandleBackPress(navController)
             NavHost(
@@ -126,7 +161,7 @@ fun nativationWrapper(
                             )
                         },
                         clikear_cartas = { categoira, nombre, localidad ->
-                            Log.d("obtenos_datos","$categoira $localidad $nombre")
+                            Log.d("obtenos_datos", "$categoira $localidad $nombre")
                             if (firebaseAuth.currentUser != null) {
                                 navController.navigate(
                                     screen_filtrado(
@@ -167,7 +202,11 @@ fun nativationWrapper(
 
                 composable("buscar") {
 
-                    ui_pantalla_busqueda(focusRequester = focusRequester)
+                    ui_pantalla_busqueda(isvisble_buttomvar,focusRequester = focusRequester) {
+                        isvisble_buttomvar = !isvisble_buttomvar
+                        Log.d("isvisble_buttomvar",isvisble_buttomvar.toString())
+
+                    }
                 }
 
                 composable("favoritos") {
