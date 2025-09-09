@@ -2,9 +2,8 @@ package com.geinzz.geinzwork.viewModels
 
 import Item
 import android.app.Application
-import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.aloglia.AlgoliaHelper
@@ -23,10 +22,10 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val _results = MutableStateFlow<List<Item>>(emptyList())
     val results: StateFlow<List<Item>> = _results
 
-    fun search(query: String) {
+    fun search(query: String, subcategoria_selecionada: String) {
         viewModelScope.launch {
             try {
-                val hits = algoliaHelper.search(query)
+                val hits = algoliaHelper.search(query,subcategoria_selecionada)
                 _results.value = hits
             } catch (e: Exception) {
                 _results.value = emptyList()
@@ -35,5 +34,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun clearResults() {
         _results.value = emptyList()
+        Log.d("valor_resul",_results.value.toString())
     }
 }

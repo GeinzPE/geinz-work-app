@@ -210,7 +210,7 @@ object constantes_lista_localidades {
 
 
     val chips_filtrado_busqueda=listOf(
-        "Todos","Restaurantes","Hoteles"
+        "Todos","comida y restaurantes","Hoteles","Lugares"
     )
 
 

@@ -314,7 +314,6 @@ fun Pantalla_filtrado_tiendas(
 //                    )
 
                     AnimatedVisibility(btn_mostrar_mapa) {
-
                         open_map_perzonlizado(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)

@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -192,7 +193,9 @@ class viewModel_login_user : ViewModel() {
                     navController.navigate("pantalla_principal") {
                         popUpTo("login_principal") { inclusive = true }
                     }
+
                 } else {
+
                     when (texto_registrado) {
                         "correo_no_existe" -> _loginStateCamposInicial.value =
                             LoginState_inicio.error(
@@ -209,6 +212,7 @@ class viewModel_login_user : ViewModel() {
                         else -> _loginStateCamposInicial.value =
                             LoginState_inicio.error("", "Error desconocido")
                     }
+
                 }
             } catch (e: Exception) {
                 _loginStateCamposInicial.value =

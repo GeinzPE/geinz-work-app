@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,7 +68,7 @@ fun IniciarSeccion(
     listener_Crear_cuenta: (String) -> Unit,
 ) {
     val context = LocalContext.current
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.observeAsState()
     val listaImg = constantes_lista_localidades.lista_img_local
     var currentImageIndex by remember { mutableStateOf(0) }
@@ -85,7 +86,7 @@ fun IniciarSeccion(
         try {
             val account = task.getResult(ApiException::class.java)!!
             Log.d("LOGIN_GOOGLE", "Correo de Google: ${account.email}")
-            viewModel_login_user.loginWithGoogle(navController,account.idToken){correo->
+            viewModel_login_user.loginWithGoogle(navController, account.idToken) { correo ->
                 listener_Crear_cuenta(correo)
             }
         } catch (e: Exception) {
@@ -139,10 +140,15 @@ fun IniciarSeccion(
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp),
-            { correo, contra -> viewModel_login_user.logear_user(navController,correo, contra) },
+            { correo, contra ->
+                viewModel_login_user.logear_user(navController, correo, contra)
+                keyboardController?.hide()
+            },
             { listener_Crear_cuenta("crear") },
-            { val signInIntent = googleSignInClient.signInIntent
-                launcher.launch(signInIntent) }
+            {
+                val signInIntent = googleSignInClient.signInIntent
+                launcher.launch(signInIntent)
+            }
         )
 //        LaunchedEffect(loginState_principal) {
 //            when (val state = loginState_principal) {
@@ -213,6 +219,7 @@ fun login_principal_apartado(
     listener_Crear_cuenta_geinz: () -> Unit,
     listener_continuar_con_google: () -> Unit,
 ) {
+
     var password by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var error_correo by remember { mutableStateOf(false) }
@@ -293,6 +300,7 @@ fun login_principal_apartado(
         spacer_vertical(10.dp)
         crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
     }
+
 }
 
 

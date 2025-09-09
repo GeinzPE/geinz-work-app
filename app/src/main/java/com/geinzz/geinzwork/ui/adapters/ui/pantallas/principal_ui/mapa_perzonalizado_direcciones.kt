@@ -77,6 +77,9 @@ fun MyGoogle_maps(
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
 ) {
     val lista_filtrada by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
+//    val customIcon = BitmapDescriptorFactory.fromResource(R.drawable.)
+
+
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var dialogo_ubi_Activa by remember { mutableStateOf(false) }
@@ -158,6 +161,7 @@ fun MyGoogle_maps(
                             if (seleccionadoId == tienda.id_tienda) BitmapDescriptorFactory.HUE_BLUE
                             else BitmapDescriptorFactory.HUE_RED
                         ),
+//                        icon = customIcon,
                         onClick = {
                             dialog_Crear_ruta = true
                             seleccionadoId = tienda.id_tienda
