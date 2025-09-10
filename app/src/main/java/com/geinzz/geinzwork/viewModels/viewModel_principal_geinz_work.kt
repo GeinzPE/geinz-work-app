@@ -41,7 +41,7 @@ class viewModel_principal_geinz_work : ViewModel() {
     }
 
     fun obtener_datos_user_registrado(id_user: String) {
-        Log.d("id_user","$id_user")
+        Log.d("id_user", "$id_user")
         viewModelScope.launch {
             try {
                 _userData.value = instacia.obtenerDatosUser(id_user)
@@ -54,7 +54,8 @@ class viewModel_principal_geinz_work : ViewModel() {
     fun obtener_subcategorias(solo5: Boolean = true) {
         viewModelScope.launch {
             try {
-                sub_cat_tiendas.value = instacia_repo_cat_sub.obtener_categorias_subcategorias(solo5)
+                sub_cat_tiendas.value =
+                    instacia_repo_cat_sub.obtener_categorias_subcategorias(solo5)
             } catch (e: Exception) {
                 sub_cat_tiendas.value = emptyList()
             }
@@ -70,4 +71,5 @@ class viewModel_principal_geinz_work : ViewModel() {
             }
         }
     }
+
 }

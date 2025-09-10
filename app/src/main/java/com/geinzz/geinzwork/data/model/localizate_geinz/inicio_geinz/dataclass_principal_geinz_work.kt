@@ -67,3 +67,14 @@ data class datos_principales_user(
     val img_perfil: String = "",
     val localida: String = "barranca"
 )
+
+data class ref_ubi(val latitud: Double,val longitud: Double,val referencia: String,val direccion: String)
+
+data class seguridad_salud_publica(
+    val nombre: String,
+    val tipo: String,
+    val img: String,
+    val localidad: String,
+    val datos_ubi: ref_ubi,
+    val numero_contacto: List<String>,
+)

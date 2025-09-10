@@ -1,10 +1,13 @@
 package com.geinzz.geinzwork.model
 
 import android.R
+import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.seguridad_salud_publica
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 class repo_principal_geinz_work {
@@ -75,5 +78,45 @@ class repo_principal_geinz_work {
             null
         }
     }
+
+//    suspend fun subir_lugares(lista: List<seguridad_salud_publica>) {
+//        lista.forEach { i ->
+//            val ref = db.collection("Tiendas")
+//                .document("salud_seguridad")
+//                .collection(i.localidad)
+//                .document()
+//            val generatedId = ref.id
+//
+//            val hasmap_normal = hashMapOf<String, Any>(
+//                "nombre" to i.nombre,
+//                "lugar" to i.localidad,
+//                "img" to i.img,
+//                "categoria" to i.tipo,
+//                "ubicacion" to i.datos_ubi,
+//                "numeros_contactos" to i.numero_contacto,
+//                "id" to generatedId
+//            )
+//
+//            try {
+//                ref.set(hasmap_normal, SetOptions.merge()).await()
+//                Log.d("Firestore", "Documento subido con ID: $generatedId")
+//
+//                val ref2 = db.collection("lugares").document(generatedId)
+//                val hashMap_algolia = hashMapOf<String, Any>(
+//                    "nombre" to i.nombre,
+//                    "lugar" to i.localidad,
+//                    "img" to i.img,
+//                    "categoria" to i.tipo,
+//                    "id_tienda" to generatedId
+//                )
+//                ref2.set(hashMap_algolia, SetOptions.merge()).await()
+//                Log.d("Firestore", "Documento en 'lugares' creado con ID: $generatedId")
+//            } catch (e: Exception) {
+//                Log.e("Firestore", "Error subiendo documento: ", e)
+//            }
+//        }
+//    }
+
+
 
 }

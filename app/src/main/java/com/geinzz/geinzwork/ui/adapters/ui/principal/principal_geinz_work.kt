@@ -85,6 +85,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -133,7 +134,7 @@ fun pantalla_principal(
         img_perfil = ""
     }
 
-
+    val imgActual = constantes_lista_localidades.lista_img_seguridad.random()
     LaunchedEffect(Unit) {
         viewModel_cordenadas.obtener_subcategorias(true)
         viewModel_cordenadas.obtner_filtrado_localidades()
@@ -144,14 +145,14 @@ fun pantalla_principal(
         .collectAsState(initial = null)
 
 
-    Log.d("ultima_localioda_selecionada",ultimaLocalidad.toString())
+    Log.d("ultima_localioda_selecionada", ultimaLocalidad.toString())
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
-    val localidad_defaul=ultimaLocalidad?:"barranca"
+    val localidad_defaul = ultimaLocalidad ?: "barranca"
     val localidadSeleccionada = rememberSaveable { mutableStateOf("barranca") }
     Box(
         modifier = Modifier
@@ -192,13 +193,24 @@ fun pantalla_principal(
             }
 
             item {
+                spacer_vertical(10.dp)
+                    seguridad(
+                        imgActual,
+                        "ver rutas",
+                        "Salud y seguridad cuidadana"
+                    ) { ver_lugares() }
+
+                spacer_vertical(10.dp)
+            }
+            item {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
-                    "ver rutas",
+                    "ver Lugares",
                     "descubre ${localidad_defaul}"
                 ) { ver_lugares() }
                 spacer_vertical(10.dp)
             }
+
 
             item {
                 rutas_turismo(
@@ -236,7 +248,7 @@ fun apartado_explora_cat(
     categorias1: (String, String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
 ) {
-    val localidad_defaul=localidad_selecionada?:"barranca"
+    val localidad_defaul = localidad_selecionada ?: "barranca"
     Log.d("obtemloms_lista", categorias_tienda.toString())
     val categoriasPrincipales = categorias_tienda
     spacer_vertical(10.dp)
@@ -307,12 +319,12 @@ fun apartado_categorias_tiendas(
                 contentScale = ContentScale.Crop
             )
 
-            mascara_img(rounder, alto, ancho,Modifier.align(Alignment.BottomStart))
+            mascara_img(rounder, alto, ancho, Modifier.align(Alignment.BottomStart))
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
             ) {
-                Column(modifier = Modifier.padding(vertical = 0.dp, horizontal = 10.dp) ) {
+                Column(modifier = Modifier.padding(vertical = 0.dp, horizontal = 10.dp)) {
                     texto_categorias(nombre_categoria)
                     spacer_vertical(10.dp)
                     tags_subcateogiras(lista_subcateogiras)

@@ -1,4 +1,3 @@
-
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import android.content.Context
@@ -20,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.seguridad_salud_publica
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
@@ -65,6 +66,7 @@ object constantes_lista_localidades {
             numero
         }
     }
+
     fun getCategoriaIcon(categoria: String): String {
         return when (categoria.lowercase()) {
             "bancos y servicios financieros" -> "🏦"
@@ -237,8 +239,8 @@ object constantes_lista_localidades {
     )
 
 
-    val chips_filtrado_busqueda=listOf(
-        "Todos","comida y restaurantes","Hoteles","Lugares"
+    val chips_filtrado_busqueda = listOf(
+        "Todos", "comida y restaurantes", "Hoteles", "Lugares"
     )
 
 
@@ -341,7 +343,266 @@ object constantes_lista_localidades {
         return formato12.format(date!!)
     }
 
+    val lista_img_seguridad = listOf(
+        R.drawable.barranca_comisaria,
+        R.drawable.bomberos_brca,
+        R.drawable.samu_brca,
+        R.drawable.bomberos_brca,R.drawable.supe_brca,
+        R.drawable.hospital_brca
+    )
 
+
+//    val lista_constantes = listOf(
+//        // Barranca
+//        seguridad_salud_publica(
+//            nombre = "Hospital de Barranca",
+//            tipo = "salud",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.753746104394681,
+//                longitud = -77.76360404577927,
+//                referencia = "Frente a la Plaza de Armas",
+//                direccion = "Av. Nicolás de Piérola 210–224"
+//            ),
+//            numero_contacto = listOf("012352241", "012352075", "012352156")
+//        ),
+//
+//        seguridad_salud_publica(
+//            nombre = "DIPINCRI Barranca",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.741253339348441,
+//                longitud = -77.76520851349262,
+//                referencia = "Frente a la Municipalidad",
+//                direccion = "Jr. Grau s/n, Barranca"
+//            ),
+//            numero_contacto = listOf("012352350") // ejemplo de contacto oficial, ajustable
+//        ),
+//
+//        seguridad_salud_publica(
+//            nombre = "Puestos de Salud Barranca",
+//            tipo = "salud",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = 0.0,
+//                longitud = 0.0,
+//                referencia = "Sectores: Buenavista, Chiu Chiu, Purmacana, Potao",
+//                direccion = "Varios sectores"
+//            ),
+//            numero_contacto = listOf("012352075")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Comisaría PNP Barranca",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.750510578838727,
+//                longitud = -77.76504890345076,
+//                referencia = "",
+//                direccion = "Calle Independencia s/n"
+//            ),
+//            numero_contacto = listOf("012354905", "012354906")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Comisaría de Carreteras Barranca",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.753936505455542,
+//                longitud = -77.75880483155137,
+//                referencia = "",
+//                direccion = "Calle José Gálvez 490"
+//            ),
+//            numero_contacto = listOf("012352302")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Serenazgo Municipal Barranca",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.741717151744634,
+//                longitud = -77.76324690256669,
+//                referencia = "",
+//                direccion = ""
+//            ),
+//            numero_contacto = listOf("900872784")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "SAMU Barranca",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.75215146325845,
+//                longitud = -77.76316724577927,
+//                referencia = "",
+//                direccion = ""
+//            ),
+//            numero_contacto = listOf("948162002")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Compañía de Bomberos Voluntarios Barranca N° 73",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "barranca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.754105881347417,
+//                longitud = -77.76056763413719,
+//                referencia = "",
+//                direccion = "Plaza de Armas s/n"
+//            ),
+//            numero_contacto = listOf("012352333")
+//        ),
+//
+//        // Paramonga
+//        seguridad_salud_publica(
+//            nombre = "Centro de Salud Paramonga José Luis Flores Mallqui",
+//            tipo = "salud",
+//            img = "",
+//            localidad = "paramonga",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.679865987621321,
+//                longitud = -77.8163874169446,
+//                referencia = "Frente a la Plaza de Armas",
+//                direccion = "Urb. 7 de Junio, Calle Francisco Vidal s/n"
+//            ),
+//            numero_contacto = listOf("012360738")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Comisaría PNP Paramonga",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "paramonga",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.673341757309588,
+//                longitud = -77.81932444948157,
+//                referencia = "",
+//                direccion = "Av. Central N° 275"
+//            ),
+//            numero_contacto = listOf("2360082", "2362854")
+//        ),
+//
+//        seguridad_salud_publica(
+//            nombre = "Compañía de Bomberos Voluntarios Salvadora Paramonga N° 81",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "paramonga",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.673108494600752,
+//                longitud = -77.82089603101512,
+//                referencia = "",
+//                direccion = "Av. Central 131"
+//            ),
+//            numero_contacto = listOf("012360329")
+//        ),
+//
+//        // Supe
+//        seguridad_salud_publica(
+//            nombre = "Hospital de Supe Laura Esther Rodríguez Dulanto",
+//            tipo = "salud",
+//            img = "",
+//            localidad = "supe",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.796884035820383,
+//                longitud = -77.71720251256687,
+//                referencia = "",
+//                direccion = "Jr. Alfonso Ugarte 350"
+//            ),
+//            numero_contacto = listOf("930954779", "991335459")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Comisaría PNP Supe Pueblo",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "supe",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.796013479381218,
+//                longitud = -77.71522440097667,
+//                referencia = "",
+//                direccion = "Jr. Sucre 350"
+//            ),
+//            numero_contacto = listOf("2364304")
+//        ),
+//
+//
+//        // Pativilca
+//        seguridad_salud_publica(
+//            nombre = "Centro de Salud Pativilca",
+//            tipo = "salud",
+//            img = "",
+//            localidad = "pativilca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.696178344630095,
+//                longitud = -77.77991647824568,
+//                referencia = "",
+//                direccion = "Jr. Simón Bolívar 125"
+//            ),
+//            numero_contacto = listOf("2363406")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Comisaría PNP Pativilca",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "pativilca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.69593001890776,
+//                longitud = -77.77828829745266,
+//                referencia = "",
+//                direccion = "Jr. Simón Bolívar 117"
+//            ),
+//            numero_contacto = listOf("2363406")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Bomberos Pativilca N° 91",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "pativilca",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.693173894803182,
+//                longitud = -77.78186228182595,
+//                referencia = "",
+//                direccion = "Av. San Martin 295"
+//            ),
+//            numero_contacto = listOf("012360329")
+//        ),
+//
+//
+//        // Supe Puerto
+//        seguridad_salud_publica(
+//            nombre = "Puesto de salud nueva victoria",
+//            tipo = "salud",
+//            img = "",
+//            localidad = "supe_puerto",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.798229224689468,
+//                longitud = -77.7395314515867,
+//                referencia = "",
+//                direccion = "C. San Pedro 201, Supe Puerto 15162"
+//            ),
+//            numero_contacto = listOf("2364008")
+//        ),
+//        seguridad_salud_publica(
+//            nombre = "Comisaría PNP Supe Puerto",
+//            tipo = "seguridad",
+//            img = "",
+//            localidad = "supe_puerto",
+//            datos_ubi = ref_ubi(
+//                latitud = -10.797019308906867,
+//                longitud = -77.74180885176115,
+//                referencia = "",
+//                direccion = "Jr. Callao 501"
+//            ),
+//            numero_contacto = listOf("2364008")
+//        ),
+//
+//        )
 
 
 //    val listaCategorias = listOf(

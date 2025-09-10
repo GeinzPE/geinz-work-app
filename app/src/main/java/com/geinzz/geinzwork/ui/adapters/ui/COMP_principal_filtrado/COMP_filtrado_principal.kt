@@ -566,6 +566,46 @@ fun rutas_turismo(
     }
 }
 
+@Composable
+fun seguridad(
+    drawable: Int,
+    texto_button: String,
+    texto_baner: String,
+    clik_button: () -> Unit
+) {
+    Box {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(drawable) // Aquí usamos directamente el drawable
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .clip(RoundedCornerShape(5)),
+            contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(5))
+                .background(Color.Black.copy(alpha = 0.5f))
+                .fillMaxWidth()
+                .height(400.dp)
+        )
+
+        texto_encimado(
+            modifier = Modifier.align(Alignment.BottomStart),
+            texto_button,
+            texto_baner
+        ) { clik_button() }
+    }
+}
+
+
 
 @Composable
 fun texto_encimado(
