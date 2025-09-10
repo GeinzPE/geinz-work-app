@@ -1,16 +1,24 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
+
 import Item
 import android.annotation.SuppressLint
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,9 +33,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +60,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -83,7 +95,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ui_pantalla_busqueda(
-    viewModelFiltros:viewModel_filtado_tiendas,
+    viewModelFiltros: viewModel_filtado_tiendas,
     focusRequester: FocusRequester,
     mostrar: () -> Unit,
     ocultar: () -> Unit
@@ -95,123 +107,144 @@ fun ui_pantalla_busqueda(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val scope = rememberCoroutineScope()
     val lista_filtrado = constantes_lista_localidades.chips_filtrado_busqueda
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
+    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+    val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     var mosatar_autcompletado by remember { mutableStateOf(false) }
     var localidad_Selecionadad_filtrado by remember { mutableStateOf("") }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     var tienda_localida_selecioanda by remember { mutableStateOf("") }
+    var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
 
     var firstLaunch by remember { mutableStateOf(true) }
+
+
+
+
     LaunchedEffect(subcategoria_selecionada) {
         if (firstLaunch) {
-            firstLaunch = false // la primera vez no busca
+            firstLaunch = false
         } else {
             Log.d("cambiado", subcategoria_selecionada)
-            scope.launch { viewModel.search(searchText.text, subcategoria_selecionada) }
+            scope.launch { viewModel.search(searchText.text, subcategoria_selecionada,tienda_localida_selecioanda) }
         }
     }
 
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(tienda_localida_selecioanda, id_tienda_selecionada)
+            viewModelFiltros.obtener_campos_tiendas_por_id(
+                tienda_localida_selecioanda,
+                id_tienda_selecionada
+            )
+
         }
     }
+
     LaunchedEffect(datosTienda) {
-        if (datosTienda.isNotEmpty()) {
-            dataclass_tienda_seleccionada = datosTienda.first()
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada =
+                datosTienda!!.first()
         }
     }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp)
-    ) {
-        item {
-            fraces_filtrado()
-            spacer_vertical(10.dp)
-        }
 
-        item {
-            TexfielFiltrado(focusRequester, searchText) { it ->
-                searchText = TextFieldValue(
-                    text = it,
-                    selection = TextRange(it.length) // 👈 cursor al final del texto
-                )
-
-                if (it.isNotEmpty()) {
-                    when {
-                        it.startsWith("barr", ignoreCase = true) -> {
-                            mosatar_autcompletado = true
-                        }
-
-                        it.startsWith("sup", ignoreCase = true) -> {
-                            mosatar_autcompletado = true
-                        }
-
-                        it.startsWith("pati", ignoreCase = true) -> {
-                            mosatar_autcompletado = true
-                        }
-
-                        it.startsWith("puer", ignoreCase = true) -> {
-                            mosatar_autcompletado = true
-                        }
-
-                        it.startsWith("param", ignoreCase = true) -> {
-                            mosatar_autcompletado = true
-                        }
-
-                        else -> {
-                            mosatar_autcompletado = false
-                            localidad_Selecionadad_filtrado = ""
-                        }
-                    }
-                    ocultar()
-                    scope.launch { viewModel.search(it, subcategoria_selecionada) }
-                } else {
-                    mosatar_autcompletado = false
-                    mostrar()
-                    viewModel.clearResults()
-                }
+    Box() {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+        ) {
+            item {
+                fraces_filtrado()
+                spacer_vertical(10.dp)
             }
-            spacer_vertical(5.dp)
-        }
-        item {
-            AnimatedVisibility(
-                visible = mosatar_autcompletado,
-                enter = slideInVertically { fullHeight -> -fullHeight } + fadeIn(),
-                exit = slideOutVertically { fullHeight -> -fullHeight } + fadeOut()
-            ) {
-                autcomplet_localidad(localidad_Selecionadad_filtrado) { cat_selecionado ->
-                    localidad_Selecionadad_filtrado = cat_selecionado
+            item {
+                TexfielFiltrado(focusRequester, searchText) { it ->
                     searchText = TextFieldValue(
-                        text = cat_selecionado,
-                        selection = TextRange(cat_selecionado.length)
+                        text = it,
+                        selection = TextRange(it.length) // 👈 cursor al final del texto
                     )
-                    scope.launch { viewModel.search(cat_selecionado, subcategoria_selecionada) }
+                    if (it.isNotEmpty()) {
+                        when {
+                            it.startsWith("barr", ignoreCase = true) -> {
+                                mosatar_autcompletado = true
+                            }
 
-                }
-            }
-            spacer_vertical(5.dp)
+                            it.startsWith("sup", ignoreCase = true) -> {
+                                mosatar_autcompletado = true
+                            }
 
-        }
-        item {
-            filtrado_chips(lista_filtrado, subcategoria_selecionada) { filtrado_Select ->
-                subcategoria_selecionada = filtrado_Select
-            }
-            spacer_vertical(10.dp)
-        }
-        // Resultados como items
-        items(results) { item ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                carta_filtrado(item) { id, localidad ->
-                    tienda_localida_selecioanda=localidad
-                    id_tienda_selecionada=id
-                    show_bottom_sheeet= true
+                            it.startsWith("pati", ignoreCase = true) -> {
+                                mosatar_autcompletado = true
+                            }
+
+                            it.startsWith("puer", ignoreCase = true) -> {
+                                mosatar_autcompletado = true
+                            }
+
+                            it.startsWith("param", ignoreCase = true) -> {
+                                mosatar_autcompletado = true
+                            }
+
+                            else -> {
+                                mosatar_autcompletado = false
+                                localidad_Selecionadad_filtrado = ""
+                            }
+                        }
+                        ocultar()
+                        scope.launch {
+                            viewModel.search(
+                                it,
+                                subcategoria_selecionada,
+                                tienda_localida_selecioanda
+                            )
+                        }
+                    } else {
+                        mosatar_autcompletado = false
+                        mostrar()
+                        viewModel.clearResults()
+                    }
                 }
+                spacer_vertical(5.dp)
+            }
+//            item {
+//                AnimatedVisibility(
+//                    visible = mosatar_autcompletado,
+//                    enter = slideInVertically { fullHeight -> -fullHeight } + fadeIn(),
+//                    exit = slideOutVertically { fullHeight -> -fullHeight } + fadeOut()
+//                ) {
+//                    autcomplet_localidad(localidad_Selecionadad_filtrado) { cat_selecionado ->
+//                        localidad_Selecionadad_filtrado = cat_selecionado
+//                        searchText = TextFieldValue(
+//                            text = cat_selecionado,
+//                            selection = TextRange(cat_selecionado.length)
+//                        )
+//                        scope.launch { viewModel.search(cat_selecionado, subcategoria_selecionada) }
+//
+//                    }
+//                }
+//                spacer_vertical(5.dp)
+//
+//            }
+            item {
+                filtrado_chips(lista_filtrado, subcategoria_selecionada) { filtrado_Select ->
+                    subcategoria_selecionada = filtrado_Select
+                }
+                spacer_vertical(10.dp)
+            }
+            // Resultados como items
+            items(results) { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    carta_filtrado(horario_por_tienda, item) { id, localidad, color ->
+                        Log.d("elcolores", color.toString())
+                        estadoColor = color
+                        tienda_localida_selecioanda = localidad
+                        id_tienda_selecionada = id
+                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
+                        show_bottom_sheeet = true
+                    }
 //                AsyncImage(
 //                    model = ImageRequest.Builder(LocalContext.current)
 //                        .data(item.img)
@@ -234,44 +267,55 @@ fun ui_pantalla_busqueda(
 //                        .fillMaxWidth()
 //                        .padding(vertical = 8.dp)
 //                )
+                }
             }
         }
-    }
-    if (show_bottom_sheeet) {
-        bottom_sheet_tiendas_filtradas(
-            Color.Red,
-            viewModelFiltros,
-            dataclass_tienda_seleccionada, show_bottom_sheeet
-        ) {
-            show_bottom_sheeet = false
+        if (show_bottom_sheeet) {
+            bottom_sheet_tiendas_filtradas(
+                estadoColor,
+                viewModelFiltros,
+                dataclass_tienda_seleccionada, show_bottom_sheeet
+            ) {
+                show_bottom_sheeet = false
+            }
         }
+        FloatingMenuFadeDemo(tienda_localida_selecioanda) { localidad ->
+            tienda_localida_selecioanda = localidad
+            scope.launch {
+                viewModel.search(
+                    query = searchText.text, // puede estar vacío
+                    subcategoria_selecionada = subcategoria_selecionada,
+                    localidad = localidad
+                )
+            }
+        }
+
     }
 }
-
-@Composable
-fun autcomplet_localidad(localidad_selecionadad: String, cateogira_selecionada: (String) -> Unit) {
-    val lista_localidad = listOf("Barranca", "Supe", "paramonga", "pativilca", "Puerto supe")
-    LazyRow {
-        items(lista_localidad) { it ->
-            val cat_selecionada = localidad_selecionadad == it
-            FilterChip(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = Color.White,
-                    containerColor = MaterialTheme.colorScheme.surface
-                ), selected = cat_selecionada,
-                onClick = { cateogira_selecionada(it) }, label = {
-                    Text(
-                        text = it,
-                    )
-                },
-                shape = RoundedCornerShape(40)
-            )
-
-        }
-    }
-}
+//
+//@Composable
+//fun autcomplet_localidad(localidad_selecionadad: String, cateogira_selecionada: (String) -> Unit) {
+//    LazyRow {
+//        items(constantes_lista_localidades.lista_localidad) { it ->
+//            val cat_selecionada = localidad_selecionadad == it
+//            FilterChip(
+//                modifier = Modifier.padding(horizontal = 4.dp),
+//                colors = FilterChipDefaults.filterChipColors(
+//                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    selectedLabelColor = Color.White,
+//                    containerColor = MaterialTheme.colorScheme.surface
+//                ), selected = cat_selecionada,
+//                onClick = { cateogira_selecionada(it) }, label = {
+//                    Text(
+//                        text = it,
+//                    )
+//                },
+//                shape = RoundedCornerShape(40)
+//            )
+//
+//        }
+//    }
+//}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -369,12 +413,6 @@ fun TexfielFiltrado(
                 color = Color.Gray
             )
         },
-        label = {
-            texto_generico_one_line(
-                "A dónde quieres llegar?",
-                MaterialTheme.typography.bodyMedium
-            )
-        },
         modifier = Modifier
             .focusRequester(focusRequester)
             .fillMaxWidth(),
@@ -390,9 +428,18 @@ fun TexfielFiltrado(
 }
 
 @Composable
-fun carta_filtrado(item: Item, listener: (String, String) -> Unit) {
-    val iconCategoria = getCategoriaIcon(item.categoria)
-    Row(modifier = Modifier.clickable { listener(item.id_tienda, item.lugar) }) {
+fun carta_filtrado(
+    estado_tienda: Map<String, Boolean>?,
+    item: Item,
+    listener: (String, String, Color) -> Unit
+) {
+
+    val iconCategoria = constantes_lista_localidades.getCategoriaIcon(item.categoria)
+    val estado_tienda_filter = estado_tienda?.get(item.id_tienda) == true
+    Log.d("estado_tienda", estado_tienda_filter.toString())
+    var Estado_color = if (estado_tienda_filter) Color.Green else Color.Red
+    Row(modifier = Modifier.clickable { listener(item.id_tienda, item.lugar, Estado_color) }) {
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(item.img)
@@ -412,10 +459,19 @@ fun carta_filtrado(item: Item, listener: (String, String) -> Unit) {
         Column() {
             texto_generico_one_line(item.nombre.uppercase(), MaterialTheme.typography.titleLarge)
             spacer_vertical(5.dp)
-            texto_generico_one_line(
-                "📍 ${item.lugar}",
-                MaterialTheme.typography.bodyMedium
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.localidad_icon_general),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 5.dp)
+                )
+                texto_generico_one_line(
+                    item.lugar,
+                    MaterialTheme.typography.bodyMedium
+                )
+            }
             spacer_vertical(5.dp)
             texto_generico_one_line(
                 "$iconCategoria ${item.categoria}",
@@ -447,30 +503,121 @@ fun carta_filtrado(item: Item, listener: (String, String) -> Unit) {
 
 }
 
-fun getCategoriaIcon(categoria: String): String {
-    return when (categoria.lowercase()) {
-        "bancos y servicios financieros" -> "🏦"
-        "belleza" -> "💅"
-        "comida y restaurantes" -> "🍽️"
-        "deporte y bienestar" -> "🏋️"
-        "educacion y librerias" -> "📚"
-        "entretenimiento y recreacion" -> "🎭"
-        "grifos y estaciones" -> "⛽"
-        "hogar y ferreteria" -> "🛠️"
-        "hospedaje y entretenimiento nocturno" -> "🏨"
-        "jardineria y plantas" -> "🌱"
-        "lavanderias y tintorerias" -> "👕"
-        "mascotas y animales" -> "🐾"
-        "mecanica y autoservicios" -> "🔧"
-        "minimarkets y bodegas" -> "🛒"
-        "moda y estilo" -> "👗"
-        "salud y farmacias" -> "💊"
-        "servicios de encomienda y envios" -> "📦"
-        "servicios tecnicos y reparaciones" -> "🔌"
-        "supermercados y tiendas grandes" -> "🏬"
-        "tecnologia y electronica" -> "💻"
-        "transporte y terminales" -> "🚌"
-        else -> "🏷️" // genérico
+@Composable
+fun FloatingMenuFadeDemo(localidad_selecionada: String, localidad_filtrado: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val lista_localidades = constantes_lista_localidades.lista_localidad
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable(
+                        indication = null, // 🚫 sin ripple
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        expanded = false
+                    }
+            )
+        }
+
+        // 📌 Botones secundarios con fade + scale
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.End,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 80.dp)
+        ) {
+            lista_localidades.forEach { i ->
+
+                val color_selecionado = if (localidad_selecionada == i) {
+                    Color.Black
+                } else {
+                    Color.Blue
+                }
+
+                AnimatedFabItem(
+                    i,
+                    color_selecionado,
+                    expanded
+                ) { localidad_filtrado(i)
+                    expanded=false}
+            }
+
+        }
+
+        val cornerRadius by animateDpAsState(
+            targetValue = if (expanded) 12.dp else 50.dp,
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+            label = "cornerRadius"
+        )
+        val icono = if (expanded) {
+            R.drawable.cerrar_selecion_x_vector
+        } else {
+            R.drawable.icono_filtrado_webp
+        }
+        FloatingActionButton(
+            onClick = { expanded = !expanded },
+            containerColor = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(50),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            interactionSource = remember { MutableInteractionSource() },
+        ) {
+            Crossfade(
+                targetState = icono,
+                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+                label = "crossfadeIcon"
+            ) { currentIcon ->
+                Image(
+                    modifier = Modifier.size(25.dp),
+                    painter = painterResource(currentIcon),
+                    contentDescription = "",
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
+        }
+
+
+    }
+}
+
+@Composable
+fun AnimatedFabItem(
+    text: String,
+    color: Color,
+    visible: Boolean,
+    onClick: () -> Unit
+) {
+    // Animación suave del color
+    val animatedColor by animateColorAsState(
+        targetValue = color,
+        animationSpec = tween(durationMillis = 500), // duración de la transición
+        label = "buttonColorAnim"
+    )
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(250)) + scaleIn(initialScale = 0.8f),
+        exit = fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.8f)
+    ) {
+        Button(
+            onClick = { onClick() },
+            colors = ButtonDefaults.buttonColors(containerColor = animatedColor)
+        ) {
+            Text(
+                text,
+                color = Color.White
+            )
+        }
     }
 }
 

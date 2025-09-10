@@ -35,7 +35,7 @@ class repo_filtrado_tiendas {
         localidad: String,
         categoria: String
     ): List<tiendas_por_categoria> {
-        Log.d("localida","$localidad $categoria")
+        Log.d("localida", "$localidad $categoria")
         val lista_tiendas_filtradas = mutableListOf<tiendas_por_categoria>()
         try {
             val tiendas = db.collection("Tiendas")
@@ -165,7 +165,10 @@ class repo_filtrado_tiendas {
             horario_Dia(
                 dia = dia,
                 h_apertura = infoDia?.get("h_apertura") as? String ?: "",
-                h_cierre = infoDia?.get("h_cierre") as? String ?: ""
+                h_cierre = constantes_lista_localidades.convertirHora24a12(
+                    infoDia?.get("h_cierre") as? String ?: ""
+                )
+
             )
         }
 

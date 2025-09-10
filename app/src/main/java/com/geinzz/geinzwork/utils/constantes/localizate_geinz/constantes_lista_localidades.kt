@@ -43,6 +43,7 @@ object constantes_lista_localidades {
             "jueves", "viernes", "sábado", "domingo"
         )
 
+    val lista_localidad = listOf("Barranca", "Supe", "paramonga", "pativilca", "Puerto supe")
 
     fun obtenerMetodoContacto(
         metodo: String,
@@ -64,6 +65,33 @@ object constantes_lista_localidades {
             numero
         }
     }
+    fun getCategoriaIcon(categoria: String): String {
+        return when (categoria.lowercase()) {
+            "bancos y servicios financieros" -> "🏦"
+            "belleza" -> "💅"
+            "comida y restaurantes" -> "🍽️"
+            "deporte y bienestar" -> "🏋️"
+            "educacion y librerias" -> "📚"
+            "entretenimiento y recreacion" -> "🎭"
+            "grifos y estaciones" -> "⛽"
+            "hogar y ferreteria" -> "🛠️"
+            "hospedaje y entretenimiento nocturno" -> "🏨"
+            "jardineria y plantas" -> "🌱"
+            "lavanderias y tintorerias" -> "👕"
+            "mascotas y animales" -> "🐾"
+            "mecanica y autoservicios" -> "🔧"
+            "minimarkets y bodegas" -> "🛒"
+            "moda y estilo" -> "👗"
+            "salud y farmacias" -> "💊"
+            "servicios de encomienda y envios" -> "📦"
+            "servicios tecnicos y reparaciones" -> "🔌"
+            "supermercados y tiendas grandes" -> "🏬"
+            "tecnologia y electronica" -> "💻"
+            "transporte y terminales" -> "🚌"
+            else -> "🏷️" // genérico
+        }
+    }
+
 
     fun verificarSiEstaAbierto(lista_horarios_por_tienda: List<horario_Dia>): Boolean {
         return try {
@@ -305,6 +333,15 @@ object constantes_lista_localidades {
         val regex = Regex("^[A-Za-z0-9._%+-]+@gmail\\.com$")
         return regex.matches(correo)
     }
+
+    fun convertirHora24a12(hora24: String): String {
+        val formato24 = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val formato12 = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        val date = formato24.parse(hora24)
+        return formato12.format(date!!)
+    }
+
+
 
 
 //    val listaCategorias = listOf(

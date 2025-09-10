@@ -22,10 +22,10 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val _results = MutableStateFlow<List<Item>>(emptyList())
     val results: StateFlow<List<Item>> = _results
 
-    fun search(query: String, subcategoria_selecionada: String) {
+    fun search(query: String, subcategoria_selecionada: String,localidad: String="") {
         viewModelScope.launch {
             try {
-                val hits = algoliaHelper.search(query,subcategoria_selecionada)
+                val hits = algoliaHelper.search(query,subcategoria_selecionada,localidad)
                 _results.value = hits
             } catch (e: Exception) {
                 _results.value = emptyList()

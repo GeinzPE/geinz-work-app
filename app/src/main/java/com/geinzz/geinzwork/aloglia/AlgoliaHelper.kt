@@ -23,11 +23,11 @@ class AlgoliaHelper(
     private val client = ClientSearch(ApplicationID(appId), APIKey(apiKey))
     private val index = client.initIndex(IndexName(indexName))
 
-    suspend fun search(queryText: String, categoria: String): List<Item> = withContext(Dispatchers.IO) {
-        Log.d("AlgoliaHelper", "🔎 search() llamada con queryText='$queryText' y categoria='$categoria'")
+    suspend fun search(queryText: String, categoria: String, localidad: String): List<Item> = withContext(Dispatchers.IO) {
+        Log.d("AlgoliaHelper", "🔎 search() llamada con query='$queryText', categoria='$categoria', localidad='$localidad'")
 
         try {
-            val query = Query(queryText).apply {
+            val query = Query(queryText.takeIf { it.isNotEmpty() } ?: "").apply {
                 hitsPerPage = 50
 
                 restrictSearchableAttributes = listOf(
@@ -37,16 +37,27 @@ class AlgoliaHelper(
                     Attribute("categoria")
                 )
 
+                val filtros = mutableListOf<List<String>>()
+
                 if (categoria.isNotEmpty() && categoria != "Todos") {
-                    facetFilters = listOf(listOf("categoria:$categoria"))
+                    filtros.add(listOf("categoria:$categoria"))
                     Log.d("AlgoliaHelper", "✅ Filtro aplicado: categoria=$categoria")
+                }
+                if (localidad.isNotEmpty()) {
+                    filtros.add(listOf("lugar:${localidad.lowercase()}"))
+                    Log.d("AlgoliaHelper", "✅ Filtro aplicado: localidad=$localidad")
+                }
+
+                if (filtros.isNotEmpty()) {
+                    facetFilters = filtros
+                    Log.d("AlgoliaHelper", "📌 facetFilters aplicados: $filtros")
                 } else {
-                    Log.d("AlgoliaHelper", "⚠️ Sin filtro de categoría (se buscan todas).")
+                    Log.d("AlgoliaHelper", "⚠️ Sin filtros de categoría ni localidad.")
                 }
             }
 
             val response = index.search(query)
-            Log.d("AlgoliaHelper", "📦 Algolia raw hits: ${response.hits.size}")
+            Log.d("AlgoliaHelper", "📦 Algolia devolvió ${response.hits.size} hits")
 
             val items = response.hits.mapNotNull { hit ->
                 val json = hit.json.jsonObject
@@ -57,7 +68,7 @@ class AlgoliaHelper(
                 val id_tienda = json["id_tienda"]?.jsonPrimitive?.content ?: return@mapNotNull null
                 val tags = json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
 
-                Item(nombre, lugar,id_tienda, categoriaJson, img, tags)
+                Item(nombre, lugar, id_tienda, categoriaJson, img, tags)
             }
 
             Log.d("AlgoliaHelper", "🎯 Items deserializados (${items.size}): $items")

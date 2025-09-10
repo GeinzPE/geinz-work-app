@@ -877,7 +877,8 @@ fun item_metodo_contacto(icono_red: Int, texto: String) {
                 .clickable {
                     constantestextos_general.copiarTexto_portapapeles_compouse(texto, context)
                 },
-            contentDescription = ""
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(Color.White)
 
         )
     }

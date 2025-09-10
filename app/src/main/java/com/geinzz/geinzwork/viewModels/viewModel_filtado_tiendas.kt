@@ -1,5 +1,4 @@
 package com.geinzz.geinzwork.viewModels
-
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
@@ -142,17 +141,19 @@ class viewModel_filtado_tiendas : ViewModel() {
     }
 
     fun obtenerHorarioPorTienda_activa(localidad: String, idTienda: String) {
+        Log.d("id_registrado",idTienda)
         viewModelScope.launch {
             try {
                 val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
                 data?.let { horarioTienda ->
+                    Log.d("datos_obtnidos",horarioTienda.lista_Horario.toString())
                     val estaAbierto =
                         constantes_lista_localidades.verificarSiEstaAbierto(horarioTienda.lista_Horario)
                     val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
                     nuevoMapa[idTienda] = estaAbierto
                     _estadoTiendas.postValue(nuevoMapa)
                 }
-                Log.d("obtenos_dataios_teindas", _horarioTienda.value.toString())
+                Log.d("obtenos_dataios_teindas", _estadoTiendas.value.toString())
             } catch (e: Exception) {
                 Log.d("obtenos_dataios_teindas", "no se econtroa datos")
             }
