@@ -1,26 +1,37 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,12 +47,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -60,6 +74,7 @@ import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.delay
 
 
+@SuppressLint("UnusedContentLambdaTargetStateParameter")
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun IniciarSeccion(
@@ -93,6 +108,12 @@ fun IniciarSeccion(
             Log.e("LOGIN_GOOGLE", "Excepción: ${e.message}", e)
         }
     }
+//    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+//
+//    val alphaAnim by animateFloatAsState(
+//        targetValue = targetAlpha,
+//        animationSpec = tween(durationMillis = 500)
+//    )
 
 
     LaunchedEffect(Unit) {
@@ -101,6 +122,14 @@ fun IniciarSeccion(
             currentImageIndex = (currentImageIndex + 1) % listaImg.size
         }
     }
+    var blurEnabled by remember { mutableStateOf(true) }
+
+    // Animamos el valor del blur
+    val blurDp by animateDpAsState(
+        targetValue = if (blurEnabled) 10.dp else 0.dp,
+        animationSpec = tween(durationMillis = 1000), // suavizado
+        label = "blurAnim"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedContent(
@@ -115,10 +144,18 @@ fun IniciarSeccion(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(10.dp),
+                    .blur(blurDp),
                 contentScale = ContentScale.Crop
             )
         }
+        Button(
+            onClick = { blurEnabled = !blurEnabled },
+            modifier = Modifier
+        ) {
+            Text(if (blurEnabled) "Quitar blur" else "Aplicar blur")
+        }
+
+
         Box(
             modifier = Modifier
                 .blur(40.dp)
@@ -135,20 +172,45 @@ fun IniciarSeccion(
                     )
                 )
         )
-        login_principal_apartado(
-            loginState_principal,
-            Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp),
-            { correo, contra ->
-                viewModel_login_user.logear_user(navController, correo, contra)
-                keyboardController?.hide()
-            },
-            { listener_Crear_cuenta("crear") },
-            {
-                val signInIntent = googleSignInClient.signInIntent
-                launcher.launch(signInIntent)
+        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+            AnimatedVisibility(
+                visible = blurEnabled,
+                enter = fadeIn() + slideInVertically { it },   // aparece desde abajo
+                exit = fadeOut() + slideOutVertically { it }   // se oculta hacia abajo
+            ) {
+                login_principal_apartado(
+                    loginState_principal,
+                    Modifier
+                        .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+                        .background(Color.Black)
+                        .padding(20.dp),
+                    { correo, contra ->
+                        viewModel_login_user.logear_user(navController, correo, contra)
+                        keyboardController?.hide()
+                    },
+                    { listener_Crear_cuenta("crear") },
+                    {
+                        val signInIntent = googleSignInClient.signInIntent
+                        launcher.launch(signInIntent)
+                    }
+                )
             }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
+                    )
+                )
+            // aplicamos el fade
         )
 //        LaunchedEffect(loginState_principal) {
 //            when (val state = loginState_principal) {
@@ -293,10 +355,10 @@ fun login_principal_apartado(
                 }
             }
         )
-
+        spacer_vertical(10.dp)
         iniciar_seccion_normal { listener_iniciar_seccion_geinz(correo, password) }
         spacer_vertical(10.dp)
-        iniciar_seccion_google { listener_continuar_con_google() }
+        btn_continuar_con_google()
         spacer_vertical(10.dp)
         crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
     }
@@ -307,6 +369,8 @@ fun login_principal_apartado(
 @Composable
 fun btn_secciones(texto: String, icono: Int = 0, listener_btn: () -> Unit) {
     ExtendedFloatingActionButton(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.primary,
         onClick = { listener_btn() },
         text = { texto_generico_one_line(texto) },
         shape = RoundedCornerShape(50),
@@ -318,6 +382,37 @@ fun btn_secciones(texto: String, icono: Int = 0, listener_btn: () -> Unit) {
             )
         }
     )
+}
+
+
+@Composable
+fun btn_continuar_con_google() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(50))
+            .background(Color.White)
+            .padding(vertical = 12.dp)
+    ) {
+        // Icono a la izquierda
+        Image(
+            painter = painterResource(R.drawable.gmail_img),
+            contentDescription = "",
+            modifier = Modifier
+                .size(40.dp)
+                .align(Alignment.CenterStart)
+                .padding(start = 16.dp)
+        )
+
+        // Texto centrado
+        Text(
+            "Continuar con Google",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.Black,
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
 }
 
 @Composable
@@ -334,8 +429,12 @@ fun crear_cuenta(listner_crear_cuenta: () -> Unit) {
 
 @Composable
 fun iniciar_seccion_normal(listener_logear_user: () -> Unit) {
-    Button(onClick = { listener_logear_user() }) {
-        texto_generico_one_line("Iniciar seccion")
+    Button(
+        onClick = { listener_logear_user() }, colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ), modifier = Modifier.fillMaxWidth()
+    ) {
+        texto_generico_one_line("Iniciar seccion", modifier = Modifier.padding(10.dp))
     }
 }
 

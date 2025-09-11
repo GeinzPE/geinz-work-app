@@ -17,7 +17,9 @@ val fondo_calro95=Color(0xFFF7F7F7)
 val fondo_oscuro5_s=Color(0xFF000000)
 
 
-val btn_floatin40=Color(0xFF693EFF)
+//val btn_floatin40=Color(0xFF693EFF)
+
+val btn_floatin40=Color(0xFF8700F3)
 
 val texto_claro0= Color(0x0F000000)
 val texto_oscuro100=Color(0x00FFFFFF)
