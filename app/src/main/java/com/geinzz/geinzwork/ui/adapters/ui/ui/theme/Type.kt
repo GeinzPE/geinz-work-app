@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.R
 
 val baners_geinz_work = FontFamily(
-    Font(R.font.baners_geinz_work),
+    Font(R.font.baner_geinz_work3),
 )
 val textos_titulos_geinz_wokr = FontFamily(
     Font(R.font.textos_titulos_normales_geinz_work),

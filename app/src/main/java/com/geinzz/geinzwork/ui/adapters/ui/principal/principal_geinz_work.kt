@@ -3,26 +3,22 @@ package com.geinzz.geinzwork.ui.adapters.ui.principal
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-
-import androidx.compose.ui.unit.dp
-
-
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,12 +29,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +59,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -79,11 +77,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriassEnd
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriasstart
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrado_localidades
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cartas_explorar_tienda
+//import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrado_localidades
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
@@ -92,15 +88,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulo_referenciales_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
-import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 
@@ -123,6 +116,7 @@ fun pantalla_principal(
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
+    Log.d("itemadadasd", _obtener_filtrado_localidades.toString())
     var nombre_user: String by rememberSaveable { mutableStateOf("") }
     var img_perfil by rememberSaveable { mutableStateOf("") }
 
@@ -134,7 +128,7 @@ fun pantalla_principal(
         img_perfil = ""
     }
 
-    val imgActual = constantes_lista_localidades.lista_img_seguridad.random()
+
     LaunchedEffect(Unit) {
         viewModel_cordenadas.obtener_subcategorias(true)
         viewModel_cordenadas.obtner_filtrado_localidades()
@@ -144,8 +138,6 @@ fun pantalla_principal(
         .obtener_localidad(context)
         .collectAsState(initial = null)
 
-
-    Log.d("ultima_localioda_selecionada", ultimaLocalidad.toString())
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
@@ -154,6 +146,18 @@ fun pantalla_principal(
     )
     val localidad_defaul = ultimaLocalidad ?: "barranca"
     val localidadSeleccionada = rememberSaveable { mutableStateOf("barranca") }
+
+    val stickyHeaderIndex = 1
+    var toastShown by remember { mutableStateOf(false) }
+
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
+            toastShown = true
+        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
+            toastShown = false
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -168,18 +172,20 @@ fun pantalla_principal(
             }
             stickyHeader() {
                 ColumnContenedorComun {
-                    texFiel_fake(listner_busqueda)
+                    texFiel_fake(listner_busqueda, toastShown)
                 }
             }
             item {
+                spacer_vertical(10.dp)
                 filtrado_localidades(
                     ultimaLocalidad, _obtener_filtrado_localidades
                 ) { localidad_selecionada ->
                     localidadSeleccionada.value = localidad_selecionada
                 }
-                spacer_vertical(10.dp)
+                spacer_vertical(35.dp)
             }
             item {
+                spacer_vertical(10.dp)
                 apartado_explora_cat(
                     _categorias_tiendas,
                     localidad_defaul,
@@ -189,37 +195,42 @@ fun pantalla_principal(
                     }, { categoria, localidad, nombre ->
                         clikear_cartas(categoria, localidad, nombre)
                     })
-                spacer_vertical(10.dp)
+                spacer_vertical(20.dp)
             }
 
-            item {
-                spacer_vertical(10.dp)
-                    seguridad(
-                        imgActual,
-                        "ver rutas",
-                        "Salud y seguridad cuidadana"
-                    ) { ver_lugares() }
-
-                spacer_vertical(10.dp)
-            }
             item {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
-                    "ver Lugares",
-                    "descubre ${localidad_defaul}"
-                ) { ver_lugares() }
-                spacer_vertical(10.dp)
+                    "ver eventos",
+                    "Descubre todo ${localidad_defaul}"
+
+                ) {}
+                spacer_vertical(30.dp)
             }
 
+            item {
+                spacer_vertical(10.dp)
+                val imgActual by rememberSaveable {
+                    mutableStateOf(constantes_lista_localidades.lista_img_seguridad.random())
+                }
+                seguridad(
+                    imgActual,
+                    "ver rutas",
+                    "Salud y seguridad cuidadana"
+                ) { ver_lugares() }
 
+                spacer_vertical(20.dp)
+            }
             item {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
-                    "ver eventos",
-                    "Eventos proximos de ${localidad_defaul}"
-                ) {}
+                    "ver Lugares",
+                    "Mira los eventos proximos de ${localidad_defaul}"
+                ) { ver_lugares() }
                 spacer_vertical(20.dp)
             }
+
+
         }
         Box(
             modifier = Modifier
@@ -252,28 +263,30 @@ fun apartado_explora_cat(
     Log.d("obtemloms_lista", categorias_tienda.toString())
     val categoriasPrincipales = categorias_tienda
     spacer_vertical(10.dp)
+
     Column {
         titulo_referenciales_geinz_work(
-            "Explora $localidad_defaul".uppercase(),
+            "Explora ${localidad_defaul.capitalizeFirst()}",
             "Ver todos"
         ) { categorias1(nombre_user, localidad_defaul) }
         spacer_vertical(10.dp)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(
-                items = categoriasPrincipales,
-                key = { it.nombre.toString() }
-            ) { categorias ->
-                apartado_categorias_tiendas(
-                    categorias.lista_img,
-                    categorias.nombre.toString(), nombre_user, localidad_selecionada,
-                    categorias.lista_subcategorias,
-                    300.dp,
-                    200.dp,
-                    5, { categoria, localidad, nombre ->
-                        clikear_cartas(categoria, localidad, nombre)
-                    })
-            }
-        }
+        cartas_explorar_tienda(localidad_defaul, categorias_tienda)
+//        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//            items(
+//                items = categoriasPrincipales,
+//                key = { it.nombre.toString() }
+//            ) { categorias ->
+//                apartado_categorias_tiendas(
+//                    categorias.lista_img,
+//                    categorias.nombre.toString(), nombre_user, localidad_selecionada,
+//                    categorias.lista_subcategorias,
+//                    300.dp,
+//                    200.dp,
+//                    5, { categoria, localidad, nombre ->
+//                        clikear_cartas(categoria, localidad, nombre)
+//                    })
+//            }
+//        }
     }
 }
 
@@ -289,7 +302,6 @@ fun apartado_categorias_tiendas(
     rounder: Int,
     carta_clikeada: (String, String, String) -> Unit
 ) {
-    var expandir_subcategorias by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -319,7 +331,28 @@ fun apartado_categorias_tiendas(
                 contentScale = ContentScale.Crop
             )
 
-            mascara_img(rounder, alto, ancho, Modifier.align(Alignment.BottomStart))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(rounder))
+                    .fillMaxWidth()
+                    .height(alto * 0.6f) // cubre 60% desde abajo
+                    .align(Alignment.BottomStart)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,       // arriba: totalmente transparente
+                                Color(0x33000000),       // negro suave arriba
+                                Color(0x66000000),       // negro semi-transparente
+                                Color(0xAA000000),       // negro más intenso
+                                Color(0xEE000000)        // negro casi total abajo para resaltar el texto
+                            ),
+                            startY = 0f,
+                            endY = Float.POSITIVE_INFINITY
+                        )
+                    )
+            )
+
+//            mascara_img(rounder, alto, ancho, Modifier.align(Alignment.BottomStart))
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -334,20 +367,9 @@ fun apartado_categorias_tiendas(
 
             }
 
-
         }
 
-        AnimatedVisibility(expandir_subcategorias) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize()
-            ) {
-                Box(modifier = Modifier.padding(10.dp)) {
-                    tags_subcateogiras(lista_subcateogiras)
-                }
-            }
-        }
+
     }
 }
 
@@ -386,7 +408,7 @@ fun texto_encimado_cartas(
 
                 texto_generico_multilinea(
                     titulo,
-                    MaterialTheme.typography.titleLarge,
+                    MaterialTheme.typography.banerGeinzWork,
                     modifier = Modifier.offset(y = offsetY) // aplicamos el salto suave
                 )
 
@@ -403,8 +425,8 @@ fun texto_encimado_cartas(
                 animationSpec = tween(durationMillis = 500)
             ) { textoAnimado ->
                 texto_generico_one_line(
-                    textoAnimado.uppercase(),
-                    MaterialTheme.typography.bodySmall,
+                    textoAnimado.capitalizeFirst(),
+                    MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                 )
             }
@@ -414,10 +436,25 @@ fun texto_encimado_cartas(
 
 
 @Composable
-fun texFiel_fake(listner_busqueda: () -> Unit) {
+fun texFiel_fake(listner_busqueda: () -> Unit, toastShown: Boolean) {
+
+    // Animar el padding horizontal
+    val paddingAnim by animateDpAsState(
+        targetValue = if (toastShown) 10.dp else 0.dp,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
+        )
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(
+                start = paddingAnim,
+                end = paddingAnim,
+                bottom = (paddingAnim - 5.dp).coerceAtLeast(0.dp)
+            )
             .height(60.dp)
             .border(1.dp, Color(0xFF75707A), RoundedCornerShape(60))
             .clip(RoundedCornerShape(60))
@@ -432,7 +469,7 @@ fun texFiel_fake(listner_busqueda: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .height(60.dp)
-                .padding(20.dp)
+                .padding(start = 20.dp, end = 20.dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.buscar_icon),
@@ -447,8 +484,8 @@ fun texFiel_fake(listner_busqueda: () -> Unit) {
             )
         }
     }
-
 }
+
 //@Composable
 //fun filtrado_localidades(
 //    ultimaLocalidad: String?,
@@ -540,6 +577,7 @@ fun texFiel_fake(listner_busqueda: () -> Unit) {
 //    }
 //}
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun filtrado_localidades(
     ultimaLocalidad: String?,
@@ -555,55 +593,109 @@ fun filtrado_localidades(
     // Estado de la localidad seleccionada
     var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad ?: "barranca") }
 
+
+
     LaunchedEffect(ultimaLocalidad) {
         ultimaLocalidad?.let { seleccionada ->
             localidad_defecto = seleccionada
-
-            // Buscar índice de la localidad guardada
             val index = lista_localidades.indexOfFirst {
                 it.nombre.equals(seleccionada, ignoreCase = true)
             }
             if (index >= 0) {
-                // Mover scroll directamente a la posición guardada
                 listState.scrollToItem(index)
             }
         }
     }
 
-    Column {
-        Spacer(modifier = Modifier.height(10.dp))
-        LazyRow(
-            state = listState,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(lista_localidades, key = { it.nombre }) { item ->
-                carta_filtrado_localidades(
-                    defecto_selecionado = localidad_defecto.equals(item.nombre, ignoreCase = true),
-                    item.nombre,
-                    item.lista_img,
-                    5,
-                    320.dp,
-                    300.dp
-                ) { nombre_localidad ->
-                    localidad_defecto = nombre_localidad
-                    nombre_localidad_selecionado(nombre_localidad)
 
-                    scope.launch {
-                        // Guardar selección en DataStore
-                        data_store_localidad.guardar_localida(context, nombre_localidad)
+    Spacer(modifier = Modifier.height(10.dp))
+    if (lista_localidades.isNotEmpty()) {
+        val carouselState = rememberCarouselState {
+            lista_localidades.size
+        }
+        HorizontalMultiBrowseCarousel(
+            state = carouselState,
+            preferredItemWidth = 300.dp,
+            itemSpacing = 12.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(320.dp)
+        ) { index ->
 
-                        // Encontrar índice y mover scroll
-                        val index = lista_localidades.indexOfFirst { it.nombre == nombre_localidad }
-                        if (index >= 0) {
-                            listState.animateScrollToItem(index)
+            val item = lista_localidades[index]
+            val randomImg = remember(item.lista_img) { item.lista_img.randomOrNull() }
+
+            Box(
+                modifier = Modifier
+                    .width(320.dp)
+                    .height(320.dp)
+                    .maskClip(RoundedCornerShape(20.dp))
+                    .clickable {
+                        nombre_localidad_selecionado(item.nombre)
+
+                        scope.launch {
+                            data_store_localidad.guardar_localida(context, item.nombre)
+                            val newIndex =
+                                lista_localidades.indexOfFirst { it.nombre == item.nombre }
+                            if (newIndex >= 0) {
+                                listState.animateScrollToItem(newIndex)
+                            }
                         }
                     }
-                }
+            ) {
+                AsyncImage(
+                    model = randomImg ?: R.drawable.sin_item_carrito,
+                    contentDescription = item.nombre,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .maskClip(RoundedCornerShape(20.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.Transparent,
+                                    Color(0x66000000),
+                                    Color(0xEE000000)
+                                )
+                            )
+                        )
+                )
+
+                val titulo = if (localidad_defecto.equals(
+                        item.nombre,
+                        ignoreCase = true
+                    )
+                ) "Estás aquí 👋" else "Explorar"
+                texto_encimado_cartas(
+                    localidad_defecto.equals(item.nombre, ignoreCase = true),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(12.dp),
+                    item.nombre.capitalizeFirst(),
+                    titulo,
+                )
             }
+
+
         }
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(320.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+
+
     }
-}
 
 
 //@Composable
@@ -671,7 +763,13 @@ fun filtrado_localidades(
 //        }
 //    }
 //}
+}
 
+fun String.capitalizeFirst(): String {
+    return this.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase() else it.toString()
+    }
+}
 
 @Composable
 fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
@@ -733,6 +831,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
+        spacer_vertical(5.dp)
     }
 }
 

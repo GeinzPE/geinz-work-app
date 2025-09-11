@@ -91,7 +91,7 @@ fun nativationWrapper(
         ) {
 
             if (isvisble_buttomvar) {
-                Color(0xFF744ACB) // visible → color normal
+                Color.Black   // visible → color normal
             } else {
                 Color.Black       // oculta → negro
             }

@@ -2,18 +2,29 @@ package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
@@ -294,10 +305,10 @@ object constantes_lista_localidades {
     )
 
     val lista_fraces_inicio = listOf(
-        "Explora sin límites",
-        "Tu próxima parada",
-        "Lo mejor está aquí",
-        "Encuentra tu lugar"
+        "¿Listo para empezar?",
+        "¿Qué planes tienes ?",
+        "¿Exploramos juntos?",
+        "¿A dónde quieres ir?",
     )
 
     val fracespantalla1 = listOf(
@@ -317,7 +328,46 @@ object constantes_lista_localidades {
             R.drawable.p1_3
         )
     )
-
+//    @OptIn(ExperimentalMaterial3Api::class)
+//    @Composable
+//    fun CarouselExample_MultiBrowse() {
+//        data class CarouselItem(
+//            val id: Int,
+//            @DrawableRes val imageResId: Int,
+//            val contentDescription: String
+//        )
+//
+//        val items = remember {
+////            listOf(
+////                CarouselItem(0, R.drawable.cupcake, "cupcake"),
+////                CarouselItem(1, R.drawable.donut, "donut"),
+////                CarouselItem(2, R.drawable.eclair, "eclair"),
+////                CarouselItem(3, R.drawable.froyo, "froyo"),
+////                CarouselItem(4, R.drawable.gingerbread, "gingerbread"),
+////            )
+//        }
+//
+//        HorizontalMultiBrowseCarousel(
+//            state = rememberCarouselState { items.count() },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .wrapContentHeight()
+//                .padding(top = 16.dp, bottom = 16.dp),
+//            preferredItemWidth = 186.dp,
+//            itemSpacing = 8.dp,
+//            contentPadding = PaddingValues(horizontal = 16.dp)
+//        ) { i ->
+//            val item = items[i]
+//            Image(
+//                modifier = Modifier
+//                    .height(205.dp)
+//                    .maskClip(MaterialTheme.shapes.extraLarge),
+//                painter = painterResource(id = item.imageResId),
+//                contentDescription = item.contentDescription,
+//                contentScale = ContentScale.Crop
+//            )
+//        }
+//    }
 
     fun saludo_user_principal(nombre: String): String {
         val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)

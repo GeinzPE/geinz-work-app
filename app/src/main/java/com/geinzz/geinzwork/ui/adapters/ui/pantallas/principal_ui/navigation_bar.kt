@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -77,7 +78,7 @@ fun bottom_navigation(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
-            containerColor = Color(0xFF744ACB)
+            containerColor = Color.Black
         ) {
 
             items.forEachIndexed { index, item ->
@@ -104,13 +105,19 @@ fun bottom_navigation(navController: NavController) {
 
         FloatingActionButton(
             onClick = { startScanner.launch(ScanOptions()) },
-            containerColor = Color(0xFF4F378B),
+            containerColor =Color(0xFF8700F3), // un púrpura más suave que el negro
             contentColor = Color.White,
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset(y = -(navigationBarHeight / 2))
                 .size(60.dp)
+                .shadow(
+                    elevation = 12.dp, // elevación
+                    shape = CircleShape,
+                    ambientColor = Color.White.copy(alpha = 0.6f), // neblina blanca
+                    spotColor = Color.White.copy(alpha = 0.4f)
+                )
         ) {
             Icon(
                 painter = painterResource(R.drawable.qr_scaner_icon),
@@ -118,6 +125,7 @@ fun bottom_navigation(navController: NavController) {
                 modifier = Modifier.size(35.dp)
             )
         }
+
     }
 
 
@@ -189,7 +197,7 @@ fun RowScope.Geinz_bottom_var(navItem: nav_item, selecionado: Boolean, clikeado:
             selectedIconColor = Color.White,
             unselectedIconColor = Color.White,
             selectedTextColor = Color.White,
-            indicatorColor = Color(0xFF4A4458)
+            indicatorColor = Color(0xFF8700F3)
         )
     )
 }

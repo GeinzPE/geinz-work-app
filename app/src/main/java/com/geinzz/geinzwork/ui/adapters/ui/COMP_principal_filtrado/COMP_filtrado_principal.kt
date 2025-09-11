@@ -62,13 +62,19 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material.Button
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -76,6 +82,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
@@ -84,6 +91,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.ui.adapters.ui.principal.texto_encimado_cartas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
@@ -150,17 +158,25 @@ fun estados_tiendas(estado: String, color_estado: Color) {
 }
 
 @Composable
-fun tags_subcateogiras(lista_tags: List<String>,modifier: Modifier= Modifier) {
+fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier) {
     Box() {
-        LazyRow(modifier = modifier.clip(RoundedCornerShape(50)).fillMaxWidth().pointerInput(Unit) {
-            detectHorizontalDragGestures { change, dragAmount ->
-                change.consume()
-            }
-        }, horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+        LazyRow(
+            modifier = modifier
+                .clip(RoundedCornerShape(50))
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures { change, dragAmount ->
+                        change.consume()
+                    }
+                },
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             items(lista_tags) { cap ->
 
                 Box(
-                    modifier = Modifier.height(25.dp)
+                    modifier = Modifier
+                        .height(25.dp)
                         .clip(RoundedCornerShape(50))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
@@ -239,9 +255,9 @@ fun ColumnContenedorComun(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
+            .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
             .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp),
+            .padding(top = 8.dp, bottom = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         content = content
@@ -299,13 +315,15 @@ fun retornar_pleaceholder_label(texto: String, color: Color? = null) {
 @Composable
 fun texto_generico_one_line(
     texto: String,
-    style: TextStyle = MaterialTheme.typography.titleMedium, modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.titleMedium,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onBackground
 ) {
     Text(
         text = texto,
         modifier = modifier,
         style = style,
-        color = MaterialTheme.colorScheme.onBackground,
+        color = color,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
@@ -552,12 +570,20 @@ fun rutas_turismo(
 
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(5))
-                .background(Color.Black.copy(alpha = 0.5f))
                 .fillMaxWidth()
-                .height(400.dp)
-        ) {
-        }
+                .height(400.dp * 0.6f) // ahora cubre 60% de la carta desde abajo
+                .align(Alignment.BottomStart)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,          // arriba: totalmente transparente
+                            Color(0x33000000),          // negro muy suave
+                            Color(0x66000000),          // negro semi-transparente
+                            Color(0xDD000000)           // negro más oscuro abajo
+                        )
+                    )
+                )
+        )
         texto_encimado(
             modifier = Modifier.align(Alignment.BottomStart),
             texto_button,
@@ -573,38 +599,54 @@ fun seguridad(
     texto_baner: String,
     clik_button: () -> Unit
 ) {
-    Box {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp) // altura fija de la carta
+            .clip(RoundedCornerShape(5))
+    ) {
+        // Imagen principal
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(drawable) // Aquí usamos directamente el drawable
+                .data(drawable)
                 .crossfade(true)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
                 .build(),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .clip(RoundedCornerShape(5)),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
+        // Gradiente solo en la parte inferior (por ejemplo, 40% de la altura)
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(5))
-                .background(Color.Black.copy(alpha = 0.5f))
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(400.dp * 0.6f) // ahora cubre 60% de la carta desde abajo
+                .align(Alignment.BottomStart)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,          // arriba: totalmente transparente
+                            Color(0x33000000),          // negro muy suave
+                            Color(0x66000000),          // negro semi-transparente
+                            Color(0xDD000000)           // negro más oscuro abajo
+                        )
+                    )
+                )
         )
 
+
+        // Texto encima de la máscara
         texto_encimado(
-            modifier = Modifier.align(Alignment.BottomStart),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp),
             texto_button,
             texto_baner
         ) { clik_button() }
     }
 }
-
 
 
 @Composable
@@ -614,17 +656,23 @@ fun texto_encimado(
     texto_apartado: String,
     onClick: () -> Unit
 ) {
-    Column(modifier = modifier.padding(10.dp)) {
+    Column(modifier = modifier.padding(start = 10.dp, end = 70.dp, bottom = 10.dp)) {
         texto_generico_multilinea(
-            texto_apartado.uppercase(),
+            texto_apartado,
             MaterialTheme.typography.banerGeinzWork
         )
         spacer_vertical(10.dp)
-        androidx.compose.material3.Button(
+        Button(
             onClick = { onClick() },
-            modifier = Modifier.clip(RoundedCornerShape(50))
+            modifier = Modifier.clip(RoundedCornerShape(50)), colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+            )
         ) {
-            texto_generico_one_line(texto_button, MaterialTheme.typography.titleSmall)
+            texto_generico_one_line(
+                texto_button,
+                MaterialTheme.typography.titleSmall,
+                color = Color(0xFF8700F3)
+            )
         }
     }
 
@@ -648,7 +696,7 @@ fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, lis
 }
 
 @Composable
-fun mascara_img(rounder: Int, alto: Dp, ancho: Dp,modifier: Modifier= Modifier) {
+fun mascara_img(rounder: Int, alto: Dp, ancho: Dp, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(rounder))
@@ -740,67 +788,68 @@ fun datos_lugares_google_maps(texto: String, descripcion: String) {
 }
 
 
-@Composable
-fun carta_filtrado_localidades(
-    defecto_selecionado: Boolean,
-    nombre_localidad: String,
-    img: List<String>,
-    rounder: Int,
-    alto: Dp,
-    ancho: Dp,
-    listener: (String) -> Unit
-) {
-    Log.d("selecionados", "$defecto_selecionado $nombre_localidad")
-    val randomImg = remember(img) { img.randomOrNull() }
-    val borderColor by animateColorAsState(
-        if (defecto_selecionado) MaterialTheme.colorScheme.primary else Color.Transparent,
-        animationSpec = tween(durationMillis = 300)
-    )
-    Box(
-        modifier = Modifier
-            .width(ancho)
-            .height(alto)
-            .clip(RoundedCornerShape(rounder))
-            .clickable {
-                listener(nombre_localidad)
-            }
-//            .border(
-//                width = 1.dp,
-//                color = borderColor,
-//                shape = RoundedCornerShape(rounder)
-//            )
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(randomImg)
-                .size(ancho.value.toInt(), alto.value.toInt())
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.sin_item_carrito)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .width(ancho)
-                .height(alto)
-                .clip(RoundedCornerShape(rounder)),
-            contentScale = ContentScale.Crop
-        )
-        mascara_img(rounder, alto, ancho)
-        val titulo = if (defecto_selecionado) {
-            "Estás aquí 👋"
-        } else {
-            "explorar"
-        }
-        texto_encimado_cartas(
-            defecto_selecionado,
-            modifier = Modifier.align(Alignment.BottomStart),
-            nombre_localidad.uppercase(),
-            titulo.uppercase(),
-        )
+//@Composable
+//fun carta_filtrado_localidades(
+//    defecto_selecionado: Boolean,
+//    nombre_localidad: String,
+//    img: List<String>,
+//    rounder: Int,
+//    alto: Dp,
+//    ancho: Dp,
+//    listener: (String) -> Unit
+//) {
+//    val randomImg = remember(img) { img.randomOrNull() }
+//    val borderColor by animateColorAsState(
+//        if (defecto_selecionado) MaterialTheme.colorScheme.primary else Color.Transparent,
+//        animationSpec = tween(durationMillis = 300)
+//    )
+//
+//    // El Box principal no necesita recorte
+//    Box(
+//        modifier = Modifier
+//            .width(ancho)
+//            .height(alto)
+//            .clickable { listener(nombre_localidad) }
+//    ) {
+//        // 👇 Recorta la imagen
+//        AsyncImage(
+//            model = randomImg ?: R.drawable.sin_item_carrito,
+//            contentDescription = nombre_localidad,
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .maskClip(MaterialTheme.shapes.extraLarge),
+//            contentScale = ContentScale.Crop
+//        )
+//
+//        // 👇 Recorta el degradado
+//        Box(
+//            modifier = Modifier
+//                .matchParentSize()
+//                .clip(RoundedCornerShape(rounder.dp))
+//                .background(
+//                    Brush.verticalGradient(
+//                        listOf(
+//                            Color.Transparent,
+//                            Color(0x66000000),
+//                            Color(0xEE000000)
+//                        )
+//                    )
+//                )
+//        )
+//
+//        // Texto encima
+//        val titulo = if (defecto_selecionado) "Estás aquí 👋" else "Explorar"
+//        texto_encimado_cartas(
+//            defecto_selecionado,
+//            modifier = Modifier
+//                .align(Alignment.BottomStart)
+//                .padding(12.dp),
+//            nombre_localidad.uppercase(),
+//            titulo.uppercase(),
+//        )
+//    }
+//}
 
-
-    }
-}
 
 @Composable
 fun localidad_Selecionada(modifier: Modifier = Modifier) {
@@ -852,5 +901,64 @@ fun open_map_perzonlizado(modifier: Modifier, tipo: String, abrir_mapa: (String)
 }
 
 
+@Composable
+fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass_cat_sub>) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(datos) { it ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .width(300.dp)
+                    .height(85.dp)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(it.lista_img)
+                        .size(80, 85)
+                        .crossfade(true)
+                        .placeholder(R.drawable.cargando_img_categorias)
+                        .error(R.drawable.cargando_img_categorias)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(85.dp)
+                        .clip(RoundedCornerShape(10)),
+                    contentScale = ContentScale.Crop
+                )
+                spacer_horizonta(10.dp)
+                Column (){
+                    texto_generico_one_line(
+                        texto = it.nombre.toString().capitalizeFirst(),
+                        MaterialTheme.typography.titleLarge
+                    )
+                    spacer_vertical(5.dp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.localidad_icon_general),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = ""
+                        )
+                        spacer_horizonta(5.dp)
+                        texto_generico_one_line(
+                            texto = localidad_selecionadad.capitalizeFirst(),
+                            MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    spacer_vertical(5.dp)
+                    tags_subcateogiras(it.lista_subcategorias, modifier = Modifier.padding(end = 10.dp))
+                }
+            }
+        }
+    }
+
+}
 
 
+fun String.capitalizeFirst(): String {
+    return this.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase() else it.toString()
+    }
+}
