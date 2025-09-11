@@ -6,21 +6,19 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,7 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -50,7 +47,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -64,6 +60,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTex
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -114,86 +111,106 @@ fun IniciarSeccion(
 //        targetValue = targetAlpha,
 //        animationSpec = tween(durationMillis = 500)
 //    )
+    val frases = constantes_lista_localidades.lista_frances_inicio_seccion
+    var index by remember { mutableStateOf(0) }
+
+    var overlayEnabled by remember { mutableStateOf(true) }
 
 
     LaunchedEffect(Unit) {
         while (true) {
-            delay(3000)
-            currentImageIndex = (currentImageIndex + 1) % listaImg.size
+            delay(4000L)
+            index = (index + 1) % minOf(listaImg.size, frases.size)
         }
     }
     var blurEnabled by remember { mutableStateOf(true) }
 
-    // Animamos el valor del blur
-    val blurDp by animateDpAsState(
-        targetValue = if (blurEnabled) 10.dp else 0.dp,
-        animationSpec = tween(durationMillis = 1000), // suavizado
-        label = "blurAnim"
-    )
+    val blurFixed = 16.dp // blur fijo, elegante y liviano
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedContent(
-            targetState = currentImageIndex,
+            targetState = index,
             transitionSpec = {
-                fadeIn(animationSpec = tween(1000)) with
-                        fadeOut(animationSpec = tween(1000))
+                fadeIn(animationSpec = tween(500)) with fadeOut(animationSpec = tween(500))
             }
-        ) { index ->
+        ){ index ->
             Image(
                 painter = painterResource(id = listaImg[index]),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(blurDp),
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { blurEnabled = !blurEnabled }
+                    .blur(if (blurEnabled) blurFixed else 0.dp),
                 contentScale = ContentScale.Crop
             )
         }
-        Button(
-            onClick = { blurEnabled = !blurEnabled },
-            modifier = Modifier
-        ) {
-            Text(if (blurEnabled) "Quitar blur" else "Aplicar blur")
-        }
-
 
         Box(
             modifier = Modifier
-                .blur(40.dp)
                 .fillMaxSize()
                 .background(
-                    brush = Brush.verticalGradient(
+                    Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.5f),
-                            Color.Black.copy(alpha = 0.55f)
+                            Color.Black.copy(alpha = if (blurEnabled) 0.5f else 0f),
+                            Color.Black.copy(alpha = if (blurEnabled) 0.55f else 0f)
                         ),
                         startY = 0f,
                         endY = 400f
                     )
                 )
         )
+
+
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = if (blurEnabled) 0.5f else 0f)
+                        )
+                    )
+                )
+        )
+
+
+
         Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+
+
             AnimatedVisibility(
                 visible = blurEnabled,
-                enter = fadeIn() + slideInVertically { it },   // aparece desde abajo
-                exit = fadeOut() + slideOutVertically { it }   // se oculta hacia abajo
-            ) {
-                login_principal_apartado(
-                    loginState_principal,
-                    Modifier
-                        .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-                        .background(Color.Black)
-                        .padding(20.dp),
-                    { correo, contra ->
-                        viewModel_login_user.logear_user(navController, correo, contra)
-                        keyboardController?.hide()
-                    },
-                    { listener_Crear_cuenta("crear") },
-                    {
-                        val signInIntent = googleSignInClient.signInIntent
-                        launcher.launch(signInIntent)
-                    }
-                )
+                enter = fadeIn(animationSpec = tween(500)),   // 👈 solo opacidad
+                exit = fadeOut(animationSpec = tween(500))    // 👈 solo opacidad
+            ){
+                Column {
+                    fraces_filtrado(frases,index)
+                    spacer_vertical(20.dp)
+                    login_principal_apartado(
+                        loginState_principal,
+                        Modifier
+                            .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+                            .background(Color.Black)
+                            .padding(20.dp),
+                        { correo, contra ->
+                            viewModel_login_user.logear_user(navController, correo, contra)
+                            keyboardController?.hide()
+                        },
+                        { listener_Crear_cuenta("crear") },
+                        {
+                            val signInIntent = googleSignInClient.signInIntent
+                            launcher.launch(signInIntent)
+                        }
+                    )
+                }
             }
         }
 
@@ -272,6 +289,22 @@ fun IniciarSeccion(
     }
 }
 
+@Composable
+fun fraces_filtrado(fraces: List<String>, index1: Int) {
+    Crossfade(targetState = index1, label = "fraces") { txt ->
+        Text(
+            text = fraces[txt],
+            style = MaterialTheme.typography.busquedaGeinzWork,
+            textAlign = TextAlign.Center,
+            maxLines = 2,        // máximo 2
+            minLines = 2,        // 👈 asegura que siempre reserve 2
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+        )
+
+
+    }
+}
 
 @Composable
 fun login_principal_apartado(
@@ -358,9 +391,10 @@ fun login_principal_apartado(
         spacer_vertical(10.dp)
         iniciar_seccion_normal { listener_iniciar_seccion_geinz(correo, password) }
         spacer_vertical(10.dp)
-        btn_continuar_con_google()
+        btn_continuar_con_google{listener_continuar_con_google()}
         spacer_vertical(10.dp)
         crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
+        spacer_vertical(20.dp)
     }
 
 }
@@ -386,15 +420,15 @@ fun btn_secciones(texto: String, icono: Int = 0, listener_btn: () -> Unit) {
 
 
 @Composable
-fun btn_continuar_con_google() {
+fun btn_continuar_con_google(listener_continuar_con_google: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(50))
             .background(Color.White)
             .padding(vertical = 12.dp)
+            .clickable{listener_continuar_con_google()}
     ) {
-        // Icono a la izquierda
         Image(
             painter = painterResource(R.drawable.gmail_img),
             contentDescription = "",
@@ -404,7 +438,6 @@ fun btn_continuar_con_google() {
                 .padding(start = 16.dp)
         )
 
-        // Texto centrado
         Text(
             "Continuar con Google",
             textAlign = TextAlign.Center,
