@@ -297,7 +297,7 @@ object constantes_lista_localidades {
 
 
     val lista_frances_inicio_seccion = listOf(
-        "Bienvenido a Geinz",
+        "Te damos la bienvenida a geinz",
         "Encuentra tu lugar favorito",
         "Descubre nuevos destinos",
         "Encuentra lo que necesitas hoy",

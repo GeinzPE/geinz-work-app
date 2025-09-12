@@ -17,8 +17,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,6 +61,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -119,7 +122,7 @@ fun IniciarSeccion(
 
     LaunchedEffect(Unit) {
         while (true) {
-            delay(4000L)
+            delay(6000L)
             index = (index + 1) % minOf(listaImg.size, frases.size)
         }
     }
@@ -134,7 +137,7 @@ fun IniciarSeccion(
             transitionSpec = {
                 fadeIn(animationSpec = tween(500)) with fadeOut(animationSpec = tween(500))
             }
-        ){ index ->
+        ) { index ->
             Image(
                 painter = painterResource(id = listaImg[index]),
                 contentDescription = null,
@@ -184,21 +187,30 @@ fun IniciarSeccion(
 
 
         Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-
-
             AnimatedVisibility(
                 visible = blurEnabled,
                 enter = fadeIn(animationSpec = tween(500)),   // 👈 solo opacidad
                 exit = fadeOut(animationSpec = tween(500))    // 👈 solo opacidad
-            ){
+            ) {
                 Column {
-                    fraces_filtrado(frases,index)
-                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.logo_geinz_blanco),
+                            contentDescription = "",
+                            modifier = Modifier.size(70.dp)
+                        )
+                    }
+                    spacer_vertical(10.dp)
+                    fraces_filtrado(frases, index)
+                    spacer_vertical(10.dp)
                     login_principal_apartado(
                         loginState_principal,
                         Modifier
-                            .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-                            .background(Color.Black)
+//                            .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+////                            .background(Color.Black)
                             .padding(20.dp),
                         { correo, contra ->
                             viewModel_login_user.logear_user(navController, correo, contra)
@@ -299,7 +311,9 @@ fun fraces_filtrado(fraces: List<String>, index1: Int) {
             maxLines = 2,        // máximo 2
             minLines = 2,        // 👈 asegura que siempre reserve 2
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)
         )
 
 
@@ -360,41 +374,41 @@ fun login_principal_apartado(
     }
 
     Column(modifier = modifier.imePadding()) {
-        MyOutlinedTextField(
-            value = correo,
-            onValueChange = {
-                correo = it
-                if (error_correo) {
-                    error_correo = false
-                }
-            },
-            labelText = "Correo electrónico",
-            placeholderText = "Escribe tu correo electrónico",
-            texto_error = texto_error_correo,
-            keyboardType = KeyboardType.Email,
-            isError = error_correo,
-        )
-
-        input_password(
-            contra_oculta,
-            error_pass,
-            texto_error_contra,
-            password,
-            { contra_oculta = !contra_oculta },
-            {
-                password = it
-                if (error_pass) {
-                    error_pass = false
-                }
-            }
-        )
+//        MyOutlinedTextField(
+//            value = correo,
+//            onValueChange = {
+//                correo = it
+//                if (error_correo) {
+//                    error_correo = false
+//                }
+//            },
+//            labelText = "Correo electrónico",
+//            placeholderText = "Escribe tu correo electrónico",
+//            texto_error = texto_error_correo,
+//            keyboardType = KeyboardType.Email,
+//            isError = error_correo,
+//        )
+//
+//        input_password(
+//            contra_oculta,
+//            error_pass,
+//            texto_error_contra,
+//            password,
+//            { contra_oculta = !contra_oculta },
+//            {
+//                password = it
+//                if (error_pass) {
+//                    error_pass = false
+//                }
+//            }
+//        )
         spacer_vertical(10.dp)
         iniciar_seccion_normal { listener_iniciar_seccion_geinz(correo, password) }
-        spacer_vertical(10.dp)
-        btn_continuar_con_google{listener_continuar_con_google()}
-        spacer_vertical(10.dp)
+        spacer_vertical(15.dp)
+        btn_continuar_con_google { listener_continuar_con_google() }
+        spacer_vertical(15.dp)
         crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
-        spacer_vertical(20.dp)
+        spacer_vertical(10.dp)
     }
 
 }
@@ -427,7 +441,7 @@ fun btn_continuar_con_google(listener_continuar_con_google: () -> Unit) {
             .clip(RoundedCornerShape(50))
             .background(Color.White)
             .padding(vertical = 12.dp)
-            .clickable{listener_continuar_con_google()}
+            .clickable { listener_continuar_con_google() }
     ) {
         Image(
             painter = painterResource(R.drawable.gmail_img),
@@ -453,7 +467,7 @@ fun crear_cuenta(listner_crear_cuenta: () -> Unit) {
     Text(
         text = "Crear cuenta",
         modifier = Modifier.clickable { listner_crear_cuenta() },
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.onBackground,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
@@ -467,7 +481,7 @@ fun iniciar_seccion_normal(listener_logear_user: () -> Unit) {
             containerColor = MaterialTheme.colorScheme.primary
         ), modifier = Modifier.fillMaxWidth()
     ) {
-        texto_generico_one_line("Iniciar seccion", modifier = Modifier.padding(10.dp))
+        texto_generico_one_line("Iniciar seccion", MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 17.dp))
     }
 }
 
@@ -479,6 +493,18 @@ fun iniciar_seccion_google(listener_continuar_con_google: () -> Unit) {
 
 @Composable
 fun crear_cuenta_geinz(listener_Crear_cuenta: () -> Unit) {
-    crear_cuenta { listener_Crear_cuenta() }
+    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            texto_generico_one_line("Aun no tienes cuenta ?", MaterialTheme.typography.bodyMedium)
+            spacer_horizonta(7.dp)
+            crear_cuenta { listener_Crear_cuenta() }
+        }
+    }
+
 
 }
