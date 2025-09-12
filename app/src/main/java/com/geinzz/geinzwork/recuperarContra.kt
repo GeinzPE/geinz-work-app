@@ -46,7 +46,6 @@ class recuperarContra : AppCompatActivity() {
             builder.setTitle("Confirmar correo electrónico")
             builder.setMessage("¿Es correcto este correo electrónico?\nCorreo : $email")
             builder.setPositiveButton("Sí") { dialog, _ ->
-
                 firebaseAuth.sendPasswordResetEmail(email)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {

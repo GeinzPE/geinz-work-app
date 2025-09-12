@@ -296,14 +296,17 @@ object constantes_lista_localidades {
     )
 
 
-    val lista_frances_inicio_seccion = listOf(
-        "Te damos la bienvenida a geinz",
-        "Encuentra tu lugar favorito",
-        "Descubre nuevos destinos",
-        "Encuentra lo que necesitas hoy",
-        "Vive momentos inolvidables",
-        "Tu próxima aventura comienza aquí"
+    val lista_frases_login = listOf(
+        "Bienvenido a Geinz, tu espacio ideal",
+        "Explora y descubre lo que te gusta",
+        "Encuentra tu próximo destino favorito",
+        "Tu aventura con Geinz comienza hoy",
+        "Momentos únicos, solo con Geinz",
+        "Todo lo que buscas, en un solo lugar",
+        "Haz que cada día cuente con Geinz",
+        "Descubre nuevas experiencias con Geinz"
     )
+
 
     val lista_fraces_inicio = listOf(
         "¿Listo para empezar?",

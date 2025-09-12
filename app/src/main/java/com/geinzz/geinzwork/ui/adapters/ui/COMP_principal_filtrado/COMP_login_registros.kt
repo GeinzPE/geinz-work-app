@@ -531,8 +531,8 @@ fun input_password(
     mostrar_ocultar_contra: () -> Unit,
     valor_contra: (String) -> Unit
 ) {
-    Column {
-
+    Log.d("isError",isError.toString())
+    Column() {
         OutlinedTextField(
             value = user_contra,
             onValueChange = { valor_contra(it) },

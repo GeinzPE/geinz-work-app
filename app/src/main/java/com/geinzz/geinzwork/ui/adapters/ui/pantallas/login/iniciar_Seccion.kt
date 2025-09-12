@@ -2,13 +2,13 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,12 +30,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,8 +49,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -56,13 +60,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
@@ -86,7 +93,7 @@ fun IniciarSeccion(
     val keyboardController = LocalSoftwareKeyboardController.current
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.observeAsState()
     val listaImg = constantes_lista_localidades.lista_img_local
-    var currentImageIndex by remember { mutableStateOf(0) }
+    var show_bottom_sheet by remember { mutableStateOf(false) }
 
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id))
@@ -108,27 +115,21 @@ fun IniciarSeccion(
             Log.e("LOGIN_GOOGLE", "Excepción: ${e.message}", e)
         }
     }
-//    val targetAlpha = if (listState.canScrollForward) 1f else 0f
-//
-//    val alphaAnim by animateFloatAsState(
-//        targetValue = targetAlpha,
-//        animationSpec = tween(durationMillis = 500)
-//    )
-    val frases = constantes_lista_localidades.lista_frances_inicio_seccion
+    val frases = constantes_lista_localidades.lista_frases_login
     var index by remember { mutableStateOf(0) }
 
-    var overlayEnabled by remember { mutableStateOf(true) }
-
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(6000L)
-            index = (index + 1) % minOf(listaImg.size, frases.size)
+    LaunchedEffect(show_bottom_sheet) {
+        if (!show_bottom_sheet) {
+            while (true) {
+                delay(6000L)
+                index = (index + 1) % minOf(listaImg.size, frases.size)
+            }
         }
     }
     var blurEnabled by remember { mutableStateOf(true) }
 
-    val blurFixed = 16.dp // blur fijo, elegante y liviano
+    val blurFixed = 16.dp
+
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -169,8 +170,6 @@ fun IniciarSeccion(
         )
 
 
-
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -189,8 +188,8 @@ fun IniciarSeccion(
         Box(modifier = Modifier.align(Alignment.BottomCenter)) {
             AnimatedVisibility(
                 visible = blurEnabled,
-                enter = fadeIn(animationSpec = tween(500)),   // 👈 solo opacidad
-                exit = fadeOut(animationSpec = tween(500))    // 👈 solo opacidad
+                enter = fadeIn(animationSpec = tween(500)),
+                exit = fadeOut(animationSpec = tween(500))
             ) {
                 Column {
                     Box(
@@ -203,19 +202,13 @@ fun IniciarSeccion(
                             modifier = Modifier.size(70.dp)
                         )
                     }
-                    spacer_vertical(10.dp)
+                    spacer_vertical(5.dp)
                     fraces_filtrado(frases, index)
                     spacer_vertical(10.dp)
                     login_principal_apartado(
-                        loginState_principal,
                         Modifier
-//                            .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-////                            .background(Color.Black)
                             .padding(20.dp),
-                        { correo, contra ->
-                            viewModel_login_user.logear_user(navController, correo, contra)
-                            keyboardController?.hide()
-                        },
+                        { show_bottom_sheet = true },
                         { listener_Crear_cuenta("crear") },
                         {
                             val signInIntent = googleSignInClient.signInIntent
@@ -241,63 +234,17 @@ fun IniciarSeccion(
                 )
             // aplicamos el fade
         )
-//        LaunchedEffect(loginState_principal) {
-//            when (val state = loginState_principal) {
-//                is LoginState_inicio.Succes -> {
-//                    // 🔹 Si el login viene de Google
-//                    if (state.proveedor == "google") {
-//                        val existe = viewModel_login_user.verificar_cuenta_google_provider(state.email.toString())
-//                        if (existe) {
-//                            Log.d("obtenemos_exist", existe.toString())
-//                            navController.navigate("pantalla_principal") {
-//                                popUpTo("login_principal") { inclusive = true }
-//                            }
-//                        } else {
-//                            Log.d("obtenemos_exist", existe.toString())
-//                            listener_Crear_cuenta(state.email.toString())
-//                        }
-//                    } else {
-//                        // 🔹 Si es login normal (correo + contraseña)
-//                        navController.navigate("pantalla_principal") {
-//                            popUpTo("login_principal") { inclusive = true }
-//                        }
-//                        delay(100)
-//                        Log.d("pasamos_parametros", "Login normal completado")
-//                    }
-//                }
-//
-//                is LoginState_inicio.error -> {
-////                    Log.d("pasamos_parametros", "Error de login: ${state.msje}")
-////                    when (state.tipo) {
-////                        "correo_no_existe" -> {
-////                            error_correo = true
-////                            texto_error_correo = state.msje
-////                            viewmodelLoginUser.resetLoginState()
-////                        }
-////
-////                        "pass_incorrecta" -> {
-////                            error_pass = true
-////                            texto_error_contra = state.msje
-////                            viewmodelLoginUser.resetLoginState()
-////                        }
-////
-////                        else -> {
-////                            Toast.makeText(context, "Error: ${state.msje}", Toast.LENGTH_SHORT).show()
-////                        }
-////                    }
-//                }
-//
-//                LoginState_inicio.Loading -> {
-//                    Log.d("pasamos_parametros", "Cargando...")
-//                }
-//
-//                LoginState_inicio.LoggedOut -> {
-//                    Log.d("pasamos_parametros", "Sesión cerrada")
-//                }
-//
-//                null -> Unit
-//            }
-//        }
+
+        if (show_bottom_sheet) {
+            bottom_sheet_login(
+                viewModel_login_user,
+                show_bottom_sheet,
+                { show_bottom_sheet = false },
+                loginState_principal, { correo, contra ->
+                    viewModel_login_user.logear_user(navController, correo, contra)
+                    keyboardController?.hide()
+                })
+        }
     }
 }
 
@@ -306,14 +253,15 @@ fun fraces_filtrado(fraces: List<String>, index1: Int) {
     Crossfade(targetState = index1, label = "fraces") { txt ->
         Text(
             text = fraces[txt],
-            style = MaterialTheme.typography.busquedaGeinzWork,
+            style = MaterialTheme.typography.banerGeinzWork,
+            fontSize = 30.sp,
             textAlign = TextAlign.Center,
-            maxLines = 2,        // máximo 2
-            minLines = 2,        // 👈 asegura que siempre reserve 2
+            maxLines = 2,
+            minLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp)
+                .padding(horizontal = 15.dp)
         )
 
 
@@ -322,21 +270,71 @@ fun fraces_filtrado(fraces: List<String>, index1: Int) {
 
 @Composable
 fun login_principal_apartado(
-    loginState_principal: LoginState_inicio?,
     modifier: Modifier,
-    listener_iniciar_seccion_geinz: (correo: String, contra: String) -> Unit,
+    listener_iniciar_seccion_geinz: () -> Unit,
     listener_Crear_cuenta_geinz: () -> Unit,
     listener_continuar_con_google: () -> Unit,
 ) {
+    Column(modifier = modifier.imePadding()) {
+        spacer_vertical(10.dp)
+        btn_principal_iniciar_seccion { listener_iniciar_seccion_geinz() }
+        spacer_vertical(15.dp)
+        btn_continuar_con_google { listener_continuar_con_google() }
+        spacer_vertical(15.dp)
+        crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
+        spacer_vertical(15.dp)
+    }
 
-    var password by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var error_correo by remember { mutableStateOf(false) }
-    var error_pass by remember { mutableStateOf(false) }
-    var texto_error_correo by remember { mutableStateOf("") }
-    var texto_error_contra by remember { mutableStateOf("") }
-    var contra_oculta by rememberSaveable { mutableStateOf(true) }
+}
 
+@SuppressLint("RememberReturnType")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun bottom_sheet_login(
+    viewModel_login_user: viewModel_login_user,
+    show: Boolean,
+    onClose: () -> Unit,
+    loginState_principal: LoginState_inicio?,
+    listener_iniciar_seccion_geinz: (correo: String, contra: String) -> Unit,
+) {
+    val context = LocalContext.current
+    val cambio_password by viewModel_login_user.recuperar_contra.observeAsState()
+
+    var correo by remember(show) { mutableStateOf("") }
+    var password by remember(show) { mutableStateOf("") }
+    var error_pass by remember(show) { mutableStateOf(false) }
+    var error_correo by remember(show) { mutableStateOf(false) }
+    var texto_error_correo by remember(show) { mutableStateOf("") }
+    var texto_error_contra by remember(show) { mutableStateOf("") }
+    var cambiar_contra by remember(show) { mutableStateOf(true) }
+    var contra_oculta by rememberSaveable(show) { mutableStateOf(true) }
+
+
+    Log.d("error_correo", error_correo.toString())
+
+    LaunchedEffect(show) {
+        if (show) {
+            correo = ""
+            password = ""
+            error_pass = false
+            error_correo = false
+            texto_error_contra = ""
+            texto_error_correo = ""
+        }
+    }
+
+    LaunchedEffect(cambio_password) {
+        if (cambio_password == true) {
+            Toast.makeText(context, "Correo de recuperación enviado", Toast.LENGTH_SHORT).show()
+            error_correo = false
+            texto_error_correo = ""
+            error_pass = false
+            texto_error_contra = ""
+            cambiar_contra = true
+            onClose()
+            viewModel_login_user.restaurar_valor_recupear_contra()
+        }
+    }
     LaunchedEffect(loginState_principal) {
         when (val state = loginState_principal) {
             is LoginState_inicio.error -> {
@@ -364,6 +362,14 @@ fun login_principal_apartado(
                 }
             }
 
+            is LoginState_inicio.Succes -> {
+                error_correo = false
+                texto_error_correo = ""
+                error_pass = false
+                texto_error_contra = ""
+                onClose()
+            }
+
             else -> {
                 error_correo = false
                 texto_error_correo = ""
@@ -373,63 +379,134 @@ fun login_principal_apartado(
         }
     }
 
-    Column(modifier = modifier.imePadding()) {
-//        MyOutlinedTextField(
-//            value = correo,
-//            onValueChange = {
-//                correo = it
-//                if (error_correo) {
-//                    error_correo = false
-//                }
-//            },
-//            labelText = "Correo electrónico",
-//            placeholderText = "Escribe tu correo electrónico",
-//            texto_error = texto_error_correo,
-//            keyboardType = KeyboardType.Email,
-//            isError = error_correo,
-//        )
-//
-//        input_password(
-//            contra_oculta,
-//            error_pass,
-//            texto_error_contra,
-//            password,
-//            { contra_oculta = !contra_oculta },
-//            {
-//                password = it
-//                if (error_pass) {
-//                    error_pass = false
-//                }
-//            }
-//        )
-        spacer_vertical(10.dp)
-        iniciar_seccion_normal { listener_iniciar_seccion_geinz(correo, password) }
-        spacer_vertical(15.dp)
-        btn_continuar_con_google { listener_continuar_con_google() }
-        spacer_vertical(15.dp)
-        crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
-        spacer_vertical(10.dp)
-    }
-
-}
-
-
-@Composable
-fun btn_secciones(texto: String, icono: Int = 0, listener_btn: () -> Unit) {
-    ExtendedFloatingActionButton(
+    ModalBottomSheet(
+        onDismissRequest = {
+            error_pass = false
+            error_correo = false
+            texto_error_contra = ""
+            texto_error_correo = ""
+            password = ""
+            onClose()
+        },
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.primary,
-        onClick = { listener_btn() },
-        text = { texto_generico_one_line(texto) },
-        shape = RoundedCornerShape(50),
-        icon = {
-            Icon(
-                painter = painterResource(icono),
-                contentDescription = "",
-                modifier = Modifier.size(20.dp), tint = Color.Unspecified
+        dragHandle = null,
+        containerColor = Color.Black
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 25.dp, horizontal = 15.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = if (cambiar_contra) {
+                    "Accede a tu cuenta"
+                } else {
+                    "Restablecer contraseña"
+                },
+                style = MaterialTheme.typography.busquedaGeinzWork.copy(
+                    color = Color.White,
+                    shadow = Shadow(
+                        color = Color.White.copy(alpha = 0.8f),
+                        offset = Offset(0f, 0f),
+                        blurRadius = 16f
+                    )
+                ),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                modifier = Modifier.padding(horizontal = 10.dp)
             )
+            spacer_vertical(10.dp)
+            texto_generico_multilinea(
+                if (cambiar_contra) {
+                    "Ingresa tu cuenta Geinz. Las cuentas registradas con Google no son compatibles."
+                } else {
+                    "Escribe tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña."
+                },
+                MaterialTheme.typography.bodyMedium
+            )
+            spacer_vertical(10.dp)
+            MyOutlinedTextField(
+                value = correo,
+                onValueChange = {
+                    correo = it
+                    if (error_correo) {
+                        error_correo = false
+                    }
+                },
+                labelText = "Correo electrónico",
+                placeholderText = "Escribe tu correo electrónico",
+                texto_error = texto_error_correo,
+                keyboardType = KeyboardType.Email,
+                isError = error_correo,
+            )
+            spacer_vertical(10.dp)
+            AnimatedVisibility(
+                cambiar_contra,
+            ) {
+                input_password(
+                    contra_oculta,
+                    error_pass,
+                    texto_error_contra,
+                    password,
+                    { contra_oculta = !contra_oculta },
+                    {
+                        password = it
+                        if (error_pass) {
+                            error_pass = false
+                        }
+                    }
+                )
+
+            }
+            if (cambiar_contra) {
+                spacer_vertical(20.dp)
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 5.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        cambiar_contra = !cambiar_contra
+                        error_pass = false
+                        error_correo = false
+                        texto_error_contra = ""
+                        texto_error_correo = ""
+                        password = ""
+                    }
+            ) {
+
+                texto_generico_one_line(
+                    texto = if (cambiar_contra) {
+                        "Olvidaste tu contraseña?"
+                    } else {
+                        "Regresar al login"
+                    }
+                )
+            }
+
+            spacer_vertical(20.dp)
+            iniciar_seccion_normal(
+                if (cambiar_contra) {
+                    "Iniciar seccion"
+                } else {
+                    "Recuperar contraseña"
+                }, cambiar_contra, { listener_iniciar_seccion_geinz(correo, password) }, {
+                    if (correo.isBlank()) {
+                        error_correo = true
+                        texto_error_correo = "El campo es obligatorio"
+                    } else {
+                        error_correo = false
+                        texto_error_correo = ""
+                        viewModel_login_user.recuperar_password(correo)
+                    }
+                })
+            spacer_vertical(10.dp)
+
         }
-    )
+    }
 }
 
 
@@ -475,25 +552,54 @@ fun crear_cuenta(listner_crear_cuenta: () -> Unit) {
 }
 
 @Composable
-fun iniciar_seccion_normal(listener_logear_user: () -> Unit) {
+fun iniciar_seccion_normal(
+    textoBtn: String,
+    esLogin: Boolean = true,
+    onLogin: () -> Unit,
+    onRecuperar: () -> Unit
+) {
     Button(
-        onClick = { listener_logear_user() }, colors = ButtonDefaults.buttonColors(
+        onClick = {
+            if (esLogin) {
+                onLogin()
+            } else {
+                onRecuperar()
+            }
+        },
+        colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary
-        ), modifier = Modifier.fillMaxWidth()
+        ),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        texto_generico_one_line("Iniciar seccion", MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 17.dp))
+        texto_generico_one_line(
+            textoBtn,
+            MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(vertical = 17.dp)
+        )
+    }
+}
+
+
+@Composable
+fun btn_principal_iniciar_seccion(listener_bottom_sheet: () -> Unit) {
+    Button(
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ), modifier = Modifier.fillMaxWidth(), onClick = { listener_bottom_sheet() }) {
+        texto_generico_one_line(
+            "Iniciar sesión",
+            MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(vertical = 17.dp)
+        )
     }
 }
 
 @Composable
-fun iniciar_seccion_google(listener_continuar_con_google: () -> Unit) {
-    btn_secciones("Continuar con Google", R.drawable.gmail_img) { listener_continuar_con_google() }
-}
-
-
-@Composable
 fun crear_cuenta_geinz(listener_Crear_cuenta: () -> Unit) {
-    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,

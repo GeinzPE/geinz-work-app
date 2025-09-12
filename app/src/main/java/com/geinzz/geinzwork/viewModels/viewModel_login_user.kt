@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -18,6 +19,8 @@ import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+
+
 
 class viewModel_login_user : ViewModel() {
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -49,6 +52,33 @@ class viewModel_login_user : ViewModel() {
     private val _mostrarCarga = MutableLiveData(false)
     val mostrarCarga: LiveData<Boolean> = _mostrarCarga
 
+    private val _recupera_contra = MutableLiveData(false)
+    val recuperar_contra: LiveData<Boolean> get() = _recupera_contra
+
+
+
+    fun recuperar_password(correo: String) {
+        viewModelScope.launch {
+            try {
+                firebaseAuth.sendPasswordResetEmail(correo)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            _recupera_contra.value = true
+                        } else {
+                            _recupera_contra.value = false
+
+                        }
+                    }
+            } catch (e: Exception) {
+                _recupera_contra.value = false
+            }
+        }
+    }
+
+    fun restaurar_valor_recupear_contra(){
+        _recupera_contra.value=false
+    }
+
     fun agregar_user(login_user: login_user, context: Context) {
         viewModelScope.launch {
             _mostrarCarga.value = true // mostrar loader desde ya
@@ -77,8 +107,8 @@ class viewModel_login_user : ViewModel() {
         try {
             repo_agregar_user.agregar_user_google(login_google, context) { cuenta_creada ->
                 viewModelScope.launch {
-                    if (cuenta_creada) {  // ✅ solo si la cuenta se creó correctamente
-                        delay(5000)        // mostrar loader
+                    if (cuenta_creada) {
+                        delay(5000)
                         _loginStateCamposInicial.value = LoginState_inicio.Succes("", "", "", "")
                         delay(5000)
                         _registrado_google.value = true
@@ -184,6 +214,7 @@ class viewModel_login_user : ViewModel() {
 
                 if (registrado) {
                     val user = auth.currentUser
+                    delay(2000)
                     _loginStateCamposInicial.value = LoginState_inicio.Succes(
                         email = correo,
                         name = user?.displayName,
@@ -193,6 +224,7 @@ class viewModel_login_user : ViewModel() {
                     navController.navigate("pantalla_principal") {
                         popUpTo("login_principal") { inclusive = true }
                     }
+                    delay(2000)
 
                 } else {
 

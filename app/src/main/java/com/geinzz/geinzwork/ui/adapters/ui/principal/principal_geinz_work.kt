@@ -594,7 +594,6 @@ fun filtrado_localidades(
     var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad ?: "barranca") }
 
 
-
     LaunchedEffect(ultimaLocalidad) {
         ultimaLocalidad?.let { seleccionada ->
             localidad_defecto = seleccionada
@@ -621,7 +620,6 @@ fun filtrado_localidades(
                 .fillMaxWidth()
                 .height(320.dp)
         ) { index ->
-
             val item = lista_localidades[index]
             val randomImg = remember(item.lista_img) { item.lista_img.randomOrNull() }
 
@@ -644,7 +642,13 @@ fun filtrado_localidades(
                     }
             ) {
                 AsyncImage(
-                    model = randomImg ?: R.drawable.sin_item_carrito,
+                    model =
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(randomImg)
+                            .crossfade(true)
+                            .placeholder(R.drawable.cargando_img_categorias)
+                            .error(R.drawable.cargando_img_categorias)
+                            .build(),
                     contentDescription = item.nombre,
                     modifier = Modifier
                         .fillMaxSize()
