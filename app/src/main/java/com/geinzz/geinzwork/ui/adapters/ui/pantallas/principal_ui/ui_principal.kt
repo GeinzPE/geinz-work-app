@@ -762,4 +762,3 @@ fun activos_y_registrados(
     }
 }
 
-

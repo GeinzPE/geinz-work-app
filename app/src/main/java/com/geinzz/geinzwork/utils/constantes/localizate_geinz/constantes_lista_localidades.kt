@@ -2,6 +2,9 @@ package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import android.content.Context
 import android.util.Log
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.palette.graphics.Palette
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -895,4 +898,50 @@ object constantes_lista_localidades {
 //            ), emptyList()
 //        )
 //    )
+
+    fun simplificarCategoria(nombre: String): String {
+        return when (nombre.lowercase()) {
+            "bancos y servicios financieros" -> "Bancos"
+            "belleza" -> "Belleza"
+            "comida y restaurantes" -> "Comida"
+            "deporte y bienestar" -> "Deporte"
+            "educacion y librerias" -> "Educación"
+            "entretenimiento y recreacion" -> "Entretenimiento"
+            "grifos y estaciones" -> "Grifos"
+            "hogar y ferreteria" -> "Hogar"
+            "hospedaje y entretenimiento nocturno" -> "Hospedaje"
+            "jardineria y plantas" -> "Jardinería"
+            "lavanderias y tintorerias" -> "Lavandería"
+            "mascotas y animales" -> "Mascotas"
+            "mecanica y autoservicios" -> "Mecánica"
+            "minimarkets y bodegas" -> "Minimarkets"
+            "moda y estilo" -> "Moda"
+            "salud y farmacias" -> "Salud"
+            "servicios de encomienda y envios" -> "Encomiendas"
+            "servicios tecnicos y reparaciones" -> "Servicios técnicos"
+            "supermercados y tiendas grandes" -> "Supermercados"
+            "tecnologia y electronica" -> "Tecnología"
+            "transporte y terminales" -> "Transporte"
+            else -> nombre // fallback: devuelve el mismo si no está en la lista
+        }
+    }
+
+
+    fun extractPaletteColors(bitmap: Bitmap, onColorsReady: (List<Int>) -> Unit) {
+    Palette.from(bitmap).generate { palette ->
+        val colors = listOfNotNull(
+            palette?.darkMutedSwatch?.rgb,
+            palette?.darkVibrantSwatch?.rgb
+        )
+
+        onColorsReady(colors)
+    }
+}
+
+    fun getScaledBitmap(context: Context, resId: Int, size: Int = 100): Bitmap {
+        val original = BitmapFactory.decodeResource(context.resources, resId)
+        return Bitmap.createScaledBitmap(original, size, size, true)
+    }
+
+
 }

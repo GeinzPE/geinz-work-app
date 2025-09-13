@@ -161,6 +161,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
+                        viewmodel,
                         categorias = { localidad, nombre ->
                             navController.navigate(
                                 mostrar_tiendas(
@@ -175,8 +176,8 @@ fun nativationWrapper(
                                 navController.navigate(
                                     screen_filtrado(
                                         categoira,
+                                        nombre,
                                         localidad,
-                                        nombre
                                     )
                                 )
                             } else {

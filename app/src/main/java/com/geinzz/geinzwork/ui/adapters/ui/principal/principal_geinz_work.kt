@@ -1,9 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.principal
 
+
+import android.graphics.BitmapFactory
+import android.graphics.Shader
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -32,8 +34,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
@@ -50,16 +61,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -77,7 +93,6 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cartas_explorar_tienda
 //import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_filtrado_localidades
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
@@ -89,8 +104,13 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulo_refere
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.extractPaletteColors
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.getScaledBitmap
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
+import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -102,6 +122,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
+    viewmodel: viewModel_localizate_geinz,
     categorias: (localidad: String, nombre_user: String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
     ver_lugares: () -> Unit,
@@ -116,6 +137,8 @@ fun pantalla_principal(
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
+    val encontrados_activos_tiendass by viewmodel.encontrados_activos_tiendas.observeAsState()
+
     Log.d("itemadadasd", _obtener_filtrado_localidades.toString())
     var nombre_user: String by rememberSaveable { mutableStateOf("") }
     var img_perfil by rememberSaveable { mutableStateOf("") }
@@ -150,6 +173,8 @@ fun pantalla_principal(
     val stickyHeaderIndex = 1
     var toastShown by remember { mutableStateOf(false) }
 
+    val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
+
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
         if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
             toastShown = true
@@ -162,8 +187,9 @@ fun pantalla_principal(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(start = 10.dp, end = 10.dp, top = 10.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 10.dp)
     ) {
+
         LazyColumn(
             state = listState,
         ) {
@@ -178,7 +204,7 @@ fun pantalla_principal(
             item {
                 spacer_vertical(10.dp)
                 filtrado_localidades(
-                    ultimaLocalidad, _obtener_filtrado_localidades
+                    localidad_defaul, _obtener_filtrado_localidades
                 ) { localidad_selecionada ->
                     localidadSeleccionada.value = localidad_selecionada
                 }
@@ -197,6 +223,7 @@ fun pantalla_principal(
                     })
                 spacer_vertical(20.dp)
             }
+
 
             item {
                 rutas_turismo(
@@ -251,6 +278,65 @@ fun pantalla_principal(
 
 }
 
+
+//@Composable
+//fun TopGradientBlurred(
+//    modifier: Modifier = Modifier,
+//
+//) {
+//    Box(
+//        modifier = modifier
+//
+//            .blur(30.dp) // Mantiene un desenfoque medio para que se note
+//            .background(
+//                Brush.verticalGradient(
+//                    colors = listOf(
+//                        // Los colores se basan en tu color principal, pero con más opacidad y profundidad.
+//                        Color(0xFF8700F3).copy(alpha = 0.8f), // Tu color base, más visible
+//                        Color(0xFF5C00E6).copy(alpha = 0.6f),  // Un púrpura más oscuro
+//                        Color(0xFF140428).copy(alpha = 0.5f)  // Un tono muy oscuro para el fondo
+//                    )
+//                )
+//            )
+//    ) {
+//        // La capa negra superpuesta ayuda a oscurecer y suavizar el efecto.
+//        Box(
+//            Modifier
+//                .matchParentSize()
+//                .background(Color.Black.copy(alpha = 0.2f))
+//        )
+//    }
+//}
+@Composable
+fun AlbumBackgroundBlurOptimized(albumRes: Int, heightDp: Dp = 300.dp) {
+    val context = LocalContext.current
+    val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
+    var colors by remember { mutableStateOf(listOf(Color.Black, Color.DarkGray)) }
+
+    // Solo calculamos si no está en cache
+    LaunchedEffect(albumRes) {
+        paletteCache[albumRes]?.let {
+            colors = it
+        } ?: run {
+            val bitmap = getScaledBitmap(context, albumRes)
+            extractPaletteColors(bitmap) { extracted ->
+                colors = extracted.map { Color(it) } // <- convertimos Int a Color
+                paletteCache[albumRes] = colors
+            }
+        }
+    }
+
+    // Fondo con gradiente + blur
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(heightDp)
+            .background(Brush.verticalGradient(colors))
+            .blur(80.dp)
+    )
+}
+
+
 @Composable
 fun apartado_explora_cat(
     categorias_tienda: List<dataclass_cat_sub>,
@@ -270,7 +356,15 @@ fun apartado_explora_cat(
             "Ver todos"
         ) { categorias1(nombre_user, localidad_defaul) }
         spacer_vertical(10.dp)
-        cartas_explorar_tienda(localidad_defaul, categorias_tienda)
+        cartas_filtrado(
+            nombre_user,
+            localidad_defaul,
+            categorias_tienda
+        ) { categoria, localidad, nombre ->
+            Log.d("localdiasdadas", "$categoria, $localidad ,$nombre")
+            clikear_cartas(categoria, localidad, nombre)
+        }
+//        cartas_explorar_tienda(localidad_defaul, categorias_tienda)
 //        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 //            items(
 //                items = categoriasPrincipales,
@@ -289,6 +383,138 @@ fun apartado_explora_cat(
 //        }
     }
 }
+
+@Composable
+fun cartas_filtrado(
+    nombre_user: String?,
+    localidad_defaul: String,
+    lista: List<dataclass_cat_sub>,
+    carta_clikeada: (String, String, String) -> Unit
+) {
+    var cartaSeleccionada by remember { mutableStateOf<String?>(null) }
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(lista) { i ->
+            val seleccionada = cartaSeleccionada == i.nombre
+
+            val anchoAnimado by animateDpAsState(
+                targetValue = if (seleccionada) 200.dp else 130.dp,
+                label = "anchoCarta"
+            )
+            val fontSizeAnimada by animateFloatAsState(
+                targetValue = if (seleccionada) 20f else 17f, // tamaño expandido vs normal
+                label = "fontSizeAnimada"
+            )
+
+
+
+            Box(
+                modifier = Modifier
+                    .width(anchoAnimado)
+                    .height(190.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .clickable {
+                        cartaSeleccionada = if (seleccionada) null else i.nombre
+                    }
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(i.lista_img)
+                        .crossfade(true)
+                        .placeholder(R.drawable.cargando_img_categorias)
+                        .error(R.drawable.sin_item_carrito)
+                        .build(),
+                    contentDescription = "Imagen de la tienda",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(anchoAnimado)
+                        .height(190.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(anchoAnimado)
+                        .align(Alignment.BottomStart)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color(0x33000000),
+                                    Color(0x66000000),
+                                    Color(0xDD000000)
+                                )
+                            )
+                        )
+                )
+
+                Column(
+                    Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(5.dp)
+                ) {
+                    Text(
+                        text = simplificarCategoria(i.nombre.toString()).capitalizeFirst(),
+                        fontFamily = baners_geinz_work,
+                        fontSize = fontSizeAnimada.sp,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = if (seleccionada) TextOverflow.Clip else TextOverflow.Ellipsis
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        texto_generico_one_line(
+                            localidad_defaul.capitalizeFirst(),
+                            MaterialTheme.typography.bodyMedium
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.Place,
+                            contentDescription = "Ubicación",
+                            modifier = Modifier.size(18.dp),
+                            tint = Color.White
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${i.lista_subcategorias.size} categorías",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Filled.Label,
+                            contentDescription = "Categorías",
+                            modifier = Modifier.size(18.dp),
+                            tint = Color.White
+                        )
+                    }
+
+
+                    spacer_vertical(5.dp)
+                }
+
+                // El botón siempre existe, pero animamos su visibilidad
+                AnimatedVisibility(
+                    visible = seleccionada,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp)
+                ) {
+                    Button(
+                        onClick = {  carta_clikeada(i.nombre.toString(), localidad_defaul, nombre_user.toString()) },
+                        modifier = Modifier.size(32.dp), // cuadrado pequeño
+                        contentPadding = PaddingValues(0.dp) // quita relleno interno
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward, // o Search, Explore, etc
+                            contentDescription = "Explorar",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
 @Composable
@@ -580,18 +806,18 @@ fun texFiel_fake(listner_busqueda: () -> Unit, toastShown: Boolean) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun filtrado_localidades(
-    ultimaLocalidad: String?,
+    ultimaLocalidad: String,
     lista_localidades: List<localidades_filtrado>,
     nombre_localidad_selecionado: (String) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Estado del scroll
     val listState = rememberLazyListState()
 
-    // Estado de la localidad seleccionada
-    var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad ?: "barranca") }
+
+    var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad) }
+
 
 
     LaunchedEffect(ultimaLocalidad) {
@@ -630,7 +856,6 @@ fun filtrado_localidades(
                     .maskClip(RoundedCornerShape(20.dp))
                     .clickable {
                         nombre_localidad_selecionado(item.nombre)
-
                         scope.launch {
                             data_store_localidad.guardar_localida(context, item.nombre)
                             val newIndex =
@@ -792,51 +1017,52 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
             index = (index + 1) % fraces.size
         }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(bottom = 10.dp, top = 10.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LottieAnimation(
-                    composition = composition,
-                    progress = { progress },
-                    modifier = Modifier
-                        .size(15.dp)
-                        .padding(bottom = 3.dp)
-                )
-                spacer_horizonta(5.dp)
-                texto_generico_one_line(
-                    texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
-                    MaterialTheme.typography.bodyMedium
-                )
+    Box() {
+        Row() {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(bottom = 10.dp, top = 10.dp)
+            ) {
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier
+                            .size(15.dp)
+                            .padding(bottom = 3.dp)
+                    )
+                    spacer_horizonta(5.dp)
+                    texto_generico_one_line(
+                        texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
+                        MaterialTheme.typography.bodyMedium
+                    )
+                }
+                spacer_vertical(15.dp)
+                Crossfade(targetState = fraces[index], label = "fraces") { txt ->
+                    texto_generico_one_line(
+                        texto = txt,
+                        MaterialTheme.typography.busquedaGeinzWork
+                    )
+                }
             }
-            spacer_vertical(15.dp)
-            Crossfade(targetState = fraces[index], label = "fraces") { txt ->
-                texto_generico_one_line(
-                    texto = txt,
-                    MaterialTheme.typography.busquedaGeinzWork
-                )
-            }
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(img_url)
+                    .size(40)
+                    .crossfade(true)
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.img_perfil)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            spacer_vertical(5.dp)
         }
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(img_url)
-                .size(40)
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.img_perfil)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-        spacer_vertical(5.dp)
     }
 }
-
-

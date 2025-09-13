@@ -585,7 +585,7 @@ fun rutas_turismo(
                 )
         )
         texto_encimado(
-            modifier = Modifier.align(Alignment.BottomStart),
+            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
             texto_button,
             texto_baner
         ) { clik_button() }

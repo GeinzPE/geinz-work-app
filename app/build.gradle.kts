@@ -171,8 +171,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation("androidx.palette:palette:1.0.0")
 
-
-
     // Algolia Kotlin API Client v2
     implementation("com.algolia:algoliasearch-client-kotlin:2.1.2")
 
