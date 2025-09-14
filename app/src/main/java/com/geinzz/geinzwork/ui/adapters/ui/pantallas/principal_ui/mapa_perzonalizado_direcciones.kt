@@ -5,17 +5,25 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,12 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -52,6 +60,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -77,7 +86,6 @@ fun MyGoogle_maps(
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
 ) {
     val lista_filtrada by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
-//    val customIcon = BitmapDescriptorFactory.fromResource(R.drawable.)
 
 
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
@@ -86,56 +94,55 @@ fun MyGoogle_maps(
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
-
+    var show_botoom_sheet by remember { mutableStateOf(true) }
+    var show_dialog_datos_lugares by remember { mutableStateOf(false) }
+    var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    val properties by remember {
-        mutableStateOf(
-            MapProperties(
-                isMyLocationEnabled = true
-            )
-        )
-    }
     Log.d("obtenoemos_tienda", lista_filtrada_tiendas.toString())
 
-    if (dialog_Crear_ruta) {
-        dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
-            dialog_Crear_ruta = false
-            if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps(
-                    context, latitud, longitud,
-                ) { dialogo ->
-                    dialogo_ubi_Activa = dialogo
-                }
-            } else {
-                dialogo_ubi_Activa = true
-            }
-        })
-    }
-
-    if (dialogo_ubi_Activa) {
-        dialog_sin_ubi__rutas({ dialogo_ubi_Activa = false }, {
-            dialogo_ubi_Activa = false
-            context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-        })
-    }
+//    if (dialog_Crear_ruta) {
+//        dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
+//            dialog_Crear_ruta = false
+//            if (crear_ruta && verificarUbiActiva(context)) {
+//                constantes_lista_localidades.abrir_google_maps(
+//                    context, latitud, longitud,
+//                ) { dialogo ->
+//                    dialogo_ubi_Activa = dialogo
+//                }
+//            } else {
+//                dialogo_ubi_Activa = true
+//            }
+//        })
+//    }
 
     val defaultLocation = LatLng(-10.8500, -77.7500) // coordenadas de Barranca
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation, 12f)
     }
-    val scope = rememberCoroutineScope()
+    if (validacion_mostrar_dialog_ubi_off) {
+        dialog_sin_ubi__rutas(
+            { validacion_mostrar_dialog_ubi_off = false },
+            {
+                validacion_mostrar_dialog_ubi_off = false
+                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            })
+    }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier.weight(0.7f)
-        ) {
+    Box() {
+        Column(modifier = Modifier.fillMaxSize()) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
-                properties = properties,
-            ) {
+                properties = MapProperties(
+                    isMyLocationEnabled = true // muestra el punto azul si hay permisos
+                ),
+                uiSettings = MapUiSettings(
+                    myLocationButtonEnabled = false // ocultamos el botón nativo
+                )
 
+            ) {
 
 //                lista_filtrada.forEach { lugar ->
 //                    Marker(
@@ -161,9 +168,10 @@ fun MyGoogle_maps(
                             if (seleccionadoId == tienda.id_tienda) BitmapDescriptorFactory.HUE_BLUE
                             else BitmapDescriptorFactory.HUE_RED
                         ),
-//                        icon = customIcon,
+
                         onClick = {
-                            dialog_Crear_ruta = true
+                            show_dialog_datos_lugares = true
+//                            dialog_Crear_ruta = true
                             seleccionadoId = tienda.id_tienda
                             true
                         }
@@ -191,144 +199,116 @@ fun MyGoogle_maps(
                     }
                 }
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(topEnd = 20.dp, topStart = 20.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .align(alignment = Alignment.BottomCenter)
-            )
+
         }
+        // Botón flotante personalizado
+        FloatingActionButton(
+            onClick = {
+                if (verificarUbiActiva(context)) {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        location?.let {
+                            val userLatLng = LatLng(it.latitude, it.longitude)
+                            scope.launch {
+                                cameraPositionState.animate(
 
-
-        Box(
-            modifier = Modifier
-                .weight(0.5f)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp)
-        ) {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                item {
-                    texto_generico_one_line(
-                        "Lugares turisticos de barranca",
-                        MaterialTheme.typography.titleLarge
-                    )
-                    spacer_vertical(5.dp)
-                    texto_generico_multilinea(
-                        "Selecciona tu lugar turístico favorito y ubícate fácilmente en el mapa. También puedes crear tu propia ruta directa con solo un botón.",
-                        MaterialTheme.typography.bodyMedium
-                    )
-                    spacer_vertical(5.dp)
-                }
-//                items(lista_filtrada) { lugar ->
-//                    carta_turismo_google_mpa(
-//                        lugar.id_lugar_turistico,
-//                        lugar.latitud,
-//                        lugar.longitud,
-//                        lugar.img_ref,
-//                        lugar.titulo,
-//                        lugar.descripcion,
-//                        seleccionado = (seleccionadoId == lugar.id_lugar_turistico)
-//                    ) { id, lat, log ->
-//                        val nuevaUbicacion = LatLng(lat, log)
-//                        seleccionadoId = id
-//                        latitud = lat
-//                        longitud = log
-//                        scope.launch {
-//                            cameraPositionState.animate(
-//                                CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
-//                                1000
-//                            )
-//                        }
-//                    }
-//                }
-
-                items(lista_filtrada_tiendas) { tiendas ->
-                    carta_turismo_google_mpa(
-                        tiendas.id_tienda,
-                        tiendas.latitud,
-                        tiendas.longitud,
-                        tiendas.logo_tienda,
-                        tiendas.nombre_tienda,
-                        tiendas.descripcion,
-                        seleccionado = (seleccionadoId == tiendas.id_tienda)
-                    ) { id, lat, log ->
-                        val nuevaUbicacion = LatLng(lat, log)
-                        seleccionadoId = id
-                        latitud = lat
-                        longitud = log
-                        scope.launch {
-                            cameraPositionState.animate(
-                                CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
-                                1000
-                            )
+                                    CameraUpdateFactory.newLatLngZoom(userLatLng, 16f),
+                                    1000
+                                )
+                            }
                         }
                     }
+                } else {
+
+                    validacion_mostrar_dialog_ubi_off = true
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MyLocation,
+                contentDescription = "Mi ubicación"
+            )
+        }
+        LaunchedEffect(Unit) {
+//        viewModel_cordenadas.lugares_turisticos("barranca")
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val location = fusedLocationClient.lastLocation.await()
+                location?.let {
+                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
                 }
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-//        viewModel_cordenadas.lugares_turisticos("barranca")
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+        if (show_botoom_sheet) {
+            bottom_sheet_mapa(cameraPositionState, lista_filtrada_tiendas, onclose = {
+                show_botoom_sheet = false
+            }, selecionado_id = { seleccionadoIds ->
+                seleccionadoId = seleccionadoIds
+            })
+        }
+        AnimatedVisibility(
+            visible = !show_botoom_sheet,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            val location = fusedLocationClient.lastLocation.await()
-            location?.let {
-                val userLatLng = LatLng(it.latitude, it.longitude)
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
+            Button(
+                onClick = { show_botoom_sheet = true },
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
+            ) {
+                texto_generico_one_line("Ver lista")
             }
         }
+
+        AnimatedVisibility(
+            visible = show_dialog_datos_lugares,
+            enter = fadeIn(animationSpec = tween(300)) +
+                    slideInVertically(
+                        initialOffsetY = { it / 3 } // empieza desde 1/3 de la pantalla (≈30%)
+                    ),
+            exit = fadeOut(animationSpec = tween(300)) +
+                    slideOutVertically(
+                        targetOffsetY = { it / 3 }
+                    ),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            dialogo_lugar_tienda(seleccionadoId, cerra_dialog = {
+                show_dialog_datos_lugares = false
+            }, limpiar = {
+                seleccionadoId = ""
+            })
+        }
+
+
     }
-
-
-//    LaunchedEffect(datosTienda) {
-//        if (datosTienda.isNotEmpty()) {
-//            Log.d("obtenoemos_datos_tienda", datosTienda.toString())
-//            dataclass_tienda_seleccionada = datosTienda.first()
-//        }
-//    }
-//
-//    LaunchedEffect(show_bottom_sheeet) {
-//        if (show_bottom_sheeet) {
-//            viewModel_cordenadas.obtener_campos_tiendas_por_id("barranca", id_tienda.value)
-//        }
-//    }
-//
-//
-//    LaunchedEffect(Unit) {
-//        viewModel_cordenadas.obtener_tiendas_registradas("barranca")
-//        if (ContextCompat.checkSelfPermission(
-//                context,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            ) == PackageManager.PERMISSION_GRANTED
-//        ) {
-//            val location =
-//                fusedLocationClient.lastLocation.await()
-//            location?.let {
-//                val userLatLng = com.google.android.gms.maps.model.LatLng(it.latitude, it.longitude)
-//                cameraPositionState.animate(
-//                    update = CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
-//                )
-//            }
-//        }
-//    }
-
-//    if (show_bottom_sheeet) {
-//        bottom_sheet_tiendas_filtradas(
-//            Color.Red,
-//            viewModel_cordenadas,
-//            dataclass_tienda_seleccionada, show_bottom_sheeet
-//        ) {
-//            show_bottom_sheeet = false
-//        }
-//    }
 }
+
+@Composable
+fun dialogo_lugar_tienda(seleccionadoId: String?, cerra_dialog: () -> Unit, limpiar: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(20.dp)
+            .clip(RoundedCornerShape(10))
+            .background(MaterialTheme.colorScheme.background)
+
+    ) {
+        Button(onClick = {
+            cerra_dialog()
+            limpiar()
+        }) {
+            texto_generico_one_line("cerrar")
+
+        }
+        texto_generico_one_line(seleccionadoId.toString())
+    }
+}
+

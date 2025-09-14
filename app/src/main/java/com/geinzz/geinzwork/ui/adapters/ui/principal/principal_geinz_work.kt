@@ -17,10 +17,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,6 +73,7 @@ import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -391,6 +394,9 @@ fun cartas_filtrado(
     lista: List<dataclass_cat_sub>,
     carta_clikeada: (String, String, String) -> Unit
 ) {
+    val aspectRatio = 1.5f // Por ejemplo, 3:2 — puedes ajustarlo según tu imagen
+    val alturaFija = 190.dp
+
     var cartaSeleccionada by remember { mutableStateOf<String?>(null) }
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -402,7 +408,7 @@ fun cartas_filtrado(
                 label = "anchoCarta"
             )
             val fontSizeAnimada by animateFloatAsState(
-                targetValue = if (seleccionada) 20f else 17f, // tamaño expandido vs normal
+                targetValue = if (seleccionada) 20f else 18f, // tamaño expandido vs normal
                 label = "fontSizeAnimada"
             )
 
@@ -410,26 +416,40 @@ fun cartas_filtrado(
 
             Box(
                 modifier = Modifier
-                    .width(anchoAnimado)
-                    .height(190.dp)
+                    .width(anchoAnimado) // ancho animado (130.dp a 200.dp)
+                    .height(alturaFija)  // altura fija
                     .clip(RoundedCornerShape(15.dp))
                     .clickable {
                         cartaSeleccionada = if (seleccionada) null else i.nombre
                     }
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(i.lista_img)
-                        .crossfade(true)
-                        .placeholder(R.drawable.cargando_img_categorias)
-                        .error(R.drawable.sin_item_carrito)
-                        .build(),
-                    contentDescription = "Imagen de la tienda",
-                    contentScale = ContentScale.Crop,
+                BoxWithConstraints(
                     modifier = Modifier
                         .width(anchoAnimado)
-                        .height(190.dp)
-                )
+                        .height(alturaFija)
+                        .clip(RoundedCornerShape(15.dp))
+                        .clickable {
+                            cartaSeleccionada = if (seleccionada) null else i.nombre
+                        }
+                ) {
+                    val widthPx = with(LocalDensity.current) { maxWidth.toPx().toInt() }
+                    val heightPx = with(LocalDensity.current) { maxHeight.toPx().toInt() }
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(i.lista_img)
+                            .size(widthPx, heightPx) // 👈 Esto es lo que soluciona el "zoom raro"
+                            .crossfade(true)
+                            .placeholder(R.drawable.cargando_img_categorias)
+                            .error(R.drawable.sin_item_carrito)
+                            .build(),
+                        contentDescription = "Imagen de la tienda",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize()
+                    )
+
+                    // Todo lo demás (gradiente, texto, botón, etc.) va aquí adentro también...
+                }
 
                 Box(
                     modifier = Modifier

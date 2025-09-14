@@ -741,10 +741,11 @@ fun carta_turismo_google_mpa(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth().padding( 10.dp)
             .clickable {
                 onClick(id_lugar, latitud, longitud)
             },
+
         colors = CardDefaults.cardColors(
             containerColor = animatedColor
         )
@@ -885,7 +886,7 @@ fun open_map_perzonlizado(modifier: Modifier, tipo: String, abrir_mapa: (String)
         }
     }
 
-    androidx.compose.material3.Button(modifier = modifier, onClick = {
+    Button(modifier = modifier, onClick = {
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
