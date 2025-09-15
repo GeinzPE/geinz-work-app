@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -23,9 +24,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -44,6 +52,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -51,6 +61,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -95,6 +110,7 @@ fun pantalla_mapa_perzonalizado(
 
 }
 
+@SuppressLint("MissingPermission")
 @Composable
 fun MyGoogle_maps(
     tipo: String,
@@ -109,7 +125,6 @@ fun MyGoogle_maps(
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
-    var dialogo_ubi_Activa by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
@@ -124,28 +139,6 @@ fun MyGoogle_maps(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation_barranca, 12f)
     }
-    var permisoConcedido by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-//    Log.d("permisoConcedido","${gpsActivo}lat${log_user}Log${lat_user}")
-//    LaunchedEffect(gpsActivo) {
-//        if (gpsActivo) {
-//            val location = fusedLocationClient.lastLocation.await()
-//            location?.let {
-//                val userLatLng = LatLng(it.latitude, it.longitude)
-//                log_user = it.longitude
-//                lat_user = it.latitude
-//                Log.d("obtenoemos_la_tog2222", " userprimario = ${log_user} ${lat_user}")
-//
-//                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
-//            }
-//        }
-//    }
     if (dialog_Crear_ruta) {
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
@@ -167,7 +160,7 @@ fun MyGoogle_maps(
             {
                 validacion_mostrar_dialog_ubi_off = false
                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                show_dialog_datos_lugares=false
+                show_dialog_datos_lugares = false
             })
     }
 
@@ -201,7 +194,11 @@ fun MyGoogle_maps(
                                 ),
                                 onClick = {
                                     lister_marker = dataclass_map(
-                                        lat_user, log_user,
+                                        lugar.id_lugar_turistico,
+                                        lugar.titulo,
+                                        lugar.subcategoria_filtrado,
+                                        lat_user,
+                                        log_user,
                                         lugar.latitud,
                                         lugar.longitud,
                                         lugar.id_lugar_turistico
@@ -231,7 +228,11 @@ fun MyGoogle_maps(
 
                                 onClick = {
                                     lister_marker = dataclass_map(
-                                        lat_user, log_user,
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
                                         tienda.latitud,
                                         tienda.longitud,
                                         tienda.id_tienda
@@ -263,6 +264,8 @@ fun MyGoogle_maps(
         }
 
         FloatingActionButton(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = Color.White,
             onClick = {
                 if (verificarUbiActiva(context)) {
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -334,11 +337,10 @@ fun MyGoogle_maps(
                 latitud = lat
                 longitud = log
                 dialog_Crear_ruta = true
-            },   actualizar = {
+            }, actualizar = {
                 actualizarUbicacion(context, fusedLocationClient) { lat, log ->
                     lat_user = lat
                     log_user = log
-                    // 👇 forzar recomposición
                     lister_marker = lister_marker.copy(
                         my_latitud = lat,
                         my_longitud = log
@@ -361,14 +363,21 @@ fun dialogo_lugar_tienda(
     crear_ruta: (lat: Double, log: Double) -> Unit,
     actualizar: () -> Unit
 ) {
-    val context=LocalContext.current
+    val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
+    val distancia = verificarDistanciaFormateada(
+        dataclass_map.my_latitud,
+        dataclass_map.my_longitud,
+        dataclass_map.latitud,
+        dataclass_map.longitud
+    )
+
     LaunchedEffect(gpsActivo) {
         if (gpsActivo && (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0)) {
-            actualizar() // llamas a la función automáticamente
+            actualizar()
         }
     }
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
@@ -376,45 +385,90 @@ fun dialogo_lugar_tienda(
             .clip(RoundedCornerShape(10))
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Column {
-            Button(onClick = {
-                cerra_dialog()
-                limpiar()
-            }) {
-                texto_generico_one_line("cerrar")
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(dataclass_map.img)
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.sin_item_carrito)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .weight(1f)
+                .clip(RoundedCornerShape(10)),
+            contentScale = ContentScale.Crop
+        )
+        Box(
+            modifier = Modifier
+                .weight(2f)
+                .height(200.dp)
+                .padding(10.dp)
+        ) {
+            FloatingActionButton(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                onClick = {
+                    cerra_dialog()
+                    limpiar()
+                },
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(35.dp)
+                    .align(Alignment.TopEnd)
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    modifier = Modifier.size(25.dp),
+                    contentDescription = "Cerrar"
+                )
             }
+            FloatingActionButton(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                onClick = {
+                    crear_ruta(
+                        dataclass_map.latitud,
+                        dataclass_map.longitud
+                    )
+                },
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(35.dp)
+                    .align(Alignment.BottomEnd)
 
-            // 👇 recalcula distancia con los valores ACTUALES que vienen del dataclass
-            val distancia = verificarDistanciaFormateada(
-                dataclass_map.my_latitud,
-                dataclass_map.my_longitud,
-                dataclass_map.latitud,
-                dataclass_map.longitud
-            )
-
-            texto_generico_one_line(seleccionadoId.toString())
-
-            Row {
-                if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-                    if (gpsActivo) {
-                        texto_generico_one_line("Obteniendo ubicación...")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DirectionsCar,
+                    modifier = Modifier.size(25.dp),
+                    contentDescription = "Cerrar"
+                )
+            }
+            Column {
+                texto_generico_one_line(dataclass_map.nombre)
+                Row {
+                    if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
+                        if (gpsActivo) {
+                            texto_generico_one_line("Obteniendo ubicación...")
+                        } else {
+                            texto_generico_one_line("La ubicación está desactivada")
+                        }
                     } else {
-                        texto_generico_one_line("La ubicación está desactivada")
+                        texto_generico_one_line("A $distancia")
                     }
-                } else {
-                    texto_generico_one_line(distancia)
                 }
-            }
 
 
-
-            Button(onClick = { crear_ruta(dataclass_map.latitud, dataclass_map.longitud) }) {
-                texto_generico_one_line("Generar ruta")
             }
         }
-    }
-}
 
+
+    }
+
+
+}
 
 
 @Composable
