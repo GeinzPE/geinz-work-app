@@ -146,9 +146,8 @@ class viewModel_filtado_tiendas : ViewModel() {
             try {
                 val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
                 data?.let { horarioTienda ->
-                    Log.d("datos_obtnidos",horarioTienda.lista_Horario.toString())
-                    val estaAbierto =
-                        constantes_lista_localidades.verificarSiEstaAbierto(horarioTienda.lista_Horario)
+                    Log.d("datos_obtnidos",data.toString())
+                    val estaAbierto = constantes_lista_localidades.verificarSiEstaAbiertoHoy(horarioTienda)
                     val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
                     nuevoMapa[idTienda] = estaAbierto
                     _estadoTiendas.postValue(nuevoMapa)
@@ -163,7 +162,7 @@ class viewModel_filtado_tiendas : ViewModel() {
     fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
         viewModelScope.launch {
             try {
-                val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
+                val data = repo_filtrado.obtenerHorarioPorTienda2(idTienda, localidad)
                 _horarioTienda.value = data
             } catch (e: Exception) {
                 _horarioTienda.value = null

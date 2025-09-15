@@ -1,39 +1,34 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -44,19 +39,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.State
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -68,9 +65,12 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
@@ -79,14 +79,12 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
@@ -94,9 +92,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @Composable
 fun pantalla_mapa_perzonalizado(
@@ -123,6 +119,9 @@ fun MyGoogle_maps(
 
     val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
+    val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
+
+
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
@@ -139,6 +138,8 @@ fun MyGoogle_maps(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation_barranca, 12f)
     }
+
+    var boxVisible by remember { mutableStateOf(true) }
     if (dialog_Crear_ruta) {
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
@@ -201,11 +202,13 @@ fun MyGoogle_maps(
                                         log_user,
                                         lugar.latitud,
                                         lugar.longitud,
-                                        lugar.id_lugar_turistico
+                                        lugar.id_lugar_turistico,
+                                        "",
+                                        lugar.direcccion,
+                                        lugar.referencia
                                     )
-                                    show_dialog_datos_lugares = true
-
                                     seleccionadoId = lugar.id_lugar_turistico
+                                    show_dialog_datos_lugares = true
                                     true
                                 }
                             )
@@ -235,11 +238,19 @@ fun MyGoogle_maps(
                                         log_user,
                                         tienda.latitud,
                                         tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                    )
+
+
+                                    seleccionadoId = tienda.id_tienda
+                                    viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
+                                        "barranca",
                                         tienda.id_tienda
                                     )
                                     show_dialog_datos_lugares = true
-
-                                    seleccionadoId = tienda.id_tienda
                                     true
                                 }
                             )
@@ -297,6 +308,8 @@ fun MyGoogle_maps(
         }
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
+                lat_user,
+                log_user,
                 cameraPositionState,
                 tipo,
                 lista_filtrada_turismo,
@@ -306,10 +319,13 @@ fun MyGoogle_maps(
                 },
                 selecionado_id = { seleccionadoIds ->
                     seleccionadoId = seleccionadoIds
+                }, datos_selecionado_retornar = { datos ->
+                    lister_marker = datos
+                    show_dialog_datos_lugares = true
                 })
         }
         AnimatedVisibility(
-            visible = !show_botoom_sheet,
+            visible = (!show_botoom_sheet &&!boxVisible) || !show_dialog_datos_lugares,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -329,7 +345,7 @@ fun MyGoogle_maps(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            dialogo_lugar_tienda(lister_marker, seleccionadoId, cerra_dialog = {
+            dialogo_lugar_tienda(horario_por_tienda, lister_marker, seleccionadoId, cerra_dialog = {
                 show_dialog_datos_lugares = false
             }, limpiar = {
                 seleccionadoId = ""
@@ -346,7 +362,7 @@ fun MyGoogle_maps(
                         my_longitud = log
                     )
                 }
-            })
+            }, boxVisible, { boxVisible = it })
         }
 
 
@@ -356,13 +372,21 @@ fun MyGoogle_maps(
 
 @Composable
 fun dialogo_lugar_tienda(
+    horario_por_tienda: Map<String, Boolean>?,
     dataclass_map: dataclass_map,
     seleccionadoId: String?,
     cerra_dialog: () -> Unit,
     limpiar: () -> Unit,
     crear_ruta: (lat: Double, log: Double) -> Unit,
-    actualizar: () -> Unit
+    actualizar: () -> Unit,
+    boxVisible: Boolean,
+    onBoxVisibleChange: (Boolean) -> Unit
 ) {
+    val estado_tienda_filter = horario_por_tienda?.get(seleccionadoId) == true
+    val color = if (estado_tienda_filter) Color.Green else Color.Red
+    val estado_texto = if (estado_tienda_filter) "Abierto" else "Cerrado"
+
+
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
     val distancia = verificarDistanciaFormateada(
@@ -377,94 +401,206 @@ fun dialogo_lugar_tienda(
             actualizar()
         }
     }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
-            .padding(20.dp)
+            .height(250.dp)
+            .padding(vertical = 40.dp, horizontal = 20.dp)
             .clip(RoundedCornerShape(10))
-            .background(MaterialTheme.colorScheme.background)
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(dataclass_map.img)
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.sin_item_carrito)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .weight(1f)
-                .clip(RoundedCornerShape(10)),
-            contentScale = ContentScale.Crop
-        )
         Box(
             modifier = Modifier
-                .weight(2f)
-                .height(200.dp)
-                .padding(10.dp)
+                .fillMaxHeight()
+                .zIndex(1f)
+                .fillMaxWidth(0.33f)
         ) {
-            FloatingActionButton(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-                onClick = {
-                    cerra_dialog()
-                    limpiar()
-                },
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(dataclass_map.img)
+                    .crossfade(600)
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.sin_item_carrito)
+                    .build(),
+                contentDescription = null,
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .size(35.dp)
-                    .align(Alignment.TopEnd)
-
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    modifier = Modifier.size(25.dp),
-                    contentDescription = "Cerrar"
-                )
-            }
-            FloatingActionButton(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-                onClick = {
-                    crear_ruta(
-                        dataclass_map.latitud,
-                        dataclass_map.longitud
+                    .fillMaxSize()
+                    .clip(
+                        if (boxVisible) RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp)
+                        else RoundedCornerShape(20.dp)
                     )
-                },
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .size(35.dp)
-                    .align(Alignment.BottomEnd)
+                    .clickable { onBoxVisibleChange(!boxVisible) },
+                contentScale = ContentScale.Crop
+            )
 
+            this@Row.AnimatedVisibility(
+                visible = !boxVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .padding(10.dp)
+                    .align(Alignment.BottomEnd)
             ) {
-                Icon(
-                    imageVector = Icons.Default.DirectionsCar,
-                    modifier = Modifier.size(25.dp),
-                    contentDescription = "Cerrar"
-                )
-            }
-            Column {
-                texto_generico_one_line(dataclass_map.nombre)
-                Row {
-                    if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-                        if (gpsActivo) {
-                            texto_generico_one_line("Obteniendo ubicación...")
-                        } else {
-                            texto_generico_one_line("La ubicación está desactivada")
-                        }
-                    } else {
-                        texto_generico_one_line("A $distancia")
+                Box(
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clip(CircleShape)
+                ) {
+                    FloatingActionButton(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White,
+                        onClick = { crear_ruta(dataclass_map.latitud, dataclass_map.longitud) },
+                        modifier = Modifier.fillMaxSize() // 🔹 ocupa todo el Box
+                    ) {
+                        Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
                     }
+                }
+            }
+            this@Row.AnimatedVisibility(
+                visible = !boxVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .padding(10.dp)
+                    .align(Alignment.TopEnd)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            cerra_dialog()
+                            limpiar()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(35.dp)
+                            .background(Color.Black.copy(alpha = 0.25f))
+                            .blur(12.dp),
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
 
 
             }
+
+
         }
 
 
+        AnimatedVisibility(
+            visible = boxVisible,
+            enter = slideInHorizontally { -it },
+            exit = slideOutHorizontally { -it },
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
+                    .background(Color.Black)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxSize()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(top = 5.dp)
+                    ) {
+                        texto_generico_one_line(
+                            dataclass_map.nombre,
+                            MaterialTheme.typography.titleLarge
+                        )
+                        spacer_vertical(10.dp)
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            texto_generico_one_line(
+                                estado_texto,
+                                MaterialTheme.typography.bodyMedium
+                            )
+                            spacer_horizonta(5.dp)
+                            Box(
+                                Modifier
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .size(14.dp)
+                            )
+                            spacer_horizonta(10.dp)
+                            if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
+                                if (gpsActivo) texto_generico_one_line("Obteniendo ubicación...")
+                                else texto_generico_one_line("ubicación desactivada")
+                            } else {
+                                texto_generico_one_line(
+                                    "A $distancia",
+                                    MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
+                        }
+
+                        spacer_vertical(10.dp)
+                        texto_generico_one_line(
+                            dataclass_map.direccion,
+                            MaterialTheme.typography.bodyMedium
+                        )
+                        spacer_vertical(10.dp)
+                        texto_generico_one_line(
+                            dataclass_map.referencia,
+                            MaterialTheme.typography.bodyMedium
+                        )
+                        spacer_vertical(10.dp)
+                        tags_subcateogiras(dataclass_map.tag)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(start = 5.dp)
+                    ) {
+                        // Botón cerrar
+                        FloatingActionButton(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = Color.White,
+                            onClick = {
+                                cerra_dialog()
+                                limpiar()
+                            },
+                            modifier = Modifier
+                                .size(35.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                        }
+
+                        // Botón ruta
+                        FloatingActionButton(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = Color.White,
+                            onClick = { crear_ruta(dataclass_map.latitud, dataclass_map.longitud) },
+                            modifier = Modifier
+                                .size(35.dp)
+                                .align(Alignment.BottomEnd)
+                        ) {
+                            Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
+                        }
+                    }
+                }
+            }
+        }
     }
 
 

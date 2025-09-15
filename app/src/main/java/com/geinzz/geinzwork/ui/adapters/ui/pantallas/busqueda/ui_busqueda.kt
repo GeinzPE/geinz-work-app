@@ -238,7 +238,6 @@ fun ui_pantalla_busqueda(
                     modifier = Modifier.padding(vertical = 8.dp)
                 ) {
                     carta_filtrado(horario_por_tienda, item) { id, localidad, color ->
-                        Log.d("elcolores", color.toString())
                         estadoColor = color
                         tienda_localida_selecioanda = localidad
                         id_tienda_selecionada = id

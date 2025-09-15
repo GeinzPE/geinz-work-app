@@ -168,6 +168,44 @@ object constantes_lista_localidades {
         }
     }
 
+    fun verificarSiEstaAbiertoHoy(horarioHoy: horario_Dia?): Boolean {
+        return try {
+            if (horarioHoy == null) {
+                Log.w("HORARIO_CHECK", "Horario recibido es NULL")
+                return false
+            }
+
+            val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val ahora = formato.parse(formato.format(Date())) ?: return false
+
+            Log.d("HORARIO_CHECK", "Horario recibido -> Día: ${horarioHoy.dia}, Apertura: ${horarioHoy.h_apertura}, Cierre: ${horarioHoy.h_cierre}")
+            Log.d("HORARIO_CHECK", "Hora actual: ${formato.format(ahora)}")
+
+            val apertura = formato.parse(horarioHoy.h_apertura)
+            val cierre = formato.parse(horarioHoy.h_cierre)
+
+            if (apertura == null || cierre == null) {
+                Log.w("HORARIO_CHECK", "Horario inválido (apertura o cierre nulos)")
+                return false
+            }
+
+            val estaAbierto = if (cierre.after(apertura)) {
+                // Ejemplo normal: 08:00 - 18:00
+                ahora in apertura..cierre
+            } else {
+                // Ejemplo cruce de medianoche: 22:00 - 02:00
+                ahora.after(apertura) || ahora.before(cierre)
+            }
+
+            Log.d("HORARIO_CHECK", "¿Está abierto hoy? $estaAbierto")
+            estaAbierto
+        } catch (e: Exception) {
+            Log.e("HORARIO_CHECK", "Error al verificar horario", e)
+            false
+        }
+    }
+
+
     fun quitarTildes(texto: String): String {
         val normalized = Normalizer.normalize(texto, Normalizer.Form.NFD)
         return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")

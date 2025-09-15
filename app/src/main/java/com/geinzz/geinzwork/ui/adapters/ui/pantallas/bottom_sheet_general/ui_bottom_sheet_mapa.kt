@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
@@ -22,12 +23,15 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_mapa(
+    lat_user: Double,
+    log_user: Double,
     cameraPositionState: CameraPositionState,
     tipo: String,
     lista_filtrada_turismo: List<lugares_turisticos>,
     lista: List<tiendas_por_categoria>,
     onclose: () -> Unit,
-    selecionado_id: (String?) -> Unit
+    selecionado_id: (String?) -> Unit,
+    datos_selecionado_retornar:(dataclass_map)-> Unit
 ) {
     ModalBottomSheet(onDismissRequest = { onclose() },containerColor = MaterialTheme.colorScheme.background) {
 
@@ -43,9 +47,24 @@ fun bottom_sheet_mapa(
                     getNombre = { it.titulo },
                     getDescripcion = { it.descripcion },
                     selecionado = { id ->
-                        selecionado_id(id)
+                        selecionado_id(id.id_lugar_turistico)
+                        datos_selecionado_retornar(dataclass_map(
+                            id.id_lugar_turistico,
+                            id.titulo,
+                            id.subcategoria_filtrado,
+                            lat_user,
+                            log_user,
+                            id.latitud,
+                            id.longitud,
+                            id.id_lugar_turistico,
+                            "",
+                            id.direcccion,
+                            id.referencia
+                        ))
                     }
+
                 )
+
             }
             "tiendas"->{
                 listado_items(
@@ -58,7 +77,20 @@ fun bottom_sheet_mapa(
                     getNombre = { it.nombre_tienda },
                     getDescripcion = { it.descripcion },
                     selecionado = { id ->
-                        selecionado_id(id)
+                        selecionado_id(id.id_tienda)
+                        datos_selecionado_retornar(dataclass_map(
+                            id.logo_tienda,
+                            id.nombre_tienda,
+                            id.lista_subcategoiras,
+                            lat_user,
+                            log_user,
+                            id.latitud,
+                            id.longitud,
+                            id.id_tienda,
+                            "",
+                            id.direccion,
+                            id.referencia,
+                        ))
                     }
                 )
             }
@@ -118,7 +150,7 @@ fun <T> listado_items(
     getLogo: (T) -> String,
     getNombre: (T) -> String,
     getDescripcion: (T) -> String,
-    selecionado: (String?) -> Unit
+    selecionado: (T) -> Unit // ← ahora retorna el objeto completo
 ) {
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -136,7 +168,10 @@ fun <T> listado_items(
             ) { id, lat, log ->
                 val nuevaUbicacion = LatLng(lat, log)
                 seleccionadoId = id
-                selecionado(seleccionadoId)
+
+                // 🔹 Aquí en vez de mandar solo el id, mandamos todo el item
+                selecionado(item)
+
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
@@ -147,3 +182,4 @@ fun <T> listado_items(
         }
     }
 }
+

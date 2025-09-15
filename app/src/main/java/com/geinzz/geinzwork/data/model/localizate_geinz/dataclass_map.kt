@@ -8,5 +8,8 @@ data class dataclass_map(
     val my_longitud: Double = 0.0,
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
-    val id: String = ""
+    val id: String = "",
+    val categoria: String = "",
+    val direccion: String = "",
+    val referencia: String = ""
 )

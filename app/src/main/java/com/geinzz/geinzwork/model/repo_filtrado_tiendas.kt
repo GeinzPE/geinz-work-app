@@ -11,6 +11,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 import kotlin.Number
 
 class repo_filtrado_tiendas {
@@ -141,8 +142,40 @@ class repo_filtrado_tiendas {
         return lista_modelo_tienda
 
     }
+    suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): horario_Dia? {
+        val diasSemana = listOf(
+            "domingo", "lunes", "martes", "miércoles",
+            "jueves", "viernes", "sábado"
+        )
 
-    suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): HorarioTienda? {
+        // Obtener día actual
+        val hoyIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1
+        val diaHoy = diasSemana[hoyIndex]
+
+        val tiendaSnapshot = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(idTienda)
+            .collection("horario_atencion")
+            .document("horario_atencion")
+            .get()
+            .await()
+
+        if (!tiendaSnapshot.exists()) return null
+
+        val data = tiendaSnapshot.data ?: return null
+        val infoDia = data[diaHoy] as? Map<*, *> ?: return null
+
+        return horario_Dia(
+            dia = diaHoy,
+            h_apertura = infoDia["h_apertura"] as? String ?: "",
+            h_cierre =
+                infoDia["h_cierre"] as? String ?: ""
+            )
+    }
+
+
+    suspend fun obtenerHorarioPorTienda2(idTienda: String, localidad: String): HorarioTienda? {
         val listaDias = listOf(
             "lunes", "martes", "miércoles",
             "jueves", "viernes", "sábado", "domingo"
@@ -165,9 +198,8 @@ class repo_filtrado_tiendas {
             horario_Dia(
                 dia = dia,
                 h_apertura = infoDia?.get("h_apertura") as? String ?: "",
-                h_cierre = constantes_lista_localidades.convertirHora24a12(
-                    infoDia?.get("h_cierre") as? String ?: ""
-                )
+                h_cierre = infoDia?.get("h_cierre") as? String ?: ""
+
 
             )
         }

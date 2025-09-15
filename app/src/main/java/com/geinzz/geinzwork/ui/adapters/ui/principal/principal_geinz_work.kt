@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -852,6 +853,7 @@ fun filtrado_localidades(
         }
     }
 
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     Spacer(modifier = Modifier.height(10.dp))
     if (lista_localidades.isNotEmpty()) {
@@ -860,19 +862,18 @@ fun filtrado_localidades(
         }
         HorizontalMultiBrowseCarousel(
             state = carouselState,
-            preferredItemWidth = 300.dp,
+            preferredItemWidth =screenWidth * 0.8f,
             itemSpacing = 12.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp)
         ) { index ->
             val item = lista_localidades[index]
             val randomImg = remember(item.lista_img) { item.lista_img.randomOrNull() }
 
             Box(
                 modifier = Modifier
-                    .width(320.dp)
-                    .height(320.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
                     .maskClip(RoundedCornerShape(20.dp))
                     .clickable {
                         nombre_localidad_selecionado(item.nombre)
