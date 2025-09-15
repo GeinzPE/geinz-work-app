@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
@@ -20,38 +21,122 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun bottom_sheet_mapa(cameraPositionState: CameraPositionState, lista: List<tiendas_por_categoria>, onclose: () -> Unit,selecionado_id:(String?)-> Unit) {
+fun bottom_sheet_mapa(
+    cameraPositionState: CameraPositionState,
+    tipo: String,
+    lista_filtrada_turismo: List<lugares_turisticos>,
+    lista: List<tiendas_por_categoria>,
+    onclose: () -> Unit,
+    selecionado_id: (String?) -> Unit
+) {
     ModalBottomSheet(onDismissRequest = { onclose() },containerColor = MaterialTheme.colorScheme.background) {
-        listado_items(cameraPositionState,lista){selecionado->
-            selecionado_id(selecionado)
+
+        when(tipo){
+            "turismo"->{
+                listado_items(
+                    cameraPositionState,
+                    lista = lista_filtrada_turismo,
+                    getId = { it.id_lugar_turistico },
+                    getLat = { it.latitud },
+                    getLng = { it.longitud },
+                    getLogo = { it.img_ref },
+                    getNombre = { it.titulo },
+                    getDescripcion = { it.descripcion },
+                    selecionado = { id ->
+                        selecionado_id(id)
+                    }
+                )
+            }
+            "tiendas"->{
+                listado_items(
+                    cameraPositionState,
+                    lista = lista,
+                    getId = { it.id_tienda },
+                    getLat = { it.latitud },
+                    getLng = { it.longitud },
+                    getLogo = { it.logo_tienda },
+                    getNombre = { it.nombre_tienda },
+                    getDescripcion = { it.descripcion },
+                    selecionado = { id ->
+                        selecionado_id(id)
+                    }
+                )
+            }
+
+            else->{}
         }
+//        listado_items(cameraPositionState,lista){selecionado->
+//            selecionado_id(selecionado)
+//        }
     }
 
 }
 
+//@Composable
+//fun listado_items(cameraPositionState: CameraPositionState,
+//                  lista: List<tiendas_por_categoria>,selecionado:(String?)-> Unit) {
+//    var latitud by remember { mutableStateOf(0.0) }
+//    var longitud by remember { mutableStateOf(0.0) }
+//    var seleccionadoId by remember { mutableStateOf<String?>(null) }
+//    val scope = rememberCoroutineScope()
+//
+//    LazyColumn {
+//        items(lista) { tiendas ->
+//            carta_turismo_google_mpa(
+//                tiendas.id_tienda,
+//                tiendas.latitud,
+//                tiendas.longitud,
+//                tiendas.logo_tienda,
+//                tiendas.nombre_tienda,
+//                tiendas.descripcion,
+//                seleccionado = (seleccionadoId == tiendas.id_tienda)
+//            ) { id, lat, log ->
+//                val nuevaUbicacion = LatLng(lat, log)
+//                seleccionadoId = id
+//                selecionado(seleccionadoId)
+//                latitud = lat
+//                longitud = log
+//                scope.launch {
+//                    cameraPositionState.animate(
+//                        CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
+//                        1000
+//                    )
+//                }
+//            }
+//        }
+//    }
+//
+//}
+
 @Composable
-fun listado_items(cameraPositionState: CameraPositionState, lista: List<tiendas_por_categoria>,selecionado:(String?)-> Unit) {
-    var latitud by remember { mutableStateOf(0.0) }
-    var longitud by remember { mutableStateOf(0.0) }
+fun <T> listado_items(
+    cameraPositionState: CameraPositionState,
+    lista: List<T>,
+    getId: (T) -> String,
+    getLat: (T) -> Double,
+    getLng: (T) -> Double,
+    getLogo: (T) -> String,
+    getNombre: (T) -> String,
+    getDescripcion: (T) -> String,
+    selecionado: (String?) -> Unit
+) {
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LazyColumn {
-        items(lista) { tiendas ->
+        items(lista) { item ->
             carta_turismo_google_mpa(
-                tiendas.id_tienda,
-                tiendas.latitud,
-                tiendas.longitud,
-                tiendas.logo_tienda,
-                tiendas.nombre_tienda,
-                tiendas.descripcion,
-                seleccionado = (seleccionadoId == tiendas.id_tienda)
+                getId(item),
+                getLat(item),
+                getLng(item),
+                getLogo(item),
+                getNombre(item),
+                getDescripcion(item),
+                seleccionado = (seleccionadoId == getId(item))
             ) { id, lat, log ->
                 val nuevaUbicacion = LatLng(lat, log)
                 seleccionadoId = id
                 selecionado(seleccionadoId)
-                latitud = lat
-                longitud = log
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
@@ -61,5 +146,4 @@ fun listado_items(cameraPositionState: CameraPositionState, lista: List<tiendas_
             }
         }
     }
-
 }

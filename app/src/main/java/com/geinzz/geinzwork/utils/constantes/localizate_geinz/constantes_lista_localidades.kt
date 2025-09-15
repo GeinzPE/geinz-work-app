@@ -1,9 +1,15 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Location
+import android.location.LocationManager
+import android.location.LocationRequest
+import android.os.Looper
+import android.widget.Toast
 import androidx.palette.graphics.Palette
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -39,11 +45,16 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onb
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.Priority
 import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 object constantes_lista_localidades {
     val lista = listOf(
@@ -168,6 +179,7 @@ object constantes_lista_localidades {
         longitud: Double,
         mostrar_dialog: (Boolean) -> Unit
     ) {
+        Log.d("lateitudes","${latitud} ${longitud}")
         if (verificarUbiActiva(context)) {
             abrirRutaEnGoogleMaps(context, latitud, longitud)
         } else {
@@ -404,7 +416,7 @@ object constantes_lista_localidades {
         R.drawable.barranca_comisaria,
         R.drawable.bomberos_brca,
         R.drawable.samu_brca,
-        R.drawable.bomberos_brca,R.drawable.supe_brca,
+        R.drawable.bomberos_brca, R.drawable.supe_brca,
         R.drawable.hospital_brca
     )
 
@@ -928,20 +940,66 @@ object constantes_lista_localidades {
 
 
     fun extractPaletteColors(bitmap: Bitmap, onColorsReady: (List<Int>) -> Unit) {
-    Palette.from(bitmap).generate { palette ->
-        val colors = listOfNotNull(
-            palette?.darkMutedSwatch?.rgb,
-            palette?.darkVibrantSwatch?.rgb
-        )
+        Palette.from(bitmap).generate { palette ->
+            val colors = listOfNotNull(
+                palette?.darkMutedSwatch?.rgb,
+                palette?.darkVibrantSwatch?.rgb
+            )
 
-        onColorsReady(colors)
+            onColorsReady(colors)
+        }
     }
-}
 
     fun getScaledBitmap(context: Context, resId: Int, size: Int = 100): Bitmap {
         val original = BitmapFactory.decodeResource(context.resources, resId)
         return Bitmap.createScaledBitmap(original, size, size, true)
     }
+
+
+    fun verificarDistanciaFormateada(
+        myLat: Double,
+        myLng: Double,
+        latitud: Double,
+        longitud: Double
+    ): String {
+
+        Log.d("obtenoemos_la_tog22", " user = ${myLat} ${myLng} teinda = ${latitud} ${longitud}")
+        val resultado = FloatArray(1)
+        Location.distanceBetween(myLat, myLng, latitud, longitud, resultado)
+        val distancia = resultado[0]
+
+        return if (distancia < 1000) {
+            "${distancia.toInt()} m" // metros enteros
+        } else {
+            String.format("%.1f km", distancia / 1000f) // 1 decimal en km
+        }
+    }
+
+    fun isGpsActivo(context: Context): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+
+    @SuppressLint("MissingPermission")
+    fun actualizarUbicacion(
+        context: Context,
+        fusedLocationClient: FusedLocationProviderClient,
+        onUpdate: (Double, Double) -> Unit
+    ) {
+        if (verificarUbiActiva(context)) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    val lat = it.latitude
+                    val log = it.longitude
+                    onUpdate(lat, log)
+                }
+            }
+        } else {
+            Toast.makeText(context, "Activa tu ubicación", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
 
 }

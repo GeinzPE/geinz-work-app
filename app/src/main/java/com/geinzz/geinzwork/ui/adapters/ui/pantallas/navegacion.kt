@@ -263,8 +263,8 @@ fun nativationWrapper(
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
                         viewModel_filtrado_tiendas,
+                        viewModelLugares,
                         direcciones.tipo,
-                        viewModelLugares
                     )
                 }
 
@@ -284,7 +284,7 @@ fun nativationWrapper(
 
                 composable<lugares_turisticos> { navback ->
                     pantalla_lugares_turisticos(
-                        "barranca",
+                        "turismo",
                         viewModelLugares,
                         viewModelCordenadas
                     ) { tipo ->
