@@ -1068,6 +1068,74 @@ object constantes_lista_localidades {
         }
     }
 
+    fun esAniversarioHoy(localidad: String): Boolean {
+        val aniversarios = mapOf(
+            "barranca" to Pair(1984, "16 de septiembre"),
+            "supe" to Pair(1874, "6 de noviembre"),
+            "paramonga" to Pair(1936, "22 de octubre"),
+            "pativilca" to Pair(1871, "2 de enero"),
+            "puerto supe" to Pair(1915, "6 de diciembre")
+        )
+
+        val data = aniversarios[localidad]
+        if (data == null) {
+            Log.d("ANIVERSARIO", "No hay datos para $localidad")
+            return false
+        }
+
+        val (_, fecha) = data
+        Log.d("ANIVERSARIO", "Fecha registrada: $fecha")
+
+        val partes = fecha.split(" de ")
+        if (partes.size != 2) {
+            Log.d("ANIVERSARIO", "Formato de fecha inválido para $localidad → $fecha")
+            return false
+        }
+
+        val dia = partes[0].toIntOrNull()
+        if (dia == null) {
+            Log.d("ANIVERSARIO", "Día inválido en fecha: $fecha")
+            return false
+        }
+
+        val mesTexto = partes[1].lowercase()
+        Log.d("ANIVERSARIO", "Día: $dia, Mes texto: $mesTexto")
+
+        val meses = mapOf(
+            "enero" to java.util.Calendar.JANUARY,
+            "febrero" to java.util.Calendar.FEBRUARY,
+            "marzo" to java.util.Calendar.MARCH,
+            "abril" to java.util.Calendar.APRIL,
+            "mayo" to java.util.Calendar.MAY,
+            "junio" to java.util.Calendar.JUNE,
+            "julio" to java.util.Calendar.JULY,
+            "agosto" to java.util.Calendar.AUGUST,
+            "septiembre" to java.util.Calendar.SEPTEMBER,
+            "octubre" to java.util.Calendar.OCTOBER,
+            "noviembre" to java.util.Calendar.NOVEMBER,
+            "diciembre" to java.util.Calendar.DECEMBER
+        )
+
+        val mes = meses[mesTexto]
+        if (mes == null) {
+            Log.d("ANIVERSARIO", "Mes inválido: $mesTexto")
+            return false
+        }
+
+        val hoy = java.util.Calendar.getInstance()
+        val diaHoy = hoy.get(java.util.Calendar.DAY_OF_MONTH)
+        val mesHoy = hoy.get(java.util.Calendar.MONTH)
+
+        Log.d("ANIVERSARIO", "Hoy es $diaHoy de ${mesHoy + 1} | Aniversario: $dia de ${mes + 1}")
+
+        val resultado = diaHoy == dia && mesHoy == mes
+        Log.d("ANIVERSARIO", "¿Es aniversario hoy? $resultado")
+
+        return resultado
+    }
+
+
+
 
 
 }

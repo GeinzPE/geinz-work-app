@@ -562,7 +562,7 @@ fun rutas_turismo(
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(500.dp)
                 .clip(RoundedCornerShape(5)),
             contentScale = ContentScale.Crop
         )
@@ -601,7 +601,7 @@ fun seguridad(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp) // altura fija de la carta
+            .height(500.dp) // altura fija de la carta
             .clip(RoundedCornerShape(5))
     ) {
         // Imagen principal
@@ -617,11 +617,10 @@ fun seguridad(
             contentScale = ContentScale.Crop
         )
 
-        // Gradiente solo en la parte inferior (por ejemplo, 40% de la altura)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp * 0.6f) // ahora cubre 60% de la carta desde abajo
+                .height(400.dp * 0.6f)
                 .align(Alignment.BottomStart)
                 .background(
                     Brush.verticalGradient(

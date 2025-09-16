@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.principal
 
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -10,6 +11,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -107,6 +110,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.esAniversarioHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.extractPaletteColors
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.getScaledBitmap
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerAniversarioLocalidad
@@ -186,6 +190,9 @@ fun pantalla_principal(
             toastShown = false
         }
     }
+    var esAniversarioHoy by rememberSaveable(localidad_defaul) {
+        mutableStateOf(esAniversarioHoy(localidad_defaul))
+    }
 
     Box(
         modifier = Modifier
@@ -207,20 +214,16 @@ fun pantalla_principal(
             item {
                 spacer_vertical(10.dp)
                 filtrado_localidades(
-                    aniversario,
+                    esAniversarioHoy,
                     localidad_defaul, _obtener_filtrado_localidades, { localidad_selecionada ->
                         localidadSeleccionada.value = localidad_selecionada
-                    }, { dia, mes ->
-                        aniversario = verificarAniversarioLocalidad(
-                            dia,
-                            mes
-                        )
-                    })
-
-
+                    }, { esAniversario ->
+                        Log.d("esAniversarioaaaa",esAniversario.toString())
+                        if (esAniversarioHoy != esAniversario) {
+                            esAniversarioHoy = esAniversario
+                        } })
                 spacer_vertical(25.dp)
             }
-
 
             item {
                 spacer_vertical(10.dp)
@@ -239,7 +242,7 @@ fun pantalla_principal(
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
                     "ver eventos",
-                    "Descubre todo ${localidad_defaul}"
+                    "Descubre lugares en ${localidad_defaul}"
 
                 ) {}
                 spacer_vertical(30.dp)
@@ -371,23 +374,6 @@ fun apartado_explora_cat(
             Log.d("localdiasdadas", "$categoria, $localidad ,$nombre")
             clikear_cartas(categoria, localidad, nombre)
         }
-//        cartas_explorar_tienda(localidad_defaul, categorias_tienda)
-//        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-//            items(
-//                items = categoriasPrincipales,
-//                key = { it.nombre.toString() }
-//            ) { categorias ->
-//                apartado_categorias_tiendas(
-//                    categorias.lista_img,
-//                    categorias.nombre.toString(), nombre_user, localidad_selecionada,
-//                    categorias.lista_subcategorias,
-//                    300.dp,
-//                    200.dp,
-//                    5, { categoria, localidad, nombre ->
-//                        clikear_cartas(categoria, localidad, nombre)
-//                    })
-//            }
-//        }
     }
 }
 
@@ -398,7 +384,6 @@ fun cartas_filtrado(
     lista: List<dataclass_cat_sub>,
     carta_clikeada: (String, String, String) -> Unit
 ) {
-    val aspectRatio = 1.5f // Por ejemplo, 3:2 — puedes ajustarlo según tu imagen
     val alturaFija = 190.dp
 
     var cartaSeleccionada by remember { mutableStateOf<String?>(null) }
@@ -416,8 +401,6 @@ fun cartas_filtrado(
                 label = "fontSizeAnimada"
             )
 
-
-
             Box(
                 modifier = Modifier
                     .width(anchoAnimado) // ancho animado (130.dp a 200.dp)
@@ -427,31 +410,20 @@ fun cartas_filtrado(
                         cartaSeleccionada = if (seleccionada) null else i.nombre
                     }
             ) {
-                BoxWithConstraints(
+                Box(
                     modifier = Modifier
-                        .width(anchoAnimado)
-                        .height(alturaFija)
-                        .clip(RoundedCornerShape(15.dp))
-                        .clickable {
-                            cartaSeleccionada = if (seleccionada) null else i.nombre
-                        }
+                        .fillMaxSize()
                 ) {
-                    val widthPx = with(LocalDensity.current) { maxWidth.toPx().toInt() }
-                    val heightPx = with(LocalDensity.current) { maxHeight.toPx().toInt() }
-
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(i.lista_img)
-                            .size(widthPx, heightPx)
-                            .crossfade(true)
                             .placeholder(R.drawable.cargando_img_categorias)
                             .error(R.drawable.sin_item_carrito)
                             .build(),
                         contentDescription = "Imagen de la tienda",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.matchParentSize()
+                        modifier = Modifier.matchParentSize(), // ocupa todo el Box
+                        contentScale = ContentScale.Crop
                     )
-
                 }
 
                 Box(
@@ -500,13 +472,13 @@ fun cartas_filtrado(
                         )
                     }
 
-
                     spacer_vertical(5.dp)
                 }
 
-                // El botón siempre existe, pero animamos su visibilidad
                 AnimatedVisibility(
                     visible = seleccionada,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(10.dp)
@@ -519,11 +491,11 @@ fun cartas_filtrado(
                                 nombre_user.toString()
                             )
                         },
-                        modifier = Modifier.size(32.dp), // cuadrado pequeño
-                        contentPadding = PaddingValues(0.dp) // quita relleno interno
+                        modifier = Modifier.size(32.dp),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ArrowForward, // o Search, Explore, etc
+                            imageVector = Icons.Default.ArrowForward,
                             contentDescription = "Explorar",
                             tint = Color.White
                         )
@@ -533,22 +505,6 @@ fun cartas_filtrado(
         }
     }
 }
-
-
-@Composable
-fun texto_categorias(
-    nombre_categoria: String,
-
-    ) {
-    texto_generico_one_line(
-        nombre_categoria.uppercase(), MaterialTheme.typography.titleSmall,
-        Modifier
-
-            .padding(end = 10.dp)
-    )
-}
-
-
 @Composable
 fun texto_encimado_cartas(
     aniversario: Boolean,
@@ -562,15 +518,9 @@ fun texto_encimado_cartas(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val offsetY by animateDpAsState(
-                    targetValue = if (defecto_selecionado) (-1).dp else 0.dp,
-                    animationSpec = tween(durationMillis = 300),
-                    label = "offsetY"
-                )
                 texto_generico_multilinea(
                     titulo,
                     MaterialTheme.typography.banerGeinzWork,
-                    modifier = Modifier.offset(y = offsetY)
                 )
 
                 if (defecto_selecionado) {
@@ -593,18 +543,27 @@ fun texto_encimado_cartas(
 
             spacer_vertical(10.dp)
 
-            AnimatedVisibility(
-                visible = defecto_selecionado && aniversario,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                texto_generico_one_line(
-                    obtenerAniversarioLocalidad(titulo),
-                    MaterialTheme.typography.bodyMedium,
-                )
-
-
+            AnimatedContent(
+                targetState = defecto_selecionado && aniversario,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(600, delayMillis = 200)) togetherWith
+                            fadeOut(animationSpec = tween(400))
+                },
+                label = "textoAniversario"
+            ) { isVisible ->
+                if (isVisible) {
+                    texto_generico_one_line(
+                        obtenerAniversarioLocalidad(titulo),
+                        MaterialTheme.typography.bodyMedium,
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(0.dp))
+                }
             }
+
+
+
+
         }
     }
 
@@ -613,7 +572,6 @@ fun texto_encimado_cartas(
 @Composable
 fun texFiel_fake(listner_busqueda: () -> Unit, toastShown: Boolean) {
 
-    // Animar el padding horizontal
     val paddingAnim by animateDpAsState(
         targetValue = if (toastShown) 10.dp else 0.dp,
         animationSpec = tween(
@@ -668,20 +626,27 @@ fun filtrado_localidades(
     ultimaLocalidad: String,
     lista_localidades: List<localidades_filtrado>,
     nombre_localidad_selecionado: (String) -> Unit,
-    clikeable: (dia: Int, mes: Int) -> Unit
+    clikeable: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
     val listState = rememberLazyListState()
-
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.confetii))
-
     var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad) }
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     LaunchedEffect(ultimaLocalidad) {
-        ultimaLocalidad?.let { seleccionada ->
+        ultimaLocalidad.let { seleccionada ->
             localidad_defecto = seleccionada
+
+            // Reset antes de evaluar
+            clikeable(false)
+
+            val aniversarioHoy = esAniversarioHoy(seleccionada)
+            Log.d("ANIVERSARIO", "Localidad: $seleccionada → $aniversarioHoy")
+
+            clikeable(aniversarioHoy)
+
             val index = lista_localidades.indexOfFirst {
                 it.nombre.equals(seleccionada, ignoreCase = true)
             }
@@ -691,7 +656,6 @@ fun filtrado_localidades(
         }
     }
 
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     Spacer(modifier = Modifier.height(10.dp))
     if (lista_localidades.isNotEmpty()) {
@@ -722,12 +686,13 @@ fun filtrado_localidades(
                             }
                         }
                         localidad_defecto = item.nombre
-                        clikeable(item.dia_aniversariop.toInt(), item.mes_aniversario.toInt())
+
                         nombre_localidad_selecionado(item.nombre)
 
                     }
 
             ) {
+
                 AsyncImage(
                     model =
                         ImageRequest.Builder(LocalContext.current)
@@ -776,17 +741,21 @@ fun filtrado_localidades(
                     "Explorar"
                 }
 
-                Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
                     texto_encimado_cartas(
                         aniversario,
                         localidad_defecto.equals(item.nombre, ignoreCase = true),
-                        modifier = Modifier
-                            .padding(12.dp),
+                        modifier = Modifier,
                         item.nombre.capitalizeFirst(),
                         titulo,
                     )
-
                 }
+
 
             }
 
