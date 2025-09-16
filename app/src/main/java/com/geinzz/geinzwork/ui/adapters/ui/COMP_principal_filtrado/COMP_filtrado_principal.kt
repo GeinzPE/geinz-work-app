@@ -92,7 +92,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
-import com.geinzz.geinzwork.ui.adapters.ui.principal.texto_encimado_cartas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 
@@ -533,7 +532,7 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 fun TextoSubrayado(
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    modifier: Modifier
+    modifier: Modifier= Modifier
 ) {
     Text(
         text = texto,

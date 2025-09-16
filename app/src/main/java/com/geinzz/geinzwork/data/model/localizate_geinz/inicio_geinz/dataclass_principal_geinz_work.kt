@@ -55,6 +55,8 @@ data class tiendas_mapa(
 data class localidades_filtrado(
     val nombre: String = "",
     val lista_img: List<String> = emptyList(),
+    val dia_aniversariop: Number,
+    val mes_aniversario: Number
 )
 
 data class Estados_lugares_turisticos(

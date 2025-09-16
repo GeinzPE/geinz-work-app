@@ -1038,6 +1038,36 @@ object constantes_lista_localidades {
         }
     }
 
+    fun verificarAniversarioLocalidad(dia: Int, mes: Int): Boolean {
+        val today = Calendar.getInstance()
+        val diaHoy = today.get(Calendar.DAY_OF_MONTH)
+        val mesHoy = today.get(Calendar.MONTH) + 1
+        Log.d("Aniversario", "Hoy es: $diaHoy/$mesHoy, Fecha a verificar: $dia/$mes, Es aniversario? ${diaHoy == dia && mesHoy == mes}")
+
+        return diaHoy == dia && mesHoy == mes
+    }
+
+    fun obtenerAniversarioLocalidad(localidad: String): String {
+        // Año de fundación (ejemplo real aproximado, cambia si tienes la fecha exacta)
+        val aniversarios = mapOf(
+            "Barranca" to Pair(1984, "5 de octubre"),        // Provincia creada oficialmente
+            "Supe" to Pair(1874, "6 de noviembre"),          // Año aproximado de distrito
+            "Paramonga" to Pair(1936, "22 de octubre"),      // Creación distrito
+            "Pativilca" to Pair(1871, "2 de enero"),         // Creación distrito
+            "Puerto Supe" to Pair(1915, "6 de diciembre")    // Creación distrito
+        )
+
+        val data = aniversarios[localidad]
+        return if (data != null) {
+            val (anioFundacion, fecha) = data
+            val anioActual = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+            val edad = anioActual - anioFundacion
+            "Feliz ${edad} aniversario $localidad 🎉"
+        } else {
+            "No tengo registrada la fecha de aniversario de $localidad"
+        }
+    }
+
 
 
 }

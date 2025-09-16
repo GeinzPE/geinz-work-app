@@ -58,10 +58,15 @@ class repo_principal_geinz_work {
         return localidadesSnapshot.documents.mapNotNull { doc ->
             val nombre = doc.getString("nombre") ?: return@mapNotNull null
             val listaImg = doc.get("img") as? List<String> ?: emptyList()
+            val aniversario = doc.get("aniversario") as? Map<String, Any> ?: emptyMap()
+            val dia = aniversario.get("dia") as? Number ?: 0
+            val mes = aniversario.get("mes") as? Number ?: 0
             val imgPrincipal = listaImg.randomOrNull() ?: ""
-            localidades_filtrado(nombre, listOf(imgPrincipal))
+            localidades_filtrado(nombre, listOf(imgPrincipal),dia,mes)
         }
     }
+
+
 
 
     suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
@@ -116,7 +121,6 @@ class repo_principal_geinz_work {
 //            }
 //        }
 //    }
-
 
 
 }
