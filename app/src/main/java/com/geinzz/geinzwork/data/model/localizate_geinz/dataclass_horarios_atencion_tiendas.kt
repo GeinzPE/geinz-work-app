@@ -38,8 +38,6 @@ data class modelo_tienda(
     val lista_img: List<String> =emptyList(),
     val subcategoria: List<String> = emptyList(),
     val ubicacion: Map<String, Any> = emptyMap(),
-
-
     val whatsapp: Boolean = false,
     val numero_whatsapp: String = "",
     val tiktok: Boolean = false,

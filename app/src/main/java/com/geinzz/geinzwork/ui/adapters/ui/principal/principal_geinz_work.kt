@@ -16,6 +16,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,8 +42,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.StarHalf
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.StarHalf
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +75,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -194,6 +201,9 @@ fun pantalla_principal(
         mutableStateOf(esAniversarioHoy(localidad_defaul))
     }
 
+
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -248,6 +258,16 @@ fun pantalla_principal(
                 spacer_vertical(30.dp)
             }
             item {
+
+//                InteractiveStarRating(
+//                    starSize = 40.dp,
+//                    onRatingChanged = { newRating ->
+//                        ratingValue = newRating
+//                        println("Calificación actual: $ratingValue")
+//                    }
+//                )
+            }
+            item {
                 spacer_vertical(10.dp)
                 val imgActual by rememberSaveable {
                     mutableStateOf(constantes_lista_localidades.lista_img_seguridad.random())
@@ -289,6 +309,46 @@ fun pantalla_principal(
 
 }
 
+
+
+
+@Composable
+fun InteractiveStarRating(
+    modifier: Modifier = Modifier,
+    starSize: Dp = 50.dp,
+    maxStars: Int = 5,
+    onRatingChanged: (Float) -> Unit
+) {
+    var rating by remember { mutableStateOf(0f) }
+
+    // Row para las estrellas
+    Row(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectDragGestures { change, _ ->
+                    val x = change.position.x
+                    val totalWidth = size.width
+                    val newRating = ((x / totalWidth) * maxStars).coerceIn(0f, maxStars.toFloat())
+                    rating = newRating
+                    onRatingChanged(rating)
+                }
+            }
+            .height(starSize)
+    ) {
+        for (i in 1..maxStars) {
+            Icon(
+                imageVector = when {
+                    i <= rating -> Icons.Default.Star
+                    i - rating in 0f..1f -> Icons.Default.StarHalf
+                    else -> Icons.Default.StarBorder
+                },
+                contentDescription = "Star $i",
+                tint = Color(0xFFFFD700),
+                modifier = Modifier.size(starSize)
+            )
+        }
+    }
+}
 
 //@Composable
 //fun TopGradientBlurred(

@@ -49,7 +49,11 @@ object generar_qr_cordenadas_tienda {
     fun codificarCoordenadas(lat: Double, lng: Double): String {
             Log.d("lat_dog","${lat} ${lng}")
         val coordenadasCodificadas = Base64.encodeToString("$lat,$lng".toByteArray(), Base64.NO_WRAP)
-        return "Tienda|$coordenadasCodificadas"
+        return "Review|$coordenadasCodificadas"
+    }
+
+    fun retornar_id_Tienda_lugar(id: String): String{
+        return "Review|$id"
     }
 
     fun decodificarCoordenadas(data: String): Pair<Double, Double> {

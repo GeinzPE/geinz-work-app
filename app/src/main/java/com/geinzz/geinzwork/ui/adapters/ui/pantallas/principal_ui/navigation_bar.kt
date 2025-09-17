@@ -5,9 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,13 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +23,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_review
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.journeyapps.barcodescanner.ScanContract
@@ -66,12 +60,21 @@ fun bottom_navigation(navController: NavController) {
 
     var selected_item by remember { mutableIntStateOf(0) }
 
+    var bottom_sheet by remember { mutableStateOf(false) }
+    var id_tienda_review by remember { mutableStateOf(data_class_review("", "")) }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
-        onResult = { result -> handleScanResult(context, result?.contents) }
+        onResult = { result ->
+            handleScanResult(context, result?.contents) { id_Tienda ->
+                val datos_tienda=data_class_review(id_Tienda,"barranca")
+                id_tienda_review = datos_tienda
+                bottom_sheet = true
+            }
+        }
     )
     Box {
         NavigationBar(
@@ -104,8 +107,10 @@ fun bottom_navigation(navController: NavController) {
         val navigationBarHeight = 100.dp
 
         FloatingActionButton(
-            onClick = { startScanner.launch(ScanOptions()) },
-            containerColor =Color(0xFF8700F3), // un púrpura más suave que el negro
+            onClick = {
+                startScanner.launch(ScanOptions())
+            },
+            containerColor = Color(0xFF8700F3), // un púrpura más suave que el negro
             contentColor = Color.White,
             shape = CircleShape,
             modifier = Modifier
@@ -128,10 +133,21 @@ fun bottom_navigation(navController: NavController) {
 
     }
 
+    if (bottom_sheet) {
+        Log.d("id_tienda_reviewid_tienda_review",id_tienda_review.toString())
+        bottom_sheet_review(id_tienda_review) {
+            bottom_sheet = !bottom_sheet
+        }
+    }
+
 
 }
 
-private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
+private fun handleScanResult(
+    context: Context,
+    contenidoEscaneado: String?,
+    open_review: (id_Tienda: String) -> Unit
+) {
     if (contenidoEscaneado.isNullOrEmpty()) {
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
         return
@@ -150,8 +166,12 @@ private fun handleScanResult(context: Context, contenidoEscaneado: String?) {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        } else if (contenidoEscaneado.startsWith("Review|")) {
+            val base64Coordenadas = contenidoEscaneado.removePrefix("Review|")
+            open_review(base64Coordenadas)
         } else {
             Log.d("Scanner", "Otro tipo de QR: $contenidoEscaneado")
+
         }
     } catch (e: Exception) {
         Toast.makeText(context, "Error al decodificar coordenadas", Toast.LENGTH_SHORT).show()

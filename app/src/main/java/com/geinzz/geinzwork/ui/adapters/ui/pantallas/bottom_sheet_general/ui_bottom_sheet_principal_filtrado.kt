@@ -44,7 +44,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -77,7 +76,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -103,6 +101,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -257,6 +256,7 @@ fun bottom_sheet_tiendas_filtradas(
 
                         item {
                             Expandible_qr_tienda(
+                                tiendas_filtradas.id_tienda,
                                 latitud, longitud,
                                 expander_qr_tienda
                             ) { expander_qr_tienda = !expander_qr_tienda }
@@ -404,6 +404,7 @@ fun bottom_shet_patrocinadores(
 
                 item {
                     Expandible_qr_tienda(
+                        tiendas_filtradas.id_tienda,
                         tiendas_filtradas.latitud,
                         tiendas_filtradas.longitud,
                         expander_qr_tienda
@@ -808,6 +809,7 @@ fun Expandible_Metodo_contacto(
 
 @Composable
 fun Expandible_qr_tienda(
+    id_tienda: String,
     latitud: Double,
     longitud: Double,
     expandido: Boolean,
@@ -818,11 +820,15 @@ fun Expandible_qr_tienda(
             latitud, longitud
         )
     }
+
+    val generar_qr_tienda_id = remember(id_tienda) {
+        retornar_id_Tienda_lugar(id_tienda)
+    }
     Cartas_expandibles {
         Column {
             expandibles_wrapp(
                 "QR de Tienda",
-                iconRes =  R.drawable.qr_scaner_icon,
+                iconRes = R.drawable.qr_scaner_icon,
                 null,
                 expandido,
                 onClickExpand
@@ -839,7 +845,7 @@ fun Expandible_qr_tienda(
             ) {
                 generar_qr_ubi_tinda(
                     "Escanea el código QR desde Geinz work para obtener la ruta hacia esta tienda. Google maps te guiará con indicaciones paso a paso para que llegues fácilmente",
-                    generador_qr
+                    generar_qr_tienda_id
                 )
             }
         }

@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
+import Item
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
@@ -39,16 +40,20 @@ import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.seguridad_salud_publica
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.item_tiendas
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -178,7 +183,10 @@ object constantes_lista_localidades {
             val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
             val ahora = formato.parse(formato.format(Date())) ?: return false
 
-            Log.d("HORARIO_CHECK", "Horario recibido -> Día: ${horarioHoy.dia}, Apertura: ${horarioHoy.h_apertura}, Cierre: ${horarioHoy.h_cierre}")
+            Log.d(
+                "HORARIO_CHECK",
+                "Horario recibido -> Día: ${horarioHoy.dia}, Apertura: ${horarioHoy.h_apertura}, Cierre: ${horarioHoy.h_cierre}"
+            )
             Log.d("HORARIO_CHECK", "Hora actual: ${formato.format(ahora)}")
 
             val apertura = formato.parse(horarioHoy.h_apertura)
@@ -217,7 +225,7 @@ object constantes_lista_localidades {
         longitud: Double,
         mostrar_dialog: (Boolean) -> Unit
     ) {
-        Log.d("lateitudes","${latitud} ${longitud}")
+        Log.d("lateitudes", "${latitud} ${longitud}")
         if (verificarUbiActiva(context)) {
             abrirRutaEnGoogleMaps(context, latitud, longitud)
         } else {
@@ -1042,7 +1050,10 @@ object constantes_lista_localidades {
         val today = Calendar.getInstance()
         val diaHoy = today.get(Calendar.DAY_OF_MONTH)
         val mesHoy = today.get(Calendar.MONTH) + 1
-        Log.d("Aniversario", "Hoy es: $diaHoy/$mesHoy, Fecha a verificar: $dia/$mes, Es aniversario? ${diaHoy == dia && mesHoy == mes}")
+        Log.d(
+            "Aniversario",
+            "Hoy es: $diaHoy/$mesHoy, Fecha a verificar: $dia/$mes, Es aniversario? ${diaHoy == dia && mesHoy == mes}"
+        )
 
         return diaHoy == dia && mesHoy == mes
     }
@@ -1070,7 +1081,7 @@ object constantes_lista_localidades {
 
     fun esAniversarioHoy(localidad: String): Boolean {
         val aniversarios = mapOf(
-            "barranca" to Pair(1984, "16 de septiembre"),
+            "barranca" to Pair(1984, "17 de septiembre"),
             "supe" to Pair(1874, "6 de noviembre"),
             "paramonga" to Pair(1936, "22 de octubre"),
             "pativilca" to Pair(1871, "2 de enero"),
@@ -1134,8 +1145,344 @@ object constantes_lista_localidades {
         return resultado
     }
 
+    data class lugares_turisticos2(
+        val titulo: String = "",
+        val descripcion: String = "",
+        val img_ref: String = "",
+        val direcccion: String = "",
+        val referencia: String = "",
+        val latitud: Double = 0.0,
+        val longitud: Double = 0.0,
+        val subcategoria_filtrado: List<String> = emptyList(),
+        val localida: String
+    )
 
-
+//    val datos_ubicacionesreales = listOf(
+//        lugares_turisticos2(
+//            titulo = "Playa Chorrillos",
+//            descripcion = "Una de las playas más visitadas de Barranca, ideal para disfrutar del sol y el mar, con una vibra relajada y familiar. Es un punto de encuentro popular para locales y turistas.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.760706064882067,
+//            longitud = -77.764686746073,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa Miraflores",
+//            descripcion = "Forma parte del circuito de playas de Barranca, conocida por su ambiente tranquilo y sus aguas aptas para nadar. Es un lugar perfecto para relajarse y contemplar el paisaje costero.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.762725766858797,
+//            longitud = -77.76265770994893,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa Puerto Chico",
+//            descripcion = "Conocida por ser un balneario pintoresco y una de las playas más accesibles de la zona. Es un lugar clave para quienes buscan disfrutar de la brisa marina y pasear por la orilla.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.766447182644843,
+//            longitud = -77.76168315070542,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa Colorado",
+//            descripcion = "Una playa singular que destaca por sus formaciones rocosas y su arena de tonos rojizos. Es un destino ideal para quienes buscan paisajes únicos y una experiencia de playa diferente.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.773308198625925,
+//            longitud = -77.75903246437092,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa Bandurria",
+//            descripcion = "Ubicada en la Bahía de Pativilca, esta playa es famosa por su belleza natural y la cercanía al sitio arqueológico del mismo nombre. Es un lugar con historia y un entorno impresionante.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.775926198586697,
+//            longitud = -77.75567452103537,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa Atarraya",
+//            descripcion = "Conocida por su tranquilidad y su ambiente de pescadores. Es un lugar ideal para observar las actividades locales y disfrutar de una vista relajante del océano Pacífico.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.778789841646699,
+//            longitud = -77.75391347123461,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Cristo Redentor",
+//            descripcion = "Una imponente estatua de Cristo que se erige en el cerro Colorado. Ofrece una vista panorámica espectacular de toda la bahía de Barranca, siendo un punto de interés tanto religioso como turístico.",
+//            img_ref = "",
+//            direcccion = "Cerro Colorado",
+//            referencia = "Monumento",
+//            latitud = -10.7699116708496,
+//            longitud = -77.76427946867258,
+//            subcategoria_filtrado = listOf("Monumento", "religioso", "mirador"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Plaza de Armas",
+//            descripcion = "El corazón de Barranca, un espacio público vibrante rodeado de edificios historicos y palmeras. Es el punto de encuentro principal de la ciudad, con jardines cuidados y un ambiente acogedor.",
+//            img_ref = "",
+//            direcccion = "Centro de Barranca",
+//            referencia = "Plaza",
+//            latitud = -10.754119848818947,
+//            longitud = -77.76084684873094,
+//            subcategoria_filtrado = listOf("Plaza", "parque"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Iglesia San Idelfonso",
+//            descripcion = "Una iglesia historica en el centro de Barranca, conocida por su arquitectura y su importancia cultural. Es un lugar de paz y reflexión que forma parte del patrimonio de la ciudad.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Iglesia",
+//            latitud = -10.754403149844096,
+//            longitud = -77.76109118438252,
+//            subcategoria_filtrado = listOf("Iglesia", "religioso", "historico"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Mirador Grau",
+//            descripcion = "Un mirador popular que ofrece una de las mejores vistas de la ciudad y el puerto. Es un lugar perfecto para tomar fotografías y apreciar la geografía de la zona desde las alturas.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Mirador",
+//            latitud = -10.757691664011752,
+//            longitud = -77.7673856100165,
+//            subcategoria_filtrado = listOf("Mirador", "recreativo"),
+//            localida = "barranca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Caral",
+//            descripcion = "La Ciudad Sagrada de Caral es la civilización más antigua de América. Es un impresionante sitio arqueologico con pirámides, templos y plazas, que demuestra el alto grado de desarrollo de la sociedad de Caral-Supe.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Sitio arqueologico",
+//            latitud = -10.892064926519373,
+//            longitud = -77.52363743208294,
+//            subcategoria_filtrado = listOf("Arqueologico", "historico"),
+//            localida = "supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Peñico",
+//            descripcion = "Una comunidad o lugar de referencia en Supe. Es un punto de interés que se menciona en la conversación y que puede tener relevancia local para los residentes.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "",
+//            latitud = -10.899061373112445,
+//            longitud = -77.3781547554546,
+//            subcategoria_filtrado = emptyList(),
+//            localida = "supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Sitio arqueologico Miraya",
+//            descripcion = "Un importante complejo arqueologico que complementa la historia de la civilización Caral-Supe. Es un lugar clave para entender la distribución y la organización de los asentamientos prehispánicos en la zona.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Sitio arqueologico",
+//            latitud = -10.88237044894816,
+//            longitud = -77.53973149505958,
+//            subcategoria_filtrado = listOf("Arqueologico", "historico"),
+//            localida = "supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Museo Comunitario de Supe",
+//            descripcion = "Un museo local que alberga importantes hallazgos arqueologicos de la región de Supe, incluyendo piezas de la civilización Caral. Es un excelente lugar para aprender sobre la historia y la cultura del Valle de Supe.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Museo",
+//            latitud = -10.79630741006499,
+//            longitud = -77.71642201050005,
+//            subcategoria_filtrado = listOf("Museo", "cultura"),
+//            localida = "supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Casa Hacienda San Nicolás",
+//            descripcion = "Una antigua hacienda que refleja la historia agricola y social de la región. Su arquitectura y su entorno ofrecen una mirada al pasado, siendo un punto de interés para quienes aprecian la historia local.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Hacienda",
+//            latitud = -10.817671679321636,
+//            longitud = -77.71727241262943,
+//            subcategoria_filtrado = listOf("Hacienda", "historico"),
+//            localida = "supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Plaza de armas Supe",
+//            descripcion = "El corazón de Pativilca, un espacio público tradicional que es el centro de la vida social y cultural del pueblo. Es ideal para una pausa y para conocer el ambiente local.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Plaza",
+//            latitud = -10.79571832269379,
+//            longitud = -77.71640528516001,
+//            subcategoria_filtrado = listOf("Plaza", "parque"),
+//            localida = "supe"
+//        ),
+//
+//        lugares_turisticos2(
+//            titulo = "Plaza de armas pativilca",
+//            descripcion = "El corazón de Pativilca, un espacio público tradicional que es el centro de la vida social y cultural del pueblo. Es ideal para una pausa y para conocer el ambiente local.",
+//            img_ref = "",
+//            direcccion = "Centro de Pativilca",
+//            referencia = "Plaza",
+//            latitud = -10.696393939697877,
+//            longitud = -77.7797801953667,
+//            subcategoria_filtrado = listOf("Plaza", "parque"),
+//            localida = "pativilca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Museo Bolivariano",
+//            descripcion = "Dedicado a la memoria de Simón Bolívar, este museo se encuentra en la casa donde residió el Libertador. Contiene objetos y documentos historicos relacionados con su estadía y la independencia del Perú.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Museo",
+//            latitud = -10.695440708535772,
+//            longitud = -77.78065684226628,
+//            subcategoria_filtrado = listOf("Museo", "historico"),
+//            localida = "pativilca"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Plaza de Armas",
+//            descripcion = "El centro de la vida en Paramonga, una plaza bien cuidada que sirve como punto de referencia y de encuentro. Es un lugar de descanso y de observación de la vida cotidiana en el distrito.",
+//            img_ref = "",
+//            direcccion = "Centro de Paramonga",
+//            referencia = "Plaza",
+//            latitud =-10.674397201524314,
+//            longitud = -77.8185777381935,
+//            subcategoria_filtrado = listOf("Plaza", "parque"),
+//            localida = "paramonga"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Fortaleza de Paramonga",
+//            descripcion = "Una impresionante fortaleza de adobe, construida por la cultura Chimú y posteriormente ocupada por los Incas. Su estructura piramidal y su ubicación estratégica la convierten en uno de los atractivos arqueologicos más importantes de la zona.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Fortaleza, arqueologico",
+//            latitud =-10.653336709267442,
+//            longitud = -77.84137903741973,
+//            subcategoria_filtrado = listOf("Fortaleza", "arqueologico", "historico"),
+//            localida = "paramonga"
+//        ),
+//
+//        lugares_turisticos2(
+//            titulo = "La casa de las brujas",
+//            descripcion = "Un lugar misterioso y conocido por las leyendas locales. Aunque no se conoce su historia precisa, es un punto de referencia que despierta la curiosidad y forma parte del folclore de Paramonga.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Leyenda",
+//            latitud = -10.673073750951527,
+//            longitud = -77.81965564235402,
+//            subcategoria_filtrado = listOf("Leyenda", "turismo"),
+//            localida = "paramonga"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa La Isla",
+//            descripcion = "Una playa pintoresca en el puerto de Supe, conocida por sus aguas tranquilas y su ambiente de caleta. Es un lugar idílico para disfrutar de la pesca, el paisaje costero y la gastronomía local.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.760706064882067,
+//            longitud = -77.764686746073,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "puerto supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Playa El Faraón",
+//            descripcion = "Esta playa, también conocida como 'La Isla', es un destino popular en Puerto Supe. Su nombre evoca misterio y su belleza natural la convierte en un lugar favorito para los visitantes de la zona.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Playa",
+//            latitud = -10.81187622414177,
+//            longitud = -77.75175163336938,
+//            subcategoria_filtrado = listOf("Playa"),
+//            localida = "puerto supe"
+//        ),
+//        lugares_turisticos2(
+//            titulo = "Áspero",
+//            descripcion = "Considerado como una 'Ciudad Pesquera de Caral', es un sitio arqueologico crucial para entender la conexión entre la costa y el interior en la época de la civilización Caral-Supe. Aquí se encuentran vestigios de pirámides y viviendas antiguas.",
+//            img_ref = "",
+//            direcccion = "",
+//            referencia = "Sitio arqueologico",
+//            latitud = -10.814415381147068,
+//            longitud = -77.74162389966081,
+//            subcategoria_filtrado = listOf("Arqueologico", "historico"),
+//            localida = "puerto supe"
+//        )
+//    )
+//
+//
+//    fun agregar_lugares_turisticos2(lugaresTuristicos: lugares_turisticos2) {
+//        val db = FirebaseFirestore.getInstance().collection("Tiendas")
+//            .document(lugaresTuristicos.localida).collection("lugares_turisticos")
+//
+//        val hasmap_ubicacion = hashMapOf<String, Any>(
+//            "direccion" to lugaresTuristicos.direcccion,
+//            "latitud" to lugaresTuristicos.localida,
+//            "longitud" to lugaresTuristicos.longitud
+//        )
+//        val hashMap = hashMapOf<String, Any>(
+//            "categoria" to lugaresTuristicos.subcategoria_filtrado,
+//            "descripcion" to lugaresTuristicos.descripcion,
+//            "img" to lugaresTuristicos.img_ref,
+//            "titulo" to lugaresTuristicos.titulo,
+//            "ubicacion" to hasmap_ubicacion
+//        )
+//
+//        db.add(hashMap).addOnSuccessListener { res ->
+//            val id_creado = res.id
+//            val hasmapUpdate = hashMapOf<String, Any>(
+//                "id" to id_creado
+//            )
+//            db.document(id_creado).update(hasmapUpdate).addOnSuccessListener {
+//                val ItemPasadp = Item(
+//                    lugaresTuristicos.titulo,
+//                    lugaresTuristicos.localida,
+//                    id_creado,
+//                    "turismo", lugaresTuristicos.img_ref, lugaresTuristicos.subcategoria_filtrado
+//
+//                )
+//                agregar_lugares_turisticos(ItemPasadp)
+//            }
+//
+//        }.addOnFailureListener { e ->
+//            Log.d("error_subir_datos", "error")
+//        }
+//
+//    }
+//
+//
+//    fun agregar_lugares_turisticos(Item: Item) {
+//        val db = FirebaseFirestore.getInstance().collection("lugares").document(Item.id_tienda)
+//        val hashMap = hashMapOf<String, Any>(
+//            "categoria" to Item.categoria,
+//            "id_tienda" to Item.id_tienda,
+//            "img" to Item.img,
+//            "lugar" to Item.lugar,
+//            "nombre" to Item.nombre,
+//            "tag" to Item.lista
+//        )
+//        db.set(hashMap, SetOptions.merge()).addOnSuccessListener { res ->
+//           Log.d("creado_correcto","${Item.id_tienda} creado correctamente :)")
+//        }.addOnFailureListener { e ->
+//            Log.d("error_subir_datos", "error")
+//        }
+//    }
 
 
 }
