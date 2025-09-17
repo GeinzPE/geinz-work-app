@@ -815,14 +815,14 @@ fun Expandible_qr_tienda(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    val generador_qr = remember(latitud, longitud) {
-        generar_qr_cordenadas_tienda.codificarCoordenadas(
-            latitud, longitud
-        )
-    }
+//    val generador_qr = remember(latitud, longitud) {
+//        generar_qr_cordenadas_tienda.codificarCoordenadas(
+//            latitud, longitud
+//        )
+//    }
 
-    val generar_qr_tienda_id = remember(id_tienda) {
-        retornar_id_Tienda_lugar(id_tienda)
+    val generar_qr_tienda_id = remember(id_tienda, latitud, longitud) {
+        retornar_id_Tienda_lugar(id_tienda, latitud, longitud)
     }
     Cartas_expandibles {
         Column {

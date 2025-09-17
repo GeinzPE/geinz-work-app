@@ -458,6 +458,43 @@ object constantes_lista_localidades {
         return formato12.format(date!!)
     }
 
+    fun estaDentroDeTienda(
+        userLat: Double,
+        userLng: Double,
+        tiendaLat: Double,
+        tiendaLng: Double,
+        radioMetros: Float = 50f
+    ): Boolean {
+        val userLocation = Location("").apply {
+            latitude = userLat
+            longitude = userLng
+        }
+
+        val tiendaLocation = Location("").apply {
+            latitude = tiendaLat
+            longitude = tiendaLng
+        }
+
+        val distancia = userLocation.distanceTo(tiendaLocation) // en metros
+
+        val dentro = distancia <= radioMetros
+        Log.d("validacion_tienda", "$userLat $userLng $tiendaLat $tiendaLng")
+        if (!dentro) {
+            Log.d(
+                "validacion_tienda",
+                "Fuera del rango: distancia real = ${"%.2f".format(distancia)} m (radio = $radioMetros m)"
+            )
+        } else {
+            Log.d(
+                "validacion_tienda",
+                "Dentro del rango: distancia real = ${"%.2f".format(distancia)} m"
+            )
+        }
+
+        return dentro
+    }
+
+
     val lista_img_seguridad = listOf(
         R.drawable.barranca_comisaria,
         R.drawable.bomberos_brca,

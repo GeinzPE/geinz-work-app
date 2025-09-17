@@ -1,26 +1,40 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +48,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.geinzz.geinzwork.R
@@ -41,12 +57,25 @@ import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_review
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaDentroDeTienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
+
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.launch
 
+@SuppressLint("MissingPermission")
 @Composable
 fun bottom_navigation(navController: NavController) {
     val context = LocalContext.current
@@ -59,21 +88,42 @@ fun bottom_navigation(navController: NavController) {
 
 
     var selected_item by remember { mutableIntStateOf(0) }
-
+    var dialog_estas_tienda by remember { mutableStateOf(false) }
+    var validacion_tienda_cordenadas by remember { mutableStateOf(false) }
     var bottom_sheet by remember { mutableStateOf(false) }
     var id_tienda_review by remember { mutableStateOf(data_class_review("", "")) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    var dialogo_ubi_activa by remember { mutableStateOf(false) }
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var latitude_tienda by remember { mutableStateOf(0.0) }
+    var longitude_tienda by remember { mutableStateOf(0.0) }
+
+
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
         onResult = { result ->
-            handleScanResult(context, result?.contents) { id_Tienda ->
-                val datos_tienda=data_class_review(id_Tienda,"barranca")
-                id_tienda_review = datos_tienda
-                bottom_sheet = true
-            }
+            handleScanResult(
+                context,
+                result?.contents,
+                crear_ruta = {},
+
+                open_review_p = { id_tienda, localidad, latitude, longitude ->
+//                    dialog_estas_tienda = true
+//                    latitude_tienda = latitude
+//                    longitude_tienda = longitude
+                    id_tienda_review = data_class_review(id_tienda, localidad)
+                    bottom_sheet = true
+                },
+                open_review_public = { id_tienda, localidad ->
+                    id_tienda_review = data_class_review(id_tienda, localidad)
+                    bottom_sheet = true
+
+                })
+
         }
     )
     Box {
@@ -134,19 +184,108 @@ fun bottom_navigation(navController: NavController) {
     }
 
     if (bottom_sheet) {
-        Log.d("id_tienda_reviewid_tienda_review",id_tienda_review.toString())
+        Log.d("id_tienda_reviewid_tienda_review", id_tienda_review.toString())
         bottom_sheet_review(id_tienda_review) {
             bottom_sheet = !bottom_sheet
         }
     }
 
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            validacion_tienda_cordenadas = true
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+        }
+    }
+    if (dialog_estas_tienda) {
+        dialog_verificar_si_esta_tienda(
+            onClose = { dialog_estas_tienda = false },
+            rpa_si = {
+                dialog_estas_tienda = false
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    validacion_tienda_cordenadas = true
+                } else {
+                    permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+
+            },
+            rpa_no = { dialog_estas_tienda = false })
+    }
+    @SuppressLint("MissingPermission")
+    LaunchedEffect(validacion_tienda_cordenadas) {
+        if (validacion_tienda_cordenadas) {
+            if (verificarUbiActiva(context)) {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    if (location != null) {
+                        val userLatLng = LatLng(location.latitude, location.longitude)
+                       var estado =estaDentroDeTienda(
+                            userLatLng.latitude,
+                            userLatLng.longitude,
+                            latitude_tienda,
+                            longitude_tienda
+                        )
+
+                        Log.d("obtenoemos_la_tog", "userprimario = $userLatLng:  $estado" )
+                    } else {
+                        // ⚡ Si no hay ubicación previa, pedimos una nueva
+                        val request = LocationRequest.Builder(
+                            Priority.PRIORITY_HIGH_ACCURACY,
+                            1000L
+                        ).setMaxUpdates(1).build()
+
+                        fusedLocationClient.requestLocationUpdates(
+                            request,
+                            object : LocationCallback() {
+                                override fun onLocationResult(result: LocationResult) {
+                                    fusedLocationClient.removeLocationUpdates(this)
+                                    val loc = result.lastLocation
+                                    if (loc != null) {
+                                        val userLatLng = LatLng(loc.latitude, loc.longitude)
+                                        Log.d("obtenoemos_la_tog", "userRequest = $userLatLng")
+                                    } else {
+                                        Log.e(
+                                            "obtenoemos_la_tog",
+                                            "No se pudo obtener ubicación nueva"
+                                        )
+                                    }
+                                }
+                            },
+                            Looper.getMainLooper()
+                        )
+                    }
+                }
+            } else {
+                dialogo_ubi_activa = true
+            }
+        }
+    }
+
+
+    if (dialogo_ubi_activa) {
+        dialog_sin_ubi__rutas(
+            onDismis = { dialogo_ubi_activa = false },
+            abrir_configuracion = {
+                dialogo_ubi_activa = false
+                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+
+            }
+        )
+    }
 
 }
 
 private fun handleScanResult(
     context: Context,
     contenidoEscaneado: String?,
-    open_review: (id_Tienda: String) -> Unit
+    crear_ruta: () -> Unit,
+    open_review_p: (id_Tienda: String, localidad: String, latitude: Double, longitude: Double) -> Unit,
+    open_review_public: (id_tienda: String, localidad: String) -> Unit
 ) {
     if (contenidoEscaneado.isNullOrEmpty()) {
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
@@ -166,17 +305,55 @@ private fun handleScanResult(
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        } else if (contenidoEscaneado.startsWith("Review_C|")) {
+            val partes = contenidoEscaneado.split("|")
+            if (partes.size >= 4) {
+                val idTienda = partes[1]
+                val base64Coordenadas = partes[3]
+
+                val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(
+                    base64Coordenadas
+                )
+
+                open_review_p(idTienda, "barranca", lat, lng)
+            } else {
+                Toast.makeText(context, "Formato QR inválido", Toast.LENGTH_SHORT).show()
+            }
+
         } else if (contenidoEscaneado.startsWith("Review|")) {
             val base64Coordenadas = contenidoEscaneado.removePrefix("Review|")
-            open_review(base64Coordenadas)
+            open_review_public(base64Coordenadas, "barranca")
         } else {
             Log.d("Scanner", "Otro tipo de QR: $contenidoEscaneado")
-
         }
     } catch (e: Exception) {
         Toast.makeText(context, "Error al decodificar coordenadas", Toast.LENGTH_SHORT).show()
         e.printStackTrace()
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa_no: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onClose() }, confirmButton = {
+            Button(onClick = { rpa_si() }) { texto_generico_one_line("Si") }
+        },
+        dismissButton = { TextButton(onClick = { rpa_no() }) { texto_generico_one_line("no") } },
+        title = { texto_generico_one_line("verificacion de entrada") },
+        text = { "Te ecuentras presencial mente en la tienda localizada?" },
+        icon = {
+            Icon(
+                imageVector = Icons.Filled.LocationOn,
+                contentDescription = "Ubicación",
+                modifier = Modifier.size(25.dp)
+            )
+        }, properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+
+    )
 }
 
 @Composable
