@@ -75,7 +75,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 
 private lateinit var firebaseAuth: FirebaseAuth
 
-@SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
 fun bottom_navigation(navController: NavController) {
     firebaseAuth = FirebaseAuth.getInstance()
@@ -205,48 +205,35 @@ fun bottom_navigation(navController: NavController) {
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            if (verificarUbiActiva(context)) {
-                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                    val userLatLng = LatLng(location.latitude, location.longitude)
-                    val (distancia, dentro) = estaDentroDeTienda(
-                        userLatLng.latitude,
-                        userLatLng.longitude,
-                        latitude_tienda,
-                        longitude_tienda
-                    )
-
-                    estado_presencial_tienda_lugar = dentro
-
-                    Log.d(
-                        "obtenoemos_la_tog",
-                        "userprimario = $userLatLng:  $estado_presencial_tienda_lugar"
-                    )
-
-                    viewmodel.agregar_review(
-                        crearReview(
-                            rango_estrellas,
-                            descripcion,
-                            estado_presencial_tienda_lugar,
-                            id_tienda_review.id_tienda_lugar,
-                            id_tienda_review.localida_lugar
-                        )
-                    )
-                }
-            } else {
-                dialogo_ubi_activa = true
-            }
+            dialog_estas_tienda = false
+            bottom_sheet_review_privado = true
+            segun_user_tienda = true
         } else {
             Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT)
                 .show()
         }
     }
+
     if (dialog_estas_tienda) {
         dialog_verificar_si_esta_tienda(
             onClose = { dialog_estas_tienda = false },
             rpa_si = {
-                dialog_estas_tienda = false
-                bottom_sheet_review_privado = true
-                segun_user_tienda = true
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    if (verificarUbiActiva(context)) {
+                        dialog_estas_tienda = false
+                        bottom_sheet_review_privado = true
+                        segun_user_tienda = true
+                    } else {
+                        dialogo_ubi_activa = true
+                    }
+                } else {
+                    permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+
             },
             rpa_no = {
                 dialog_estas_tienda = false
@@ -256,88 +243,80 @@ fun bottom_navigation(navController: NavController) {
             })
     }
 
-    if(bottom_sheet_review_privado){
-        bottom_Sheet_seguro(viewmodel,id_tienda_review, ondimis = {
-            bottom_sheet_review_privado=!bottom_sheet_review_privado
-        }, clik_envio = { ratingValue, texto ->
-                if (segun_user_tienda) {
-                    if (ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        rango_estrellas = ratingValue
-                        descripcion = texto
-                        if (verificarUbiActiva(context)) {
-                            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                                Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
-                                val userLatLng = LatLng(location.latitude, location.longitude)
+    if (bottom_sheet_review_privado) {
+        bottom_Sheet_seguro(viewmodel, id_tienda_review, ondimis = {
+            bottom_sheet_review_privado = !bottom_sheet_review_privado
+        }, clik_envio = { ratingValue, texto, location ->
+            if (segun_user_tienda) {
+                rango_estrellas = ratingValue
+                descripcion = texto
 
-                                val (distancia, dentro) = estaDentroDeTienda(
-                                    userLatLng.latitude,
-                                    userLatLng.longitude,
-                                    latitude_tienda,
-                                    longitude_tienda
-                                )
+                Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
 
-                                estado_presencial_tienda_lugar = dentro
-
-                                Log.d(
-                                    "ReviewUbicacion",
-                                    "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
-                                )
-
-                                viewmodel.agregar_review(
-                                    crearReview(
-                                        rango_estrellas,
-                                        descripcion,
-                                        estado_presencial_tienda_lugar,
-                                        id_tienda_review.id_tienda_lugar,
-                                        id_tienda_review.localida_lugar
-                                    )
-                                )
-
-                                Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
-                            }
-                        } else {
-                            dialogo_ubi_activa = true
-                        }
-
-                    } else {
-                        permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                    }
-
-
-                } else {
-                    viewmodel.agregar_review(
-                        crearReview(
-                            ratingValue,
-                            texto,
-                            false,
-                            id_tienda_review.id_tienda_lugar,
-                            id_tienda_review.localida_lugar
-                        )
+                val (distancia, dentro) = if (location != null) {
+                    estaDentroDeTienda(
+                        location.latitude,
+                        location.longitude,
+                        latitude_tienda,
+                        longitude_tienda
                     )
+                } else {
+                    0f to false
                 }
+
+                estado_presencial_tienda_lugar = dentro
+
+                Log.d(
+                    "ReviewUbicacion",
+                    "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
+                )
+
+                viewmodel.agregar_review(
+                    crearReview(
+                        rango_estrellas,
+                        descripcion,
+                        estado_presencial_tienda_lugar,
+                        id_tienda_review.id_tienda_lugar,
+                        id_tienda_review.localida_lugar
+                    )
+                )
+                Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
+
+            } else {
+                viewmodel.agregar_review(
+                    crearReview(
+                        ratingValue,
+                        texto,
+                        false,
+                        id_tienda_review.id_tienda_lugar,
+                        id_tienda_review.localida_lugar
+                    )
+                )
+            }
 
         })
     }
 
 
     if (bottom_sheet) {
-        bottom_sheet_review(tipo=estado_form_review, viewmodel=viewmodel, data_class_review=id_tienda_review,  ondimis= {
-           bottom_sheet = !bottom_sheet
-        },clik_envio= { ratingValue, texto ->
-            viewmodel.agregar_review(
-                crearReview(
-                    ratingValue,
-                    texto,
-                    true,
-                    id_tienda_review.id_tienda_lugar,
-                    id_tienda_review.localida_lugar
+        bottom_sheet_review(
+            tipo = estado_form_review,
+            viewmodel = viewmodel,
+            data_class_review = id_tienda_review,
+            ondimis = {
+                bottom_sheet = !bottom_sheet
+            },
+            clik_envio = { ratingValue, texto ->
+                viewmodel.agregar_review(
+                    crearReview(
+                        ratingValue,
+                        texto,
+                        true,
+                        id_tienda_review.id_tienda_lugar,
+                        id_tienda_review.localida_lugar
+                    )
                 )
-            )
-        })
+            })
     }
 
     if (dialogo_ubi_activa) {
@@ -364,9 +343,6 @@ private fun handleScanResult(
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
         return
     }
-
-    Log.d("obtenoemos_resultado", contenidoEscaneado)
-
     try {
         if (contenidoEscaneado.startsWith("Tienda|")) {
             val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")

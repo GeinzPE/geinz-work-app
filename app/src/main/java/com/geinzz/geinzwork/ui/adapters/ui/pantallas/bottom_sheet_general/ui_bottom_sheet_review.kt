@@ -1,7 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.annotation.SuppressLint
+import android.location.Location
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +55,12 @@ import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.crearReview
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaDentroDeTienda
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewmodel_review
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -183,21 +192,31 @@ fun bottom_sheet_review(
     }
 }
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_Sheet_seguro(
     viewmodel: viewmodel_review,
     data_class_review: data_class_review,
-    ondimis: () -> Unit, clik_envio: (Int, String) -> Unit
+    ondimis: () -> Unit, clik_envio: (Int, String, Location?) -> Unit,
 ) {
+
     firebaseAuth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var ubicacionPrevia by remember { mutableStateOf<Location?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val _datos_TL_review = viewmodel._datos_TL_review.observeAsState()
     val _verificar_review_exsit = viewmodel._verificar_review_exsit.observeAsState()
     val _review_send = viewmodel._review_send.observeAsState(initial = false)
     var texto by remember { mutableStateOf("") }
     var ratingValue by remember { mutableStateOf(0) }
-
+    LaunchedEffect(Unit) {
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            ubicacionPrevia = location
+            Log.d("ReviewUbicacion", "Ubicación prefetch -> $location")
+        }
+    }
     // cargar datos de la tienda
     LaunchedEffect(data_class_review) {
         viewmodel.set_datos_TL_review(data_class_review)
@@ -296,7 +315,7 @@ fun bottom_Sheet_seguro(
 
 
                 Button(onClick = {
-                    clik_envio(ratingValue, texto)
+                    clik_envio(ratingValue, texto,ubicacionPrevia)
                 }) {
                     texto_generico_one_line("Calificar")
                 }
@@ -317,6 +336,7 @@ fun FullStarRating(
     initialRating: Int = 0,
     onRatingChanged: (Int) -> Unit
 ) {
+
     var rating by remember { mutableStateOf(initialRating) }
 
     LaunchedEffect(initialRating) {
