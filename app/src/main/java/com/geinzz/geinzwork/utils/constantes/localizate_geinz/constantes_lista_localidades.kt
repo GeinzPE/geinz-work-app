@@ -464,7 +464,7 @@ object constantes_lista_localidades {
         tiendaLat: Double,
         tiendaLng: Double,
         radioMetros: Float = 50f
-    ): Boolean {
+    ): Pair<Float, Boolean> {
         val userLocation = Location("").apply {
             latitude = userLat
             longitude = userLng
@@ -476,8 +476,8 @@ object constantes_lista_localidades {
         }
 
         val distancia = userLocation.distanceTo(tiendaLocation) // en metros
-
         val dentro = distancia <= radioMetros
+
         Log.d("validacion_tienda", "$userLat $userLng $tiendaLat $tiendaLng")
         if (!dentro) {
             Log.d(
@@ -491,9 +491,8 @@ object constantes_lista_localidades {
             )
         }
 
-        return dentro
+        return Pair(distancia, dentro)
     }
-
 
     val lista_img_seguridad = listOf(
         R.drawable.barranca_comisaria,

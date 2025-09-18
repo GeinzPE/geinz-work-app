@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -34,7 +33,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,34 +48,37 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
+import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_Sheet_seguro
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_review
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaDentroDeTienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
+import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.remoteMessage
 
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import kotlinx.coroutines.launch
+
+private lateinit var firebaseAuth: FirebaseAuth
 
 @SuppressLint("MissingPermission")
 @Composable
 fun bottom_navigation(navController: NavController) {
+    firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val items = listOf(
         Items_menu.pantalla1,
@@ -86,11 +87,12 @@ fun bottom_navigation(navController: NavController) {
         Items_menu.pantalla4
     )
 
-
+    val viewmodel: viewmodel_review = viewModel()
     var selected_item by remember { mutableIntStateOf(0) }
     var dialog_estas_tienda by remember { mutableStateOf(false) }
     var validacion_tienda_cordenadas by remember { mutableStateOf(false) }
     var bottom_sheet by remember { mutableStateOf(false) }
+    var bottom_sheet_review_privado by remember { mutableStateOf(false) }
     var id_tienda_review by remember { mutableStateOf(data_class_review("", "")) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -102,6 +104,14 @@ fun bottom_navigation(navController: NavController) {
     var latitude_tienda by remember { mutableStateOf(0.0) }
     var longitude_tienda by remember { mutableStateOf(0.0) }
 
+    var estado_presencial_tienda_lugar by remember { mutableStateOf(false) }
+    var rango_estrellas by remember { mutableStateOf(0) }
+    var descripcion by remember { mutableStateOf("") }
+    var estado_form_review by remember { mutableStateOf("") }
+
+    var segun_user_tienda by remember { mutableStateOf(false) }
+
+    var datos_review by remember { mutableStateOf(datos_review()) }
 
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
@@ -109,19 +119,27 @@ fun bottom_navigation(navController: NavController) {
             handleScanResult(
                 context,
                 result?.contents,
-                crear_ruta = {},
-
+                crear_ruta = { lat, lng ->
+                    constantes_lista_localidades.abrir_google_maps(context, lat, lng) { dialogo ->
+                        if (dialogo) Toast.makeText(
+                            context,
+                            "Activa tu ubicación primero",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
                 open_review_p = { id_tienda, localidad, latitude, longitude ->
-//                    dialog_estas_tienda = true
-//                    latitude_tienda = latitude
-//                    longitude_tienda = longitude
+                    dialog_estas_tienda = true
+                    latitude_tienda = latitude
+                    longitude_tienda = longitude
                     id_tienda_review = data_class_review(id_tienda, localidad)
-                    bottom_sheet = true
+
+
                 },
                 open_review_public = { id_tienda, localidad ->
                     id_tienda_review = data_class_review(id_tienda, localidad)
                     bottom_sheet = true
-
+                    estado_form_review = "normal"
                 })
 
         }
@@ -183,20 +201,43 @@ fun bottom_navigation(navController: NavController) {
 
     }
 
-    if (bottom_sheet) {
-        Log.d("id_tienda_reviewid_tienda_review", id_tienda_review.toString())
-        bottom_sheet_review(id_tienda_review) {
-            bottom_sheet = !bottom_sheet
-        }
-    }
-
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            validacion_tienda_cordenadas = true
+            if (verificarUbiActiva(context)) {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    val userLatLng = LatLng(location.latitude, location.longitude)
+                    val (distancia, dentro) = estaDentroDeTienda(
+                        userLatLng.latitude,
+                        userLatLng.longitude,
+                        latitude_tienda,
+                        longitude_tienda
+                    )
+
+                    estado_presencial_tienda_lugar = dentro
+
+                    Log.d(
+                        "obtenoemos_la_tog",
+                        "userprimario = $userLatLng:  $estado_presencial_tienda_lugar"
+                    )
+
+                    viewmodel.agregar_review(
+                        crearReview(
+                            rango_estrellas,
+                            descripcion,
+                            estado_presencial_tienda_lugar,
+                            id_tienda_review.id_tienda_lugar,
+                            id_tienda_review.localida_lugar
+                        )
+                    )
+                }
+            } else {
+                dialogo_ubi_activa = true
+            }
         } else {
-            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT)
+                .show()
         }
     }
     if (dialog_estas_tienda) {
@@ -204,68 +245,100 @@ fun bottom_navigation(navController: NavController) {
             onClose = { dialog_estas_tienda = false },
             rpa_si = {
                 dialog_estas_tienda = false
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    validacion_tienda_cordenadas = true
-                } else {
-                    permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                }
-
+                bottom_sheet_review_privado = true
+                segun_user_tienda = true
             },
-            rpa_no = { dialog_estas_tienda = false })
-    }
-    @SuppressLint("MissingPermission")
-    LaunchedEffect(validacion_tienda_cordenadas) {
-        if (validacion_tienda_cordenadas) {
-            if (verificarUbiActiva(context)) {
-                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                    if (location != null) {
-                        val userLatLng = LatLng(location.latitude, location.longitude)
-                       var estado =estaDentroDeTienda(
-                            userLatLng.latitude,
-                            userLatLng.longitude,
-                            latitude_tienda,
-                            longitude_tienda
-                        )
+            rpa_no = {
+                dialog_estas_tienda = false
+                bottom_sheet_review_privado = true
+                segun_user_tienda = false
 
-                        Log.d("obtenoemos_la_tog", "userprimario = $userLatLng:  $estado" )
+            })
+    }
+
+    if(bottom_sheet_review_privado){
+        bottom_Sheet_seguro(viewmodel,id_tienda_review, ondimis = {
+            bottom_sheet_review_privado=!bottom_sheet_review_privado
+        }, clik_envio = { ratingValue, texto ->
+                if (segun_user_tienda) {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        rango_estrellas = ratingValue
+                        descripcion = texto
+                        if (verificarUbiActiva(context)) {
+                            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                                Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
+                                val userLatLng = LatLng(location.latitude, location.longitude)
+
+                                val (distancia, dentro) = estaDentroDeTienda(
+                                    userLatLng.latitude,
+                                    userLatLng.longitude,
+                                    latitude_tienda,
+                                    longitude_tienda
+                                )
+
+                                estado_presencial_tienda_lugar = dentro
+
+                                Log.d(
+                                    "ReviewUbicacion",
+                                    "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
+                                )
+
+                                viewmodel.agregar_review(
+                                    crearReview(
+                                        rango_estrellas,
+                                        descripcion,
+                                        estado_presencial_tienda_lugar,
+                                        id_tienda_review.id_tienda_lugar,
+                                        id_tienda_review.localida_lugar
+                                    )
+                                )
+
+                                Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
+                            }
+                        } else {
+                            dialogo_ubi_activa = true
+                        }
+
                     } else {
-                        // ⚡ Si no hay ubicación previa, pedimos una nueva
-                        val request = LocationRequest.Builder(
-                            Priority.PRIORITY_HIGH_ACCURACY,
-                            1000L
-                        ).setMaxUpdates(1).build()
-
-                        fusedLocationClient.requestLocationUpdates(
-                            request,
-                            object : LocationCallback() {
-                                override fun onLocationResult(result: LocationResult) {
-                                    fusedLocationClient.removeLocationUpdates(this)
-                                    val loc = result.lastLocation
-                                    if (loc != null) {
-                                        val userLatLng = LatLng(loc.latitude, loc.longitude)
-                                        Log.d("obtenoemos_la_tog", "userRequest = $userLatLng")
-                                    } else {
-                                        Log.e(
-                                            "obtenoemos_la_tog",
-                                            "No se pudo obtener ubicación nueva"
-                                        )
-                                    }
-                                }
-                            },
-                            Looper.getMainLooper()
-                        )
+                        permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                     }
+
+
+                } else {
+                    viewmodel.agregar_review(
+                        crearReview(
+                            ratingValue,
+                            texto,
+                            false,
+                            id_tienda_review.id_tienda_lugar,
+                            id_tienda_review.localida_lugar
+                        )
+                    )
                 }
-            } else {
-                dialogo_ubi_activa = true
-            }
-        }
+
+        })
     }
 
+
+    if (bottom_sheet) {
+        bottom_sheet_review(tipo=estado_form_review, viewmodel=viewmodel, data_class_review=id_tienda_review,  ondimis= {
+           bottom_sheet = !bottom_sheet
+        },clik_envio= { ratingValue, texto ->
+            viewmodel.agregar_review(
+                crearReview(
+                    ratingValue,
+                    texto,
+                    true,
+                    id_tienda_review.id_tienda_lugar,
+                    id_tienda_review.localida_lugar
+                )
+            )
+        })
+    }
 
     if (dialogo_ubi_activa) {
         dialog_sin_ubi__rutas(
@@ -283,7 +356,7 @@ fun bottom_navigation(navController: NavController) {
 private fun handleScanResult(
     context: Context,
     contenidoEscaneado: String?,
-    crear_ruta: () -> Unit,
+    crear_ruta: (lat: Double, long: Double) -> Unit,
     open_review_p: (id_Tienda: String, localidad: String, latitude: Double, longitude: Double) -> Unit,
     open_review_public: (id_tienda: String, localidad: String) -> Unit
 ) {
@@ -298,23 +371,15 @@ private fun handleScanResult(
         if (contenidoEscaneado.startsWith("Tienda|")) {
             val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")
             val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(base64Coordenadas)
-            constantes_lista_localidades.abrir_google_maps(context, lat, lng) { dialogo ->
-                if (dialogo) Toast.makeText(
-                    context,
-                    "Activa tu ubicación primero",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            crear_ruta(lat, lng)
         } else if (contenidoEscaneado.startsWith("Review_C|")) {
             val partes = contenidoEscaneado.split("|")
             if (partes.size >= 4) {
                 val idTienda = partes[1]
                 val base64Coordenadas = partes[3]
-
                 val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(
                     base64Coordenadas
                 )
-
                 open_review_p(idTienda, "barranca", lat, lng)
             } else {
                 Toast.makeText(context, "Formato QR inválido", Toast.LENGTH_SHORT).show()
@@ -355,6 +420,24 @@ fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa
 
     )
 }
+
+fun crearReview(
+    ratingValue: Int,
+    texto: String,
+    presencial: Boolean,
+    id_tienda_lugar: String,
+    localida_lugar: String
+) = datos_review(
+    id_usuario = firebaseAuth.uid.toString(),
+    cantidad_Strar = ratingValue,
+    descripcion_review = texto,
+    verificado_presencial = presencial,
+    id_tienda_lugar = id_tienda_lugar,
+    localidad_tienda = localida_lugar,
+    hora = "",
+    fecha = ""
+)
+
 
 @Composable
 fun HandleBackPress(navController: NavController) {
