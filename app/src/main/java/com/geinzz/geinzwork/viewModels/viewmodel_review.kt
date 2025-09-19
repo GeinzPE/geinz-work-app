@@ -17,8 +17,8 @@ class viewmodel_review : ViewModel() {
     val instacia_repo = repo_review()
 
 
-    private val datos_TL_review = MutableLiveData<data_class_resultado_tienda_lugar?>()
-    val _datos_TL_review: LiveData<data_class_resultado_tienda_lugar?> get() = datos_TL_review
+    private val datos_TL_review = MutableLiveData<data_class_resultado_tienda_lugar>()
+    val _datos_TL_review: LiveData<data_class_resultado_tienda_lugar> get() = datos_TL_review
 
     private val review_send = MutableLiveData<Boolean>()
     val _review_send: LiveData<Boolean> get() = review_send
@@ -31,7 +31,7 @@ class viewmodel_review : ViewModel() {
             try {
                 datos_TL_review.value = instacia_repo.obtener_datos_tienda(data_class_review)
             } catch (e: Exception) {
-                datos_TL_review.value = null
+                datos_TL_review.value = data_class_resultado_tienda_lugar()
             }
         }
     }

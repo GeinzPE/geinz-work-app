@@ -56,6 +56,7 @@ import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_Sheet_seguro
@@ -381,8 +382,13 @@ fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa
             Button(onClick = { rpa_si() }) { texto_generico_one_line("Si") }
         },
         dismissButton = { TextButton(onClick = { rpa_no() }) { texto_generico_one_line("no") } },
-        title = { texto_generico_one_line("verificacion de entrada") },
-        text = { "Te ecuentras presencial mente en la tienda localizada?" },
+        title = { texto_generico_one_line("Verifica tu reseña") },
+        text = {
+            texto_generico_multilinea(
+                "Para dejar una reseña en este establecimiento, Geinz necesita verificar que estés presencialmente en el local. Si confirmas que estás aquí, tu reseña será verificada. Si no, tu reseña se registrará como no verificada",
+                MaterialTheme.typography.bodyMedium
+            )
+        },
         icon = {
             Icon(
                 imageVector = Icons.Filled.LocationOn,

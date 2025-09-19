@@ -55,6 +55,7 @@ import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.crearReview
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaDentroDeTienda
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
@@ -128,11 +129,16 @@ fun bottom_sheet_review(
                     .verticalScroll(rememberScrollState())
                     .imePadding()
             ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(
-                                _datos_TL_review.value?.imagen ?: R.drawable.cargando_img_categorias
+                                _datos_TL_review.value?.imagen
+                                    ?: R.drawable.cargando_img_categorias
                             )
                             .size(200, 200)
                             .placeholder(R.drawable.cargando_img_categorias)
@@ -150,7 +156,12 @@ fun bottom_sheet_review(
                             )
                             .clip(RoundedCornerShape(16.dp))
                     )
+                    spacer_vertical(10.dp)
+                    texto_generico_one_line(_datos_TL_review.value?.nombre.toString())
+
                 }
+
+
 
                 FullStarRating(
                     starSize = 40.dp,
@@ -315,7 +326,7 @@ fun bottom_Sheet_seguro(
 
 
                 Button(onClick = {
-                    clik_envio(ratingValue, texto,ubicacionPrevia)
+                    clik_envio(ratingValue, texto, ubicacionPrevia)
                 }) {
                     texto_generico_one_line("Calificar")
                 }
