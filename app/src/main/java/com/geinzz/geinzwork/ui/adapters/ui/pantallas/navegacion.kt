@@ -38,6 +38,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.ui_pantalla_busqueda
@@ -50,6 +51,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPres
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_seguirdad
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -57,6 +59,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
+import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
 
 private lateinit var firebaseAuth: FirebaseAuth
@@ -77,8 +80,27 @@ fun nativationWrapper(
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val viewmodel_usuario_registrado: viewmodel_usuario_registrado = viewModel()
     val focusRequester = remember { FocusRequester() }
     var isvisble_buttomvar by rememberSaveable { mutableStateOf(true) }
+    val datos_user by viewmodel_usuario_registrado.userData.observeAsState()
+
+    var datos_principales_user by remember {
+        mutableStateOf(datos_principales_user("Usuario", "", ""))
+    }
+
+    LaunchedEffect(Unit) {
+        firebaseAuth.currentUser?.uid?.let { uid ->
+            viewmodel_usuario_registrado.obtener_datos_user_registrado(uid)
+        }
+    }
+
+    LaunchedEffect(datos_user) {
+        datos_user?.let {
+            datos_principales_user = datos_principales_user(it.nombre, it.img_perfil, it.localida)
+        }
+    }
+
 
     SideEffect {
         // Si la ruta actual es de las principales...
@@ -147,7 +169,7 @@ fun nativationWrapper(
                     )
                 ) {
 
-                    bottom_navigation(navController)
+                    bottom_navigation(datos_principales_user, navController)
 
                 }
             },
@@ -161,7 +183,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
-                        viewmodel,
+                        datos_principales_user,
                         categorias = { localidad, nombre ->
                             navController.navigate(
                                 mostrar_tiendas(
@@ -194,7 +216,9 @@ fun nativationWrapper(
                             navController.navigate("buscar")
 
                         },
-                        navController = navController
+                        listener_seguridad = { localida ->
+                            navController.navigate(ui_salud_seguridad(localida))
+                        },
                     )
                 }
                 // Login
@@ -216,12 +240,12 @@ fun nativationWrapper(
                         viewModel_filtrado_tiendas,
                         focusRequester = focusRequester,
                         mostrar = {
-                            Log.d("mandaomos","mostar")
+                            Log.d("mandaomos", "mostar")
                             isvisble_buttomvar = true
 
                         },
                         ocultar = {
-                            Log.d("mandaomos","opcultar")
+                            Log.d("mandaomos", "opcultar")
                             isvisble_buttomvar = false
                         })
                 }
@@ -300,12 +324,14 @@ fun nativationWrapper(
                         navController
                     )
                 }
+
+                composable<ui_salud_seguridad> { navback ->
+                    val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
+                    ui_salud_seguirdad(salud_Seguridad.localidad)
+                }
+
             }
         }
-//        Button(
-//            {},
-//            modifier = Modifier.align(Alignment.BottomEnd)
-//        ) { texto_generico_one_line("clikeame") }
 
         AnimatedVisibility(
             visible = mostrarCarga,

@@ -20,4 +20,3 @@ data class datos_review(
     val fecha: String="",
     )
 
-data class usuario_review(val nombre_user: String, val img_perfil: String)

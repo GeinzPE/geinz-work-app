@@ -55,6 +55,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -67,9 +68,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordena
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.messaging.remoteMessage
 
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -78,7 +77,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 
 @SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
-fun bottom_navigation(navController: NavController) {
+fun bottom_navigation(datos_principales_user: datos_principales_user, navController: NavController) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val items = listOf(
@@ -108,7 +107,6 @@ fun bottom_navigation(navController: NavController) {
     var estado_presencial_tienda_lugar by remember { mutableStateOf(false) }
     var rango_estrellas by remember { mutableStateOf(0) }
     var descripcion by remember { mutableStateOf("") }
-    var estado_form_review by remember { mutableStateOf("") }
 
     var segun_user_tienda by remember { mutableStateOf(false) }
 
@@ -140,7 +138,6 @@ fun bottom_navigation(navController: NavController) {
                 open_review_public = { id_tienda, localidad ->
                     id_tienda_review = data_class_review(id_tienda, localidad)
                     bottom_sheet = true
-                    estado_form_review = "normal"
                 })
 
         }
@@ -152,7 +149,6 @@ fun bottom_navigation(navController: NavController) {
                 .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
             containerColor = Color.Black
         ) {
-
             items.forEachIndexed { index, item ->
                 if (index == 2) {
                     Spacer(modifier = Modifier.width(50.dp))
@@ -301,7 +297,7 @@ fun bottom_navigation(navController: NavController) {
 
     if (bottom_sheet) {
         bottom_sheet_review(
-            tipo = estado_form_review,
+            datos_principales_user,
             viewmodel = viewmodel,
             data_class_review = id_tienda_review,
             ondimis = {
@@ -344,6 +340,7 @@ private fun handleScanResult(
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
         return
     }
+    Log.d("conteinod_escamedo",contenidoEscaneado)
     try {
         if (contenidoEscaneado.startsWith("Tienda|")) {
             val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")

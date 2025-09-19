@@ -99,6 +99,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
@@ -135,39 +136,26 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
-    viewmodel: viewModel_localizate_geinz,
+    datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
     ver_lugares: () -> Unit,
     listner_busqueda: () -> Unit,
-    navController: NavController,
+    listener_seguridad: (String) -> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
-    val datos_user by viewModel_cordenadas.userData.observeAsState(null)
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
-    val encontrados_activos_tiendass by viewmodel.encontrados_activos_tiendas.observeAsState()
 
-    var nombre_user: String by rememberSaveable { mutableStateOf("") }
-    var img_perfil by rememberSaveable { mutableStateOf("") }
-
-    if (firebaseAuth.currentUser != null) {
-        nombre_user = datos_user?.nombre ?: "Usuario"
-        img_perfil = datos_user?.img_perfil ?: ""
-    } else {
-        nombre_user = "Usuario"
-        img_perfil = ""
-    }
 
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.obtener_subcategorias(true)
         viewModel_cordenadas.obtner_filtrado_localidades()
-        viewModel_cordenadas.obtener_datos_user_registrado(firebaseAuth.uid.toString())
     }
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
@@ -214,7 +202,10 @@ fun pantalla_principal(
             state = listState,
         ) {
             item {
-                nombre_texto_img_perfil(nombre_user, img_perfil)
+                nombre_texto_img_perfil(
+                    datos_principales_user.nombre,
+                    datos_principales_user.img_perfil
+                )
             }
             stickyHeader() {
                 ColumnContenedorComun {
@@ -228,10 +219,11 @@ fun pantalla_principal(
                     localidad_defaul, _obtener_filtrado_localidades, { localidad_selecionada ->
                         localidadSeleccionada.value = localidad_selecionada
                     }, { esAniversario ->
-                        Log.d("esAniversarioaaaa",esAniversario.toString())
+                        Log.d("esAniversarioaaaa", esAniversario.toString())
                         if (esAniversarioHoy != esAniversario) {
                             esAniversarioHoy = esAniversario
-                        } })
+                        }
+                    })
                 spacer_vertical(25.dp)
             }
 
@@ -240,7 +232,7 @@ fun pantalla_principal(
                 apartado_explora_cat(
                     _categorias_tiendas,
                     localidad_defaul,
-                    nombre_user,
+                    datos_principales_user.nombre,
                     { nombre, localidad ->
                         categorias(localidad, nombre)
                     }, { categoria, localidad, nombre ->
@@ -251,21 +243,11 @@ fun pantalla_principal(
             item {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
-                    "ver eventos",
+                    "ver lugares",
                     "Descubre lugares en ${localidad_defaul}"
 
-                ) {}
+                ) { ver_lugares() }
                 spacer_vertical(30.dp)
-            }
-            item {
-
-//                InteractiveStarRating(
-//                    starSize = 40.dp,
-//                    onRatingChanged = { newRating ->
-//                        ratingValue = newRating
-//                        println("Calificación actual: $ratingValue")
-//                    }
-//                )
             }
             item {
                 spacer_vertical(10.dp)
@@ -274,16 +256,16 @@ fun pantalla_principal(
                 }
                 seguridad(
                     imgActual,
-                    "ver rutas",
+                    "Contactar",
                     "Salud y seguridad cuidadana"
-                ) { ver_lugares() }
+                ) { listener_seguridad(localidad_defaul) }
 
                 spacer_vertical(20.dp)
             }
             item {
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
-                    "ver Lugares",
+                    "ver eventos",
                     "Mira los eventos proximos de ${localidad_defaul}"
                 ) { ver_lugares() }
                 spacer_vertical(20.dp)
@@ -308,8 +290,6 @@ fun pantalla_principal(
     }
 
 }
-
-
 
 
 @Composable
@@ -457,7 +437,7 @@ fun cartas_filtrado(
                 label = "anchoCarta"
             )
             val fontSizeAnimada by animateFloatAsState(
-                targetValue = if (seleccionada) 20f else 18f, // tamaño expandido vs normal
+                targetValue = if (seleccionada) 20f else 18f,
                 label = "fontSizeAnimada"
             )
 
@@ -517,6 +497,7 @@ fun cartas_filtrado(
                         overflow = if (seleccionada) TextOverflow.Clip else TextOverflow.Ellipsis
                     )
 
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "${i.lista_subcategorias.size} categorías",
@@ -532,7 +513,7 @@ fun cartas_filtrado(
                         )
                     }
 
-                    spacer_vertical(5.dp)
+                    spacer_vertical(15.dp)
                 }
 
                 AnimatedVisibility(
@@ -565,6 +546,7 @@ fun cartas_filtrado(
         }
     }
 }
+
 @Composable
 fun texto_encimado_cartas(
     aniversario: Boolean,
@@ -620,8 +602,6 @@ fun texto_encimado_cartas(
                     Spacer(modifier = Modifier.height(0.dp))
                 }
             }
-
-
 
 
         }

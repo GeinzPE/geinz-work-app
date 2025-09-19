@@ -25,8 +25,8 @@ class viewModel_principal_geinz_work : ViewModel() {
     val _sub_cat_tiendas: LiveData<List<com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub>> get() = sub_cat_tiendas
 
 
-    private val _userData = MutableLiveData<datos_principales_user?>()
-    val userData: LiveData<datos_principales_user?> = _userData
+    private val _userData = MutableLiveData<datos_principales_user>()
+    val userData: LiveData<datos_principales_user> = _userData
 
     private val lista_filtrado_localida = MutableLiveData<List<localidades_filtrado>>()
     val _lista_filtrado_localidades: LiveData<List<localidades_filtrado>> get() = lista_filtrado_localida
@@ -40,16 +40,15 @@ class viewModel_principal_geinz_work : ViewModel() {
         }
     }
 
-    fun obtener_datos_user_registrado(id_user: String) {
-        Log.d("id_user", "$id_user")
-        viewModelScope.launch {
-            try {
-                _userData.value = instacia.obtenerDatosUser(id_user)
-            } catch (e: Exception) {
-                _userData.value = null
-            }
-        }
-    }
+//    fun obtener_datos_user_registrado(id_user: String) {
+//        viewModelScope.launch {
+//            try {
+//                _userData.value = instacia.obtenerDatosUser(id_user)
+//            } catch (e: Exception) {
+//                _userData.value = datos_principales_user()
+//            }
+//        }
+//    }
 
     fun obtener_subcategorias(solo5: Boolean = true) {
         viewModelScope.launch {

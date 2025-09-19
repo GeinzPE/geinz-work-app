@@ -21,6 +21,9 @@ data class mostrar_tiendas(val nombre_user: String, val localidad: String)
 @Serializable
 data class map_perzonalizado(val tipo: String)
 
+@Serializable
+data class ui_salud_seguridad(val localidad: String)
+
 
 
 

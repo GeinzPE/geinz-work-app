@@ -532,7 +532,7 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 fun TextoSubrayado(
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    modifier: Modifier= Modifier
+    modifier: Modifier = Modifier
 ) {
     Text(
         text = texto,
@@ -570,21 +570,23 @@ fun rutas_turismo(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp * 0.6f) // ahora cubre 60% de la carta desde abajo
+                .height(400.dp * 0.6f)
                 .align(Alignment.BottomStart)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Transparent,          // arriba: totalmente transparente
-                            Color(0x33000000),          // negro muy suave
-                            Color(0x66000000),          // negro semi-transparente
-                            Color(0xDD000000)           // negro más oscuro abajo
+                            Color.Transparent,
+                            Color(0x33000000),
+                            Color(0x66000000),
+                            Color(0xDD000000)
                         )
                     )
                 )
         )
         texto_encimado(
-            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp),
             texto_button,
             texto_baner
         ) { clik_button() }
@@ -601,10 +603,9 @@ fun seguridad(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(500.dp) // altura fija de la carta
+            .height(500.dp)
             .clip(RoundedCornerShape(5))
     ) {
-        // Imagen principal
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(drawable)
@@ -739,7 +740,8 @@ fun carta_turismo_google_mpa(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth().padding( 10.dp)
+            .fillMaxWidth()
+            .padding(10.dp)
             .clickable {
                 onClick(id_lugar, latitud, longitud)
             },
@@ -928,7 +930,7 @@ fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass
                     contentScale = ContentScale.Crop
                 )
                 spacer_horizonta(10.dp)
-                Column (){
+                Column() {
                     texto_generico_one_line(
                         texto = it.nombre.toString().capitalizeFirst(),
                         MaterialTheme.typography.titleLarge
@@ -947,7 +949,10 @@ fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass
                         )
                     }
                     spacer_vertical(5.dp)
-                    tags_subcateogiras(it.lista_subcategorias, modifier = Modifier.padding(end = 10.dp))
+                    tags_subcateogiras(
+                        it.lista_subcategorias,
+                        modifier = Modifier.padding(end = 10.dp)
+                    )
                 }
             }
         }

@@ -3,13 +3,16 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,27 +46,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
-import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.crearReview
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaDentroDeTienda
-import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -70,7 +75,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_review(
-    tipo: String,
+    datos_principales_user: datos_principales_user,
     viewmodel: viewmodel_review,
     data_class_review: data_class_review,
     ondimis: () -> Unit,
@@ -113,6 +118,11 @@ fun bottom_sheet_review(
         }
     }
 
+    var clicked by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (clicked) 1.05f else 1f)
+    val alphaText by animateFloatAsState(if (clicked) 1f else 0f)
+
+
     ModalBottomSheet(
         onDismissRequest = { ondimis() },
         sheetState = sheetState,
@@ -122,14 +132,20 @@ fun bottom_sheet_review(
         containerColor = MaterialTheme.colorScheme.background
     ) {
         if (firebaseAuth.currentUser != null) {
-            texto_generico_one_line("abiertotttt bottom sheet")
+
             Column(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 30.dp)
                     .verticalScroll(rememberScrollState())
                     .imePadding()
-            ) {
 
+            ) {
+                Text(
+                    text = "Cuéntanos tu experiencia ${datos_principales_user.nombre}",
+                    fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
+                    modifier = Modifier.padding(end = 20.dp)
+                )
+                spacer_vertical(20.dp)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
@@ -140,43 +156,54 @@ fun bottom_sheet_review(
                                 _datos_TL_review.value?.imagen
                                     ?: R.drawable.cargando_img_categorias
                             )
-                            .size(200, 200)
+                            .size(160, 160)
                             .placeholder(R.drawable.cargando_img_categorias)
                             .error(R.drawable.cargando_img_categorias)
                             .build(),
                         contentDescription = "Imagen de la tienda",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(200.dp)
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            }
                             .shadow(
                                 elevation = 24.dp,
                                 ambientColor = Color.White.copy(alpha = 0.8f),
                                 spotColor = Color.White.copy(alpha = 0.6f)
                             )
                             .clip(RoundedCornerShape(16.dp))
+                            .clickable {
+                                clicked = !clicked
+                            }
+                            .width(160.dp)
+                            .height(160.dp)
+
                     )
-                    spacer_vertical(10.dp)
-                    texto_generico_one_line(_datos_TL_review.value?.nombre.toString())
+                    spacer_vertical(15.dp)
+                    AnimatedVisibility(
+                        clicked
+                    ) {
+                        texto_generico_one_line(_datos_TL_review.value?.nombre.toString())
+                    }
 
                 }
-
-
+                spacer_vertical(20.dp)
 
                 FullStarRating(
-                    starSize = 40.dp,
+                    starSize = 30.dp,
                     onRatingChanged = { newRating ->
                         ratingValue = newRating
                     },
                     initialRating = ratingValue,
                 )
+                spacer_vertical(20.dp)
 
                 OutlinedTextField(
                     value = texto,
                     onValueChange = { texto = it },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
+                        .fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     label = { retornar_pleaceholder_label("Déjanos tu opinión") },
                     placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
@@ -185,16 +212,14 @@ fun bottom_sheet_review(
                     maxLines = 10,
                     minLines = 4
                 )
-
-                when (tipo) {
-                    "normal" -> {
-                        Button(onClick = {
-                            clik_envio(ratingValue, texto)
-                        }) {
-                            texto_generico_one_line("Calificar")
-                        }
-                    }
+                spacer_vertical(10.dp)
+                Button(
+                    onClick = { clik_envio(ratingValue, texto) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    texto_generico_one_line("Calificar")
                 }
+
 
             }
         } else {
@@ -342,7 +367,7 @@ fun bottom_Sheet_seguro(
 @Composable
 fun FullStarRating(
     modifier: Modifier = Modifier,
-    starSize: Dp = 50.dp,
+    starSize: Dp = 15.dp,
     maxStars: Int = 5,
     initialRating: Int = 0,
     onRatingChanged: (Int) -> Unit
@@ -354,27 +379,47 @@ fun FullStarRating(
         rating = initialRating
     }
 
-    Row(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    val x = change.position.x
-                    val starWidth = size.width / maxStars
-                    val newRating = ((x / starWidth).toInt() + 1).coerceIn(0, maxStars)
-                    rating = newRating
-                    onRatingChanged(rating)
-                }
-            }
-            .height(starSize)
-    ) {
-        for (i in 1..maxStars) {
-            Icon(
-                imageVector = if (i <= rating) Icons.Default.Star else Icons.Default.StarBorder,
-                contentDescription = "Star $i",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(starSize)
-            )
-        }
+    fun ratingText(rating: Int): String = when (rating) {
+        1 -> "Muy malo 😡"
+        2 -> "Malo 😞"
+        3 -> "Regular 😐"
+        4 -> "Bueno 🙂"
+        5 -> "Excelente 🤩"
+        else -> ""
     }
+
+
+    Column (  horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()){
+        Row(
+            modifier = modifier
+                .pointerInput(Unit) {
+                    detectDragGestures { change, _ ->
+                        val x = change.position.x
+                        val starWidth = size.width / maxStars
+                        val newRating = ((x / starWidth).toInt() + 1).coerceIn(0, maxStars)
+                        rating = newRating
+                        onRatingChanged(rating)
+                    }
+                }
+                .height(starSize)
+        ) {
+            for (i in 1..maxStars) {
+                Box(
+                    modifier = Modifier
+                        .size(starSize)
+                        .background(
+                            color = if (i <= rating) Color.White else Color.Gray.copy(alpha = 0.4f),
+                            shape = CircleShape
+                        )
+                        .padding(4.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+
+        }
+        spacer_vertical(10.dp)
+        texto_generico_one_line(ratingText(rating))
+    }
+
 }
 
