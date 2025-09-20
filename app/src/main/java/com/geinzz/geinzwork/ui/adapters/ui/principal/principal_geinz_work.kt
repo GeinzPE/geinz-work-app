@@ -672,11 +672,12 @@ fun filtrado_localidades(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
+
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.confetii))
     var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
+//    var index by remember { mutableStateOf(0) }
     LaunchedEffect(ultimaLocalidad) {
         ultimaLocalidad.let { seleccionada ->
             localidad_defecto = seleccionada
@@ -688,21 +689,28 @@ fun filtrado_localidades(
 
             clikeable(aniversarioHoy)
 
-            val index = lista_localidades.indexOfFirst {
-                it.nombre.equals(seleccionada, ignoreCase = true)
-            }
-            if (index >= 0) {
-                listState.scrollToItem(index)
-            }
+//            index = lista_localidades.indexOfFirst {
+//                it.nombre.equals(seleccionada, ignoreCase = true)
+//            }.coerceAtLeast(0)
+//            if (index >= 0) {
+//
+//            }
         }
     }
 
 
+
     Spacer(modifier = Modifier.height(10.dp))
     if (lista_localidades.isNotEmpty()) {
-        val carouselState = rememberCarouselState {
-            lista_localidades.size
-        }
+        val index = lista_localidades.indexOfFirst {
+            it.nombre.equals(ultimaLocalidad, ignoreCase = true)
+        }.coerceAtLeast(0)
+
+        val carouselState = rememberCarouselState(
+            initialItem = index,
+            itemCount = { lista_localidades.size }
+        )
+        Log.d("indexindex",index.toString())
         HorizontalMultiBrowseCarousel(
             state = carouselState,
             preferredItemWidth = screenWidth * 0.8f,
@@ -723,7 +731,7 @@ fun filtrado_localidades(
                             val newIndex =
                                 lista_localidades.indexOfFirst { it.nombre == item.nombre }
                             if (newIndex >= 0) {
-                                listState.animateScrollToItem(newIndex)
+//                                listState.animateScrollToItem(newIndex)
                             }
                         }
                         localidad_defecto = item.nombre

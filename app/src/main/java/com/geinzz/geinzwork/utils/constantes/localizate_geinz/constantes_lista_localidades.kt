@@ -1119,7 +1119,7 @@ object constantes_lista_localidades {
 
     fun esAniversarioHoy(localidad: String): Boolean {
         val aniversarios = mapOf(
-            "barranca" to Pair(1984, "19 de septiembre"),
+            "barranca" to Pair(1984, "20 de septiembre"),
             "supe" to Pair(1874, "6 de noviembre"),
             "paramonga" to Pair(1936, "22 de octubre"),
             "pativilca" to Pair(1871, "2 de enero"),
