@@ -144,12 +144,10 @@ fun Pantalla_filtrado_tiendas(
             delay(6000)
             listaMostrar = estadoFiltrosUi.tiendasFiltradas
             estadoCarga.value = selec_class_estados_carga.sin_carga
-            // 👇 Solo poner false si es la primera vez
             if (btn_mostrar_mapa == false) {
                 btn_mostrar_mapa = false
             }
         } else if (categoria_seleccionda.isNotBlank() && categoria_seleccionda != categoria_anterior) {
-            // 👇 No fuerces siempre true
             if (!btn_mostrar_mapa) {
                 btn_mostrar_mapa = true
             }

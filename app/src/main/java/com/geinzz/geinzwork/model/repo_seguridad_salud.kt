@@ -17,16 +17,18 @@ class repo_seguridad_salud {
             val data = datos.data
             val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
             val numero_contacto = data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
-            val latitud= (ubicacion["latitud"] as? Number ?: 0) .toDouble()
-            val longitud=(ubicacion["longitud"] as? Number ?: 0).toDouble()
+            val latitud = (ubicacion["latitud"] as? Number ?: 0).toDouble()
+            val longitud = (ubicacion["longitud"] as? Number ?: 0).toDouble()
+            val categoria = data?.get("categoria") as? String ?: ""
             val servicios = dataclass_seguridad(
                 nombre_ = data.get("nombre") as? String ?: "",
                 direccion = ubicacion["direccion"] as? String ?: "",
                 numero_llamada = "",
                 numero_whatsapp = "",
-                img_ref = data.get("img_ref")as? String?:"",
+                img_ref = data.get("img_ref") as? String ?: "",
                 latidud = latitud,
-                longitud = longitud
+                longitud = longitud,
+                categoria = categoria
             )
             lista.add(servicios)
 

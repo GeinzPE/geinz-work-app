@@ -13,32 +13,44 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.ui_pantalla_busqueda
@@ -68,7 +80,8 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun nativationWrapper(
-    viewmodel: viewModel_localizate_geinz
+    viewmodel: viewModel_localizate_geinz,
+    connectivityViewModel: ConnectivityViewModel = viewModel()
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -150,6 +163,8 @@ fun nativationWrapper(
             isvisble_buttomvar = true
         }
     }
+    val isConnected by connectivityViewModel.isConnected.collectAsState()
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             bottomBar = {
@@ -215,7 +230,6 @@ fun nativationWrapper(
                         ver_lugares = { navController.navigate(lugares_turisticos) },
                         listner_busqueda = {
                             navController.navigate("buscar")
-
                         },
                         listener_seguridad = { localida ->
                             navController.navigate(ui_salud_seguridad(localida))
@@ -340,6 +354,23 @@ fun nativationWrapper(
 
             }
         }
+        AnimatedVisibility(
+            visible = !isConnected, enter = slideInVertically { -it },
+            exit = slideOutVertically { -it }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp)
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp))
+                    .background(Color.Red),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                texto_generico_one_line("Sin conexión a Internet", color = Color.White, modifier = Modifier.padding(5.dp))
+            }
+        }
+
 
         AnimatedVisibility(
             visible = mostrarCarga,

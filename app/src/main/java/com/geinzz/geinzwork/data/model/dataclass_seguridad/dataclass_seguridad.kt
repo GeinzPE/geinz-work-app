@@ -7,5 +7,6 @@ data class dataclass_seguridad(
     val numero_whatsapp: String,
     val latidud: Double,
     val longitud: Double,
-    val img_ref:String=""
+    val img_ref:String="",
+    val categoria:String=""
 )

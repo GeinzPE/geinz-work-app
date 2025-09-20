@@ -681,7 +681,6 @@ fun filtrado_localidades(
         ultimaLocalidad.let { seleccionada ->
             localidad_defecto = seleccionada
 
-            // Reset antes de evaluar
             clikeable(false)
 
             val aniversarioHoy = esAniversarioHoy(seleccionada)
