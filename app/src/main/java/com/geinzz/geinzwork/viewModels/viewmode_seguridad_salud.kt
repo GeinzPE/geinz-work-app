@@ -9,10 +9,12 @@ import com.geinzz.geinzwork.model.repo_seguridad_salud
 import kotlinx.coroutines.launch
 
 class viewmode_seguridad_salud : ViewModel() {
+    val instancia = repo_seguridad_salud()
     private val datos_lugares = MutableLiveData<List<dataclass_seguridad>>()
     val _datos_lugares: LiveData<List<dataclass_seguridad>> get() = datos_lugares
+    private val _coordenadasSeleccionadas = MutableLiveData<Pair<Double, Double>?>()
 
-    val instancia = repo_seguridad_salud()
+    val coordenadasSeleccionadas: LiveData<Pair<Double, Double>?> = _coordenadasSeleccionadas
 
     fun obtener_servicios(localidad: String) {
         viewModelScope.launch {
@@ -22,5 +24,8 @@ class viewmode_seguridad_salud : ViewModel() {
                 datos_lugares.value = emptyList()
             }
         }
+    }
+    fun setCoordenadas(lat: Double, lon: Double) {
+        _coordenadasSeleccionadas.value = lat to lon
     }
 }

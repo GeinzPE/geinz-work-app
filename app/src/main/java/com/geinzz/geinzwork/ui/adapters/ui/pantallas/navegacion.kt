@@ -59,6 +59,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
+import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
 
@@ -76,6 +77,7 @@ fun nativationWrapper(
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_login_user: viewModel_login_user = viewModel()
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
+    val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -212,7 +214,6 @@ fun nativationWrapper(
                         },
                         ver_lugares = { navController.navigate(lugares_turisticos) },
                         listner_busqueda = {
-
                             navController.navigate("buscar")
 
                         },
@@ -286,9 +287,10 @@ fun nativationWrapper(
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
-                        viewModel_filtrado_tiendas,
-                        viewModelLugares,
-                        direcciones.tipo,
+                        viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
+                        viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
+                        viewmodel_lugares_turisticos = viewModelLugares,
+                        tipo = direcciones.tipo,
                     )
                 }
 
@@ -327,7 +329,13 @@ fun nativationWrapper(
 
                 composable<ui_salud_seguridad> { navback ->
                     val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
-                    ui_salud_seguirdad(salud_Seguridad.localidad)
+                    ui_salud_seguirdad(
+                        viewmode_segurirdad_Salud,
+                        localida = salud_Seguridad.localidad,
+                        abrir_mapa = { latitud, longitud ->
+                            navController.navigate(map_perzonalizado("seguridad"))
+
+                        })
                 }
 
             }
@@ -345,9 +353,6 @@ fun nativationWrapper(
             ) {
                 pantalla_carga_login()
             }
-
-
         }
     }
 }
-

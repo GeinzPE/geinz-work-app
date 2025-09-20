@@ -26,4 +26,3 @@ data class ui_salud_seguridad(val localidad: String)
 
 
 
-

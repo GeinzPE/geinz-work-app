@@ -5,7 +5,7 @@ data class dataclass_seguridad(
     val direccion: String = "",
     val numero_llamada: String,
     val numero_whatsapp: String,
-    val latidud: Number,
-    val longitud: Number,
+    val latidud: Double,
+    val longitud: Double,
     val img_ref:String=""
 )

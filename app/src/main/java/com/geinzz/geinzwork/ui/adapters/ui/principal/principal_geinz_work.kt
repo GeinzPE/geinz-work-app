@@ -83,6 +83,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -131,6 +132,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+import androidx.compose.ui.text.TextStyle
+
+
 private lateinit var firebaseAuth: FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,8 +154,6 @@ fun pantalla_principal(
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
-
-
 
     LaunchedEffect(Unit) {
         viewModel_cordenadas.obtener_subcategorias(true)
@@ -864,9 +866,9 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 }
                 spacer_vertical(15.dp)
                 Crossfade(targetState = fraces[index], label = "fraces") { txt ->
-                    texto_generico_one_line(
-                        texto = txt,
-                        MaterialTheme.typography.busquedaGeinzWork
+                    AutoResizeOneLineText(
+                        text = txt,
+                        style = MaterialTheme.typography.busquedaGeinzWork
                     )
                 }
             }
@@ -888,3 +890,33 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
         }
     }
 }
+
+@Composable
+fun AutoResizeOneLineText(
+    text: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    minTextSize: TextUnit = 12.sp,
+    maxTextSize: TextUnit = 32.sp
+) {
+    BoxWithConstraints(
+        modifier = modifier.height(40.dp) // altura fija según tu diseño
+    ) {
+        val density = LocalDensity.current
+        val scaledSize = with(density) {
+            (maxWidth.toPx() / (text.length * 0.6f) / density.density)
+                .coerceIn(minTextSize.value, maxTextSize.value)
+                .sp
+        }
+
+        Text(
+            text = text,
+            style = style.copy(fontSize = scaledSize),
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            softWrap = false
+        )
+    }
+}
+
+

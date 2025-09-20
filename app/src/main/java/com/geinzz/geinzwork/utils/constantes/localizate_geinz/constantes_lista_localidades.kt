@@ -1,8 +1,10 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import Item
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -37,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
@@ -371,8 +374,7 @@ object constantes_lista_localidades {
 
     val lista_fraces_inicio = listOf(
         "¿Listo para empezar?",
-        "¿Qué planes tienes ?",
-        "¿Exploramos juntos?",
+        "¿Qué planes tienes?",
         "¿A dónde quieres ir?",
     )
 
@@ -1117,7 +1119,7 @@ object constantes_lista_localidades {
 
     fun esAniversarioHoy(localidad: String): Boolean {
         val aniversarios = mapOf(
-            "barranca" to Pair(1984, "17 de septiembre"),
+            "barranca" to Pair(1984, "19 de septiembre"),
             "supe" to Pair(1874, "6 de noviembre"),
             "paramonga" to Pair(1936, "22 de octubre"),
             "pativilca" to Pair(1871, "2 de enero"),
@@ -1192,6 +1194,16 @@ object constantes_lista_localidades {
         val subcategoria_filtrado: List<String> = emptyList(),
         val localida: String
     )
+
+    private fun dialog_permiso_llamada(context: Context, numero: String) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CALL_PHONE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+        }
+    }
 
 //    val datos_ubicacionesreales = listOf(
 //        lugares_turisticos2(

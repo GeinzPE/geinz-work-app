@@ -6,7 +6,6 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -33,7 +32,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -54,8 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -67,7 +63,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
@@ -86,6 +81,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
+import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -103,12 +99,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun pantalla_mapa_perzonalizado(
+    viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
     tipo: String,
 ) {
     Box() {
-        MyGoogle_maps(tipo, viewmodel_lugares_turisticos, viewModel_filtrado_tiendas)
+        MyGoogle_maps(
+            tipo,
+            viewmodel_lugares_turisticos,
+            viewModel_filtrado_tiendas,
+            viewmode_segurirdad_Salud
+        )
     }
 
 }
@@ -119,11 +121,19 @@ fun MyGoogle_maps(
     tipo: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
+    viewmode_segurirdad_Salud: viewmode_seguridad_salud,
 ) {
     val context = LocalContext.current
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
+    var latitud_luga_seg by remember { mutableStateOf(0.0) }
+    var long_luga_seg by remember { mutableStateOf(0.0) }
 
+    coordenadas?.let { (lat, lon) ->
+        latitud_luga_seg = lat
+        long_luga_seg = lon
+    }
     val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
     val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
@@ -184,7 +194,6 @@ fun MyGoogle_maps(
                 uiSettings = MapUiSettings(
                     myLocationButtonEnabled = false
                 )
-
             ) {
 
                 when (tipo) {
@@ -263,6 +272,40 @@ fun MyGoogle_maps(
                                 }
                             )
                         }
+                    }
+
+                    "seguridad" -> {
+                        Marker(
+                            state = MarkerState(LatLng(latitud_luga_seg, long_luga_seg)),
+                            title = "lugar seguro ajaj",
+                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+
+
+//                            onClick = {
+//                                lister_marker = dataclass_map(
+//                                    tienda.logo_tienda,
+//                                    tienda.nombre_tienda,
+//                                    tienda.lista_subcategoiras,
+//                                    lat_user,
+//                                    log_user,
+//                                    tienda.latitud,
+//                                    tienda.longitud,
+//                                    tienda.id_tienda,
+//                                    "",
+//                                    tienda.direccion,
+//                                    tienda.referencia,
+//                                )
+//
+//
+//                                seleccionadoId = tienda.id_tienda
+//                                viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
+//                                    "barranca",
+//                                    tienda.id_tienda
+//                                )
+//                                show_dialog_datos_lugares = true
+//                                true
+//                            }
+                        )
                     }
 
                     else -> {}
@@ -370,7 +413,7 @@ fun MyGoogle_maps(
                         my_longitud = log
                     )
                 }
-            }, boxVisible, onBoxVisibleChange = { boxVisible = it }, centrar_camara = { lat,log->
+            }, boxVisible, onBoxVisibleChange = { boxVisible = it }, centrar_camara = { lat, log ->
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(LatLng(lat, log), 18f),
@@ -722,7 +765,12 @@ fun dialogo_lugar_tienda(
                             FloatingActionButton(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = Color.White,
-                                onClick = { centrar_camara(dataclass_map.latitud, dataclass_map.longitud) },
+                                onClick = {
+                                    centrar_camara(
+                                        dataclass_map.latitud,
+                                        dataclass_map.longitud
+                                    )
+                                },
                                 modifier = Modifier
                                     .size(35.dp)
                             ) {
@@ -776,4 +824,3 @@ fun rememberGpsActivo(context: Context): State<Boolean> {
     }
     return gpsActivo
 }
-

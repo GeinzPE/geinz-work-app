@@ -59,7 +59,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlin.getValue
 
-class MainActivity : BaseActivity(), View.OnApplyWindowInsetsListener {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var firebaseAuth: FirebaseAuth
@@ -550,14 +550,14 @@ class MainActivity : BaseActivity(), View.OnApplyWindowInsetsListener {
 
 }
 
-    override fun getRootView(): View {
-        TODO("Not yet implemented")
-    }
-
-    override fun onApplyWindowInsets(
-        v: View,
-        insets: WindowInsets
-    ): WindowInsets {
-        TODO("Not yet implemented")
-    }
+//    override fun getRootView(): View {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun onApplyWindowInsets(
+//        v: View,
+//        insets: WindowInsets
+//    ): WindowInsets {
+//        TODO("Not yet implemented")
+//    }
 }

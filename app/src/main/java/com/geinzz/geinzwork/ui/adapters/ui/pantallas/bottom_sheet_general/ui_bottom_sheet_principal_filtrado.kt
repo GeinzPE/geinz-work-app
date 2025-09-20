@@ -496,7 +496,6 @@ fun cabezero_tiendas(
         dialog_sin_ubi_activa(
             direccion, referencia, onDismis = { mostrarDialog_sin_google_maps.value = false },
             abrir_maps = { constantes.abrirGoogleMaps(context, direccion) })
-
     }
 
     Column(
@@ -1136,7 +1135,6 @@ fun tienda_cercana() {
         )
     }
 }
-
 
 
 
