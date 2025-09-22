@@ -1117,6 +1117,11 @@ object constantes_lista_localidades {
         }
     }
 
+    fun String.capitalizeFirst(): String {
+        return this.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+    }
     fun esAniversarioHoy(localidad: String): Boolean {
         val aniversarios = mapOf(
             "barranca" to Pair(1984, "20 de septiembre"),

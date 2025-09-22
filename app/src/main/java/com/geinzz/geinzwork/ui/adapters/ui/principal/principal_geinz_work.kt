@@ -143,7 +143,7 @@ fun pantalla_principal(
     datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
-    ver_lugares: () -> Unit,
+    ver_lugares: (String) -> Unit,
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit
 ) {
@@ -248,7 +248,7 @@ fun pantalla_principal(
                     "ver lugares",
                     "Descubre lugares en ${localidad_defaul}"
 
-                ) { ver_lugares() }
+                ) { ver_lugares(localidad_defaul) }
                 spacer_vertical(30.dp)
             }
             item {
@@ -269,7 +269,7 @@ fun pantalla_principal(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
                     "ver eventos",
                     "Mira los eventos proximos de ${localidad_defaul}"
-                ) { ver_lugares() }
+                ) { ver_lugares(localidad_defaul) }
                 spacer_vertical(20.dp)
             }
         }
@@ -294,43 +294,6 @@ fun pantalla_principal(
 }
 
 
-@Composable
-fun InteractiveStarRating(
-    modifier: Modifier = Modifier,
-    starSize: Dp = 50.dp,
-    maxStars: Int = 5,
-    onRatingChanged: (Float) -> Unit
-) {
-    var rating by remember { mutableStateOf(0f) }
-
-    // Row para las estrellas
-    Row(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    val x = change.position.x
-                    val totalWidth = size.width
-                    val newRating = ((x / totalWidth) * maxStars).coerceIn(0f, maxStars.toFloat())
-                    rating = newRating
-                    onRatingChanged(rating)
-                }
-            }
-            .height(starSize)
-    ) {
-        for (i in 1..maxStars) {
-            Icon(
-                imageVector = when {
-                    i <= rating -> Icons.Default.Star
-                    i - rating in 0f..1f -> Icons.Default.StarHalf
-                    else -> Icons.Default.StarBorder
-                },
-                contentDescription = "Star $i",
-                tint = Color(0xFFFFD700),
-                modifier = Modifier.size(starSize)
-            )
-        }
-    }
-}
 
 //@Composable
 //fun TopGradientBlurred(
@@ -925,5 +888,4 @@ fun AutoResizeOneLineText(
         )
     }
 }
-
 

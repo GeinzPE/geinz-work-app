@@ -6,6 +6,9 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -22,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -51,8 +55,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -65,6 +71,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
+import com.algolia.search.dsl.ranking.DSLCustomRanking
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
@@ -96,6 +103,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
+import java.nio.file.WatchEvent
 
 @Composable
 fun pantalla_mapa_perzonalizado(
@@ -445,7 +453,7 @@ fun dialogo_lugar_tienda(
     val color = if (estado_tienda_filter) Color.Green else Color.Red
     val estado_texto = if (estado_tienda_filter) "Abierto" else "Cerrado"
 
-
+    Log.d("boxVisibleboxVisible", boxVisible.toString())
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
     val distancia = verificarDistanciaFormateada(
@@ -460,48 +468,283 @@ fun dialogo_lugar_tienda(
             actualizar()
         }
     }
-
-    Row(
+    val cornerShape = if (boxVisible) {
+        RoundedCornerShape(
+            topEnd = 0.dp,
+            bottomEnd = 0.dp
+        )
+    } else {
+        RoundedCornerShape(
+            topStart = 10.dp,
+            topEnd = 10.dp,
+            bottomEnd = 0.dp,
+            bottomStart = 0.dp
+        )
+    }
+    val cornerShap2 = if (!boxVisible) {
+        RoundedCornerShape(
+            topStart = 10.dp,
+            topEnd = 10.dp,
+            bottomEnd = 0.dp,
+            bottomStart = 0.dp
+        )
+    } else {
+        RoundedCornerShape(
+            topStart = 10.dp,
+            topEnd = 10.dp,
+            bottomEnd = 10.dp,
+            bottomStart = 10.dp
+        )
+    }
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val targetWidth = if (boxVisible) 0.33f else 0.38f
+    val animatedWidth by animateFloatAsState(
+        targetValue = targetWidth,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = LinearOutSlowInEasing
+        )
+    )
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
             .padding(vertical = 40.dp, horizontal = 20.dp)
-            .clip(RoundedCornerShape(10))
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .fillMaxHeight()
-                .zIndex(1f)
-                .fillMaxWidth(0.33f)
+                .height(screenHeight * 0.19f)
+                .clip(cornerShap2)
         ) {
-
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(dataclass_map.img)
-                    .placeholder(R.drawable.cargando_img_categorias)
-                    .error(R.drawable.sin_item_carrito)
-                    .build(),
-                contentDescription = null,
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clip(
-                        if (boxVisible) RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp)
-                        else RoundedCornerShape(20.dp)
+                    .fillMaxHeight()
+                    .zIndex(1f)
+                    .fillMaxWidth(animatedWidth)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(dataclass_map.img)
+                        .placeholder(R.drawable.cargando_img_categorias)
+                        .error(R.drawable.sin_item_carrito)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(cornerShape)
+                        .clickable { onBoxVisibleChange(!boxVisible) },
+                    contentScale = ContentScale.Crop
+                )
+
+                this@Row.AnimatedVisibility(
+                    visible = !boxVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.TopEnd)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(35.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                cerra_dialog()
+                                limpiar()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(35.dp)
+                                .background(Color.Black.copy(alpha = 0.25f))
+                                .blur(12.dp),
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cerrar",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                this@Row.AnimatedVisibility(
+                    !boxVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 1f)
+                                    ),
+                                    startY = 0f,
+                                    endY = 200f
+                                )
+                            )
                     )
-                    .clickable { onBoxVisibleChange(!boxVisible) },
-                contentScale = ContentScale.Crop
-            )
+                }
 
-            this@Row.AnimatedVisibility(
-                visible = !boxVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
+            }
+
+
+            AnimatedVisibility(
+                visible = boxVisible,
+                enter = slideInHorizontally { -it },
+                exit = slideOutHorizontally { -it },
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
+                    .fillMaxHeight()
+                    .fillMaxWidth(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
+                        .background(Color.Black)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxSize()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(top = 5.dp)
+                        ) {
+                            texto_generico_one_line(
+                                dataclass_map.nombre,
+                                MaterialTheme.typography.titleLarge
+                            )
+                            spacer_vertical(10.dp)
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                texto_generico_one_line(
+                                    estado_texto,
+                                    MaterialTheme.typography.bodyMedium
+                                )
+                                spacer_horizonta(5.dp)
+                                Box(
+                                    Modifier
+                                        .clip(CircleShape)
+                                        .background(color)
+                                        .size(14.dp)
+                                )
+                                spacer_horizonta(10.dp)
+                                if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
+                                    if (gpsActivo) texto_generico_one_line("Obteniendo ubicación...")
+                                    else texto_generico_one_line("")
+                                } else {
+                                    texto_generico_one_line(
+                                        "A $distancia",
+                                        MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+
+                            }
+
+                            spacer_vertical(10.dp)
+                            texto_generico_one_line(
+                                dataclass_map.direccion,
+                                MaterialTheme.typography.bodyMedium
+                            )
+                            spacer_vertical(10.dp)
+                            texto_generico_one_line(
+                                dataclass_map.referencia,
+                                MaterialTheme.typography.bodyMedium
+                            )
+                            spacer_vertical(10.dp)
+                            tags_subcateogiras(dataclass_map.tag)
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(start = 7.dp)
+                        ) {
+                            // Botón cerrar
+                            FloatingActionButton(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White,
+                                onClick = {
+                                    cerra_dialog()
+                                    limpiar()
+                                },
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .align(Alignment.TopEnd)
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                            }
+
+                            Column(modifier = Modifier.align(Alignment.BottomEnd)) {
+                                // Botón ruta
+                                FloatingActionButton(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = Color.White,
+                                    onClick = {
+                                        centrar_camara(
+                                            dataclass_map.latitud,
+                                            dataclass_map.longitud
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .size(35.dp)
+                                ) {
+                                    Icon(Icons.Default.LocationOn, contentDescription = "centrar")
+                                }
+                                spacer_vertical(7.dp)
+                                // Botón ruta
+                                FloatingActionButton(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = Color.White,
+                                    onClick = {
+                                        crear_ruta(
+                                            dataclass_map.latitud,
+                                            dataclass_map.longitud
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .size(35.dp)
+                                ) {
+                                    Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            !boxVisible,
+            modifier = Modifier
+                .fillMaxWidth(animatedWidth)
+                .zIndex(-1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .height(45.dp)
+                    .background(
+                        MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)
+                    )
             ) {
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier.padding(bottom = 10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    modifier = Modifier
+                        .padding(vertical = 5.dp)
+                        .align(Alignment.BottomCenter)
                 ) {
                     item {
                         spacer_horizonta(5.dp)
@@ -543,67 +786,6 @@ fun dialogo_lugar_tienda(
                                     })
                         }
                     }
-
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.tik_tok_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-                    }
-
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.facebook_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-                    }
-
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.instagram_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-                    }
-
                     item {
                         Box(
                             modifier = Modifier
@@ -624,183 +806,75 @@ fun dialogo_lugar_tienda(
                                 Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
                             }
                         }
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clip(CircleShape)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.tik_tok_icon),
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        crear_ruta(
+                                            dataclass_map.latitud,
+                                            dataclass_map.longitud
+                                        )
+                                    })
+                        }
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clip(CircleShape)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.facebook_icon),
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        crear_ruta(
+                                            dataclass_map.latitud,
+                                            dataclass_map.longitud
+                                        )
+                                    })
+                        }
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clip(CircleShape)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.instagram_icon),
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        crear_ruta(
+                                            dataclass_map.latitud,
+                                            dataclass_map.longitud
+                                        )
+                                    })
+                        }
                         spacer_horizonta(5.dp)
                     }
 
-                }
 
-            }
-            this@Row.AnimatedVisibility(
-                visible = !boxVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .padding(10.dp)
-                    .align(Alignment.TopEnd)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(35.dp)
-                        .clip(CircleShape)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            cerra_dialog()
-                            limpiar()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .size(35.dp)
-                            .background(Color.Black.copy(alpha = 0.25f))
-                            .blur(12.dp),
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
                 }
 
 
             }
 
-        }
 
-
-        AnimatedVisibility(
-            visible = boxVisible,
-            enter = slideInHorizontally { -it },
-            exit = slideOutHorizontally { -it },
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(1f)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
-                    .background(Color.Black)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxSize()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(top = 5.dp)
-                    ) {
-                        texto_generico_one_line(
-                            dataclass_map.nombre,
-                            MaterialTheme.typography.titleLarge
-                        )
-                        spacer_vertical(10.dp)
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            texto_generico_one_line(
-                                estado_texto,
-                                MaterialTheme.typography.bodyMedium
-                            )
-                            spacer_horizonta(5.dp)
-                            Box(
-                                Modifier
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .size(14.dp)
-                            )
-                            spacer_horizonta(10.dp)
-                            if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-                                if (gpsActivo) texto_generico_one_line("Obteniendo ubicación...")
-                                else texto_generico_one_line("")
-                            } else {
-                                texto_generico_one_line(
-                                    "A $distancia",
-                                    MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                        }
-
-                        spacer_vertical(10.dp)
-                        texto_generico_one_line(
-                            dataclass_map.direccion,
-                            MaterialTheme.typography.bodyMedium
-                        )
-                        spacer_vertical(10.dp)
-                        texto_generico_one_line(
-                            dataclass_map.referencia,
-                            MaterialTheme.typography.bodyMedium
-                        )
-                        spacer_vertical(10.dp)
-                        tags_subcateogiras(dataclass_map.tag)
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(start = 7.dp)
-                    ) {
-                        // Botón cerrar
-                        FloatingActionButton(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = Color.White,
-                            onClick = {
-                                cerra_dialog()
-                                limpiar()
-                            },
-                            modifier = Modifier
-                                .size(35.dp)
-                                .align(Alignment.TopEnd)
-                        ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                        }
-
-                        Column(modifier = Modifier.align(Alignment.BottomEnd)) {
-                            // Botón ruta
-                            FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White,
-                                onClick = {
-                                    centrar_camara(
-                                        dataclass_map.latitud,
-                                        dataclass_map.longitud
-                                    )
-                                },
-                                modifier = Modifier
-                                    .size(35.dp)
-                            ) {
-                                Icon(Icons.Default.LocationOn, contentDescription = "centrar")
-                            }
-                            spacer_vertical(7.dp)
-                            // Botón ruta
-                            FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White,
-                                onClick = {
-                                    crear_ruta(
-                                        dataclass_map.latitud,
-                                        dataclass_map.longitud
-                                    )
-                                },
-                                modifier = Modifier
-                                    .size(35.dp)
-
-                            ) {
-                                Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
-                            }
-                        }
-
-                    }
-                }
-            }
         }
     }
-
 
 }
 

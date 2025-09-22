@@ -24,6 +24,5 @@ object data_store_localidad {
         return context.dataStore.data.map { preferences ->
             preferences[LOCALIDAD_KEY]
         }
-
     }
 }

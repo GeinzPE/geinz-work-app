@@ -92,8 +92,8 @@ fun ui_salud_seguirdad(
 
     var lista_mostrar by rememberSaveable { mutableStateOf<List<dataclass_seguridad>>(emptyList()) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
-    var valor_filtrado by remember { mutableStateOf("") }
-    var chip_selecionado by remember { mutableStateOf("Todos") }
+    var valor_filtrado by rememberSaveable { mutableStateOf("") }
+    var chip_selecionado by rememberSaveable { mutableStateOf("Todos") }
     var isLoading by remember { mutableStateOf(false) }
 
 //    LaunchedEffect(valor_filtrado) {
@@ -143,7 +143,6 @@ fun ui_salud_seguirdad(
     ) {
         LazyColumn {
             stickyHeader {
-
                 ColumnContenedorComun {
                     filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
                     chips_filtrado(chip_selecionado, lista_filtrado) { i ->
@@ -257,9 +256,9 @@ fun carta_salud_cuidad(
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
 ) {
     val context = LocalContext.current
-    var dialogo_activar_ubicacion by remember { mutableStateOf(false) }
+    var dialogo_activar_ubicacion by rememberSaveable { mutableStateOf(false) }
 
-    var call_dialog_permise by remember { mutableStateOf(false) }
+    var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()

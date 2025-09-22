@@ -1,3 +1,4 @@
+import androidx.compose.ui.unit.Dp
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -7,6 +8,7 @@ data class Item(
     val id_tienda: String,
     val categoria: String,
     val img: String,
-    val lista: List<String>
+    val lista: List<String>,
+
 )
 

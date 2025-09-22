@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 object principal
 
 @Serializable
-object lugares_turisticos
+data class lugares_turisticos(val localidad:String)
 
 @Serializable
 data class crear_cuenta_geinz(val tipo_completado: String)
@@ -23,6 +23,5 @@ data class map_perzonalizado(val tipo: String)
 
 @Serializable
 data class ui_salud_seguridad(val localidad: String)
-
 
 

@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -104,6 +103,7 @@ fun nativationWrapper(
         mutableStateOf(datos_principales_user("Usuario", "", ""))
     }
 
+    val localidad_shader_user by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         firebaseAuth.currentUser?.uid?.let { uid ->
             viewmodel_usuario_registrado.obtener_datos_user_registrado(uid)
@@ -227,7 +227,9 @@ fun nativationWrapper(
                                 ).show()
                             }
                         },
-                        ver_lugares = { navController.navigate(lugares_turisticos) },
+                        ver_lugares = {localidad->
+                            Log.d("localidad_defautl_user",localidad)
+                            navController.navigate(lugares_turisticos(localidad)) },
                         listner_busqueda = {
                             navController.navigate("buscar")
                         },
@@ -252,6 +254,7 @@ fun nativationWrapper(
 
                 composable("buscar") {
                     ui_pantalla_busqueda(
+                        datos_principales_user,
                         viewModel_filtrado_tiendas,
                         focusRequester = focusRequester,
                         mostrar = {
@@ -323,8 +326,9 @@ fun nativationWrapper(
                 }
 
                 composable<lugares_turisticos> { navback ->
+                    val datos_lugares_turisticos=navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
-                        "turismo",
+                        datos_lugares_turisticos.localidad,
                         viewModelLugares,
                         viewModelCordenadas
                     ) { tipo ->

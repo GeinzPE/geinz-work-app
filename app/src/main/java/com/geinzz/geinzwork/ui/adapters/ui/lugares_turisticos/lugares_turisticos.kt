@@ -88,7 +88,7 @@ fun pantalla_lugares_turisticos(
     )
 
     LaunchedEffect(Unit) {
-        viewModel_cordenadas.lugares_turisticos("barranca")
+        viewModel_cordenadas.lugares_turisticos(localidad_selecionada)
         viewmodel_lugares_turisticos.obtener_categorias()
     }
 
@@ -136,69 +136,69 @@ fun pantalla_lugares_turisticos(
 //    }
 
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
+    ) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                item { texto_generico_one_line("Lugares turisticos de $localidad_selecionada") }
-                item {
-                    texto_generico_multilinea("descriocion de los lugares")
-                }
-                item {
-                    LazyRow() {
-                        items(lista_con_todos) { subcategorias ->
-                            val selecionado = subCategoriaSeleccionada == subcategorias
-                            FilterChip(
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    selectedLabelColor = Color.White,
-                                    labelColor = Color.White
-                                ),
-                                modifier = Modifier.padding(horizontal = 4.dp),
-                                selected = selecionado,
-                                border = if (selecionado) null else BorderStroke(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.onBackground
-                                ),
-                                onClick = {
-                                    if (!selecionado) {
-                                        if (subcategorias == "Todos") {
-                                            subCategoriaSeleccionada = "Todos"
-                                            buttom_mapa = false
-                                        } else {
-                                            buttom_mapa = true
-                                            subCategoriaSeleccionada = subcategorias
-                                        }
+            item { texto_generico_one_line("Lugares turisticos de $localidad_selecionada") }
+            item {
+                texto_generico_multilinea("descriocion de los lugares")
+            }
+            item {
+                LazyRow() {
+                    items(lista_con_todos) { subcategorias ->
+                        val selecionado = subCategoriaSeleccionada == subcategorias
+                        FilterChip(
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = Color.White,
+                                labelColor = Color.White
+                            ),
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            selected = selecionado,
+                            border = if (selecionado) null else BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.onBackground
+                            ),
+                            onClick = {
+                                if (!selecionado) {
+                                    if (subcategorias == "Todos") {
+                                        subCategoriaSeleccionada = "Todos"
+                                        buttom_mapa = false
+                                    } else {
+                                        buttom_mapa = true
+                                        subCategoriaSeleccionada = subcategorias
                                     }
-                                },
-                                label = {
-                                    Text(
-                                        text = subcategorias,
-                                        color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
-                                    )
-                                },
-                                shape = RoundedCornerShape(40)
-                            )
-                        }
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = subcategorias,
+                                    color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
+                                )
+                            },
+                            shape = RoundedCornerShape(40)
+                        )
                     }
                 }
-                items(listaMostrar) { lugares ->
-                    carta_lugares_turisticosa(200.dp, 10, lugares)
-                }
             }
-            AnimatedVisibility(buttom_mapa) {
-                open_map_perzonlizado(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp),"turismo",
-                    abrir_mapa
-                )
+            items(listaMostrar) { lugares ->
+                carta_lugares_turisticosa(200.dp, 10, lugares)
             }
         }
+        AnimatedVisibility(buttom_mapa) {
+            open_map_perzonlizado(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),"turismo",
+                abrir_mapa
+            )
+        }
+    }
 
 }
 
@@ -237,4 +237,3 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos)
         )
     }
 }
-

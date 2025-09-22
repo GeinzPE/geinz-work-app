@@ -14,9 +14,10 @@ class repo_principal_geinz_work {
     val db = FirebaseFirestore.getInstance()
 
     suspend fun obtener_lugares_turisticos(localidad: String): List<lugares_turisticos> {
+        Log.d("localida_pasada",localidad)
         val lista_lugares = mutableListOf<lugares_turisticos>()
         val lugares_turisticos =
-            db.collection("Tiendas").document(localidad).collection("lugares_turisticos")
+            db.collection("Tiendas").document(localidad.lowercase()).collection("lugares_turisticos")
                 .get().await()
         for (datos in lugares_turisticos) {
             val data = datos.data
