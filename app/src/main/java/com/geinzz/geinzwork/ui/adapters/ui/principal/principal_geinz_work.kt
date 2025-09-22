@@ -133,6 +133,7 @@ import kotlinx.coroutines.launch
 
 
 import androidx.compose.ui.text.TextStyle
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.eliminar_menios_comida
 
 
 private lateinit var firebaseAuth: FirebaseAuth
@@ -248,7 +249,10 @@ fun pantalla_principal(
                     "ver lugares",
                     "Descubre lugares en ${localidad_defaul}"
 
-                ) { ver_lugares(localidad_defaul) }
+                ) {
+//                    ver_lugares(localidad_defaul)
+                    eliminar_menios_comida()
+                }
                 spacer_vertical(30.dp)
             }
             item {
@@ -786,12 +790,6 @@ fun filtrado_localidades(
 
     }
 
-}
-
-fun String.capitalizeFirst(): String {
-    return this.replaceFirstChar {
-        if (it.isLowerCase()) it.titlecase() else it.toString()
-    }
 }
 
 @Composable

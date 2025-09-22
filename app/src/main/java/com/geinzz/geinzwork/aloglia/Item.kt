@@ -10,5 +10,6 @@ data class Item(
     val img: String,
     val lista: List<String>,
 
+
 )
 

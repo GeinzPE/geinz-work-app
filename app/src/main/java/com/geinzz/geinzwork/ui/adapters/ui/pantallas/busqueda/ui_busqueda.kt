@@ -247,7 +247,13 @@ fun ui_pantalla_busqueda(
             }
 
             itemsIndexed(results) { index, item ->
-                ramdoBox(item, index)
+                ramdoBox(horario_por_tienda,item, index){id, localidad, color ->
+                    estadoColor = color
+                        tiendaLocalidadSeleccionada = localidad
+                        id_tienda_selecionada = id
+                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
+                        show_bottom_sheeet = true
+                }
             }
         }
 
@@ -833,9 +839,11 @@ fun carta_filtrado(
 
 
 @Composable
-fun ramdoBox(i: Item, index: Int) {
+fun ramdoBox(estado_tienda: Map<String, Boolean>?,i: Item, index: Int,listener_carta:(String, String, Color)-> Unit) {
     val heightOptions = listOf(300.dp, 350.dp)
-
+    val estado_tienda_filter = estado_tienda?.get(i.id_tienda) == true
+    Log.d("estado_tienda", estado_tienda_filter.toString())
+    var Estado_color = if (estado_tienda_filter) Color.Green else Color.Red
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val iconCategoria = constantes_lista_localidades.getCategoriaIcon(i.categoria)
 
@@ -859,7 +867,7 @@ fun ramdoBox(i: Item, index: Int) {
                         .error(R.drawable.cargando_img_categorias)
                         .build(),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().clickable{listener_carta(i.id_tienda, i.lugar, Estado_color) },
                     contentScale = ContentScale.Crop
                 )
 
