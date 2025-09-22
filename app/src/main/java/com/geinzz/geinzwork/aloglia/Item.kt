@@ -9,7 +9,8 @@ data class Item(
     val categoria: String,
     val img: String,
     val lista: List<String>,
-
+    val latitud:Double,
+    val longitud: Double
 
 )
 

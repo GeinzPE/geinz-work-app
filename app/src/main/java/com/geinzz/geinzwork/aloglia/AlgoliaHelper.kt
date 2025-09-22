@@ -11,6 +11,7 @@ import com.algolia.search.model.search.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -67,8 +68,10 @@ class AlgoliaHelper(
                 val img = json["img"]?.jsonPrimitive?.content ?: return@mapNotNull null
                 val id_tienda = json["id_tienda"]?.jsonPrimitive?.content ?: return@mapNotNull null
                 val tags = json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
-
-                Item(nombre, lugar, id_tienda, categoriaJson, img, tags)
+                val ubicacionJson = json["ubicacion"]?.jsonObject
+                val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull
+                val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull
+                Item(nombre, lugar, id_tienda, categoriaJson, img, tags,lat?:0.0,lng?:0.0)
             }
 
             Log.d("AlgoliaHelper", "🎯 Items deserializados (${items.size}): $items")

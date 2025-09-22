@@ -62,10 +62,13 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +76,7 @@ import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -964,5 +968,41 @@ fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass
 fun String.capitalizeFirst(): String {
     return this.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase() else it.toString()
+    }
+}
+
+@Composable
+fun btn_close_gris(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .size(35.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null // opcional: quita efecto ripple
+            ) {
+                Log.d("realizaste","click")
+                onClick()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        // Fondo con blur, pero sin interceptar clicks
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.25f))
+                .blur(12.dp)
+        )
+        // Icono
+        androidx.compose.material3.Icon(
+            imageVector =  imageVector,
+            contentDescription = "Cerrar",
+            tint = Color.White,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

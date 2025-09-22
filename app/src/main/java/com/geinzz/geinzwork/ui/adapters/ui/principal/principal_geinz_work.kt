@@ -133,6 +133,7 @@ import kotlinx.coroutines.launch
 
 
 import androidx.compose.ui.text.TextStyle
+//import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.agregar_lugares_turisticos2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.eliminar_menios_comida
 
 
@@ -250,8 +251,13 @@ fun pantalla_principal(
                     "Descubre lugares en ${localidad_defaul}"
 
                 ) {
-//                    ver_lugares(localidad_defaul)
-                    eliminar_menios_comida()
+                    ver_lugares(localidad_defaul)
+//                    val lista = constantes_lista_localidades.datos_ubicacionesreales.forEach { i ->
+//
+//                       agregar_lugares_turisticos2(i)
+////                        eliminar_menios_comida()
+//                    }
+
                 }
                 spacer_vertical(30.dp)
             }
@@ -296,7 +302,6 @@ fun pantalla_principal(
     }
 
 }
-
 
 
 //@Composable
@@ -677,7 +682,7 @@ fun filtrado_localidades(
             initialItem = index,
             itemCount = { lista_localidades.size }
         )
-        Log.d("indexindex",index.toString())
+        Log.d("indexindex", index.toString())
         HorizontalMultiBrowseCarousel(
             state = carouselState,
             preferredItemWidth = screenWidth * 0.8f,

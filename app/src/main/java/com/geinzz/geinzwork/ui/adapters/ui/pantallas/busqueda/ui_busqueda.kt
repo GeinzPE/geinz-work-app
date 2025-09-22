@@ -3,6 +3,8 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
 import Item
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -27,11 +29,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,13 +46,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -101,26 +104,30 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriassEnd
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriasstart
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -137,6 +144,7 @@ fun ui_pantalla_busqueda(
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
     val results by viewModel.results.collectAsState()
+    val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
     var subcategoria_selecionada by rememberSaveable { mutableStateOf("Todos") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val scope = rememberCoroutineScope()
@@ -191,6 +199,12 @@ fun ui_pantalla_busqueda(
                 id_tienda_selecionada
             )
 
+
+        }
+    }
+    LaunchedEffect(expandedFloatingMenuFadeDemo) {
+        if(expandedFloatingMenuFadeDemo){
+            viewModelFiltros.obtener_categorias()
         }
     }
 
@@ -200,6 +214,10 @@ fun ui_pantalla_busqueda(
                 datosTienda!!.first()
         }
     }
+    var dialog_Crear_ruta by remember { mutableStateOf(false) }
+    var latitud by remember { mutableStateOf(0.0) }
+    var longitud by remember { mutableStateOf(0.0) }
+    var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
 
     Box() {
         LazyVerticalStaggeredGrid(
@@ -247,14 +265,44 @@ fun ui_pantalla_busqueda(
             }
 
             itemsIndexed(results) { index, item ->
-                ramdoBox(horario_por_tienda,item, index){id, localidad, color ->
+                ramdoBox(horario_por_tienda, item, index, { id, localidad, color ->
                     estadoColor = color
-                        tiendaLocalidadSeleccionada = localidad
-                        id_tienda_selecionada = id
-                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
-                        show_bottom_sheeet = true
+                    tiendaLocalidadSeleccionada = localidad
+                    id_tienda_selecionada = id
+                    viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
+                    show_bottom_sheeet = true
+
+                }, abrir_gogle_map = { lat, log ->
+                    dialog_Crear_ruta = true
+                    latitud = lat
+                    longitud = log
                 }
+                )
             }
+        }
+
+        if (dialog_Crear_ruta) {
+            dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
+                dialog_Crear_ruta = false
+                if (crear_ruta && verificarUbiActiva(context)) {
+                    constantes_lista_localidades.abrir_google_maps(
+                        context, latitud, longitud,
+                    ) { dialogo ->
+                        validacion_mostrar_dialog_ubi_off = dialogo
+                    }
+                } else {
+                    validacion_mostrar_dialog_ubi_off = true
+                }
+            })
+        }
+
+        if (validacion_mostrar_dialog_ubi_off) {
+            dialog_sin_ubi__rutas(
+                { validacion_mostrar_dialog_ubi_off = false },
+                {
+                    validacion_mostrar_dialog_ubi_off = false
+                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                })
         }
 
 
@@ -407,9 +455,13 @@ fun ui_pantalla_busqueda(
                 .graphicsLayer { alpha = alphaAnim }
         )
         FloatingBubble(
+            categoria_filtrado,
             subir_btn,
             expandedFloatingMenuFadeDemo,
-            onClick = { expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo },
+            onClick = {
+                Log.d("hacimios_cli","fabbbb")
+                expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
+                      },
             expanded_fun = { expandedFloatingMenuFadeDemo = false },
             tiendaLocalidadSeleccionada ?: "barranca"
         ) { localidad ->
@@ -469,8 +521,10 @@ fun ui_pantalla_busqueda(
 //    }
 //}
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun FloatingBubble(
+    categoria_filtrado: List<dataclass_cat_sub>?,
     subir_btn: Boolean,
     expanded: Boolean,
     onClick: () -> Unit,
@@ -491,6 +545,29 @@ fun FloatingBubble(
     } else {
         null
     }
+    Log.d("categoria_filtrado",categoria_filtrado.toString())
+
+    var expandedIndex by remember { mutableStateOf(-1) }
+
+    val weightBox1 by animateFloatAsState(
+        targetValue = when(expandedIndex) {
+            0 -> 0.7f  // si localidad está expandida, 70% del alto
+            1 -> 0.3f  // si subcategoría está expandida, localidad 30%
+            else -> 0.5f // estado inicial, ambos 50%
+        },
+        animationSpec = tween(300, easing = FastOutSlowInEasing)
+    )
+
+    val weightBox2 by animateFloatAsState(
+        targetValue = when(expandedIndex) {
+            0 -> 0.3f  // localidad expandida -> subcategoría 30%
+            1 -> 0.7f  // subcategoría expandida -> localidad 30%
+            else -> 0.5f
+        },
+        animationSpec = tween(300, easing = FastOutSlowInEasing)
+    )
+
+
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -540,7 +617,7 @@ fun FloatingBubble(
                             val newX = (offsetX.value + dragAmount.x)
                                 .coerceIn(paddingPx, screenWidth - bubbleSizePx - paddingPx)
                             val newY = (offsetY.value + dragAmount.y)
-                                .coerceIn(paddingPx, maxY) // 👈 aquí usamos maxY dinámico
+                                .coerceIn(paddingPx, maxY)
                             scope.launch {
                                 offsetX.snapTo(newX)
                                 offsetY.snapTo(newY)
@@ -583,7 +660,6 @@ fun FloatingBubble(
             }
         }
 
-        // 👉 Overlay oscuro al abrir
         AnimatedVisibility(
             visible = expanded,
             enter = fadeIn(animationSpec = tween(300)),
@@ -592,7 +668,7 @@ fun FloatingBubble(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .background(Color.Black.copy(alpha = 0.8f))
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
@@ -602,8 +678,24 @@ fun FloatingBubble(
             )
         }
 
-        // 👉 Lista de botones internos
         val lista_localidades = constantes_lista_localidades.lista_localidad
+        val icono_expandido = if (expandedIndex == 0) {
+            Icons.Default.ExpandLess
+        } else {
+            Icons.Default.ExpandMore
+        }
+
+        val icono_expandid2 = if (expandedIndex == 1) {
+            Icons.Default.ExpandLess
+        } else {
+            Icons.Default.ExpandMore
+        }
+
+        // Estado para saber qué lado está expandido
+        var expandedSide by remember { mutableStateOf(-1) } // -1 ninguno, 0 izquierda, 1 derecha
+
+// Animar anchos en dp en lugar de weight
+
 
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -617,27 +709,183 @@ fun FloatingBubble(
                 enter = fadeIn(animationSpec = tween(250)) + scaleIn(initialScale = 0.8f),
                 exit = fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.8f)
             ) {
-                Column(horizontalAlignment = Alignment.End) {
-                    texto_generico_one_line("Selecciona tu localidad")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.7f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.2f) // 10%
+                            .clip(RoundedCornerShape(30.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(15.dp)
+                    ) {
+                        btn_close_gris(
+                            modifier = Modifier.align(Alignment.TopEnd),
+                            Icons.Default.Close,
+                            onClick = {
+                                expanded_fun()
+                            })
+                        Column {
+                            texto_generico_one_line(
+                                "Filtra tu búsqueda",
+                                MaterialTheme.typography.titleLarge
+                            )
+                            spacer_vertical(5.dp)
+                            texto_generico_multilinea(
+                                "Elige una categoría y explora desde playas y museos hasta tiendas y restaurantes locales.",
+                                MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 20.dp)
+                            )
 
-                    lista_localidades.forEach { i ->
-                        val colorSeleccionado =
-                            if (localidad_selecionada.equals(i, ignoreCase = true)) {
-                                Color.Black
-                            } else {
-                                MaterialTheme.colorScheme.primary
+                        }
+
+                    }
+                    spacer_vertical(10.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.8f), // 90%
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(.5f)   // ocupa 50% del ancho
+                                .clip(RoundedCornerShape(30.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(8.dp)
+                                .fillMaxHeight()
+                        ) {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                item { texto_generico_one_line("categoria") }
+                                items(lista_localidades) { i ->
+                                    val colorSeleccionado =
+                                        if (localidad_selecionada.equals(
+                                                i,
+                                                ignoreCase = true
+                                            )
+                                        ) Color.Black
+                                        else MaterialTheme.colorScheme.primary
+
+                                    AnimatedFabItem(
+                                        text = i,
+                                        color = colorSeleccionado,
+                                        visible = expanded
+                                    ) {
+                                        localidad_filtrado(i)
+                                        expanded_fun()
+                                    }
+                                }
+                            }
+                        }
+
+
+
+                        // Columna derecha: dos cuadros apilados verticalmente
+                        Column(
+                            modifier = Modifier
+                                .weight(.5f)// ocupa 50% del ancho
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .weight(weightBox1)
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(8.dp)
+                            ){
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    contentPadding = PaddingValues(
+                                        horizontal = 16.dp,
+                                        vertical = 8.dp
+                                    ),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    item { texto_generico_one_line("localidad") }
+                                    items(lista_localidades) { i ->
+                                        val colorSeleccionado =
+                                            if (localidad_selecionada.equals(
+                                                    i,
+                                                    ignoreCase = true
+                                                )
+                                            ) Color.Black
+                                            else MaterialTheme.colorScheme.primary
+
+                                        AnimatedFabItem(
+                                            text = i,
+                                            color = colorSeleccionado,
+                                            visible = expanded
+                                        ) {
+                                            localidad_filtrado(i)
+                                            expanded_fun()
+                                        }
+                                    }
+                                }
+                                btn_close_gris(
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                    icono_expandido,
+                                    onClick = {
+                                        expandedIndex = if (expandedIndex == 0) -1 else 0
+                                    })
                             }
 
-                        AnimatedFabItem(
-                            text = i,
-                            color = colorSeleccionado,
-                            visible = expanded
-                        ) {
-                            localidad_filtrado(i)
-                            expanded_fun()
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .weight(weightBox2)
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(8.dp)
+
+                            ){
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    contentPadding = PaddingValues(
+                                        horizontal = 16.dp,
+                                        vertical = 8.dp
+                                    ),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    item { texto_generico_one_line("subcategorias") }
+                                    items(lista_localidades) { i ->
+                                        val colorSeleccionado =
+                                            if (localidad_selecionada.equals(
+                                                    i,
+                                                    ignoreCase = true
+                                                )
+                                            ) Color.Black
+                                            else MaterialTheme.colorScheme.primary
+
+                                        AnimatedFabItem(
+                                            text = i,
+                                            color = colorSeleccionado,
+                                            visible = expanded
+                                        ) {
+                                            localidad_filtrado(i)
+                                            expanded_fun()
+                                        }
+                                    }
+                                }
+                                btn_close_gris(
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                    icono_expandid2,
+                                    onClick = {
+                                        expandedIndex = if (expandedIndex == 1) -1 else 1
+                                    })
+                            }
+
                         }
+
                     }
                 }
+
+
             }
         }
     }
@@ -839,7 +1087,13 @@ fun carta_filtrado(
 
 
 @Composable
-fun ramdoBox(estado_tienda: Map<String, Boolean>?,i: Item, index: Int,listener_carta:(String, String, Color)-> Unit) {
+fun ramdoBox(
+    estado_tienda: Map<String, Boolean>?,
+    i: Item,
+    index: Int,
+    listener_carta: (String, String, Color) -> Unit,
+    abrir_gogle_map: (Double, Double) -> Unit
+) {
     val heightOptions = listOf(300.dp, 350.dp)
     val estado_tienda_filter = estado_tienda?.get(i.id_tienda) == true
     Log.d("estado_tienda", estado_tienda_filter.toString())
@@ -867,7 +1121,9 @@ fun ramdoBox(estado_tienda: Map<String, Boolean>?,i: Item, index: Int,listener_c
                         .error(R.drawable.cargando_img_categorias)
                         .build(),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize().clickable{listener_carta(i.id_tienda, i.lugar, Estado_color) },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { listener_carta(i.id_tienda, i.lugar, Estado_color) },
                     contentScale = ContentScale.Crop
                 )
 
@@ -913,10 +1169,14 @@ fun ramdoBox(estado_tienda: Map<String, Boolean>?,i: Item, index: Int,listener_c
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White,
-                        onClick = {},
+                        onClick = { abrir_gogle_map(i.latitud, i.longitud) },
                         modifier = Modifier.size(30.dp)
                     ) {
-                        Icon(Icons.Default.LocationOn, contentDescription = "centrar", modifier = Modifier.padding(5.dp))
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "centrar",
+                            modifier = Modifier.padding(5.dp)
+                        )
                     }
                 }
 

@@ -1,4 +1,5 @@
 package com.geinzz.geinzwork.viewModels
+
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
@@ -6,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
@@ -13,6 +15,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_tur
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.tiendas_mapa
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +25,7 @@ import kotlinx.coroutines.launch
 class viewModel_filtado_tiendas : ViewModel() {
 
     val repo_filtrado = repo_filtrado_tiendas()
+    val repo_cat_sub = repo_agregar_cat_sub_localizate()
 
     private val subcategorias = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
     val _subcategoiraList: LiveData<List<filtrado_tiendas_cat_sub>> get() = subcategorias
@@ -38,6 +42,10 @@ class viewModel_filtado_tiendas : ViewModel() {
     private val _horarioTienda = MutableLiveData<HorarioTienda?>(null)
 
     val horarioTienda: LiveData<HorarioTienda?> get() = _horarioTienda
+
+
+    private val subcategoria_filtrado = MutableLiveData<List<dataclass_cat_sub>>()
+    val _subcategoria_filtrado: LiveData<List<dataclass_cat_sub>> get() = subcategoria_filtrado
 
 //    private val tiendas_por_subcategoria = MutableLiveData<List<tiendas_por_categoria>>()
 //    val _tiendas_por_subcategoria: LiveData<List<tiendas_por_categoria>> get() = tiendas_por_subcategoria
@@ -57,6 +65,16 @@ class viewModel_filtado_tiendas : ViewModel() {
 
     var todas_tiendas = mutableListOf<tiendas_por_categoria>()
         private set
+
+    fun obtener_categorias() {
+        viewModelScope.launch {
+            try {
+                subcategoria_filtrado.value = repo_cat_sub.obtener_subcategoiras()
+            } catch (e: Exception) {
+                subcategoria_filtrado.value = emptyList()
+            }
+        }
+    }
 
     fun tiendas_iniciales(lista: List<tiendas_por_categoria>) {
         Log.d("otbenremos_lista", lista.toString())
@@ -141,13 +159,14 @@ class viewModel_filtado_tiendas : ViewModel() {
     }
 
     fun obtenerHorarioPorTienda_activa(localidad: String, idTienda: String) {
-        Log.d("id_registrado",idTienda)
+        Log.d("id_registrado", idTienda)
         viewModelScope.launch {
             try {
                 val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
                 data?.let { horarioTienda ->
-                    Log.d("datos_obtnidos",data.toString())
-                    val estaAbierto = constantes_lista_localidades.verificarSiEstaAbiertoHoy(horarioTienda)
+                    Log.d("datos_obtnidos", data.toString())
+                    val estaAbierto =
+                        constantes_lista_localidades.verificarSiEstaAbiertoHoy(horarioTienda)
                     val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
                     nuevoMapa[idTienda] = estaAbierto
                     _estadoTiendas.postValue(nuevoMapa)

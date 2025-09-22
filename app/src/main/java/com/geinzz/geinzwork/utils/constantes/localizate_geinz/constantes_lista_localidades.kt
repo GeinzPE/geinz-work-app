@@ -732,7 +732,7 @@ object constantes_lista_localidades {
 //            nombre = "Puesto de salud nueva victoria",
 //            tipo = "salud",
 //            img = "",
-//            localidad = "supe_puerto",
+//            localidad = "puerto supe",
 //            datos_ubi = ref_ubi(
 //                latitud = -10.798229224689468,
 //                longitud = -77.7395314515867,
@@ -745,7 +745,7 @@ object constantes_lista_localidades {
 //            nombre = "Comisaría PNP Supe Puerto",
 //            tipo = "seguridad",
 //            img = "",
-//            localidad = "supe_puerto",
+//            localidad = "puerto supe",
 //            datos_ubi = ref_ubi(
 //                latitud = -10.797019308906867,
 //                longitud = -77.74180885176115,
@@ -1200,15 +1200,6 @@ object constantes_lista_localidades {
         val localida: String
     )
 
-    private fun dialog_permiso_llamada(context: Context, numero: String) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CALL_PHONE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-
-        }
-    }
 
     val datos_ubicacionesreales = listOf(
         lugares_turisticos2(
@@ -1493,44 +1484,44 @@ object constantes_lista_localidades {
             }
 
     }
-    fun agregar_lugares_turisticos2(lugaresTuristicos: lugares_turisticos2) {
-        val db = FirebaseFirestore.getInstance().collection("Tiendas")
-            .document(lugaresTuristicos.localida).collection("lugares_turisticos")
-
-        val hasmap_ubicacion = hashMapOf<String, Any>(
-            "direccion" to lugaresTuristicos.direcccion,
-            "latitud" to lugaresTuristicos.latitud,
-            "longitud" to lugaresTuristicos.longitud
-        )
-        val hashMap = hashMapOf<String, Any>(
-            "categoria" to lugaresTuristicos.subcategoria_filtrado,
-            "descripcion" to lugaresTuristicos.descripcion,
-            "img" to lugaresTuristicos.img_ref,
-            "titulo" to lugaresTuristicos.titulo,
-            "ubicacion" to hasmap_ubicacion
-        )
-
-        db.add(hashMap).addOnSuccessListener { res ->
-            val id_creado = res.id
-            val hasmapUpdate = hashMapOf<String, Any>(
-                "id" to id_creado
-            )
-            db.document(id_creado).update(hasmapUpdate).addOnSuccessListener {
-                val ItemPasadp = Item(
-                    lugaresTuristicos.titulo,
-                    lugaresTuristicos.localida,
-                    id_creado,
-                    "turismo", lugaresTuristicos.img_ref, lugaresTuristicos.subcategoria_filtrado
-
-                )
-                agregar_lugares_turisticos(ItemPasadp,lugaresTuristicos.latitud,lugaresTuristicos.longitud)
-            }
-
-        }.addOnFailureListener { e ->
-            Log.d("error_subir_datos", "error")
-        }
-
-    }
+//    fun agregar_lugares_turisticos2(lugaresTuristicos: lugares_turisticos2) {
+//        val db = FirebaseFirestore.getInstance().collection("Tiendas")
+//            .document(lugaresTuristicos.localida).collection("lugares_turisticos")
+//
+//        val hasmap_ubicacion = hashMapOf<String, Any>(
+//            "direccion" to lugaresTuristicos.direcccion,
+//            "latitud" to lugaresTuristicos.latitud,
+//            "longitud" to lugaresTuristicos.longitud
+//        )
+//        val hashMap = hashMapOf<String, Any>(
+//            "categoria" to lugaresTuristicos.subcategoria_filtrado,
+//            "descripcion" to lugaresTuristicos.descripcion,
+//            "img" to lugaresTuristicos.img_ref,
+//            "titulo" to lugaresTuristicos.titulo,
+//            "ubicacion" to hasmap_ubicacion
+//        )
+//
+//        db.add(hashMap).addOnSuccessListener { res ->
+//            val id_creado = res.id
+//            val hasmapUpdate = hashMapOf<String, Any>(
+//                "id" to id_creado
+//            )
+//            db.document(id_creado).update(hasmapUpdate).addOnSuccessListener {
+//                val ItemPasadp = Item(
+//                    lugaresTuristicos.titulo,
+//                    lugaresTuristicos.localida,
+//                    id_creado,
+//                    "turismo", lugaresTuristicos.img_ref, lugaresTuristicos.subcategoria_filtrado
+//
+//                )
+//                agregar_lugares_turisticos(ItemPasadp,lugaresTuristicos.latitud,lugaresTuristicos.longitud)
+//            }
+//
+//        }.addOnFailureListener { e ->
+//            Log.d("error_subir_datos", "error")
+//        }
+//
+//    }
 
 //
     fun agregar_lugares_turisticos(Item: Item,latitud: Double,longitud: Double) {

@@ -75,6 +75,28 @@ class repo_agregar_cat_sub_localizate {
         return if (solo5) resultado.take(5) else resultado
     }
 
+    suspend fun obtener_subcategoiras():List<dataclass_cat_sub>{
+        val lista = mutableListOf<dataclass_cat_sub>()
+        val categoriasRef = db.collection("Tiendas")
+            .document("categorias")
+            .collection("categorias")
+
+        val snapshot = categoriasRef.get().await()
+        lista.clear()
+
+        for (cate in snapshot.documents) {
+            val subcategoriasDoc = categoriasRef.document(cate.id).get().await()
+            if (subcategoriasDoc.exists()) {
+                val data = subcategoriasDoc.data
+                val subcategorias = data?.get("subcategorias") as? List<String> ?: emptyList()
+
+                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, "")
+                lista.add(datos)
+            }
+        }
+        return lista
+    }
+
 
 
     suspend fun obtenerTiendas_registradas_activas_por_categoria(

@@ -684,7 +684,7 @@ fun Expandible_descripcion_tienda(
     Cartas_expandibles {
         Column() {
             expandibles_wrapp(
-                "Descripcion de tienda",
+                "Descripcion",
                 iconRes = R.drawable.descripcion_tienda_vector,
                 null,
                 expandido,
