@@ -68,6 +68,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -105,6 +106,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
@@ -123,6 +125,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -166,7 +169,7 @@ fun ui_pantalla_busqueda(
         }
     }
 
-
+    var categoria_filtrad by remember { mutableStateOf("") }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
@@ -203,7 +206,7 @@ fun ui_pantalla_busqueda(
         }
     }
     LaunchedEffect(expandedFloatingMenuFadeDemo) {
-        if(expandedFloatingMenuFadeDemo){
+        if (expandedFloatingMenuFadeDemo) {
             viewModelFiltros.obtener_categorias()
         }
     }
@@ -455,25 +458,30 @@ fun ui_pantalla_busqueda(
                 .graphicsLayer { alpha = alphaAnim }
         )
         FloatingBubble(
-            categoria_filtrado,
-            subir_btn,
-            expandedFloatingMenuFadeDemo,
+            viewModelFiltros = viewModelFiltros,
+            categoria_filtrado = categoria_filtrado,
+            subir_btn = subir_btn,
+            expanded = expandedFloatingMenuFadeDemo,
             onClick = {
-                Log.d("hacimios_cli","fabbbb")
+                Log.d("hacimios_cli", "fabbbb")
                 expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
-                      },
+            },
             expanded_fun = { expandedFloatingMenuFadeDemo = false },
-            tiendaLocalidadSeleccionada ?: "barranca"
-        ) { localidad ->
-            tiendaLocalidadSeleccionada = localidad
-            scope.launch {
-                viewModel.search(
-                    query = searchText.text, // puede estar vacío
-                    subcategoria_selecionada = subcategoria_selecionada,
-                    localidad = localidad
-                )
-            }
-        }
+            localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
+            localidad_filtrado = { localidad ->
+                tiendaLocalidadSeleccionada = localidad
+                scope.launch {
+                    viewModel.search(
+                        query = searchText.text,
+                        subcategoria_selecionada = subcategoria_selecionada,
+                        localidad = localidad
+                    )
+                }
+            },
+            categoria_filtrad,
+            categoria_Selecionada = { categoria ->
+                categoria_filtrad = categoria
+            })
 
 
 //        FloatingMenuFadeDemo(
@@ -524,13 +532,16 @@ fun ui_pantalla_busqueda(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun FloatingBubble(
+    viewModelFiltros: viewModel_filtado_tiendas,
     categoria_filtrado: List<dataclass_cat_sub>?,
     subir_btn: Boolean,
     expanded: Boolean,
     onClick: () -> Unit,
     expanded_fun: () -> Unit,
     localidad_selecionada: String,
-    localidad_filtrado: (String) -> Unit
+    localidad_filtrado: (String) -> Unit,
+    categoria_filtrad: String,
+    categoria_Selecionada: (String) -> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
     val context = LocalContext.current
@@ -539,29 +550,53 @@ fun FloatingBubble(
 
     val bubbleSizePx = with(density) { 60.dp.toPx() }
     val paddingPx = with(density) { 16.dp.toPx() }
+    var categorias_filtrado_res by remember { mutableStateOf<List<dataclass_cat_sub>>(emptyList()) }
+    val subctegorias by viewModelFiltros._obtener_subacategoria.observeAsState()
+
+    var subcategoira_filtrado_res by remember { mutableStateOf<List<String>>(emptyList()) }
+
 
     val icono: Int? = if (!expanded) {
         R.drawable.icono_filtrado_webp
     } else {
         null
     }
-    Log.d("categoria_filtrado",categoria_filtrado.toString())
+    LaunchedEffect(categoria_filtrado) {
+        categoria_filtrado?.let {
+            Log.d("categoria_filtrado", it.toString())
+            categorias_filtrado_res = it
+        }
+    }
+    LaunchedEffect(categoria_filtrad) {
+        viewModelFiltros.obtener_subcategoiras(categoria_filtrad)
+    }
+
+    LaunchedEffect(subctegorias) {
+        val listaSoloSubcategorias = subctegorias
+            ?.flatMap { it.subcategorias }  // Junta todas las listas de cada categoría
+
+        listaSoloSubcategorias?.let {
+            Log.d("categoria_filtrado", it.toString())
+            subcategoira_filtrado_res = it  // <-- aquí ya tienes solo [String]
+        }
+    }
+
 
     var expandedIndex by remember { mutableStateOf(-1) }
 
     val weightBox1 by animateFloatAsState(
-        targetValue = when(expandedIndex) {
-            0 -> 0.7f  // si localidad está expandida, 70% del alto
-            1 -> 0.3f  // si subcategoría está expandida, localidad 30%
-            else -> 0.5f // estado inicial, ambos 50%
+        targetValue = when (expandedIndex) {
+            0 -> 0.7f
+            1 -> 0.3f
+            else -> 0.5f
         },
         animationSpec = tween(300, easing = FastOutSlowInEasing)
     )
 
     val weightBox2 by animateFloatAsState(
-        targetValue = when(expandedIndex) {
-            0 -> 0.3f  // localidad expandida -> subcategoría 30%
-            1 -> 0.7f  // subcategoría expandida -> localidad 30%
+        targetValue = when (expandedIndex) {
+            0 -> 0.3f
+            1 -> 0.7f
             else -> 0.5f
         },
         animationSpec = tween(300, easing = FastOutSlowInEasing)
@@ -736,7 +771,8 @@ fun FloatingBubble(
                             spacer_vertical(5.dp)
                             texto_generico_multilinea(
                                 "Elige una categoría y explora desde playas y museos hasta tiendas y restaurantes locales.",
-                                MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 20.dp)
+                                MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(end = 20.dp)
                             )
 
                         }
@@ -757,33 +793,95 @@ fun FloatingBubble(
                                 .padding(8.dp)
                                 .fillMaxHeight()
                         ) {
+                            val listState = rememberLazyListState()
+                            val showTopShadow by remember {
+                                derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
+                            }
+                            val showBottomShadow by remember {
+                                derivedStateOf {
+                                    val lastVisible =
+                                        listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                    val totalItems = listState.layoutInfo.totalItemsCount
+                                    lastVisible != null && lastVisible < totalItems - 1
+                                }
+                            }
+
                             LazyColumn(
+                                state = listState,
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 item { texto_generico_one_line("categoria") }
-                                items(lista_localidades) { i ->
+                                items(categorias_filtrado_res) { i ->
                                     val colorSeleccionado =
                                         if (localidad_selecionada.equals(
-                                                i,
+                                                i.nombre,
                                                 ignoreCase = true
                                             )
                                         ) Color.Black
                                         else MaterialTheme.colorScheme.primary
 
                                     AnimatedFabItem(
-                                        text = i,
+                                        text = simplificarCategoria(i.nombre),
                                         color = colorSeleccionado,
                                         visible = expanded
                                     ) {
-                                        localidad_filtrado(i)
-                                        expanded_fun()
+                                        categoria_Selecionada(i.nombre)
                                     }
                                 }
                             }
-                        }
+                            this@Row.AnimatedVisibility(
+                                showTopShadow,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .align(Alignment.TopCenter)
+                            ) {
+                                Box(
+                                    modifier = Modifier
 
+                                        .background(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color(0xFF262626),
+                                                    Color.Transparent,
+                                                ),
+                                                startY = 0f,
+                                                endY = 200f
+                                            )
+                                        )
+
+                                )
+
+                            }
+                            this@Row.AnimatedVisibility(
+                                showBottomShadow, enter = fadeIn(), exit = fadeOut(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .align(Alignment.BottomCenter)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color.Transparent,
+                                                    Color(0xFF262626),
+                                                ),
+                                                startY = 0f,
+                                                endY = 200f
+                                            )
+                                        )
+
+                                )
+                            }
+
+
+                        }
 
 
                         // Columna derecha: dos cuadros apilados verticalmente
@@ -793,14 +891,27 @@ fun FloatingBubble(
                                 .fillMaxHeight(),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
+                            val listState = rememberLazyListState()
+                            val showTopShadow by remember {
+                                derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
+                            }
+                            val showBottomShadow by remember {
+                                derivedStateOf {
+                                    val lastVisible =
+                                        listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                    val totalItems = listState.layoutInfo.totalItemsCount
+                                    lastVisible != null && lastVisible < totalItems - 1
+                                }
+                            }
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .weight(weightBox1)
                                     .clip(RoundedCornerShape(30.dp))
                                     .background(MaterialTheme.colorScheme.surface)
                                     .padding(8.dp)
-                            ){
+                            ) {
                                 LazyColumn(
+                                    state = listState,
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     contentPadding = PaddingValues(
                                         horizontal = 16.dp,
@@ -834,51 +945,58 @@ fun FloatingBubble(
                                     onClick = {
                                         expandedIndex = if (expandedIndex == 0) -1 else 0
                                     })
-                            }
 
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .weight(weightBox2)
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
-                                    .padding(8.dp)
-
-                            ){
-                                LazyColumn(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(
-                                        horizontal = 16.dp,
-                                        vertical = 8.dp
-                                    ),
-                                    modifier = Modifier.fillMaxSize()
+                                this@Row.AnimatedVisibility(
+                                    showTopShadow,
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .align(Alignment.TopCenter)
                                 ) {
-                                    item { texto_generico_one_line("subcategorias") }
-                                    items(lista_localidades) { i ->
-                                        val colorSeleccionado =
-                                            if (localidad_selecionada.equals(
-                                                    i,
-                                                    ignoreCase = true
-                                                )
-                                            ) Color.Black
-                                            else MaterialTheme.colorScheme.primary
+                                    Box(
+                                        modifier = Modifier
 
-                                        AnimatedFabItem(
-                                            text = i,
-                                            color = colorSeleccionado,
-                                            visible = expanded
-                                        ) {
-                                            localidad_filtrado(i)
-                                            expanded_fun()
-                                        }
-                                    }
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        Color(0xFF262626),
+                                                        Color.Transparent,
+                                                    ),
+                                                    startY = 0f,
+                                                    endY = 200f
+                                                )
+                                            )
+
+                                    )
+
                                 }
-                                btn_close_gris(
-                                    modifier = Modifier.align(Alignment.TopEnd),
-                                    icono_expandid2,
-                                    onClick = {
-                                        expandedIndex = if (expandedIndex == 1) -1 else 1
-                                    })
+                                this@Row.AnimatedVisibility(
+                                    showBottomShadow, enter = fadeIn(), exit = fadeOut(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .align(Alignment.BottomCenter)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        Color.Transparent,
+                                                        Color(0xFF262626),
+                                                    ),
+                                                    startY = 0f,
+                                                    endY = 200f
+                                                )
+                                            )
+
+                                    )
+                                }
                             }
+
+
 
                         }
 
@@ -891,6 +1009,33 @@ fun FloatingBubble(
     }
 }
 
+@Composable
+fun sucategoria_localida(){
+    val icono_expandido = if (expandedIndex == 0) {
+        Icons.Default.ExpandLess
+    } else {
+        Icons.Default.ExpandMore
+    }
+
+    val icono_expandid2 = if (expandedIndex == 1) {
+        Icons.Default.ExpandLess
+    } else {
+        Icons.Default.ExpandMore
+    }
+    val listState = rememberLazyListState()
+    val showTopShadow by remember {
+        derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showBottomShadow by remember {
+        derivedStateOf {
+            val lastVisible =
+                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val totalItems = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < totalItems - 1
+        }
+    }
+
+}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -1324,7 +1469,13 @@ fun AnimatedFabItem(
             onClick = { onClick() },
             colors = ButtonDefaults.buttonColors(containerColor = animatedColor)
         ) {
-            Text(text, color = Color.White, modifier = Modifier.padding(horizontal = 10.dp))
+            Text(
+                text,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 10.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

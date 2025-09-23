@@ -98,6 +98,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 
 
 @Composable
@@ -962,13 +963,6 @@ fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass
         }
     }
 
-}
-
-
-fun String.capitalizeFirst(): String {
-    return this.replaceFirstChar {
-        if (it.isLowerCase()) it.titlecase() else it.toString()
-    }
 }
 
 @Composable

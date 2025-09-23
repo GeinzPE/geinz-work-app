@@ -1,7 +1,7 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
 data class dataclass_cat_sub(
-    val nombre: String?,
+    val nombre: String="",
     val lista_subcategorias: List<String> = emptyList(),
     val lista_img: String = ""
 )

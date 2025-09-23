@@ -48,8 +48,10 @@ class viewModel_filtado_tiendas : ViewModel() {
     val _subcategoria_filtrado: LiveData<List<dataclass_cat_sub>> get() = subcategoria_filtrado
 
 //    private val tiendas_por_subcategoria = MutableLiveData<List<tiendas_por_categoria>>()
-//    val _tiendas_por_subcategoria: LiveData<List<tiendas_por_categoria>> get() = tiendas_por_subcategoria
+//    val _tiendas_por_subcategoria: LiveData<List<tiendas_por_categoria>> get() = tiendas_por_subcategori
 
+    private val obtener_subcategoria = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
+    val _obtener_subacategoria: LiveData<List<filtrado_tiendas_cat_sub>> get() = obtener_subcategoria
     fun actualizarListaFiltrada(nuevaLista: List<tiendas_por_categoria>) {
         _listaFiltrada.value = nuevaLista
     }
@@ -72,6 +74,16 @@ class viewModel_filtado_tiendas : ViewModel() {
                 subcategoria_filtrado.value = repo_cat_sub.obtener_subcategoiras()
             } catch (e: Exception) {
                 subcategoria_filtrado.value = emptyList()
+            }
+        }
+    }
+
+    fun obtener_subcategoiras(categoria: String){
+        viewModelScope.launch {
+            try {
+                obtener_subcategoria.value=repo_filtrado.obtener_subcategorias_tiendas(categoria)
+            }catch (e: Exception){
+                obtener_subcategoria.value=emptyList()
             }
         }
     }
