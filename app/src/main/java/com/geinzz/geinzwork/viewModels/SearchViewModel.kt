@@ -51,6 +51,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun clearResults() {
+        _resultado_categorias.value=emptyList()
         _results.value = emptyList()
         Log.d("valor_resul", _results.value.toString())
     }

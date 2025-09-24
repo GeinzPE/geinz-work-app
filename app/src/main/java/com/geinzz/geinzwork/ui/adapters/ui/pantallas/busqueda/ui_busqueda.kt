@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
 
 import Item
+import Resultado_sub_cat
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.provider.Settings
@@ -97,36 +98,27 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriassEnd
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriasstart
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerrado_overlay
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -141,7 +133,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -163,7 +154,8 @@ fun ui_pantalla_busqueda(
     val results by viewModel.results.collectAsState()
     val resultado_chips by viewModel.resultado_categorias.collectAsState()
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
-    var subcategoria_selecionada by rememberSaveable { mutableStateOf("Todos") }
+    var categoria_selecionada by rememberSaveable { mutableStateOf("") }
+    var subcategoria_selecionada by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val scope = rememberCoroutineScope()
     val lista_filtrado = constantes_lista_localidades.chips_filtrado_busqueda
@@ -183,7 +175,7 @@ fun ui_pantalla_busqueda(
             tiendaLocalidadSeleccionada = ultimaLocalidad
         }
     }
-  LaunchedEffect() { }
+//  LaunchedEffect() { }
     var categoria_filtrad by remember { mutableStateOf("") }
     var subcategira_filtrado by remember { mutableStateOf("") }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
@@ -230,10 +222,13 @@ fun ui_pantalla_busqueda(
         }
     }
 
+
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
+
+    var cat_sub_seleciondo by remember { mutableStateOf(false) }
 
     Box() {
         LazyVerticalStaggeredGrid(
@@ -261,25 +256,41 @@ fun ui_pantalla_busqueda(
 //                                    subcategoria_selecionada,
 //                                    tiendaLocalidadSeleccionada ?: "barranca"
 //                                )
-                                viewModel.search_subcategorias(it)
+                                if (!cat_sub_seleciondo) {
+                                    viewModel.search_subcategorias(it)
+                                } else {
+                                    Log.d("yanomostramos", "no mostramos ya mas res de chips")
+                                }
                             }
                             subir_btn = false
                         } else {
                             subir_btn = true
                             mostrar()
-                            viewModel.clearResults()
+//                            viewModel.clearResults()
                         }
                     }
 
                     spacer_vertical(5.dp)
 
-                    filtrado_chips(lista_filtrado, subcategoria_selecionada) { filtrado_Select ->
-                        subcategoria_selecionada = filtrado_Select
-                    }
-
+                    filtrado_chips(
+                        searchText = searchText.text,
+                        lista_filtrado = resultado_chips,
+                        categoria_selecionada = categoria_selecionada,
+                        categoria_selecionada_fun = { filtrado_Select ->
+                            categoria_selecionada = filtrado_Select
+                        },
+                        subcategoria_selecionada = subcategoria_selecionada,
+                        subcateogira_selecionada_fun = { filtrado_subcategoria_select ->
+                            subcategoria_selecionada = filtrado_subcategoria_select
+                        }, cat_sub_select = { hay_selecccion ->
+                            if (hay_selecccion) {
+                                cat_sub_seleciondo = hay_selecccion
+                            }
+                        })
                     spacer_vertical(5.dp)
                 }
             }
+
 
             itemsIndexed(results) { index, item ->
                 ramdoBox(horario_por_tienda, item, index, { id, localidad, color ->
@@ -817,7 +828,7 @@ fun FloatingBubble(
                                                 ) {
                                                     categoria_Selecionada(i.nombre)
                                                     mostrarChipCategoria.value = true
-                                                    mostrarChipsubcategoria.value=false
+                                                    mostrarChipsubcategoria.value = false
                                                     filtros = filtros.copy(categoria = i.nombre)
                                                 }
                                             }
@@ -1226,36 +1237,85 @@ fun FloatingBubble(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun filtrado_chips(
-    lista_filtrado: List<String>,
+    searchText: String,
+    lista_filtrado: List<Resultado_sub_cat>,
+    categoria_selecionada: String,
+    categoria_selecionada_fun: (String) -> Unit,
     subcategoria_selecionada: String,
-    cateogira_selecionada: (String) -> Unit
+    subcateogira_selecionada_fun: (String) -> Unit,
+    cat_sub_select: (Boolean) -> Unit
 ) {
-    LazyRow {
-        items(lista_filtrado) { item ->
-            val cat_selecionada = subcategoria_selecionada == item
-            FilterChip(
-                modifier = Modifier.padding(horizontal = 5.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Color.White,
-                    selectedLabelColor = Color.Black,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    labelColor = Color.White
-                ),
-                border = null,
-                selected = cat_selecionada,
-                onClick = { cateogira_selecionada(item) },
-                label = {
-                    Text(
-                        modifier = Modifier.padding(vertical = 10.dp, horizontal = 5.dp),
-                        text = item.capitalizeFirst(),
-                    )
-                },
-                shape = RoundedCornerShape(50.dp)
-            )
+    val categoriasUnicas = lista_filtrado.distinctBy { it.categoria }
+    val subcategoriasUnicas = lista_filtrado
+        .mapNotNull { it.subcategoria }
+        .distinct()
 
+
+    val hayCategoria = categoria_selecionada.isNotEmpty()
+    val haySubcategoria = subcategoria_selecionada.isNotEmpty()
+    val haySeleccion = hayCategoria || haySubcategoria
+    Log.d("hay_selecionssssss", haySeleccion.toString())
+    cat_sub_select(haySeleccion)
+    val hayAmbos = hayCategoria && haySubcategoria
+
+    if (searchText.isNotEmpty() && !haySeleccion) {
+        LazyRow {
+            // Dibujar categorías únicas
+            items(categoriasUnicas) { i ->
+                val catSeleccionada = categoria_selecionada == i.categoria
+                chisp_filtrado_busqueda(
+                    carta_selecionada = catSeleccionada,
+                    filtrado = i.categoria,
+                    btn_visible = true,
+                    clik_card = { categoria_selecionada_fun(i.categoria) },
+                    onClick_delete = { categoria_selecionada_fun("") }
+                )
+            }
+
+            // Dibujar subcategorías únicas
+            items(subcategoriasUnicas) { sub ->
+                chisp_filtrado_busqueda(
+                    subcategoria_selecionada == sub,
+                    sub.capitalizeFirst(),
+                    true,
+                    { subcateogira_selecionada_fun(sub) },
+                    { subcateogira_selecionada_fun("") }
+                )
+            }
+        }
+    } else if (searchText.isEmpty() && !haySeleccion) {
+        texto_generico_one_line("mostramoss chips clasicos")
+    }    else {
+        LazyRow {
+            // ✅ Mostrar categorías (si hay selección se mantiene)
+            items(categoriasUnicas) { i ->
+                val catSeleccionada = categoria_selecionada == i.categoria
+                chisp_filtrado_busqueda(
+                    carta_selecionada = catSeleccionada,
+                    filtrado = i.categoria,
+                    btn_visible = true,
+                    clik_card = { categoria_selecionada_fun(i.categoria) },
+                    onClick_delete = { categoria_selecionada_fun("") } // 👈 Solo aquí se borra
+                )
+            }
+
+            // ✅ Mostrar subcategorías (si hay selección se mantiene)
+            items(subcategoriasUnicas) { sub ->
+                val subSeleccionada = subcategoria_selecionada == sub
+                chisp_filtrado_busqueda(
+                    carta_selecionada = subSeleccionada,
+                    filtrado = sub.capitalizeFirst(),
+                    btn_visible = true,
+                    clik_card = { subcateogira_selecionada_fun(sub) },
+                    onClick_delete = { subcateogira_selecionada_fun("") } // 👈 Solo aquí se borra
+                )
+            }
         }
     }
+
+
 }
+
 
 @Composable
 fun fraces_filtrado(expandedFloatingMenuFadeDemo: Boolean) {
