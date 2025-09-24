@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -59,6 +59,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -69,6 +70,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +87,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
@@ -966,24 +970,48 @@ fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass
 }
 
 @Composable
+fun btn_cerrado_overlay(onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) { onClick() }
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 20.dp, vertical = 5.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.ExpandMore,
+            contentDescription = "Cerrar",
+            tint = Color.White,
+            modifier = Modifier
+                .size(40.dp)
+        )
+    }
+}
+
+@Composable
 fun btn_close_gris(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
+    size_container: Dp = 35.dp,
+    size_icon: Dp = 12.dp,
+    tint_icon: Color = Color.White,
     onClick: () -> Unit,
 ) {
     Box(
         modifier = modifier
-            .size(35.dp)
+            .size(size_container)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null // opcional: quita efecto ripple
+                indication = null
             ) {
-                Log.d("realizaste","click")
+                Log.d("realizaste", "click")
                 onClick()
             },
         contentAlignment = Alignment.Center
     ) {
-        // Fondo con blur, pero sin interceptar clicks
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -992,11 +1020,61 @@ fun btn_close_gris(
                 .blur(12.dp)
         )
         // Icono
-        androidx.compose.material3.Icon(
-            imageVector =  imageVector,
+        Icon(
+            imageVector = imageVector,
             contentDescription = "Cerrar",
-            tint = Color.White,
-            modifier = Modifier.size(20.dp)
+            tint = tint_icon,
+            modifier = Modifier.size(size_icon)
         )
     }
+}
+
+
+@Composable
+fun chisp_filtrado_busqueda(
+    carta_selecionada: Boolean,
+    filtrado: String,
+    btn_visible: Boolean = true,
+    clik_card: () -> Unit,
+    onClick_delete: () -> Unit
+) {
+    val color_chips by animateColorAsState(
+        targetValue = if (!carta_selecionada)
+            Color.White
+        else
+            MaterialTheme.colorScheme.primary,
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = LinearOutSlowInEasing
+        ), label = ""
+    )
+
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(color_chips)
+            .height(35.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .clickable ( indication = null,
+                interactionSource = remember { MutableInteractionSource() }){ clik_card() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        texto_generico_one_line(
+            filtrado.capitalizeFirst(),
+            color = if (!carta_selecionada) Color.Black else Color.White,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        if (btn_visible) {
+            spacer_horizonta(7.dp)
+            btn_close_gris(
+                imageVector = Icons.Default.Close,
+                onClick = { onClick_delete() },
+                size_container = 20.dp,
+                size_icon = 15.dp,
+                tint_icon = if (!carta_selecionada) Color.Black else Color.White
+            )
+        }
+
+    }
+
 }

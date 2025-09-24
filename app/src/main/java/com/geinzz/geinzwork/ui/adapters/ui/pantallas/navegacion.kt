@@ -227,9 +227,10 @@ fun nativationWrapper(
                                 ).show()
                             }
                         },
-                        ver_lugares = {localidad->
-                            Log.d("localidad_defautl_user",localidad)
-                            navController.navigate(lugares_turisticos(localidad)) },
+                        ver_lugares = { localidad ->
+                            Log.d("localidad_defautl_user", localidad)
+                            navController.navigate(lugares_turisticos(localidad))
+                        },
                         listner_busqueda = {
                             navController.navigate("buscar")
                         },
@@ -258,14 +259,15 @@ fun nativationWrapper(
                         viewModel_filtrado_tiendas,
                         focusRequester = focusRequester,
                         mostrar = {
-                            Log.d("mandaomos", "mostar")
                             isvisble_buttomvar = true
 
                         },
                         ocultar = {
-                            Log.d("mandaomos", "opcultar")
                             isvisble_buttomvar = false
-                        })
+                        }, estado_mostar = isvisble_buttomvar, estado_ocultar = isvisble_buttomvar
+                    )
+
+
                 }
 
                 composable("favoritos") {
@@ -326,7 +328,7 @@ fun nativationWrapper(
                 }
 
                 composable<lugares_turisticos> { navback ->
-                    val datos_lugares_turisticos=navback.toRoute<lugares_turisticos>()
+                    val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
                         datos_lugares_turisticos.localidad,
                         viewModelLugares,
@@ -371,7 +373,11 @@ fun nativationWrapper(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom
             ) {
-                texto_generico_one_line("Sin conexión a Internet", color = Color.White, modifier = Modifier.padding(5.dp))
+                texto_generico_one_line(
+                    "Sin conexión a Internet",
+                    color = Color.White,
+                    modifier = Modifier.padding(5.dp)
+                )
             }
         }
 

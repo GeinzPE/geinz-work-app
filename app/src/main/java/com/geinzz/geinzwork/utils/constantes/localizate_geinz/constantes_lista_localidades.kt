@@ -315,7 +315,7 @@ object constantes_lista_localidades {
 
 
     val chips_filtrado_busqueda = listOf(
-        "Todos", "comida y restaurantes", "Hoteles", "Lugares"
+        "Todos", "playas", "Hoteles", "Lugares","restaurantes"
     )
 
 
@@ -1122,6 +1122,7 @@ object constantes_lista_localidades {
             if (it.isLowerCase()) it.titlecase() else it.toString()
         }
     }
+
     fun esAniversarioHoy(localidad: String): Boolean {
         val aniversarios = mapOf(
             "barranca" to Pair(1984, "20 de septiembre"),
@@ -1460,7 +1461,7 @@ object constantes_lista_localidades {
 //
 //
 
-    fun eliminar_menios_comida(){
+    fun eliminar_menios_comida() {
         val db = FirebaseFirestore.getInstance()
         val ref = db.collection("lugares")
 
@@ -1523,10 +1524,10 @@ object constantes_lista_localidades {
 //
 //    }
 
-//
-    fun agregar_lugares_turisticos(Item: Item,latitud: Double,longitud: Double) {
+    //
+    fun agregar_lugares_turisticos(Item: Item, latitud: Double, longitud: Double) {
         val db = FirebaseFirestore.getInstance().collection("lugares").document(Item.id_tienda)
-    val hasmap_ubicacion = hashMapOf<String, Any>(
+        val hasmap_ubicacion = hashMapOf<String, Any>(
             "latitud" to latitud,
             "longitud" to longitud
         )
@@ -1540,11 +1541,30 @@ object constantes_lista_localidades {
             "ubicacion" to hasmap_ubicacion
         )
         db.set(hashMap, SetOptions.merge()).addOnSuccessListener { res ->
-           Log.d("creado_correcto","${Item.id_tienda} creado correctamente :)")
+            Log.d("creado_correcto", "${Item.id_tienda} creado correctamente :)")
         }.addOnFailureListener { e ->
             Log.d("error_subir_datos", "error")
         }
     }
+
+    val shadow_top_filtrado_v1= listOf(
+        Color(0xFF262626),
+        Color.Transparent,
+    )
+    val shadow_botonm_filtrado_v1= listOf(
+        Color.Transparent,
+        Color(0xFF262626),
+    )
+
+    val shadow_top_filtrado_v2= listOf(
+        Color(0XFF535252),
+        Color.Transparent,
+    )
+    val shadow_botonm_filtrado_v2= listOf(
+        Color.Transparent,
+        Color(0XFF535252),
+    )
+
 
 
 }

@@ -11,6 +11,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -57,6 +58,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -93,7 +95,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,6 +109,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
@@ -112,7 +117,10 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriassEnd
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowTagsCategoriasstart
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerrado_overlay
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -125,10 +133,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -140,13 +153,15 @@ fun ui_pantalla_busqueda(
     viewModelFiltros: viewModel_filtado_tiendas,
     focusRequester: FocusRequester,
     mostrar: () -> Unit,
-    ocultar: () -> Unit
+    ocultar: () -> Unit,
+    estado_mostar: Boolean,
+    estado_ocultar: Boolean
 ) {
-
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
     val results by viewModel.results.collectAsState()
+    val resultado_chips by viewModel.resultado_categorias.collectAsState()
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
     var subcategoria_selecionada by rememberSaveable { mutableStateOf("Todos") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
@@ -168,8 +183,9 @@ fun ui_pantalla_busqueda(
             tiendaLocalidadSeleccionada = ultimaLocalidad
         }
     }
-
+  LaunchedEffect() { }
     var categoria_filtrad by remember { mutableStateOf("") }
+    var subcategira_filtrado by remember { mutableStateOf("") }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
@@ -180,29 +196,26 @@ fun ui_pantalla_busqueda(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
-    LaunchedEffect(subcategoria_selecionada) {
-        if (firstLaunch) {
-            firstLaunch = false
-        } else {
-            Log.d("cambiado", subcategoria_selecionada)
-            scope.launch {
-                viewModel.search(
-                    searchText.text,
-                    subcategoria_selecionada,
-                    tiendaLocalidadSeleccionada ?: "barranca"
-                )
-            }
-        }
-    }
-
+//    LaunchedEffect(subcategoria_selecionada) {
+//        if (firstLaunch) {
+//            firstLaunch = false
+//        } else {
+//            Log.d("cambiado", subcategoria_selecionada)
+//            scope.launch {
+//                viewModel.search(
+//                    searchText.text,
+//                    subcategoria_selecionada,
+//                    tiendaLocalidadSeleccionada ?: "barranca"
+//                )
+//            }
+//        }
+//    }
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
             viewModelFiltros.obtener_campos_tiendas_por_id(
                 tiendaLocalidadSeleccionada ?: "barranca",
                 id_tienda_selecionada
             )
-
-
         }
     }
     LaunchedEffect(expandedFloatingMenuFadeDemo) {
@@ -210,13 +223,13 @@ fun ui_pantalla_busqueda(
             viewModelFiltros.obtener_categorias()
         }
     }
-
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
             dataclass_tienda_seleccionada =
                 datosTienda!!.first()
         }
     }
+
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
@@ -243,11 +256,12 @@ fun ui_pantalla_busqueda(
                         if (it.isNotEmpty()) {
                             ocultar()
                             scope.launch {
-                                viewModel.search(
-                                    it,
-                                    subcategoria_selecionada,
-                                    tiendaLocalidadSeleccionada ?: "barranca"
-                                )
+//                                viewModel.search(
+//                                    it,
+//                                    subcategoria_selecionada,
+//                                    tiendaLocalidadSeleccionada ?: "barranca"
+//                                )
+                                viewModel.search_subcategorias(it)
                             }
                             subir_btn = false
                         } else {
@@ -308,130 +322,6 @@ fun ui_pantalla_busqueda(
                 })
         }
 
-
-//        LazyColumn(
-//            state = listState,
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(10.dp)
-//        ) {
-//            item {
-//                fraces_filtrado(expandedFloatingMenuFadeDemo)
-//                spacer_vertical(10.dp)
-//            }
-//            item {
-//                TexfielFiltrado(focusRequester, searchText) { it ->
-//                    searchText = TextFieldValue(
-//                        text = it,
-//                        selection = TextRange(it.length) // 👈 cursor al final del texto
-//                    )
-//                    if (it.isNotEmpty()) {
-//                        when {
-//                            it.startsWith("barr", ignoreCase = true) -> {
-//                                mosatar_autcompletado = true
-//                            }
-//
-//                            it.startsWith("sup", ignoreCase = true) -> {
-//                                mosatar_autcompletado = true
-//                            }
-//
-//                            it.startsWith("pati", ignoreCase = true) -> {
-//                                mosatar_autcompletado = true
-//                            }
-//
-//                            it.startsWith("puer", ignoreCase = true) -> {
-//                                mosatar_autcompletado = true
-//                            }
-//
-//                            it.startsWith("param", ignoreCase = true) -> {
-//                                mosatar_autcompletado = true
-//                            }
-//
-//                            else -> {
-//                                mosatar_autcompletado = false
-//                                localidad_Selecionadad_filtrado = ""
-//                            }
-//                        }
-//                        ocultar()
-//                        scope.launch {
-//                            viewModel.search(
-//                                it,
-//                                subcategoria_selecionada,
-//                                tiendaLocalidadSeleccionada ?: "barranca"
-//                            )
-//                        }
-//                    } else {
-//                        mosatar_autcompletado = false
-//                        ocultar()
-//                        viewModel.clearResults()
-//                    }
-//                }
-//                spacer_vertical(5.dp)
-//            }
-////            item {
-////                AnimatedVisibility(
-////                    visible = mosatar_autcompletado,
-////                    enter = slideInVertically { fullHeight -> -fullHeight } + fadeIn(),
-////                    exit = slideOutVertically { fullHeight -> -fullHeight } + fadeOut()
-////                ) {
-////                    autcomplet_localidad(localidad_Selecionadad_filtrado) { cat_selecionado ->
-////                        localidad_Selecionadad_filtrado = cat_selecionado
-////                        searchText = TextFieldValue(
-////                            text = cat_selecionado,
-////                            selection = TextRange(cat_selecionado.length)
-////                        )
-////                        scope.launch { viewModel.search(cat_selecionado, subcategoria_selecionada) }
-////
-////                    }
-////                }
-////                spacer_vertical(5.dp)
-////
-////            }
-//            item {
-//                filtrado_chips(lista_filtrado, subcategoria_selecionada) { filtrado_Select ->
-//                    subcategoria_selecionada = filtrado_Select
-//                }
-//                spacer_vertical(10.dp)
-//            }
-//
-//            // Resultados como items
-//            items(results) { item ->
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier.padding(vertical = 8.dp)
-//                ) {
-//                    carta_filtrado(horario_por_tienda, item) { id, localidad, color ->
-//                        estadoColor = color
-//                        tiendaLocalidadSeleccionada = localidad
-//                        id_tienda_selecionada = id
-//                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
-//                        show_bottom_sheeet = true
-//                    }
-////                AsyncImage(
-////                    model = ImageRequest.Builder(LocalContext.current)
-////                        .data(item.img)
-////                        .size(200,200)
-////                        .crossfade(true)
-////                        .placeholder(R.drawable.cargando_img_categorias)
-////                        .error(R.drawable.cargando_img_categorias)
-////                        .build(),
-////                    contentDescription = null,
-////                    modifier = Modifier
-////                        .width(200.dp)
-////                        .height(200.dp)
-////                        .clip(RoundedCornerShape(12)),
-////                    contentScale = ContentScale.Crop
-////                )
-////                Text(
-////                    text = item.nombre,
-////                    color = Color.White,
-////                    modifier = Modifier
-////                        .fillMaxWidth()
-////                        .padding(vertical = 8.dp)
-////                )
-//                }
-//            }
-//        }
         if (show_bottom_sheeet) {
             bottom_sheet_tiendas_filtradas(
                 estadoColor,
@@ -463,71 +353,40 @@ fun ui_pantalla_busqueda(
             subir_btn = subir_btn,
             expanded = expandedFloatingMenuFadeDemo,
             onClick = {
-                Log.d("hacimios_cli", "fabbbb")
-                expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
+                scope.launch {
+                    if (!estado_mostar) {
+                        expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
+                    } else {
+                        ocultar()
+                        delay(400)
+                        expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
+
+                    }
+                }
             },
             expanded_fun = { expandedFloatingMenuFadeDemo = false },
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
-                scope.launch {
-                    viewModel.search(
-                        query = searchText.text,
-                        subcategoria_selecionada = subcategoria_selecionada,
-                        localidad = localidad
-                    )
-                }
+//                scope.launch {
+//                    viewModel.search(
+//                        query = searchText.text,
+//                        subcategoria_selecionada = subcategoria_selecionada,
+//                        localidad = localidad
+//                    )
+//                }
             },
             categoria_filtrad,
             categoria_Selecionada = { categoria ->
                 categoria_filtrad = categoria
+            },
+            subcategira_filtrado,
+            subcategoria_selecionada = { subcategoria_select ->
+                subcategira_filtrado = subcategoria_select
+
             })
-
-
-//        FloatingMenuFadeDemo(
-//            expandedFloatingMenuFadeDemo,
-//            onClick = { expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo },
-//            expanded_fun = {
-//                expandedFloatingMenuFadeDemo = false
-//            },
-//            tiendaLocalidadSeleccionada ?: "barranca"
-//        ) { localidad ->
-//            tiendaLocalidadSeleccionada = localidad
-//            scope.launch {
-//                viewModel.search(
-//                    query = searchText.text, // puede estar vacío
-//                    subcategoria_selecionada = subcategoria_selecionada,
-//                    localidad = localidad
-//                )
-//            }
-//        }
-
     }
 }
-//
-//@Composable
-//fun autcomplet_localidad(localidad_selecionadad: String, cateogira_selecionada: (String) -> Unit) {
-//    LazyRow {
-//        items(constantes_lista_localidades.lista_localidad) { it ->
-//            val cat_selecionada = localidad_selecionadad == it
-//            FilterChip(
-//                modifier = Modifier.padding(horizontal = 4.dp),
-//                colors = FilterChipDefaults.filterChipColors(
-//                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    selectedLabelColor = Color.White,
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                ), selected = cat_selecionada,
-//                onClick = { cateogira_selecionada(it) }, label = {
-//                    Text(
-//                        text = it,
-//                    )
-//                },
-//                shape = RoundedCornerShape(40)
-//            )
-//
-//        }
-//    }
-//}
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -541,7 +400,9 @@ fun FloatingBubble(
     localidad_selecionada: String,
     localidad_filtrado: (String) -> Unit,
     categoria_filtrad: String,
-    categoria_Selecionada: (String) -> Unit
+    categoria_Selecionada: (String) -> Unit,
+    subcategira_filtrado: String,
+    subcategoria_selecionada: (String) -> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
     val context = LocalContext.current
@@ -554,6 +415,7 @@ fun FloatingBubble(
     val subctegorias by viewModelFiltros._obtener_subacategoria.observeAsState()
 
     var subcategoira_filtrado_res by remember { mutableStateOf<List<String>>(emptyList()) }
+    var filtros by remember { mutableStateOf(dataclass_filtrado_ui()) }
 
 
     val icono: Int? = if (!expanded) {
@@ -561,6 +423,7 @@ fun FloatingBubble(
     } else {
         null
     }
+
     LaunchedEffect(categoria_filtrado) {
         categoria_filtrado?.let {
             Log.d("categoria_filtrado", it.toString())
@@ -570,17 +433,15 @@ fun FloatingBubble(
     LaunchedEffect(categoria_filtrad) {
         viewModelFiltros.obtener_subcategoiras(categoria_filtrad)
     }
-
     LaunchedEffect(subctegorias) {
         val listaSoloSubcategorias = subctegorias
-            ?.flatMap { it.subcategorias }  // Junta todas las listas de cada categoría
+            ?.flatMap { it.subcategorias }
 
         listaSoloSubcategorias?.let {
             Log.d("categoria_filtrado", it.toString())
-            subcategoira_filtrado_res = it  // <-- aquí ya tienes solo [String]
+            subcategoira_filtrado_res = it
         }
     }
-
 
     var expandedIndex by remember { mutableStateOf(-1) }
 
@@ -601,7 +462,6 @@ fun FloatingBubble(
         },
         animationSpec = tween(300, easing = FastOutSlowInEasing)
     )
-
 
 
     BoxWithConstraints(
@@ -633,6 +493,53 @@ fun FloatingBubble(
             targetValue = if (!expanded) MaterialTheme.colorScheme.primary else Color.Transparent,
             animationSpec = tween(600, easing = FastOutSlowInEasing),
             label = "colorAnim"
+        )
+
+        var color_categoria by remember { mutableStateOf(false) }
+        var color_localidad by remember { mutableStateOf(false) }
+        var color_subcategoria by remember { mutableStateOf(false) }
+        val lista_localidades = constantes_lista_localidades.lista_localidad
+        val icono_expandido = if (expandedIndex == 0) {
+            Icons.Default.ExpandLess
+        } else {
+            Icons.Default.ExpandMore
+        }
+        val icono_expandido2 = if (expandedIndex == 1) {
+            Icons.Default.ExpandMore
+        } else {
+            Icons.Default.ExpandLess
+        }
+        val mostrarChipCategoria = remember { mutableStateOf(filtros.categoria.isNotEmpty()) }
+
+        val mostrarChipsubcategoria = remember { mutableStateOf(filtros.subcategoria.isNotEmpty()) }
+
+        val backgroundColor_categorias by animateColorAsState(
+            targetValue = if (!color_categoria)
+                MaterialTheme.colorScheme.surface
+            else
+                MaterialTheme.colorScheme.surfaceVariant,
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = LinearOutSlowInEasing
+            ), label = ""
+        )
+
+        val startTopColor_categorias by animateColorAsState(
+            targetValue = if (!color_categoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+            animationSpec = tween(500), label = ""
+        )
+        val endTopColor_categorias by animateColorAsState(
+            targetValue = if (!color_categoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+            animationSpec = tween(500), label = ""
+        )
+
+        val startBottomColor_categorias by animateColorAsState(
+            targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+            animationSpec = tween(500), label = ""
+        )
+        val endBottomColor_categorias by animateColorAsState(
+            targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+            animationSpec = tween(500), label = ""
         )
 
         Box(
@@ -703,34 +610,14 @@ fun FloatingBubble(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f))
+                    .background(Color.Black.copy(alpha = 0.9f))
                     .clickable(
                         indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
+                        interactionSource = remember { MutableInteractionSource() }) {
                         expanded_fun()
                     }
             )
         }
-
-        val lista_localidades = constantes_lista_localidades.lista_localidad
-        val icono_expandido = if (expandedIndex == 0) {
-            Icons.Default.ExpandLess
-        } else {
-            Icons.Default.ExpandMore
-        }
-
-        val icono_expandid2 = if (expandedIndex == 1) {
-            Icons.Default.ExpandLess
-        } else {
-            Icons.Default.ExpandMore
-        }
-
-        // Estado para saber qué lado está expandido
-        var expandedSide by remember { mutableStateOf(-1) } // -1 ninguno, 0 izquierda, 1 derecha
-
-// Animar anchos en dp en lugar de weight
-
 
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -747,38 +634,124 @@ fun FloatingBubble(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.7f)
+                        .fillMaxHeight(0.75f), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.2f) // 10%
+                            .fillMaxHeight(0.25f)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) {}
                             .clip(RoundedCornerShape(30.dp))
                             .background(MaterialTheme.colorScheme.surface)
                             .padding(15.dp)
                     ) {
-                        btn_close_gris(
-                            modifier = Modifier.align(Alignment.TopEnd),
-                            Icons.Default.Close,
-                            onClick = {
-                                expanded_fun()
-                            })
                         Column {
                             texto_generico_one_line(
                                 "Filtra tu búsqueda",
-                                MaterialTheme.typography.titleLarge
+                                MaterialTheme.typography.headlineSmall
                             )
-                            spacer_vertical(5.dp)
+                            spacer_vertical(10.dp)
                             texto_generico_multilinea(
                                 "Elige una categoría y explora desde playas y museos hasta tiendas y restaurantes locales.",
                                 MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(end = 20.dp)
                             )
+                            spacer_vertical(15.dp)
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                filtros.localidad.let {
+                                    item {
+                                        AnimatedVisibility(
+                                            it.isNotEmpty(),
+                                            enter = fadeIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            chisp_filtrado_busqueda(
+                                                color_localidad,
+                                                it,
+                                                false,
+                                                clik_card = {
+                                                    color_localidad = !color_localidad
+                                                    color_categoria = false
+                                                    color_subcategoria = false
+                                                },
+                                                onClick_delete = {
+                                                    color_localidad = false
+                                                    filtros = filtros.copy(localidad = "")
+                                                })
+                                        }
+                                    }
+                                }
+                                filtros.categoria.let { categoria ->
+                                    item {
+                                        AnimatedVisibility(
+                                            visible = mostrarChipCategoria.value,
+                                            enter = fadeIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            chisp_filtrado_busqueda(
+                                                color_categoria,
+                                                categoria,
+                                                clik_card = {
+                                                    color_categoria = !color_categoria
+                                                    color_localidad = false
+                                                    color_subcategoria = false
+                                                },
+                                                onClick_delete = {
+                                                    color_subcategoria = false
+                                                    color_categoria = false
+                                                    categoria_Selecionada("")
+                                                    subcategoria_selecionada("")
+                                                    mostrarChipCategoria.value = false
+                                                    mostrarChipsubcategoria.value = false
+
+
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                                filtros.subcategoria.let {
+                                    item {
+                                        AnimatedVisibility(
+                                            mostrarChipsubcategoria.value,
+                                            enter = fadeIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            chisp_filtrado_busqueda(
+                                                color_subcategoria,
+                                                it,
+                                                clik_card = {
+                                                    color_subcategoria = !color_subcategoria
+                                                    color_localidad = false
+                                                    color_categoria = false
+                                                },
+                                                onClick_delete = {
+                                                    subcategoria_selecionada("")
+                                                    color_subcategoria = false
+                                                    mostrarChipsubcategoria.value = false
+                                                })
+                                        }
+
+                                    }
+                                }
+                            }
 
                         }
-
+                        btn_close_gris(
+                            modifier = Modifier.align(Alignment.TopEnd),
+                            Icons.Default.Close,
+                            onClick = {
+                                expanded_fun()
+                            }
+                        )
                     }
                     spacer_vertical(10.dp)
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -789,7 +762,7 @@ fun FloatingBubble(
                             modifier = Modifier
                                 .weight(.5f)   // ocupa 50% del ancho
                                 .clip(RoundedCornerShape(30.dp))
-                                .background(MaterialTheme.colorScheme.surface)
+                                .background(backgroundColor_categorias)
                                 .padding(8.dp)
                                 .fillMaxHeight()
                         ) {
@@ -805,32 +778,75 @@ fun FloatingBubble(
                                     lastVisible != null && lastVisible < totalItems - 1
                                 }
                             }
+                            val selectedCategoria = categoria_filtrad
 
-                            LazyColumn(
-                                state = listState,
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                item { texto_generico_one_line("categoria") }
-                                items(categorias_filtrado_res) { i ->
-                                    val colorSeleccionado =
-                                        if (localidad_selecionada.equals(
-                                                i.nombre,
-                                                ignoreCase = true
-                                            )
-                                        ) Color.Black
-                                        else MaterialTheme.colorScheme.primary
+                            this@Row.AnimatedVisibility(true) {
+                                Crossfade(
+                                    targetState = categorias_filtrado_res.isNotEmpty(),
+                                    label = ""
+                                ) { tieneCategorias ->
+                                    if (tieneCategorias) {
+                                        LazyColumn(
+                                            state = listState,
+                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                            contentPadding = PaddingValues(
+                                                horizontal = 16.dp,
+                                                vertical = 8.dp
+                                            ),
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            item {
+                                                texto_generico_one_line(
+                                                    "Categoria",
+                                                    MaterialTheme.typography.titleMedium
+                                                )
+                                                spacer_vertical(5.dp)
+                                            }
 
-                                    AnimatedFabItem(
-                                        text = simplificarCategoria(i.nombre),
-                                        color = colorSeleccionado,
-                                        visible = expanded
-                                    ) {
-                                        categoria_Selecionada(i.nombre)
+                                            items(categorias_filtrado_res) { i ->
+                                                val isSelected =
+                                                    selectedCategoria.equals(
+                                                        i.nombre,
+                                                        ignoreCase = true
+                                                    )
+
+                                                AnimatedFabItem(
+                                                    text = simplificarCategoria(i.nombre),
+                                                    color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
+                                                    visible = expanded
+                                                ) {
+                                                    categoria_Selecionada(i.nombre)
+                                                    mostrarChipCategoria.value = true
+                                                    mostrarChipsubcategoria.value=false
+                                                    filtros = filtros.copy(categoria = i.nombre)
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = "Cargando categorías",
+                                                    textAlign = TextAlign.Center,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = MaterialTheme.colorScheme.onBackground
+                                                )
+                                                spacer_vertical(15.dp)
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(35.dp)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
+
                             this@Row.AnimatedVisibility(
                                 showTopShadow,
                                 enter = fadeIn(),
@@ -842,20 +858,17 @@ fun FloatingBubble(
                             ) {
                                 Box(
                                     modifier = Modifier
-
                                         .background(
                                             brush = Brush.verticalGradient(
                                                 colors = listOf(
-                                                    Color(0xFF262626),
-                                                    Color.Transparent,
+                                                    startTopColor_categorias,
+                                                    endTopColor_categorias
                                                 ),
                                                 startY = 0f,
                                                 endY = 200f
                                             )
                                         )
-
                                 )
-
                             }
                             this@Row.AnimatedVisibility(
                                 showBottomShadow, enter = fadeIn(), exit = fadeOut(),
@@ -864,19 +877,19 @@ fun FloatingBubble(
                                     .height(80.dp)
                                     .align(Alignment.BottomCenter)
                             ) {
+
                                 Box(
                                     modifier = Modifier
                                         .background(
                                             brush = Brush.verticalGradient(
                                                 colors = listOf(
-                                                    Color.Transparent,
-                                                    Color(0xFF262626),
+                                                    startBottomColor_categorias,
+                                                    endBottomColor_categorias
                                                 ),
                                                 startY = 0f,
                                                 endY = 200f
                                             )
                                         )
-
                                 )
                             }
 
@@ -887,31 +900,59 @@ fun FloatingBubble(
                         // Columna derecha: dos cuadros apilados verticalmente
                         Column(
                             modifier = Modifier
-                                .weight(.5f)// ocupa 50% del ancho
+                                .weight(.5f) // ocupa 50% del ancho
                                 .fillMaxHeight(),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            val listState = rememberLazyListState()
-                            val showTopShadow by remember {
-                                derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
+                            // ------- LOCALIDAD -------
+                            val listStateLocalidad = rememberLazyListState()
+                            val showTopShadowLocalidad by remember {
+                                derivedStateOf { listStateLocalidad.firstVisibleItemScrollOffset > 0 }
                             }
-                            val showBottomShadow by remember {
+                            val showBottomShadowLocalidad by remember {
                                 derivedStateOf {
                                     val lastVisible =
-                                        listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                    val totalItems = listState.layoutInfo.totalItemsCount
+                                        listStateLocalidad.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                    val totalItems = listStateLocalidad.layoutInfo.totalItemsCount
                                     lastVisible != null && lastVisible < totalItems - 1
                                 }
                             }
+                            val backgroundColor_localidad by animateColorAsState(
+                                targetValue = if (!color_localidad)
+                                    MaterialTheme.colorScheme.surface
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                animationSpec = tween(
+                                    durationMillis = 500, // velocidad (medio segundo)
+                                    easing = LinearOutSlowInEasing
+                                ), label = ""
+                            )
+                            val startTopColor_localidad by animateColorAsState(
+                                targetValue = if (!color_localidad) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val endTopColor_localidad by animateColorAsState(
+                                targetValue = if (!color_localidad) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val startBottomColor_localidad by animateColorAsState(
+                                targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val endBottomColor_localidad by animateColorAsState(
+                                targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+                                animationSpec = tween(500), label = ""
+                            )
+
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .weight(weightBox1)
                                     .clip(RoundedCornerShape(30.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
+                                    .background(backgroundColor_localidad)
                                     .padding(8.dp)
                             ) {
                                 LazyColumn(
-                                    state = listState,
+                                    state = listStateLocalidad,
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     contentPadding = PaddingValues(
                                         horizontal = 16.dp,
@@ -919,35 +960,35 @@ fun FloatingBubble(
                                     ),
                                     modifier = Modifier.fillMaxSize()
                                 ) {
-                                    item { texto_generico_one_line("localidad") }
+                                    item {
+                                        texto_generico_one_line(
+                                            "Localidad",
+                                            MaterialTheme.typography.titleMedium
+                                        )
+                                        spacer_vertical(5.dp)
+                                    }
+
                                     items(lista_localidades) { i ->
                                         val colorSeleccionado =
-                                            if (localidad_selecionada.equals(
-                                                    i,
-                                                    ignoreCase = true
-                                                )
-                                            ) Color.Black
-                                            else MaterialTheme.colorScheme.primary
+                                            if (localidad_selecionada.equals(i, ignoreCase = true))
+                                                Color.Black
+                                            else
+                                                MaterialTheme.colorScheme.primary
 
                                         AnimatedFabItem(
-                                            text = i,
+                                            text = i.capitalizeFirst(),
                                             color = colorSeleccionado,
                                             visible = expanded
                                         ) {
                                             localidad_filtrado(i)
-                                            expanded_fun()
+                                            filtros = filtros.copy(localidad = i)
                                         }
+                                        filtros = filtros.copy(localidad = localidad_selecionada)
                                     }
                                 }
-                                btn_close_gris(
-                                    modifier = Modifier.align(Alignment.TopEnd),
-                                    icono_expandido,
-                                    onClick = {
-                                        expandedIndex = if (expandedIndex == 0) -1 else 0
-                                    })
 
                                 this@Row.AnimatedVisibility(
-                                    showTopShadow,
+                                    showTopShadowLocalidad,
                                     enter = fadeIn(),
                                     exit = fadeOut(),
                                     modifier = Modifier
@@ -957,23 +998,23 @@ fun FloatingBubble(
                                 ) {
                                     Box(
                                         modifier = Modifier
-
+                                            .clip(RoundedCornerShape(20.dp))
                                             .background(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(
-                                                        Color(0xFF262626),
-                                                        Color.Transparent,
-                                                    ),
-                                                    startY = 0f,
+                                                        startTopColor_localidad,
+                                                        endTopColor_localidad
+                                                    ), startY = 0f,
                                                     endY = 200f
                                                 )
                                             )
-
                                     )
-
                                 }
+
                                 this@Row.AnimatedVisibility(
-                                    showBottomShadow, enter = fadeIn(), exit = fadeOut(),
+                                    showBottomShadowLocalidad,
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(80.dp)
@@ -981,60 +1022,205 @@ fun FloatingBubble(
                                 ) {
                                     Box(
                                         modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
                                             .background(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(
-                                                        Color.Transparent,
-                                                        Color(0xFF262626),
+                                                        startBottomColor_localidad,
+                                                        endBottomColor_localidad
                                                     ),
                                                     startY = 0f,
                                                     endY = 200f
                                                 )
                                             )
-
                                     )
                                 }
+
+                                btn_close_gris(
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                    icono_expandido,
+                                    onClick = {
+                                        expandedIndex = if (expandedIndex == 0) -1 else 0
+                                    }
+                                )
                             }
 
+                            // ------- SUBCATEGORÍAS -------
+                            val listStateSub = rememberLazyListState()
+                            val showTopShadowSub by remember {
+                                derivedStateOf { listStateSub.firstVisibleItemScrollOffset > 0 }
+                            }
+                            val showBottomShadowSub by remember {
+                                derivedStateOf {
+                                    val lastVisible =
+                                        listStateSub.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                    val totalItems = listStateSub.layoutInfo.totalItemsCount
+                                    lastVisible != null && lastVisible < totalItems - 1
+                                }
+                            }
+                            val backgroundColor by animateColorAsState(
+                                targetValue = if (!color_subcategoria)
+                                    MaterialTheme.colorScheme.surface
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                animationSpec = tween(
+                                    durationMillis = 500, // velocidad (medio segundo)
+                                    easing = LinearOutSlowInEasing
+                                ), label = ""
+                            )
+                            val startTopColor by animateColorAsState(
+                                targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val endTopColor by animateColorAsState(
+                                targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val startBottomColor by animateColorAsState(
+                                targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val endBottomColor by animateColorAsState(
+                                targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+                                animationSpec = tween(500), label = ""
+                            )
+                            val subcategoria_select = subcategira_filtrado
 
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .weight(weightBox2)
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(backgroundColor)
+                                    .padding(8.dp)
+                            ) {
+                                this@Row.AnimatedVisibility(true) {
+                                    Crossfade(
+                                        targetState = subcategoira_filtrado_res.isNotEmpty(),
+                                        label = ""
+                                    ) { tiene_categria ->
+                                        if (tiene_categria) {
+                                            LazyColumn(
+                                                state = listStateSub,
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                contentPadding = PaddingValues(
+                                                    horizontal = 16.dp,
+                                                    vertical = 8.dp
+                                                ),
+                                                modifier = Modifier.fillMaxSize()
 
+                                            ) {
+                                                item {
+                                                    texto_generico_one_line(
+                                                        "Subcategoría",
+                                                        MaterialTheme.typography.titleMedium
+                                                    )
+                                                    spacer_vertical(5.dp)
+                                                }
+
+                                                items(subcategoira_filtrado_res) { sub ->
+                                                    val isSelected =
+                                                        subcategoria_select.equals(
+                                                            sub,
+                                                            ignoreCase = true
+                                                        )
+
+                                                    AnimatedFabItem(
+                                                        text = sub.capitalizeFirst(),
+                                                        color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
+                                                        visible = expanded
+                                                    ) {
+                                                        subcategoria_selecionada(sub)
+                                                        filtros = filtros.copy(subcategoria = sub)
+                                                        mostrarChipsubcategoria.value = true
+                                                    }
+                                                }
+
+                                            }
+                                        } else {
+                                            this@Column.AnimatedVisibility(
+                                                visible = true,
+                                                enter = fadeIn(),
+                                                exit = fadeOut()
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .padding(horizontal = 10.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = "Selecciona una categoría",
+                                                        textAlign = TextAlign.Center,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                this@Row.AnimatedVisibility(
+                                    showTopShadowSub,
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .align(Alignment.TopCenter)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(startTopColor, endTopColor),
+                                                    startY = 0f,
+                                                    endY = 200f
+                                                )
+                                            )
+                                    )
+                                }
+
+                                this@Row.AnimatedVisibility(
+                                    showBottomShadowSub,
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .align(Alignment.BottomCenter)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        startBottomColor,
+                                                        endBottomColor
+                                                    ),
+                                                    startY = 0f,
+                                                    endY = 200f
+                                                )
+                                            )
+                                    )
+                                }
+                                btn_close_gris(
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                    icono_expandido2,
+                                    onClick = {
+                                        expandedIndex = if (expandedIndex == 1) -1 else 1
+                                    }
+                                )
+                            }
                         }
-
                     }
                 }
-
-
             }
         }
     }
-}
-
-@Composable
-fun sucategoria_localida(){
-    val icono_expandido = if (expandedIndex == 0) {
-        Icons.Default.ExpandLess
-    } else {
-        Icons.Default.ExpandMore
-    }
-
-    val icono_expandid2 = if (expandedIndex == 1) {
-        Icons.Default.ExpandLess
-    } else {
-        Icons.Default.ExpandMore
-    }
-    val listState = rememberLazyListState()
-    val showTopShadow by remember {
-        derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
-    }
-    val showBottomShadow by remember {
-        derivedStateOf {
-            val lastVisible =
-                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-            val totalItems = listState.layoutInfo.totalItemsCount
-            lastVisible != null && lastVisible < totalItems - 1
-        }
-    }
-
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -1075,19 +1261,14 @@ fun filtrado_chips(
 fun fraces_filtrado(expandedFloatingMenuFadeDemo: Boolean) {
     val fraces = constantes_lista_localidades.lista_frases_busqueda
     var index by remember { mutableStateOf(0) }
-
-
     LaunchedEffect(expandedFloatingMenuFadeDemo) {
         if (!expandedFloatingMenuFadeDemo) {
             while (true) {
                 delay(4000L)
                 index = (index + 1) % fraces.size
             }
-
         }
-
     }
-
     Crossfade(fraces[index], label = "fraces") { txt ->
         texto_generico_one_line(
             texto = txt,
@@ -1122,7 +1303,7 @@ fun TexfielFiltrado(
         trailingIcon = {
             if (icono_borrar) {
                 IconButton(onClick = {
-                    onvalueChage("") // 👈 limpiar texto
+                    onvalueChage("")
                     icono_borrar = false
                 }) {
                     Icon(
@@ -1135,7 +1316,7 @@ fun TexfielFiltrado(
         },
         placeholder = {
             Text(
-                text = "A dónde quieres llegar?",
+                text = "A dónde quieres ir?",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
@@ -1152,82 +1333,6 @@ fun TexfielFiltrado(
         focusRequester.requestFocus()
         keyboardController?.show()
     }
-}
-
-@Composable
-fun carta_filtrado(
-    estado_tienda: Map<String, Boolean>?,
-    item: Item,
-    listener: (String, String, Color) -> Unit
-) {
-
-    val iconCategoria = constantes_lista_localidades.getCategoriaIcon(item.categoria)
-    val estado_tienda_filter = estado_tienda?.get(item.id_tienda) == true
-    Log.d("estado_tienda", estado_tienda_filter.toString())
-    var Estado_color = if (estado_tienda_filter) Color.Green else Color.Red
-    Row(modifier = Modifier.clickable { listener(item.id_tienda, item.lugar, Estado_color) }) {
-
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(item.img)
-                .size(100, 100)
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .width(100.dp)
-                .height(100.dp)
-                .clip(RoundedCornerShape(12)),
-            contentScale = ContentScale.Crop
-        )
-        spacer_horizonta(5.dp)
-        Column() {
-            texto_generico_one_line(item.nombre.uppercase(), MaterialTheme.typography.titleLarge)
-            spacer_vertical(5.dp)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(R.drawable.localidad_icon_general),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(end = 5.dp)
-                )
-                texto_generico_one_line(
-                    item.lugar,
-                    MaterialTheme.typography.bodyMedium
-                )
-            }
-            spacer_vertical(5.dp)
-            texto_generico_one_line(
-                "$iconCategoria ${item.categoria}",
-                MaterialTheme.typography.bodyMedium
-            )
-            spacer_vertical(5.dp)
-            Box(
-                modifier = Modifier
-                    .height(25.dp)
-                    .zIndex(0f)
-                    .padding(end = 30.dp)
-            ) {
-                tags_subcateogiras(item.lista)
-                if (item.lista.size > 3) {
-                    ShadowTagsCategoriasstart(
-                        Modifier
-                            .align(Alignment.BottomStart)
-                            .zIndex(1f)
-                    )
-                    ShadowTagsCategoriassEnd(
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .zIndex(1f)
-                    )
-                }
-            }
-        }
-    }
-
 }
 
 
@@ -1350,102 +1455,6 @@ fun ramdoBox(
         }
     }
 }
-
-
-//@Composable
-//fun FloatingMenuFadeDemo(
-//    expanded: Boolean,
-//    onClick: () -> Unit,
-//    expanded_fun: () -> Unit,
-//    localidad_selecionada: String,
-//    localidad_filtrado: (String) -> Unit
-//) {
-//    val lista_localidades = constantes_lista_localidades.lista_localidad
-//
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        AnimatedVisibility(
-//            visible = expanded,
-//            enter = fadeIn(animationSpec = tween(300)),
-//            exit = fadeOut(animationSpec = tween(300))
-//        ) {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(Color.Black.copy(alpha = 0.4f))
-//                    .clickable(
-//                        indication = null,
-//                        interactionSource = remember { MutableInteractionSource() }
-//                    ) {
-//                        expanded_fun()
-//                    }
-//            )
-//        }
-//
-//        // 📌 Botones secundarios con fade + scale
-//        Column(
-//            verticalArrangement = Arrangement.spacedBy(12.dp),
-//            horizontalAlignment = Alignment.End,
-//            modifier = Modifier
-//                .align(Alignment.BottomEnd)
-//                .padding(end = 16.dp, bottom = 80.dp)
-//        ) {
-//            lista_localidades.forEach { i ->
-//                val color_selecionado = if (localidad_selecionada.lowercase() == i.lowercase()) {
-//                    Color.Black
-//                } else {
-//                    Color.Blue
-//                }
-//
-//                AnimatedFabItem(
-//                    i,
-//                    color_selecionado,
-//                    expanded
-//                ) {
-//                    localidad_filtrado(i)
-//                    expanded_fun()
-//                }
-//            }
-//
-//        }
-//
-//        val cornerRadius by animateDpAsState(
-//            targetValue = if (expanded) 12.dp else 50.dp,
-//            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-//            label = "cornerRadius"
-//        )
-//        val icono = if (expanded) {
-//            R.drawable.cerrar_selecion_x_vector
-//        } else {
-//            R.drawable.icono_filtrado_webp
-//        }
-//        FloatingActionButton(
-//            onClick = {
-//                onClick()
-//            },
-//            containerColor = MaterialTheme.colorScheme.primary,
-//            shape = RoundedCornerShape(50),
-//            modifier = Modifier
-//                .align(Alignment.BottomEnd)
-//                .padding(16.dp),
-//            interactionSource = remember { MutableInteractionSource() },
-//        ) {
-//            Crossfade(
-//                targetState = icono,
-//                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-//                label = "crossfadeIcon"
-//            ) { currentIcon ->
-//                Image(
-//                    modifier = Modifier.size(25.dp),
-//                    painter = painterResource(currentIcon),
-//                    contentDescription = "",
-//                    colorFilter = ColorFilter.tint(Color.White)
-//                )
-//            }
-//        }
-//
-//
-//    }
-//}
 
 @Composable
 fun AnimatedFabItem(
