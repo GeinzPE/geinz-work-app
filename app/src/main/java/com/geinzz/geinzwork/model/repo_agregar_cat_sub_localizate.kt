@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.model
 
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
@@ -75,27 +76,27 @@ class repo_agregar_cat_sub_localizate {
         return if (solo5) resultado.take(5) else resultado
     }
 
-    suspend fun obtener_subcategoiras():List<dataclass_cat_sub>{
-        val lista = mutableListOf<dataclass_cat_sub>()
+    suspend fun obtener_subcategoiras(): List<dataclass_cat_sub_lista_cat> = coroutineScope {
         val categoriasRef = db.collection("Tiendas")
             .document("categorias")
             .collection("categorias")
 
         val snapshot = categoriasRef.get().await()
-        lista.clear()
 
-        for (cate in snapshot.documents) {
-            val subcategoriasDoc = categoriasRef.document(cate.id).get().await()
-            if (subcategoriasDoc.exists()) {
-                val data = subcategoriasDoc.data
+        val listaDeferred = snapshot.documents.map { doc ->
+            async {
+                val data = doc.data
                 val subcategorias = data?.get("subcategorias") as? List<String> ?: emptyList()
-
-                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, "")
-                lista.add(datos)
+                dataclass_cat_sub_lista_cat(doc.id.lowercase(), subcategorias)
             }
         }
-        return lista
+
+        listaDeferred.awaitAll().also { lista ->
+            lista.forEach { Log.d("obtnermosdaotssss", it.toString()) }
+        }
     }
+
+
 
 
 

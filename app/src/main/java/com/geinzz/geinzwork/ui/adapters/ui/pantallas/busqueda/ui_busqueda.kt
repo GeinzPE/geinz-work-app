@@ -109,6 +109,7 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
@@ -151,9 +152,12 @@ fun ui_pantalla_busqueda(
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
-    val results by viewModel.results.collectAsState()
+//    val results by viewModel.resultado_categorias.collectAsState()
+    val resultado_busqueda_profunda by viewModel.resultado_solo_nombre.collectAsState()
+
     val resultado_chips by viewModel.resultado_categorias.collectAsState()
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
+
     var categoria_selecionada by rememberSaveable { mutableStateOf("") }
     var subcategoria_selecionada by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
@@ -188,20 +192,38 @@ fun ui_pantalla_busqueda(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
-//    LaunchedEffect(subcategoria_selecionada) {
-//        if (firstLaunch) {
-//            firstLaunch = false
-//        } else {
-//            Log.d("cambiado", subcategoria_selecionada)
-//            scope.launch {
-//                viewModel.search(
-//                    searchText.text,
-//                    subcategoria_selecionada,
-//                    tiendaLocalidadSeleccionada ?: "barranca"
-//                )
-//            }
-//        }
-//    }
+
+
+    LaunchedEffect(tiendaLocalidadSeleccionada, categoria_filtrad, subcategira_filtrado) {
+        if (firstLaunch) {
+            firstLaunch = false
+        } else {
+            Log.d("tienda", "cambaimos")
+            viewModel.filtar_sub_cat(
+                tiendaLocalidadSeleccionada ?: "barranca",
+                categoria_filtrad,
+                subcategira_filtrado
+            )
+
+        }
+    }
+
+    Log.d("reasddasdadsadareafasd","${viewModelFiltros.obtener_lista_sub(categoria_selecionada)}")
+
+    var firstSearchLaunch by remember { mutableStateOf(true) }
+    LaunchedEffect(tiendaLocalidadSeleccionada) {
+        if (firstSearchLaunch) {
+            firstSearchLaunch = false
+        } else {
+            scope.launch {
+                viewModel.search_subcategorias(
+                    tiendaLocalidadSeleccionada ?: "barranca",
+                    searchText.text,
+                )
+            }
+        }
+    }
+
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
             viewModelFiltros.obtener_campos_tiendas_por_id(
@@ -210,10 +232,16 @@ fun ui_pantalla_busqueda(
             )
         }
     }
-    LaunchedEffect(expandedFloatingMenuFadeDemo) {
-        if (expandedFloatingMenuFadeDemo) {
+//    LaunchedEffect(expandedFloatingMenuFadeDemo) {
+//        if (expandedFloatingMenuFadeDemo) {
+//            viewModelFiltros.obtener_categorias()
+//        }
+//    }
+
+    LaunchedEffect(Unit) {
+//        if (expandedFloatingMenuFadeDemo) {
             viewModelFiltros.obtener_categorias()
-        }
+//        }
     }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
@@ -230,7 +258,68 @@ fun ui_pantalla_busqueda(
 
     var cat_sub_seleciondo by remember { mutableStateOf(false) }
 
+
+    var yaLimpio by remember { mutableStateOf(false) }
+
+    var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
+
+
+    LaunchedEffect(categoria_selecionada, subcategoria_selecionada) {
+        // 🔹 Cada vez que cambia la selección, limpia el search
+        searchText = TextFieldValue("")
+
+        val haySeleccion =
+            categoria_selecionada.isNotEmpty() || subcategoria_selecionada.isNotEmpty()
+
+        placeholder = if (haySeleccion) "Ingresa el nombre" else "A dónde quieres ir?"
+        viewModel.filtar_sub_cat(
+            tiendaLocalidadSeleccionada ?: "barranca",
+            categoria_selecionada,
+            subcategoria_selecionada
+        )
+//        if (haySeleccion) {
+//            viewModel.search_solo_nombre(
+//                tiendaLocalidadSeleccionada ?: "barranca",
+//                categoria_selecionada,
+//                subcategoria_selecionada,
+//                "" // 👈 arrancamos vacío
+//            )
+//        }
+    }
+
+//    LaunchedEffect(searchText.text) {
+//        val haySeleccion =
+//            categoria_selecionada.isNotEmpty() || subcategoria_selecionada.isNotEmpty()
+//
+//        if (haySeleccion && searchText.text.isNotEmpty()) {
+//            viewModel.search_solo_nombre(
+//                tiendaLocalidadSeleccionada ?: "barranca",
+//                categoria_selecionada,
+//                subcategoria_selecionada,
+//                searchText.text
+//            )
+//        }
+//    }
+
+//    LaunchedEffect(categoria_selecionada, subcategoria_selecionada, searchText.text) {
+//        val haySeleccion =
+//            categoria_selecionada.isNotEmpty() || subcategoria_selecionada.isNotEmpty()
+//
+//        placeholder = if (haySeleccion) "Ingresa el nombre" else "A dónde quieres ir?"
+//
+//        if (haySeleccion) {
+//            viewModel.search_solo_nombre(
+//                tiendaLocalidadSeleccionada ?: "barranca",
+//                categoria_selecionada,
+//                subcategoria_selecionada,
+//                searchText.text // 👈 puede estar vacío
+//            )
+//        }
+//    }
+
+
     Box() {
+
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
@@ -243,30 +332,41 @@ fun ui_pantalla_busqueda(
                     fraces_filtrado(expandedFloatingMenuFadeDemo)
                     spacer_vertical(10.dp)
 
-                    TexfielFiltrado(focusRequester, searchText) { it ->
+                    TexfielFiltrado(placeholder, focusRequester, searchText) { it ->
                         searchText = TextFieldValue(
                             text = it,
                             selection = TextRange(it.length)
                         )
                         if (it.isNotEmpty()) {
                             ocultar()
-                            scope.launch {
-//                                viewModel.search(
-//                                    it,
-//                                    subcategoria_selecionada,
-//                                    tiendaLocalidadSeleccionada ?: "barranca"
-//                                )
-                                if (!cat_sub_seleciondo) {
-                                    viewModel.search_subcategorias(it)
-                                } else {
-                                    Log.d("yanomostramos", "no mostramos ya mas res de chips")
-                                }
+                            if (!cat_sub_seleciondo) {
+                                Log.d("cat_sub_seleciondo", cat_sub_seleciondo.toString())
+                                viewModel.search_subcategorias(
+                                    tiendaLocalidadSeleccionada ?: "barranca", it
+                                )
+                                viewModel.search_solo_nombre(
+                                    false,
+                                    tiendaLocalidadSeleccionada ?: "barranca",
+                                    null,
+                                    null,
+                                    searchText.text
+                                )
+                            } else {
+                                Log.d("cat_sub_seleciondo", cat_sub_seleciondo.toString())
+                                viewModel.search_solo_nombre(
+                                    true,
+                                    tiendaLocalidadSeleccionada ?: "barranca",
+                                    categoria_selecionada,
+                                    subcategoria_selecionada,
+                                    searchText.text
+                                )
+                                Log.d("yanomostramos", "no mostramos ya mas res de chips")
                             }
+
                             subir_btn = false
                         } else {
                             subir_btn = true
                             mostrar()
-//                            viewModel.clearResults()
                         }
                     }
 
@@ -282,32 +382,40 @@ fun ui_pantalla_busqueda(
                         subcategoria_selecionada = subcategoria_selecionada,
                         subcateogira_selecionada_fun = { filtrado_subcategoria_select ->
                             subcategoria_selecionada = filtrado_subcategoria_select
+
+
                         }, cat_sub_select = { hay_selecccion ->
-                            if (hay_selecccion) {
-                                cat_sub_seleciondo = hay_selecccion
-                            }
+                            cat_sub_seleciondo = hay_selecccion
                         })
                     spacer_vertical(5.dp)
                 }
             }
 
 
-            itemsIndexed(results) { index, item ->
-                ramdoBox(horario_por_tienda, item, index, { id, localidad, color ->
-                    estadoColor = color
-                    tiendaLocalidadSeleccionada = localidad
-                    id_tienda_selecionada = id
-                    viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
-                    show_bottom_sheeet = true
-
-                }, abrir_gogle_map = { lat, log ->
-                    dialog_Crear_ruta = true
-                    latitud = lat
-                    longitud = log
-                }
+            itemsIndexed(resultado_busqueda_profunda) { index, item ->
+                ramdoBox(
+                    horario_por_tienda,
+                    item,
+                    index,
+                    { id, localidad, color ->
+                        estadoColor = color
+                        tiendaLocalidadSeleccionada = localidad
+                        id_tienda_selecionada = id
+                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
+                        show_bottom_sheeet = true
+                    },
+                    abrir_gogle_map = { lat, log ->
+                        dialog_Crear_ruta = true
+                        latitud = lat
+                        longitud = log
+                    }
                 )
             }
+
+
         }
+
+
 
         if (dialog_Crear_ruta) {
             dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
@@ -403,7 +511,7 @@ fun ui_pantalla_busqueda(
 @Composable
 fun FloatingBubble(
     viewModelFiltros: viewModel_filtado_tiendas,
-    categoria_filtrado: List<dataclass_cat_sub>?,
+    categoria_filtrado: List<dataclass_cat_sub_lista_cat>?,
     subir_btn: Boolean,
     expanded: Boolean,
     onClick: () -> Unit,
@@ -422,7 +530,7 @@ fun FloatingBubble(
 
     val bubbleSizePx = with(density) { 60.dp.toPx() }
     val paddingPx = with(density) { 16.dp.toPx() }
-    var categorias_filtrado_res by remember { mutableStateOf<List<dataclass_cat_sub>>(emptyList()) }
+    var categorias_filtrado_res by remember { mutableStateOf<List<dataclass_cat_sub_lista_cat>>(emptyList()) }
     val subctegorias by viewModelFiltros._obtener_subacategoria.observeAsState()
 
     var subcategoira_filtrado_res by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -817,19 +925,19 @@ fun FloatingBubble(
                                             items(categorias_filtrado_res) { i ->
                                                 val isSelected =
                                                     selectedCategoria.equals(
-                                                        i.nombre,
+                                                        i.nombre_cat,
                                                         ignoreCase = true
                                                     )
 
                                                 AnimatedFabItem(
-                                                    text = simplificarCategoria(i.nombre),
+                                                    text = simplificarCategoria(i.nombre_cat),
                                                     color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
                                                     visible = expanded
                                                 ) {
-                                                    categoria_Selecionada(i.nombre)
+                                                    categoria_Selecionada(i.nombre_cat)
                                                     mostrarChipCategoria.value = true
                                                     mostrarChipsubcategoria.value = false
-                                                    filtros = filtros.copy(categoria = i.nombre)
+                                                    filtros = filtros.copy(categoria = i.nombre_cat)
                                                 }
                                             }
                                         }
@@ -1254,9 +1362,11 @@ fun filtrado_chips(
     val hayCategoria = categoria_selecionada.isNotEmpty()
     val haySubcategoria = subcategoria_selecionada.isNotEmpty()
     val haySeleccion = hayCategoria || haySubcategoria
+
+    Log.d("hay_selecionssssss", "${categoria_selecionada} ${subcategoria_selecionada}")
+
     Log.d("hay_selecionssssss", haySeleccion.toString())
     cat_sub_select(haySeleccion)
-    val hayAmbos = hayCategoria && haySubcategoria
 
     if (searchText.isNotEmpty() && !haySeleccion) {
         LazyRow {
@@ -1285,7 +1395,7 @@ fun filtrado_chips(
         }
     } else if (searchText.isEmpty() && !haySeleccion) {
         texto_generico_one_line("mostramoss chips clasicos")
-    }    else {
+    } else {
         LazyRow {
             // ✅ Mostrar categorías (si hay selección se mantiene)
             items(categoriasUnicas) { i ->
@@ -1295,7 +1405,10 @@ fun filtrado_chips(
                     filtrado = i.categoria,
                     btn_visible = true,
                     clik_card = { categoria_selecionada_fun(i.categoria) },
-                    onClick_delete = { categoria_selecionada_fun("") } // 👈 Solo aquí se borra
+                    onClick_delete = {
+                        Log.d("categorias", "limpaimoscategoira")
+                        categoria_selecionada_fun("")
+                    } // 👈 Solo aquí se borra
                 )
             }
 
@@ -1307,7 +1420,10 @@ fun filtrado_chips(
                     filtrado = sub.capitalizeFirst(),
                     btn_visible = true,
                     clik_card = { subcateogira_selecionada_fun(sub) },
-                    onClick_delete = { subcateogira_selecionada_fun("") } // 👈 Solo aquí se borra
+                    onClick_delete = {
+                        Log.d("categorias", "limpiamossubcateogira")
+                        subcateogira_selecionada_fun("")
+                    } // 👈 Solo aquí se borra
                 )
             }
         }
@@ -1340,6 +1456,7 @@ fun fraces_filtrado(expandedFloatingMenuFadeDemo: Boolean) {
 
 @Composable
 fun TexfielFiltrado(
+    placeholder: String,
     focusRequester: FocusRequester,
     texto: TextFieldValue,
     onvalueChage: (String) -> Unit
@@ -1376,7 +1493,7 @@ fun TexfielFiltrado(
         },
         placeholder = {
             Text(
-                text = "A dónde quieres ir?",
+                text = placeholder,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
