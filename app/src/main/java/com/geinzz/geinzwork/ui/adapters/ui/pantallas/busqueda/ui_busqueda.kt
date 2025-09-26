@@ -420,6 +420,7 @@ fun ui_pantalla_busqueda(
                 .graphicsLayer { alpha = alphaAnim }
         )
         FloatingBubble(
+            viewModel,
             viewModelFiltros = viewModelFiltros,
             categoria_filtrado = categoria_filtrado,
             subir_btn = subir_btn,
@@ -463,6 +464,8 @@ fun ui_pantalla_busqueda(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun FloatingBubble(
+
+    viewModel: SearchViewModel,
     viewModelFiltros: viewModel_filtado_tiendas,
     categoria_filtrado: List<dataclass_cat_sub_lista_cat>?,
     subir_btn: Boolean,
@@ -797,7 +800,7 @@ fun FloatingBubble(
                                                     subcategoria_selecionada("")
                                                     mostrarChipCategoria.value = false
                                                     mostrarChipsubcategoria.value = false
-
+                                                    viewModel.clearResults()
 
                                                 }
                                             )
