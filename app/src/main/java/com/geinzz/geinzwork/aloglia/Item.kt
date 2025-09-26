@@ -17,7 +17,7 @@ data class Item(
 @Serializable
 data class Resultado_sub_cat(
     val categoria: String,
-    val subcategoria: String? = null,
+//    val subcategoria: String? = null,
 //    val listaItems: List<Item> = emptyList()
 )
 

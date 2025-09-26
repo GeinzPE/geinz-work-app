@@ -6,6 +6,7 @@ import android.app.Application
 import android.icu.text.StringSearch
 import android.util.Log
 import androidx.collection.emptyIntList
+import androidx.compose.ui.graphics.Paint
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
@@ -31,13 +32,18 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //    private val _results = MutableStateFlow<List<Item>>(emptyList())
 //    val results: StateFlow<List<Item>> = _results
 
-    private val _resultado_categorias = MutableStateFlow<List<Resultado_sub_cat>>(emptyList())
+    private val _resultado_categorias = MutableStateFlow<String>("")
 
-    val resultado_categorias: StateFlow<List<Resultado_sub_cat>> = _resultado_categorias
+    val resultado_categorias: StateFlow<String> = _resultado_categorias
 
 
     val _resultado_solo_nombre = MutableStateFlow<List<Item>>(emptyList())
     val resultado_solo_nombre: StateFlow<List<Item>> = _resultado_solo_nombre
+
+
+    private val _ls_items_ls_cat =
+        MutableStateFlow<Pair<List<Item>, List<String>>>(Pair(emptyList(), emptyList()))
+    val ls_items_ls_cat: StateFlow<Pair<List<Item>, List<String>>> = _ls_items_ls_cat
 
 //    val resultadosCombinados: StateFlow<List<Item>> =
 //        combine(resultado_categorias, resultado_solo_nombre) { categorias, tiendas ->
@@ -61,6 +67,31 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //    }
 
 
+    fun ls_items_ls_cat(
+        selecionado: Boolean,
+        localidad: String,
+        categoria: String?,
+        subcategoria: String?,
+        search: String
+    ) {
+        searchJob?.cancel()
+        searchJob =viewModelScope.launch {
+            delay(500)
+            try {
+                val res = algoliaHelper.retornar_items_categorias(
+                    selecionado,
+                    localidad,
+                    categoria,
+                    subcategoria,
+                    search
+                )
+                _ls_items_ls_cat.value = res
+            } catch (e: Exception) {
+                _ls_items_ls_cat.value = Pair(emptyList(), emptyList())
+            }
+        }
+    }
+
     fun search_subcategorias(localidad_defaul: String, query: String) {
         Log.d("resultado_cateogira", "Buscando en localidad=$localidad_defaul con query=$query")
         viewModelScope.launch {
@@ -68,15 +99,11 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 val resultado =
                     algoliaHelper.obtener_solo_categorias_subcategorias(localidad_defaul, query)
-                _resultado_categorias.value = resultado
-
-                Log.d("resultado_cateogira", "Resultados encontrados: ${resultado.size}")
-                resultado.forEach {
-                    Log.d("resultado_cateogira", "→ $it")
-                }
+                _resultado_categorias.value = resultado ?: ""
+                Log.d("resresareasdare", _resultado_categorias.value.toString())
             } catch (e: Exception) {
-                _resultado_categorias.value = emptyList()
-                Log.e("resultado_cateogira", "Error en búsqueda", e)
+                _resultado_categorias.value = ""
+
             }
 
         }

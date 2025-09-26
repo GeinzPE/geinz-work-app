@@ -800,7 +800,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(bottom = 10.dp, top = 10.dp)
+                    .padding(top = 10.dp)
             ) {
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -831,7 +831,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                     .size(40)
                     .crossfade(true)
                     .placeholder(R.drawable.cargando_img_categorias)
-                    .error(R.drawable.img_perfil)
+                    .error(R.drawable.logo_geinz_500x500)
                     .build(),
                 contentDescription = null,
                 modifier = Modifier

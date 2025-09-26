@@ -158,8 +158,7 @@ fun ui_pantalla_busqueda(
     val resultado_chips by viewModel.resultado_categorias.collectAsState()
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
 
-    var categoria_selecionada by rememberSaveable { mutableStateOf("") }
-    var subcategoria_selecionada by rememberSaveable { mutableStateOf("") }
+    var subcategira_filtrado by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val scope = rememberCoroutineScope()
     val lista_filtrado = constantes_lista_localidades.chips_filtrado_busqueda
@@ -179,9 +178,9 @@ fun ui_pantalla_busqueda(
             tiendaLocalidadSeleccionada = ultimaLocalidad
         }
     }
-//  LaunchedEffect() { }
+
     var categoria_filtrad by remember { mutableStateOf("") }
-    var subcategira_filtrado by remember { mutableStateOf("") }
+//    var subcategira_filtrado by remember { mutableStateOf("") }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
@@ -192,6 +191,8 @@ fun ui_pantalla_busqueda(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
+
+    var subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
 
 
     LaunchedEffect(tiendaLocalidadSeleccionada, categoria_filtrad, subcategira_filtrado) {
@@ -207,10 +208,13 @@ fun ui_pantalla_busqueda(
 
         }
     }
+    LaunchedEffect(categoria_filtrad) {
+        subcategorias=viewModelFiltros.obtener_lista_sub(categoria_filtrad)
+    }
 
-    Log.d("reasddasdadsadareafasd","${viewModelFiltros.obtener_lista_sub(categoria_selecionada)}")
 
     var firstSearchLaunch by remember { mutableStateOf(true) }
+
     LaunchedEffect(tiendaLocalidadSeleccionada) {
         if (firstSearchLaunch) {
             firstSearchLaunch = false
@@ -263,20 +267,24 @@ fun ui_pantalla_busqueda(
 
     var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
 
+    var haySeleccion by remember { mutableStateOf(false) }
 
-    LaunchedEffect(categoria_selecionada, subcategoria_selecionada) {
+
+    LaunchedEffect(categoria_filtrad, subcategira_filtrado) {
         // 🔹 Cada vez que cambia la selección, limpia el search
         searchText = TextFieldValue("")
 
-        val haySeleccion =
-            categoria_selecionada.isNotEmpty() || subcategoria_selecionada.isNotEmpty()
+       haySeleccion = categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
 
         placeholder = if (haySeleccion) "Ingresa el nombre" else "A dónde quieres ir?"
         viewModel.filtar_sub_cat(
             tiendaLocalidadSeleccionada ?: "barranca",
-            categoria_selecionada,
-            subcategoria_selecionada
+            categoria_filtrad,
+            subcategira_filtrado
         )
+
+        categoria_filtrad=categoria_filtrad
+        subcategira_filtrado=subcategira_filtrado
 //        if (haySeleccion) {
 //            viewModel.search_solo_nombre(
 //                tiendaLocalidadSeleccionada ?: "barranca",
@@ -286,6 +294,12 @@ fun ui_pantalla_busqueda(
 //            )
 //        }
     }
+
+//    LaunchedEffect(categoria_filtrad,subcategira_filtrado) {
+//        haySeleccion = categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
+//        placeholder = if (haySeleccion) "Ingresa el nombre" else "A dónde quieres ir?"
+//    }
+
 
 //    LaunchedEffect(searchText.text) {
 //        val haySeleccion =
@@ -319,7 +333,6 @@ fun ui_pantalla_busqueda(
 
 
     Box() {
-
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
@@ -356,8 +369,8 @@ fun ui_pantalla_busqueda(
                                 viewModel.search_solo_nombre(
                                     true,
                                     tiendaLocalidadSeleccionada ?: "barranca",
-                                    categoria_selecionada,
-                                    subcategoria_selecionada,
+                                    categoria_filtrad,
+                                    subcategira_filtrado,
                                     searchText.text
                                 )
                                 Log.d("yanomostramos", "no mostramos ya mas res de chips")
@@ -374,16 +387,15 @@ fun ui_pantalla_busqueda(
 
                     filtrado_chips(
                         searchText = searchText.text,
-                        lista_filtrado = resultado_chips,
-                        categoria_selecionada = categoria_selecionada,
+                        lista_filtrado = categoria_filtrad.ifEmpty { resultado_chips },
+                        lista_subcategoria=subcategorias,
+                        categoria_selecionada = categoria_filtrad,
                         categoria_selecionada_fun = { filtrado_Select ->
-                            categoria_selecionada = filtrado_Select
+                            categoria_filtrad = filtrado_Select
                         },
-                        subcategoria_selecionada = subcategoria_selecionada,
+                        subcategoria_selecionada = subcategira_filtrado,
                         subcateogira_selecionada_fun = { filtrado_subcategoria_select ->
-                            subcategoria_selecionada = filtrado_subcategoria_select
-
-
+                            subcategira_filtrado = filtrado_subcategoria_select
                         }, cat_sub_select = { hay_selecccion ->
                             cat_sub_seleciondo = hay_selecccion
                         })
@@ -411,8 +423,6 @@ fun ui_pantalla_busqueda(
                     }
                 )
             }
-
-
         }
 
 
@@ -631,6 +641,17 @@ fun FloatingBubble(
         val mostrarChipCategoria = remember { mutableStateOf(filtros.categoria.isNotEmpty()) }
 
         val mostrarChipsubcategoria = remember { mutableStateOf(filtros.subcategoria.isNotEmpty()) }
+        if(categoria_filtrad.isNotEmpty()){
+            mostrarChipCategoria.value=true
+        }else{
+            mostrarChipCategoria.value=false
+        }
+
+        if(subcategira_filtrado.isNotEmpty()){
+            mostrarChipsubcategoria.value=true
+        }else{
+            mostrarChipsubcategoria.value=false
+        }
 
         val backgroundColor_categorias by animateColorAsState(
             targetValue = if (!color_categoria)
@@ -814,7 +835,7 @@ fun FloatingBubble(
                                         ) {
                                             chisp_filtrado_busqueda(
                                                 color_categoria,
-                                                categoria,
+                                                categoria_filtrad.ifEmpty { categoria },
                                                 clik_card = {
                                                     color_categoria = !color_categoria
                                                     color_localidad = false
@@ -843,7 +864,7 @@ fun FloatingBubble(
                                         ) {
                                             chisp_filtrado_busqueda(
                                                 color_subcategoria,
-                                                it,
+                                                subcategira_filtrado.ifEmpty { it },
                                                 clik_card = {
                                                     color_subcategoria = !color_subcategoria
                                                     color_localidad = false
@@ -937,7 +958,7 @@ fun FloatingBubble(
                                                     categoria_Selecionada(i.nombre_cat)
                                                     mostrarChipCategoria.value = true
                                                     mostrarChipsubcategoria.value = false
-                                                    filtros = filtros.copy(categoria = i.nombre_cat)
+                                                    filtros = filtros.copy(categoria = i.nombre_cat )
                                                 }
                                             }
                                         }
@@ -1346,44 +1367,54 @@ fun FloatingBubble(
 @Composable
 fun filtrado_chips(
     searchText: String,
-    lista_filtrado: List<Resultado_sub_cat>,
+    lista_filtrado: String,
+    lista_subcategoria: List<String>,
     categoria_selecionada: String,
     categoria_selecionada_fun: (String) -> Unit,
     subcategoria_selecionada: String,
     subcateogira_selecionada_fun: (String) -> Unit,
     cat_sub_select: (Boolean) -> Unit
 ) {
-    val categoriasUnicas = lista_filtrado.distinctBy { it.categoria }
-    val subcategoriasUnicas = lista_filtrado
-        .mapNotNull { it.subcategoria }
-        .distinct()
+
+//    val subcategoriasUnicas = lista_filtrado
+//        .mapNotNull { it.subcategoria }
+//        .distinct()
 
 
     val hayCategoria = categoria_selecionada.isNotEmpty()
     val haySubcategoria = subcategoria_selecionada.isNotEmpty()
     val haySeleccion = hayCategoria || haySubcategoria
 
-    Log.d("hay_selecionssssss", "${categoria_selecionada} ${subcategoria_selecionada}")
+    Log.d("lista_filtradolista_filtradolista_filtrado",lista_filtrado)
 
-    Log.d("hay_selecionssssss", haySeleccion.toString())
     cat_sub_select(haySeleccion)
 
     if (searchText.isNotEmpty() && !haySeleccion) {
         LazyRow {
             // Dibujar categorías únicas
-            items(categoriasUnicas) { i ->
-                val catSeleccionada = categoria_selecionada == i.categoria
+            item {
+                val catSeleccionada = categoria_selecionada == lista_filtrado
                 chisp_filtrado_busqueda(
                     carta_selecionada = catSeleccionada,
-                    filtrado = i.categoria,
+                    filtrado = lista_filtrado,
                     btn_visible = true,
-                    clik_card = { categoria_selecionada_fun(i.categoria) },
+                    clik_card = { categoria_selecionada_fun(lista_filtrado) },
                     onClick_delete = { categoria_selecionada_fun("") }
                 )
             }
+//            items(categoriasUnicas) { i ->
+//                val catSeleccionada = categoria_selecionada == i.categoria
+//                chisp_filtrado_busqueda(
+//                    carta_selecionada = catSeleccionada,
+//                    filtrado = i.categoria,
+//                    btn_visible = true,
+//                    clik_card = { categoria_selecionada_fun(i.categoria) },
+//                    onClick_delete = { categoria_selecionada_fun("") }
+//                )
+//            }
 
             // Dibujar subcategorías únicas
-            items(subcategoriasUnicas) { sub ->
+            items(lista_subcategoria) { sub ->
                 chisp_filtrado_busqueda(
                     subcategoria_selecionada == sub,
                     sub.capitalizeFirst(),
@@ -1397,23 +1428,33 @@ fun filtrado_chips(
         texto_generico_one_line("mostramoss chips clasicos")
     } else {
         LazyRow {
-            // ✅ Mostrar categorías (si hay selección se mantiene)
-            items(categoriasUnicas) { i ->
-                val catSeleccionada = categoria_selecionada == i.categoria
+            item {
+                val catSeleccionada = categoria_selecionada == lista_filtrado
                 chisp_filtrado_busqueda(
                     carta_selecionada = catSeleccionada,
-                    filtrado = i.categoria,
+                    filtrado = lista_filtrado,
                     btn_visible = true,
-                    clik_card = { categoria_selecionada_fun(i.categoria) },
-                    onClick_delete = {
-                        Log.d("categorias", "limpaimoscategoira")
-                        categoria_selecionada_fun("")
-                    } // 👈 Solo aquí se borra
+                    clik_card = { categoria_selecionada_fun(lista_filtrado) },
+                    onClick_delete = { categoria_selecionada_fun("") }
                 )
             }
+//            // ✅ Mostrar categorías (si hay selección se mantiene)
+//            items(categoriasUnicas) { i ->
+//                val catSeleccionada = categoria_selecionada == i.categoria
+//                chisp_filtrado_busqueda(
+//                    carta_selecionada = catSeleccionada,
+//                    filtrado = i.categoria,
+//                    btn_visible = true,
+//                    clik_card = { categoria_selecionada_fun(i.categoria) },
+//                    onClick_delete = {
+//                        Log.d("categorias", "limpaimoscategoira")
+//                        categoria_selecionada_fun("")
+//                    } // 👈 Solo aquí se borra
+//                )
+//            }
 
-            // ✅ Mostrar subcategorías (si hay selección se mantiene)
-            items(subcategoriasUnicas) { sub ->
+//            // ✅ Mostrar subcategorías (si hay selección se mantiene)
+            items(lista_subcategoria) { sub ->
                 val subSeleccionada = subcategoria_selecionada == sub
                 chisp_filtrado_busqueda(
                     carta_selecionada = subSeleccionada,
