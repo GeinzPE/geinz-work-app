@@ -67,7 +67,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //    }
 
 
-    fun ls_items_ls_cat(
+    fun ls_items_ls_cat_fun(
         selecionado: Boolean,
         localidad: String,
         categoria: String?,
@@ -163,9 +163,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
 
 
-//    fun clearResults() {
-//        _resultado_categorias.value = emptyList()
-//        _results.value = emptyList()
-//        Log.d("valor_resul", _results.value.toString())
-//    }
+    fun clearResults() {
+        _ls_items_ls_cat.value =  Pair(emptyList(), emptyList())
+    }
 }

@@ -2,7 +2,6 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
 
 import Item
-import Resultado_sub_cat
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.provider.Settings
@@ -60,8 +59,6 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -108,7 +105,6 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -152,11 +148,6 @@ fun ui_pantalla_busqueda(
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
-
-//    val resultado_busqueda_profunda by viewModel.resultado_solo_nombre.collectAsState()
-
-//    val resultado_chips by viewModel.resultado_categorias.collectAsState()
-
     val ls_items_ls_cat by viewModel.ls_items_ls_cat.collectAsState()
     val items = ls_items_ls_cat.first   // Lista<Item>
     val categorias = ls_items_ls_cat.second // Lista<String> de categorías
@@ -166,7 +157,6 @@ fun ui_pantalla_busqueda(
     var subcategira_filtrado by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val scope = rememberCoroutineScope()
-    val lista_filtrado = constantes_lista_localidades.chips_filtrado_busqueda
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     var subir_btn by remember { mutableStateOf(false) }
@@ -185,7 +175,6 @@ fun ui_pantalla_busqueda(
     }
 
     var categoria_filtrad by remember { mutableStateOf("") }
-//    var subcategira_filtrado by remember { mutableStateOf("") }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
@@ -196,36 +185,65 @@ fun ui_pantalla_busqueda(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
-
     var subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
 
+    var dialog_Crear_ruta by remember { mutableStateOf(false) }
+    var latitud by remember { mutableStateOf(0.0) }
+    var longitud by remember { mutableStateOf(0.0) }
+    var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
+
+    var cat_sub_seleciondo by remember { mutableStateOf(false) }
+
+    var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
+
+//    LaunchedEffect(tiendaLocalidadSeleccionada, categoria_filtrad, subcategira_filtrado) {
+//        Log.d(
+//            "LaunchedEffect12313",
+//            "🔄 Triggered con localidad=$tiendaLocalidadSeleccionada, categoria=$categoria_filtrad, sub=$subcategira_filtrado, firstLaunch=$firstLaunch"
+//        )
+//
+//        if (firstLaunch) {
+//            Log.d("LaunchedEffect12313", "⏳ Primera vez, no filtramos todavía")
+//            firstLaunch = false
+//            return@LaunchedEffect
+//        } else {
+//            Log.d("LaunchedEffect12313", "✅ Cambiamos filtros -> llamamos a filtar_sub_cat")
+//            viewModel.filtar_sub_cat(
+//                tiendaLocalidadSeleccionada ?: "barranca",
+//                categoria_filtrad,
+//                subcategira_filtrado
+//            )
+//        }
+//    }
 
     LaunchedEffect(tiendaLocalidadSeleccionada, categoria_filtrad, subcategira_filtrado) {
         if (firstLaunch) {
             firstLaunch = false
+            return@LaunchedEffect
+        }
+
+        // 🔹 Reset del search
+        searchText = TextFieldValue("")
+
+        // 🔹 Placeholder dinámico
+        placeholder = if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
+            "Ingresa el nombre"
         } else {
-            Log.d("tienda", "cambaimos")
+            "A dónde quieres ir?"
+        }
+
+        // 🔹 Llamar solo una vez
+        if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
             viewModel.filtar_sub_cat(
                 tiendaLocalidadSeleccionada ?: "barranca",
                 categoria_filtrad,
                 subcategira_filtrado
             )
-
         }
     }
+
     LaunchedEffect(categoria_filtrad) {
         subcategorias = viewModelFiltros.obtener_lista_sub(categoria_filtrad)
-    }
-
-
-    var firstSearchLaunch by remember { mutableStateOf(true) }
-
-    LaunchedEffect(tiendaLocalidadSeleccionada) {
-        if (firstSearchLaunch) {
-            firstSearchLaunch = false
-        } else {
-
-        }
     }
 
     LaunchedEffect(show_bottom_sheeet) {
@@ -247,39 +265,19 @@ fun ui_pantalla_busqueda(
         }
     }
 
-
-    var dialog_Crear_ruta by remember { mutableStateOf(false) }
-    var latitud by remember { mutableStateOf(0.0) }
-    var longitud by remember { mutableStateOf(0.0) }
-    var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
-
-    var cat_sub_seleciondo by remember { mutableStateOf(false) }
-
-
-    var yaLimpio by remember { mutableStateOf(false) }
-
-    var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
-
-    var haySeleccion by remember { mutableStateOf(false) }
-
-
-    LaunchedEffect(categoria_filtrad, subcategira_filtrado) {
-        // 🔹 Cada vez que cambia la selección, limpia el search
-        searchText = TextFieldValue("")
-
-        haySeleccion = categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
-
-        placeholder = if (haySeleccion) "Ingresa el nombre" else "A dónde quieres ir?"
-        viewModel.filtar_sub_cat(
-            tiendaLocalidadSeleccionada ?: "barranca",
-            categoria_filtrad,
-            subcategira_filtrado
-        )
-        categoria_filtrad = categoria_filtrad
-        subcategira_filtrado = subcategira_filtrado
-    }
-
-
+//    LaunchedEffect(categoria_filtrad, subcategira_filtrado) {
+//        searchText = TextFieldValue("")
+//        if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
+//            placeholder= "Ingresa el nombre"
+//            viewModel.filtar_sub_cat(
+//                tiendaLocalidadSeleccionada ?: "barranca",
+//                categoria_filtrad,
+//                subcategira_filtrado
+//            )
+//        }else{
+//            placeholder= "A dónde quieres ir?"
+//        }
+//    }
 
     Box() {
         LazyVerticalStaggeredGrid(
@@ -299,12 +297,11 @@ fun ui_pantalla_busqueda(
                             text = it,
                             selection = TextRange(it.length)
                         )
-                        if (it.isNotEmpty()) {
+
+                        if (it.isNotEmpty() && it.length >= 2) {
                             ocultar()
                             if (!cat_sub_seleciondo) {
-                                Log.d("cat_sub_seleciondo", cat_sub_seleciondo.toString())
-
-                                viewModel.ls_items_ls_cat(
+                                viewModel.ls_items_ls_cat_fun(
                                     false,
                                     tiendaLocalidadSeleccionada ?: "barranca",
                                     null,
@@ -312,17 +309,14 @@ fun ui_pantalla_busqueda(
                                     searchText.text
                                 )
                             } else {
-                                Log.d("cat_sub_seleciondo", cat_sub_seleciondo.toString())
-                                viewModel.ls_items_ls_cat(
+                                viewModel.ls_items_ls_cat_fun(
                                     true,
                                     tiendaLocalidadSeleccionada ?: "barranca",
                                     categoria_filtrad,
                                     subcategira_filtrado,
                                     searchText.text
                                 )
-                                Log.d("yanomostramos", "no mostramos ya mas res de chips")
                             }
-
                             subir_btn = false
                         } else {
                             subir_btn = true
@@ -330,9 +324,11 @@ fun ui_pantalla_busqueda(
                         }
                     }
 
+
                     spacer_vertical(5.dp)
 
                     filtrado_chips(
+                        viewModel,
                         searchText = searchText.text,
                         lista_filtrado = categorias,
                         lista_subcategoria = subcategorias,
@@ -1319,6 +1315,7 @@ fun FloatingBubble(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun filtrado_chips(
+    viewModel: SearchViewModel,
     searchText: String,
     lista_filtrado: List<String>,
     lista_subcategoria: List<String>,
@@ -1358,7 +1355,9 @@ fun filtrado_chips(
                     filtrado = cat,
                     btn_visible = true,
                     clik_card = { categoria_selecionada_fun(cat) },
-                    onClick_delete = { categoria_selecionada_fun("") }
+                    onClick_delete = { categoria_selecionada_fun("")
+                        viewModel.clearResults()
+                    }
                 )
             }
 
@@ -1388,7 +1387,8 @@ fun filtrado_chips(
                     filtrado = cat,
                     btn_visible = true,
                     clik_card = { categoria_selecionada_fun(cat) },
-                    onClick_delete = { categoria_selecionada_fun("") }
+                    onClick_delete = { categoria_selecionada_fun("")
+                        viewModel.clearResults()}
                 )
             }
 
