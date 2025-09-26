@@ -32,13 +32,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //    private val _results = MutableStateFlow<List<Item>>(emptyList())
 //    val results: StateFlow<List<Item>> = _results
 
-    private val _resultado_categorias = MutableStateFlow<String>("")
+//    private val _resultado_categorias = MutableStateFlow<String>("")
+//
+//    val resultado_categorias: StateFlow<String> = _resultado_categorias
 
-    val resultado_categorias: StateFlow<String> = _resultado_categorias
-
-
-    val _resultado_solo_nombre = MutableStateFlow<List<Item>>(emptyList())
-    val resultado_solo_nombre: StateFlow<List<Item>> = _resultado_solo_nombre
+//
+//    val _resultado_solo_nombre = MutableStateFlow<List<Item>>(emptyList())
+//    val resultado_solo_nombre: StateFlow<List<Item>> = _resultado_solo_nombre
 
 
     private val _ls_items_ls_cat =
@@ -92,56 +92,56 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun search_subcategorias(localidad_defaul: String, query: String) {
-        Log.d("resultado_cateogira", "Buscando en localidad=$localidad_defaul con query=$query")
-        viewModelScope.launch {
-            delay(300L)
-            try {
-                val resultado =
-                    algoliaHelper.obtener_solo_categorias_subcategorias(localidad_defaul, query)
-                _resultado_categorias.value = resultado ?: ""
-                Log.d("resresareasdare", _resultado_categorias.value.toString())
-            } catch (e: Exception) {
-                _resultado_categorias.value = ""
-
-            }
-
-        }
-
-    }
-
-    fun search_solo_nombre(
-        selecionado: Boolean,
-        localidad: String,
-        categoria: String?,
-        subcategoria: String?,
-        search: String
-    ) {
-        viewModelScope.launch {
-            delay(300L)
-            try {
-                val res = algoliaHelper.obtener_lugares_tiendas_nombre(
-                    selecionado,
-                    localidad,
-                    categoria,
-                    subcategoria,
-                    search
-                )
-
-                _resultado_solo_nombre.value = res
-                Log.d("search_solo_nombrebool", selecionado.toString())
-                Log.d("search_solo_nombre", "Resultados encontrados: ${res.size}")
-                res.forEachIndexed { index, item ->
-                    Log.d("search_solo_nombre", "[$index] → $item")
-                }
-
-            } catch (e: Exception) {
-                _resultado_solo_nombre.value = emptyList()
-                Log.e("search_solo_nombre", "Error en búsqueda", e)
-            }
-        }
-
-    }
+//    fun search_subcategorias(localidad_defaul: String, query: String) {
+//        Log.d("resultado_cateogira", "Buscando en localidad=$localidad_defaul con query=$query")
+//        viewModelScope.launch {
+//            delay(300L)
+//            try {
+//                val resultado =
+//                    algoliaHelper.obtener_solo_categorias_subcategorias(localidad_defaul, query)
+//                _resultado_categorias.value = resultado ?: ""
+//                Log.d("resresareasdare", _resultado_categorias.value.toString())
+//            } catch (e: Exception) {
+//                _resultado_categorias.value = ""
+//
+//            }
+//
+//        }
+//
+//    }
+//
+//    fun search_solo_nombre(
+//        selecionado: Boolean,
+//        localidad: String,
+//        categoria: String?,
+//        subcategoria: String?,
+//        search: String
+//    ) {
+//        viewModelScope.launch {
+//            delay(300L)
+//            try {
+//                val res = algoliaHelper.obtener_lugares_tiendas_nombre(
+//                    selecionado,
+//                    localidad,
+//                    categoria,
+//                    subcategoria,
+//                    search
+//                )
+//
+//                _resultado_solo_nombre.value = res
+//                Log.d("search_solo_nombrebool", selecionado.toString())
+//                Log.d("search_solo_nombre", "Resultados encontrados: ${res.size}")
+//                res.forEachIndexed { index, item ->
+//                    Log.d("search_solo_nombre", "[$index] → $item")
+//                }
+//
+//            } catch (e: Exception) {
+//                _resultado_solo_nombre.value = emptyList()
+//                Log.e("search_solo_nombre", "Error en búsqueda", e)
+//            }
+//        }
+//
+//    }
 
 
     fun filtar_sub_cat(localidad: String, cat: String?, sub: String?) {
@@ -149,12 +149,18 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 val res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
-                _resultado_solo_nombre.value = res
+                val categoriasActuales = _ls_items_ls_cat.value.second
+
+
+                _ls_items_ls_cat.value = Pair(res, categoriasActuales)
+
             } catch (e: Exception) {
-                _resultado_solo_nombre.value = emptyList()
+                val categoriasActuales = _ls_items_ls_cat.value.second
+                _ls_items_ls_cat.value = Pair(emptyList(), categoriasActuales)
             }
         }
     }
+
 
 
 //    fun clearResults() {

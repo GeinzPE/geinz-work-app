@@ -1057,7 +1057,7 @@ fun chisp_filtrado_busqueda(
             .padding(horizontal = 10.dp, vertical = 8.dp)
             .clickable ( indication = null,
                 interactionSource = remember { MutableInteractionSource() }){ clik_card() },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         texto_generico_one_line(
             filtrado.capitalizeFirst(),
