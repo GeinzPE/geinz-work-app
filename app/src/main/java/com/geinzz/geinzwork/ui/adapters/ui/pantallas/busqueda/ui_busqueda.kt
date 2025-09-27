@@ -95,6 +95,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -116,12 +117,14 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
@@ -153,9 +156,11 @@ fun ui_pantalla_busqueda(
     val categorias = ls_items_ls_cat.second // Lista<String> de categorías
 
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
+    val categorias_lugares by viewModelFiltros.lista_sub_lugares.observeAsState()
 
     var subcategira_filtrado by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    var salud_seguirdad by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
@@ -186,37 +191,24 @@ fun ui_pantalla_busqueda(
         animationSpec = tween(durationMillis = 500)
     )
     var subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
-
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
-
     var cat_sub_seleciondo by remember { mutableStateOf(false) }
 
+    var color_categoria by remember { mutableStateOf(false) }
+    var color_localidad by remember { mutableStateOf(false) }
+    var color_subcategoria by remember { mutableStateOf(false) }
+    var color_salud_seguirdad by remember { mutableStateOf(false) }
+
     var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
-
-//    LaunchedEffect(tiendaLocalidadSeleccionada, categoria_filtrad, subcategira_filtrado) {
-//        Log.d(
-//            "LaunchedEffect12313",
-//            "🔄 Triggered con localidad=$tiendaLocalidadSeleccionada, categoria=$categoria_filtrad, sub=$subcategira_filtrado, firstLaunch=$firstLaunch"
-//        )
-//
-//        if (firstLaunch) {
-//            Log.d("LaunchedEffect12313", "⏳ Primera vez, no filtramos todavía")
-//            firstLaunch = false
-//            return@LaunchedEffect
-//        } else {
-//            Log.d("LaunchedEffect12313", "✅ Cambiamos filtros -> llamamos a filtar_sub_cat")
-//            viewModel.filtar_sub_cat(
-//                tiendaLocalidadSeleccionada ?: "barranca",
-//                categoria_filtrad,
-//                subcategira_filtrado
-//            )
-//        }
-//    }
-
-    LaunchedEffect(tiendaLocalidadSeleccionada, categoria_filtrad, subcategira_filtrado) {
+    LaunchedEffect(
+        tiendaLocalidadSeleccionada,
+        categoria_filtrad,
+        subcategira_filtrado,
+        salud_seguirdad
+    ) {
         if (firstLaunch) {
             firstLaunch = false
             return@LaunchedEffect
@@ -226,17 +218,28 @@ fun ui_pantalla_busqueda(
         searchText = TextFieldValue("")
 
         // 🔹 Placeholder dinámico
-        placeholder = if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
+        placeholder = if (
+            categoria_filtrad.isNotEmpty() ||
+            subcategira_filtrado.isNotEmpty() ||
+            salud_seguirdad.isNotEmpty()
+        ) {
             "Ingresa el nombre"
         } else {
             "A dónde quieres ir?"
         }
 
-        // 🔹 Llamar solo una vez
-        if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
+        // 🔹 Caso especial: si hay salud/seguridad, tomarlo como categoría
+        val categoriaFinal = if (salud_seguirdad.isNotEmpty()) {
+            salud_seguirdad
+        } else {
+            categoria_filtrad
+        }
+
+        // 🔹 Llamar solo una vez si hay categoría/subcategoría
+        if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
             viewModel.filtar_sub_cat(
                 tiendaLocalidadSeleccionada ?: "barranca",
-                categoria_filtrad,
+                categoriaFinal,
                 subcategira_filtrado
             )
         }
@@ -257,6 +260,7 @@ fun ui_pantalla_busqueda(
 
     LaunchedEffect(Unit) {
         viewModelFiltros.obtener_categorias()
+        viewModelFiltros.obtener_cat_lugares()
     }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
@@ -264,21 +268,7 @@ fun ui_pantalla_busqueda(
                 datosTienda!!.first()
         }
     }
-
-//    LaunchedEffect(categoria_filtrad, subcategira_filtrado) {
-//        searchText = TextFieldValue("")
-//        if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
-//            placeholder= "Ingresa el nombre"
-//            viewModel.filtar_sub_cat(
-//                tiendaLocalidadSeleccionada ?: "barranca",
-//                categoria_filtrad,
-//                subcategira_filtrado
-//            )
-//        }else{
-//            placeholder= "A dónde quieres ir?"
-//        }
-//    }
-
+    Log.d("categoria_filtradcategoria_filtrad", categoria_filtrad)
     Box() {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
@@ -312,7 +302,7 @@ fun ui_pantalla_busqueda(
                                 viewModel.ls_items_ls_cat_fun(
                                     true,
                                     tiendaLocalidadSeleccionada ?: "barranca",
-                                    categoria_filtrad,
+                                    if (categoria_filtrad.isNotEmpty()) categoria_filtrad else salud_seguirdad,
                                     subcategira_filtrado,
                                     searchText.text
                                 )
@@ -324,13 +314,13 @@ fun ui_pantalla_busqueda(
                         }
                     }
 
-
                     spacer_vertical(5.dp)
 
                     filtrado_chips(
                         viewModel,
                         searchText = searchText.text,
                         lista_filtrado = categorias,
+                        salud_seguirdad,
                         lista_subcategoria = subcategorias,
                         categoria_selecionada = categoria_filtrad,
                         categoria_selecionada_fun = { filtrado_Select ->
@@ -339,9 +329,23 @@ fun ui_pantalla_busqueda(
                         subcategoria_selecionada = subcategira_filtrado,
                         subcateogira_selecionada_fun = { filtrado_subcategoria_select ->
                             subcategira_filtrado = filtrado_subcategoria_select
-                        }, cat_sub_select = { hay_selecccion ->
+                        },
+                        cat_sub_select = { hay_selecccion ->
                             cat_sub_seleciondo = hay_selecccion
-                        })
+                            Log.d("lecioandoaosdnasd", hay_selecccion.toString())
+                        },
+                        seguridad_salud_selec = { saud_select ->
+                            salud_seguirdad = saud_select
+                        },
+                        descolorar_carta_segu = {color_salud_seguirdad=false
+                            color_categoria=false
+                            color_subcategoria=false},
+                        descolorar_carta_cat = {color_salud_seguirdad=false
+                            color_categoria=false
+                            color_subcategoria=false},
+                        descolorar_carta_sub = {color_salud_seguirdad=false
+                            color_categoria=false
+                            color_subcategoria=false})
                     spacer_vertical(5.dp)
                 }
             }
@@ -419,7 +423,13 @@ fun ui_pantalla_busqueda(
                 )
                 .graphicsLayer { alpha = alphaAnim }
         )
+
         FloatingBubble(
+            color_categoria,
+            color_localidad,
+            color_subcategoria,
+            color_salud_seguirdad,
+            seguidad_salud = salud_seguirdad,
             viewModel,
             viewModelFiltros = viewModelFiltros,
             categoria_filtrado = categoria_filtrado,
@@ -456,7 +466,50 @@ fun ui_pantalla_busqueda(
             subcategira_filtrado,
             subcategoria_selecionada = { subcategoria_select ->
                 subcategira_filtrado = subcategoria_select
-
+            },
+            seguridad_salud_selec = { select ->
+                salud_seguirdad = select
+            },
+            click_carta_localidad = {
+                color_localidad = !color_localidad
+                color_categoria = false
+                color_subcategoria = false
+                color_salud_seguirdad = false
+            },
+            click_carta_localidad_delete = {
+                color_localidad = false
+            },
+            click_carta_categoira = {
+                color_categoria = !color_categoria
+                color_localidad = false
+                color_subcategoria = false
+            },
+            click_carta_categoria_delete = {
+                color_subcategoria = false
+                color_categoria = false
+            },
+            click_carta_seguridad = {
+                color_salud_seguirdad = !color_salud_seguirdad
+                color_localidad = false
+                color_categoria = false
+            },
+            click_carta_seguridad_delete = {
+                color_salud_seguirdad = false
+            },
+            click_carta_subcategoria = {
+                color_subcategoria = !color_subcategoria
+                color_localidad = false
+                color_categoria = false
+            },
+            click_carta_subcategoria_delete = {
+                color_subcategoria = false
+            }, click_salud_general = {
+                color_subcategoria = false
+                color_categoria = false
+                color_localidad = false
+            }, tiene_categorias = {
+                color_salud_seguirdad = false
+                color_subcategoria = false
             })
     }
 }
@@ -464,7 +517,11 @@ fun ui_pantalla_busqueda(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun FloatingBubble(
-
+    color_categoria: Boolean,
+    color_localidad: Boolean,
+    color_subcategoria: Boolean,
+    color_salud_seguirdad: Boolean,
+    seguidad_salud: String,
     viewModel: SearchViewModel,
     viewModelFiltros: viewModel_filtado_tiendas,
     categoria_filtrado: List<dataclass_cat_sub_lista_cat>?,
@@ -477,10 +534,20 @@ fun FloatingBubble(
     categoria_filtrad: String,
     categoria_Selecionada: (String) -> Unit,
     subcategira_filtrado: String,
-    subcategoria_selecionada: (String) -> Unit
+    subcategoria_selecionada: (String) -> Unit,
+    seguridad_salud_selec: (String) -> Unit,
+    click_carta_localidad: () -> Unit,
+    click_carta_localidad_delete: () -> Unit,
+    click_carta_categoira: () -> Unit,
+    click_carta_categoria_delete: () -> Unit,
+    click_carta_seguridad: () -> Unit,
+    click_carta_seguridad_delete: () -> Unit,
+    click_carta_subcategoria: () -> Unit,
+    click_carta_subcategoria_delete: () -> Unit,
+    click_salud_general: () -> Unit,
+    tiene_categorias: () -> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
-    val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
 
@@ -574,9 +641,7 @@ fun FloatingBubble(
             label = "colorAnim"
         )
 
-        var color_categoria by remember { mutableStateOf(false) }
-        var color_localidad by remember { mutableStateOf(false) }
-        var color_subcategoria by remember { mutableStateOf(false) }
+
         val lista_localidades = constantes_lista_localidades.lista_localidad
         val icono_expandido = if (expandedIndex == 0) {
             Icons.Default.ExpandLess
@@ -591,6 +656,10 @@ fun FloatingBubble(
         val mostrarChipCategoria = remember { mutableStateOf(filtros.categoria.isNotEmpty()) }
 
         val mostrarChipsubcategoria = remember { mutableStateOf(filtros.subcategoria.isNotEmpty()) }
+
+        val mostrar_chip_salud_seguridad =
+            remember { mutableStateOf(filtros.salud_seguridad.isNotEmpty()) }
+
         if (categoria_filtrad.isNotEmpty()) {
             mostrarChipCategoria.value = true
         } else {
@@ -603,8 +672,26 @@ fun FloatingBubble(
             mostrarChipsubcategoria.value = false
         }
 
+        if (seguidad_salud.isNotEmpty()) {
+            mostrar_chip_salud_seguridad.value = true
+        } else {
+            mostrar_chip_salud_seguridad.value = false
+
+        }
+
         val backgroundColor_categorias by animateColorAsState(
             targetValue = if (!color_categoria)
+                MaterialTheme.colorScheme.surface
+            else
+                MaterialTheme.colorScheme.surfaceVariant,
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = LinearOutSlowInEasing
+            ), label = ""
+        )
+
+        val backgrpound_salud_seguridad by animateColorAsState(
+            targetValue = if (!color_salud_seguirdad)
                 MaterialTheme.colorScheme.surface
             else
                 MaterialTheme.colorScheme.surfaceVariant,
@@ -724,12 +811,12 @@ fun FloatingBubble(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.75f), horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxHeight(0.85f), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.25f)
+                            .fillMaxHeight(0.22f)
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }) {}
@@ -752,83 +839,110 @@ fun FloatingBubble(
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-
-
-                                ) {
-                                filtros.localidad.let {
+                            ) {
+                                // Localidad
+                                if (filtros.localidad.isNotEmpty()) {
                                     item {
                                         AnimatedVisibility(
-                                            it.isNotEmpty(),
+                                            visible = true,
                                             enter = fadeIn(),
                                             exit = fadeOut()
                                         ) {
                                             chisp_filtrado_busqueda(
                                                 color_localidad,
-                                                it,
+                                                filtros.localidad,
                                                 false,
                                                 clik_card = {
-                                                    color_localidad = !color_localidad
-                                                    color_categoria = false
-                                                    color_subcategoria = false
+                                                    click_carta_localidad()
                                                 },
                                                 onClick_delete = {
-                                                    color_localidad = false
+                                                    click_carta_localidad_delete()
                                                     filtros = filtros.copy(localidad = "")
-                                                })
-                                        }
-                                    }
-                                }
-                                filtros.categoria.let { categoria ->
-                                    item {
-                                        AnimatedVisibility(
-                                            visible = mostrarChipCategoria.value,
-                                            enter = fadeIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            chisp_filtrado_busqueda(
-                                                color_categoria,
-                                                categoria_filtrad.ifEmpty { categoria },
-                                                clik_card = {
-                                                    color_categoria = !color_categoria
-                                                    color_localidad = false
-                                                    color_subcategoria = false
-                                                },
-                                                onClick_delete = {
-                                                    color_subcategoria = false
-                                                    color_categoria = false
-                                                    categoria_Selecionada("")
-                                                    subcategoria_selecionada("")
-                                                    mostrarChipCategoria.value = false
-                                                    mostrarChipsubcategoria.value = false
-                                                    viewModel.clearResults()
-
                                                 }
                                             )
                                         }
                                     }
                                 }
-                                filtros.subcategoria.let {
+
+// Categoria
+                                if (mostrarChipCategoria.value) {
                                     item {
                                         AnimatedVisibility(
-                                            mostrarChipsubcategoria.value,
+                                            visible = true,
+                                            enter = fadeIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            chisp_filtrado_busqueda(
+                                                color_categoria,
+                                                categoria_filtrad.ifEmpty { filtros.categoria },
+                                                clik_card = {
+                                                    click_carta_categoira()
+
+                                                },
+                                                onClick_delete = {
+                                                    click_carta_categoria_delete()
+
+                                                    categoria_Selecionada("")
+                                                    subcategoria_selecionada("")
+                                                    mostrarChipCategoria.value = false
+                                                    mostrarChipsubcategoria.value = false
+                                                    viewModel.clearResults()
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+// Subcategoria
+                                if (mostrarChipsubcategoria.value) {
+                                    item {
+                                        AnimatedVisibility(
+                                            visible = true,
                                             enter = fadeIn(),
                                             exit = fadeOut()
                                         ) {
                                             chisp_filtrado_busqueda(
                                                 color_subcategoria,
-                                                subcategira_filtrado.ifEmpty { it },
+                                                subcategira_filtrado.ifEmpty { filtros.subcategoria },
                                                 clik_card = {
-                                                    color_subcategoria = !color_subcategoria
-                                                    color_localidad = false
-                                                    color_categoria = false
+                                                    click_carta_subcategoria()
+
                                                 },
                                                 onClick_delete = {
+                                                    click_carta_subcategoria_delete
                                                     subcategoria_selecionada("")
-                                                    color_subcategoria = false
-                                                    mostrarChipsubcategoria.value = false
-                                                })
-                                        }
 
+                                                    mostrarChipsubcategoria.value = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+
+                                if (mostrar_chip_salud_seguridad.value) {
+                                    item {
+                                        AnimatedVisibility(
+                                            visible = true,
+                                            enter = fadeIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            chisp_filtrado_busqueda(
+                                                color_salud_seguirdad,
+                                                seguidad_salud.ifEmpty { filtros.salud_seguridad },
+                                                clik_card = {
+                                                    click_carta_seguridad()
+
+                                                },
+                                                onClick_delete = {
+                                                    seguridad_salud_selec("")
+                                                    click_carta_seguridad_delete
+                                                    mostrarChipsubcategoria.value = false
+                                                    mostrarChipCategoria.value = false
+                                                    mostrar_chip_salud_seguridad.value = false
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -850,142 +964,180 @@ fun FloatingBubble(
                             .weight(0.8f), // 90%
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Box(
+                        Column(
                             modifier = Modifier
                                 .weight(.5f)   // ocupa 50% del ancho
-                                .clip(RoundedCornerShape(30.dp))
-                                .background(backgroundColor_categorias)
-                                .padding(8.dp)
-                                .fillMaxHeight()
                         ) {
-                            val listState = rememberLazyListState()
-                            val showTopShadow by remember {
-                                derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
-                            }
-                            val showBottomShadow by remember {
-                                derivedStateOf {
-                                    val lastVisible =
-                                        listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                    val totalItems = listState.layoutInfo.totalItemsCount
-                                    lastVisible != null && lastVisible < totalItems - 1
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(backgroundColor_categorias)
+                                    .padding(8.dp)
+                                    .weight(.7f)
+                            ) {
+                                val listState = rememberLazyListState()
+                                val showTopShadow by remember {
+                                    derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
                                 }
-                            }
-                            val selectedCategoria = categoria_filtrad
+                                val showBottomShadow by remember {
+                                    derivedStateOf {
+                                        val lastVisible =
+                                            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                        val totalItems = listState.layoutInfo.totalItemsCount
+                                        lastVisible != null && lastVisible < totalItems - 1
+                                    }
+                                }
+                                val selectedCategoria = categoria_filtrad
 
-                            this@Row.AnimatedVisibility(true) {
-                                Crossfade(
-                                    targetState = categorias_filtrado_res.isNotEmpty(),
-                                    label = ""
-                                ) { tieneCategorias ->
-                                    if (tieneCategorias) {
-                                        LazyColumn(
-                                            state = listState,
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            contentPadding = PaddingValues(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp
-                                            ),
-                                            modifier = Modifier.fillMaxSize()
-                                        ) {
-                                            item {
-                                                texto_generico_one_line(
-                                                    "Categoria",
-                                                    MaterialTheme.typography.titleMedium
-                                                )
-                                                spacer_vertical(5.dp)
-                                            }
-
-                                            items(categorias_filtrado_res) { i ->
-                                                val isSelected =
-                                                    selectedCategoria.equals(
-                                                        i.nombre_cat,
-                                                        ignoreCase = true
+                                this@Row.AnimatedVisibility(true) {
+                                    Crossfade(
+                                        targetState = categorias_filtrado_res.isNotEmpty(),
+                                        label = ""
+                                    ) { tieneCategorias ->
+                                        if (tieneCategorias) {
+                                            LazyColumn(
+                                                state = listState,
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                contentPadding = PaddingValues(
+                                                    horizontal = 16.dp,
+                                                    vertical = 8.dp
+                                                ),
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                item {
+                                                    texto_generico_one_line(
+                                                        "Categoria",
+                                                        MaterialTheme.typography.titleMedium
                                                     )
+                                                    spacer_vertical(5.dp)
+                                                }
 
-                                                AnimatedFabItem(
-                                                    text = simplificarCategoria(i.nombre_cat),
-                                                    color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
-                                                    visible = expanded
-                                                ) {
-                                                    categoria_Selecionada(i.nombre_cat)
-                                                    mostrarChipCategoria.value = true
-                                                    mostrarChipsubcategoria.value = false
-                                                    filtros = filtros.copy(categoria = i.nombre_cat)
+                                                items(categorias_filtrado_res) { i ->
+                                                    val isSelected =
+                                                        selectedCategoria.equals(
+                                                            i.nombre_cat,
+                                                            ignoreCase = true
+                                                        )
+
+                                                    AnimatedFabItem(
+                                                        text = simplificarCategoria(i.nombre_cat),
+                                                        color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
+                                                        visible = expanded
+                                                    ) {
+                                                        categoria_Selecionada(i.nombre_cat)
+                                                        subcategoria_selecionada("")
+                                                        seguridad_salud_selec("")
+                                                        mostrar_chip_salud_seguridad.value = false
+                                                        mostrarChipCategoria.value = true
+                                                        mostrarChipsubcategoria.value = false
+                                                        tiene_categorias()
+
+                                                        filtros =
+                                                            filtros.copy(categoria = i.nombre_cat)
+                                                    }
                                                 }
                                             }
-                                        }
-                                    } else {
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
+                                        } else {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
                                             ) {
-                                                Text(
-                                                    text = "Cargando categorías",
-                                                    textAlign = TextAlign.Center,
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    color = MaterialTheme.colorScheme.onBackground
-                                                )
-                                                spacer_vertical(15.dp)
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(35.dp)
-                                                )
+                                                Column(
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.Center
+                                                ) {
+                                                    Text(
+                                                        text = "Cargando categorías",
+                                                        textAlign = TextAlign.Center,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                    spacer_vertical(15.dp)
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(35.dp)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            this@Row.AnimatedVisibility(
-                                showTopShadow,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .align(Alignment.TopCenter)
-                            ) {
-                                Box(
+                                this@Row.AnimatedVisibility(
+                                    showTopShadow,
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
                                     modifier = Modifier
-                                        .background(
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    startTopColor_categorias,
-                                                    endTopColor_categorias
-                                                ),
-                                                startY = 0f,
-                                                endY = 200f
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .align(Alignment.TopCenter)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        startTopColor_categorias,
+                                                        endTopColor_categorias
+                                                    ),
+                                                    startY = 0f,
+                                                    endY = 200f
+                                                )
                                             )
-                                        )
-                                )
-                            }
-                            this@Row.AnimatedVisibility(
-                                showBottomShadow, enter = fadeIn(), exit = fadeOut(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .align(Alignment.BottomCenter)
-                            ) {
-
-                                Box(
+                                    )
+                                }
+                                this@Row.AnimatedVisibility(
+                                    showBottomShadow, enter = fadeIn(), exit = fadeOut(),
                                     modifier = Modifier
-                                        .background(
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    startBottomColor_categorias,
-                                                    endBottomColor_categorias
-                                                ),
-                                                startY = 0f,
-                                                endY = 200f
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .align(Alignment.BottomCenter)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        startBottomColor_categorias,
+                                                        endBottomColor_categorias
+                                                    ),
+                                                    startY = 0f,
+                                                    endY = 200f
+                                                )
                                             )
-                                        )
-                                )
+                                    )
+                                }
                             }
-
-
+                            spacer_vertical(10.dp)
+                            var expandedIndex by remember { mutableStateOf(-1) }
+                            val weigh_lugares_inters by animateFloatAsState(
+                                targetValue = when (expandedIndex) {
+                                    0 -> 0.5f
+                                    1 -> 0.3f
+                                    else -> 0.3f
+                                },
+                                animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            )
+                            apartado_lugares_interes(
+                                expandedIndex = expandedIndex,
+                                texto = "Seguridad y salud",
+                                lista_subcategoria = cat_sub_seguirar_salud,
+                                enColumna = true,
+                                modifier = Modifier
+                                    .weight(weigh_lugares_inters)
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(backgrpound_salud_seguridad), expandir_clik = {
+                                    expandedIndex = if (expandedIndex == 0) -1 else 0
+                                }, cat_sub_selection = seguidad_salud,
+                                cat_sub_clik = { i ->
+                                    seguridad_salud_selec(i)
+                                    filtros = filtros.copy(salud_seguridad = i)
+                                    mostrar_chip_salud_seguridad.value = true
+                                    mostrarChipsubcategoria.value = false
+                                    mostrarChipCategoria.value = false
+                                    click_salud_general()
+                                    categoria_Selecionada("")
+                                    subcategoria_selecionada("")
+                                })
                         }
 
 
@@ -1307,10 +1459,15 @@ fun FloatingBubble(
                                     }
                                 )
                             }
+
                         }
                     }
+
                 }
+
             }
+
+
         }
     }
 }
@@ -1321,12 +1478,18 @@ fun filtrado_chips(
     viewModel: SearchViewModel,
     searchText: String,
     lista_filtrado: List<String>,
+    salud_seguirdad: String,
     lista_subcategoria: List<String>,
     categoria_selecionada: String,
     categoria_selecionada_fun: (String) -> Unit,
     subcategoria_selecionada: String,
     subcateogira_selecionada_fun: (String) -> Unit,
-    cat_sub_select: (Boolean) -> Unit
+    cat_sub_select: (Boolean) -> Unit,
+    seguridad_salud_selec: (String) -> Unit,
+    descolorar_carta_segu: () -> Unit,
+    descolorar_carta_cat: () -> Unit, descolorar_carta_sub: () -> Unit
+
+
 ) {
     // ✅ Unicidad
     val categoriasUnicas = lista_filtrado.distinct()
@@ -1334,77 +1497,115 @@ fun filtrado_chips(
 
     val hayCategoria = categoria_selecionada.isNotEmpty()
     val haySubcategoria = subcategoria_selecionada.isNotEmpty()
-    val haySeleccion = hayCategoria || haySubcategoria
+    val salud_seguirdad_valor = salud_seguirdad.isNotEmpty()
+    val haySeleccion = hayCategoria || haySubcategoria || salud_seguirdad_valor
 
     cat_sub_select(haySeleccion)
 
-    // ✅ Si hay categoría seleccionada, solo dejamos esa en la lista
-    val categoriasFiltradas = if (hayCategoria) {
-        listOf(categoria_selecionada)
-    } else {
-        categoriasUnicas
-    }
-
-    if (searchText.isNotEmpty() && !haySeleccion) {
+    // ✅ Caso especial: si hay salud/seguridad, mostrar solo eso
+    if (salud_seguirdad.isNotEmpty()) {
         LazyRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // ✅ Mostrar categorías únicas
-            items(categoriasFiltradas) { cat ->
-                val catSeleccionada = categoria_selecionada == cat
+            item {
                 chisp_filtrado_busqueda(
-                    carta_selecionada = catSeleccionada,
-                    filtrado = cat,
+                    carta_selecionada = salud_seguirdad_valor,
+                    filtrado = salud_seguirdad,
                     btn_visible = true,
-                    clik_card = { categoria_selecionada_fun(cat) },
-                    onClick_delete = { categoria_selecionada_fun("")
+                    clik_card = { seguridad_salud_selec(salud_seguirdad) },
+                    onClick_delete = {
+                        categoria_selecionada_fun("")
+                        subcateogira_selecionada_fun("")
+                        seguridad_salud_selec("")
                         viewModel.clearResults()
+                        descolorar_carta_segu()
                     }
                 )
             }
-
-            // ✅ Mostrar subcategorías únicas
-            items(subcategoriasUnicas) { sub ->
-                val subSeleccionada = subcategoria_selecionada == sub
-                chisp_filtrado_busqueda(
-                    carta_selecionada = subSeleccionada,
-                    filtrado = sub.capitalizeFirst(),
-                    btn_visible = true,
-                    clik_card = { subcateogira_selecionada_fun(sub) },
-                    onClick_delete = { subcateogira_selecionada_fun("") }
-                )
-            }
         }
-    } else if (searchText.isEmpty() && !haySeleccion) {
-        texto_generico_one_line("mostramos chips clásicos")
     } else {
-        LazyRow(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(categoriasFiltradas) { cat ->
-                val catSeleccionada = categoria_selecionada == cat
-                chisp_filtrado_busqueda(
-                    carta_selecionada = catSeleccionada,
-                    filtrado = cat,
-                    btn_visible = true,
-                    clik_card = { categoria_selecionada_fun(cat) },
-                    onClick_delete = { categoria_selecionada_fun("")
-                        viewModel.clearResults()}
-                )
-            }
+        // ✅ Flujo normal si salud_seguirdad está vacío
+        val categoriasFiltradas = if (hayCategoria) {
+            listOf(categoria_selecionada)
+        } else {
+            categoriasUnicas
+        }
 
-            // ✅ Mostrar subcategorías
-            items(subcategoriasUnicas) { sub ->
-                val subSeleccionada = subcategoria_selecionada == sub
-                chisp_filtrado_busqueda(
-                    carta_selecionada = subSeleccionada,
-                    filtrado = sub.capitalizeFirst(),
-                    btn_visible = true,
-                    clik_card = { subcateogira_selecionada_fun(sub) },
-                    onClick_delete = { subcateogira_selecionada_fun("") }
-                )
+        if (searchText.isNotEmpty() && !haySeleccion) {
+            LazyRow(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // ✅ Mostrar categorías únicas
+                items(categoriasFiltradas) { cat ->
+                    val catSeleccionada = categoria_selecionada == cat
+                    chisp_filtrado_busqueda(
+                        carta_selecionada = catSeleccionada,
+                        filtrado = cat,
+                        btn_visible = true,
+                        clik_card = { categoria_selecionada_fun(cat) },
+                        onClick_delete = {
+                            categoria_selecionada_fun("")
+                            subcateogira_selecionada_fun("")
+                            viewModel.clearResults()
+                            descolorar_carta_cat()
+                        }
+                    )
+                }
+
+                // ✅ Mostrar subcategorías únicas
+                items(subcategoriasUnicas) { sub ->
+                    val subSeleccionada = subcategoria_selecionada == sub
+                    chisp_filtrado_busqueda(
+                        carta_selecionada = subSeleccionada,
+                        filtrado = sub.capitalizeFirst(),
+                        btn_visible = true,
+                        clik_card = { subcateogira_selecionada_fun(sub) },
+                        onClick_delete = {
+                            subcateogira_selecionada_fun("")
+                            descolorar_carta_sub()
+                        }
+                    )
+                }
+            }
+        } else if (searchText.isEmpty() && !haySeleccion) {
+            texto_generico_one_line("mostramos chips clásicos")
+        } else {
+            LazyRow(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(categoriasFiltradas) { cat ->
+                    val catSeleccionada = categoria_selecionada == cat
+                    chisp_filtrado_busqueda(
+                        carta_selecionada = catSeleccionada,
+                        filtrado = cat,
+                        btn_visible = true,
+                        clik_card = { categoria_selecionada_fun(cat) },
+                        onClick_delete = {
+                            categoria_selecionada_fun("")
+                            subcateogira_selecionada_fun("")
+                            viewModel.clearResults()
+                            descolorar_carta_cat()
+                        }
+                    )
+                }
+
+                // ✅ Mostrar subcategorías
+                items(subcategoriasUnicas) { sub ->
+                    val subSeleccionada = subcategoria_selecionada == sub
+                    chisp_filtrado_busqueda(
+                        carta_selecionada = subSeleccionada,
+                        filtrado = sub.capitalizeFirst(),
+                        btn_visible = true,
+                        clik_card = { subcateogira_selecionada_fun(sub) },
+                        onClick_delete = {
+                            subcateogira_selecionada_fun("")
+                            descolorar_carta_sub()
+                        }
+                    )
+                }
             }
         }
     }
@@ -1611,6 +1812,149 @@ fun ramdoBox(
     }
 }
 
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+fun apartado_lugares_interes(
+    expandedIndex: Int,
+    texto: String,
+    lista_subcategoria: List<String>,
+    enColumna: Boolean,
+    modifier: Modifier = Modifier,
+    expandir_clik: () -> Unit,
+    cat_sub_selection: String,
+    cat_sub_clik: (String) -> Unit
+) {
+    val icono_expandido = if (expandedIndex == 0) {
+        Icons.Default.ExpandMore
+    } else {
+        Icons.Default.ExpandLess
+    }
+
+    val listState = if (enColumna) rememberLazyListState() else rememberLazyListState()
+
+    // sombreado arriba/abajo (solo aplica en columnas)
+    val showTopShadow by remember {
+        derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showBottomShadow by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val totalItems = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < totalItems - 1
+        }
+    }
+
+    var color_subcategoria by remember { mutableStateOf(false) }
+
+    val startTopColor by animateColorAsState(
+        targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+        animationSpec = tween(500), label = ""
+    )
+    val endTopColor by animateColorAsState(
+        targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+        animationSpec = tween(500), label = ""
+    )
+    val startBottomColor by animateColorAsState(
+        targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+        animationSpec = tween(500), label = ""
+    )
+    val endBottomColor by animateColorAsState(
+        targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+        animationSpec = tween(500), label = ""
+    )
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        if (enColumna) {
+            // LazyColumn
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                item {
+                    texto_generico_multilinea(
+                        texto.capitalizeFirst(),
+                        MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    )
+                    spacer_vertical(5.dp)
+                }
+                items(lista_subcategoria) { i ->
+                    val seleccionado = if (cat_sub_selection.equals(
+                            i,
+                            ignoreCase = true
+                        )
+                    ) Color.Black else MaterialTheme.colorScheme.primary
+                    AnimatedFabItem(
+                        i,
+                        seleccionado,
+                        true,
+                        onClick = {
+                            cat_sub_clik(i)
+                        })
+                }
+            }
+
+            // sombras solo para columna
+            AnimatedVisibility(
+                showTopShadow,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .align(Alignment.TopCenter)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(startTopColor, endTopColor),
+                                startY = 0f,
+                                endY = 200f
+                            )
+                        )
+                )
+            }
+
+            AnimatedVisibility(
+                showBottomShadow,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .align(Alignment.BottomCenter)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(startBottomColor, endBottomColor),
+                                startY = 0f,
+                                endY = 200f
+                            )
+                        )
+                )
+            }
+        }
+
+        btn_close_gris(
+            modifier = Modifier.align(Alignment.TopEnd),
+            icono_expandido,
+            onClick = { expandir_clik() }
+        )
+    }
+}
+
+
 @Composable
 fun AnimatedFabItem(
     text: String,
@@ -1634,7 +1978,7 @@ fun AnimatedFabItem(
             colors = ButtonDefaults.buttonColors(containerColor = animatedColor)
         ) {
             Text(
-                text,
+                text.capitalizeFirst(),
                 color = Color.White,
                 modifier = Modifier.padding(horizontal = 10.dp),
                 maxLines = 1,
@@ -1643,7 +1987,6 @@ fun AnimatedFabItem(
         }
     }
 }
-
 
 
 

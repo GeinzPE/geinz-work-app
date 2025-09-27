@@ -1036,7 +1036,8 @@ fun chisp_filtrado_busqueda(
     filtrado: String,
     btn_visible: Boolean = true,
     clik_card: () -> Unit,
-    onClick_delete: () -> Unit
+    onClick_delete: () -> Unit,
+
 ) {
     val color_chips by animateColorAsState(
         targetValue = if (!carta_selecionada)
@@ -1055,8 +1056,9 @@ fun chisp_filtrado_busqueda(
             .background(color_chips)
             .height(35.dp)
             .padding(horizontal = 10.dp, vertical = 8.dp)
-            .clickable ( indication = null,
-                interactionSource = remember { MutableInteractionSource() }){ clik_card() },
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) { clik_card() },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         texto_generico_one_line(

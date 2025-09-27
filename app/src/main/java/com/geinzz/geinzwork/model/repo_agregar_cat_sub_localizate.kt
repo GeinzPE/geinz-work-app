@@ -63,7 +63,8 @@ class repo_agregar_cat_sub_localizate {
         }
 
         // Buscar si existe "comida y restaurantes"
-        val comida = lista.firstOrNull { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
+        val comida =
+            lista.firstOrNull { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
 
         // Resto de categorías sin la de comida
         val resto = lista.filterNot { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
@@ -96,8 +97,17 @@ class repo_agregar_cat_sub_localizate {
         }
     }
 
-
-
+    suspend fun obtener_categorias_lugares(): List<String> {
+        val lista_subcategorias=mutableListOf<String>()
+        val ref = db.collection("Tiendas").document("categorias").collection("categorias_lugares")
+            .document("categorias_lugares_turisticos").get().await()
+        if (ref.exists()) {
+            val data = ref.data
+            val categorias = data?.get("categorias") as? List<String> ?: emptyList()
+            lista_subcategorias.addAll(categorias)
+        }
+        return lista_subcategorias
+    }
 
 
     suspend fun obtenerTiendas_registradas_activas_por_categoria(
@@ -267,8 +277,6 @@ class repo_agregar_cat_sub_localizate {
 
         trabajos.awaitAll().filterNotNull()
     }
-
-
 
 
 }

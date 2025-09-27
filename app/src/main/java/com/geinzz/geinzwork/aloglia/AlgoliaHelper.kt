@@ -310,6 +310,7 @@ class AlgoliaHelper(
         val categoriasUnicas = items.map { it.categoria }.distinct()
 
         return Pair(items, categoriasUnicas)
+//        return Pair(emptyList(), emptyList())
     }
 
 
@@ -352,6 +353,7 @@ class AlgoliaHelper(
             Log.e("AlgoliaQuery", "Error en búsqueda: ${e.message}", e)
             emptyList()
         }
+//        return emptyList()
     }
 
 

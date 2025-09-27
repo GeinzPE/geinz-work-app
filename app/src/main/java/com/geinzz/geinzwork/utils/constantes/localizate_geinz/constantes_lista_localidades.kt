@@ -71,6 +71,8 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Supe".lowercase(), R.drawable.escudo_supe),
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
+    val cat_sub_seguirar_salud=listOf("seguridad","salud")
+
     val dias_sema =
         listOf(
             "lunes", "martes", "miércoles",

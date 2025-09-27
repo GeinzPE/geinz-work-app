@@ -74,10 +74,19 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         subcategoria: String?,
         search: String
     ) {
+        Log.d("LS_ITEMS", "➡️ INICIO FUNCIÓN")
+        Log.d("LS_ITEMS", "Parámetros recibidos:")
+        Log.d("LS_ITEMS", "   selecionado = $selecionado")
+        Log.d("LS_ITEMS", "   localidad   = $localidad")
+        Log.d("LS_ITEMS", "   categoria   = $categoria")
+        Log.d("LS_ITEMS", "   subcategoria= $subcategoria")
+        Log.d("LS_ITEMS", "   search      = $search")
+
         searchJob?.cancel()
-        searchJob =viewModelScope.launch {
+        searchJob = viewModelScope.launch {
             delay(500)
             try {
+                Log.d("LS_ITEMS", "⏳ Consultando Algolia...")
                 val res = algoliaHelper.retornar_items_categorias(
                     selecionado,
                     localidad,
@@ -85,8 +94,15 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     subcategoria,
                     search
                 )
+                Log.d("LS_ITEMS", "✅ Resultados recibidos:")
+                Log.d("LS_ITEMS", "   Categorías encontradas = ${res.first.size}")
+                Log.d("LS_ITEMS", "   Items encontrados      = ${res.second.size}")
+                Log.d("LS_ITEMS", "   Detalle categorías     = ${res.first}")
+                Log.d("LS_ITEMS", "   Detalle items          = ${res.second}")
+
                 _ls_items_ls_cat.value = res
             } catch (e: Exception) {
+                Log.e("LS_ITEMS", "❌ ERROR en consulta", e)
                 _ls_items_ls_cat.value = Pair(emptyList(), emptyList())
             }
         }

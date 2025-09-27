@@ -4,14 +4,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Item(
-    val nombre: String,
-    val lugar: String,
-    val id_tienda: String,
-    val categoria: String,
-    val img: String,
-    val lista: List<String>,
-    val latitud: Double,
-    val longitud: Double
+    val nombre: String="",
+    val lugar: String="",
+    val id_tienda: String="",
+    val categoria: String="",
+    val img: String="",
+    val lista: List<String> = emptyList(),
+    val latitud: Double=0.0,
+    val longitud: Double=0.0
 )
 
 @Serializable

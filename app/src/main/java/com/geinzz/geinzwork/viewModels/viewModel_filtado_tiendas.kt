@@ -28,6 +28,7 @@ class viewModel_filtado_tiendas : ViewModel() {
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
 
+
     private val subcategorias = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
     val _subcategoiraList: LiveData<List<filtrado_tiendas_cat_sub>> get() = subcategorias
 
@@ -60,18 +61,20 @@ class viewModel_filtado_tiendas : ViewModel() {
         _listaFiltrada.value = nuevaLista
     }
 
-
     private val _estadoTiendas = MutableLiveData<Map<String, Boolean>>(emptyMap())
     val estadoTiendas: LiveData<Map<String, Boolean>> get() = _estadoTiendas
-
 
     private val obtener_tiendas_filtradas = MutableLiveData<List<obtener_tiendas_lat_log_id>>()
     val _obtener_datos_tienda: LiveData<List<obtener_tiendas_lat_log_id>> get() = obtener_tiendas_filtradas
 
-
     private val _subcategorias_memory =
         MutableStateFlow<List<dataclass_cat_sub_lista_cat>>(emptyList())
     val subcategorias_memory: StateFlow<List<dataclass_cat_sub_lista_cat>> = _subcategorias_memory
+
+    private val _lista_sub_lugares= MutableLiveData<List<String>> ()
+    val lista_sub_lugares: LiveData<List<String>> get()=_lista_sub_lugares
+
+
 
     var todas_tiendas = mutableListOf<tiendas_por_categoria>()
         private set
@@ -85,6 +88,17 @@ class viewModel_filtado_tiendas : ViewModel() {
             } catch (e: Exception) {
                 subcategoria_filtrado.value = emptyList()
                 _subcategorias_memory.value = emptyList()
+            }
+        }
+    }
+
+
+    fun obtener_cat_lugares(){
+        viewModelScope.launch {
+            try {
+                _lista_sub_lugares.value=repo_cat_sub.obtener_categorias_lugares()
+            }catch (e: Exception){
+                _lista_sub_lugares.value=emptyList()
             }
         }
     }
