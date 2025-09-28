@@ -20,6 +20,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +42,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 
@@ -78,12 +81,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -96,12 +103,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
@@ -125,8 +135,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.categorias_defaul
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
@@ -372,6 +385,13 @@ fun ui_pantalla_busqueda(
             }
         }
 
+        ImagenesSuperpuestasCollage(
+            Modifier.align(Alignment.Center)
+        )
+
+
+
+
 
 
         if (dialog_Crear_ruta) {
@@ -425,12 +445,12 @@ fun ui_pantalla_busqueda(
         )
 
         FloatingBubble(
-            color_categoria,
-            color_localidad,
-            color_subcategoria,
-            color_salud_seguirdad,
+            color_categoria= color_categoria,
+            color_localidad=color_localidad,
+            color_subcategoria= color_subcategoria,
+            color_salud_seguridad=  color_salud_seguirdad,
             seguidad_salud = salud_seguirdad,
-            viewModel,
+            viewModel = viewModel,
             viewModelFiltros = viewModelFiltros,
             categoria_filtrado = categoria_filtrado,
             subir_btn = subir_btn,
@@ -443,7 +463,6 @@ fun ui_pantalla_busqueda(
                         ocultar()
                         delay(400)
                         expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
-
                     }
                 }
             },
@@ -451,13 +470,6 @@ fun ui_pantalla_busqueda(
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
-//                scope.launch {
-//                    viewModel.search(
-//                        query = searchText.text,
-//                        subcategoria_selecionada = subcategoria_selecionada,
-//                        localidad = localidad
-//                    )
-//                }
             },
             categoria_filtrad,
             categoria_Selecionada = { categoria ->
@@ -479,7 +491,7 @@ fun ui_pantalla_busqueda(
             click_carta_localidad_delete = {
                 color_localidad = false
             },
-            click_carta_categoira = {
+            click_carta_categoria = {
                 color_categoria = !color_categoria
                 color_localidad = false
                 color_subcategoria = false
@@ -503,16 +515,102 @@ fun ui_pantalla_busqueda(
             },
             click_carta_subcategoria_delete = {
                 color_subcategoria = false
-            }, click_salud_general = {
+            },
+            click_salud_general = {
                 color_subcategoria = false
                 color_categoria = false
                 color_localidad = false
-            }, tiene_categorias = {
+            },
+            tiene_categorias = {
                 color_salud_seguirdad = false
                 color_subcategoria = false
             })
     }
 }
+@Composable
+fun ImagenesSuperpuestasCollage(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // ✨ Fondo con glow blanco difuso detrás de TODO el collage
+        Box(
+            modifier = Modifier
+                .size(300.dp) // controla el área del glow
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.4f), // centro iluminado
+                            Color.Transparent               // difuminado
+                        ),
+                        radius = 400f
+                    ),
+                    shape = RoundedCornerShape(200.dp)
+                )
+        )
+
+        // --- Foto 1 (Izquierda) ---
+        ImagenConInclinacion(
+            drawableResId = R.drawable.f1,
+            anguloRotacion = -8f,
+            desplazamientoX = -70.dp,
+            desplazamientoY = 20.dp
+        )
+
+        // --- Foto 2 (Centro, la protagonista) ---
+        ImagenConInclinacion(
+            drawableResId = R.drawable.f2,
+            anguloRotacion = 3f,
+            desplazamientoX = 0.dp,
+            desplazamientoY = 0.dp
+        )
+
+        // --- Foto 3 (Derecha) ---
+        ImagenConInclinacion(
+            drawableResId = R.drawable.f3,
+            anguloRotacion = 7f,
+            desplazamientoX = 70.dp,
+            desplazamientoY = 40.dp
+        )
+    }
+}
+
+// -----------------------------------------------------------------
+
+// =================================================================
+// 2. FUNCIÓN AUXILIAR: Estiliza la foto individual (Look de Papel)
+// =================================================================
+
+@Composable
+fun ImagenConInclinacion(
+    drawableResId: Int,
+    anguloRotacion: Float,
+    desplazamientoX: Dp = 0.dp,
+    desplazamientoY: Dp = 0.dp
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(0.35f) // 👈 45% del ancho de pantalla
+            .aspectRatio(1f)     // 👈 cuadrada (1:1)
+            .offset(x = desplazamientoX, y = desplazamientoY)
+            .rotate(anguloRotacion)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(drawableResId)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+
+
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -520,7 +618,7 @@ fun FloatingBubble(
     color_categoria: Boolean,
     color_localidad: Boolean,
     color_subcategoria: Boolean,
-    color_salud_seguirdad: Boolean,
+    color_salud_seguridad: Boolean,
     seguidad_salud: String,
     viewModel: SearchViewModel,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -538,7 +636,7 @@ fun FloatingBubble(
     seguridad_salud_selec: (String) -> Unit,
     click_carta_localidad: () -> Unit,
     click_carta_localidad_delete: () -> Unit,
-    click_carta_categoira: () -> Unit,
+    click_carta_categoria: () -> Unit,
     click_carta_categoria_delete: () -> Unit,
     click_carta_seguridad: () -> Unit,
     click_carta_seguridad_delete: () -> Unit,
@@ -691,7 +789,7 @@ fun FloatingBubble(
         )
 
         val backgrpound_salud_seguridad by animateColorAsState(
-            targetValue = if (!color_salud_seguirdad)
+            targetValue = if (!color_salud_seguridad)
                 MaterialTheme.colorScheme.surface
             else
                 MaterialTheme.colorScheme.surfaceVariant,
@@ -876,7 +974,7 @@ fun FloatingBubble(
                                                 color_categoria,
                                                 categoria_filtrad.ifEmpty { filtros.categoria },
                                                 clik_card = {
-                                                    click_carta_categoira()
+                                                    click_carta_categoria()
 
                                                 },
                                                 onClick_delete = {
@@ -928,7 +1026,7 @@ fun FloatingBubble(
                                             exit = fadeOut()
                                         ) {
                                             chisp_filtrado_busqueda(
-                                                color_salud_seguirdad,
+                                                color_salud_seguridad,
                                                 seguidad_salud.ifEmpty { filtros.salud_seguridad },
                                                 clik_card = {
                                                     click_carta_seguridad()
@@ -936,7 +1034,7 @@ fun FloatingBubble(
                                                 },
                                                 onClick_delete = {
                                                     seguridad_salud_selec("")
-                                                    click_carta_seguridad_delete
+                                                    click_carta_seguridad_delete()
                                                     mostrarChipsubcategoria.value = false
                                                     mostrarChipCategoria.value = false
                                                     mostrar_chip_salud_seguridad.value = false
@@ -1073,6 +1171,7 @@ fun FloatingBubble(
                                 ) {
                                     Box(
                                         modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
                                             .background(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(
@@ -1094,6 +1193,7 @@ fun FloatingBubble(
                                 ) {
                                     Box(
                                         modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
                                             .background(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(
@@ -1118,6 +1218,7 @@ fun FloatingBubble(
                                 animationSpec = tween(300, easing = FastOutSlowInEasing)
                             )
                             apartado_lugares_interes(
+                                color_salud_seguridad,
                                 expandedIndex = expandedIndex,
                                 texto = "Seguridad y salud",
                                 lista_subcategoria = cat_sub_seguirar_salud,
@@ -1488,8 +1589,6 @@ fun filtrado_chips(
     seguridad_salud_selec: (String) -> Unit,
     descolorar_carta_segu: () -> Unit,
     descolorar_carta_cat: () -> Unit, descolorar_carta_sub: () -> Unit
-
-
 ) {
     // ✅ Unicidad
     val categoriasUnicas = lista_filtrado.distinct()
@@ -1502,12 +1601,11 @@ fun filtrado_chips(
 
     cat_sub_select(haySeleccion)
 
+
     // ✅ Caso especial: si hay salud/seguridad, mostrar solo eso
+
     if (salud_seguirdad.isNotEmpty()) {
-        LazyRow(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+        LazyRow() {
             item {
                 chisp_filtrado_busqueda(
                     carta_selecionada = salud_seguirdad_valor,
@@ -1533,10 +1631,7 @@ fun filtrado_chips(
         }
 
         if (searchText.isNotEmpty() && !haySeleccion) {
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+            LazyRowConSombras() {
                 // ✅ Mostrar categorías únicas
                 items(categoriasFiltradas) { cat ->
                     val catSeleccionada = categoria_selecionada == cat
@@ -1570,12 +1665,24 @@ fun filtrado_chips(
                 }
             }
         } else if (searchText.isEmpty() && !haySeleccion) {
-            texto_generico_one_line("mostramos chips clásicos")
+            LazyRowConSombras (){
+                items(categorias_defaul) { i->
+                    chisp_filtrado_busqueda(
+                        carta_selecionada = false,
+                        filtrado = simplificarCategoria(i),
+                        btn_visible = false,
+                        clik_card = { categoria_selecionada_fun(i) },
+                        onClick_delete = {
+                            categoria_selecionada_fun("")
+                            subcateogira_selecionada_fun("")
+                            viewModel.clearResults()
+                            descolorar_carta_cat()
+                        }
+                    )
+                }
+            }
         } else {
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+            LazyRowConSombras() {
                 items(categoriasFiltradas) { cat ->
                     val catSeleccionada = categoria_selecionada == cat
                     chisp_filtrado_busqueda(
@@ -1610,6 +1717,76 @@ fun filtrado_chips(
         }
     }
 }
+
+
+
+@Composable
+fun LazyRowConSombras(
+    modifier: Modifier = Modifier,
+    content: LazyListScope.() -> Unit
+) {
+    val listState = rememberLazyListState()
+
+    val showLeftShadow by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showRightShadow by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < total - 1
+        }
+    }
+
+    // 🔥 animar alpha, no crear/destruir Box
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaLeft"
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaRight"
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        LazyRow(
+            state = listState,
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            content = content
+        )
+
+        // 👈 izquierda
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterStart)
+                .zIndex(1f)
+                .alpha(alphaLeft)
+                .background(Brush.horizontalGradient(colors = shadow_left))
+        )
+
+        // 👉 derecha
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterEnd)
+                .zIndex(1f)
+                .alpha(alphaRight)
+                .background(Brush.horizontalGradient(colors = shadow_right))
+        )
+    }
+}
+
+
 
 
 @Composable
@@ -1816,6 +1993,7 @@ fun ramdoBox(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun apartado_lugares_interes(
+    clikeado: Boolean,
     expandedIndex: Int,
     texto: String,
     lista_subcategoria: List<String>,
@@ -1848,23 +2026,23 @@ fun apartado_lugares_interes(
     var color_subcategoria by remember { mutableStateOf(false) }
 
     val startTopColor by animateColorAsState(
-        targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+        targetValue = if (!clikeado) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
         animationSpec = tween(500), label = ""
     )
     val endTopColor by animateColorAsState(
-        targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+        targetValue = if (!clikeado) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
         animationSpec = tween(500), label = ""
     )
     val startBottomColor by animateColorAsState(
-        targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+        targetValue = if (!clikeado) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
         animationSpec = tween(500), label = ""
     )
     val endBottomColor by animateColorAsState(
-        targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+        targetValue = if (!clikeado) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
         animationSpec = tween(500), label = ""
     )
 
-    BoxWithConstraints(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(10.dp)
@@ -1937,7 +2115,10 @@ fun apartado_lugares_interes(
                         .clip(RoundedCornerShape(20.dp))
                         .background(
                             brush = Brush.verticalGradient(
-                                colors = listOf(startBottomColor, endBottomColor),
+                                colors = listOf(
+                                    startBottomColor,
+                                    endBottomColor
+                                ),
                                 startY = 0f,
                                 endY = 200f
                             )

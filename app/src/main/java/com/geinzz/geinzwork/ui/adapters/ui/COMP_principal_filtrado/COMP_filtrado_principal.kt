@@ -1038,24 +1038,25 @@ fun chisp_filtrado_busqueda(
     clik_card: () -> Unit,
     onClick_delete: () -> Unit,
 
-) {
+    ) {
     val color_chips by animateColorAsState(
         targetValue = if (!carta_selecionada)
-            Color.White
+            MaterialTheme.colorScheme.primary
         else
-            MaterialTheme.colorScheme.primary,
+            Color.White,
         animationSpec = tween(
             durationMillis = 500,
             easing = LinearOutSlowInEasing
         ), label = ""
     )
+    val color_text = if (!carta_selecionada) Color.White else Color.Black
 
     Row(
         modifier = Modifier
             .clip(CircleShape)
             .background(color_chips)
-            .height(35.dp)
-            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .height(45.dp)
+            .padding(horizontal = 15.dp, vertical = 10.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }) { clik_card() },
@@ -1063,18 +1064,20 @@ fun chisp_filtrado_busqueda(
     ) {
         texto_generico_one_line(
             filtrado.capitalizeFirst(),
-            color = if (!carta_selecionada) Color.Black else Color.White,
+            color = color_text,
             style = MaterialTheme.typography.bodyMedium
         )
         if (btn_visible) {
+            if(carta_selecionada){
             spacer_horizonta(7.dp)
             btn_close_gris(
                 imageVector = Icons.Default.Close,
                 onClick = { onClick_delete() },
                 size_container = 20.dp,
                 size_icon = 15.dp,
-                tint_icon = if (!carta_selecionada) Color.Black else Color.White
+                tint_icon = if (!carta_selecionada) Color.White else Color.Black
             )
+            }
         }
 
     }

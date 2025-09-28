@@ -71,7 +71,15 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Supe".lowercase(), R.drawable.escudo_supe),
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
-    val cat_sub_seguirar_salud=listOf("seguridad","salud")
+    val cat_sub_seguirar_salud = listOf("seguridad", "salud")
+    val categorias_defaul = listOf(
+        "comida y restaurantes",
+        "grifos y estaciones",
+        "hospedaje y entretenimiento nocturno",
+        "salud y farmacias",
+        "transporte y terminales",
+        "deporte y bienestar"
+    )
 
     val dias_sema =
         listOf(
@@ -317,7 +325,7 @@ object constantes_lista_localidades {
 
 
     val chips_filtrado_busqueda = listOf(
-        "Todos", "playas", "Hoteles", "Lugares","restaurantes"
+        "Todos", "playas", "Hoteles", "Lugares", "restaurantes"
     )
 
 
@@ -1549,24 +1557,34 @@ object constantes_lista_localidades {
         }
     }
 
-    val shadow_top_filtrado_v1= listOf(
+    val shadow_top_filtrado_v1 = listOf(
         Color(0xFF262626),
         Color.Transparent,
     )
-    val shadow_botonm_filtrado_v1= listOf(
+    val shadow_botonm_filtrado_v1 = listOf(
         Color.Transparent,
         Color(0xFF262626),
     )
 
-    val shadow_top_filtrado_v2= listOf(
+    val shadow_top_filtrado_v2 = listOf(
         Color(0XFF535252),
         Color.Transparent,
     )
-    val shadow_botonm_filtrado_v2= listOf(
+    val shadow_botonm_filtrado_v2 = listOf(
         Color.Transparent,
         Color(0XFF535252),
     )
 
+    val shadow_left = listOf(
+        Color(0xFF000000),
+        Color.Transparent,
+    )
+
+    // Sombra derecha (de transparente a oscuro)
+    val shadow_right = listOf(
+        Color.Transparent,
+        Color(0xFF000000),
+    )
 
 
 }
