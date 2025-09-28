@@ -89,6 +89,15 @@ object constantes_lista_localidades {
 
     val lista_localidad = listOf("Barranca", "Supe", "paramonga", "pativilca", "Puerto supe")
 
+    val lista_fraces_filtado = listOf(
+        "¡Qué bueno verte por aquí!",
+        "¿Qué deseas buscar hoy?",
+        "Encuentra lo que necesitas",
+        "Fácil",
+        "Rápido",
+        "Preciso"
+    )
+
     fun obtenerMetodoContacto(
         metodo: String,
         data: Map<String, Any>

@@ -6,9 +6,11 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -18,6 +20,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,6 +62,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -130,6 +134,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -214,6 +219,7 @@ fun ui_pantalla_busqueda(
     var color_localidad by remember { mutableStateOf(false) }
     var color_subcategoria by remember { mutableStateOf(false) }
     var color_salud_seguirdad by remember { mutableStateOf(false) }
+    var mostrar_centrado_visible by remember { mutableStateOf(true) }
 
     var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
     LaunchedEffect(
@@ -301,7 +307,9 @@ fun ui_pantalla_busqueda(
                             selection = TextRange(it.length)
                         )
 
+
                         if (it.isNotEmpty() && it.length >= 2) {
+                            mostrar_centrado_visible = false
                             ocultar()
                             if (!cat_sub_seleciondo) {
                                 viewModel.ls_items_ls_cat_fun(
@@ -312,6 +320,7 @@ fun ui_pantalla_busqueda(
                                     searchText.text
                                 )
                             } else {
+
                                 viewModel.ls_items_ls_cat_fun(
                                     true,
                                     tiendaLocalidadSeleccionada ?: "barranca",
@@ -322,6 +331,7 @@ fun ui_pantalla_busqueda(
                             }
                             subir_btn = false
                         } else {
+                            mostrar_centrado_visible = true
                             subir_btn = true
                             mostrar()
                         }
@@ -350,15 +360,21 @@ fun ui_pantalla_busqueda(
                         seguridad_salud_selec = { saud_select ->
                             salud_seguirdad = saud_select
                         },
-                        descolorar_carta_segu = {color_salud_seguirdad=false
-                            color_categoria=false
-                            color_subcategoria=false},
-                        descolorar_carta_cat = {color_salud_seguirdad=false
-                            color_categoria=false
-                            color_subcategoria=false},
-                        descolorar_carta_sub = {color_salud_seguirdad=false
-                            color_categoria=false
-                            color_subcategoria=false})
+                        descolorar_carta_segu = {
+                            color_salud_seguirdad = false
+                            color_categoria = false
+                            color_subcategoria = false
+                        },
+                        descolorar_carta_cat = {
+                            color_salud_seguirdad = false
+                            color_categoria = false
+                            color_subcategoria = false
+                        },
+                        descolorar_carta_sub = {
+                            color_salud_seguirdad = false
+                            color_categoria = false
+                            color_subcategoria = false
+                        })
                     spacer_vertical(5.dp)
                 }
             }
@@ -384,10 +400,14 @@ fun ui_pantalla_busqueda(
                 )
             }
         }
-
-        ImagenesSuperpuestasCollage(
-            Modifier.align(Alignment.Center)
-        )
+        AnimatedVisibility(
+            mostrar_centrado_visible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            ImagenesSuperpuestasCollage()
+        }
 
 
 
@@ -445,10 +465,10 @@ fun ui_pantalla_busqueda(
         )
 
         FloatingBubble(
-            color_categoria= color_categoria,
-            color_localidad=color_localidad,
-            color_subcategoria= color_subcategoria,
-            color_salud_seguridad=  color_salud_seguirdad,
+            color_categoria = color_categoria,
+            color_localidad = color_localidad,
+            color_subcategoria = color_subcategoria,
+            color_salud_seguridad = color_salud_seguirdad,
             seguidad_salud = salud_seguirdad,
             viewModel = viewModel,
             viewModelFiltros = viewModelFiltros,
@@ -527,53 +547,61 @@ fun ui_pantalla_busqueda(
             })
     }
 }
+
 @Composable
 fun ImagenesSuperpuestasCollage(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .padding(horizontal = 20.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        // ✨ Fondo con glow blanco difuso detrás de TODO el collage
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//        Text(text = "Hola benjamin \uD83D\uDC4B", fontSize = 25.sp, fontFamily = baners_geinz_work)
         Box(
-            modifier = Modifier
-                .size(300.dp) // controla el área del glow
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.4f), // centro iluminado
-                            Color.Transparent               // difuminado
+            modifier = modifier
+                .padding(horizontal = 20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .size(320.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF8700F3).copy(alpha = 0.7f),
+                                Color.Transparent
+                            ),
+                            radius = 400f
                         ),
-                        radius = 400f
-                    ),
-                    shape = RoundedCornerShape(200.dp)
-                )
-        )
+                        shape = RoundedCornerShape(200.dp)
+                    )
+            )
 
-        // --- Foto 1 (Izquierda) ---
-        ImagenConInclinacion(
-            drawableResId = R.drawable.f1,
-            anguloRotacion = -8f,
-            desplazamientoX = -70.dp,
-            desplazamientoY = 20.dp
-        )
+            // --- Foto 1 (Izquierda) ---
+            ImagenConInclinacion(
+                drawableResId = R.drawable.f1,
+                anguloRotacion = -8f,
+                desplazamientoX = -70.dp,
+                desplazamientoY = 20.dp
+            )
 
-        // --- Foto 2 (Centro, la protagonista) ---
-        ImagenConInclinacion(
-            drawableResId = R.drawable.f2,
-            anguloRotacion = 3f,
-            desplazamientoX = 0.dp,
-            desplazamientoY = 0.dp
-        )
+            // --- Foto 2 (Centro, la protagonista) ---
+            ImagenConInclinacion(
+                drawableResId = R.drawable.f2,
+                anguloRotacion = 3f,
+                desplazamientoX = 0.dp,
+                desplazamientoY = 0.dp
+            )
 
-        // --- Foto 3 (Derecha) ---
-        ImagenConInclinacion(
-            drawableResId = R.drawable.f3,
-            anguloRotacion = 7f,
-            desplazamientoX = 70.dp,
-            desplazamientoY = 40.dp
-        )
+            // --- Foto 3 (Derecha) ---
+            ImagenConInclinacion(
+                drawableResId = R.drawable.f3,
+                anguloRotacion = 7f,
+                desplazamientoX = 70.dp,
+                desplazamientoY = 40.dp
+            )
+        }
+        fracescambiantes("Benjamin")
     }
+
+
 }
 
 // -----------------------------------------------------------------
@@ -591,7 +619,7 @@ fun ImagenConInclinacion(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth(0.35f) // 👈 45% del ancho de pantalla
+            .fillMaxWidth(0.38f) // 👈 45% del ancho de pantalla
             .aspectRatio(1f)     // 👈 cuadrada (1:1)
             .offset(x = desplazamientoX, y = desplazamientoY)
             .rotate(anguloRotacion)
@@ -608,8 +636,6 @@ fun ImagenConInclinacion(
         )
     }
 }
-
-
 
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -1630,7 +1656,7 @@ fun filtrado_chips(
             categoriasUnicas
         }
 
-        if (searchText.isNotEmpty() && !haySeleccion) {
+        if (searchText.isNotEmpty() && !haySeleccion ) {
             LazyRowConSombras() {
                 // ✅ Mostrar categorías únicas
                 items(categoriasFiltradas) { cat ->
@@ -1665,22 +1691,34 @@ fun filtrado_chips(
                 }
             }
         } else if (searchText.isEmpty() && !haySeleccion) {
-            LazyRowConSombras (){
-                items(categorias_defaul) { i->
-                    chisp_filtrado_busqueda(
-                        carta_selecionada = false,
-                        filtrado = simplificarCategoria(i),
-                        btn_visible = false,
-                        clik_card = { categoria_selecionada_fun(i) },
-                        onClick_delete = {
-                            categoria_selecionada_fun("")
-                            subcateogira_selecionada_fun("")
-                            viewModel.clearResults()
-                            descolorar_carta_cat()
-                        }
-                    )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                LazyRowConSombras {
+                    items(categorias_defaul) { i ->
+                        chisp_filtrado_busqueda(
+                            carta_selecionada = false,
+                            filtrado = simplificarCategoria(i),
+                            btn_visible = false,
+                            clik_card = { categoria_selecionada_fun(i) },
+                            onClick_delete = {
+                                categoria_selecionada_fun("")
+                                subcateogira_selecionada_fun("")
+                                viewModel.clearResults()
+                                descolorar_carta_cat()
+                            }
+                        )
+                    }
                 }
+                spacer_vertical(10.dp)
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowUp,
+                    contentDescription = "Flecha arriba",
+                    modifier = Modifier.size(25.dp)
+                )
+                spacer_vertical(5.dp)
+
             }
+
+
         } else {
             LazyRowConSombras() {
                 items(categoriasFiltradas) { cat ->
@@ -1717,7 +1755,6 @@ fun filtrado_chips(
         }
     }
 }
-
 
 
 @Composable
@@ -1787,8 +1824,6 @@ fun LazyRowConSombras(
 }
 
 
-
-
 @Composable
 fun fraces_filtrado(expandedFloatingMenuFadeDemo: Boolean) {
     val fraces = constantes_lista_localidades.lista_frases_busqueda
@@ -1808,6 +1843,40 @@ fun fraces_filtrado(expandedFloatingMenuFadeDemo: Boolean) {
         )
     }
 }
+
+
+@Composable
+fun fracescambiantes(nombre_user: String) {
+    // Construimos la lista incluyendo el saludo
+    val fraces = listOf(
+        "👋 Hola $nombre_user",
+    ) + constantes_lista_localidades.lista_fraces_filtado
+
+    var index by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(4000L)
+            index = (index + 1) % fraces.size
+        }
+    }
+
+    AnimatedContent(
+        targetState = fraces[index],
+        transitionSpec = {
+            fadeIn(animationSpec = tween(600)) togetherWith
+                    fadeOut(animationSpec = tween(600))
+        },
+        label = "frases"
+    ) { txt ->
+        Text(
+            text = txt,
+            style = MaterialTheme.typography.titleLarge, color = Color.White,
+            textAlign = TextAlign.Center, modifier = Modifier.animateContentSize()
+        )
+    }
+}
+
 
 
 @Composable
