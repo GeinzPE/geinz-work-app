@@ -116,6 +116,9 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
+import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
+import com.geinzz.geinzwork.model.repo_usuario_registrado
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -131,6 +134,7 @@ fun pantalla_principal(
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+    val scope =rememberCoroutineScope ()
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
@@ -172,8 +176,23 @@ fun pantalla_principal(
     var esAniversarioHoy by rememberSaveable(localidad_defaul) {
         mutableStateOf(esAniversarioHoy(localidad_defaul))
     }
+    val dialgo_notificacion by data_store_localidad.getNotificacion(context).collectAsState(initial =false)
 
+Log.d("dialgo_notificacion",dialgo_notificacion.toString())
 
+    if (!dialgo_notificacion) { // null = nunca mostrado
+        permiso_primario_notifi(
+            clik_si = {
+                scope.launch { sendNotificacion(context, true) } // ✅ Guardar true
+            },
+            clik_no = {
+                scope.launch { sendNotificacion(context, false) } // ✅ Guardar false
+            },
+            ondimis = {
+
+            }
+        )
+    }
 
 
     Box(
@@ -786,7 +805,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
 
     val progress by animateLottieCompositionAsState(
         composition,
-        iterations = LottieConstants.IterateForever // se repite infinito
+        iterations = LottieConstants.IterateForever
     )
     LaunchedEffect(Unit) {
         while (true) {
@@ -794,54 +813,53 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
             index = (index + 1) % fraces.size
         }
     }
-    Box() {
-        Row() {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(top = 10.dp)
-            ) {
+    Row() {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(top = 10.dp)
+        ) {
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    LottieAnimation(
-                        composition = composition,
-                        progress = { progress },
-                        modifier = Modifier
-                            .size(15.dp)
-                            .padding(bottom = 3.dp)
-                    )
-                    spacer_horizonta(5.dp)
-                    texto_generico_one_line(
-                        texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
-                        MaterialTheme.typography.bodyMedium
-                    )
-                }
-                spacer_vertical(15.dp)
-                Crossfade(targetState = fraces[index], label = "fraces") { txt ->
-                    AutoResizeOneLineText(
-                        text = txt,
-                        style = MaterialTheme.typography.busquedaGeinzWork
-                    )
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier
+                        .size(15.dp)
+                        .padding(bottom = 3.dp)
+                )
+                spacer_horizonta(5.dp)
+                texto_generico_one_line(
+                    texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
+                    MaterialTheme.typography.bodyMedium
+                )
             }
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(img_url)
-                    .size(40)
-                    .crossfade(true)
-                    .placeholder(R.drawable.cargando_img_categorias)
-                    .error(R.drawable.logo_geinz_500x500)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            spacer_vertical(5.dp)
+            spacer_vertical(15.dp)
+            Crossfade(targetState = fraces[index], label = "fraces") { txt ->
+                AutoResizeOneLineText(
+                    text = txt,
+                    style = MaterialTheme.typography.busquedaGeinzWork
+                )
+            }
         }
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img_url)
+                .size(40)
+                .crossfade(true)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.logo_geinz_500x500)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+        spacer_vertical(5.dp)
     }
+
 }
 
 @Composable

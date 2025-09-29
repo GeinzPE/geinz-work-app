@@ -104,9 +104,13 @@ fun nativationWrapper(
     }
 
     val localidad_shader_user by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) {
-        firebaseAuth.currentUser?.uid?.let { uid ->
-            viewmodel_usuario_registrado.obtener_datos_user_registrado(uid)
+
+    LaunchedEffect(firebaseAuth.currentUser) {
+        val current = firebaseAuth.currentUser
+        if (current != null) {
+            viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
+        } else {
+            datos_principales_user = datos_principales_user("Usuario", "", "")
         }
     }
 

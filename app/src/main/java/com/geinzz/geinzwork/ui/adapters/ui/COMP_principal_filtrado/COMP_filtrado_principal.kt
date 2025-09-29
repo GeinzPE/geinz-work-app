@@ -65,6 +65,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -80,6 +81,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -100,6 +102,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.fracescambiantes
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -1082,4 +1085,87 @@ fun chisp_filtrado_busqueda(
 
     }
 
+}
+
+@Composable
+fun ImagenesSuperpuestasCollage(modifier: Modifier = Modifier) {
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//        Text(text = "Hola benjamin \uD83D\uDC4B", fontSize = 25.sp, fontFamily = baners_geinz_work)
+        Box(
+            modifier = modifier
+                .padding(horizontal = 20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .size(320.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF8700F3).copy(alpha = 0.7f),
+                                Color.Transparent
+                            ),
+                            radius = 400f
+                        ),
+                        shape = RoundedCornerShape(200.dp)
+                    )
+            )
+
+            // --- Foto 1 (Izquierda) ---
+            ImagenConInclinacion(
+                drawableResId = R.drawable.f1,
+                anguloRotacion = -8f,
+                desplazamientoX = -70.dp,
+                desplazamientoY = 20.dp
+            )
+
+            // --- Foto 2 (Centro, la protagonista) ---
+            ImagenConInclinacion(
+                drawableResId = R.drawable.f2,
+                anguloRotacion = 3f,
+                desplazamientoX = 0.dp,
+                desplazamientoY = 0.dp
+            )
+
+            // --- Foto 3 (Derecha) ---
+            ImagenConInclinacion(
+                drawableResId = R.drawable.f3,
+                anguloRotacion = 7f,
+                desplazamientoX = 70.dp,
+                desplazamientoY = 40.dp
+            )
+        }
+        fracescambiantes("Benjamin")
+    }
+
+
+}
+
+@Composable
+fun ImagenConInclinacion(
+    drawableResId: Int,
+    anguloRotacion: Float,
+    desplazamientoX: Dp = 0.dp,
+    desplazamientoY: Dp = 0.dp
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(0.38f) // 👈 45% del ancho de pantalla
+            .aspectRatio(1f)     // 👈 cuadrada (1:1)
+            .offset(x = desplazamientoX, y = desplazamientoY)
+            .rotate(anguloRotacion)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(drawableResId)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
 }

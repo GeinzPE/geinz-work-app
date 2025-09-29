@@ -3,26 +3,41 @@ package com.geinzz.geinzwork.data_store
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-val Context.dataStore by preferencesDataStore(name="settings")
+val Context.dataStore by preferencesDataStore(name = "settings")
+
 object data_store_localidad {
     private val LOCALIDAD_KEY = stringPreferencesKey("Ulitma_localidad")
+    private val NOTIFICACIONES_KEY = booleanPreferencesKey("notificacion_ed")
 
-    suspend fun guardar_localida(context: Context,nombre: String){
+    suspend fun guardar_localida(context: Context, nombre: String) {
         context.dataStore.edit { preferences ->
-            preferences[LOCALIDAD_KEY]=nombre
+            preferences[LOCALIDAD_KEY] = nombre
         }
-        Log.d("guadmos_localida",nombre)
+        Log.d("guadmos_localida", nombre)
     }
 
-    fun obtener_localidad(context: Context): Flow<String?>{
+    fun obtener_localidad(context: Context): Flow<String?> {
         return context.dataStore.data.map { preferences ->
             preferences[LOCALIDAD_KEY]
+        }
+    }
+
+    suspend fun sendNotificacion(context: Context, value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[NOTIFICACIONES_KEY] = value
+        }
+    }
+
+    fun getNotificacion(context: Context): Flow<Boolean> {
+        return context.dataStore.data.map { pref ->
+            pref[NOTIFICACIONES_KEY] ?: false
         }
     }
 }

@@ -1,7 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
 import android.app.AlertDialog
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.LocationOn
@@ -11,8 +15,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 
@@ -53,3 +63,46 @@ fun permisos_llamadas(aceptar_permisos: () -> Unit, ondimis: () -> Unit) {
 
     )
 }
+
+
+@Composable
+fun permiso_primario_notifi(clik_si:()-> Unit, clik_no:()-> Unit, ondimis: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = {},
+        confirmButton = {
+            Button(onClick = {
+                clik_si()
+                ondimis()
+            }) {
+                texto_generico_one_line("Aceptar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { clik_no()
+                ondimis()}) {
+                texto_generico_one_line(
+                    "Aun no ",
+                    MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        title = { texto_generico_one_line("Mantente informado") },
+        text = {
+            texto_generico_multilinea(
+                "Entérate de lo que pasa en tu localidad: eventos, novedades y la llegada de nuevos lugares.",
+                MaterialTheme.typography.bodyMedium
+            )
+        },
+
+        icon = {
+            Image(
+                painter = painterResource(R.drawable.campana_3d_webp),
+                contentDescription = "",
+                modifier = Modifier.size(30.dp)
+            )
+
+
+        }
+    )
+}
+

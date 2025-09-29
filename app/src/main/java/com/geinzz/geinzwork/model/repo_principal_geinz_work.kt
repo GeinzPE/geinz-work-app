@@ -70,20 +70,20 @@ class repo_principal_geinz_work {
 
 
 
-    suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
-        val ref = db.collection("Trabajadores_Usuarios_Drivers")
-            .document("users")
-            .collection("users")
-            .document(idUser)
-            .get()
-            .await()
-
-        return if (ref.exists()) {
-            ref.toObject(datos_principales_user::class.java)
-        } else {
-            null
-        }
-    }
+//    suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
+//        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+//            .document("users")
+//            .collection("users")
+//            .document(idUser)
+//            .get()
+//            .await()
+//
+//        return if (ref.exists()) {
+//            ref.toObject(datos_principales_user::class.java)
+//        } else {
+//            null
+//        }
+//    }
 
 //    suspend fun subir_lugares(lista: List<seguridad_salud_publica>) {
 //        lista.forEach { i ->

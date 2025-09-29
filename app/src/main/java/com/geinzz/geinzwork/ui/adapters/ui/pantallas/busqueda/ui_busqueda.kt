@@ -124,6 +124,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenesSuperpuestasCollage
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
@@ -287,6 +288,16 @@ fun ui_pantalla_busqueda(
                 datosTienda!!.first()
         }
     }
+    LaunchedEffect(cat_sub_seleciondo) {
+        if (cat_sub_seleciondo) {
+            mostrar_centrado_visible = false
+            Log.d("BusquedaFlow", "Texto <2 pero cat_sub=true -> centrado oculto")
+
+        }else{
+            mostrar_centrado_visible = true
+
+        }
+    }
     Log.d("categoria_filtradcategoria_filtrad", categoria_filtrad)
     Box() {
         LazyVerticalStaggeredGrid(
@@ -301,17 +312,21 @@ fun ui_pantalla_busqueda(
                     fraces_filtrado(expandedFloatingMenuFadeDemo)
                     spacer_vertical(10.dp)
 
-                    TexfielFiltrado(placeholder, focusRequester, searchText) { it ->
+                    TexfielFiltrado(placeholder, focusRequester, searchText,{ it ->
                         searchText = TextFieldValue(
                             text = it,
                             selection = TextRange(it.length)
                         )
-
-
                         if (it.isNotEmpty() && it.length >= 2) {
                             mostrar_centrado_visible = false
                             ocultar()
+                            Log.d("BusquedaFlow", "Texto >=2 -> ocultando centrado, ocultar() llamado")
+
                             if (!cat_sub_seleciondo) {
+                                Log.d(
+                                    "BusquedaFlow",
+                                    "Modo sin cat_sub -> localidad=${tiendaLocalidadSeleccionada ?: "barranca"} texto=${searchText.text}"
+                                )
                                 viewModel.ls_items_ls_cat_fun(
                                     false,
                                     tiendaLocalidadSeleccionada ?: "barranca",
@@ -320,7 +335,10 @@ fun ui_pantalla_busqueda(
                                     searchText.text
                                 )
                             } else {
-
+                                Log.d(
+                                    "BusquedaFlow",
+                                    "Modo con cat_sub -> localidad=${tiendaLocalidadSeleccionada ?: "barranca"} cat=$categoria_filtrad salud=$salud_seguirdad sub=$subcategira_filtrado texto=${searchText.text}"
+                                )
                                 viewModel.ls_items_ls_cat_fun(
                                     true,
                                     tiendaLocalidadSeleccionada ?: "barranca",
@@ -330,12 +348,21 @@ fun ui_pantalla_busqueda(
                                 )
                             }
                             subir_btn = false
-                        } else {
+                            Log.d("BusquedaFlow", "subir_btn=$subir_btn")
+
+                        }
+
+
+                        if (it.length < 2 && !cat_sub_seleciondo) {
                             mostrar_centrado_visible = true
                             subir_btn = true
                             mostrar()
+                            Log.d("BusquedaFlow", "Texto <2 y sin cat_sub -> mostrar centrado, mostrar() llamado, subir_btn=$subir_btn")
                         }
-                    }
+
+                    },listener_borrar_texto={
+                        viewModel.clearResults()
+                    })
 
                     spacer_vertical(5.dp)
 
@@ -343,7 +370,7 @@ fun ui_pantalla_busqueda(
                         viewModel,
                         searchText = searchText.text,
                         lista_filtrado = categorias,
-                        salud_seguirdad,
+                        salud_seguirdad=  salud_seguirdad,
                         lista_subcategoria = subcategorias,
                         categoria_selecionada = categoria_filtrad,
                         categoria_selecionada_fun = { filtrado_Select ->
@@ -355,7 +382,9 @@ fun ui_pantalla_busqueda(
                         },
                         cat_sub_select = { hay_selecccion ->
                             cat_sub_seleciondo = hay_selecccion
+//                            mostrar_centrado_visible=  if(hay_selecccion)  false else true
                             Log.d("lecioandoaosdnasd", hay_selecccion.toString())
+
                         },
                         seguridad_salud_selec = { saud_select ->
                             salud_seguirdad = saud_select
@@ -547,96 +576,6 @@ fun ui_pantalla_busqueda(
             })
     }
 }
-
-@Composable
-fun ImagenesSuperpuestasCollage(modifier: Modifier = Modifier) {
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//        Text(text = "Hola benjamin \uD83D\uDC4B", fontSize = 25.sp, fontFamily = baners_geinz_work)
-        Box(
-            modifier = modifier
-                .padding(horizontal = 20.dp),
-            contentAlignment = Alignment.Center
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .size(320.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                Color(0xFF8700F3).copy(alpha = 0.7f),
-                                Color.Transparent
-                            ),
-                            radius = 400f
-                        ),
-                        shape = RoundedCornerShape(200.dp)
-                    )
-            )
-
-            // --- Foto 1 (Izquierda) ---
-            ImagenConInclinacion(
-                drawableResId = R.drawable.f1,
-                anguloRotacion = -8f,
-                desplazamientoX = -70.dp,
-                desplazamientoY = 20.dp
-            )
-
-            // --- Foto 2 (Centro, la protagonista) ---
-            ImagenConInclinacion(
-                drawableResId = R.drawable.f2,
-                anguloRotacion = 3f,
-                desplazamientoX = 0.dp,
-                desplazamientoY = 0.dp
-            )
-
-            // --- Foto 3 (Derecha) ---
-            ImagenConInclinacion(
-                drawableResId = R.drawable.f3,
-                anguloRotacion = 7f,
-                desplazamientoX = 70.dp,
-                desplazamientoY = 40.dp
-            )
-        }
-        fracescambiantes("Benjamin")
-    }
-
-
-}
-
-// -----------------------------------------------------------------
-
-// =================================================================
-// 2. FUNCIÓN AUXILIAR: Estiliza la foto individual (Look de Papel)
-// =================================================================
-
-@Composable
-fun ImagenConInclinacion(
-    drawableResId: Int,
-    anguloRotacion: Float,
-    desplazamientoX: Dp = 0.dp,
-    desplazamientoY: Dp = 0.dp
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(0.38f) // 👈 45% del ancho de pantalla
-            .aspectRatio(1f)     // 👈 cuadrada (1:1)
-            .offset(x = desplazamientoX, y = desplazamientoY)
-            .rotate(anguloRotacion)
-            .clip(RoundedCornerShape(12.dp))
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(drawableResId)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
-
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -1620,13 +1559,13 @@ fun filtrado_chips(
     val categoriasUnicas = lista_filtrado.distinct()
     val subcategoriasUnicas = lista_subcategoria.distinct()
 
-    val hayCategoria = categoria_selecionada.isNotEmpty()
-    val haySubcategoria = subcategoria_selecionada.isNotEmpty()
-    val salud_seguirdad_valor = salud_seguirdad.isNotEmpty()
+    val hayCategoria = categoria_selecionada.isNotEmpty() && categoria_selecionada.length>=2
+    val haySubcategoria = subcategoria_selecionada.isNotEmpty() && subcategoria_selecionada.length>=2
+    val salud_seguirdad_valor = salud_seguirdad.isNotEmpty() && salud_seguirdad.length>=2
     val haySeleccion = hayCategoria || haySubcategoria || salud_seguirdad_valor
+    var mostrar_texto by remember { mutableStateOf(false) }
 
     cat_sub_select(haySeleccion)
-
 
     // ✅ Caso especial: si hay salud/seguridad, mostrar solo eso
 
@@ -1656,7 +1595,8 @@ fun filtrado_chips(
             categoriasUnicas
         }
 
-        if (searchText.isNotEmpty() && !haySeleccion ) {
+        if (searchText.length >= 2 && !haySeleccion) {
+            Log.d("entramos_Seach","1")
             LazyRowConSombras() {
                 // ✅ Mostrar categorías únicas
                 items(categoriasFiltradas) { cat ->
@@ -1690,7 +1630,8 @@ fun filtrado_chips(
                     )
                 }
             }
-        } else if (searchText.isEmpty() && !haySeleccion) {
+        } else if (searchText.length < 2 && !haySeleccion) {
+            Log.d("entramos_Seach","2")
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 LazyRowConSombras {
                     items(categorias_defaul) { i ->
@@ -1712,14 +1653,25 @@ fun filtrado_chips(
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowUp,
                     contentDescription = "Flecha arriba",
-                    modifier = Modifier.size(25.dp)
+                    modifier = Modifier
+                        .size(25.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            mostrar_texto = !mostrar_texto
+                        }
                 )
+
                 spacer_vertical(5.dp)
+                AnimatedVisibility(mostrar_texto) {
+                    texto_generico_one_line("Seleciona una categoria para empezar")
+                }
 
             }
 
 
         } else {
+            Log.d("entramos_Seach","3")
             LazyRowConSombras() {
                 items(categoriasFiltradas) { cat ->
                     val catSeleccionada = categoria_selecionada == cat
@@ -1884,7 +1836,8 @@ fun TexfielFiltrado(
     placeholder: String,
     focusRequester: FocusRequester,
     texto: TextFieldValue,
-    onvalueChage: (String) -> Unit
+    onvalueChage: (String) -> Unit,
+    listener_borrar_texto:()-> Unit,
 ) {
     var icono_borrar by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -1907,6 +1860,7 @@ fun TexfielFiltrado(
                 IconButton(onClick = {
                     onvalueChage("")
                     icono_borrar = false
+                    listener_borrar_texto()
                 }) {
                     Icon(
                         painter = painterResource(R.drawable.vector_eliminar_texto_texfiel),
