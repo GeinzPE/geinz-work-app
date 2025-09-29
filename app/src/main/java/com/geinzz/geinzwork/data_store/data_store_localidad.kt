@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.data_store
 
+import android.R
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.Preferences
@@ -15,6 +16,8 @@ val Context.dataStore by preferencesDataStore(name = "settings")
 object data_store_localidad {
     private val LOCALIDAD_KEY = stringPreferencesKey("Ulitma_localidad")
     private val NOTIFICACIONES_KEY = booleanPreferencesKey("notificacion_ed")
+
+    private val MOSTRAR_DIALOG_NOTI=booleanPreferencesKey("notifi_dialog")
 
     suspend fun guardar_localida(context: Context, nombre: String) {
         context.dataStore.edit { preferences ->
@@ -38,6 +41,18 @@ object data_store_localidad {
     fun getNotificacion(context: Context): Flow<Boolean> {
         return context.dataStore.data.map { pref ->
             pref[NOTIFICACIONES_KEY] ?: false
+        }
+    }
+
+    suspend fun guarar_dialogo_notifi(context: Context,value: Boolean){
+        context.dataStore.edit { pref->
+            pref[MOSTRAR_DIALOG_NOTI]=value
+        }
+    }
+
+    fun get_dialog_notifi(context: Context): Flow<Boolean>{
+        return context.dataStore.data.map { pref->
+            pref[MOSTRAR_DIALOG_NOTI]?:false
         }
     }
 }

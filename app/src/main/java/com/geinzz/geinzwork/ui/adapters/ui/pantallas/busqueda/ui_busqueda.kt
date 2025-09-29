@@ -354,6 +354,7 @@ fun ui_pantalla_busqueda(
 
 
                         if (it.length < 2 && !cat_sub_seleciondo) {
+                            viewModel.clearResults()
                             mostrar_centrado_visible = true
                             subir_btn = true
                             mostrar()

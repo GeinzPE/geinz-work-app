@@ -413,6 +413,14 @@
         <activity
             android:name=".Login"
             android:exported="false" />
+        <service
+            android:name=".model.MyFirebaseService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

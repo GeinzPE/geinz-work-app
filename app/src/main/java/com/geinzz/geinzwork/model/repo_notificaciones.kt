@@ -1,7 +1,10 @@
 package com.geinzz.geinzwork.model
 
+import android.os.Build
+import android.util.Log
 import com.geinzz.geinzwork.data.model.datamode_notificaciones.data_class_notificaciones
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 class repo_notificaciones {
@@ -79,5 +82,7 @@ class repo_notificaciones {
         }
         return listatokes_nombre
     }
+
+
 
 }

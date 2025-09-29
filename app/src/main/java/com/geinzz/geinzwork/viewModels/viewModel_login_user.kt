@@ -11,11 +11,11 @@ import androidx.navigation.NavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_google
 import com.geinzz.geinzwork.data.model.localizate_geinz.login_geinz.login_user
 import com.geinzz.geinzwork.model.repo_login_user
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.eliminarTokenDispositivo
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -264,6 +264,7 @@ class viewModel_login_user : ViewModel() {
         viewModelScope.launch {
             _mostrarCarga.value = true
             _loginStateCamposInicial.value = LoginState_inicio.Loading
+            eliminarTokenDispositivo(firebaseAuth.uid.toString())
             firebaseAuth.signOut()
             delay(5000)
             _loginStateCamposInicial.value = LoginState_inicio.LoggedOut

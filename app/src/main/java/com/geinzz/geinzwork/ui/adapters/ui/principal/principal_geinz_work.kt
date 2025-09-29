@@ -122,9 +122,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
+import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
+import com.geinzz.geinzwork.model.repo_notificaciones
 import com.geinzz.geinzwork.model.repo_usuario_registrado
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
+import com.google.firebase.messaging.FirebaseMessaging
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -184,8 +188,8 @@ fun pantalla_principal(
     }
     val dialgo_notificacion by data_store_localidad.getNotificacion(context)
         .collectAsState(initial = false)
-    var showDialog_notification by remember { mutableStateOf(!dialgo_notificacion) }
-
+    val dialogo_notifi_ret by data_store_localidad.get_dialog_notifi(context)
+        .collectAsState(initial = false)
 
 
     val launcher = rememberLauncherForActivityResult(
@@ -193,6 +197,17 @@ fun pantalla_principal(
     ) { isGranted ->
         if (isGranted) {
             Log.d("dialgo_notificacion", "Permiso concedido")
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    val uid = firebaseAuth.currentUser?.uid
+                    if (uid != null) {
+                        guarar_token_user(uid, token)
+                    } else {
+                        Log.e("FCM1231312", "Usuario no registrado, no se guardará token")
+                    }
+                }
+            }
         } else {
             Log.d("dialgo_notificacion", "Permiso denegado")
 
@@ -209,6 +224,17 @@ fun pantalla_principal(
             ) {
                 launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    val uid = firebaseAuth.currentUser?.uid
+                    if (uid != null) {
+                        guarar_token_user(uid, token)
+                    } else {
+                        Log.e("FCM1231312", "Usuario no registrado, no se guardará token")
+                    }
+                }
+            }
 
         } else {
             Log.d("dialgo_notificacion", "no hay registrado y no aparecio el perimos")
@@ -216,19 +242,25 @@ fun pantalla_principal(
         }
     }
 
-    if (!showDialog_notification) {
+    if (!dialogo_notifi_ret) {
         permiso_primario_notifi(
             clik_si = {
-                scope.launch { sendNotificacion(context, true) }
-                showDialog_notification = false
+                scope.launch {
+                    sendNotificacion(context, true)
+                    guarar_dialogo_notifi(context, true)
+                }
+
             },
             clik_no = {
-                scope.launch { sendNotificacion(context, false) }
-                showDialog_notification = false
+                scope.launch {
+                    sendNotificacion(context, false)
+                    guarar_dialogo_notifi(context, true)
+                }
             },
             ondimis = {
-                showDialog_notification = false
-
+                scope.launch {
+                    guarar_dialogo_notifi(context, true)
+                }
             }
         )
     }

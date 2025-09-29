@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationManager
 import android.location.LocationRequest
+import android.os.Build
 import android.os.Looper
 import android.widget.Toast
 import androidx.palette.graphics.Palette
@@ -55,6 +56,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import java.text.Normalizer
@@ -522,7 +524,54 @@ object constantes_lista_localidades {
         R.drawable.bomberos_brca, R.drawable.supe_brca,
         R.drawable.hospital_brca
     )
+    fun guarar_token_user(user: String, token: String) {
 
+        val marca = Build.MANUFACTURER
+        val modelo = Build.MODEL
+        val nombreDispositivo = "$marca-$modelo"
+        val ref =
+            FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers").document("users").collection("tokens")
+                .document(user)
+
+        val hashMap = hashMapOf<String, Any>(
+            nombreDispositivo to token
+        )
+        val toknes =hashMapOf<String, Any>(
+            "tokens" to hashMap
+        )
+
+        ref.set(toknes, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("FCM1231312", "Token guardado correctamente")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FCM1231312", "Error guardando token", e)
+            }
+    }
+    fun eliminarTokenDispositivo(user: String) {
+        val marca = Build.MANUFACTURER
+        val modelo = Build.MODEL
+        val nombreDispositivo = "$marca-$modelo"
+
+        val ref = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("tokens")
+            .document(user)
+
+        // Borramos solo la clave correspondiente a este dispositivo
+        val updates = hashMapOf<String, Any>(
+            "tokens.$nombreDispositivo" to FieldValue.delete()
+        )
+
+        ref.update(updates)
+            .addOnSuccessListener {
+                Log.d("FCM1231312", "Token del dispositivo eliminado correctamente")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FCM1231312", "Error eliminando token del dispositivo", e)
+            }
+    }
 
 //    val lista_constantes = listOf(
 //        // Barranca

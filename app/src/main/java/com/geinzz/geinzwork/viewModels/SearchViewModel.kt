@@ -166,8 +166,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 val res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
                 val categoriasActuales = _ls_items_ls_cat.value.second
-
-
                 _ls_items_ls_cat.value = Pair(res, categoriasActuales)
 
             } catch (e: Exception) {
