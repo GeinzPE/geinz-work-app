@@ -2,6 +2,11 @@ package com.geinzz.geinzwork.ui.adapters.ui.principal
 
 
 import android.util.Log
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -116,6 +121,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
+import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
 import com.geinzz.geinzwork.model.repo_usuario_registrado
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
@@ -134,7 +140,7 @@ fun pantalla_principal(
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
-    val scope =rememberCoroutineScope ()
+    val scope = rememberCoroutineScope()
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
@@ -176,19 +182,52 @@ fun pantalla_principal(
     var esAniversarioHoy by rememberSaveable(localidad_defaul) {
         mutableStateOf(esAniversarioHoy(localidad_defaul))
     }
-    val dialgo_notificacion by data_store_localidad.getNotificacion(context).collectAsState(initial =false)
+    val dialgo_notificacion by data_store_localidad.getNotificacion(context)
+        .collectAsState(initial = false)
+    var showDialog_notification by remember { mutableStateOf(!dialgo_notificacion) }
 
-Log.d("dialgo_notificacion",dialgo_notificacion.toString())
 
-    if (!dialgo_notificacion) { // null = nunca mostrado
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("dialgo_notificacion", "Permiso concedido")
+        } else {
+            Log.d("dialgo_notificacion", "Permiso denegado")
+
+        }
+    }
+
+    LaunchedEffect(firebaseAuth.currentUser, dialgo_notificacion) {
+        if (firebaseAuth.currentUser != null && dialgo_notificacion) {
+            Log.d("dialgo_notificacion", "si hay user registrado y si hay si de permiso")
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_DENIED
+            ) {
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+
+        } else {
+            Log.d("dialgo_notificacion", "no hay registrado y no aparecio el perimos")
+
+        }
+    }
+
+    if (!showDialog_notification) {
         permiso_primario_notifi(
             clik_si = {
-                scope.launch { sendNotificacion(context, true) } // ✅ Guardar true
+                scope.launch { sendNotificacion(context, true) }
+                showDialog_notification = false
             },
             clik_no = {
-                scope.launch { sendNotificacion(context, false) } // ✅ Guardar false
+                scope.launch { sendNotificacion(context, false) }
+                showDialog_notification = false
             },
             ondimis = {
+                showDialog_notification = false
 
             }
         )
@@ -331,6 +370,47 @@ Log.d("dialgo_notificacion",dialgo_notificacion.toString())
 //        )
 //    }
 //}
+
+@Composable
+fun solicitar_permiso_notifi() {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+@Composable
+fun SolicitarPermisoNotificacionLauncher(firebaseAuth: FirebaseAuth, permiso_notifi: Boolean) {
+    val context = LocalContext.current
+
+    // Launcher para pedir permiso de notificación
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Aquí ya se concedió el permiso
+            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
+        } else {
+            // Permiso denegado
+            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Lanzar el permiso automáticamente cuando hay usuario registrado
+    LaunchedEffect(firebaseAuth.currentUser) {
+        if (firebaseAuth.currentUser != null && permiso_notifi) {
+            // ✅ Aquí se lanza el permiso dentro del launcher
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+}
+
 @Composable
 fun AlbumBackgroundBlurOptimized(albumRes: Int, heightDp: Dp = 300.dp) {
     val context = LocalContext.current

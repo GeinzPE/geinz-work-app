@@ -78,10 +78,12 @@ fun permiso_primario_notifi(clik_si:()-> Unit, clik_no:()-> Unit, ondimis: () ->
             }
         },
         dismissButton = {
-            TextButton(onClick = { clik_no()
-                ondimis()}) {
+            TextButton(onClick = {
+                clik_no()
+                ondimis()
+            }) {
                 texto_generico_one_line(
-                    "Aun no ",
+                    "Aun no",
                     MaterialTheme.typography.bodyMedium
                 )
             }
