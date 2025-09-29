@@ -248,6 +248,11 @@ class viewModel_filtado_tiendas : ViewModel() {
     }
 
 
+    sealed class carga_subcategorias{
+        object Loading:carga_subcategorias()
+        object Empty: carga_subcategorias()
+        data class loaded(val items: List<String>):carga_subcategorias()
+    }
 //    fun obtener_tiendas_por_subcategoria(subcategoria: String, localida: String) {
 //        viewModelScope.launch {
 //            try {

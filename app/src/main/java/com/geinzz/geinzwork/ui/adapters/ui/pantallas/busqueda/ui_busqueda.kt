@@ -318,52 +318,58 @@ fun ui_pantalla_busqueda(
                     fraces_filtrado(expandedFloatingMenuFadeDemo)
                     spacer_vertical(10.dp)
 
-                    TexfielFiltrado(cat_sub_seleciondo,placeholder, focusRequester, searchText, { it ->
-                        searchText = TextFieldValue(
-                            text = it,
-                            selection = TextRange(it.length)
-                        )
-                        if (it.isNotEmpty() && it.length >= 2) {
-                            mostrar_centrado_visible = false
-                            if (!cat_sub_seleciondo) {
-                                viewModel.ls_items_ls_cat_fun(
-                                    false,
-                                    tiendaLocalidadSeleccionada ?: "barranca",
-                                    null,
-                                    null,
-                                    searchText.text
-                                )
+                    TexfielFiltrado(
+                        cat_sub_seleciondo,
+                        placeholder,
+                        focusRequester,
+                        searchText,
+                        { it ->
+                            searchText = TextFieldValue(
+                                text = it,
+                                selection = TextRange(it.length)
+                            )
+                            if (it.isNotEmpty() && it.length >= 2) {
+                                mostrar_centrado_visible = false
+                                if (!cat_sub_seleciondo) {
+                                    viewModel.ls_items_ls_cat_fun(
+                                        false,
+                                        tiendaLocalidadSeleccionada ?: "barranca",
+                                        null,
+                                        null,
+                                        searchText.text
+                                    )
+                                } else {
+                                    viewModel.ls_items_ls_cat_fun(
+                                        true,
+                                        tiendaLocalidadSeleccionada ?: "barranca",
+                                        categoria_filtrad.ifEmpty { salud_seguirdad },
+                                        subcategira_filtrado,
+                                        searchText.text
+                                    )
+                                }
                             } else {
-                                viewModel.ls_items_ls_cat_fun(
-                                    true,
-                                    tiendaLocalidadSeleccionada ?: "barranca",
-                                    categoria_filtrad.ifEmpty { salud_seguirdad },
-                                    subcategira_filtrado,
-                                    searchText.text
-                                )
+                                // 📝 Si no hay texto suficiente (<2)
+                                if (cat_sub_seleciondo) {
+                                    mostrar_centrado_visible = false
+                                    viewModel.ls_items_ls_cat_fun(
+                                        true,
+                                        tiendaLocalidadSeleccionada ?: "barranca",
+                                        categoria_filtrad.ifEmpty { salud_seguirdad },
+                                        subcategira_filtrado,
+                                        "" // 🔥 búsqueda vacía
+                                    )
+                                } else {
+                                    // 👉 No hay cat/sub seleccionado → limpio
+                                    mostrar_centrado_visible = true
+                                    viewModel.clearResults()
+                                }
                             }
-                        } else {
-                            // 📝 Si no hay texto suficiente (<2)
-                            if (cat_sub_seleciondo) {
-                              mostrar_centrado_visible=false
-                                viewModel.ls_items_ls_cat_fun(
-                                    true,
-                                    tiendaLocalidadSeleccionada ?: "barranca",
-                                    categoria_filtrad.ifEmpty { salud_seguirdad },
-                                    subcategira_filtrado,
-                                    "" // 🔥 búsqueda vacía
-                                )
-                            } else {
-                                // 👉 No hay cat/sub seleccionado → limpio
-                                mostrar_centrado_visible=true
-                                viewModel.clearResults()
-                            }
-                        }
 
 
-                    }, listener_borrar_texto = {
-                        viewModel.clearResults()
-                    })
+                        },
+                        listener_borrar_texto = {
+                            viewModel.clearResults()
+                        })
 
                     spacer_vertical(5.dp)
 
@@ -432,26 +438,29 @@ fun ui_pantalla_busqueda(
         }
 
         if (state is SearchViewModel.List_items_result.Loading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp).align(Alignment.Center),
-                    contentAlignment= Alignment.Center
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .align(Alignment.Center),
+                contentAlignment = Alignment.Center
 
-                ) {
-                    CircularProgressIndicator()
-                }
+            ) {
+                CircularProgressIndicator()
+            }
         }
 
-        when(state) {
+        when (state) {
             is SearchViewModel.List_items_result.Empty -> {
                 texto_generico_one_line(
-                    if(searchText.text.isNotEmpty()){
-                    "No se encontraron resultados con \"${searchText.text}\""
-                    }else{
+                    if (searchText.text.isNotEmpty()) {
+                        "No se encontraron resultados con \"${searchText.text}\""
+                    } else {
                         "No se encontraron resultados"
                     },
-                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 20.dp),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 20.dp),
                     color = Color.Gray
                 )
             }
@@ -465,6 +474,7 @@ fun ui_pantalla_busqueda(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
+
             else -> {}
         }
         AnimatedVisibility(
@@ -601,6 +611,7 @@ fun ui_pantalla_busqueda(
                 color_categoria = false
             },
             click_carta_subcategoria_delete = {
+                Log.d("elminados_","coloreelimado")
                 color_subcategoria = false
             },
             click_salud_general = {
@@ -664,6 +675,8 @@ fun FloatingBubble(
     var subcategoira_filtrado_res by remember { mutableStateOf<List<String>>(emptyList()) }
     var filtros by remember { mutableStateOf(dataclass_filtrado_ui()) }
 
+    var mostar_carga_subcategorias by remember { mutableStateOf(false) }
+
 
     val icono: Int? = if (!expanded) {
         R.drawable.icono_filtrado_webp
@@ -681,14 +694,26 @@ fun FloatingBubble(
         viewModelFiltros.obtener_subcategoiras(categoria_filtrad)
     }
     LaunchedEffect(subctegorias) {
-        val listaSoloSubcategorias = subctegorias
-            ?.flatMap { it.subcategorias }
-
+        Log.d("selecianodasmo", subctegorias.toString())
+        mostar_carga_subcategorias = true
+        val listaSoloSubcategorias = subctegorias?.flatMap { it.subcategorias }
         listaSoloSubcategorias?.let {
             Log.d("categoria_filtrado", it.toString())
             subcategoira_filtrado_res = it
         }
+        delay(500)
+        mostar_carga_subcategorias = false
     }
+
+    val state_subcategoria: viewModel_filtado_tiendas.carga_subcategorias = when {
+        mostar_carga_subcategorias -> viewModel_filtado_tiendas.carga_subcategorias.Loading
+        subcategoira_filtrado_res.isNotEmpty() -> viewModel_filtado_tiendas.carga_subcategorias.loaded(
+            subcategoira_filtrado_res
+        )
+
+        else -> viewModel_filtado_tiendas.carga_subcategorias.Empty
+    }
+
 
     var expandedIndex by remember { mutableStateOf(-1) }
 
@@ -982,7 +1007,6 @@ fun FloatingBubble(
                                                 },
                                                 onClick_delete = {
                                                     click_carta_categoria_delete()
-
                                                     categoria_Selecionada("")
                                                     subcategoria_selecionada("")
                                                     mostrarChipCategoria.value = false
@@ -1131,6 +1155,7 @@ fun FloatingBubble(
                                                         mostrar_chip_salud_seguridad.value = false
                                                         mostrarChipCategoria.value = true
                                                         mostrarChipsubcategoria.value = false
+                                                        mostar_carga_subcategorias = true
                                                         tiene_categorias()
 
                                                         filtros =
@@ -1446,63 +1471,87 @@ fun FloatingBubble(
                                         targetState = subcategoira_filtrado_res.isNotEmpty(),
                                         label = ""
                                     ) { tiene_categria ->
-                                        if (tiene_categria) {
-                                            LazyColumn(
-                                                state = listStateSub,
-                                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                contentPadding = PaddingValues(
-                                                    horizontal = 16.dp,
-                                                    vertical = 8.dp
-                                                ),
-                                                modifier = Modifier.fillMaxSize()
-
-                                            ) {
-                                                item {
-                                                    texto_generico_one_line(
-                                                        "Subcategoría",
-                                                        MaterialTheme.typography.titleMedium
-                                                    )
-                                                    spacer_vertical(5.dp)
-                                                }
-
-                                                items(subcategoira_filtrado_res) { sub ->
-                                                    val isSelected =
-                                                        subcategoria_select.equals(
-                                                            sub,
-                                                            ignoreCase = true
-                                                        )
-
-                                                    AnimatedFabItem(
-                                                        text = sub.capitalizeFirst(),
-                                                        color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
-                                                        visible = expanded
-                                                    ) {
-                                                        subcategoria_selecionada(sub)
-                                                        filtros = filtros.copy(subcategoria = sub)
-                                                        mostrarChipsubcategoria.value = true
-                                                    }
-                                                }
-
-                                            }
-                                        } else {
-                                            this@Column.AnimatedVisibility(
-                                                visible = true,
-                                                enter = fadeIn(),
-                                                exit = fadeOut()
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .padding(horizontal = 10.dp),
-                                                    contentAlignment = Alignment.Center
+                                        when (state_subcategoria) {
+                                            is viewModel_filtado_tiendas.carga_subcategorias.Loading -> {
+                                                Column(
+                                                    modifier = Modifier.fillMaxSize().padding(5.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.Center
                                                 ) {
                                                     Text(
-                                                        text = "Selecciona una categoría",
+                                                        text = "Cargando subcategorías",
                                                         textAlign = TextAlign.Center,
                                                         style = MaterialTheme.typography.titleMedium,
                                                         color = MaterialTheme.colorScheme.onBackground
                                                     )
+                                                    spacer_vertical(15.dp)
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(
+                                                            35.dp
+                                                        )
+                                                    )
+                                                }
+                                            }
 
+                                            is viewModel_filtado_tiendas.carga_subcategorias.loaded -> {
+                                                if (tiene_categria) {
+                                                    LazyColumn(
+                                                        state = listStateSub,
+                                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                        contentPadding = PaddingValues(
+                                                            horizontal = 16.dp,
+                                                            vertical = 8.dp
+                                                        ),
+                                                        modifier = Modifier.fillMaxSize()
+                                                    ) {
+                                                        item {
+                                                            texto_generico_one_line(
+                                                                "Subcategoría",
+                                                                MaterialTheme.typography.titleMedium
+                                                            )
+                                                            spacer_vertical(5.dp)
+                                                        }
+                                                        items(subcategoira_filtrado_res) { sub ->
+                                                            val isSelected =
+                                                                subcategoria_select.equals(
+                                                                    sub,
+                                                                    ignoreCase = true
+                                                                )
+
+                                                            AnimatedFabItem(
+                                                                text = sub.replaceFirstChar { it.uppercase() },
+                                                                color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
+                                                                visible = expanded
+                                                            ) {
+                                                                subcategoria_selecionada(sub)
+                                                                filtros =
+                                                                    filtros.copy(subcategoria = sub)
+                                                                mostrarChipsubcategoria.value = true
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            is viewModel_filtado_tiendas.carga_subcategorias.Empty -> {
+                                                this@Column.AnimatedVisibility(
+                                                    visible = true,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .padding(horizontal = 10.dp),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = "Selecciona una categoría",
+                                                            textAlign = TextAlign.Center,
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            color = MaterialTheme.colorScheme.onBackground
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -1864,11 +1913,11 @@ fun TexfielFiltrado(
         trailingIcon = {
             if (icono_borrar) {
                 IconButton(onClick = {
-                    if(cat_sub_seleciondo){
-                        Log.d("seleccion","existe")
-                    onvalueChage("")
-                    }else{
-                        Log.d("seleccion"," no existe")
+                    if (cat_sub_seleciondo) {
+                        Log.d("seleccion", "existe")
+                        onvalueChage("")
+                    } else {
+                        Log.d("seleccion", " no existe")
                         onvalueChage("")
                         listener_borrar_texto()
                     }
