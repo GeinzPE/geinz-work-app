@@ -1,12 +1,8 @@
 package com.geinzz.geinzwork.viewModels
 
 import Item
-import Resultado_sub_cat
 import android.app.Application
-import android.icu.text.StringSearch
 import android.util.Log
-import androidx.collection.emptyIntList
-import androidx.compose.ui.graphics.Paint
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
@@ -14,10 +10,7 @@ import com.geinzz.geinzwork.aloglia.AlgoliaHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
@@ -41,9 +34,12 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //    val resultado_solo_nombre: StateFlow<List<Item>> = _resultado_solo_nombre
 
 
-    private val _ls_items_ls_cat =
-        MutableStateFlow<Pair<List<Item>, List<String>>>(Pair(emptyList(), emptyList()))
-    val ls_items_ls_cat: StateFlow<Pair<List<Item>, List<String>>> = _ls_items_ls_cat
+//    private val _ls_items_ls_cat =
+//         MutableStateFlow<Pair<List<Item>, List<String>>>(Pair(emptyList(), emptyList()))
+//    val ls_items_ls_cat: StateFlow<Pair<List<Item>, List<String>>> = _ls_items_ls_cat
+
+    private val _state = MutableStateFlow<List_items_result>(List_items_result.Empty)
+    val state: StateFlow<List_items_result> = _state
 
 //    val resultadosCombinados: StateFlow<List<Item>> =
 //        combine(resultado_categorias, resultado_solo_nombre) { categorias, tiendas ->
@@ -84,7 +80,10 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            delay(500)
+            // 🔹 Aquí siempre se activa el Loading
+            _state.value = List_items_result.Loading
+
+            val start = System.currentTimeMillis()
             try {
                 Log.d("LS_ITEMS", "⏳ Consultando Algolia...")
                 val res = algoliaHelper.retornar_items_categorias(
@@ -94,90 +93,76 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     subcategoria,
                     search
                 )
-                Log.d("LS_ITEMS", "✅ Resultados recibidos:")
-                Log.d("LS_ITEMS", "   Categorías encontradas = ${res.first.size}")
-                Log.d("LS_ITEMS", "   Items encontrados      = ${res.second.size}")
-                Log.d("LS_ITEMS", "   Detalle categorías     = ${res.first}")
-                Log.d("LS_ITEMS", "   Detalle items          = ${res.second}")
+                val elapsed = System.currentTimeMillis() - start
 
-                _ls_items_ls_cat.value = res
+                // 🔹 Mantener mínimo 400ms en loading para que el usuario lo note
+                if (elapsed < 400) delay(400 - elapsed)
+
+                Log.d("LS_ITEMS", "✅ Resultados recibidos:")
+                Log.d("LS_ITEMS", "   Items encontrados      = ${res.first.size}")
+                Log.d("LS_ITEMS", "   Categorías encontradas = ${res.second.size}")
+
+                _state.value = if (res.first.isEmpty() && res.second.isEmpty()) {
+                    List_items_result.Empty
+                } else {
+                    List_items_result.succes(res.second, res.first)
+                }
             } catch (e: Exception) {
                 Log.e("LS_ITEMS", "❌ ERROR en consulta", e)
-                _ls_items_ls_cat.value = Pair(emptyList(), emptyList())
+                _state.value = List_items_result.error(e.message ?: "Error desconocido")
             }
         }
     }
 
-//    fun search_subcategorias(localidad_defaul: String, query: String) {
-//        Log.d("resultado_cateogira", "Buscando en localidad=$localidad_defaul con query=$query")
-//        viewModelScope.launch {
-//            delay(300L)
-//            try {
-//                val resultado =
-//                    algoliaHelper.obtener_solo_categorias_subcategorias(localidad_defaul, query)
-//                _resultado_categorias.value = resultado ?: ""
-//                Log.d("resresareasdare", _resultado_categorias.value.toString())
-//            } catch (e: Exception) {
-//                _resultado_categorias.value = ""
-//
-//            }
-//
-//        }
-//
-//    }
-//
-//    fun search_solo_nombre(
-//        selecionado: Boolean,
-//        localidad: String,
-//        categoria: String?,
-//        subcategoria: String?,
-//        search: String
-//    ) {
-//        viewModelScope.launch {
-//            delay(300L)
-//            try {
-//                val res = algoliaHelper.obtener_lugares_tiendas_nombre(
-//                    selecionado,
-//                    localidad,
-//                    categoria,
-//                    subcategoria,
-//                    search
-//                )
-//
-//                _resultado_solo_nombre.value = res
-//                Log.d("search_solo_nombrebool", selecionado.toString())
-//                Log.d("search_solo_nombre", "Resultados encontrados: ${res.size}")
-//                res.forEachIndexed { index, item ->
-//                    Log.d("search_solo_nombre", "[$index] → $item")
-//                }
-//
-//            } catch (e: Exception) {
-//                _resultado_solo_nombre.value = emptyList()
-//                Log.e("search_solo_nombre", "Error en búsqueda", e)
-//            }
-//        }
-//
-//    }
 
 
     fun filtar_sub_cat(localidad: String, cat: String?, sub: String?) {
         Log.d("filtramos_cat_sub", "$localidad $cat $sub")
         viewModelScope.launch {
+            _state.value= List_items_result.Loading
+            delay(500)
             try {
                 val res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
-                val categoriasActuales = _ls_items_ls_cat.value.second
-                _ls_items_ls_cat.value = Pair(res, categoriasActuales)
+//                val categoriasActuales = _ls_items_ls_cat.value.second
+//                _ls_items_ls_cat.value = Pair(res, categoriasActuales)
+                val categoriasActuales = when(val currentState = _state.value) {
+                    is List_items_result.succes -> currentState.categoira
+                    else -> emptyList()
+                }
+                _state.value=if(res.isEmpty() && categoriasActuales.isEmpty()){
+                    List_items_result.Empty
+                }else {
+                    List_items_result.succes(categoriasActuales,res)
+                }
 
             } catch (e: Exception) {
-                val categoriasActuales = _ls_items_ls_cat.value.second
-                _ls_items_ls_cat.value = Pair(emptyList(), categoriasActuales)
+//                val categoriasActuales = _ls_items_ls_cat.value.second
+//                _ls_items_ls_cat.value = Pair(emptyList(), categoriasActuales)
+                _state.value = List_items_result.error(e.message ?: "Error al filtrar")
             }
         }
     }
 
 
 
+//    fun clearResults() {
+////        _ls_items_ls_cat.value =  Pair(emptyList(), emptyList())
+//    }
+//    fun clearResults(){
+//        _state.value= List_items_result.Empty
+//    }
     fun clearResults() {
-        _ls_items_ls_cat.value =  Pair(emptyList(), emptyList())
+        _state.value = List_items_result.Cleared
+    }
+
+    sealed class List_items_result{
+        object Loading:List_items_result()
+        data class succes(
+            val categoira: List<String>,
+            val items: List<Item>,
+        ):List_items_result()
+        object Empty:List_items_result()
+        object Cleared : List_items_result()
+        data class error(val msje: String):List_items_result()
     }
 }

@@ -23,7 +23,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,7 +33,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -87,14 +85,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -106,8 +101,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,7 +108,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
@@ -132,10 +124,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -170,9 +160,25 @@ fun ui_pantalla_busqueda(
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
-    val ls_items_ls_cat by viewModel.ls_items_ls_cat.collectAsState()
-    val items = ls_items_ls_cat.first   // Lista<Item>
-    val categorias = ls_items_ls_cat.second // Lista<String> de categorías
+//    val ls_items_ls_cat by viewModel.ls_items_ls_cat.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val items: List<Item>
+    val categorias: List<String>
+    when (state) {
+        is SearchViewModel.List_items_result.succes -> {
+            val succes = state as SearchViewModel.List_items_result.succes
+            items = succes.items
+            categorias = succes.categoira
+        }
+
+        else -> {
+            items = emptyList()
+            categorias = emptyList()
+        }
+    }
+
+//    val items = ls_items_ls_cat.first   // Lista<Item>
+//    val categorias = ls_items_ls_cat.second // Lista<String> de categorías
 
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
     val categorias_lugares by viewModelFiltros.lista_sub_lugares.observeAsState()
@@ -293,7 +299,7 @@ fun ui_pantalla_busqueda(
             mostrar_centrado_visible = false
             Log.d("BusquedaFlow", "Texto <2 pero cat_sub=true -> centrado oculto")
 
-        }else{
+        } else {
             mostrar_centrado_visible = true
 
         }
@@ -312,21 +318,14 @@ fun ui_pantalla_busqueda(
                     fraces_filtrado(expandedFloatingMenuFadeDemo)
                     spacer_vertical(10.dp)
 
-                    TexfielFiltrado(placeholder, focusRequester, searchText,{ it ->
+                    TexfielFiltrado(cat_sub_seleciondo,placeholder, focusRequester, searchText, { it ->
                         searchText = TextFieldValue(
                             text = it,
                             selection = TextRange(it.length)
                         )
                         if (it.isNotEmpty() && it.length >= 2) {
                             mostrar_centrado_visible = false
-                            ocultar()
-                            Log.d("BusquedaFlow", "Texto >=2 -> ocultando centrado, ocultar() llamado")
-
                             if (!cat_sub_seleciondo) {
-                                Log.d(
-                                    "BusquedaFlow",
-                                    "Modo sin cat_sub -> localidad=${tiendaLocalidadSeleccionada ?: "barranca"} texto=${searchText.text}"
-                                )
                                 viewModel.ls_items_ls_cat_fun(
                                     false,
                                     tiendaLocalidadSeleccionada ?: "barranca",
@@ -335,33 +334,34 @@ fun ui_pantalla_busqueda(
                                     searchText.text
                                 )
                             } else {
-                                Log.d(
-                                    "BusquedaFlow",
-                                    "Modo con cat_sub -> localidad=${tiendaLocalidadSeleccionada ?: "barranca"} cat=$categoria_filtrad salud=$salud_seguirdad sub=$subcategira_filtrado texto=${searchText.text}"
-                                )
                                 viewModel.ls_items_ls_cat_fun(
                                     true,
                                     tiendaLocalidadSeleccionada ?: "barranca",
-                                    if (categoria_filtrad.isNotEmpty()) categoria_filtrad else salud_seguirdad,
+                                    categoria_filtrad.ifEmpty { salud_seguirdad },
                                     subcategira_filtrado,
                                     searchText.text
                                 )
                             }
-                            subir_btn = false
-                            Log.d("BusquedaFlow", "subir_btn=$subir_btn")
-
+                        } else {
+                            // 📝 Si no hay texto suficiente (<2)
+                            if (cat_sub_seleciondo) {
+                              mostrar_centrado_visible=false
+                                viewModel.ls_items_ls_cat_fun(
+                                    true,
+                                    tiendaLocalidadSeleccionada ?: "barranca",
+                                    categoria_filtrad.ifEmpty { salud_seguirdad },
+                                    subcategira_filtrado,
+                                    "" // 🔥 búsqueda vacía
+                                )
+                            } else {
+                                // 👉 No hay cat/sub seleccionado → limpio
+                                mostrar_centrado_visible=true
+                                viewModel.clearResults()
+                            }
                         }
 
 
-                        if (it.length < 2 && !cat_sub_seleciondo) {
-                            viewModel.clearResults()
-                            mostrar_centrado_visible = true
-                            subir_btn = true
-                            mostrar()
-                            Log.d("BusquedaFlow", "Texto <2 y sin cat_sub -> mostrar centrado, mostrar() llamado, subir_btn=$subir_btn")
-                        }
-
-                    },listener_borrar_texto={
+                    }, listener_borrar_texto = {
                         viewModel.clearResults()
                     })
 
@@ -371,7 +371,7 @@ fun ui_pantalla_busqueda(
                         viewModel,
                         searchText = searchText.text,
                         lista_filtrado = categorias,
-                        salud_seguirdad=  salud_seguirdad,
+                        salud_seguirdad = salud_seguirdad,
                         lista_subcategoria = subcategorias,
                         categoria_selecionada = categoria_filtrad,
                         categoria_selecionada_fun = { filtrado_Select ->
@@ -430,13 +430,50 @@ fun ui_pantalla_busqueda(
                 )
             }
         }
+
+        if (state is SearchViewModel.List_items_result.Loading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp).align(Alignment.Center),
+                    contentAlignment= Alignment.Center
+
+                ) {
+                    CircularProgressIndicator()
+                }
+        }
+
+        when(state) {
+            is SearchViewModel.List_items_result.Empty -> {
+                texto_generico_one_line(
+                    if(searchText.text.isNotEmpty()){
+                    "No se encontraron resultados con \"${searchText.text}\""
+                    }else{
+                        "No se encontraron resultados"
+                    },
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 20.dp),
+                    color = Color.Gray
+                )
+            }
+
+            is SearchViewModel.List_items_result.Cleared -> {}
+            is SearchViewModel.List_items_result.error -> {
+                val errorState = state as SearchViewModel.List_items_result.error
+                Text(
+                    "Error: ${errorState.msje}",
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {}
+        }
         AnimatedVisibility(
             mostrar_centrado_visible,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.Center)
         ) {
-            ImagenesSuperpuestasCollage()
+            ImagenesSuperpuestasCollage(localida_defauld.nombre)
         }
 
 
@@ -1560,9 +1597,10 @@ fun filtrado_chips(
     val categoriasUnicas = lista_filtrado.distinct()
     val subcategoriasUnicas = lista_subcategoria.distinct()
 
-    val hayCategoria = categoria_selecionada.isNotEmpty() && categoria_selecionada.length>=2
-    val haySubcategoria = subcategoria_selecionada.isNotEmpty() && subcategoria_selecionada.length>=2
-    val salud_seguirdad_valor = salud_seguirdad.isNotEmpty() && salud_seguirdad.length>=2
+    val hayCategoria = categoria_selecionada.isNotEmpty() && categoria_selecionada.length >= 2
+    val haySubcategoria =
+        subcategoria_selecionada.isNotEmpty() && subcategoria_selecionada.length >= 2
+    val salud_seguirdad_valor = salud_seguirdad.isNotEmpty() && salud_seguirdad.length >= 2
     val haySeleccion = hayCategoria || haySubcategoria || salud_seguirdad_valor
     var mostrar_texto by remember { mutableStateOf(false) }
 
@@ -1597,7 +1635,7 @@ fun filtrado_chips(
         }
 
         if (searchText.length >= 2 && !haySeleccion) {
-            Log.d("entramos_Seach","1")
+            Log.d("entramos_Seach", "1")
             LazyRowConSombras() {
                 // ✅ Mostrar categorías únicas
                 items(categoriasFiltradas) { cat ->
@@ -1632,7 +1670,7 @@ fun filtrado_chips(
                 }
             }
         } else if (searchText.length < 2 && !haySeleccion) {
-            Log.d("entramos_Seach","2")
+            Log.d("entramos_Seach", "2")
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 LazyRowConSombras {
                     items(categorias_defaul) { i ->
@@ -1672,7 +1710,7 @@ fun filtrado_chips(
 
 
         } else {
-            Log.d("entramos_Seach","3")
+            Log.d("entramos_Seach", "3")
             LazyRowConSombras() {
                 items(categoriasFiltradas) { cat ->
                     val catSeleccionada = categoria_selecionada == cat
@@ -1799,46 +1837,13 @@ fun fraces_filtrado(expandedFloatingMenuFadeDemo: Boolean) {
 
 
 @Composable
-fun fracescambiantes(nombre_user: String) {
-    // Construimos la lista incluyendo el saludo
-    val fraces = listOf(
-        "👋 Hola $nombre_user",
-    ) + constantes_lista_localidades.lista_fraces_filtado
-
-    var index by remember { mutableStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(4000L)
-            index = (index + 1) % fraces.size
-        }
-    }
-
-    AnimatedContent(
-        targetState = fraces[index],
-        transitionSpec = {
-            fadeIn(animationSpec = tween(600)) togetherWith
-                    fadeOut(animationSpec = tween(600))
-        },
-        label = "frases"
-    ) { txt ->
-        Text(
-            text = txt,
-            style = MaterialTheme.typography.titleLarge, color = Color.White,
-            textAlign = TextAlign.Center, modifier = Modifier.animateContentSize()
-        )
-    }
-}
-
-
-
-@Composable
 fun TexfielFiltrado(
+    cat_sub_seleciondo: Boolean,
     placeholder: String,
     focusRequester: FocusRequester,
     texto: TextFieldValue,
     onvalueChage: (String) -> Unit,
-    listener_borrar_texto:()-> Unit,
+    listener_borrar_texto: () -> Unit,
 ) {
     var icono_borrar by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -1859,9 +1864,16 @@ fun TexfielFiltrado(
         trailingIcon = {
             if (icono_borrar) {
                 IconButton(onClick = {
+                    if(cat_sub_seleciondo){
+                        Log.d("seleccion","existe")
                     onvalueChage("")
+                    }else{
+                        Log.d("seleccion"," no existe")
+                        onvalueChage("")
+                        listener_borrar_texto()
+                    }
                     icono_borrar = false
-                    listener_borrar_texto()
+
                 }) {
                     Icon(
                         painter = painterResource(R.drawable.vector_eliminar_texto_texfiel),

@@ -58,9 +58,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -77,8 +82,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
@@ -102,10 +110,10 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.fracescambiantes
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -1088,7 +1096,7 @@ fun chisp_filtrado_busqueda(
 }
 
 @Composable
-fun ImagenesSuperpuestasCollage(modifier: Modifier = Modifier) {
+fun ImagenesSuperpuestasCollage(nombre_usuario:String,modifier: Modifier = Modifier) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //        Text(text = "Hola benjamin \uD83D\uDC4B", fontSize = 25.sp, fontFamily = baners_geinz_work)
@@ -1137,10 +1145,40 @@ fun ImagenesSuperpuestasCollage(modifier: Modifier = Modifier) {
                 desplazamientoY = 40.dp
             )
         }
-        fracescambiantes("Benjamin")
+        fracescambiantes(nombre_usuario)
+    }
+}
+
+@Composable
+fun fracescambiantes(nombre_user: String) {
+    // Construimos la lista incluyendo el saludo
+    val fraces = listOf(
+        "👋 Hola $nombre_user",
+    ) + constantes_lista_localidades.lista_fraces_filtado
+
+    var index by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(4000L)
+            index = (index + 1) % fraces.size
+        }
     }
 
-
+    AnimatedContent(
+        targetState = fraces[index],
+        transitionSpec = {
+            fadeIn(animationSpec = tween(600)) togetherWith
+                    fadeOut(animationSpec = tween(600))
+        },
+        label = "frases"
+    ) { txt ->
+        Text(
+            text = txt,
+            style = MaterialTheme.typography.titleLarge, color = Color.White,
+            textAlign = TextAlign.Center, modifier = Modifier.animateContentSize()
+        )
+    }
 }
 
 @Composable

@@ -1,7 +1,6 @@
 package com.geinzz.geinzwork.aloglia
 
 import Item
-import Resultado_sub_cat
 import android.util.Log
 import com.algolia.search.client.ClientSearch
 import com.algolia.search.model.APIKey
@@ -9,9 +8,8 @@ import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.Attribute
 import com.algolia.search.model.IndexName
 import com.algolia.search.model.search.Query
-import com.geinzz.geinzwork.model.CategoryWithSubcategories
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.geinzz.geinzwork.viewModels.SearchViewModel
+import com.geinzz.geinzwork.viewModels.SearchViewModel.List_items_result
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
@@ -255,6 +253,7 @@ class AlgoliaHelper(
 
 
     suspend fun retornar_items_categorias(
+
         selecionado: Boolean,
         localidad: String,
         categoria: String? = null,
@@ -262,7 +261,7 @@ class AlgoliaHelper(
         search: String
     ): Pair<List<Item>, List<String>> {
 
-        if (search.isBlank()) return Pair(emptyList(), emptyList())
+//        if (search.isBlank()) return Pair(emptyList(), emptyList())
 
         val filtros = buildList {
             add("""lugar:"$localidad"""")
@@ -272,20 +271,45 @@ class AlgoliaHelper(
             }
         }.joinToString(" AND ")
 
-        val query = if (search.isBlank()) {
-            Query().apply { if (filtros.isNotBlank()) this.filters = filtros }
-        } else {
-            if (selecionado) {
-                Query(search).apply {
+        val query =
+            // Si el texto de búsqueda está vacío o solo tiene espacios...
+            if (search.isBlank()) {
+                // Creamos un Query vacío (sin término de búsqueda)
+                Query().apply {
+                    // Si existe algún filtro válido (no vacío ni solo espacios), lo aplicamos
                     if (filtros.isNotBlank()) this.filters = filtros
-                    restrictSearchableAttributes = listOf(Attribute("nombre"))
                 }
             } else {
-                Query(search).apply {
-                    if (filtros.isNotBlank()) this.filters = filtros
+                // Si sí hay texto en "search"...
+                if (selecionado) {
+                    // Creamos un Query con el texto de búsqueda
+                    Query(search).apply {
+                        // Si existe algún filtro válido, lo aplicamos
+                        if (filtros.isNotBlank()) this.filters = filtros
+                        // Limitamos la búsqueda solo al atributo "nombre"
+                        restrictSearchableAttributes = listOf(Attribute("nombre"))
+                    }
+                } else {
+                    // Creamos un Query con el texto de búsqueda
+                    Query(search).apply {
+                        // Si existe algún filtro válido, lo aplicamos
+                        if (filtros.isNotBlank()) this.filters = filtros
+                        // Aquí no restringimos los atributos -> busca en todos los campos indexados
+                    }
                 }
             }
-        }
+
+
+        Log.d(
+            "AlgoliaQuery",
+            """
+    🔎 QUERY CONSTRUIDA:
+    search = "$search"
+    filtros = "$filtros"
+    selecionado = $selecionado
+    restrictSearchableAttributes = ${if (selecionado && search.isNotBlank()) "nombre" else "todos"}
+    """.trimIndent()
+        )
 
         val response = index.search(query)
         Log.d("AlgoliaQuery", "Total resultados: ${response.hits.size}")
@@ -298,7 +322,8 @@ class AlgoliaHelper(
             val id = json["id_tienda"]?.jsonPrimitive?.content.orEmpty()
             val categoriaJson = json["categoria"]?.jsonPrimitive?.content.orEmpty()
             val img = json["img"]?.jsonPrimitive?.content.orEmpty()
-            val tags = json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
+            val tags =
+                json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
             val ubicacionJson = json["ubicacion"]?.jsonObject
             val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
             val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
@@ -312,7 +337,6 @@ class AlgoliaHelper(
         return Pair(items, categoriasUnicas)
 //        return Pair(emptyList(), emptyList())
     }
-
 
 
     suspend fun filtrar_categoria_sub_algolia(
