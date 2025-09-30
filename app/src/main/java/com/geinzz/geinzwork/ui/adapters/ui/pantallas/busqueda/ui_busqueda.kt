@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -144,6 +145,7 @@ import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.imaginativeworld.whynotimagecarousel.utils.pxToDp
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -469,9 +471,10 @@ fun ui_pantalla_busqueda(
             is SearchViewModel.List_items_result.error -> {
                 val errorState = state as SearchViewModel.List_items_result.error
                 Text(
-                    "Error: ${errorState.msje}",
+                    "${errorState.msje}",
                     color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 10.dp)
+
                 )
             }
 
@@ -694,7 +697,7 @@ fun FloatingBubble(
         viewModelFiltros.obtener_subcategoiras(categoria_filtrad)
     }
     LaunchedEffect(subctegorias) {
-        Log.d("selecianodasmo", subctegorias.toString())
+        Log.d("selecian odasmo", subctegorias.toString())
         mostar_carga_subcategorias = true
         val listaSoloSubcategorias = subctegorias?.flatMap { it.subcategorias }
         listaSoloSubcategorias?.let {
@@ -942,7 +945,8 @@ fun FloatingBubble(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.22f)
+//                            .fillMaxHeight(0.22f)
+                            .heightIn(min=150.dp)
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }) {}
@@ -1034,9 +1038,9 @@ fun FloatingBubble(
 
                                                 },
                                                 onClick_delete = {
-                                                    click_carta_subcategoria_delete
-                                                    subcategoria_selecionada("")
 
+                                                    click_carta_subcategoria_delete()
+                                                    subcategoria_selecionada("")
                                                     mostrarChipsubcategoria.value = false
                                                 }
                                             )
@@ -1086,12 +1090,12 @@ fun FloatingBubble(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.8f), // 90%
+                            .weight(1f), // 90%
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Column(
                             modifier = Modifier
-                                .weight(.5f)   // ocupa 50% del ancho
+                                .weight(.50f)   // ocupa 50% del ancho
                         ) {
                             Box(
                                 modifier = Modifier
@@ -2253,6 +2257,5 @@ fun AnimatedFabItem(
         }
     }
 }
-
 
 

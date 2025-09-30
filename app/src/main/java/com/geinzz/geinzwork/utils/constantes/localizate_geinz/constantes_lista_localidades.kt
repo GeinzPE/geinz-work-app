@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import android.graphics.Canvas
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -56,6 +58,8 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -65,6 +69,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
+
 
 object constantes_lista_localidades {
     val lista = listOf(
@@ -524,19 +529,21 @@ object constantes_lista_localidades {
         R.drawable.bomberos_brca, R.drawable.supe_brca,
         R.drawable.hospital_brca
     )
+
     fun guarar_token_user(user: String, token: String) {
 
         val marca = Build.MANUFACTURER
         val modelo = Build.MODEL
         val nombreDispositivo = "$marca-$modelo"
         val ref =
-            FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers").document("users").collection("tokens")
+            FirebaseFirestore.getInstance().collection("Trabajadores_Usuarios_Drivers")
+                .document("users").collection("tokens")
                 .document(user)
 
         val hashMap = hashMapOf<String, Any>(
             nombreDispositivo to token
         )
-        val toknes =hashMapOf<String, Any>(
+        val toknes = hashMapOf<String, Any>(
             "tokens" to hashMap
         )
 
@@ -548,6 +555,7 @@ object constantes_lista_localidades {
                 Log.e("FCM1231312", "Error guardando token", e)
             }
     }
+
     fun eliminarTokenDispositivo(user: String) {
         val marca = Build.MANUFACTURER
         val modelo = Build.MODEL
@@ -572,6 +580,37 @@ object constantes_lista_localidades {
                 Log.e("FCM1231312", "Error eliminando token del dispositivo", e)
             }
     }
+
+    data class data_redes_tiendas(val icono: Int, val nombre_red: String)
+
+    val lista_redes_tiendas = listOf(
+        data_redes_tiendas(icono = R.drawable.llamada_icon, "llamar"),
+        data_redes_tiendas(icono = R.drawable.whatsapp_icon, "whatsapp"),
+        data_redes_tiendas(icono = R.drawable.tik_tok_icon, "tiktok"),
+        data_redes_tiendas(icono = R.drawable.facebook_icon, "facebook"),
+        data_redes_tiendas(icono = R.drawable.instagram_icon, "instragram"),
+
+    )
+
+    fun bitmapDescriptorFromDrawable(
+        context: Context,
+        resId: Int,
+        width: Int,
+        height: Int
+    ): BitmapDescriptor {
+        val drawable = ContextCompat.getDrawable(context, resId)!!
+        val bitmap = Bitmap.createBitmap(
+            width,
+            height,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+
 
 //    val lista_constantes = listOf(
 //        // Barranca

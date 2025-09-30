@@ -1,4 +1,5 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
@@ -93,23 +94,26 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun Pantalla_filtrado_tiendas(
-    viewModelFiltros:viewModel_filtado_tiendas,
+    viewModelFiltros: viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
     nombre_user: String, navigation_regresar: () -> Unit,
-    abrir_mapa: (String) -> Unit,
+    abrir_mapa: (String,String) -> Unit,
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(emptyList())
+    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
+        emptyList()
+    )
 
     val estadoFiltrosUi = EstadoFiltrosUi(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = tiendasFiltradas
     )
-    Log.d("estadoFiltrosUi",estadoFiltrosUi.tiendasFiltradas.toString())
-    val estadoCarga = remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
+    Log.d("estadoFiltrosUi", estadoFiltrosUi.tiendasFiltradas.toString())
+    val estadoCarga =
+        remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var visible_texfiel by rememberSaveable { mutableStateOf(false) }
@@ -310,12 +314,17 @@ fun Pantalla_filtrado_tiendas(
 //                            .align(Alignment.BottomCenter)
 //                    )
 
-                    AnimatedVisibility(btn_mostrar_mapa, modifier = Modifier.align(Alignment.BottomCenter)) {
+                    AnimatedVisibility(
+                        btn_mostrar_mapa,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    ) {
                         open_map_perzonlizado(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = 16.dp),"tiendas",
-                            abrir_mapa
+                                .padding(bottom = 16.dp), tipo = "tiendas",
+                            abrir_mapa = { tipo ->
+                                abrir_mapa(tipo,localida)
+                            }
                         )
 //                        Box(
 //                            modifier = Modifier.fillMaxSize()

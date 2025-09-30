@@ -314,6 +314,7 @@ fun nativationWrapper(
                         viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
                         viewmodel_lugares_turisticos = viewModelLugares,
                         tipo = direcciones.tipo,
+                        localidad=direcciones.localidad
                     )
                 }
 
@@ -325,8 +326,8 @@ fun nativationWrapper(
                         categoria_localidad.localidad,
                         categoria_localidad.nombre_user,
                         navigation_regresar = { navController.popBackStack() },
-                        abrir_mapa = { tipo ->
-                            navController.navigate(map_perzonalizado(tipo))
+                        abrir_mapa = { tipo,localidad ->
+                            navController.navigate(map_perzonalizado(tipo,localidad))
                         }
                     )
                 }
@@ -338,7 +339,7 @@ fun nativationWrapper(
                         viewModelLugares,
                         viewModelCordenadas
                     ) { tipo ->
-                        navController.navigate(map_perzonalizado(tipo))
+                        navController.navigate(map_perzonalizado(tipo,""))
                     }
                 }
 
@@ -357,7 +358,7 @@ fun nativationWrapper(
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
                         abrir_mapa = { latitud, longitud ->
-                            navController.navigate(map_perzonalizado("seguridad"))
+                            navController.navigate(map_perzonalizado("seguridad",""))
 
                         })
                 }

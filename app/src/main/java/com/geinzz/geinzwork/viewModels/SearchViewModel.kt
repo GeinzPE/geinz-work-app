@@ -108,8 +108,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     List_items_result.succes(res.second, res.first)
                 }
             } catch (e: Exception) {
-                Log.e("LS_ITEMS", "❌ ERROR en consulta", e)
-                _state.value = List_items_result.error(e.message ?: "Error desconocido")
+                Log.e("LS_ITEMS", "${e.message.toString()}")
+                _state.value = List_items_result.error("Ocurrio un error vuelvalo a intentar")
             }
         }
     }
@@ -138,14 +138,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             } catch (e: Exception) {
 //                val categoriasActuales = _ls_items_ls_cat.value.second
 //                _ls_items_ls_cat.value = Pair(emptyList(), categoriasActuales)
-                _state.value = List_items_result.error(e.message ?: "Error al filtrar")
+                _state.value = List_items_result.error("Ocurrio un error vuelvalo a intentar")
             }
         }
     }
 
 
 
-//    fun clearResults() {
+    //    fun clearResults() {
 ////        _ls_items_ls_cat.value =  Pair(emptyList(), emptyList())
 //    }
 //    fun clearResults(){

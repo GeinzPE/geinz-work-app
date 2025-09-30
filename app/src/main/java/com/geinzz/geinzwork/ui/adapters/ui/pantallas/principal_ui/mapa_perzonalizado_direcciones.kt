@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,10 +17,12 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,15 +31,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,10 +64,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -74,6 +87,7 @@ import coil3.request.placeholder
 import com.algolia.search.dsl.ranking.DSLCustomRanking
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
@@ -81,9 +95,14 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_redes_tiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarDistanciaFormateada
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -91,6 +110,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -111,13 +131,15 @@ fun pantalla_mapa_perzonalizado(
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
     tipo: String,
+    localidad: String
 ) {
     Box() {
         MyGoogle_maps(
             tipo,
             viewmodel_lugares_turisticos,
             viewModel_filtrado_tiendas,
-            viewmode_segurirdad_Salud
+            viewmode_segurirdad_Salud,
+            localidad
         )
     }
 
@@ -130,6 +152,7 @@ fun MyGoogle_maps(
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
+    localidad: String
 ) {
     val context = LocalContext.current
 
@@ -137,6 +160,8 @@ fun MyGoogle_maps(
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
     var long_luga_seg by remember { mutableStateOf(0.0) }
+    var currentIndex by remember { mutableStateOf(0) }
+
 
     coordenadas?.let { (lat, lon) ->
         latitud_luga_seg = lat
@@ -145,6 +170,7 @@ fun MyGoogle_maps(
     val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
     val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
+    val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
 
 
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
@@ -166,6 +192,35 @@ fun MyGoogle_maps(
     }
 
     var boxVisible by remember { mutableStateOf(true) }
+
+    var id_lugar_tienda_select by remember { mutableStateOf("") }
+    var localidad_tienda_lugar_Select by remember { mutableStateOf(localidad) }
+    var show_bottom_sheet_datos_tienda_lugares by remember { mutableStateOf(false) }
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+
+
+    LaunchedEffect(id_lugar_tienda_select) {
+        viewModel_filtrado_tiendas.obtener_campos_tiendas_por_id(
+            localidad_tienda_lugar_Select,
+            id_lugar_tienda_select
+        )
+    }
+    LaunchedEffect(datosTienda) {
+        if (datosTienda.isNotEmpty()) {
+            dataclass_tienda_seleccionada = datosTienda.first()
+        }
+    }
+
+    if (show_bottom_sheet_datos_tienda_lugares) {
+        bottom_sheet_tiendas_filtradas(
+            Color.Red,
+            viewModel_filtrado_tiendas,
+            dataclass_tienda_seleccionada, show_bottom_sheet_datos_tienda_lugares
+        ) {
+            show_bottom_sheet_datos_tienda_lugares = false
+        }
+    }
+
     if (dialog_Crear_ruta) {
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
@@ -193,6 +248,7 @@ fun MyGoogle_maps(
 
     Box() {
         Column(modifier = Modifier.fillMaxSize()) {
+
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
@@ -200,7 +256,8 @@ fun MyGoogle_maps(
                     isMyLocationEnabled = true
                 ),
                 uiSettings = MapUiSettings(
-                    myLocationButtonEnabled = false
+                    myLocationButtonEnabled = false,
+                    zoomControlsEnabled = false
                 )
             ) {
 
@@ -214,10 +271,7 @@ fun MyGoogle_maps(
                             Marker(
                                 state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
                                 title = lugar.titulo,
-                                icon = BitmapDescriptorFactory.defaultMarker(
-                                    if (seleccionadoId == lugar.id_lugar_turistico) BitmapDescriptorFactory.HUE_BLUE
-                                    else BitmapDescriptorFactory.HUE_RED
-                                ),
+                                icon =  MarkerIcon(context, seleccionadoId == lugar.id_lugar_turistico),
                                 onClick = {
                                     lister_marker = dataclass_map(
                                         lugar.id_lugar_turistico,
@@ -249,11 +303,7 @@ fun MyGoogle_maps(
                             Marker(
                                 state = MarkerState(LatLng(tienda.latitud, tienda.longitud)),
                                 title = tienda.nombre_tienda,
-                                icon = BitmapDescriptorFactory.defaultMarker(
-                                    if (seleccionadoId == tienda.id_tienda) BitmapDescriptorFactory.HUE_BLUE
-                                    else BitmapDescriptorFactory.HUE_RED
-                                ),
-
+                                icon =  MarkerIcon(context, seleccionadoId == tienda.id_tienda),
                                 onClick = {
                                     lister_marker = dataclass_map(
                                         tienda.logo_tienda,
@@ -286,7 +336,7 @@ fun MyGoogle_maps(
                         Marker(
                             state = MarkerState(LatLng(latitud_luga_seg, long_luga_seg)),
                             title = "lugar seguro ajaj",
-                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+//                            icon = markerColor
 
 
 //                            onClick = {
@@ -357,7 +407,7 @@ fun MyGoogle_maps(
                 }
             },
             modifier = Modifier
-                .align(Alignment.TopEnd)
+                .align(Alignment.TopStart)
                 .padding(16.dp)
         ) {
             Icon(
@@ -365,6 +415,59 @@ fun MyGoogle_maps(
                 contentDescription = "Mi ubicación"
             )
         }
+        AnimatedVisibility(
+            visible = (!show_botoom_sheet && !boxVisible) || !show_dialog_datos_lugares,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            FloatingActionButton(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                onClick = {
+                    if (lista_filtrada_tiendas.isNotEmpty()) {
+                        currentIndex = (currentIndex + 1) % lista_filtrada_tiendas.size
+                        val tienda = lista_filtrada_tiendas[currentIndex]
+
+                        // actualizar marcador seleccionado
+                        lister_marker = dataclass_map(
+                            tienda.logo_tienda,
+                            tienda.nombre_tienda,
+                            tienda.lista_subcategoiras,
+                            lat_user,
+                            log_user,
+                            tienda.latitud,
+                            tienda.longitud,
+                            tienda.id_tienda,
+                            "",
+                            tienda.direccion,
+                            tienda.referencia,
+                        )
+
+                        seleccionadoId = tienda.id_tienda
+                        show_dialog_datos_lugares = true
+
+                        // mover cámara
+                        scope.launch {
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(tienda.latitud, tienda.longitud), 16f
+                                ),
+                                1000
+                            )
+                        }
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = "Mi ubicación"
+                )
+            }
+        }
+
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
                 lat_user,
@@ -383,20 +486,31 @@ fun MyGoogle_maps(
                     show_dialog_datos_lugares = true
                 })
         }
-        AnimatedVisibility(
-            visible = (!show_botoom_sheet && !boxVisible) || !show_dialog_datos_lugares,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            Button(
-                onClick = { show_botoom_sheet = true },
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
-            ) {
-                texto_generico_one_line("Ver lista")
-            }
-        }
+//        AnimatedVisibility(
+//            visible = (!show_botoom_sheet && !boxVisible) || !show_dialog_datos_lugares,
+//            enter = fadeIn(),
+//            exit = fadeOut(),
+//            modifier = Modifier.align(Alignment.BottomCenter)
+//        ) {
+//            Box(
+//                modifier = Modifier
+//                    .height(25.dp)
+//                    .width(70.dp)
+//                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+//                    .background(
+//                        MaterialTheme.colorScheme.primary
+//                    )
+//                    .clickable { show_botoom_sheet = true },
+//                contentAlignment = Alignment.Center
+//
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Filled.KeyboardArrowUp,
+//                    contentDescription = "Flecha arriba", modifier = Modifier.size(20.dp)
+//                )
+//            }
+//
+//        }
 
         AnimatedVisibility(
             visible = show_dialog_datos_lugares,
@@ -404,7 +518,7 @@ fun MyGoogle_maps(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            dialogo_lugar_tienda(horario_por_tienda, lister_marker, seleccionadoId, cerra_dialog = {
+            dialogo_lugar_tienda(show_botoom_sheet,show_dialog_datos_lugares,horario_por_tienda, lister_marker, seleccionadoId, cerra_dialog = {
                 show_dialog_datos_lugares = false
             }, limpiar = {
                 seleccionadoId = ""
@@ -428,16 +542,59 @@ fun MyGoogle_maps(
                         1000
                     )
                 }
+            }, retornar_id_select = { id_tienda_lugar ->
+                id_lugar_tienda_select = id_tienda_lugar
+                show_bottom_sheet_datos_tienda_lugares = true
+            }, onclick_iconos = { datos ->
+
+                when (datos.nombre_red) {
+                    "llamar" -> {
+                        // Lógica para llamada
+                    }
+
+                    "whatsapp" -> {
+                        // Lógica para abrir whatsapp
+                    }
+
+                    "tiktok" -> {
+                        // Lógica para abrir TikTok
+                    }
+
+                    "facebook" -> {
+                        // Abrir facebook
+                    }
+
+                    "instagram" -> {
+                        // Abrir instagram
+                    }
+
+                }
+            }, mostrar_lista = {
+                show_botoom_sheet = true
             })
         }
-
-
     }
 }
+@Composable
+fun MarkerIcon(
+    context: Context,
+    seleccionado: Boolean
+): BitmapDescriptor {
+    val drawableId = if (seleccionado) {
+        R.drawable.pin_select_webp
+    } else {
+        R.drawable.pin_deselect_webp
+    }
 
+    val size = if (seleccionado) 120 else 100
+
+    return bitmapDescriptorFromDrawable(context, drawableId, size, size)
+}
 
 @Composable
 fun dialogo_lugar_tienda(
+    show_botoom_sheet: Boolean,
+    show_dialog_datos_lugares: Boolean,
     horario_por_tienda: Map<String, Boolean>?,
     dataclass_map: dataclass_map,
     seleccionadoId: String?,
@@ -447,7 +604,10 @@ fun dialogo_lugar_tienda(
     actualizar: () -> Unit,
     boxVisible: Boolean,
     onBoxVisibleChange: (Boolean) -> Unit,
-    centrar_camara: (Double, Double) -> Unit
+    centrar_camara: (Double, Double) -> Unit,
+    retornar_id_select: (String) -> Unit,
+    onclick_iconos: (constantes_lista_localidades.data_redes_tiendas) -> Unit,
+    mostrar_lista:()-> Unit
 ) {
     val estado_tienda_filter = horario_por_tienda?.get(seleccionadoId) == true
     val color = if (estado_tienda_filter) Color.Green else Color.Red
@@ -462,6 +622,27 @@ fun dialogo_lugar_tienda(
         dataclass_map.latitud,
         dataclass_map.longitud
     )
+
+    val listate = rememberLazyListState()
+    val showLeftShadow by remember {
+        derivedStateOf { listate.firstVisibleItemIndex > 0 || listate.firstVisibleItemScrollOffset > 0 }
+    }
+    val showRightShadow by remember {
+        derivedStateOf {
+            val lastVisible = listate.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val total = listate.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < total - 1
+        }
+    }
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaLeft"
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaRight"
+    )
+
 
     LaunchedEffect(gpsActivo) {
         if (gpsActivo && (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0)) {
@@ -510,6 +691,7 @@ fun dialogo_lugar_tienda(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 40.dp, horizontal = 20.dp)
+
     ) {
         Row(
             modifier = Modifier
@@ -532,7 +714,19 @@ fun dialogo_lugar_tienda(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(cornerShape)
-                        .clickable { onBoxVisibleChange(!boxVisible) },
+                        .clickable { onBoxVisibleChange(!boxVisible) }
+                        .pointerInput(Unit) {
+                        detectVerticalDragGestures { _, dragAmount ->
+                            if (dragAmount < 0) {
+                                Log.d("GESTO", "mostramos lista")
+                                mostrar_lista()
+                            }
+                            else if (dragAmount > 0) {
+                                // 👉 Se movió hacia abajo
+                                Log.d("GESTO", "Swipe Down detectado")
+                            }
+                        }
+                    },
                     contentScale = ContentScale.Crop
                 )
 
@@ -611,6 +805,15 @@ fun dialogo_lugar_tienda(
                         .fillMaxSize()
                         .clip(RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
                         .background(Color.Black)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            centrar_camara(
+                                dataclass_map.latitud,
+                                dataclass_map.longitud
+                            )
+
+                        }
                 ) {
                     Row(
                         modifier = Modifier
@@ -627,7 +830,6 @@ fun dialogo_lugar_tienda(
                                 MaterialTheme.typography.titleLarge
                             )
                             spacer_vertical(10.dp)
-
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 texto_generico_one_line(
                                     estado_texto,
@@ -652,7 +854,6 @@ fun dialogo_lugar_tienda(
                                 }
 
                             }
-
                             spacer_vertical(10.dp)
                             texto_generico_one_line(
                                 dataclass_map.direccion,
@@ -686,22 +887,18 @@ fun dialogo_lugar_tienda(
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Cerrar")
                             }
-
                             Column(modifier = Modifier.align(Alignment.BottomEnd)) {
                                 // Botón ruta
                                 FloatingActionButton(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = Color.White,
                                     onClick = {
-                                        centrar_camara(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
+                                        retornar_id_select(dataclass_map.id)
                                     },
                                     modifier = Modifier
                                         .size(35.dp)
                                 ) {
-                                    Icon(Icons.Default.LocationOn, contentDescription = "centrar")
+                                    Icon(Icons.Default.Visibility, contentDescription = "centrar")
                                 }
                                 spacer_vertical(7.dp)
                                 // Botón ruta
@@ -720,12 +917,12 @@ fun dialogo_lugar_tienda(
                                     Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
                                 }
                             }
-
                         }
                     }
                 }
             }
         }
+
         AnimatedVisibility(
             !boxVisible,
             modifier = Modifier
@@ -741,138 +938,60 @@ fun dialogo_lugar_tienda(
                     )
             ) {
                 LazyRow(
+                    state = listate,
                     horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    contentPadding = PaddingValues(horizontal = 7.dp),
                     modifier = Modifier
                         .padding(vertical = 5.dp)
                         .align(Alignment.BottomCenter)
                 ) {
-                    item {
-                        spacer_horizonta(5.dp)
+                    items(lista_redes_tiendas) { i ->
                         Box(
                             modifier = Modifier
                                 .size(35.dp)
                                 .clip(CircleShape)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.llamada_icon),
-                                contentDescription = "",
+                                painter = painterResource(i.icono),
+                                contentDescription = i.nombre_red,
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-
-                    }
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.whatsapp_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
+//                                        crear_ruta(
+//                                            dataclass_map.latitud,
+//                                            dataclass_map.longitud
+//                                        )
+                                        onclick_iconos(i)
+                                    }
+                            )
                         }
                     }
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White,
-                                onClick = {
-                                    crear_ruta(
-                                        dataclass_map.latitud,
-                                        dataclass_map.longitud
-                                    )
-                                },
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Icon(Icons.Default.DirectionsCar, contentDescription = "Ir")
-                            }
-                        }
-                    }
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.tik_tok_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-                    }
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.facebook_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-                    }
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.instagram_icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        crear_ruta(
-                                            dataclass_map.latitud,
-                                            dataclass_map.longitud
-                                        )
-                                    })
-                        }
-                        spacer_horizonta(5.dp)
-                    }
-
-
                 }
+                // 👈 izquierda
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(40.dp)
+                        .align(Alignment.CenterStart)
+                        .zIndex(1f)
+                        .alpha(alphaLeft)
+                        .clip(RoundedCornerShape(bottomStart = 10.dp))
+                        .background(Brush.horizontalGradient(colors = shadow_left))
+                )
 
+                // 👉 derecha
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(40.dp)
+                        .align(Alignment.CenterEnd)
+                        .zIndex(1f)
+                        .alpha(alphaRight)
+                        .clip(RoundedCornerShape(bottomEnd = 10.dp))
+                        .background(Brush.horizontalGradient(colors = shadow_right))
+                )
 
             }
-
-
         }
     }
 

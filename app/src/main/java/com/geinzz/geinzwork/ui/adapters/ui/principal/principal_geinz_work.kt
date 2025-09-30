@@ -249,6 +249,7 @@ fun pantalla_principal(
                     sendNotificacion(context, true)
                     guarar_dialogo_notifi(context, true)
                 }
+                Log.d("clikeamos","si")
 
             },
             clik_no = {
@@ -256,11 +257,13 @@ fun pantalla_principal(
                     sendNotificacion(context, false)
                     guarar_dialogo_notifi(context, true)
                 }
+                Log.d("clikeamos","no")
             },
             ondimis = {
                 scope.launch {
                     guarar_dialogo_notifi(context, true)
                 }
+                Log.d("clikeamos","ocultamos")
             }
         )
     }
@@ -1001,4 +1004,3 @@ fun AutoResizeOneLineText(
         )
     }
 }
-

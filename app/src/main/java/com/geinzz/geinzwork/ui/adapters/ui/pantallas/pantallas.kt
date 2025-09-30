@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.R
 import kotlinx.serialization.Serializable
 
 
@@ -19,7 +20,7 @@ data class screen_filtrado(val categoria: String, val localidad: String, val nom
 data class mostrar_tiendas(val nombre_user: String, val localidad: String)
 
 @Serializable
-data class map_perzonalizado(val tipo: String)
+data class map_perzonalizado(val tipo: String,val localidad: String)
 
 @Serializable
 data class ui_salud_seguridad(val localidad: String)
