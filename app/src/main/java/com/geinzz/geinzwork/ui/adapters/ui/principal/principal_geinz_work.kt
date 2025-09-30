@@ -151,10 +151,10 @@ fun pantalla_principal(
         emptyList()
     )
 
-    LaunchedEffect(Unit) {
-        viewModel_cordenadas.obtener_subcategorias(true)
-        viewModel_cordenadas.obtner_filtrado_localidades()
-    }
+//    LaunchedEffect(Unit) {
+////        viewModel_cordenadas.obtener_subcategorias(true)
+////        viewModel_cordenadas.obtner_filtrado_localidades()
+//    }
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
         .collectAsState(initial = null)

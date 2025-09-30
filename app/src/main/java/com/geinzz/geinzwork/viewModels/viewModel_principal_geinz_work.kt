@@ -30,6 +30,14 @@ class viewModel_principal_geinz_work : ViewModel() {
 
     private val lista_filtrado_localida = MutableLiveData<List<localidades_filtrado>>()
     val _lista_filtrado_localidades: LiveData<List<localidades_filtrado>> get() = lista_filtrado_localida
+
+    init {
+        // Se carga una sola vez cuando el ViewModel se crea
+        obtener_subcategorias()
+        obtner_filtrado_localidades()
+    }
+
+
     fun lugares_turisticos(localidad: String) {
         viewModelScope.launch {
             try {
