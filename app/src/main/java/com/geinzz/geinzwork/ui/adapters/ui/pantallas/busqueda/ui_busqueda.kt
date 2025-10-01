@@ -6,11 +6,9 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -20,7 +18,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -145,7 +142,6 @@ import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.imaginativeworld.whynotimagecarousel.utils.pxToDp
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -330,7 +326,8 @@ fun ui_pantalla_busqueda(
                                 text = it,
                                 selection = TextRange(it.length)
                             )
-                            if (it.isNotEmpty() && it.length >= 2) {
+                        if (it.isNotEmpty() && it.length >= 2) {
+
                                 mostrar_centrado_visible = false
                                 if (!cat_sub_seleciondo) {
                                     viewModel.ls_items_ls_cat_fun(
@@ -338,28 +335,33 @@ fun ui_pantalla_busqueda(
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         null,
                                         null,
-                                        searchText.text
+                                        searchText.text,
+                                        it
                                     )
                                 } else {
+
                                     viewModel.ls_items_ls_cat_fun(
                                         true,
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         categoria_filtrad.ifEmpty { salud_seguirdad },
                                         subcategira_filtrado,
-                                        searchText.text
+                                        searchText.text,it
                                     )
                                 }
                             } else {
                                 // 📝 Si no hay texto suficiente (<2)
                                 if (cat_sub_seleciondo) {
+
                                     mostrar_centrado_visible = false
                                     viewModel.ls_items_ls_cat_fun(
                                         true,
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         categoria_filtrad.ifEmpty { salud_seguirdad },
                                         subcategira_filtrado,
-                                        "" // 🔥 búsqueda vacía
+                                        "",
+                                        it // 🔥 búsqueda vacía
                                     )
+
                                 } else {
                                     // 👉 No hay cat/sub seleccionado → limpio
                                     mostrar_centrado_visible = true

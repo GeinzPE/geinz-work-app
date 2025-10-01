@@ -182,4 +182,3 @@ fun <T> listado_items(
         }
     }
 }
-

@@ -79,6 +79,10 @@ import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.metodo_contacto_tienda
@@ -430,11 +434,14 @@ fun lista_img_tiendas(img: String) {
     }
     Box() {
         AsyncImage(
-            model = img,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img)
+                .size(100,100)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias)
+                .build(),
             contentDescription = "Imagen de la tienda",
             contentScale = ContentScale.Crop,
-            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
-            error = painterResource(id = R.drawable.qr_yape),
             modifier = Modifier
                 .width(100.dp)
                 .height(100.dp)
@@ -560,7 +567,10 @@ fun perfil_img_zooom(
 ) {
     Box {
         AsyncImage(
-            model = img_tienda_perfil,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img_tienda_perfil)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = "Imagen de la tienda",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -1135,7 +1145,6 @@ fun tienda_cercana() {
         )
     }
 }
-
 
 
 

@@ -7,11 +7,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.aloglia.AlgoliaHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -68,7 +71,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         localidad: String,
         categoria: String?,
         subcategoria: String?,
-        search: String
+        search: String,
+        it: String
     ) {
         Log.d("LS_ITEMS", "➡️ INICIO FUNCIÓN")
         Log.d("LS_ITEMS", "Parámetros recibidos:")
@@ -80,23 +84,32 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            // 🔹 Aquí siempre se activa el Loading
+
+
+
             _state.value = List_items_result.Loading
 
             val start = System.currentTimeMillis()
             try {
                 Log.d("LS_ITEMS", "⏳ Consultando Algolia...")
                 val res = algoliaHelper.retornar_items_categorias(
-                    selecionado,
-                    localidad,
-                    categoria,
-                    subcategoria,
-                    search
-                )
+                        selecionado,
+                        localidad,
+                        categoria,
+                        subcategoria,
+                        search,it
+                    )
+
+                coroutineContext.ensureActive()
                 val elapsed = System.currentTimeMillis() - start
 
                 // 🔹 Mantener mínimo 400ms en loading para que el usuario lo note
                 if (elapsed < 400) delay(400 - elapsed)
+                if (it != search) {
+                    Log.d("LS_ITEMS", "Texto cambió, ignorando resultados")
+                    _state.value = List_items_result.Cleared
+                    return@launch
+                }
 
                 Log.d("LS_ITEMS", "✅ Resultados recibidos:")
                 Log.d("LS_ITEMS", "   Items encontrados      = ${res.first.size}")
@@ -107,6 +120,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 } else {
                     List_items_result.succes(res.second, res.first)
                 }
+
             } catch (e: Exception) {
                 Log.e("LS_ITEMS", "${e.message.toString()}")
                 _state.value = List_items_result.error("Ocurrio un error vuelvalo a intentar")
@@ -115,34 +129,30 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
 
-
     fun filtar_sub_cat(localidad: String, cat: String?, sub: String?) {
         Log.d("filtramos_cat_sub", "$localidad $cat $sub")
         viewModelScope.launch {
-            _state.value= List_items_result.Loading
+            _state.value = List_items_result.Loading
             delay(500)
             try {
                 val res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
-//                val categoriasActuales = _ls_items_ls_cat.value.second
-//                _ls_items_ls_cat.value = Pair(res, categoriasActuales)
-                val categoriasActuales = when(val currentState = _state.value) {
+
+                val categoriasActuales = when (val currentState = _state.value) {
                     is List_items_result.succes -> currentState.categoira
                     else -> emptyList()
                 }
-                _state.value=if(res.isEmpty() && categoriasActuales.isEmpty()){
+                _state.value = if (res.isEmpty() && categoriasActuales.isEmpty() ) {
                     List_items_result.Empty
-                }else {
-                    List_items_result.succes(categoriasActuales,res)
+                } else {
+                    List_items_result.succes(categoriasActuales, res)
                 }
 
             } catch (e: Exception) {
-//                val categoriasActuales = _ls_items_ls_cat.value.second
-//                _ls_items_ls_cat.value = Pair(emptyList(), categoriasActuales)
+
                 _state.value = List_items_result.error("Ocurrio un error vuelvalo a intentar")
             }
         }
     }
-
 
 
     //    fun clearResults() {
@@ -155,14 +165,15 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         _state.value = List_items_result.Cleared
     }
 
-    sealed class List_items_result{
-        object Loading:List_items_result()
+    sealed class List_items_result {
+        object Loading : List_items_result()
         data class succes(
             val categoira: List<String>,
             val items: List<Item>,
-        ):List_items_result()
-        object Empty:List_items_result()
+        ) : List_items_result()
+
+        object Empty : List_items_result()
         object Cleared : List_items_result()
-        data class error(val msje: String):List_items_result()
+        data class error(val msje: String) : List_items_result()
     }
 }

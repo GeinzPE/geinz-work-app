@@ -1080,14 +1080,14 @@ fun chisp_filtrado_busqueda(
         )
         if (btn_visible) {
             if(carta_selecionada){
-            spacer_horizonta(7.dp)
-            btn_close_gris(
-                imageVector = Icons.Default.Close,
-                onClick = { onClick_delete() },
-                size_container = 20.dp,
-                size_icon = 15.dp,
-                tint_icon = if (!carta_selecionada) Color.White else Color.Black
-            )
+                spacer_horizonta(7.dp)
+                btn_close_gris(
+                    imageVector = Icons.Default.Close,
+                    onClick = { onClick_delete() },
+                    size_container = 20.dp,
+                    size_icon = 15.dp,
+                    tint_icon = if (!carta_selecionada) Color.White else Color.Black
+                )
             }
         }
 

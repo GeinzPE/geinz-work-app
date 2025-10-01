@@ -8,8 +8,6 @@ import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.Attribute
 import com.algolia.search.model.IndexName
 import com.algolia.search.model.search.Query
-import com.geinzz.geinzwork.viewModels.SearchViewModel
-import com.geinzz.geinzwork.viewModels.SearchViewModel.List_items_result
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
@@ -253,12 +251,12 @@ class AlgoliaHelper(
 
 
     suspend fun retornar_items_categorias(
-
         selecionado: Boolean,
         localidad: String,
         categoria: String? = null,
         subcategoria: String? = null,
-        search: String
+        search: String,
+        it: String
     ): Pair<List<Item>, List<String>> {
 
 //        if (search.isBlank()) return Pair(emptyList(), emptyList())
@@ -271,9 +269,14 @@ class AlgoliaHelper(
             }
         }.joinToString(" AND ")
 
+        if (it.length==2) {
+            Log.d("valor_id", "No hay texto ni filtros, retornando vacío")
+            return Pair(emptyList(), emptyList())
+        }
+
         val query =
             // Si el texto de búsqueda está vacío o solo tiene espacios...
-            if (search.isBlank()) {
+            if (search.isBlank() ) {
                 // Creamos un Query vacío (sin término de búsqueda)
                 Query().apply {
                     // Si existe algún filtro válido (no vacío ni solo espacios), lo aplicamos

@@ -160,24 +160,28 @@ fun MyGoogle_maps(
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
     var long_luga_seg by remember { mutableStateOf(0.0) }
-    var currentIndex by remember { mutableStateOf(0) }
+    val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
+    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
+    val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
+    val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
+    var seleccionadoId by remember { mutableStateOf<String?>(null) }
+    val currentIndex =
+        lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
+//    Log.d("currentIndex","indice_clieado$indice_encontrado")
+//    var currentIndex by remember { mutableStateOf(indice_encontrado) }
 
 
     coordenadas?.let { (lat, lon) ->
         latitud_luga_seg = lat
         long_luga_seg = lon
     }
-    val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
-    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
-    val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
-    val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
-
 
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
-    var seleccionadoId by remember { mutableStateOf<String?>(null) }
+
+//    Log.d("indexices",indice_encontrado.toString())
     var show_botoom_sheet by remember { mutableStateOf(true) }
     var show_dialog_datos_lugares by remember { mutableStateOf(false) }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
@@ -187,8 +191,21 @@ fun MyGoogle_maps(
     var lat_user by remember { mutableStateOf(0.0) }
 
     val defaultLocation_barranca = LatLng(-10.8500, -77.7500)
+    val defaultLocation_paramonga= LatLng(-10.678480703018984, -77.81957068618482)
+    val defaultLocation_supe= LatLng(-10.795610086889571, -77.71618154413743)
+    val defaultLocation_puerto_supe= LatLng(-10.796606548738318, -77.74082770132752)
+    val defaultLocation_pativilca= LatLng(-10.696153944234334, -77.77668811678933)
+
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(defaultLocation_barranca, 12f)
+        val localidad_default=when(localidad){
+            "barranca"->{defaultLocation_barranca}
+            "paramonga"->{defaultLocation_paramonga}
+            "pativilca"->{defaultLocation_pativilca}
+            "supe"->{defaultLocation_supe}
+            "puerto_supe"->{defaultLocation_puerto_supe}
+            else->{defaultLocation_barranca}
+        }
+        position = CameraPosition.fromLatLngZoom(localidad_default, 12f)
     }
 
     var boxVisible by remember { mutableStateOf(true) }
@@ -271,7 +288,10 @@ fun MyGoogle_maps(
                             Marker(
                                 state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
                                 title = lugar.titulo,
-                                icon =  MarkerIcon(context, seleccionadoId == lugar.id_lugar_turistico),
+                                icon = MarkerIcon(
+                                    context,
+                                    seleccionadoId == lugar.id_lugar_turistico
+                                ),
                                 onClick = {
                                     lister_marker = dataclass_map(
                                         lugar.id_lugar_turistico,
@@ -303,7 +323,7 @@ fun MyGoogle_maps(
                             Marker(
                                 state = MarkerState(LatLng(tienda.latitud, tienda.longitud)),
                                 title = tienda.nombre_tienda,
-                                icon =  MarkerIcon(context, seleccionadoId == tienda.id_tienda),
+                                icon = MarkerIcon(context, seleccionadoId == tienda.id_tienda),
                                 onClick = {
                                     lister_marker = dataclass_map(
                                         tienda.logo_tienda,
@@ -428,35 +448,36 @@ fun MyGoogle_maps(
                 contentColor = Color.White,
                 onClick = {
                     if (lista_filtrada_tiendas.isNotEmpty()) {
-                        currentIndex = (currentIndex + 1) % lista_filtrada_tiendas.size
-                        val tienda = lista_filtrada_tiendas[currentIndex]
-
-                        // actualizar marcador seleccionado
-                        lister_marker = dataclass_map(
-                            tienda.logo_tienda,
-                            tienda.nombre_tienda,
-                            tienda.lista_subcategoiras,
-                            lat_user,
-                            log_user,
-                            tienda.latitud,
-                            tienda.longitud,
-                            tienda.id_tienda,
-                            "",
-                            tienda.direccion,
-                            tienda.referencia,
-                        )
-
-                        seleccionadoId = tienda.id_tienda
-                        show_dialog_datos_lugares = true
-
-                        // mover cámara
-                        scope.launch {
-                            cameraPositionState.animate(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(tienda.latitud, tienda.longitud), 16f
-                                ),
-                                1000
+                        Log.d("currentIndex", currentIndex.toString())
+                        if (currentIndex != -1) {
+                            val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
+                            val tienda = lista_filtrada_tiendas[siguiente]
+                            Log.d("currentIndex", "$siguiente")
+                            lister_marker = dataclass_map(
+                                tienda.logo_tienda,
+                                tienda.nombre_tienda,
+                                tienda.lista_subcategoiras,
+                                lat_user,
+                                log_user,
+                                tienda.latitud,
+                                tienda.longitud,
+                                tienda.id_tienda,
+                                "",
+                                tienda.direccion,
+                                tienda.referencia,
                             )
+
+                            seleccionadoId = tienda.id_tienda
+                            show_dialog_datos_lugares = true
+
+                            scope.launch {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        LatLng(tienda.latitud, tienda.longitud), 16f
+                                    ),
+                                    1000
+                                )
+                            }
                         }
                     }
                 },
@@ -486,31 +507,6 @@ fun MyGoogle_maps(
                     show_dialog_datos_lugares = true
                 })
         }
-//        AnimatedVisibility(
-//            visible = (!show_botoom_sheet && !boxVisible) || !show_dialog_datos_lugares,
-//            enter = fadeIn(),
-//            exit = fadeOut(),
-//            modifier = Modifier.align(Alignment.BottomCenter)
-//        ) {
-//            Box(
-//                modifier = Modifier
-//                    .height(25.dp)
-//                    .width(70.dp)
-//                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
-//                    .background(
-//                        MaterialTheme.colorScheme.primary
-//                    )
-//                    .clickable { show_botoom_sheet = true },
-//                contentAlignment = Alignment.Center
-//
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Filled.KeyboardArrowUp,
-//                    contentDescription = "Flecha arriba", modifier = Modifier.size(20.dp)
-//                )
-//            }
-//
-//        }
 
         AnimatedVisibility(
             visible = show_dialog_datos_lugares,
@@ -518,63 +514,79 @@ fun MyGoogle_maps(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            dialogo_lugar_tienda(show_botoom_sheet,show_dialog_datos_lugares,horario_por_tienda, lister_marker, seleccionadoId, cerra_dialog = {
-                show_dialog_datos_lugares = false
-            }, limpiar = {
-                seleccionadoId = ""
-            }, crear_ruta = { lat, log ->
-                latitud = lat
-                longitud = log
-                dialog_Crear_ruta = true
-            }, actualizar = {
-                actualizarUbicacion(context, fusedLocationClient) { lat, log ->
-                    lat_user = lat
-                    log_user = log
-                    lister_marker = lister_marker.copy(
-                        my_latitud = lat,
-                        my_longitud = log
-                    )
-                }
-            }, boxVisible, onBoxVisibleChange = { boxVisible = it }, centrar_camara = { lat, log ->
-                scope.launch {
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(LatLng(lat, log), 18f),
-                        1000
-                    )
-                }
-            }, retornar_id_select = { id_tienda_lugar ->
-                id_lugar_tienda_select = id_tienda_lugar
-                show_bottom_sheet_datos_tienda_lugares = true
-            }, onclick_iconos = { datos ->
-
-                when (datos.nombre_red) {
-                    "llamar" -> {
-                        // Lógica para llamada
+            dialogo_lugar_tienda(
+                show_botoom_sheet = show_botoom_sheet,
+                show_dialog_datos_lugares = show_dialog_datos_lugares,
+                horario_por_tienda = horario_por_tienda,
+                dataclass_map = lister_marker,
+                seleccionadoId = seleccionadoId,
+                cerra_dialog = {
+                    show_dialog_datos_lugares = false
+                },
+                limpiar = {
+                    seleccionadoId = ""
+                },
+                crear_ruta = { lat, log ->
+                    latitud = lat
+                    longitud = log
+                    dialog_Crear_ruta = true
+                },
+                actualizar = {
+                    actualizarUbicacion(context, fusedLocationClient) { lat, log ->
+                        lat_user = lat
+                        log_user = log
+                        lister_marker = lister_marker.copy(
+                            my_latitud = lat,
+                            my_longitud = log
+                        )
                     }
-
-                    "whatsapp" -> {
-                        // Lógica para abrir whatsapp
+                },
+                boxVisible,
+                onBoxVisibleChange = { boxVisible = it },
+                centrar_camara = { lat, log ->
+                    scope.launch {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(LatLng(lat, log), 18f),
+                            1000
+                        )
                     }
+                },
+                retornar_id_select = { id_tienda_lugar ->
+                    id_lugar_tienda_select = id_tienda_lugar
+                    show_bottom_sheet_datos_tienda_lugares = true
+                },
+                onclick_iconos = { datos ->
 
-                    "tiktok" -> {
-                        // Lógica para abrir TikTok
+                    when (datos.nombre_red) {
+                        "llamar" -> {
+                            // Lógica para llamada
+                        }
+
+                        "whatsapp" -> {
+                            // Lógica para abrir whatsapp
+                        }
+
+                        "tiktok" -> {
+                            // Lógica para abrir TikTok
+                        }
+
+                        "facebook" -> {
+                            // Abrir facebook
+                        }
+
+                        "instagram" -> {
+                            // Abrir instagram
+                        }
+
                     }
-
-                    "facebook" -> {
-                        // Abrir facebook
-                    }
-
-                    "instagram" -> {
-                        // Abrir instagram
-                    }
-
-                }
-            }, mostrar_lista = {
-                show_botoom_sheet = true
-            })
+                },
+                mostrar_lista = {
+                    show_botoom_sheet = true
+                })
         }
     }
 }
+
 @Composable
 fun MarkerIcon(
     context: Context,
@@ -607,7 +619,7 @@ fun dialogo_lugar_tienda(
     centrar_camara: (Double, Double) -> Unit,
     retornar_id_select: (String) -> Unit,
     onclick_iconos: (constantes_lista_localidades.data_redes_tiendas) -> Unit,
-    mostrar_lista:()-> Unit
+    mostrar_lista: () -> Unit
 ) {
     val estado_tienda_filter = horario_por_tienda?.get(seleccionadoId) == true
     val color = if (estado_tienda_filter) Color.Green else Color.Red
@@ -707,8 +719,8 @@ fun dialogo_lugar_tienda(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(dataclass_map.img)
-                        .placeholder(R.drawable.cargando_img_categorias)
-                        .error(R.drawable.sin_item_carrito)
+//                        .placeholder(R.drawable.cargando_img_categorias)
+//                        .error(R.drawable.sin_item_carrito)
                         .build(),
                     contentDescription = null,
                     modifier = Modifier
@@ -716,17 +728,16 @@ fun dialogo_lugar_tienda(
                         .clip(cornerShape)
                         .clickable { onBoxVisibleChange(!boxVisible) }
                         .pointerInput(Unit) {
-                        detectVerticalDragGestures { _, dragAmount ->
-                            if (dragAmount < 0) {
-                                Log.d("GESTO", "mostramos lista")
-                                mostrar_lista()
+                            detectVerticalDragGestures { _, dragAmount ->
+                                if (dragAmount < 0) {
+                                    Log.d("GESTO", "mostramos lista")
+                                    mostrar_lista()
+                                } else if (dragAmount > 0) {
+                                    // 👉 Se movió hacia abajo
+                                    Log.d("GESTO", "Swipe Down detectado")
+                                }
                             }
-                            else if (dragAmount > 0) {
-                                // 👉 Se movió hacia abajo
-                                Log.d("GESTO", "Swipe Down detectado")
-                            }
-                        }
-                    },
+                        },
                     contentScale = ContentScale.Crop
                 )
 
