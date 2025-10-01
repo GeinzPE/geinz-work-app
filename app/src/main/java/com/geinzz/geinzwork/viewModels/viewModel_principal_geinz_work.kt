@@ -10,6 +10,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.model.repo_principal_geinz_work
+import com.geinzz.geinzwork.ui.adapters.ui.principal.carga_progres_categoria
 import kotlinx.coroutines.launch
 
 class viewModel_principal_geinz_work : ViewModel() {
@@ -27,6 +28,9 @@ class viewModel_principal_geinz_work : ViewModel() {
 
     private val _userData = MutableLiveData<datos_principales_user>()
     val userData: LiveData<datos_principales_user> = _userData
+
+    private val state_cat= MutableLiveData<carga_categorias>()
+    val _state_cat : LiveData<carga_categorias> = state_cat
 
     private val lista_filtrado_localida = MutableLiveData<List<localidades_filtrado>>()
     val _lista_filtrado_localidades: LiveData<List<localidades_filtrado>> get() = lista_filtrado_localida
@@ -61,10 +65,13 @@ class viewModel_principal_geinz_work : ViewModel() {
     fun obtener_subcategorias(solo5: Boolean = true) {
         viewModelScope.launch {
             try {
+                state_cat.value=carga_categorias.Loading
                 sub_cat_tiendas.value =
                     instacia_repo_cat_sub.obtener_categorias_subcategorias(solo5)
+                state_cat.value=carga_categorias.succes
             } catch (e: Exception) {
                 sub_cat_tiendas.value = emptyList()
+                state_cat.value= carga_categorias.error
             }
         }
     }
@@ -77,6 +84,14 @@ class viewModel_principal_geinz_work : ViewModel() {
                 lista_filtrado_localida.value = emptyList()
             }
         }
+    }
+
+    sealed class carga_categorias{
+        object Loading: carga_categorias()
+        object succes: carga_categorias()
+        object error: carga_categorias()
+
+
     }
 
 }

@@ -260,7 +260,6 @@ fun nativationWrapper(
                 composable("buscar") {
                     ui_pantalla_busqueda(
                         datos_principales_user,
-                        viewModel_filtrado_tiendas,
                         focusRequester = focusRequester,
                         mostrar = {
                             isvisble_buttomvar = true

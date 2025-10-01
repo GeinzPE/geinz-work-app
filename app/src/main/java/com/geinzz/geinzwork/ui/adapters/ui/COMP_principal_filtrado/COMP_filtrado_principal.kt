@@ -1105,17 +1105,15 @@ fun ImagenesSuperpuestasCollage(nombre_usuario:String,modifier: Modifier = Modif
                 .padding(horizontal = 20.dp),
             contentAlignment = Alignment.Center
         ) {
-
             Box(
                 modifier = Modifier
-                    .size(320.dp)
+                    .size(310.dp)
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
                                 Color(0xFF8700F3).copy(alpha = 0.7f),
                                 Color.Transparent
                             ),
-                            radius = 400f
                         ),
                         shape = RoundedCornerShape(200.dp)
                     )

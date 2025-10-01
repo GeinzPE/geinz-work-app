@@ -148,7 +148,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun ui_pantalla_busqueda(
     localida_defauld: datos_principales_user,
-    viewModelFiltros: viewModel_filtado_tiendas,
     focusRequester: FocusRequester,
     mostrar: () -> Unit,
     ocultar: () -> Unit,
@@ -156,6 +155,7 @@ fun ui_pantalla_busqueda(
     estado_ocultar: Boolean
 ) {
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
+    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
 //    val ls_items_ls_cat by viewModel.ls_items_ls_cat.collectAsState()
@@ -326,7 +326,7 @@ fun ui_pantalla_busqueda(
                                 text = it,
                                 selection = TextRange(it.length)
                             )
-                        if (it.isNotEmpty() && it.length >= 2) {
+                            if (it.isNotEmpty() && it.length >= 2) {
 
                                 mostrar_centrado_visible = false
                                 if (!cat_sub_seleciondo) {
@@ -345,7 +345,7 @@ fun ui_pantalla_busqueda(
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         categoria_filtrad.ifEmpty { salud_seguirdad },
                                         subcategira_filtrado,
-                                        searchText.text,it
+                                        searchText.text, it
                                     )
                                 }
                             } else {
@@ -475,7 +475,9 @@ fun ui_pantalla_busqueda(
                 Text(
                     "${errorState.msje}",
                     color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 10.dp)
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 10.dp)
 
                 )
             }
@@ -616,7 +618,7 @@ fun ui_pantalla_busqueda(
                 color_categoria = false
             },
             click_carta_subcategoria_delete = {
-                Log.d("elminados_","coloreelimado")
+                Log.d("elminados_", "coloreelimado")
                 color_subcategoria = false
             },
             click_salud_general = {
@@ -948,7 +950,7 @@ fun FloatingBubble(
                         modifier = Modifier
                             .fillMaxWidth()
 //                            .fillMaxHeight(0.22f)
-                            .heightIn(min=150.dp)
+                            .heightIn(min = 150.dp)
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }) {}
@@ -1212,8 +1214,7 @@ fun FloatingBubble(
                                                         startTopColor_categorias,
                                                         endTopColor_categorias
                                                     ),
-                                                    startY = 0f,
-                                                    endY = 200f
+
                                                 )
                                             )
                                     )
@@ -1234,8 +1235,7 @@ fun FloatingBubble(
                                                         startBottomColor_categorias,
                                                         endBottomColor_categorias
                                                     ),
-                                                    startY = 0f,
-                                                    endY = 200f
+
                                                 )
                                             )
                                     )
@@ -1383,8 +1383,7 @@ fun FloatingBubble(
                                                     colors = listOf(
                                                         startTopColor_localidad,
                                                         endTopColor_localidad
-                                                    ), startY = 0f,
-                                                    endY = 200f
+                                                    ),
                                                 )
                                             )
                                     )
@@ -1408,8 +1407,7 @@ fun FloatingBubble(
                                                         startBottomColor_localidad,
                                                         endBottomColor_localidad
                                                     ),
-                                                    startY = 0f,
-                                                    endY = 200f
+
                                                 )
                                             )
                                     )
@@ -1480,7 +1478,9 @@ fun FloatingBubble(
                                         when (state_subcategoria) {
                                             is viewModel_filtado_tiendas.carga_subcategorias.Loading -> {
                                                 Column(
-                                                    modifier = Modifier.fillMaxSize().padding(5.dp),
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .padding(5.dp),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                     verticalArrangement = Arrangement.Center
                                                 ) {
@@ -1579,8 +1579,7 @@ fun FloatingBubble(
                                             .background(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(startTopColor, endTopColor),
-                                                    startY = 0f,
-                                                    endY = 200f
+
                                                 )
                                             )
                                     )
@@ -1604,8 +1603,7 @@ fun FloatingBubble(
                                                         startBottomColor,
                                                         endBottomColor
                                                     ),
-                                                    startY = 0f,
-                                                    endY = 200f
+
                                                 )
                                             )
                                     )
@@ -1974,7 +1972,8 @@ fun ramdoBox(
     var Estado_color = if (estado_tienda_filter) Color.Green else Color.Red
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val iconCategoria = constantes_lista_localidades.getCategoriaIcon(i.categoria)
-
+    val density = LocalDensity.current
+    val endYpx = with(density) { 200.dp.toPx() }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -2007,13 +2006,13 @@ fun ramdoBox(
                         .height(80.dp)
                         .align(Alignment.BottomCenter)
                         .background(
+
                             brush = Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    Color(0xFF262626) // este es tu negro exacto
+                                    Color(0xFF262626)
                                 ),
-                                startY = 0f,
-                                endY = 200f
+
                             )
                         )
                 )
@@ -2185,8 +2184,7 @@ fun apartado_lugares_interes(
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(startTopColor, endTopColor),
-                                startY = 0f,
-                                endY = 200f
+
                             )
                         )
                 )
@@ -2210,8 +2208,7 @@ fun apartado_lugares_interes(
                                     startBottomColor,
                                     endBottomColor
                                 ),
-                                startY = 0f,
-                                endY = 200f
+
                             )
                         )
                 )

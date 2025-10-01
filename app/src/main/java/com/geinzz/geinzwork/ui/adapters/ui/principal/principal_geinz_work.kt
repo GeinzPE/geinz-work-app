@@ -124,8 +124,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
-import com.geinzz.geinzwork.model.repo_notificaciones
-import com.geinzz.geinzwork.model.repo_usuario_registrado
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.google.firebase.messaging.FirebaseMessaging
@@ -146,10 +144,12 @@ fun pantalla_principal(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
+    val stateCat by viewModel_cordenadas._state_cat.observeAsState()
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
+
 
 //    LaunchedEffect(Unit) {
 ////        viewModel_cordenadas.obtener_subcategorias(true)
@@ -173,7 +173,6 @@ fun pantalla_principal(
 
     val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
     var aniversario by remember { mutableStateOf(false) }
-
 
 
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
@@ -301,12 +300,16 @@ fun pantalla_principal(
                             esAniversarioHoy = esAniversario
                         }
                     })
+
+
+
                 spacer_vertical(25.dp)
             }
 
             item {
                 spacer_vertical(10.dp)
                 apartado_explora_cat(
+                    stateCat,
                     _categorias_tiendas,
                     localidad_defaul,
                     datos_principales_user.nombre,
@@ -315,6 +318,7 @@ fun pantalla_principal(
                     }, { categoria, localidad, nombre ->
                         clikear_cartas(categoria, localidad, nombre)
                     })
+
                 spacer_vertical(20.dp)
             }
             item {
@@ -478,6 +482,7 @@ fun AlbumBackgroundBlurOptimized(albumRes: Int, heightDp: Dp = 300.dp) {
 
 @Composable
 fun apartado_explora_cat(
+    stateCat: viewModel_principal_geinz_work.carga_categorias?,
     categorias_tienda: List<dataclass_cat_sub>,
     localidad_selecionada: String?,
     nombre_user: String,
@@ -494,14 +499,36 @@ fun apartado_explora_cat(
             "Ver todos"
         ) { categorias1(nombre_user, localidad_defaul) }
         spacer_vertical(10.dp)
-        cartas_filtrado(
-            nombre_user,
-            localidad_defaul,
-            categorias_tienda
-        ) { categoria, localidad, nombre ->
-            Log.d("localdiasdadas", "$categoria, $localidad ,$nombre")
-            clikear_cartas(categoria, localidad, nombre)
+        Crossfade(targetState = stateCat, label = "crossfadeCategorias") { state ->
+        when (state) {
+            is viewModel_principal_geinz_work.carga_categorias.Loading -> {
+                carga_progres_categoria(130.dp,190.dp)
+            }
+
+            is viewModel_principal_geinz_work.carga_categorias.succes -> {
+                cartas_filtrado(
+                    nombre_user,
+                    localidad_defaul,
+                    categorias_tienda
+                ) { categoria, localidad, nombre ->
+                    Log.d("localdiasdadas", "$categoria, $localidad ,$nombre")
+                    clikear_cartas(categoria, localidad, nombre)
+                }
+            }
+
+            is viewModel_principal_geinz_work.carga_categorias.error -> {
+                Text(
+                    text = "Error al cargar categorías",
+                    color = Color.Red
+                )
+            }
+
+            else -> {
+                // Estado inicial (null)
+            }
         }
+        }
+
     }
 }
 
@@ -1002,5 +1029,26 @@ fun AutoResizeOneLineText(
             overflow = TextOverflow.Clip,
             softWrap = false
         )
+    }
+}
+
+
+@Composable
+fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
+    val cantidad_items = 5
+    Row (
+        horizontalArrangement=Arrangement.spacedBy(8.dp)
+    ) {
+        repeat(cantidad_items) {
+            Box(
+                modifier = Modifier
+                    .width(anchoAnimado)
+                    .height(alturaFija)
+                    .clip(RoundedCornerShape(15.dp))
+                , contentAlignment = Alignment.Center
+            ){
+                CircularProgressIndicator()
+            }
+        }
     }
 }

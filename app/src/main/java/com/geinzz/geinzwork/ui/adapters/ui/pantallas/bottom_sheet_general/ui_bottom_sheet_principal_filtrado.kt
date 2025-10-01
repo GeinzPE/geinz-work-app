@@ -995,7 +995,7 @@ fun MostrarHorarioTienda(
     ) {
         when {
             mostrandoCarga -> {
-                cargando_progess_mas_texto("Cargando horario ....")
+                cargando_progess_mas_texto("Cargando horario")
             }
 
             !existeHorario -> {

@@ -7,6 +7,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -28,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -625,6 +627,7 @@ fun dialogo_lugar_tienda(
     val color = if (estado_tienda_filter) Color.Green else Color.Red
     val estado_texto = if (estado_tienda_filter) "Abierto" else "Cerrado"
 
+
     Log.d("boxVisibleboxVisible", boxVisible.toString())
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
@@ -692,6 +695,7 @@ fun dialogo_lugar_tienda(
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val targetWidth = if (boxVisible) 0.33f else 0.38f
+    val cardHeight = (screenHeight * 0.22f).coerceIn(200.dp, 320.dp)
     val animatedWidth by animateFloatAsState(
         targetValue = targetWidth,
         animationSpec = tween(
@@ -707,7 +711,11 @@ fun dialogo_lugar_tienda(
     ) {
         Row(
             modifier = Modifier
-                .height(screenHeight * 0.19f)
+                .heightIn(
+                    min = 120.dp, // más compacto
+                    max = 180.dp  // altura máxima para que no se coma toda la pantalla
+                )
+                .animateContentSize()
                 .clip(cornerShap2)
         ) {
             Box(
@@ -793,8 +801,7 @@ fun dialogo_lugar_tienda(
                                         Color.Transparent,
                                         Color.Black.copy(alpha = 1f)
                                     ),
-                                    startY = 0f,
-                                    endY = 200f
+
                                 )
                             )
                     )
