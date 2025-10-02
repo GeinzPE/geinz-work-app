@@ -1,19 +1,26 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,33 +55,42 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoFiltrosUi
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
@@ -87,18 +104,22 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
     viewModelFiltros: viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
     nombre_user: String, navigation_regresar: () -> Unit,
-    abrir_mapa: (String,String) -> Unit,
+    abrir_mapa: (String, String) -> Unit,
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
@@ -139,7 +160,11 @@ fun Pantalla_filtrado_tiendas(
     var listaMostrar by rememberSaveable { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
     var listaBaseSubcategoria by rememberSaveable { mutableStateOf(emptyList<tiendas_por_categoria>()) }
 
-
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
 
 
     LaunchedEffect(categoria_seleccionda) {
@@ -259,11 +284,26 @@ fun Pantalla_filtrado_tiendas(
             }
 
             is selec_class_estados_carga.sin_carga -> {
-                Box(modifier = Modifier.fillMaxSize()) {
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val density = LocalDensity.current
+                    val scope = rememberCoroutineScope()
+
+                    val bubbleSizePx = with(density) { 60.dp.toPx() }
+                    var categorias_filtrado_res by remember {
+                        mutableStateOf<List<dataclass_cat_sub_lista_cat>>(
+                            emptyList()
+                        )
+                    }
+                    val screenWidth = constraints.maxWidth.toFloat()
+                    val screenHeight = constraints.maxHeight.toFloat()
+                    val paddingPx = with(LocalDensity.current) { 16.dp.toPx() }
+
+                    val offsetX = remember { Animatable(screenWidth - bubbleSizePx - paddingPx) }
+                    val offsetY = remember { Animatable(screenHeight - bubbleSizePx - paddingPx) }
+
                     LazyColumn(
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
-                            .padding(bottom = 70.dp)
                     ) {
                         item { encabezado_chis_categorias() }
                         stickyHeader() {
@@ -299,48 +339,67 @@ fun Pantalla_filtrado_tiendas(
                         }
                     }
 
-//                    Box(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(30.dp) // altura del difuminado
-//                            .background(
-//                                brush = Brush.verticalGradient(
-//                                    colors = listOf(
-//                                        Color.Transparent    ,             // se desvanece
-//                                        Color.Black.copy(alpha = 0.15f), // sombreado arriba
-//                                    )
-//                                )
-//                            )
-//                            .align(Alignment.BottomCenter)
-//                    )
-
-                    AnimatedVisibility(
-                        btn_mostrar_mapa,
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    ) {
+                    if (btn_mostrar_mapa) {
                         open_map_perzonlizado(
                             modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 16.dp), tipo = "tiendas",
+                                .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
+                                .zIndex(1f)
+                                .pointerInput(Unit) {
+                                    detectDragGestures(
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+
+                                            val newX = (offsetX.value + dragAmount.x)
+                                                .coerceIn(paddingPx, screenWidth - bubbleSizePx - paddingPx)
+                                            val newY = (offsetY.value + dragAmount.y)
+                                                .coerceIn(paddingPx, screenHeight - bubbleSizePx - paddingPx)
+
+                                            scope.launch {
+                                                offsetX.snapTo(newX)
+                                                offsetY.snapTo(newY)
+                                            }
+                                        },
+                                        onDragEnd = {
+                                            val middle = screenWidth / 2
+                                            val targetX = if (offsetX.value < middle) {
+                                                paddingPx
+                                            } else {
+                                                screenWidth - bubbleSizePx - paddingPx
+                                            }
+                                            scope.launch {
+                                                offsetX.animateTo(
+                                                    targetX,
+                                                    animationSpec = tween(
+                                                        durationMillis = 400,
+                                                        easing = FastOutSlowInEasing
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    )
+                                },
+                            tipo = "tiendas",
                             abrir_mapa = { tipo ->
-                                abrir_mapa(tipo,localida)
+                                abrir_mapa(tipo, localida)
                             }
                         )
-//                        Box(
-//                            modifier = Modifier.fillMaxSize()
-//                        ) {
-//
-//                            Button(
-//                                onClick = { },
-//                                modifier = Modifier
-//                                    .align(Alignment.BottomCenter)
-//                                    .padding(bottom = 16.dp)
-//                            ) {
-//                                texto_generico_one_line("mostrar mapa")
-//                            }
-//                        }
                     }
 
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black
+                                    )
+                                )
+                            )
+                            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                    )
                 }
             }
         }
@@ -384,23 +443,31 @@ fun chips_filtrado(
     selecionado: (String) -> Unit
 ) {
     val lista_con_todos = listOf("Todos") + lista_subcategorias
-
-    LazyRow(state = listState) {
-        items(lista_con_todos) { subcategorias ->
-            val selecionado = sub_categoria_selecionada == subcategorias
-            FilterChip(
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = Color.White,
-                    labelColor = Color.White
-                ),
-                modifier = Modifier.padding(horizontal = 4.dp),
-                selected = selecionado,
-                border = if (selecionado) null else BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.onBackground
-                ),
-                onClick = {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(60.dp), contentAlignment = Alignment.Center) {
+        val showLeftShadow by remember {
+            derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+        }
+        val showRightShadow by remember {
+            derivedStateOf {
+                val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                val total = listState.layoutInfo.totalItemsCount
+                lastVisible != null && lastVisible < total - 1
+            }
+        }
+        val alphaLeft by animateFloatAsState(
+            targetValue = if (showLeftShadow) 1f else 0f,
+            animationSpec = tween(400), label = "alphaLeft"
+        )
+        val alphaRight by animateFloatAsState(
+            targetValue = if (showRightShadow) 1f else 0f,
+            animationSpec = tween(400), label = "alphaRight"
+        )
+        LazyRow(state = listState, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            items(lista_con_todos) { subcategorias ->
+                val selecionado = sub_categoria_selecionada == subcategorias
+                chisp_filtrado_busqueda(selecionado, subcategorias, false, clik_card = {
                     if (!selecionado) {
                         expandir_carta(true)
                         if (subcategorias == "Todos") {
@@ -410,17 +477,62 @@ fun chips_filtrado(
                             selecionado(subcategorias)
                         }
                     }
-                },
-                label = {
-                    Text(
-                        text = subcategorias,
-                        color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                shape = RoundedCornerShape(40)
-            )
+                }, {})
+            }
         }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterStart)
+                .zIndex(1f)
+                .alpha(alphaLeft)
+                .background(Brush.horizontalGradient(colors = shadow_left))
+        )
+
+        // 👉 derecha
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterEnd)
+                .zIndex(1f)
+                .alpha(alphaRight)
+                .background(Brush.horizontalGradient(colors = shadow_right))
+        )
     }
+
+//            FilterChip(
+//                colors = FilterChipDefaults.filterChipColors(
+//                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    selectedLabelColor = Color.White,
+//                    labelColor = Color.White
+//                ),
+//                modifier = Modifier.padding(horizontal = 4.dp),
+//                selected = selecionado,
+//                border = if (selecionado) null else BorderStroke(
+//                    1.dp,
+//                    MaterialTheme.colorScheme.onBackground
+//                ),
+//                onClick = {
+//                    if (!selecionado) {
+//                        expandir_carta(true)
+//                        if (subcategorias == "Todos") {
+//                            expandir_carta(false)
+//                            selecionado("Todos")
+//                        } else {
+//                            selecionado(subcategorias)
+//                        }
+//                    }
+//                },
+//                label = {
+//                    Text(
+//                        text = subcategorias,
+//                        color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
+//                    )
+//                },
+//                shape = RoundedCornerShape(40)
+//            )
 }
 
 @Composable

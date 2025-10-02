@@ -17,6 +17,8 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.palette.graphics.Palette
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -609,7 +612,6 @@ object constantes_lista_localidades {
         drawable.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
-
 
 
 //    val lista_constantes = listOf(

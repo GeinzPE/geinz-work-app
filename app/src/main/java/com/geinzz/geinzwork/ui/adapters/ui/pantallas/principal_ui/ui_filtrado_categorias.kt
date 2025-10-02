@@ -4,10 +4,16 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -74,6 +81,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filt
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowBottomPantallas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
@@ -86,12 +94,14 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_patrocinadores
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.normalizarTexto
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
@@ -114,7 +124,8 @@ fun PantallaExplorarTiendas(
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
-    val lista_filtrada = remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
+    val lista_filtrada =
+        remember { mutableStateListOf<encontradas_por_categoria>().apply { addAll(lista) } }
     val cargando = remember { mutableStateOf(true) }
     val encontrados_activos_tiendass by viewModel.encontrados_activos_tiendas.observeAsState()
     val lista_localidades = constantes_lista_localidades.lista
@@ -159,25 +170,7 @@ fun PantallaExplorarTiendas(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButton = {
-            AnimatedVisibility(mostrar_fab) {
-                floatin_actionButton(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
-                    R.drawable.arrow_subir_vector,
-                    null
-                ) {
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(index = 0)
-                    }
-                }
-            }
-        },
-        floatingActionButtonPosition = FabPosition.Start
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Crossfade(targetState = cargando.value) { isCargando ->
             if (isCargando && fraces_localidad.isNotEmpty()) {
                 cargando_categorias(
@@ -235,7 +228,28 @@ fun PantallaExplorarTiendas(
                 }
             }
         }
+
+        ShadowBottomPantallas(listState,modifier = Modifier.align(Alignment.BottomCenter))
+        AnimatedVisibility(
+            mostrar_fab, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(
+                Alignment.BottomStart
+            ).padding(10.dp)
+        ) {
+            floatin_actionButton(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape),
+                R.drawable.arrow_subir_vector,
+                null
+            ) {
+                coroutineScope.launch {
+                    listState.animateScrollToItem(index = 0)
+                }
+            }
+        }
     }
+
+
 }
 
 
@@ -250,7 +264,7 @@ fun cabezero_activity(localidad_registrado: String) {
             "Ubicate $localidad_registrado", MaterialTheme.typography.headlineSmall,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top=5.dp, bottom = 10.dp),
+                .padding(top = 5.dp, bottom = 10.dp),
         )
         spacer_vertical(5.dp)
         texto_generico_multilinea(
@@ -269,43 +283,56 @@ fun FiltradosChipsLocalidades(
     localidadSeleccionada: String,
     onLocalidadSeleccionada: (String) -> Unit
 ) {
-    LazyRow(modifier = Modifier.padding(top = 5.dp)) {
+
+    LazyRow(
+        modifier = Modifier.padding(top = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+
         items(lista_localidades) { localidad ->
             val isSelected =
                 localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
-            FilterChip(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = Color.White,
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                border = null,
-                selected = isSelected,
-                onClick = {
-                    if (!isSelected) {
-                        onLocalidadSeleccionada(localidad.nombre_localidad.toString())
-                    }
-                },
-
-                label = {
-                    Text(
-                        text = localidad.nombre_localidad.toString(),
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                trailingIcon = {
-                    localidad.escudo_img?.let { imgResId ->
-                        Image(
-                            painter = painterResource(id = imgResId),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-                shape = RoundedCornerShape(40)
-
+            val color_chips by animateColorAsState(
+                targetValue = if (!isSelected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    Color.White,
+                animationSpec = tween(
+                    durationMillis = 500,
+                    easing = LinearOutSlowInEasing
+                ), label = ""
             )
+            val color_text = if (!isSelected) Color.White else Color.Black
+            Row(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(color_chips)
+                    .height(45.dp)
+                    .padding(horizontal = 15.dp, vertical = 10.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
+                        if (!isSelected) {
+                            onLocalidadSeleccionada(localidad.nombre_localidad.toString())
+                        }
+                    },
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                texto_generico_one_line(
+                    localidad.nombre_localidad.toString().capitalizeFirst(),
+                    color = color_text, style = MaterialTheme.typography.bodyMedium
+                )
+                spacer_horizonta(5.dp)
+                localidad.escudo_img?.let { imgResId ->
+                    Image(
+                        painter = painterResource(id = imgResId),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
         }
     }
 }
@@ -446,9 +473,8 @@ fun cartas_categorias(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.img_subcategorias)
-                        .crossfade(true)
                         .placeholder(R.drawable.cargando_img_categorias)
-                        .error(R.drawable.sin_item_carrito)
+                        .error(R.drawable.cargando_img_categorias)
                         .build(),
                     contentDescription = "Imagen de la tienda",
                     contentScale = ContentScale.Crop,
@@ -461,6 +487,21 @@ fun cartas_categorias(
                         }
                 )
 
+
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.6f), // parte superior oscura
+                                    Color.Transparent,              // centro transparente
+                                    Color.Black.copy(alpha = 1f)  // parte inferior oscura
+                                )
+                            )
+                        )
+                )
+                texto_generico_one_line(item.categoria.capitalizeFirst(), MaterialTheme.typography.titleLarge,modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -541,7 +582,7 @@ fun obtener_patrocinados(
             Column(modifier = Modifier.fillMaxWidth()) {
                 spacer_vertical(10.dp)
                 texto_generico_one_line(
-                    "Subcategorias encontradas",
+                    "Subcategorias",
                     MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .fillMaxWidth()

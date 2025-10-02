@@ -1036,10 +1036,10 @@ fun AutoResizeOneLineText(
 @Composable
 fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
     val cantidad_items = 5
-    Row (
+    LazyRow (
         horizontalArrangement=Arrangement.spacedBy(8.dp)
     ) {
-        repeat(cantidad_items) {
+        items(cantidad_items) {
             Box(
                 modifier = Modifier
                     .width(anchoAnimado)

@@ -61,30 +61,41 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -96,8 +107,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
@@ -114,6 +127,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -894,8 +908,14 @@ fun localidad_Selecionada(modifier: Modifier = Modifier) {
 
 
 @Composable
-fun open_map_perzonlizado(modifier: Modifier, tipo: String, abrir_mapa: (String) -> Unit) {
+fun open_map_perzonlizado(
+    modifier: Modifier = Modifier,
+    tipo: String,
+    abrir_mapa: (String) -> Unit
+) {
     val context = LocalContext.current
+
+    // Launcher para pedir permiso
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -906,18 +926,35 @@ fun open_map_perzonlizado(modifier: Modifier, tipo: String, abrir_mapa: (String)
         }
     }
 
-    Button(modifier = modifier, onClick = {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+    Surface(
+        modifier = modifier.size(56.dp), // 👈 igual al tamaño estándar FAB
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+        shadowElevation = 6.dp // 👈 igual que FAB con sombra
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        abrir_mapa(tipo)
+                    } else {
+                        permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                },
+            contentAlignment = Alignment.Center
         ) {
-            abrir_mapa(tipo)
-        } else {
-            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            Icon(
+                imageVector = Icons.Filled.Map,
+                contentDescription = "Mapa",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp) // 👈 tamaño estándar del ícono en FAB
+            )
         }
-    }) {
-        texto_generico_one_line("Ver en mapa")
     }
 }
 
@@ -1079,7 +1116,7 @@ fun chisp_filtrado_busqueda(
             style = MaterialTheme.typography.bodyMedium
         )
         if (btn_visible) {
-            if(carta_selecionada){
+            if (carta_selecionada) {
                 spacer_horizonta(7.dp)
                 btn_close_gris(
                     imageVector = Icons.Default.Close,
@@ -1096,7 +1133,7 @@ fun chisp_filtrado_busqueda(
 }
 
 @Composable
-fun ImagenesSuperpuestasCollage(nombre_usuario:String,modifier: Modifier = Modifier) {
+fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Modifier) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //        Text(text = "Hola benjamin \uD83D\uDC4B", fontSize = 25.sp, fontFamily = baners_geinz_work)
@@ -1204,4 +1241,27 @@ fun ImagenConInclinacion(
             contentScale = ContentScale.Crop
         )
     }
+}
+
+@Composable
+fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifier) {
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black
+                    )
+                )
+            )
+            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+    )
 }

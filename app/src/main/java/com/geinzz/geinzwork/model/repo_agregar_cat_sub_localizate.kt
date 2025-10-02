@@ -43,28 +43,24 @@ class repo_agregar_cat_sub_localizate {
     }
 
     suspend fun obtener_categorias_subcategorias(solo5: Boolean = true): List<dataclass_cat_sub> {
-        val lista = mutableListOf<dataclass_cat_sub>()
+//        val lista = mutableListOf<dataclass_cat_sub>()
         val categoriasRef = db.collection("Tiendas")
             .document("categorias")
-            .collection("categorias")
+            .collection("categorias").get().await()
 
-        val snapshot = categoriasRef.get().await()
-        lista.clear()
 
-        for (cate in snapshot.documents) {
-            val subcategoriasDoc = categoriasRef.document(cate.id).get().await()
-            if (subcategoriasDoc.exists()) {
-                val data = subcategoriasDoc.data
-                val subcategorias = data?.get("subcategorias") as? List<String> ?: emptyList()
-                val img_data = data?.get("img_categoria") as? String ?: ""
-                val datos = dataclass_cat_sub(cate.id.lowercase(), subcategorias, img_data)
-                lista.add(datos)
-            }
+
+        val lista=categoriasRef.documents.mapNotNull { doc->
+            val data=doc.data?:return@mapNotNull null
+            val subcategorias = data?.get("subcategorias") as? List<String> ?: emptyList()
+            val img_data = data?.get("img_categoria") as? String ?: ""
+            dataclass_cat_sub(doc.id.lowercase(), subcategorias, img_data)
         }
 
+
+
         // Buscar si existe "comida y restaurantes"
-        val comida =
-            lista.firstOrNull { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
+        val comida = lista.firstOrNull { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
 
         // Resto de categorías sin la de comida
         val resto = lista.filterNot { it.nombre.equals("comida y restaurantes", ignoreCase = true) }
