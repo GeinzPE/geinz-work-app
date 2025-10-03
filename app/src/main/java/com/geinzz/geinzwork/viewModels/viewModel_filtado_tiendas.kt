@@ -21,6 +21,7 @@ import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class viewModel_filtado_tiendas : ViewModel() {
@@ -58,6 +59,7 @@ class viewModel_filtado_tiendas : ViewModel() {
     private val obtener_subcategoria = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
     val _obtener_subacategoria: LiveData<List<filtrado_tiendas_cat_sub>> get() = obtener_subcategoria
     fun actualizarListaFiltrada(nuevaLista: List<tiendas_por_categoria>) {
+        Log.d("nuevalsita",nuevaLista.toString())
         _listaFiltrada.value = nuevaLista
     }
 
@@ -76,8 +78,9 @@ class viewModel_filtado_tiendas : ViewModel() {
 
 
 
-    var todas_tiendas = mutableListOf<tiendas_por_categoria>()
-        private set
+
+    private val _todas_tiendas = MutableStateFlow<List<tiendas_por_categoria>>(emptyList())
+    val todas_tiendas = _todas_tiendas.asStateFlow()
 
     fun obtener_categorias() {
         viewModelScope.launch {
@@ -122,13 +125,16 @@ class viewModel_filtado_tiendas : ViewModel() {
     }
 
     fun tiendas_iniciales(lista: List<tiendas_por_categoria>) {
-        Log.d("otbenremos_lista", lista.toString())
-        todas_tiendas.clear()
-        todas_tiendas.addAll(lista)
+        _todas_tiendas.value = lista
+        Log.d("otbenremos_lista", _todas_tiendas.value.toString())
+    }
+
+    fun resetearTiendasFiltradas() {
+        tiendas_filtradas_por_categoria.value = emptyList()
     }
 
     fun filtrar_por_subcategoria(subcategoria: String): List<tiendas_por_categoria> {
-        return todas_tiendas.filter { it.lista_subcategoiras.contains(subcategoria) }
+        return todas_tiendas.value.filter { it.lista_subcategoiras.contains(subcategoria) }
     }
 
     fun filtrar_por_nombre_en_lista(
@@ -183,7 +189,7 @@ class viewModel_filtado_tiendas : ViewModel() {
             try {
                 val data = repo_filtrado.obtenerTiendasFiltradas(localida, categoria)
                 tiendas_filtradas_por_categoria.value = data
-
+Log.d("obtenosm_teindas_fitlkradas",tiendas_filtradas_por_categoria.value.toString())
             } catch (e: Exception) {
                 tiendas_filtradas_por_categoria.value = emptyList()
             }

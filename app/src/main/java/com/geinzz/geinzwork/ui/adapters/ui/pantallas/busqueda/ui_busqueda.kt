@@ -415,6 +415,7 @@ fun ui_pantalla_busqueda(
                             color_categoria = false
                             color_subcategoria = false
                         })
+
                     spacer_vertical(5.dp)
                 }
             }
@@ -838,6 +839,7 @@ fun FloatingBubble(
             targetValue = if (!color_categoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
             animationSpec = tween(500), label = ""
         )
+
         val endTopColor_categorias by animateColorAsState(
             targetValue = if (!color_categoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
             animationSpec = tween(500), label = ""
@@ -847,6 +849,7 @@ fun FloatingBubble(
             targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
             animationSpec = tween(500), label = ""
         )
+
         val endBottomColor_categorias by animateColorAsState(
             targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
             animationSpec = tween(500), label = ""
@@ -1215,7 +1218,7 @@ fun FloatingBubble(
                                                         endTopColor_categorias
                                                     ),
 
-                                                )
+                                                    )
                                             )
                                     )
                                 }
@@ -1236,7 +1239,7 @@ fun FloatingBubble(
                                                         endBottomColor_categorias
                                                     ),
 
-                                                )
+                                                    )
                                             )
                                     )
                                 }
@@ -1408,7 +1411,7 @@ fun FloatingBubble(
                                                         endBottomColor_localidad
                                                     ),
 
-                                                )
+                                                    )
                                             )
                                     )
                                 }
@@ -1580,7 +1583,7 @@ fun FloatingBubble(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(startTopColor, endTopColor),
 
-                                                )
+                                                    )
                                             )
                                     )
                                 }
@@ -1604,7 +1607,7 @@ fun FloatingBubble(
                                                         endBottomColor
                                                     ),
 
-                                                )
+                                                    )
                                             )
                                     )
                                 }
@@ -2013,7 +2016,7 @@ fun ramdoBox(
                                     Color(0xFF262626)
                                 ),
 
-                            )
+                                )
                         )
                 )
 
@@ -2073,7 +2076,11 @@ fun ramdoBox(
                     MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(5.dp)
-                tags_subcateogiras(i.lista)
+                tags_subcateogiras(
+                    i.lista,
+                    brush_start = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2),
+                    brush_end = Brush.horizontalGradient(colors = shadow_top_filtrado_v2)
+                )
             }
         }
     }
@@ -2185,7 +2192,7 @@ fun apartado_lugares_interes(
                             brush = Brush.verticalGradient(
                                 colors = listOf(startTopColor, endTopColor),
 
-                            )
+                                )
                         )
                 )
             }
@@ -2209,7 +2216,7 @@ fun apartado_lugares_interes(
                                     endBottomColor
                                 ),
 
-                            )
+                                )
                         )
                 )
             }

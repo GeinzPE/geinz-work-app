@@ -93,12 +93,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
@@ -111,6 +113,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
@@ -126,6 +129,8 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -191,12 +196,37 @@ fun estados_tiendas(estado: String, color_estado: Color) {
 }
 
 @Composable
-fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier) {
-    Box() {
+fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier,brush_start: Brush,brush_end: Brush) {
+    val listState = rememberLazyListState()
+
+    val showLeftShadow by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showRightShadow by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < total - 1
+        }
+    }
+    // 🔥 animar alpha, no crear/destruir Box
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaLeft"
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaRight"
+    )
+    Box(  modifier = modifier
+        .fillMaxWidth()
+        .height(25.dp),
+        contentAlignment = Alignment.Center) {
         LazyRow(
+            state = listState,
             modifier = modifier
-                .clip(RoundedCornerShape(50))
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(50))
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures { change, dragAmount ->
                         change.consume()
@@ -222,7 +252,29 @@ fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier) 
                 }
             }
         }
+        // 👈 izquierda
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterStart)
+                .zIndex(1f)
+                .alpha(alphaLeft)
+//                .background(Brush.horizontalGradient(colors = shadow_left))
+                .background(brush_start)
+        )
 
+        // 👉 derecha
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterEnd)
+                .zIndex(1f)
+                .alpha(alphaRight)
+//                .background(Brush.horizontalGradient(colors = shadow_right))
+                .background(brush_end)
+        )
     }
 }
 
@@ -959,85 +1011,85 @@ fun open_map_perzonlizado(
 }
 
 
-@Composable
-fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass_cat_sub>) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        items(datos) { it ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .width(300.dp)
-                    .height(85.dp)
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(it.lista_img)
-                        .size(80, 85)
-                        .crossfade(true)
-                        .placeholder(R.drawable.cargando_img_categorias)
-                        .error(R.drawable.cargando_img_categorias)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .width(60.dp)
-                        .height(85.dp)
-                        .clip(RoundedCornerShape(10)),
-                    contentScale = ContentScale.Crop
-                )
-                spacer_horizonta(10.dp)
-                Column() {
-                    texto_generico_one_line(
-                        texto = it.nombre.toString().capitalizeFirst(),
-                        MaterialTheme.typography.titleLarge
-                    )
-                    spacer_vertical(5.dp)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(R.drawable.localidad_icon_general),
-                            modifier = Modifier.size(20.dp),
-                            contentDescription = ""
-                        )
-                        spacer_horizonta(5.dp)
-                        texto_generico_one_line(
-                            texto = localidad_selecionadad.capitalizeFirst(),
-                            MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    spacer_vertical(5.dp)
-                    tags_subcateogiras(
-                        it.lista_subcategorias,
-                        modifier = Modifier.padding(end = 10.dp)
-                    )
-                }
-            }
-        }
-    }
-
-}
-
-@Composable
-fun btn_cerrado_overlay(onClick: () -> Unit) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }) { onClick() }
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 20.dp, vertical = 5.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.ExpandMore,
-            contentDescription = "Cerrar",
-            tint = Color.White,
-            modifier = Modifier
-                .size(40.dp)
-        )
-    }
-}
+//@Composable
+//fun cartas_explorar_tienda(localidad_selecionadad: String, datos: List<dataclass_cat_sub>) {
+//    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//        items(datos) { it ->
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier
+//                    .clip(RoundedCornerShape(10))
+//                    .background(MaterialTheme.colorScheme.surface)
+//                    .width(300.dp)
+//                    .height(85.dp)
+//            ) {
+//                AsyncImage(
+//                    model = ImageRequest.Builder(LocalContext.current)
+//                        .data(it.lista_img)
+//                        .size(80, 85)
+//                        .crossfade(true)
+//                        .placeholder(R.drawable.cargando_img_categorias)
+//                        .error(R.drawable.cargando_img_categorias)
+//                        .build(),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .width(60.dp)
+//                        .height(85.dp)
+//                        .clip(RoundedCornerShape(10)),
+//                    contentScale = ContentScale.Crop
+//                )
+//                spacer_horizonta(10.dp)
+//                Column() {
+//                    texto_generico_one_line(
+//                        texto = it.nombre.toString().capitalizeFirst(),
+//                        MaterialTheme.typography.titleLarge
+//                    )
+//                    spacer_vertical(5.dp)
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Image(
+//                            painter = painterResource(R.drawable.localidad_icon_general),
+//                            modifier = Modifier.size(20.dp),
+//                            contentDescription = ""
+//                        )
+//                        spacer_horizonta(5.dp)
+//                        texto_generico_one_line(
+//                            texto = localidad_selecionadad.capitalizeFirst(),
+//                            MaterialTheme.typography.bodySmall
+//                        )
+//                    }
+//                    spacer_vertical(5.dp)
+//                    tags_subcateogiras(
+//                        it.lista_subcategorias,
+//                        modifier = Modifier.padding(end = 10.dp)
+//                    )
+//                }
+//            }
+//        }
+//    }
+//
+//}
+//
+//@Composable
+//fun btn_cerrado_overlay(onClick: () -> Unit) {
+//    Box(
+//        contentAlignment = Alignment.Center,
+//        modifier = Modifier
+//            .clickable(
+//                indication = null,
+//                interactionSource = remember { MutableInteractionSource() }) { onClick() }
+//            .clip(CircleShape)
+//            .background(MaterialTheme.colorScheme.surface)
+//            .padding(horizontal = 20.dp, vertical = 5.dp)
+//    ) {
+//        Icon(
+//            imageVector = Icons.Default.ExpandMore,
+//            contentDescription = "Cerrar",
+//            tint = Color.White,
+//            modifier = Modifier
+//                .size(40.dp)
+//        )
+//    }
+//}
 
 @Composable
 fun btn_close_gris(

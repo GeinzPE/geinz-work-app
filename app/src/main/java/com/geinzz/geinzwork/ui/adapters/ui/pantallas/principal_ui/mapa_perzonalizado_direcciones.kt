@@ -103,8 +103,10 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_redes_tiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarDistanciaFormateada
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -883,7 +885,7 @@ fun dialogo_lugar_tienda(
                                 MaterialTheme.typography.bodyMedium
                             )
                             spacer_vertical(10.dp)
-                            tags_subcateogiras(dataclass_map.tag)
+                            tags_subcateogiras(dataclass_map.tag, brush_start = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2), brush_end =Brush.horizontalGradient(colors = shadow_top_filtrado_v2))
                         }
 
                         Box(

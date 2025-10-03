@@ -1,11 +1,10 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
-import android.content.Intent
-import android.provider.Settings
+
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -19,17 +18,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -37,13 +37,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,14 +59,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -79,33 +79,22 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_resultado_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ShadowBottomPantallas
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.floatin_actionButton
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_activos_encontrados
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_patrocinadores
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
-import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.localizate_geinz.normalizarTexto
-import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
-import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -118,9 +107,11 @@ import kotlin.text.contains
 fun PantallaExplorarTiendas(
     localidadUser: String,
     nombreUser: String,
-    viewModel: viewModel_localizate_geinz,
+    viewModel:viewModel_localizate_geinz,
     clik_img: (categoria: String, localidad: String, nombre_user: String) -> Unit
 ) {
+   val viewModel: viewModel_localizate_geinz = viewModel()
+    Log.d("viewmode",viewModel.toString())
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
@@ -154,13 +145,11 @@ fun PantallaExplorarTiendas(
         } else {
             cargando.value = true
             cartaExpandida.value = null
-            viewModel.T_obtener_registrados_activos(localidadSeleccionada.value)
             fraces_localidad = viewModel.obtenerFrasesCarga(localidadSeleccionada.value, nombreUser)
             mostrar_fab = false
         }
     }
 
-    // Respuesta de las tiendas
     LaunchedEffect(encontrados_activos_tiendass) {
         encontrados_activos_tiendass?.let { listaNueva ->
             lista.clear()
@@ -172,6 +161,8 @@ fun PantallaExplorarTiendas(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Crossfade(targetState = cargando.value) { isCargando ->
+            val listaParaMostrar =
+                if (texto_filtrado.length > 2) lista_filtrada else lista
             if (isCargando && fraces_localidad.isNotEmpty()) {
                 cargando_categorias(
                     composision,
@@ -180,17 +171,16 @@ fun PantallaExplorarTiendas(
                     fraces_localidad
                 )
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize(),
-
-                    state = listState
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalItemSpacing = 10.dp
                 ) {
-                    item {
-                        cabezero_activity(localidadSeleccionada.value) // ✅ lo mismo aquí
-                    }
-                    stickyHeader {
-                        ColumnContenedorComun {
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        Column {
+                            cabezero_activity(localidadSeleccionada.value) // ✅ lo mismo aquí
                             FiltradosChipsLocalidades(
                                 lista_localidades,
                                 localidadSeleccionada.value
@@ -208,32 +198,34 @@ fun PantallaExplorarTiendas(
                                     if (texto_filtrado.length > 2) cartaExpandida.value = null
                                 }
                             )
+
+
                         }
                     }
-                    val listaParaMostrar =
-                        if (texto_filtrado.length > 2) lista_filtrada else lista
-                    items(
-                        listaParaMostrar,
-                        key = { it.categoria ?: it.hashCode().toString() }
-                    ) { item ->
+
+                    itemsIndexed(listaParaMostrar, key = { _, item -> item.categoria?:""}) { index, item ->
                         cartas_categorias(
                             nombreUser,
                             item,
-                            cartaExpandida,
+                            index,
                             localidadSeleccionada.value,
-                            viewModel,
-                            clik_img
+                            {categoria,localidad, nombre ->
+                                clik_img(categoria,localidad,nombre)
+                            },
                         )
                     }
                 }
+
             }
         }
 
-        ShadowBottomPantallas(listState,modifier = Modifier.align(Alignment.BottomCenter))
+        ShadowBottomPantallas(listState, modifier = Modifier.align(Alignment.BottomCenter))
         AnimatedVisibility(
-            mostrar_fab, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(
-                Alignment.BottomStart
-            ).padding(10.dp)
+            mostrar_fab, enter = fadeIn(), exit = fadeOut(), modifier = Modifier
+                .align(
+                    Alignment.BottomStart
+                )
+                .padding(10.dp)
         ) {
             floatin_actionButton(
                 modifier = Modifier
@@ -288,7 +280,6 @@ fun FiltradosChipsLocalidades(
         modifier = Modifier.padding(top = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-
         items(lista_localidades) { localidad ->
             val isSelected =
                 localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
@@ -441,365 +432,107 @@ fun filtrado_texto(
 fun cartas_categorias(
     nombre_user: String,
     item: encontradas_por_categoria,
-    cartaExpandida: MutableState<String?>,
+    index: Int,
     Localidad_selecionada: String,
-    viewModel: viewModel_localizate_geinz,
     clik_img: (categoria: String, localidad: String, nombre: String) -> Unit
 ) {
     val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
-    val expandido = cartaExpandida.value == categoriaKey
-    val categoriaYaLlamada = remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(expandido) {
-        if (expandido) {
-            categoriaYaLlamada.value = categoriaKey
-            viewModel.T_patrocinadas(localidad = Localidad_selecionada, categoria = categoriaKey)
-        }
+    val heightOptions = listOf(300.dp, 350.dp)
+    val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
+    val gradient = remember {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.Black.copy(alpha = 0.6f),
+                Color.Transparent,
+                Color.Black.copy(alpha = 1f)
+            )
+        )
     }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .height(boxHeight)
             .padding(8.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .weight(1.7f)
             ) {
-                AsyncImage(
+
+//                AsyncImage(
+//                    model = ImageRequest.Builder(LocalContext.current)
+//                        .data(item.img_subcategorias)
+//                        .size(screenWidth, boxHeightPx)
+//                        .memoryCachePolicy(CachePolicy.ENABLED)
+//                        .placeholder(R.drawable.cargando_img_categorias)
+//                        .error(R.drawable.cargando_img_categorias)
+//                        .build(),
+//                    contentDescription = "Imagen de la tienda",
+//                    contentScale = ContentScale.Crop,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clip(RoundedCornerShape(8.dp))
+//                        .clickable {
+//                            clik_img(item.categoria, Localidad_selecionada, nombre_user)
+//                        }
+//                )
+
+                SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.img_subcategorias)
-                        .placeholder(R.drawable.cargando_img_categorias)
-                        .error(R.drawable.cargando_img_categorias)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
                         .build(),
-                    contentDescription = "Imagen de la tienda",
+                    contentDescription = "Imagen",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            clik_img(item.categoria, Localidad_selecionada, nombre_user)
-                        }
+                    modifier = Modifier.fillMaxWidth() .clickable {
+                        clik_img(item.categoria, Localidad_selecionada, nombre_user)
+                    },
+                    loading = {
+                        // Opcional: shimmer o progress mientras carga real
+                    },
+                    error = {
+                        Image(
+                            painter = painterResource(R.drawable.cargando_img_categorias),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize() // 👈 ocupa todo el contenedor
+                        )                    }
                 )
-
-
                 Box(
                     modifier = Modifier
                         .matchParentSize()
                         .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.6f), // parte superior oscura
-                                    Color.Transparent,              // centro transparente
-                                    Color.Black.copy(alpha = 1f)  // parte inferior oscura
-                                )
-                            )
+                            gradient
                         )
                 )
-                texto_generico_one_line(item.categoria.capitalizeFirst(), MaterialTheme.typography.titleLarge,modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp)
+                        .align(Alignment.BottomStart)
                 ) {
-
-                    activos_y_registrados(
-                        item.cantidad_registradas ?: 0, item.activas ?: 0,
-                        modifier = Modifier
+                    Text(
+                        text = item.categoria.capitalizeFirst(),
+                        modifier = Modifier.padding(start = 5.dp, end = 10.dp),
+                        textAlign = TextAlign.Start,
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    floatin_actionButton(
-                        modifier = Modifier
-                            .size(35.dp)
-                            .clip(CircleShape)
-                            .align(Alignment.BottomEnd),
-                        constantes_lista_localidades.cambiar_icono_exapndible(expandido),
-                        onClick = {
-                            cartaExpandida.value = if (expandido) null else categoriaKey
-                        }
-                    )
-                }
-            }
-            obtener_patrocinados(item, expandido, viewModel, Localidad_selecionada)
-        }
-    }
-}
 
-
-@Composable
-fun obtener_patrocinados(
-    item: encontradas_por_categoria,
-    expandido: Boolean,
-    viewModel: viewModel_localizate_geinz, localidad: String
-) {
-    val listaPatrocinados = remember { mutableStateListOf<tiendas_filtradas>() }
-    val tiendas_patrocinadas_por_categoria by viewModel.T_patrocinadas_por_categoria.observeAsState()
-    LaunchedEffect(tiendas_patrocinadas_por_categoria, expandido) {
-        if (expandido && tiendas_patrocinadas_por_categoria != null) {
-            val inicio = System.currentTimeMillis()
-            listaPatrocinados.clear()
-            tiendas_patrocinadas_por_categoria!!.forEach {
-                listaPatrocinados.add(
-                    tiendas_filtradas(
-                        logo_tienda = it.logo_tienda,
-                        img_tienda = it.img_tienda,
-                        nombre_tienda = it.nombre_tienda,
-                        direccion = it.direccion,
-                        referencia = it.referencia,
-                        longitud = it.longitud,
-                        descripcion = it.descripcion,
-                        id_tienda = it.id_tienda,
-                        latitud = it.latitud,
-                        lista_subcategoiras = it.lista_subcategoiras,
-                        whatsapp = it.whatsapp,
-                        numero_whatsapp = it.numero_whatsapp,
-                        tiktok = it.tiktok,
-                        nombre_tiktok = it.nombre_tiktok,
-                        sitio_web = it.sitio_web,
-                        url_sitio_web = it.url_sitio_web,
-                        instagram = it.instagram,
-                        nombre_user_ig = it.nombre_user_ig,
-                        facebook = it.facebook,
-                        nombre_user_fb = it.nombre_user_fb,
-                    )
-                )
-            }
-            val tiempoTranscurrido = System.currentTimeMillis() - inicio
-            val tiempoRestante = 1000 - tiempoTranscurrido
-            if (tiempoRestante > 0) delay(tiempoRestante)
-        }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize()
-    ) {
-        AnimatedVisibility(visible = expandido) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                spacer_vertical(10.dp)
-                texto_generico_one_line(
-                    "Subcategorias",
-                    MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                )
-
-                Box(modifier = Modifier.padding(10.dp)) {
-                    tags_subcateogiras(item.subcateogiras)
-                }
-
-                ListaTiendasPatrocinadas(
-                    viewModel = viewModel,
-                    tiendas = listaPatrocinados,
-                    categoria = item.categoria.toString(),
-                    localidad = localidad
-                )
-            }
-        }
-    }
-
-}
-
-
-@Composable
-fun ListaTiendasPatrocinadas(
-    viewModel: viewModel_localizate_geinz,
-    tiendas: List<tiendas_filtradas>, categoria: String, localidad: String
-) {
-    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
-    val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-    var estadoColorSeleccionado by remember { mutableStateOf(Color.Gray) }
-
-
-    tiendas.forEach { i ->
-        viewModelFiltros.obtenerHorarioPorTienda_activa(
-            localidad,
-            i.id_tienda
-        )
-    }
-
-    val isLoading by viewModel.loading
-    val context = LocalContext.current
-    val mostrarDialogo = remember { mutableStateOf(false) }
-    val mostrarDialog_sin_google_maps = remember { mutableStateOf(false) }
-    var direccion by remember { mutableStateOf("") }
-    var referencia by remember { mutableStateOf("") }
-    var show_boottom_sheet_dialog by remember { mutableStateOf(false) }
-    var tiendaSeleccionada by remember { mutableStateOf(tiendas_filtradas()) }
-
-    if (mostrarDialogo.value) {
-        dialog_sin_ubicacion_activa(
-            onDismis = {
-                mostrarDialogo.value = false
-            },
-            abrir_configuracion = {
-                mostrarDialogo.value = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-            },
-            dialog_sin_maps = {
-                mostrarDialogo.value = false
-                mostrarDialog_sin_google_maps.value = true
-            })
-    }
-    if (mostrarDialog_sin_google_maps.value) {
-        dialog_sin_ubi_activa(
-            direccion, referencia, onDismis = { mostrarDialog_sin_google_maps.value = false },
-            abrir_maps = { constantes.abrirGoogleMaps(context, direccion) })
-
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (isLoading) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                cargando_progess_mas_texto("Buscando tiendas patrocinadas")
-            }
-
-        } else {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                if (tiendas.isNotEmpty()) {
-                    texto_generico_one_line(
-                        "Tiendas Patrocinadas",
-                        MaterialTheme.typography.titleSmall, modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
-                    )
-                    spacer_vertical(10.dp)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp)
-                    ) {
-                        items(tiendas) { tienda ->
-                            val estaAbierto = estado_tiendas?.get(tienda.id_tienda) == true
-                            val estadoTexto = if (estaAbierto) "Abierto" else "Cerrado"
-                            val estadoColor = if (estaAbierto) Color.Green else Color.Red
-                            patrocinadores(
-                                item = tienda,
-                                estadoColor,
-                                estadoTexto,
-                                { latitud, longitud ->
-                                    if (verificarUbiActiva(context)) {
-                                        abrirRutaEnGoogleMaps(context, latitud, longitud)
-                                    } else {
-                                        mostrarDialogo.value = true
-                                    }
-                                    direccion = tienda.direccion ?: ""
-                                    referencia = tienda.referencia ?: ""
-                                }, { tiendas_filtradas, showBottomSheet ->
-                                    estadoColorSeleccionado = estadoColor
-                                    tiendaSeleccionada = tiendas_filtradas
-                                    show_boottom_sheet_dialog = showBottomSheet
-                                }
-                            )
-                        }
+                    Box(modifier = Modifier.padding(5.dp)) {
+                        tags_subcateogiras(
+                            item.subcateogiras,
+                            brush_start = Brush.horizontalGradient(colors = shadow_left),
+                            brush_end = Brush.horizontalGradient(colors = shadow_right)
+                        )
                     }
-
-                    if (show_boottom_sheet_dialog) {
-                        bottom_shet_patrocinadores(
-                            estadoColorSeleccionado,
-                            viewModelFiltros,
-                            categoria,
-                            localidad,
-                            tiendaSeleccionada
-                        ) { show_boottom_sheet_dialog = false }
-                    }
-
-                    spacer_vertical(10.dp)
                 }
             }
         }
     }
 }
-
-
-@Composable
-fun patrocinadores(
-    item: tiendas_filtradas,
-    estadoColor: Color,
-    estadoTexto: String,
-    abrir_maps: (Double, Double) -> Unit,
-    listener_bottom_sheet: (item: tiendas_filtradas, mostrar: Boolean) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .width(170.dp)
-            .height(220.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        AsyncImage(
-            model = item.logo_tienda,
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .clickable {
-                    listener_bottom_sheet(item, true)
-                }
-                .fillMaxWidth()
-                .height(170.dp)
-                .clip(RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp)),
-            placeholder = painterResource(id = R.drawable.qr_geinz_sin_fondo),
-            error = painterResource(id = R.drawable.qr_yape)
-        )
-        spacer_vertical(5.dp)
-        Row(
-            modifier = Modifier.padding(vertical = 2.dp, horizontal = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(.5f)) {
-                texto_generico_one_line(item.nombre_tienda, MaterialTheme.typography.bodySmall)
-                spacer_vertical(5.dp)
-                estados_tiendas(estadoTexto, estadoColor)
-            }
-
-            Spacer(modifier = Modifier.width(3.dp))
-            floatin_actionButton(
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape), R.drawable.localidad_icon_general, null, onClick = {
-                    abrir_maps(item.latitud, item.longitud)
-                }
-            )
-        }
-    }
-}
-
-
-@Composable
-fun activos_y_registrados(
-    cantidad_registrados: Int,
-    cantidad_activos: Int,
-    modifier: Modifier
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(30),
-    ) {
-        Row(
-            modifier = modifier
-                .background(amarillo30)
-                .padding(horizontal = 10.dp, vertical = 2.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            texto_activos_encontrados(
-                modifier,
-                "Tiendas Registradas : $cantidad_registrados",
-                2.dp,
-                Color.Black
-            )
-            texto_activos_encontrados(modifier, "Activos : $cantidad_activos", 5.dp, Color.Green)
-
-        }
-    }
-}
-

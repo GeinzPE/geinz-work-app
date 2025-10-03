@@ -1234,7 +1234,7 @@ object constantes_lista_localidades {
 
     fun esAniversarioHoy(localidad: String): Boolean {
         val aniversarios = mapOf(
-            "barranca" to Pair(1984, "20 de septiembre"),
+            "barranca" to Pair(1984, "5 de octubre"),
             "supe" to Pair(1874, "6 de noviembre"),
             "paramonga" to Pair(1936, "22 de octubre"),
             "pativilca" to Pair(1871, "2 de enero"),
@@ -1672,6 +1672,15 @@ object constantes_lista_localidades {
     val shadow_botonm_filtrado_v2 = listOf(
         Color.Transparent,
         Color(0XFF535252),
+    )
+
+    val end_subcategoria_shadow=listOf(
+        Color.Transparent,
+        Color(0xFF262626)
+    )
+    val strat_subcategoria_shadow=listOf(
+        Color(0xFF262626),
+        Color.Transparent
     )
 
     val shadow_left = listOf(

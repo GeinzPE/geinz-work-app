@@ -95,6 +95,7 @@ fun nativationWrapper(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val viewmodel_usuario_registrado: viewmodel_usuario_registrado = viewModel()
+    val viewModel_localizate_geinz:viewModel_localizate_geinz=viewModel()
     val focusRequester = remember { FocusRequester() }
     var isvisble_buttomvar by rememberSaveable { mutableStateOf(true) }
     val datos_user by viewmodel_usuario_registrado.userData.observeAsState()
@@ -213,12 +214,15 @@ fun nativationWrapper(
                                 )
                             )
                         },
-                        clikear_cartas = { categoira, nombre, localidad ->
-                            Log.d("obtenos_datos", "$categoira $localidad $nombre")
+                        clikear_cartas = { categoria, nombre, localidad ->
+                            if(categoria.equals("turismo")){
+                                Toast.makeText(context, "Geinz esta trabajando para darle mejor experiencia", Toast.LENGTH_SHORT).show()
+                                return@pantalla_principal
+                            }
                             if (firebaseAuth.currentUser != null) {
                                 navController.navigate(
                                     screen_filtrado(
-                                        categoira,
+                                        categoria,
                                         nombre,
                                         localidad,
                                     )
@@ -284,8 +288,13 @@ fun nativationWrapper(
                     PantallaExplorarTiendas(
                         datos_user.localidad,
                         datos_user.nombre_user,
-                        viewmodel,
+                        viewModel_localizate_geinz,
                         clik_img = { categoria, localidada, nombre_user ->
+                            if(categoria.equals("turismo")){
+                                Toast.makeText(context, "Geinz esta trabajando para darle mejor experiencia", Toast.LENGTH_SHORT).show()
+                                return@PantallaExplorarTiendas
+                            }
+                            Log.d("clikeamos_img","$categoria")
                             if (firebaseAuth.currentUser != null) {
                                 navController.navigate(
                                     screen_filtrado(
@@ -313,7 +322,7 @@ fun nativationWrapper(
                         viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
                         viewmodel_lugares_turisticos = viewModelLugares,
                         tipo = direcciones.tipo,
-                        localidad=direcciones.localidad
+                        localidad = direcciones.localidad
                     )
                 }
 
@@ -325,8 +334,8 @@ fun nativationWrapper(
                         categoria_localidad.localidad,
                         categoria_localidad.nombre_user,
                         navigation_regresar = { navController.popBackStack() },
-                        abrir_mapa = { tipo,localidad ->
-                            navController.navigate(map_perzonalizado(tipo,localidad))
+                        abrir_mapa = { tipo, localidad ->
+                            navController.navigate(map_perzonalizado(tipo, localidad))
                         }
                     )
                 }
@@ -338,7 +347,7 @@ fun nativationWrapper(
                         viewModelLugares,
                         viewModelCordenadas
                     ) { tipo ->
-                        navController.navigate(map_perzonalizado(tipo,""))
+                        navController.navigate(map_perzonalizado(tipo, ""))
                     }
                 }
 
@@ -357,7 +366,7 @@ fun nativationWrapper(
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
                         abrir_mapa = { latitud, longitud ->
-                            navController.navigate(map_perzonalizado("seguridad",""))
+                            navController.navigate(map_perzonalizado("seguridad", ""))
 
                         })
                 }

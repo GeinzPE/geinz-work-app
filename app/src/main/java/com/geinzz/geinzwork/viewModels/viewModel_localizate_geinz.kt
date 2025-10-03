@@ -17,14 +17,14 @@ import kotlinx.coroutines.launch
 class viewModel_localizate_geinz : ViewModel() {
     val modelo_agregar_cat_sub = repo_agregar_cat_sub_localizate()
 
-   private val _T_patrocinadas_por_categoria = MutableLiveData<List<tiendas_filtradas>>()
-    val T_patrocinadas_por_categoria: LiveData<List<tiendas_filtradas>> get() = _T_patrocinadas_por_categoria
+//    private val _T_patrocinadas_por_categoria = MutableLiveData<List<tiendas_filtradas>>()
+//    val T_patrocinadas_por_categoria: LiveData<List<tiendas_filtradas>> get() = _T_patrocinadas_por_categoria
 
    private val _encontrados_activos_tiendas = MutableLiveData<List<encontradas_por_categoria>>()
     val encontrados_activos_tiendas: LiveData<List<encontradas_por_categoria>> get() = _encontrados_activos_tiendas
 
-    private val _datos_tienas_patrocinadas = MutableLiveData<List<tiendas_patrocinadas>>()
-    val datos_tienas_patrocinadas: LiveData<List<tiendas_patrocinadas>> get() = _datos_tienas_patrocinadas
+//    private val _datos_tienas_patrocinadas = MutableLiveData<List<tiendas_patrocinadas>>()
+//    val datos_tienas_patrocinadas: LiveData<List<tiendas_patrocinadas>> get() = _datos_tienas_patrocinadas
 
     val _subcategoria = MutableLiveData<List<String>>()
     val subcategorias: LiveData<List<String>> get() = _subcategoria
@@ -48,19 +48,17 @@ class viewModel_localizate_geinz : ViewModel() {
         } == true
     }
 
+    init {
+        T_obtener_registrados_activos()
+    }
 
 
-    fun T_obtener_registrados_activos(localidad_selecionada: String) {
+    fun T_obtener_registrados_activos() {
         viewModelScope.launch {
             try {
                 val modelo_horario_tienda =
                     modelo_agregar_cat_sub.obtener_tiendas_categorias_activas_registradas(
-                        localidad_selecionada
                     )
-                Log.d(
-                    "btenoemos_lista_filtrado_por",
-                    "$localidad_selecionada $modelo_horario_tienda"
-                )
                 _encontrados_activos_tiendas.value = modelo_horario_tienda
             } catch (e: Exception) {
                 _encontrados_activos_tiendas.value = emptyList()
@@ -72,23 +70,23 @@ class viewModel_localizate_geinz : ViewModel() {
     private val _loading = mutableStateOf(false)
     val loading: State<Boolean> = _loading
 
-    fun T_patrocinadas(localidad: String, categoria: String) {
-        viewModelScope.launch {
-            val tiempoInicio = System.currentTimeMillis()
-            _loading.value = true
-            try {
-                val result = modelo_agregar_cat_sub.obtener_datos_tiendas_patrocindas(localidad, categoria)
-                _T_patrocinadas_por_categoria.value = result
-            } catch (e: Exception) {
-                _T_patrocinadas_por_categoria.value = emptyList()
-            } finally {
-                val tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio
-                val tiempoRestante = 1500 - tiempoTranscurrido
-                delay(tiempoRestante)
-                _loading.value = false
-            }
-        }
-    }
+//    fun T_patrocinadas(localidad: String, categoria: String) {
+//        viewModelScope.launch {
+//            val tiempoInicio = System.currentTimeMillis()
+//            _loading.value = true
+//            try {
+//                val result = modelo_agregar_cat_sub.obtener_datos_tiendas_patrocindas(localidad, categoria)
+//                _T_patrocinadas_por_categoria.value = result
+//            } catch (e: Exception) {
+//                _T_patrocinadas_por_categoria.value = emptyList()
+//            } finally {
+//                val tiempoTranscurrido = System.currentTimeMillis() - tiempoInicio
+//                val tiempoRestante = 1500 - tiempoTranscurrido
+//                delay(tiempoRestante)
+//                _loading.value = false
+//            }
+//        }
+//    }
 
 
 //    private val _loading_subcategorias = mutableStateOf(false)

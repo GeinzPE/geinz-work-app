@@ -126,6 +126,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "921389328767-ad3vdrfd2gnpmfv21hf78vplm8qh53jq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geinzz.geinzwork",
+            "certificate_hash": "ba30feadf5ea336e1ae2f2aa465eeace54dd071a"
+          }
+        },
+        {
           "client_id": "921389328767-d3724s6j7h2e4kjbecs19g8sfui5da79.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -139,6 +147,14 @@
           "android_info": {
             "package_name": "com.geinzz.geinzwork",
             "certificate_hash": "80421afb2739d11c6a9750befe1aa87afdbe1fc3"
+          }
+        },
+        {
+          "client_id": "921389328767-pke8grmu5np4v2k83nvrgb7eei764ka0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geinzz.geinzwork",
+            "certificate_hash": "406608c6809a9187db07e754f107cc49c83a25b2"
           }
         },
         {

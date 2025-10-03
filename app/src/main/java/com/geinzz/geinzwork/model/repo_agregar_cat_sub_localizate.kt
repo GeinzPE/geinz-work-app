@@ -19,26 +19,57 @@ class repo_agregar_cat_sub_localizate {
 
     val db = FirebaseFirestore.getInstance()
 
-    suspend fun obtener_tiendas_categorias_activas_registradas(filtrado_localidad: String): List<encontradas_por_categoria> {
-        val lista_activos_registrados_categoria = mutableListOf<encontradas_por_categoria>()
+//    suspend fun obtener_tiendas_categorias_activas_registradas(filtrado_localidad: String): List<encontradas_por_categoria> {
+//        val lista_activos_registrados_categoria = mutableListOf<encontradas_por_categoria>()
+//        val lista = obtener_categorias_subcategorias(false)
+//        lista.forEach { i ->
+//            val nombre_categoria = i.nombre.toString()
+//            val activos_por_localidad = obtenerTiendas_registradas_activas_por_categoria(
+//                filtrado_localidad,
+//                nombre_categoria, i.lista_subcategorias, i.lista_img
+//            )
+//            activos_por_localidad.forEach { i ->
+//                val datos =
+//                    encontradas_por_categoria(
+//                        i.cantidad_registradas,
+//                        i.activas,
+//                        i.categoria,
+//                        i.subcateogiras, i.img_subcategorias
+//                    )
+//                lista_activos_registrados_categoria.add(datos)
+//            }
+//        }
+//        return lista_activos_registrados_categoria
+//    }
+    suspend fun obtener_tiendas_categorias_activas_registradas(
+    ): List<encontradas_por_categoria> {
         val lista = obtener_categorias_subcategorias(false)
-        lista.forEach { i ->
-            val nombre_categoria = i.nombre.toString()
-            val activos_por_localidad = obtenerTiendas_registradas_activas_por_categoria(
-                filtrado_localidad,
-                nombre_categoria, i.lista_subcategorias, i.lista_img
-            )
-            activos_por_localidad.forEach { i ->
-                val datos =
-                    encontradas_por_categoria(
-                        i.cantidad_registradas,
-                        i.activas,
-                        i.categoria,
-                        i.subcateogiras, i.img_subcategorias
-                    )
-                lista_activos_registrados_categoria.add(datos)
-            }
-        }
+    val lista_activos_registrados_categoria = lista.map { i ->
+        encontradas_por_categoria(
+            i.nombre,
+            i.lista_subcategorias,
+            i.lista_img
+        )
+    }
+//        lista.forEach { i ->
+//            val nombre_categoria = i.nombre.toString()
+////            val activos_por_localidad = obtenerTiendas_registradas_activas_por_categoria(
+////                filtrado_localidad,
+////                nombre_categoria, i.lista_subcategorias, i.lista_img
+////            )
+////            activos_por_localidad.forEach { i ->
+////
+////            }
+//
+////            val datos =
+////                encontradas_por_categoria(
+//////                        i.cantidad_registradas,
+//////                        i.activas,
+////                    i.nombre,
+////                    i.lista_subcategorias, i.lista_img
+////                )
+////            lista_activos_registrados_categoria.add(datos)
+//        }
         return lista_activos_registrados_categoria
     }
 
@@ -124,41 +155,41 @@ class repo_agregar_cat_sub_localizate {
         val coincidenciasCategoria = snapshot.filter { doc ->
             doc.getString("categoria_tienda") == categoria_filtrada
         }
-        val cantidadRegistradas = coincidenciasCategoria.size
-        var cantidadActivas = 0
+//        val cantidadRegistradas = coincidenciasCategoria.size
+//        var cantidadActivas = 0
 
-        for (datos in coincidenciasCategoria) {
-            val id_tienda = datos.getString("id_tienda") ?: continue
-            val horarioSnapshot = collectionTiendas.document(id_tienda)
-                .collection("horario_atencion")
-                .document("horario_atencion")
-                .get()
-                .await()
-            val dias_sema = constantes_lista_localidades.dias_sema
-            val lista_horario_por_tienda = mutableListOf<horario_Dia>()
-
-            for (dias in dias_sema) {
-
-                val diaMap = horarioSnapshot.get(dias) as? Map<*, *>
-                val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
-                val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
-                horario_Dia(dias, h_apertura, h_cierre)
-                val datos = horario_Dia(dias, h_apertura, h_cierre)
-                lista_horario_por_tienda.add(datos)
-            }
-
-            Log.d("temonos_teindas", lista_horario_por_tienda.toString())
-            val tienda_activa =
-                constantes_lista_localidades.verificarSiEstaAbierto(lista_horario_por_tienda)
-            if (tienda_activa) {
-                cantidadActivas++
-            }
-
-        }
+//        for (datos in coincidenciasCategoria) {
+//            val id_tienda = datos.getString("id_tienda") ?: continue
+//            val horarioSnapshot = collectionTiendas.document(id_tienda)
+//                .collection("horario_atencion")
+//                .document("horario_atencion")
+//                .get()
+//                .await()
+//            val dias_sema = constantes_lista_localidades.dias_sema
+//            val lista_horario_por_tienda = mutableListOf<horario_Dia>()
+//
+//            for (dias in dias_sema) {
+//
+//                val diaMap = horarioSnapshot.get(dias) as? Map<*, *>
+//                val h_apertura = diaMap?.get("h_apertura") as? String ?: "Sin horario"
+//                val h_cierre = diaMap?.get("h_cierre") as? String ?: "Sin horario"
+//                horario_Dia(dias, h_apertura, h_cierre)
+//                val datos = horario_Dia(dias, h_apertura, h_cierre)
+//                lista_horario_por_tienda.add(datos)
+//            }
+//
+//            Log.d("temonos_teindas", lista_horario_por_tienda.toString())
+//            val tienda_activa =
+//                constantes_lista_localidades.verificarSiEstaAbierto(lista_horario_por_tienda)
+//            if (tienda_activa) {
+//                cantidadActivas++
+//            }
+//
+//        }
         // Agregar solo una vez por categoría
         val resultado = encontradas_por_categoria(
-            cantidad_registradas = cantidadRegistradas,
-            activas = cantidadActivas,
+//            cantidad_registradas = cantidadRegistradas,
+//            activas = cantidadActivas,
             categoria = categoria_filtrada, listaSubcategorias!!, listaImg
         )
         lista_encotrado.add(resultado)

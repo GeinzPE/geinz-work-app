@@ -1,13 +1,20 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
 
+//data class encontradas_por_categoria(
+//    val cantidad_registradas: Int?,
+//    val activas: Int?,
+//    val categoria: String?,
+//    val subcateogiras: List<String>,
+//    val img_subcategorias: String=""
+//)
+
 data class encontradas_por_categoria(
-    val cantidad_registradas: Int?,
-    val activas: Int?,
     val categoria: String?,
     val subcateogiras: List<String>,
     val img_subcategorias: String=""
 )
+
 
 data class horario_Dia(
     val dia: String="",

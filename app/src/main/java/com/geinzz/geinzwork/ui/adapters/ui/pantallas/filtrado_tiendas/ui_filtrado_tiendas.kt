@@ -104,8 +104,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
@@ -124,10 +128,8 @@ fun Pantalla_filtrado_tiendas(
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
-        emptyList()
-    )
-
+    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(emptyList())
+    Log.d("se_cambio","$datosTienda $datosTienda $estado_tiendas $tiendasFiltradas")
     val estadoFiltrosUi = EstadoFiltrosUi(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = tiendasFiltradas
@@ -156,9 +158,9 @@ fun Pantalla_filtrado_tiendas(
 
     val listState = rememberLazyListState()
 
-    var categoria_anterior by rememberSaveable { mutableStateOf("") }
-    var listaMostrar by rememberSaveable { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
-    var listaBaseSubcategoria by rememberSaveable { mutableStateOf(emptyList<tiendas_por_categoria>()) }
+    var categoria_anterior by remember { mutableStateOf("") }
+    var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
+    var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
 
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
@@ -182,7 +184,7 @@ fun Pantalla_filtrado_tiendas(
             }
             estadoCarga.value = selec_class_estados_carga.carga_chips
             delay(6000)
-            val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
+        val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
             listaBaseSubcategoria = tiendas_filtradas
             listaMostrar = tiendas_filtradas
             categoria_anterior = categoria_seleccionda
@@ -190,8 +192,6 @@ fun Pantalla_filtrado_tiendas(
         }
         texto_filtrado = ""
     }
-
-
 
     LaunchedEffect(texto_filtrado) {
         listaMostrar = if (texto_filtrado.isBlank()) {
@@ -223,10 +223,16 @@ fun Pantalla_filtrado_tiendas(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(categoria) {
+        Log.d("se_cambio",categoria)
+        listaMostrar = emptyList()
+        listaBaseSubcategoria = emptyList()
+        viewModelFiltros.tiendas_iniciales(emptyList())
+        subCategoriaSeleccionada = "Todos"
         estadoCarga.value = selec_class_estados_carga.carga_principal
         viewModelFiltros.obtener_subcategorias(categoria)
         viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
+        viewModelFiltros.resetearTiendasFiltradas()
         delay(6000)
         estadoCarga.value = selec_class_estados_carga.sin_carga
         tiendasFiltradas.forEach { tienda ->
@@ -238,7 +244,7 @@ fun Pantalla_filtrado_tiendas(
     }
 
     LaunchedEffect(tiendasFiltradas) {
-        if (tiendasFiltradas.isNotEmpty() && listaMostrar.isEmpty()) {
+        if (tiendasFiltradas.isNotEmpty() ) {
             viewModelFiltros.tiendas_iniciales(tiendasFiltradas)
             listaMostrar = tiendasFiltradas
         }
@@ -327,6 +333,7 @@ fun Pantalla_filtrado_tiendas(
                         val listaOrdenada = listaMostrar.sortedByDescending { tienda ->
                             estado_tiendas?.get(tienda.id_tienda) == true
                         }
+                        Log.d("logemoscambios","$listaOrdenada")
                         items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
                             item_tiendas(
                                 tienda,
@@ -339,7 +346,7 @@ fun Pantalla_filtrado_tiendas(
                         }
                     }
 
-                    if (btn_mostrar_mapa) {
+                    if (btn_mostrar_mapa && listaMostrar.isNotEmpty()) {
                         open_map_perzonlizado(
                             modifier = Modifier
                                 .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
@@ -656,7 +663,7 @@ fun item_tiendas(
                     Spacer(modifier = Modifier.height(5.dp))
                     Caracteristicas_tiendas("Referencia : ", item_tiendas.referencia)
                     Spacer(modifier = Modifier.height(5.dp))
-                    tags_subcateogiras(item_tiendas.lista_subcategoiras)
+                    tags_subcateogiras(item_tiendas.lista_subcategoiras, brush_start = Brush.horizontalGradient(colors = strat_subcategoria_shadow ), brush_end =Brush.horizontalGradient(colors = end_subcategoria_shadow) )
                     Spacer(modifier = Modifier.height(5.dp))
                     estados_tiendas(estadoTexto, estadoColor)
                 }
