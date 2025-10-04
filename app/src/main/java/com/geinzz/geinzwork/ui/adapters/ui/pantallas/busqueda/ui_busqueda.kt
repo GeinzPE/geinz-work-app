@@ -516,6 +516,7 @@ fun ui_pantalla_busqueda(
 
         if (validacion_mostrar_dialog_ubi_off) {
             dialog_sin_ubi__rutas(
+                "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
                 { validacion_mostrar_dialog_ubi_off = false },
                 {
                     validacion_mostrar_dialog_ubi_off = false
@@ -2078,8 +2079,8 @@ fun ramdoBox(
                 spacer_vertical(5.dp)
                 tags_subcateogiras(
                     i.lista,
-                    brush_start = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2),
-                    brush_end = Brush.horizontalGradient(colors = shadow_top_filtrado_v2)
+                    brush_start = Brush.horizontalGradient(colors = shadow_top_filtrado_v1),
+                    brush_end = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v1)
                 )
             }
         }
@@ -2263,5 +2264,4 @@ fun AnimatedFabItem(
         }
     }
 }
-
 

@@ -110,7 +110,7 @@ fun PantallaExplorarTiendas(
     viewModel:viewModel_localizate_geinz,
     clik_img: (categoria: String, localidad: String, nombre_user: String) -> Unit
 ) {
-   val viewModel: viewModel_localizate_geinz = viewModel()
+    val viewModel: viewModel_localizate_geinz = viewModel()
     Log.d("viewmode",viewModel.toString())
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }

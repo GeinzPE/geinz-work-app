@@ -318,6 +318,7 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
 
     if (dialogo_ubi_activa) {
         dialog_sin_ubi__rutas(
+            "Para garantizar que tu reseña sea verificada, te solicitamos habilitar el acceso a tu ubicación. Esto permitirá que el sistema confirme automáticamente si te encuentras en el establecimiento y así validar tu reseña como auténtica.",
             onDismis = { dialogo_ubi_activa = false },
             abrir_configuracion = {
                 dialogo_ubi_activa = false
@@ -382,7 +383,7 @@ fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa
         title = { texto_generico_one_line("Verifica tu reseña") },
         text = {
             texto_generico_multilinea(
-                "Para dejar una reseña en este establecimiento, Geinz necesita verificar que estés presencialmente en el local. Si confirmas que estás aquí, tu reseña será verificada. Si no, tu reseña se registrará como no verificada",
+                "Para dejar una reseña en este establecimiento, Geinz necesita verificar que te encuentras físicamente en el lugar. Si confirmas tu ubicación, tu reseña será verificada. De lo contrario, la reseña se registrará como no verificada.",
                 MaterialTheme.typography.bodyMedium
             )
         },

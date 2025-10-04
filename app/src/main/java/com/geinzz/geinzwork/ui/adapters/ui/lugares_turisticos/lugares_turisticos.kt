@@ -8,17 +8,23 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -28,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -35,13 +42,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -56,8 +67,14 @@ import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Estados_lugares_turisticos
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.LazyRowConSombras
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import java.nio.file.WatchEvent
 
@@ -134,8 +151,33 @@ fun pantalla_lugares_turisticos(
 //    LaunchedEffect(subCategoriaSeleccionada, _lugares_turisticos) {
 //        viewmodel_lugares_turisticos.lista_filtrada_por_subcategoira(subCategoriaSeleccionada, _lugares_turisticos)
 //    }
+    val listState = rememberLazyListState()
 
+    val showLeftShadow by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showRightShadow by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < total - 1
+        }
+    }
 
+    // 🔥 animar alpha, no crear/destruir Box
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaLeft"
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaRight"
+    )
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -144,27 +186,20 @@ fun pantalla_lugares_turisticos(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { texto_generico_one_line("Lugares turisticos de $localidad_selecionada") }
+            item { texto_generico_multilinea("Lugares en ${localidad_selecionada.capitalizeFirst()}",style= MaterialTheme.typography.banerGeinzWork, modifier = Modifier.padding(end = 20.dp)) }
             item {
-                texto_generico_multilinea("descriocion de los lugares")
+                texto_generico_multilinea("Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
+                    MaterialTheme.typography.bodyMedium)
             }
             item {
-                LazyRow() {
-                    items(lista_con_todos) { subcategorias ->
-                        val selecionado = subCategoriaSeleccionada == subcategorias
-                        FilterChip(
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = Color.White,
-                                labelColor = Color.White
-                            ),
-                            modifier = Modifier.padding(horizontal = 4.dp),
-                            selected = selecionado,
-                            border = if (selecionado) null else BorderStroke(
-                                1.dp,
-                                MaterialTheme.colorScheme.onBackground
-                            ),
-                            onClick = {
+                Box(modifier = Modifier.fillMaxWidth()
+                    .height(45.dp)){
+                    LazyRow( state = listState,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(lista_con_todos) { subcategorias ->
+                            val selecionado = subCategoriaSeleccionada == subcategorias
+                            chisp_filtrado_busqueda(carta_selecionada = selecionado, filtrado = subcategorias.capitalizeFirst(), btn_visible = false, clik_card = {
                                 if (!selecionado) {
                                     if (subcategorias == "Todos") {
                                         subCategoriaSeleccionada = "Todos"
@@ -174,16 +209,31 @@ fun pantalla_lugares_turisticos(
                                         subCategoriaSeleccionada = subcategorias
                                     }
                                 }
-                            },
-                            label = {
-                                Text(
-                                    text = subcategorias,
-                                    color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
-                                )
-                            },
-                            shape = RoundedCornerShape(40)
-                        )
+                            }, onClick_delete = {
+
+                            })
+                        }
                     }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(40.dp)
+                            .align(Alignment.CenterStart)
+                            .zIndex(1f)
+                            .alpha(alphaLeft)
+                            .background(Brush.horizontalGradient(colors = shadow_left))
+                    )
+
+                    // 👉 derecha
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(40.dp)
+                            .align(Alignment.CenterEnd)
+                            .zIndex(1f)
+                            .alpha(alphaRight)
+                            .background(Brush.horizontalGradient(colors = shadow_right))
+                    )
                 }
             }
             items(listaMostrar) { lugares ->
@@ -198,6 +248,22 @@ fun pantalla_lugares_turisticos(
                 abrir_mapa
             )
         }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
+                    )
+                )
+                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+        )
+
     }
 
 }
@@ -214,18 +280,15 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos)
             model = ImageRequest.Builder(LocalContext.current)
                 .data(lugar.img_ref)
                 .size(screenWidth.value.toInt(), alto.value.toInt())
-                .crossfade(true)
                 .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.sin_item_carrito)
+                .error(R.drawable.cargando_img_categorias)
                 .build(),
             contentDescription = null,
             modifier = Modifier
                 .width(screenWidth)
                 .height(alto)
                 .clip(RoundedCornerShape(rounder)),
-//                .clickable {
-//                    listener(true, lugar)
-//                },
+
             contentScale = ContentScale.Crop
         )
         mascara_img(rounder, alto, screenWidth)

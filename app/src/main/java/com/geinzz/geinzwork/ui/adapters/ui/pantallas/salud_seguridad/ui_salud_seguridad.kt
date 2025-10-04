@@ -8,8 +8,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
-import androidx.collection.emptyIntList
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,13 +27,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,8 +48,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -61,7 +59,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
@@ -69,11 +66,14 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgencias
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import kotlinx.coroutines.delay
 import java.net.URLEncoder
@@ -135,16 +135,23 @@ fun ui_salud_seguirdad(
 //            lista = lista_base_seguridad
 //        )
 //    }
-
-    Column(
+    val listState = rememberLazyListState()
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .padding(10.dp)
     ) {
-        LazyColumn {
+        LazyColumn ( state = listState, verticalArrangement = Arrangement.spacedBy(10.dp)){
             stickyHeader {
-                ColumnContenedorComun {
+                ColumnContenedorComun (modifier = Modifier.clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp))){
                     filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
+                    spacer_vertical(10.dp)
                     chips_filtrado(chip_selecionado, lista_filtrado) { i ->
                         chip_selecionado = i
                     }
@@ -165,7 +172,7 @@ fun ui_salud_seguirdad(
             } else {
                 items(lista_mostrar) { i ->
                     Box(modifier = Modifier.padding(8.dp)) {
-                        carta_salud_cuidad(i, abrir_mapa = { la, lo ->
+                        carta_salud_cuidad(viewmode_segurirdad_Salud,i, abrir_mapa = { la, lo ->
                             viewmode_segurirdad_Salud.setCoordenadas(la, lo)
                             abrir_mapa(la, lo)
                         })
@@ -173,6 +180,21 @@ fun ui_salud_seguirdad(
                 }
             }
         }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .align(Alignment.BottomCenter)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black
+                    )
+                )
+            )
+            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+    )
     }
 }
 
@@ -182,29 +204,20 @@ fun chips_filtrado(
     lista_filtrado: List<String>,
     selecionado_fun: (String) -> Unit
 ) {
-    LazyRow {
+    LazyRow(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         items(lista_filtrado) { i ->
             val selecionado = selecionado_chip == i
-            FilterChip(
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = Color.White,
-                    labelColor = Color.White
-                ),
-                modifier = Modifier.padding(horizontal = 4.dp),
-                selected = false,
-                border = if (selecionado) null else BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.onBackground
-                ),
-                onClick = { selecionado_fun(i) },
-                label = {
-                    Text(
-                        text = i,
-                        color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            )
+            chisp_filtrado_busqueda(
+                carta_selecionada = selecionado,
+                filtrado = i.capitalizeFirst(),
+                btn_visible = false,
+                clik_card = {
+                    selecionado_fun(i)
+                }, onClick_delete = {})
+
         }
     }
 }
@@ -252,6 +265,7 @@ fun filtrado_texfiel(texto: String, onValueChange: (String) -> Unit) {
 
 @Composable
 fun carta_salud_cuidad(
+    viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     i: dataclass_seguridad,
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
 ) {
@@ -259,13 +273,16 @@ fun carta_salud_cuidad(
     var dialogo_activar_ubicacion by rememberSaveable { mutableStateOf(false) }
 
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
+    var dialogo_contacto by remember { mutableStateOf(false) }
+    var lista_numero by remember { mutableStateOf(listOf<String>()) }
+    var icono_dialogo by remember { mutableStateOf("") }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
+            .height(140.dp)
             .clip(RoundedCornerShape(10))
             .background(MaterialTheme.colorScheme.surface)
-            .padding(5.dp)
+
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -280,48 +297,31 @@ fun carta_salud_cuidad(
                 .clip(RoundedCornerShape(5)),
             contentScale = ContentScale.Crop
         )
-        Column(modifier = Modifier.padding(5.dp)) {
+        Column(modifier = Modifier.padding(
+            start = 10.dp, end = 10.dp , top = 5.dp, bottom = 5.dp)) {
             texto_generico_one_line(
                 i.nombre_,
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge
             )
-            texto_generico_one_line("${i.categoria}", color = Color.White)
-
+            spacer_vertical(5.dp)
+            texto_generico_one_line("${i.categoria.capitalizeFirst()}", color = Color.White)
             spacer_vertical(5.dp)
             texto_generico_one_line("direccion : ${i.direccion}", color = Color.White)
             spacer_vertical(5.dp)
-            texto_generico_one_line("Abierto", color = Color.White)
+            texto_generico_one_line(viewmode_segurirdad_Salud.horario_atencion(i.nombre_), color = Color.White)
             spacer_vertical(10.dp)
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                BtnCirculares(R.drawable.llamada_icon, fondo = MaterialTheme.colorScheme.primary) {
-                    if (ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.CALL_PHONE
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        call_dialog_permise = true
-                    } else {
-                        makePhoneCall(context, i.numero_whatsapp)
-                    }
+                BtnCirculares(R.drawable.llamada_icon,) {
+                    dialogo_contacto=true
+                    lista_numero=i.numero_llamada
+                    icono_dialogo="llamada"
+
                 }
                 BtnCirculares(R.drawable.whatsapp_icon) {
-                    val msje = "hola"
-                    val uri = Uri.parse(
-                        "https://api.whatsapp.com/send?phone=${i.numero_whatsapp}&text=${
-                            URLEncoder.encode(
-                                msje,
-                                "UTF-8"
-                            )
-                        }"
-                    )
-                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                    try {
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        Toast.makeText(context, "no se pudo abrir whatsapp", Toast.LENGTH_LONG)
-                            .show()
-                    }
+                    dialogo_contacto=true
+                    lista_numero=i.numero_whatsapp
+                    icono_dialogo="whatsapp"
 
                 }
                 BtnCirculares(
@@ -335,18 +335,15 @@ fun carta_salud_cuidad(
                         dialogo_activar_ubicacion = mostrar_dialog
                     }
                 }
-                BtnCirculares(Icons.Default.Map, fondo = MaterialTheme.colorScheme.secondary) {
-                    abrir_mapa(i.latidud, i.longitud)
-                }
             }
         }
     }
     if (call_dialog_permise) {
-        permisos_llamadas(aceptar_permisos = {
-            requestCallPermission(context, i.numero_llamada)
-        }, ondimis = {
-            call_dialog_permise = false
-        })
+//        permisos_llamadas(aceptar_permisos = {
+//            requestCallPermission(context, i.numero_llamada)
+//        }, ondimis = {
+//            call_dialog_permise = false
+//        })
     }
     if (dialogo_activar_ubicacion) {
         dialog_sin_ubicacion_activa(
@@ -362,6 +359,11 @@ fun carta_salud_cuidad(
             }
         )
     }
+    if(dialogo_contacto){
+        dialog_llamada_urgencias(lista_numero,icono_dialogo){
+            dialogo_contacto=false
+        }
+    }
 }
 
 @Composable
@@ -369,7 +371,7 @@ fun BtnCirculares(
     icono: Any,
     fondo: Color = Color.Transparent,
     size: Dp = 32.dp,
-    iconSize: Dp = 22.dp,
+    iconSize: Dp = 20.dp,
     tint: Color = Color.White,
     listener: () -> Unit
 ) {
@@ -390,39 +392,10 @@ fun BtnCirculares(
             is ImageVector -> Icon(
                 imageVector = icono,
                 contentDescription = null,
-                modifier = Modifier.size(iconSize),
+                modifier = Modifier.size(iconSize).padding(5.dp),
                 tint = tint
             )
         }
     }
 }
 
-private fun requestCallPermission(context: Context, phoneNumber: String) {
-    if (ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CALL_PHONE
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        ActivityCompat.requestPermissions(
-            context as Activity,
-            arrayOf(Manifest.permission.CALL_PHONE),
-            REQUEST_CALL_PHONE
-        )
-    } else {
-        makePhoneCall(context, phoneNumber)
-    }
-}
-
-private fun makePhoneCall(context: Context, phoneNumber: String) {
-    val callIntent = Intent(Intent.ACTION_CALL)
-    callIntent.data = Uri.parse("tel:$phoneNumber")
-    if (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CALL_PHONE
-        ) == PackageManager.PERMISSION_GRANTED
-    ) {
-        context.startActivity(callIntent)
-    } else {
-        requestCallPermission(context, phoneNumber)
-    }
-}

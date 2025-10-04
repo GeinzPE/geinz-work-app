@@ -22,6 +22,7 @@ class viewmode_seguridad_salud : ViewModel() {
 
     val coordenadasSeleccionadas: LiveData<Pair<Double, Double>?> = _coordenadasSeleccionadas
 
+
     var todos_lugares = mutableListOf<dataclass_seguridad>()
         private set
 
@@ -44,16 +45,20 @@ class viewmode_seguridad_salud : ViewModel() {
         todos_lugares.addAll(lista)
     }
 
-    fun mostar_lugar_por_nombre(
-        nombre: String,
-        lista: List<dataclass_seguridad>
-    ): List<dataclass_seguridad> {
-        return lista.filter { it.nombre_.contains(nombre, ignoreCase = true) }
+    fun horario_atencion(nombre: String):String{
+        return instancia.atencion_24h(nombre)
     }
 
-    fun filtar_por_categorias(categoria: String,lista: List<dataclass_seguridad>): List<dataclass_seguridad>{
-        return lista.filter { it.categoria.contains(categoria, ignoreCase = true) }
-    }
+//    fun mostar_lugar_por_nombre(
+//        nombre: String,
+//        lista: List<dataclass_seguridad>
+//    ): List<dataclass_seguridad> {
+//        return lista.filter { it.nombre_.contains(nombre, ignoreCase = true) }
+//    }
+//
+//    fun filtar_por_categorias(categoria: String,lista: List<dataclass_seguridad>): List<dataclass_seguridad>{
+//        return lista.filter { it.categoria.contains(categoria, ignoreCase = true) }
+//    }
 
 
     fun filtrar_lugares(

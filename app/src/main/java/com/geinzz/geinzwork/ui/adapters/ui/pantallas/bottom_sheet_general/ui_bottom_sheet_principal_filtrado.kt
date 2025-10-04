@@ -105,10 +105,12 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -656,7 +658,7 @@ fun perfil_cabezero(
         )
         spacer_vertical(10.dp)
 
-        tags_subcateogiras(lista_tags, brush_start = Brush.horizontalGradient(colors = shadow_top_filtrado_v2), brush_end = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2) )
+        tags_subcateogiras(lista_tags, brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default), brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default) )
     }
 
 }
@@ -1150,6 +1152,5 @@ fun tienda_cercana() {
         )
     }
 }
-
 
 

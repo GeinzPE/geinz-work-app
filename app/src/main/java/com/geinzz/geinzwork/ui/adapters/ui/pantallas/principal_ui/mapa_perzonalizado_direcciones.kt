@@ -259,6 +259,7 @@ fun MyGoogle_maps(
 
     if (validacion_mostrar_dialog_ubi_off) {
         dialog_sin_ubi__rutas(
+            "Para una mejor experiencia y poder mostrar tu ubicación actual en el mapa, por favor habilita la función de ubicación en tu dispositivo. Esto te permitirá ubicarte de manera más rápida y conocer la proximidad a tu destino.",
             { validacion_mostrar_dialog_ubi_off = false },
             {
                 validacion_mostrar_dialog_ubi_off = false
@@ -804,7 +805,7 @@ fun dialogo_lugar_tienda(
                                         Color.Black.copy(alpha = 1f)
                                     ),
 
-                                )
+                                    )
                             )
                     )
                 }

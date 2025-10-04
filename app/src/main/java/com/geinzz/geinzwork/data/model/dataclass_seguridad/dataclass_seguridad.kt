@@ -7,8 +7,8 @@ import kotlinx.parcelize.Parcelize
 data class dataclass_seguridad(
     val nombre_: String = "",
     val direccion: String = "",
-    val numero_llamada: String,
-    val numero_whatsapp: String,
+    val numero_llamada: List<String>,
+    val numero_whatsapp:  List<String>,
     val latidud: Double,
     val longitud: Double,
     val img_ref:String="",

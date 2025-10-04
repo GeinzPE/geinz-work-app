@@ -104,7 +104,7 @@ fun dialog_sin_ubicacion_activa(
 }
 
 @Composable
-fun dialog_sin_ubi__rutas(onDismis: () -> Unit,abrir_configuracion: () -> Unit){
+fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion: () -> Unit){
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
@@ -126,7 +126,7 @@ fun dialog_sin_ubi__rutas(onDismis: () -> Unit,abrir_configuracion: () -> Unit){
         text = {
             Column {
                 Text(
-                    "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
+                    texto,
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodyMedium
                 )

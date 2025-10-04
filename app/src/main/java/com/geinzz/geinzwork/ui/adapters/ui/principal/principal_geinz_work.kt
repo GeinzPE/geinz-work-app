@@ -500,33 +500,33 @@ fun apartado_explora_cat(
         ) { categorias1(nombre_user, localidad_defaul) }
         spacer_vertical(10.dp)
         Crossfade(targetState = stateCat, label = "crossfadeCategorias") { state ->
-        when (state) {
-            is viewModel_principal_geinz_work.carga_categorias.Loading -> {
-                carga_progres_categoria(130.dp,190.dp)
-            }
+            when (state) {
+                is viewModel_principal_geinz_work.carga_categorias.Loading -> {
+                    carga_progres_categoria(130.dp,190.dp)
+                }
 
-            is viewModel_principal_geinz_work.carga_categorias.succes -> {
-                cartas_filtrado(
-                    nombre_user,
-                    localidad_defaul,
-                    categorias_tienda
-                ) { categoria, localidad, nombre ->
-                    Log.d("localdiasdadas", "$categoria, $localidad ,$nombre")
-                    clikear_cartas(categoria, localidad, nombre)
+                is viewModel_principal_geinz_work.carga_categorias.succes -> {
+                    cartas_filtrado(
+                        nombre_user,
+                        localidad_defaul,
+                        categorias_tienda
+                    ) { categoria, localidad, nombre ->
+                        Log.d("localdiasdadas", "$categoria, $localidad ,$nombre")
+                        clikear_cartas(categoria, localidad, nombre)
+                    }
+                }
+
+                is viewModel_principal_geinz_work.carga_categorias.error -> {
+                    Text(
+                        text = "Error al cargar categorías",
+                        color = Color.Red
+                    )
+                }
+
+                else -> {
+                    // Estado inicial (null)
                 }
             }
-
-            is viewModel_principal_geinz_work.carga_categorias.error -> {
-                Text(
-                    text = "Error al cargar categorías",
-                    color = Color.Red
-                )
-            }
-
-            else -> {
-                // Estado inicial (null)
-            }
-        }
         }
 
     }
@@ -644,7 +644,7 @@ fun cartas_filtrado(
                             carta_clikeada(
                                 i.nombre.toString(),
                                 localidad_defaul,
-                                nombre_user.toString()
+                                nombre_user.toString().capitalizeFirst()
                             )
                         },
                         modifier = Modifier.size(32.dp),

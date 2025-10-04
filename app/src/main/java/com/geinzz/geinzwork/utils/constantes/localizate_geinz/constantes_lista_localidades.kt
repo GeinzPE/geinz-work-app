@@ -593,7 +593,7 @@ object constantes_lista_localidades {
         data_redes_tiendas(icono = R.drawable.facebook_icon, "facebook"),
         data_redes_tiendas(icono = R.drawable.instagram_icon, "instragram"),
 
-    )
+        )
 
     fun bitmapDescriptorFromDrawable(
         context: Context,
@@ -1672,6 +1672,15 @@ object constantes_lista_localidades {
     val shadow_botonm_filtrado_v2 = listOf(
         Color.Transparent,
         Color(0XFF535252),
+    )
+
+    val start_shadow_bottom_sheet_default=listOf(
+        Color(0XFF1D1B20),
+        Color.Transparent,
+    )
+    val end_shadow_bottom_sheet_default=listOf(
+        Color.Transparent,
+        Color(0XFF1D1B20)
     )
 
     val end_subcategoria_shadow=listOf(

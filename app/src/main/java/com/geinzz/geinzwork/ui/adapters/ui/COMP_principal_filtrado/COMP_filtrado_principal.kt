@@ -343,7 +343,6 @@ fun ColumnContenedorComun(
             .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
             .background(MaterialTheme.colorScheme.background)
             .padding(top = 8.dp, bottom = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         content = content
     )
@@ -649,7 +648,8 @@ fun rutas_turismo(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp)
-                .clip(RoundedCornerShape(5)),
+                .clip(RoundedCornerShape(5))
+                .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){clik_button()},
             contentScale = ContentScale.Crop
         )
 
@@ -700,7 +700,7 @@ fun seguridad(
                 .error(R.drawable.cargando_img_categorias)
                 .build(),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){clik_button()},
             contentScale = ContentScale.Crop
         )
 

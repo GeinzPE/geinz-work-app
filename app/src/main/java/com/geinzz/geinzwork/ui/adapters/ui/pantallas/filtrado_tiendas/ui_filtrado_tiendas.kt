@@ -184,7 +184,7 @@ fun Pantalla_filtrado_tiendas(
             }
             estadoCarga.value = selec_class_estados_carga.carga_chips
             delay(6000)
-        val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
+            val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
             listaBaseSubcategoria = tiendas_filtradas
             listaMostrar = tiendas_filtradas
             categoria_anterior = categoria_seleccionda
