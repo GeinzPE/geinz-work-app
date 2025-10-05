@@ -103,6 +103,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
@@ -122,14 +124,20 @@ fun Pantalla_filtrado_tiendas(
     viewModelFiltros: viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
-    nombre_user: String, navigation_regresar: () -> Unit,
+    nombre_user: String,
+    navigation_regresar: () -> Unit,
     abrir_mapa: (String, String) -> Unit,
+    iniciar_normal: () -> Unit,
+    con_google: () -> Unit,
+    crear_cuenta: () -> Unit,
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(emptyList())
-    Log.d("se_cambio","$datosTienda $datosTienda $estado_tiendas $tiendasFiltradas")
+    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
+        emptyList()
+    )
+    Log.d("se_cambio", "$datosTienda $datosTienda $estado_tiendas $tiendasFiltradas")
     val estadoFiltrosUi = EstadoFiltrosUi(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = tiendasFiltradas
@@ -161,6 +169,8 @@ fun Pantalla_filtrado_tiendas(
     var categoria_anterior by remember { mutableStateOf("") }
     var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
     var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
+    var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
+    var bottom_shet_tienda by remember { mutableStateOf(false) }
 
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
@@ -224,7 +234,7 @@ fun Pantalla_filtrado_tiendas(
     }
 
     LaunchedEffect(categoria) {
-        Log.d("se_cambio",categoria)
+        Log.d("se_cambio", categoria)
         listaMostrar = emptyList()
         listaBaseSubcategoria = emptyList()
         viewModelFiltros.tiendas_iniciales(emptyList())
@@ -244,7 +254,7 @@ fun Pantalla_filtrado_tiendas(
     }
 
     LaunchedEffect(tiendasFiltradas) {
-        if (tiendasFiltradas.isNotEmpty() ) {
+        if (tiendasFiltradas.isNotEmpty()) {
             viewModelFiltros.tiendas_iniciales(tiendasFiltradas)
             listaMostrar = tiendasFiltradas
         }
@@ -333,7 +343,7 @@ fun Pantalla_filtrado_tiendas(
                         val listaOrdenada = listaMostrar.sortedByDescending { tienda ->
                             estado_tiendas?.get(tienda.id_tienda) == true
                         }
-                        Log.d("logemoscambios","$listaOrdenada")
+                        Log.d("logemoscambios", "$listaOrdenada")
                         items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
                             item_tiendas(
                                 tienda,
@@ -357,9 +367,15 @@ fun Pantalla_filtrado_tiendas(
                                             change.consume()
 
                                             val newX = (offsetX.value + dragAmount.x)
-                                                .coerceIn(paddingPx, screenWidth - bubbleSizePx - paddingPx)
+                                                .coerceIn(
+                                                    paddingPx,
+                                                    screenWidth - bubbleSizePx - paddingPx
+                                                )
                                             val newY = (offsetY.value + dragAmount.y)
-                                                .coerceIn(paddingPx, screenHeight - bubbleSizePx - paddingPx)
+                                                .coerceIn(
+                                                    paddingPx,
+                                                    screenHeight - bubbleSizePx - paddingPx
+                                                )
 
                                             scope.launch {
                                                 offsetX.snapTo(newX)
@@ -411,14 +427,44 @@ fun Pantalla_filtrado_tiendas(
             }
         }
     }
-    if (showBottomSheet) {
+    if (showBottomSheet && firebaseAuth.currentUser != null) {
+        bottom_shet_tienda = true
+        bottom_sheet_iniciar_seccion = false
+    } else if (showBottomSheet && firebaseAuth.currentUser == null) {
+        bottom_shet_tienda = false
+        bottom_sheet_iniciar_seccion = true
+    }
+
+    if (bottom_shet_tienda) {
         bottom_sheet_tiendas_filtradas(
             estadoColor,
             viewModelFiltros,
-            dataclass_tienda_seleccionada, showBottomSheet
+            dataclass_tienda_seleccionada, bottom_shet_tienda
         ) {
+            bottom_shet_tienda = false
             showBottomSheet = false
         }
+    }
+
+    if (bottom_sheet_iniciar_seccion) {
+
+        bottom_sheet_registrate(
+            ondimis = {
+                bottom_sheet_iniciar_seccion = false
+                showBottomSheet = false
+            },
+            iniciar_seccion_normal = {
+                showBottomSheet = false
+                iniciar_normal()
+                bottom_sheet_iniciar_seccion},
+            continuar_con_google = {
+                showBottomSheet = false
+                con_google()
+                bottom_sheet_iniciar_seccion},
+            crear_cuenta_geinz = {
+                showBottomSheet = false
+                crear_cuenta()
+                bottom_sheet_iniciar_seccion})
     }
 
 
@@ -450,9 +496,11 @@ fun chips_filtrado(
     selecionado: (String) -> Unit
 ) {
     val lista_con_todos = listOf("Todos") + lista_subcategorias
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(60.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp), contentAlignment = Alignment.Center
+    ) {
         val showLeftShadow by remember {
             derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
         }
@@ -663,7 +711,11 @@ fun item_tiendas(
                     Spacer(modifier = Modifier.height(5.dp))
                     Caracteristicas_tiendas("Referencia : ", item_tiendas.referencia)
                     Spacer(modifier = Modifier.height(5.dp))
-                    tags_subcateogiras(item_tiendas.lista_subcategoiras, brush_start = Brush.horizontalGradient(colors = strat_subcategoria_shadow ), brush_end =Brush.horizontalGradient(colors = end_subcategoria_shadow) )
+                    tags_subcateogiras(
+                        item_tiendas.lista_subcategoiras,
+                        brush_start = Brush.horizontalGradient(colors = strat_subcategoria_shadow),
+                        brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow)
+                    )
                     Spacer(modifier = Modifier.height(5.dp))
                     estados_tiendas(estadoTexto, estadoColor)
                 }

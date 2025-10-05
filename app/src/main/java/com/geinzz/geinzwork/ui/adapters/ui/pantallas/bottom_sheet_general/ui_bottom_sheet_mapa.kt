@@ -6,15 +6,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
@@ -31,76 +35,89 @@ fun bottom_sheet_mapa(
     lista: List<tiendas_por_categoria>,
     onclose: () -> Unit,
     selecionado_id: (String?) -> Unit,
-    datos_selecionado_retornar:(dataclass_map)-> Unit
+    datos_selecionado_retornar: (dataclass_map) -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = { onclose() },containerColor = MaterialTheme.colorScheme.background) {
 
-        when(tipo){
-            "turismo"->{
-                listado_items(
-                    cameraPositionState,
-                    lista = lista_filtrada_turismo,
-                    getId = { it.id_lugar_turistico },
-                    getLat = { it.latitud },
-                    getLng = { it.longitud },
-                    getLogo = { it.img_ref },
-                    getNombre = { it.titulo },
-                    getDescripcion = { it.descripcion },
-                    selecionado = { id ->
-                        selecionado_id(id.id_lugar_turistico)
-                        datos_selecionado_retornar(dataclass_map(
-                            id.id_lugar_turistico,
-                            id.titulo,
-                            id.subcategoria_filtrado,
-                            lat_user,
-                            log_user,
-                            id.latitud,
-                            id.longitud,
-                            id.id_lugar_turistico,
-                            "",
-                            id.direcccion,
-                            id.referencia
-                        ))
-                    }
 
-                )
+    ModalBottomSheet(
+        onDismissRequest = { onclose() },
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
+        FuenteControladaApp {
+            when (tipo) {
+                "turismo" -> {
+                    listado_items(
+                        cameraPositionState,
+                        lista = lista_filtrada_turismo,
+                        getId = { it.id_lugar_turistico },
+                        getLat = { it.latitud },
+                        getLng = { it.longitud },
+                        getLogo = { it.img_ref },
+                        getNombre = { it.titulo },
+                        getDescripcion = { it.descripcion },
+                        selecionado = { id ->
+                            selecionado_id(id.id_lugar_turistico)
+                            datos_selecionado_retornar(
+                                dataclass_map(
+                                    id.id_lugar_turistico,
+                                    id.titulo,
+                                    id.subcategoria_filtrado,
+                                    lat_user,
+                                    log_user,
+                                    id.latitud,
+                                    id.longitud,
+                                    id.id_lugar_turistico,
+                                    "",
+                                    id.direcccion,
+                                    id.referencia
+                                )
+                            )
+                        }
 
+                    )
+
+                }
+
+                "tiendas" -> {
+                    listado_items(
+                        cameraPositionState,
+                        lista = lista,
+                        getId = { it.id_tienda },
+                        getLat = { it.latitud },
+                        getLng = { it.longitud },
+                        getLogo = { it.logo_tienda },
+                        getNombre = { it.nombre_tienda },
+                        getDescripcion = { it.descripcion },
+                        selecionado = { id ->
+                            selecionado_id(id.id_tienda)
+                            datos_selecionado_retornar(
+                                dataclass_map(
+                                    id.logo_tienda,
+                                    id.nombre_tienda,
+                                    id.lista_subcategoiras,
+                                    lat_user,
+                                    log_user,
+                                    id.latitud,
+                                    id.longitud,
+                                    id.id_tienda,
+                                    "",
+                                    id.direccion,
+                                    id.referencia,
+                                )
+                            )
+                        }
+                    )
+                }
+
+                else -> {}
             }
-            "tiendas"->{
-                listado_items(
-                    cameraPositionState,
-                    lista = lista,
-                    getId = { it.id_tienda },
-                    getLat = { it.latitud },
-                    getLng = { it.longitud },
-                    getLogo = { it.logo_tienda },
-                    getNombre = { it.nombre_tienda },
-                    getDescripcion = { it.descripcion },
-                    selecionado = { id ->
-                        selecionado_id(id.id_tienda)
-                        datos_selecionado_retornar(dataclass_map(
-                            id.logo_tienda,
-                            id.nombre_tienda,
-                            id.lista_subcategoiras,
-                            lat_user,
-                            log_user,
-                            id.latitud,
-                            id.longitud,
-                            id.id_tienda,
-                            "",
-                            id.direccion,
-                            id.referencia,
-                        ))
-                    }
-                )
-            }
-
-            else->{}
-        }
 //        listado_items(cameraPositionState,lista){selecionado->
 //            selecionado_id(selecionado)
 //        }
+        }
+
     }
+
 
 }
 

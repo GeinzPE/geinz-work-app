@@ -250,7 +250,7 @@ fun cabezero_activity(localidad_registrado: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 5.dp),
     ) {
         titulos_genericos_one_line(
             "Ubicate $localidad_registrado", MaterialTheme.typography.headlineSmall,
@@ -260,9 +260,8 @@ fun cabezero_activity(localidad_registrado: String) {
         )
         spacer_vertical(5.dp)
         texto_generico_multilinea(
-            "Explora las diferentes categorías de tiendas\n" +
-                    "registradas en Geinz Work y ubícate fácilmente en $localidad_registrado",
-            MaterialTheme.typography.bodyMedium
+            "Explora las diferentes categorías de tiendas registradas en Geinz Work y ubícate fácilmente en $localidad_registrado",
+            MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 10.dp)
         )
 
     }
@@ -441,10 +440,10 @@ fun cartas_categorias(
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val gradient = remember {
         Brush.verticalGradient(
-            colors = listOf(
-                Color.Black.copy(alpha = 0.6f),
-                Color.Transparent,
-                Color.Black.copy(alpha = 1f)
+            colors  = listOf(
+                 Color.Transparent,              // parte superior sin sombra
+                Color.Black.copy(alpha = 0.55f), // más densa hacia abajo
+                 Color.Black.copy(alpha = 1f) // casi negro abajo
             )
         )
     }
@@ -464,25 +463,6 @@ fun cartas_categorias(
                     .fillMaxWidth()
                     .weight(1.7f)
             ) {
-
-//                AsyncImage(
-//                    model = ImageRequest.Builder(LocalContext.current)
-//                        .data(item.img_subcategorias)
-//                        .size(screenWidth, boxHeightPx)
-//                        .memoryCachePolicy(CachePolicy.ENABLED)
-//                        .placeholder(R.drawable.cargando_img_categorias)
-//                        .error(R.drawable.cargando_img_categorias)
-//                        .build(),
-//                    contentDescription = "Imagen de la tienda",
-//                    contentScale = ContentScale.Crop,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clip(RoundedCornerShape(8.dp))
-//                        .clickable {
-//                            clik_img(item.categoria, Localidad_selecionada, nombre_user)
-//                        }
-//                )
-
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.img_subcategorias)
@@ -506,7 +486,7 @@ fun cartas_categorias(
                 )
                 Box(
                     modifier = Modifier
-                        .matchParentSize()
+                        .fillMaxSize()
                         .background(
                             gradient
                         )

@@ -48,6 +48,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -67,12 +68,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -104,6 +107,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
@@ -161,12 +165,13 @@ fun bottom_sheet_tiendas_filtradas(
 
     if (!visible) return
 
-    Surface {
-        ModalBottomSheet(
-            onDismissRequest = { onClose() },
-            modifier = Modifier.fillMaxWidth(),
-            dragHandle = null
-        ) {
+
+    ModalBottomSheet(
+        onDismissRequest = { onClose() },
+        modifier = Modifier.fillMaxWidth(),
+        dragHandle = null
+    ) {
+        FuenteControladaApp {
             if (cargando) {
                 Box(
                     modifier = Modifier
@@ -278,6 +283,8 @@ fun bottom_sheet_tiendas_filtradas(
             }
         }
     }
+
+
 }
 
 
@@ -443,7 +450,7 @@ fun lista_img_tiendas(img: String) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(img)
-                .size(100,100)
+                .size(100, 100)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
                 .build(),
@@ -658,7 +665,11 @@ fun perfil_cabezero(
         )
         spacer_vertical(10.dp)
 
-        tags_subcateogiras(lista_tags, brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default), brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default) )
+        tags_subcateogiras(
+            lista_tags,
+            brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default),
+            brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default)
+        )
     }
 
 }

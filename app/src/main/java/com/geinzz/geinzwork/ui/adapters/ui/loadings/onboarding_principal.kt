@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -75,17 +76,19 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenConInclinacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun OnboardingPrincipal(onFinish:()-> Unit) {
+fun OnboardingPrincipal(onFinish: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
     val lista_colores_degradado_bottom = constantes_lista_localidades.lista_color_degradado_bottom
@@ -109,7 +112,7 @@ fun OnboardingPrincipal(onFinish:()-> Unit) {
                     }
                 }
 
-                1 -> pantalla2(lista_colores_degradado_bottom){
+                1 -> pantalla2(lista_colores_degradado_bottom) {
                     onFinish()
                 }
             }
@@ -165,7 +168,7 @@ fun pantalla1(lista_colores_degradado: List<Color>, onNext: () -> Unit) {
             spacer_vertical(15.dp)
             texto_generico_multilinea(
                 "Explora Barranca, Supe, Puerto Supe, Pativilca y Paramonga. Descubre tiendas, lugares turísticos y los eventos más próximos en cada localidad. Mantente al día con todo lo que sucede cerca de ti y encuentra fácilmente los sitios que quieres visitar",
-                MaterialTheme.typography.bodyMedium,Color = Color.White
+                MaterialTheme.typography.bodyMedium, Color = Color.White
             )
             spacer_vertical(20.dp)
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -275,7 +278,7 @@ fun FondoOscuroAlto(listaColores: List<Color>) {
 
 
 @Composable
-fun pantalla2(lista_colores_degradaro: List<Color>,onFinish:()-> Unit) {
+fun pantalla2(lista_colores_degradaro: List<Color>, onFinish: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { 4 })
     val scope = rememberCoroutineScope()
 
@@ -297,7 +300,7 @@ fun pantalla2(lista_colores_degradaro: List<Color>,onFinish:()-> Unit) {
                     }
                 }
 
-                1 -> pantalla4(pagerState = pagerState, page = page, lista_colores_degradaro){
+                1 -> pantalla4(pagerState = pagerState, page = page, lista_colores_degradaro) {
                     scope.launch {
                         pagerState.animateScrollToPage(
                             page = 2,
@@ -308,7 +311,8 @@ fun pantalla2(lista_colores_degradaro: List<Color>,onFinish:()-> Unit) {
                         )
                     }
                 }
-                2 -> pantalla5(pagerState = pagerState, page = page, lista_colores_degradaro){
+
+                2 -> pantalla5(pagerState = pagerState, page = page, lista_colores_degradaro) {
                     scope.launch {
                         pagerState.animateScrollToPage(
                             page = 3,
@@ -319,7 +323,8 @@ fun pantalla2(lista_colores_degradaro: List<Color>,onFinish:()-> Unit) {
                         )
                     }
                 }
-                3 -> pantalla6(pagerState = pagerState, page = page, lista_colores_degradaro){
+
+                3 -> pantalla6(pagerState = pagerState, page = page, lista_colores_degradaro) {
                     onFinish()
                 }
             }
@@ -392,394 +397,11 @@ fun pantalla3(
         }
 
         fondo_osucro(lista_colocares = lista_colores_degradado_top)
-        Box(modifier = Modifier
-            .align(Alignment.BottomStart)
-            .padding(bottom = 20.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(10.dp)
-                ) {
-                    spacer_vertical(20.dp)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(IntrinsicSize.Min)
-                    ) {
-                        Crossfade(
-                            targetState = currentImageIndex,
-                            animationSpec = tween(1500)
-                        ) { index ->
-                            texto_generico_multilinea(
-                                lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork,Color = Color.White
-                            )
-                        }
-                    }
-
-                    spacer_vertical(15.dp)
-                    Crossfade(
-                        targetState = currentImageIndex,
-                        animationSpec = tween(1500)
-                    ) { index ->
-                        texto_generico_multilinea(
-                            lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium,Color = Color.White
-                        )
-                    }
-
-
-                }
-                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
-                    CelularAnimacion(
-                        modifier = Modifier.align(
-                            Alignment.BottomCenter
-                        ), {
-                            onNext()
-                        }, orientation = Orientation.Horizontal
-                    )
-
-                }
-            }
-
-        }
-
-        FondoOscuroAlto(lista_colores_degradado)
-        CartaLocalizacion(
-            lugar = "Explora a tu manera",
-            localida = "Geinz", false
-        )
-
-    }
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun pantalla4(    pagerState: PagerState,
-                  page: Int,
-                  lista_colores_degradado: List<Color>,
-                  onNext: () -> Unit) {
-    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
-
-    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
-    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
-    val scaleAnim = remember { Animatable(1f) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(5000)
-            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
-        }
-    }
-
-    LaunchedEffect(pagerState.currentPage) {
-        if (pagerState.currentPage == page) {
-            while (true) {
-                // Zoom hacia 1.15f
-                scaleAnim.animateTo(
-                    targetValue = 1.15f,
-                    animationSpec = tween(2500, easing = LinearEasing)
-                )
-                // Zoom de regreso a 1f
-                scaleAnim.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(2500, easing = LinearEasing)
-                )
-                // Cambia la imagen solo cuando vuelve a su tamaño normal
-                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
-            }
-        } else {
-            scaleAnim.snapTo(1f)
-        }
-    }
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Imagen
-        AnimatedContent(
-            targetState = currentImageIndex,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
-            }
-        ) { index ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(lista_sub_pantallas[index].img)
-                    .crossfade(false)
-                    .build(),
-                contentDescription = null,
-
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        fondo_osucro(lista_colocares = lista_colores_degradado_top)
-        Box(modifier = Modifier
-            .align(Alignment.BottomStart)
-            .padding(bottom = 20.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(10.dp)
-                ) {
-                    spacer_vertical(20.dp)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(IntrinsicSize.Min)
-                    ) {
-                        Crossfade(
-                            targetState = currentImageIndex,
-                            animationSpec = tween(1500)
-                        ) { index ->
-                            texto_generico_multilinea(
-                                lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork,Color = Color.White
-                            )
-                        }
-                    }
-
-                    spacer_vertical(15.dp)
-                    Crossfade(
-                        targetState = currentImageIndex,
-                        animationSpec = tween(1500)
-                    ) { index ->
-                        texto_generico_multilinea(
-                            lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium,Color = Color.White
-                        )
-                    }
-
-
-                }
-                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
-                    CelularAnimacion(
-                        modifier = Modifier.align(
-                            Alignment.BottomCenter
-                        ), {
-                            onNext()
-                        }, orientation = Orientation.Horizontal
-                    )
-
-                }
-            }
-
-        }
-
-        FondoOscuroAlto(lista_colores_degradado)
-        CartaLocalizacion(
-            lugar = "Explora a tu manera",
-            localida = "Geinz", false
-        )
-
-    }
-}
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun pantalla5(    pagerState: PagerState,
-                  page: Int,
-                  lista_colores_degradado: List<Color>,
-                  onNext: () -> Unit) {
-    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
-
-    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
-    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
-    val scaleAnim = remember { Animatable(1f) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(5000)
-            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
-        }
-    }
-
-    LaunchedEffect(pagerState.currentPage) {
-        if (pagerState.currentPage == page) {
-            while (true) {
-                // Zoom hacia 1.15f
-                scaleAnim.animateTo(
-                    targetValue = 1.15f,
-                    animationSpec = tween(2500, easing = LinearEasing)
-                )
-                // Zoom de regreso a 1f
-                scaleAnim.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(2500, easing = LinearEasing)
-                )
-                // Cambia la imagen solo cuando vuelve a su tamaño normal
-                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
-            }
-        } else {
-            scaleAnim.snapTo(1f)
-        }
-    }
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Imagen
-        AnimatedContent(
-            targetState = currentImageIndex,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
-            }
-        ) { index ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(lista_sub_pantallas[index].img)
-                    .crossfade(false)
-                    .build(),
-                contentDescription = null,
-
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        fondo_osucro(lista_colocares = lista_colores_degradado_top)
-        Box(modifier = Modifier
-            .align(Alignment.BottomStart)
-            .padding(bottom = 20.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(10.dp)
-                ) {
-                    spacer_vertical(20.dp)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(IntrinsicSize.Min)
-                    ) {
-                        Crossfade(
-                            targetState = currentImageIndex,
-                            animationSpec = tween(1500)
-                        ) { index ->
-                            texto_generico_multilinea(
-                                lista_sub_pantallas[index].titulo.uppercase(),
-                                MaterialTheme.typography.busquedaGeinzWork,Color = Color.White
-                            )
-                        }
-                    }
-
-                    spacer_vertical(15.dp)
-                    Crossfade(
-                        targetState = currentImageIndex,
-                        animationSpec = tween(1500)
-                    ) { index ->
-                        texto_generico_multilinea(
-                            lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium,Color = Color.White
-                        )
-                    }
-
-
-                }
-                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
-                    CelularAnimacion(
-                        modifier = Modifier.align(
-                            Alignment.BottomCenter
-                        ), {
-                            onNext()
-                        }, orientation = Orientation.Horizontal
-                    )
-
-                }
-            }
-
-        }
-
-        FondoOscuroAlto(lista_colores_degradado)
-        CartaLocalizacion(
-            lugar = "Explora a tu manera",
-            localida = "Geinz", false
-        )
-
-    }
-}
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun pantalla6(    pagerState: PagerState,
-                  page: Int,
-                  lista_colores_degradado: List<Color>,
-                  onNext: () -> Unit) {
-    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
-
-    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
-    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
-    val scaleAnim = remember { Animatable(1f) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(5000)
-            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
-        }
-    }
-
-    LaunchedEffect(pagerState.currentPage) {
-        if (pagerState.currentPage == page) {
-            while (true) {
-                // Zoom hacia 1.15f
-                scaleAnim.animateTo(
-                    targetValue = 1.15f,
-                    animationSpec = tween(2500, easing = LinearEasing)
-                )
-                // Zoom de regreso a 1f
-                scaleAnim.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(2500, easing = LinearEasing)
-                )
-                // Cambia la imagen solo cuando vuelve a su tamaño normal
-                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
-            }
-        } else {
-            scaleAnim.snapTo(1f)
-        }
-    }
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Imagen
-        AnimatedContent(
-            targetState = currentImageIndex,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
-            }
-        ) { index ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(lista_sub_pantallas[index].img)
-                    .crossfade(false)
-                    .build(),
-                contentDescription = null,
-
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        fondo_osucro(lista_colocares = lista_colores_degradado_top)
-        Box(modifier = Modifier
-            .align(Alignment.BottomStart)
-            .padding(bottom = 20.dp)) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 20.dp)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -815,7 +437,7 @@ fun pantalla6(    pagerState: PagerState,
                     ) { index ->
                         texto_generico_multilinea(
                             lista_sub_pantallas[index].texto,
-                            MaterialTheme.typography.bodyMedium,Color = Color.White
+                            MaterialTheme.typography.bodyMedium, Color = Color.White
                         )
                     }
 
@@ -844,26 +466,501 @@ fun pantalla6(    pagerState: PagerState,
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CameraZoomSobreImagen(scale: Float) {
+fun pantalla4(
+    pagerState: PagerState,
+    page: Int,
+    lista_colores_degradado: List<Color>,
+    onNext: () -> Unit
+) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        AsyncImage(
-            model = R.drawable.f1,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
+    val scaleAnim = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == page) {
+            while (true) {
+                // Zoom hacia 1.15f
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Zoom de regreso a 1f
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Cambia la imagen solo cuando vuelve a su tamaño normal
+                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+            }
+        } else {
+            scaleAnim.snapTo(1f)
+        }
+    }
+
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Imagen
+        AnimatedContent(
+            targetState = currentImageIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+            }
+        ) { index ->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_sub_pantallas[index].img)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
+
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
+                .align(Alignment.BottomStart)
+                .padding(bottom = 20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Crossfade(
+                            targetState = currentImageIndex,
+                            animationSpec = tween(1500)
+                        ) { index ->
+                            texto_generico_multilinea(
+                                lista_sub_pantallas[index].titulo.uppercase(),
+                                MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
+                            )
+                        }
+                    }
+
+                    spacer_vertical(15.dp)
+                    Crossfade(
+                        targetState = currentImageIndex,
+                        animationSpec = tween(1500)
+                    ) { index ->
+                        texto_generico_multilinea(
+                            lista_sub_pantallas[index].texto,
+                            MaterialTheme.typography.bodyMedium, Color = Color.White
+                        )
+                    }
+
+
                 }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Explora a tu manera",
+            localida = "Geinz", false
         )
 
     }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun pantalla5(
+    pagerState: PagerState,
+    page: Int,
+    lista_colores_degradado: List<Color>,
+    onNext: () -> Unit
+) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
+
+    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
+    val scaleAnim = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == page) {
+            while (true) {
+                // Zoom hacia 1.15f
+                scaleAnim.animateTo(
+                    targetValue = 1.15f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Zoom de regreso a 1f
+                scaleAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(2500, easing = LinearEasing)
+                )
+                // Cambia la imagen solo cuando vuelve a su tamaño normal
+                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+            }
+        } else {
+            scaleAnim.snapTo(1f)
+        }
+    }
+
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Imagen
+        AnimatedContent(
+            targetState = currentImageIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+            }
+        ) { index ->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(lista_sub_pantallas[index].img)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
+
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Crossfade(
+                            targetState = currentImageIndex,
+                            animationSpec = tween(1500)
+                        ) { index ->
+                            texto_generico_multilinea(
+                                lista_sub_pantallas[index].titulo.uppercase(),
+                                MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
+                            )
+                        }
+                    }
+
+                    spacer_vertical(15.dp)
+                    Crossfade(
+                        targetState = currentImageIndex,
+                        animationSpec = tween(1500)
+                    ) { index ->
+                        texto_generico_multilinea(
+                            lista_sub_pantallas[index].texto,
+                            MaterialTheme.typography.bodyMedium, Color = Color.White
+                        )
+                    }
+
+
+                }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Explora a tu manera",
+            localida = "Geinz", false
+        )
+
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun pantalla6(
+    pagerState: PagerState,
+    page: Int,
+    lista_colores_degradado: List<Color>,
+    onNext: () -> Unit
+) {
+//    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
+//
+//    val lista_sub_pantallas = constantes_lista_localidades.fracespantalla1
+//    var currentImageIndex by rememberSaveable { mutableStateOf(0) }
+//    val scaleAnim = remember { Animatable(1f) }
+//    LaunchedEffect(Unit) {
+//        while (true) {
+//            delay(5000)
+//            currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+//        }
+//    }
+//
+//    LaunchedEffect(pagerState.currentPage) {
+//        if (pagerState.currentPage == page) {
+//            while (true) {
+//                // Zoom hacia 1.15f
+//                scaleAnim.animateTo(
+//                    targetValue = 1.15f,
+//                    animationSpec = tween(2500, easing = LinearEasing)
+//                )
+//                // Zoom de regreso a 1f
+//                scaleAnim.animateTo(
+//                    targetValue = 1f,
+//                    animationSpec = tween(2500, easing = LinearEasing)
+//                )
+//                // Cambia la imagen solo cuando vuelve a su tamaño normal
+//                currentImageIndex = (currentImageIndex + 1) % lista_sub_pantallas.size
+//            }
+//        } else {
+//            scaleAnim.snapTo(1f)
+//        }
+//    }
+//
+//
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        // Imagen
+//        AnimatedContent(
+//            targetState = currentImageIndex,
+//            transitionSpec = {
+//                fadeIn(animationSpec = tween(1500)) with fadeOut(animationSpec = tween(1500))
+//            }
+//        ) { index ->
+//            AsyncImage(
+//                model = ImageRequest.Builder(LocalContext.current)
+//                    .data(lista_sub_pantallas[index].img)
+//                    .crossfade(false)
+//                    .build(),
+//                contentDescription = null,
+//
+//                modifier = Modifier
+//                    .fillMaxSize(),
+//                contentScale = ContentScale.Crop
+//            )
+//        }
+//
+//        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+//        Box(modifier = Modifier
+//            .align(Alignment.BottomStart)
+//            .padding(bottom = 20.dp)) {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth(),
+//                verticalAlignment = Alignment.Bottom
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .weight(1f)
+//                        .padding(10.dp)
+//                ) {
+//                    spacer_vertical(20.dp)
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxWidth(0.7f)
+//                            .height(IntrinsicSize.Min)
+//                    ) {
+//                        Crossfade(
+//                            targetState = currentImageIndex,
+//                            animationSpec = tween(1500)
+//                        ) { index ->
+//                            texto_generico_multilinea(
+//                                lista_sub_pantallas[index].titulo.uppercase(),
+//                                MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
+//                            )
+//                        }
+//                    }
+//
+//                    spacer_vertical(15.dp)
+//                    Crossfade(
+//                        targetState = currentImageIndex,
+//                        animationSpec = tween(1500)
+//                    ) { index ->
+//                        texto_generico_multilinea(
+//                            lista_sub_pantallas[index].texto,
+//                            MaterialTheme.typography.bodyMedium,Color = Color.White
+//                        )
+//                    }
+//
+//
+//                }
+//                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+//                    CelularAnimacion(
+//                        modifier = Modifier.align(
+//                            Alignment.BottomCenter
+//                        ), {
+//                            onNext()
+//                        }, orientation = Orientation.Horizontal
+//                    )
+//
+//                }
+//            }
+//
+//        }
+//
+//        FondoOscuroAlto(lista_colores_degradado)
+//        CartaLocalizacion(
+//            lugar = "Explora a tu manera",
+//            localida = "Geinz", false
+//        )
+//
+//    }
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+
+    // Escala animada (de 0.95 a 1.05, muy sutil)
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.9f,  // más pequeño al inicio
+        targetValue = 1.1f,   // se expande un poco más
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2800, // más lenta = más natural
+                easing = FastOutSlowInEasing // respiración más orgánica
+            ),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+        Box(
+            modifier = Modifier
+                .size(310.dp)
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale
+                )
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF8700F3).copy(alpha = 0.7f),
+                            Color.Transparent
+                        ),
+                    ),
+                    shape = RoundedCornerShape(200.dp)
+                )
+        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(painter = painterResource(R.drawable.logo_geinz_blanco), contentDescription = "logo", modifier = Modifier.size(60.dp))
+
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 30.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // --- Foto 1 (Izquierda) ---
+                ImagenConInclinacion(
+                    drawableResId = R.drawable.f1,
+                    anguloRotacion = -8f,
+                    desplazamientoX = -70.dp,
+                    desplazamientoY = 20.dp
+                )
+
+                // --- Foto 2 (Centro, la protagonista) ---
+                ImagenConInclinacion(
+                    drawableResId = R.drawable.f5,
+                    anguloRotacion = 3f,
+                    desplazamientoX = 0.dp,
+                    desplazamientoY = 0.dp
+                )
+
+                // --- Foto 3 (Derecha) ---
+                ImagenConInclinacion(
+                    drawableResId = R.drawable.f4,
+                    anguloRotacion = 7f,
+                    desplazamientoX = 70.dp,
+                    desplazamientoY = 40.dp
+                )
+            }
+            spacer_vertical(30.dp)
+            Text(
+                text = "Empezemos a explorar juntos",
+                fontFamily = baners_geinz_work,
+                fontSize = 20.sp, textAlign = TextAlign.Center, color = Color.White
+            )
+            spacer_vertical(10.dp)
+            Box(
+                Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                texto_generico_one_line(
+                    "Empezar",
+                    MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .padding(vertical = 20.dp, horizontal = 30.dp)
+                        .clickable {
+                            onNext()
+                        })
+            }
+        }
+
+//        CelularAnimacion(
+//            modifier = Modifier.align(
+//                Alignment.BottomCenter
+//            ), {
+//                onNext()
+//            }, orientation = Orientation.Horizontal
+//        )
+
+    }
+
+
 }
 
 @Composable

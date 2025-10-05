@@ -52,11 +52,13 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_princ
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.ui_pantalla_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos.iu_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.iniciar_seccion_normal
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPress
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
@@ -95,10 +97,11 @@ fun nativationWrapper(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val viewmodel_usuario_registrado: viewmodel_usuario_registrado = viewModel()
-    val viewModel_localizate_geinz:viewModel_localizate_geinz=viewModel()
+    val viewModel_localizate_geinz: viewModel_localizate_geinz = viewModel()
     val focusRequester = remember { FocusRequester() }
     var isvisble_buttomvar by rememberSaveable { mutableStateOf(true) }
     val datos_user by viewmodel_usuario_registrado.userData.observeAsState()
+    var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
 
     var datos_principales_user by remember {
         mutableStateOf(datos_principales_user("Usuario", "", ""))
@@ -215,25 +218,22 @@ fun nativationWrapper(
                             )
                         },
                         clikear_cartas = { categoria, nombre, localidad ->
-                            if(categoria.equals("turismo")){
-                                Toast.makeText(context, "Geinz esta trabajando para darle mejor experiencia", Toast.LENGTH_SHORT).show()
-                                return@pantalla_principal
-                            }
-                            if (firebaseAuth.currentUser != null) {
-                                navController.navigate(
-                                    screen_filtrado(
-                                        categoria,
-                                        nombre,
-                                        localidad,
-                                    )
-                                )
-                            } else {
+                            if (categoria.equals("turismo")) {
                                 Toast.makeText(
                                     context,
-                                    "Registrate primero bro",
+                                    "Geinz esta trabajando para darle mejor experiencia",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                return@pantalla_principal
                             }
+                            navController.navigate(
+                                screen_filtrado(
+                                    categoria,
+                                    nombre,
+                                    localidad,
+                                )
+                            )
+
                         },
                         ver_lugares = { localidad ->
                             Log.d("localidad_defautl_user", localidad)
@@ -290,26 +290,24 @@ fun nativationWrapper(
                         datos_user.nombre_user,
                         viewModel_localizate_geinz,
                         clik_img = { categoria, localidada, nombre_user ->
-                            if(categoria.equals("turismo")){
-                                Toast.makeText(context, "Geinz esta trabajando para darle mejor experiencia", Toast.LENGTH_SHORT).show()
-                                return@PantallaExplorarTiendas
-                            }
-                            Log.d("clikeamos_img","$categoria")
-                            if (firebaseAuth.currentUser != null) {
-                                navController.navigate(
-                                    screen_filtrado(
-                                        categoria,
-                                        localidada,
-                                        nombre_user
-                                    )
-                                )
-                            } else {
+                            if (categoria.equals("turismo")) {
                                 Toast.makeText(
                                     context,
-                                    "Registrate primero bro",
+                                    "Geinz esta trabajando para darle mejor experiencia",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                return@PantallaExplorarTiendas
                             }
+                            Log.d("clikeamos_img", "$categoria")
+
+                            navController.navigate(
+                                screen_filtrado(
+                                    categoria,
+                                    localidada,
+                                    nombre_user
+                                )
+                            )
+
 
                         }
                     )
@@ -336,6 +334,12 @@ fun nativationWrapper(
                         navigation_regresar = { navController.popBackStack() },
                         abrir_mapa = { tipo, localidad ->
                             navController.navigate(map_perzonalizado(tipo, localidad))
+                        }, iniciar_normal = {
+                            navController.navigate("login_principal")
+                        }, con_google = {
+                            navController.navigate("login_principal")
+                        }, crear_cuenta = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
                         }
                     )
                 }
@@ -407,6 +411,13 @@ fun nativationWrapper(
             ) {
                 pantalla_carga_login()
             }
+        }
+        if (bottom_sheet_iniciar_seccion) {
+            bottom_sheet_registrate(
+                ondimis = { bottom_sheet_iniciar_seccion = false },
+                iniciar_seccion_normal = {},
+                continuar_con_google = { },
+                crear_cuenta_geinz = { })
         }
     }
 }

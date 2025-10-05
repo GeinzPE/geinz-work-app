@@ -257,6 +257,7 @@ fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier,b
             modifier = Modifier
                 .fillMaxHeight()
                 .width(40.dp)
+                .clip(CircleShape)
                 .align(Alignment.CenterStart)
                 .zIndex(1f)
                 .alpha(alphaLeft)
@@ -269,6 +270,7 @@ fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier,b
             modifier = Modifier
                 .fillMaxHeight()
                 .width(40.dp)
+                .clip(CircleShape)
                 .align(Alignment.CenterEnd)
                 .zIndex(1f)
                 .alpha(alphaRight)

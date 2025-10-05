@@ -7,7 +7,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -67,11 +71,13 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgencias
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
@@ -86,6 +92,7 @@ fun ui_salud_seguirdad(
     localida: String,
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
 ) {
+
 
     val lista_filtrado = listOf<String>("Todos", "salud", "seguridad")
     val lista_seguridad_salud by viewmode_segurirdad_Salud._datos_lugares.observeAsState(emptyList())
@@ -141,60 +148,124 @@ fun ui_salud_seguirdad(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
+    var sin_resultados by remember { mutableStateOf(false) }
+    var toastShown by remember { mutableStateOf(false) }
+    val stickyHeaderIndex = 1
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
+            toastShown = true
+        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
+            toastShown = false
+        }
+    }
+    val paddingAnim by animateDpAsState(
+        targetValue = if (toastShown) 10.dp else 0.dp,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
+        )
+    )
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(10.dp)
     ) {
-        LazyColumn ( state = listState, verticalArrangement = Arrangement.spacedBy(10.dp)){
+        LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            item {
+                texto_generico_multilinea(
+                    "Salud y Seguridad Pública",
+                    style = MaterialTheme.typography.banerGeinzWork,
+                    modifier = Modifier.padding(end = 20.dp)
+                )
+                spacer_vertical(5.dp)
+                texto_generico_multilinea(
+                    "Tu bienestar es primero: localiza hospitales, comisarías, bomberos y servicios de ayuda cuando los necesites.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
             stickyHeader {
-                ColumnContenedorComun (modifier = Modifier.clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp))){
-                    filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
-                    spacer_vertical(10.dp)
-                    chips_filtrado(chip_selecionado, lista_filtrado) { i ->
-                        chip_selecionado = i
+                ColumnContenedorComun(
+                    modifier = Modifier.clip(
+                        RoundedCornerShape(
+                            bottomStart = 10.dp,
+                            bottomEnd = 10.dp
+                        )
+                    )
+                ) {
+                    Column (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = paddingAnim,
+                                end = paddingAnim,
+                                bottom = (paddingAnim - 5.dp).coerceAtLeast(0.dp)
+                            )
+                    ) {
+                        filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
+                        spacer_vertical(10.dp)
+                        chips_filtrado(chip_selecionado, lista_filtrado) { i ->
+                            chip_selecionado = i
+                        }
                     }
                 }
             }
-
-            if (isLoading) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+            if (!isLoading) {
+                if (lista_mostrar.isNotEmpty()) {
+                    items(lista_mostrar) { i ->
+                        sin_resultados = false
+                        Box(modifier = Modifier.padding(8.dp)) {
+                            carta_salud_cuidad(
+                                viewmode_segurirdad_Salud,
+                                i,
+                                abrir_mapa = { la, lo ->
+                                    viewmode_segurirdad_Salud.setCoordenadas(la, lo)
+                                    abrir_mapa(la, lo)
+                                })
+                        }
                     }
-                }
-            } else {
-                items(lista_mostrar) { i ->
-                    Box(modifier = Modifier.padding(8.dp)) {
-                        carta_salud_cuidad(viewmode_segurirdad_Salud,i, abrir_mapa = { la, lo ->
-                            viewmode_segurirdad_Salud.setCoordenadas(la, lo)
-                            abrir_mapa(la, lo)
-                        })
-                    }
+                } else {
+                    sin_resultados = true
                 }
             }
         }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(40.dp)
-            .align(Alignment.BottomCenter)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color.Black
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                sin_resultados = false
+                CircularProgressIndicator()
+            }
+        }
+        if (sin_resultados) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                texto_generico_one_line(
+                    "No se encontraron resultados $valor_filtrado",
+                    color = Color.Gray
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
                     )
                 )
-            )
-            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
-    )
+                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+        )
     }
 }
 
@@ -297,54 +368,62 @@ fun carta_salud_cuidad(
                 .clip(RoundedCornerShape(5)),
             contentScale = ContentScale.Crop
         )
-        Column(modifier = Modifier.padding(
-            start = 10.dp, end = 10.dp , top = 5.dp, bottom = 5.dp)) {
+        Column(
+            modifier = Modifier.padding(start = 10.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)
+        ) {
             texto_generico_one_line(
                 i.nombre_,
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge
             )
             spacer_vertical(5.dp)
-            texto_generico_one_line("${i.categoria.capitalizeFirst()}", color = Color.White)
-            spacer_vertical(5.dp)
-            texto_generico_one_line("direccion : ${i.direccion}", color = Color.White)
-            spacer_vertical(5.dp)
-            texto_generico_one_line(viewmode_segurirdad_Salud.horario_atencion(i.nombre_), color = Color.White)
+            if (i.direccion.isNotEmpty()) {
+                texto_generico_one_line(
+                    i.direccion, color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(5.dp)
+            }
+            texto_generico_one_line(
+                viewmode_segurirdad_Salud.horario_atencion(i.nombre_),
+                color = Color.White, style = MaterialTheme.typography.bodyMedium
+            )
             spacer_vertical(10.dp)
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                BtnCirculares(R.drawable.llamada_icon,) {
-                    dialogo_contacto=true
-                    lista_numero=i.numero_llamada
-                    icono_dialogo="llamada"
+                if (i.numero_llamada.isNotEmpty()) {
+                    BtnCirculares(R.drawable.llamada_icon) {
+                        dialogo_contacto = true
+                        lista_numero = i.numero_llamada
 
-                }
-                BtnCirculares(R.drawable.whatsapp_icon) {
-                    dialogo_contacto=true
-                    lista_numero=i.numero_whatsapp
-                    icono_dialogo="whatsapp"
+                        icono_dialogo = "llamada"
 
+                    }
                 }
-                BtnCirculares(
-                    R.drawable.vector_ruta_icon,
-                    fondo = MaterialTheme.colorScheme.primary
-                ) {
-                    constantes_lista_localidades.abrir_google_maps(
-                        context = context,
-                        i.latidud, i.longitud
-                    ) { mostrar_dialog ->
-                        dialogo_activar_ubicacion = mostrar_dialog
+                if (i.numero_whatsapp.isNotEmpty()) {
+                    BtnCirculares(R.drawable.whatsapp_icon) {
+                        dialogo_contacto = true
+                        lista_numero = i.numero_whatsapp
+                        icono_dialogo = "whatsapp"
+
+                    }
+                }
+                if (i.latidud != 0.0 || i.longitud != 0.0) {
+                    BtnCirculares(
+                        R.drawable.vector_ruta_icon,
+                        fondo = MaterialTheme.colorScheme.primary
+                    ) {
+                        constantes_lista_localidades.abrir_google_maps(
+                            context = context,
+                            i.latidud, i.longitud
+                        ) { mostrar_dialog ->
+                            dialogo_activar_ubicacion = mostrar_dialog
+                        }
                     }
                 }
             }
         }
     }
-    if (call_dialog_permise) {
-//        permisos_llamadas(aceptar_permisos = {
-//            requestCallPermission(context, i.numero_llamada)
-//        }, ondimis = {
-//            call_dialog_permise = false
-//        })
-    }
+
     if (dialogo_activar_ubicacion) {
         dialog_sin_ubicacion_activa(
             onDismis = {
@@ -359,9 +438,9 @@ fun carta_salud_cuidad(
             }
         )
     }
-    if(dialogo_contacto){
-        dialog_llamada_urgencias(lista_numero,icono_dialogo){
-            dialogo_contacto=false
+    if (dialogo_contacto) {
+        dialog_llamada_urgencias(lista_numero, icono_dialogo) {
+            dialogo_contacto = false
         }
     }
 }
@@ -370,7 +449,7 @@ fun carta_salud_cuidad(
 fun BtnCirculares(
     icono: Any,
     fondo: Color = Color.Transparent,
-    size: Dp = 32.dp,
+    size: Dp = 38.dp,
     iconSize: Dp = 20.dp,
     tint: Color = Color.White,
     listener: () -> Unit
@@ -392,10 +471,11 @@ fun BtnCirculares(
             is ImageVector -> Icon(
                 imageVector = icono,
                 contentDescription = null,
-                modifier = Modifier.size(iconSize).padding(5.dp),
+                modifier = Modifier
+                    .size(iconSize)
+                    .padding(5.dp),
                 tint = tint
             )
         }
     }
 }
-

@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -171,8 +172,7 @@ fun pantalla_principal(
     val stickyHeaderIndex = 1
     var toastShown by remember { mutableStateOf(false) }
 
-    val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
-    var aniversario by remember { mutableStateOf(false) }
+
 
 
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
@@ -670,7 +670,7 @@ fun texto_encimado_cartas(
     titulo: String,
     descripcion: String,
 ) {
-    Row(modifier = modifier.padding(start = 20.dp, end = 20.dp, bottom = 40.dp)) {
+    Row(modifier = modifier.padding(horizontal = 12.dp)) {
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -854,7 +854,6 @@ fun filtrado_localidades(
                     }
 
             ) {
-
                 AsyncImage(
                     model =
                         ImageRequest.Builder(LocalContext.current)
@@ -907,8 +906,10 @@ fun filtrado_localidades(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .fillMaxWidth()
+                        .fillMaxHeight()
                         .padding(12.dp)
                 ) {
+                    Spacer(modifier = Modifier.weight(1f))
                     texto_encimado_cartas(
                         aniversario,
                         localidad_defecto.equals(item.nombre, ignoreCase = true),
@@ -916,12 +917,9 @@ fun filtrado_localidades(
                         item.nombre.capitalizeFirst(),
                         titulo,
                     )
+                    Spacer(modifier = Modifier.weight(.2f))
                 }
-
-
             }
-
-
         }
     } else {
         Box(

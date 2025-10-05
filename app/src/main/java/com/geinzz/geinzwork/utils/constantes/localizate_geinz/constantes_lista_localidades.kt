@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,7 +44,9 @@ import androidx.compose.ui.draw.clip
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
@@ -424,6 +427,22 @@ object constantes_lista_localidades {
             R.drawable.p1_3
         )
     )
+
+    @Composable
+    fun FuenteControladaApp(content: @Composable () -> Unit) {
+        val currentDensity = LocalDensity.current
+
+        CompositionLocalProvider(
+            LocalDensity provides Density(
+                currentDensity.density,
+                currentDensity.fontScale.coerceIn(0.85f, 1.1f)
+            )
+        ) {
+            content()
+        }
+    }
+
+
 //    @OptIn(ExperimentalMaterial3Api::class)
 //    @Composable
 //    fun CarouselExample_MultiBrowse() {

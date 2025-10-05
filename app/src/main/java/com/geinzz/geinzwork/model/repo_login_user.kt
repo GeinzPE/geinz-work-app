@@ -130,7 +130,7 @@ class repo_login_user {
 
                             Toast.makeText(
                                 context,
-                                "Usuario creado y logueado correctamente ✅",
+                                "Bienvenido a Geinz",
                                 Toast.LENGTH_SHORT
                             ).show()
                             terminado(true)

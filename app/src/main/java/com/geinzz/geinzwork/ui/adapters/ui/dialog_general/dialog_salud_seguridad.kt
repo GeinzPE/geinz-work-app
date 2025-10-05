@@ -23,6 +23,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -78,16 +80,16 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
                                         .show()
                                 }
                             } else if (tipo.equals("llamada")) {
-                    if (ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.CALL_PHONE
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        call_dialog_permise = true
-                        numero_llamada=i
-                    } else {
-                        makePhoneCall(context, i)
-                    }
+                                if (ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.CALL_PHONE
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    call_dialog_permise = true
+                                    numero_llamada=i
+                                } else {
+                                    makePhoneCall(context, i)
+                                }
                             }
                         },
                         click_copiar = {})
@@ -95,7 +97,7 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
                 }
             }
         },
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(20.dp),
         icon = {
             Image(
                 painter = painterResource(if (tipo.equals("whatsapp")) R.drawable.whatsapp_icon else R.drawable.llamada_icon),
@@ -139,7 +141,8 @@ fun box_llamada_whatsap(
                 contentDescription = "",
                 modifier = Modifier
                     .size(25.dp)
-                    .clickable { click_copiar() }
+                    .clickable { click_copiar() },
+                colorFilter = ColorFilter.tint(Color.White)
             )
         }
     }

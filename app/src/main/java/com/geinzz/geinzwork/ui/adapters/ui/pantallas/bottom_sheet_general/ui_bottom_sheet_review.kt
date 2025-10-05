@@ -35,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -50,7 +51,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,6 +68,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_plea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -122,110 +126,112 @@ fun bottom_sheet_review(
     val scale by animateFloatAsState(if (clicked) 1.05f else 1f)
     val alphaText by animateFloatAsState(if (clicked) 1f else 0f)
 
+    FuenteControladaApp {
+        ModalBottomSheet(
+            onDismissRequest = { ondimis() },
+            sheetState = sheetState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding(),
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
+            if (firebaseAuth.currentUser != null) {
 
-    ModalBottomSheet(
-        onDismissRequest = { ondimis() },
-        sheetState = sheetState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .imePadding(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) {
-        if (firebaseAuth.currentUser != null) {
-
-            Column(
-                modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 30.dp)
-                    .verticalScroll(rememberScrollState())
-                    .imePadding()
-
-            ) {
-                Text(
-                    text = "Cuéntanos tu experiencia ${datos_principales_user.nombre}",
-                    fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
-                    modifier = Modifier.padding(end = 20.dp)
-                )
-                spacer_vertical(20.dp)
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(
-                                _datos_TL_review.value?.imagen
-                                    ?: R.drawable.cargando_img_categorias
-                            )
-                            .size(160, 160)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(),
-                        contentDescription = "Imagen de la tienda",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                            }
-                            .shadow(
-                                elevation = 24.dp,
-                                ambientColor = Color.White.copy(alpha = 0.8f),
-                                spotColor = Color.White.copy(alpha = 0.6f)
-                            )
-                            .clip(RoundedCornerShape(16.dp))
-                            .clickable {
-                                clicked = !clicked
-                            }
-                            .width(160.dp)
-                            .height(160.dp)
+                    modifier = Modifier
+                        .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 30.dp)
+                        .verticalScroll(rememberScrollState())
+                        .imePadding()
 
+                ) {
+                    Text(
+                        text = "Cuéntanos tu experiencia ${datos_principales_user.nombre}",
+                        fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
+                        modifier = Modifier.padding(end = 20.dp)
                     )
-                    spacer_vertical(15.dp)
-                    AnimatedVisibility(
-                        clicked
+                    spacer_vertical(20.dp)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        texto_generico_one_line(_datos_TL_review.value?.nombre.toString())
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(
+                                    _datos_TL_review.value?.imagen
+                                        ?: R.drawable.cargando_img_categorias
+                                )
+                                .size(160, 160)
+                                .placeholder(R.drawable.cargando_img_categorias)
+                                .error(R.drawable.cargando_img_categorias)
+                                .build(),
+                            contentDescription = "Imagen de la tienda",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
+                                .shadow(
+                                    elevation = 24.dp,
+                                    ambientColor = Color.White.copy(alpha = 0.8f),
+                                    spotColor = Color.White.copy(alpha = 0.6f)
+                                )
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable {
+                                    clicked = !clicked
+                                }
+                                .width(160.dp)
+                                .height(160.dp)
+
+                        )
+                        spacer_vertical(15.dp)
+                        AnimatedVisibility(
+                            clicked
+                        ) {
+                            texto_generico_one_line(_datos_TL_review.value?.nombre.toString())
+                        }
+
+                    }
+                    spacer_vertical(20.dp)
+
+                    FullStarRating(
+                        starSize = 30.dp,
+                        onRatingChanged = { newRating ->
+                            ratingValue = newRating
+                        },
+                        initialRating = ratingValue,
+                    )
+                    spacer_vertical(20.dp)
+
+                    OutlinedTextField(
+                        value = texto,
+                        onValueChange = { texto = it },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        label = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                        placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                        singleLine = false,
+                        maxLines = 10,
+                        minLines = 4
+                    )
+                    spacer_vertical(10.dp)
+                    Button(
+                        onClick = { clik_envio(ratingValue, texto) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        texto_generico_one_line("Calificar")
                     }
 
+
                 }
-                spacer_vertical(20.dp)
-
-                FullStarRating(
-                    starSize = 30.dp,
-                    onRatingChanged = { newRating ->
-                        ratingValue = newRating
-                    },
-                    initialRating = ratingValue,
-                )
-                spacer_vertical(20.dp)
-
-                OutlinedTextField(
-                    value = texto,
-                    onValueChange = { texto = it },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    label = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                    placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                    singleLine = false,
-                    maxLines = 10,
-                    minLines = 4
-                )
-                spacer_vertical(10.dp)
-                Button(
-                    onClick = { clik_envio(ratingValue, texto) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    texto_generico_one_line("Calificar")
-                }
-
-
+            } else {
+                texto_generico_one_line("Necesitas registrarte para dejar una reseña")
             }
-        } else {
-            texto_generico_one_line("Necesitas registrarte para dejar una reseña")
         }
     }
+
 }
 
 @SuppressLint("MissingPermission")
@@ -282,86 +288,89 @@ fun bottom_Sheet_seguro(
         }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = { ondimis() },
-        sheetState = sheetState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .imePadding(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) {
-        if (firebaseAuth.currentUser != null) {
-            Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .verticalScroll(rememberScrollState())
-                    .imePadding()
-            ) {
-
-                texto_generico_one_line("Cerrado bottom sheet")
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(
-                                _datos_TL_review.value?.imagen ?: R.drawable.cargando_img_categorias
-                            )
-                            .size(200, 200)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(),
-                        contentDescription = "Imagen de la tienda",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .width(200.dp)
-                            .height(200.dp)
-                            .shadow(
-                                elevation = 24.dp,
-                                ambientColor = Color.White.copy(alpha = 0.8f),
-                                spotColor = Color.White.copy(alpha = 0.6f)
-                            )
-                            .clip(RoundedCornerShape(16.dp))
-                    )
-                }
-
-                FullStarRating(
-                    starSize = 40.dp,
-                    onRatingChanged = { newRating ->
-                        ratingValue = newRating
-                    },
-                    initialRating = ratingValue,
-                )
-
-                OutlinedTextField(
-                    value = texto,
-                    onValueChange = { texto = it },
+        ModalBottomSheet(
+            onDismissRequest = { ondimis() },
+            sheetState = sheetState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding(),
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
+            FuenteControladaApp {
+            if (firebaseAuth.currentUser != null) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    label = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                    placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                    singleLine = false,
-                    maxLines = 10,
-                    minLines = 4
-                )
+                        .padding(10.dp)
+                        .verticalScroll(rememberScrollState())
+                        .imePadding()
+                ) {
+
+                    texto_generico_one_line("Cerrado bottom sheet")
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(
+                                    _datos_TL_review.value?.imagen ?: R.drawable.cargando_img_categorias
+                                )
+                                .size(200, 200)
+                                .placeholder(R.drawable.cargando_img_categorias)
+                                .error(R.drawable.cargando_img_categorias)
+                                .build(),
+                            contentDescription = "Imagen de la tienda",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .width(200.dp)
+                                .height(200.dp)
+                                .shadow(
+                                    elevation = 24.dp,
+                                    ambientColor = Color.White.copy(alpha = 0.8f),
+                                    spotColor = Color.White.copy(alpha = 0.6f)
+                                )
+                                .clip(RoundedCornerShape(16.dp))
+                        )
+                    }
+
+                    FullStarRating(
+                        starSize = 40.dp,
+                        onRatingChanged = { newRating ->
+                            ratingValue = newRating
+                        },
+                        initialRating = ratingValue,
+                    )
+
+                    OutlinedTextField(
+                        value = texto,
+                        onValueChange = { texto = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        label = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                        placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                        singleLine = false,
+                        maxLines = 10,
+                        minLines = 4
+                    )
 
 
 
 
 
-                Button(onClick = {
-                    clik_envio(ratingValue, texto, ubicacionPrevia)
-                }) {
-                    texto_generico_one_line("Calificar")
+                    Button(onClick = {
+                        clik_envio(ratingValue, texto, ubicacionPrevia)
+                    }) {
+                        texto_generico_one_line("Calificar")
+                    }
+
+
                 }
-
-
+            } else {
+                texto_generico_one_line("Necesitas registrarte para dejar una reseña")
             }
-        } else {
-            texto_generico_one_line("Necesitas registrarte para dejar una reseña")
         }
     }
+
 }
 
 @Composable

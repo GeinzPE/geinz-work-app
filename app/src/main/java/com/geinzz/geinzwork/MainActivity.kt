@@ -42,6 +42,7 @@ import com.geinzz.geinzwork.fragmentos.sinRegistroFracment
 import com.geinzz.geinzwork.ui.adapters.ui.localizate_geinz_wokr_ui
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.geinzz.geinzwork.vistaTiendas.TiendasGenerales
@@ -88,10 +89,13 @@ class MainActivity : AppCompatActivity() {
         datos_viewmodel = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
         datos_viewmodel.obtener_localida_nombre_user(firebaseAuth.uid.toString())
         setContent {
-            GeinzWorkTheme {
-                nativationWrapper(viewModel)
+            FuenteControladaApp { // ⬅️ aquí envolvemos todo
+                GeinzWorkTheme {
+                    nativationWrapper(viewModel)
+                }
             }
         }
+
 //
 //        ViewCompat.setOnApplyWindowInsetsListener(binding.buttonNavigation) { view, insets ->
 //            val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
