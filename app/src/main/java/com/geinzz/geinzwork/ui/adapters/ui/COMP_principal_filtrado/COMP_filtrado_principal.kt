@@ -72,6 +72,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -83,6 +84,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -127,6 +129,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -196,7 +199,12 @@ fun estados_tiendas(estado: String, color_estado: Color) {
 }
 
 @Composable
-fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier,brush_start: Brush,brush_end: Brush) {
+fun tags_subcateogiras(
+    lista_tags: List<String>,
+    modifier: Modifier = Modifier,
+    brush_start: Brush,
+    brush_end: Brush
+) {
     val listState = rememberLazyListState()
 
     val showLeftShadow by remember {
@@ -218,10 +226,12 @@ fun tags_subcateogiras(lista_tags: List<String>, modifier: Modifier = Modifier,b
         targetValue = if (showRightShadow) 1f else 0f,
         animationSpec = tween(400), label = "alphaRight"
     )
-    Box(  modifier = modifier
-        .fillMaxWidth()
-        .height(25.dp),
-        contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(25.dp),
+        contentAlignment = Alignment.Center
+    ) {
         LazyRow(
             state = listState,
             modifier = modifier
@@ -651,7 +661,9 @@ fun rutas_turismo(
                 .fillMaxWidth()
                 .height(500.dp)
                 .clip(RoundedCornerShape(5))
-                .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){clik_button()},
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) { clik_button() },
             contentScale = ContentScale.Crop
         )
 
@@ -702,7 +714,11 @@ fun seguridad(
                 .error(R.drawable.cargando_img_categorias)
                 .build(),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize().clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){clik_button()},
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) { clik_button() },
             contentScale = ContentScale.Crop
         )
 
@@ -1318,4 +1334,81 @@ fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifie
             )
             .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
     )
+}
+
+
+
+@Composable
+fun baner_servicios_basicos_() {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF1A1A1A))
+            .height(170.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(10.dp)) {
+            Text(
+                text = "Servicios básicos para la familia",
+                color = Color.White,
+                fontFamily = baners_geinz_work,
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+
+            spacer_vertical(10.dp)
+
+            texto_generico_multilinea(
+                "Accede fácilmente a todos los servicios esenciales",
+                style = MaterialTheme.typography.bodyMedium,
+                Color = Color.White
+            )
+            spacer_vertical(10.dp)
+            Box(
+                modifier = Modifier
+                    .size(35.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {},
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(35.dp)
+                        .background(Color.Gray.copy(alpha = 0.25f))
+                        .blur(12.dp),
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "Cerrar",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        Box(modifier = Modifier.weight(.7f)) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(R.drawable.f6)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(80.dp)
+                    .align(Alignment.CenterStart)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
+                        )
+                    )
+            )
+        }
+    }
+
 }

@@ -125,6 +125,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.google.firebase.messaging.FirebaseMessaging
@@ -319,6 +320,11 @@ fun pantalla_principal(
                         clikear_cartas(categoria, localidad, nombre)
                     })
 
+                spacer_vertical(20.dp)
+            }
+            item {
+                spacer_vertical(10.dp)
+                baner_servicios_basicos_()
                 spacer_vertical(20.dp)
             }
             item {

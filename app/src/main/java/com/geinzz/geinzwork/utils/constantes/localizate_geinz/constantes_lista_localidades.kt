@@ -349,7 +349,9 @@ object constantes_lista_localidades {
     val chips_filtrado_busqueda = listOf(
         "Todos", "playas", "Hoteles", "Lugares", "restaurantes"
     )
-
+    val lista_fitlrado_servicios_basicos = listOf(
+        "Todos", "Agua", "Gas", "Internet", "Cable", "Luz","Telefonía Móvil"
+    )
 
     val lista_color_degradado_bottom = listOf(
         Color.Black.copy(alpha = 1f),   // arriba: oscuro
@@ -1693,20 +1695,20 @@ object constantes_lista_localidades {
         Color(0XFF535252),
     )
 
-    val start_shadow_bottom_sheet_default=listOf(
+    val start_shadow_bottom_sheet_default = listOf(
         Color(0XFF1D1B20),
         Color.Transparent,
     )
-    val end_shadow_bottom_sheet_default=listOf(
+    val end_shadow_bottom_sheet_default = listOf(
         Color.Transparent,
         Color(0XFF1D1B20)
     )
 
-    val end_subcategoria_shadow=listOf(
+    val end_subcategoria_shadow = listOf(
         Color.Transparent,
         Color(0xFF262626)
     )
-    val strat_subcategoria_shadow=listOf(
+    val strat_subcategoria_shadow = listOf(
         Color(0xFF262626),
         Color.Transparent
     )

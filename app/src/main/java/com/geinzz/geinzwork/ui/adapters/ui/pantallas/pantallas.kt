@@ -26,3 +26,6 @@ data class map_perzonalizado(val tipo: String,val localidad: String)
 data class ui_salud_seguridad(val localidad: String)
 
 
+@Serializable
+object ui_agregar_lugares
+

@@ -236,8 +236,9 @@ fun nativationWrapper(
 
                         },
                         ver_lugares = { localidad ->
-                            Log.d("localidad_defautl_user", localidad)
-                            navController.navigate(lugares_turisticos(localidad))
+//                            Log.d("localidad_defautl_user", localidad)
+                            navController.navigate(ui_agregar_lugares)
+
                         },
                         listner_busqueda = {
                             navController.navigate("buscar")
@@ -373,6 +374,10 @@ fun nativationWrapper(
                             navController.navigate(map_perzonalizado("seguridad", ""))
 
                         })
+                }
+
+                composable <ui_agregar_lugares> {
+                    datos_teindas()
                 }
 
             }
