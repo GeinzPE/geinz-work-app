@@ -65,6 +65,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplor
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_seguirdad
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servicio_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -245,6 +246,9 @@ fun nativationWrapper(
                         },
                         listener_seguridad = { localida ->
                             navController.navigate(ui_salud_seguridad(localida))
+                        }, listner_sevicios_tramites = {localidad->
+                            navController.navigate(ui_servicios_tramites(localidad))
+
                         },
                     )
                 }
@@ -378,6 +382,11 @@ fun nativationWrapper(
 
                 composable <ui_agregar_lugares> {
                     datos_teindas()
+                }
+
+                composable <ui_servicios_tramites>{navback ->
+                    val servicio=navback.toRoute<ui_servicios_tramites>()
+                    ui_servicio_tramite(servicio.localidad)
                 }
 
             }

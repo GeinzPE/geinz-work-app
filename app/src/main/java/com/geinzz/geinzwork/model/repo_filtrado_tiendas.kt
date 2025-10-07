@@ -7,7 +7,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrad
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -57,6 +59,7 @@ class repo_filtrado_tiendas {
                 val id_tienda = i.get("id_tienda") as? String ?: ""
                 val map_img_tienda = i.get("img_tienda") as? Map<String, Any> ?: emptyMap()
                 val logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: ""
+                val pagado = i.get("pagado") as? Boolean ?: false
 
 
                 lista_tiendas_filtradas.add(
@@ -69,7 +72,7 @@ class repo_filtrado_tiendas {
                         longitud = longitud.toDouble(),
                         lista_subcategoiras = subcategorias_list,
                         descripcion = descripcion,
-                        id_tienda = id_tienda
+                        id_tienda = id_tienda, pagado = pagado
                     )
                 )
 
@@ -135,13 +138,36 @@ class repo_filtrado_tiendas {
                 instagram = estadoIg,
                 nombre_user_ig = nombreIg,
                 facebook = estadoFb,
-                nombre_user_fb = nombreFb
+                nombre_user_fb = nombreFb,
+                pagado = data?.get("pagado") as? Boolean ?: false
             )
             lista_modelo_tienda.add(tiendaModelo)
         }
         return lista_modelo_tienda
 
     }
+
+    suspend fun obtener_campos_tienda_free(
+        localida: String,
+        id_tienda: String
+    ): datos_tienda_free {
+        val data =
+            db.collection("Tiendas").document(localida).collection(localida).document(id_tienda)
+                .get().await()
+        val map_img=data?.get("img_tienda")as? Map<String, Any>?:emptyMap()
+        val map_ubicacion=data?.get("ubicacion") as? Map<String, Any>?:emptyMap()
+        val dirección=map_ubicacion.get("dirección") as? String?:""
+        val referencia =map_ubicacion.get("referencia") as? String?:""
+        val logo_tienda=map_img.get("logo_tienda") as? String?:""
+        return datos_tienda_free(
+            nombre_ = data.get("nombre_tienda") as? String ?: "",
+            img = logo_tienda,
+            ubicacion = dirección,
+            referencia = referencia,
+            horario_default = "no disponible"
+        )
+    }
+
     suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): horario_Dia? {
         val diasSemana = listOf(
             "domingo", "lunes", "martes", "miércoles",
@@ -171,7 +197,7 @@ class repo_filtrado_tiendas {
             h_apertura = infoDia["h_apertura"] as? String ?: "",
             h_cierre =
                 infoDia["h_cierre"] as? String ?: ""
-            )
+        )
     }
 
 
@@ -208,36 +234,36 @@ class repo_filtrado_tiendas {
     }
 
 
-    suspend fun obtener_tiendas_por_subcateogira(
-        subcategoria: String,
-        localidad: String
-    ): List<tiendas_por_categoria> {
-        val lista_por_subcateogira = mutableListOf<tiendas_por_categoria>()
-        val datos_tienda = db.collection("Tiendas").document(localidad).collection(localidad)
-            .whereArrayContains("subcategoria", subcategoria).get().await()
-        for (document in datos_tienda.documents) {
-            val data = document.data
-            val ubicacion = data?.get("ubicacion") as? Map<String, Any>
-            val map_img_tienda = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
-            val latitud = ubicacion?.get("latitud") as? Number ?: 0
-            val longitud = ubicacion?.get("longitud") as? Number ?: 0
-            lista_por_subcateogira.add(
-                tiendas_por_categoria(
-                    nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
-                    direccion = ubicacion?.get("dirección") as? String ?: "",
-                    referencia = ubicacion?.get("referencia") as? String ?: "",
-                    latitud = latitud.toDouble(),
-                    longitud = longitud.toDouble(),
-                    logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: "",
-                    lista_subcategoiras = data?.get("subcategoria") as? List<String> ?: emptyList(),
-                    descripcion = data?.get("descripcion") as? String ?: "",
-                    id_tienda = data?.get("id_tienda") as? String ?: ""
-                )
-            )
-
-        }
-        return lista_por_subcateogira
-    }
+//    suspend fun obtener_tiendas_por_subcateogira(
+//        subcategoria: String,
+//        localidad: String
+//    ): List<tiendas_por_categoria> {
+//        val lista_por_subcateogira = mutableListOf<tiendas_por_categoria>()
+//        val datos_tienda = db.collection("Tiendas").document(localidad).collection(localidad)
+//            .whereArrayContains("subcategoria", subcategoria).get().await()
+//        for (document in datos_tienda.documents) {
+//            val data = document.data
+//            val ubicacion = data?.get("ubicacion") as? Map<String, Any>
+//            val map_img_tienda = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+//            val latitud = ubicacion?.get("latitud") as? Number ?: 0
+//            val longitud = ubicacion?.get("longitud") as? Number ?: 0
+//            lista_por_subcateogira.add(
+//                tiendas_por_categoria(
+//                    nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
+//                    direccion = ubicacion?.get("dirección") as? String ?: "",
+//                    referencia = ubicacion?.get("referencia") as? String ?: "",
+//                    latitud = latitud.toDouble(),
+//                    longitud = longitud.toDouble(),
+//                    logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: "",
+//                    lista_subcategoiras = data?.get("subcategoria") as? List<String> ?: emptyList(),
+//                    descripcion = data?.get("descripcion") as? String ?: "",
+//                    id_tienda = data?.get("id_tienda") as? String ?: ""
+//                )
+//            )
+//
+//        }
+//        return lista_por_subcateogira
+//    }
 
 
     suspend fun obtener_tienas_filtradas(

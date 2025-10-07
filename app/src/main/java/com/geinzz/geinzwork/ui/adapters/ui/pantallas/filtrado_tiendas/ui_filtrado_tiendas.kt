@@ -1,3 +1,4 @@
+
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
 
 import android.annotation.SuppressLint
@@ -88,6 +89,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoFiltrosUi
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
@@ -100,6 +102,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
@@ -133,6 +136,9 @@ fun Pantalla_filtrado_tiendas(
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
+    val datos_tienda_sin_pago by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
+        datos_tienda_free()
+    )
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
     val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
         emptyList()
@@ -155,6 +161,7 @@ fun Pantalla_filtrado_tiendas(
     var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
 
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    var dataclass_datos_tienda_free by remember { mutableStateOf(datos_tienda_free()) }
 
     var lista_subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
     var subCategoriaSeleccionada by rememberSaveable { mutableStateOf("Todos") }
@@ -171,6 +178,8 @@ fun Pantalla_filtrado_tiendas(
     var listaBaseSubcategoria by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     var bottom_shet_tienda by remember { mutableStateOf(false) }
+    var dialog_tienda_no_pagada by remember { mutableStateOf(false) }
+    var tienda_pagada by remember { mutableStateOf(false) }
 
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
@@ -226,11 +235,19 @@ fun Pantalla_filtrado_tiendas(
             viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
         }
     }
+    LaunchedEffect(dialog_tienda_no_pagada) {
+        if (dialog_tienda_no_pagada) {
+            viewModelFiltros.obtener_tienda_no_pagada(localida, id_tienda_selecionada)
+        }
+    }
 
     LaunchedEffect(datosTienda) {
         if (datosTienda.isNotEmpty()) {
             dataclass_tienda_seleccionada = datosTienda.first()
         }
+    }
+    LaunchedEffect(datos_tienda_sin_pago) {
+        dataclass_datos_tienda_free = datos_tienda_sin_pago
     }
 
     LaunchedEffect(categoria) {
@@ -348,7 +365,8 @@ fun Pantalla_filtrado_tiendas(
                             item_tiendas(
                                 tienda,
                                 estado_tiendas,
-                                { id_tienda, listener, estado_color ->
+                                { id_tienda, listener, estado_color, pagado ->
+                                    tienda_pagada = pagado
                                     estadoColor = estado_color
                                     showBottomSheet = listener
                                     id_tienda_selecionada = id_tienda
@@ -427,12 +445,26 @@ fun Pantalla_filtrado_tiendas(
             }
         }
     }
+
     if (showBottomSheet && firebaseAuth.currentUser != null) {
-        bottom_shet_tienda = true
+        if (tienda_pagada) {
+            bottom_shet_tienda = true
+        } else {
+            dialog_tienda_no_pagada = true
+            bottom_shet_tienda = false
+        }
         bottom_sheet_iniciar_seccion = false
     } else if (showBottomSheet && firebaseAuth.currentUser == null) {
         bottom_shet_tienda = false
         bottom_sheet_iniciar_seccion = true
+    }
+
+    if (dialog_tienda_no_pagada) {
+        bottom_shet_tienda = false
+        showBottomSheet = false
+        dialog_sin_pago_tiendas(
+            dataclass_datos_tienda_free,
+            ondimis = { dialog_tienda_no_pagada = false })
     }
 
     if (bottom_shet_tienda) {
@@ -447,7 +479,6 @@ fun Pantalla_filtrado_tiendas(
     }
 
     if (bottom_sheet_iniciar_seccion) {
-
         bottom_sheet_registrate(
             ondimis = {
                 bottom_sheet_iniciar_seccion = false
@@ -456,15 +487,18 @@ fun Pantalla_filtrado_tiendas(
             iniciar_seccion_normal = {
                 showBottomSheet = false
                 iniciar_normal()
-                bottom_sheet_iniciar_seccion},
+                bottom_sheet_iniciar_seccion
+            },
             continuar_con_google = {
                 showBottomSheet = false
                 con_google()
-                bottom_sheet_iniciar_seccion},
+                bottom_sheet_iniciar_seccion
+            },
             crear_cuenta_geinz = {
                 showBottomSheet = false
                 crear_cuenta()
-                bottom_sheet_iniciar_seccion})
+                bottom_sheet_iniciar_seccion
+            })
     }
 
 
@@ -653,7 +687,7 @@ fun Text_fiel_filtrado(
 fun item_tiendas(
     item_tiendas: tiendas_por_categoria,
     estado_tiendas: Map<String, Boolean>?,
-    listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color) -> Unit
+    listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit
 ) {
     var detalles_tienda by remember { mutableStateOf(false) }
     val estaAbierto = estado_tiendas?.get(item_tiendas.id_tienda) == true
@@ -676,7 +710,12 @@ fun item_tiendas(
                         showDialog = true
                     },
                     onTap = {
-                        listener_botom_sheet(item_tiendas.id_tienda, true, estadoColor)
+                        listener_botom_sheet(
+                            item_tiendas.id_tienda,
+                            true,
+                            estadoColor,
+                            item_tiendas.pagado
+                        )
                     }
                 )
             },

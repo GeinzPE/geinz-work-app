@@ -180,7 +180,7 @@ fun PantallaExplorarTiendas(
                 ) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Column {
-                            cabezero_activity(localidadSeleccionada.value) // ✅ lo mismo aquí
+                            cabezero_activity(localidadSeleccionada.value)
                             FiltradosChipsLocalidades(
                                 lista_localidades,
                                 localidadSeleccionada.value
@@ -441,9 +441,9 @@ fun cartas_categorias(
     val gradient = remember {
         Brush.verticalGradient(
             colors  = listOf(
-                 Color.Transparent,              // parte superior sin sombra
-                Color.Black.copy(alpha = 0.55f), // más densa hacia abajo
-                 Color.Black.copy(alpha = 1f) // casi negro abajo
+                 Color.Transparent,
+                Color.Black.copy(alpha = 0.55f),
+                 Color.Black.copy(alpha = 1f)
             )
         )
     }

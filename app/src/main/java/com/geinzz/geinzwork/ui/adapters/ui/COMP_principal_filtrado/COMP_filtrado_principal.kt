@@ -1339,7 +1339,7 @@ fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifie
 
 
 @Composable
-fun baner_servicios_basicos_() {
+fun baner_servicios_basicos_(listener_servicios:()-> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
@@ -1349,18 +1349,20 @@ fun baner_servicios_basicos_() {
     ) {
         Column(modifier = Modifier.weight(1f).padding(10.dp)) {
             Text(
-                text = "Servicios básicos para la familia",
+                text = "Servicios esenciales y trámites",
                 color = Color.White,
                 fontFamily = baners_geinz_work,
                 fontSize = 20.sp,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
 
             spacer_vertical(10.dp)
 
             texto_generico_multilinea(
-                "Accede fácilmente a todos los servicios esenciales",
+                "Encuentra fácilmente todos los servicios y entidades esenciales",
                 style = MaterialTheme.typography.bodyMedium,
                 Color = Color.White
             )
@@ -1371,7 +1373,7 @@ fun baner_servicios_basicos_() {
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() }
-                    ) {},
+                    ) {listener_servicios()},
                 contentAlignment = Alignment.Center
             ) {
                 Box(
@@ -1392,7 +1394,7 @@ fun baner_servicios_basicos_() {
         Box(modifier = Modifier.weight(.7f)) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.f6)
+                    .data(R.drawable.servicios_basicos)
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop

@@ -936,17 +936,17 @@ fun pantalla6(
             Box(
                 Modifier
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(MaterialTheme.colorScheme.primary) .clickable {
+                        onNext()
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 texto_generico_one_line(
                     "Empezar",
                     MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
-                        .padding(vertical = 20.dp, horizontal = 30.dp)
-                        .clickable {
-                            onNext()
-                        })
+                        .padding(vertical = 20.dp, horizontal = 30.dp))
+
             }
         }
 

@@ -140,7 +140,8 @@ fun pantalla_principal(
     clikear_cartas: (String, String, String) -> Unit,
     ver_lugares: (String) -> Unit,
     listner_busqueda: () -> Unit,
-    listener_seguridad: (String) -> Unit
+    listener_seguridad: (String) -> Unit,
+    listner_sevicios_tramites:(String)-> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -324,7 +325,7 @@ fun pantalla_principal(
             }
             item {
                 spacer_vertical(10.dp)
-                baner_servicios_basicos_()
+                baner_servicios_basicos_{listner_sevicios_tramites(localidad_defaul)}
                 spacer_vertical(20.dp)
             }
             item {

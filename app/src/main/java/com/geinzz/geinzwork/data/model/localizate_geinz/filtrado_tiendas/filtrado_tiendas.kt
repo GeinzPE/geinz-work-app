@@ -46,6 +46,7 @@ data class tiendas_por_categoria(
     val lista_subcategoiras: List<String> = emptyList(),
     val descripcion: String = "",
     val id_tienda: String = "",
+    val pagado : Boolean
 ): Parcelable
 
 
@@ -74,7 +75,6 @@ data class obtener_tiendas_lat_log_id(
     val referencia: String,
     val nombre_tienda: String
 )
-
 
 
 

@@ -29,3 +29,6 @@ data class ui_salud_seguridad(val localidad: String)
 @Serializable
 object ui_agregar_lugares
 
+@Serializable
+data class ui_servicios_tramites(val localidad: String)
+

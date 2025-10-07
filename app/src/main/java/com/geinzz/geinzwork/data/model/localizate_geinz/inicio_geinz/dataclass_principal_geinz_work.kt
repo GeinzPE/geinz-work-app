@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz
 
+import android.R
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
@@ -70,7 +71,12 @@ data class datos_principales_user(
     val localida: String = "barranca"
 )
 
-data class ref_ubi(val latitud: Double,val longitud: Double,val referencia: String,val direccion: String)
+data class ref_ubi(
+    val latitud: Double,
+    val longitud: Double,
+    val referencia: String,
+    val direccion: String
+)
 
 data class seguridad_salud_publica(
     val nombre: String,
@@ -79,4 +85,12 @@ data class seguridad_salud_publica(
     val localidad: String,
     val datos_ubi: ref_ubi,
     val numero_contacto: List<String>,
+)
+
+data class datos_tienda_free(
+    val nombre_: String="",
+    val img: String="",
+    val ubicacion: String="",
+    val referencia: String="",
+    val horario_default: String=""
 )

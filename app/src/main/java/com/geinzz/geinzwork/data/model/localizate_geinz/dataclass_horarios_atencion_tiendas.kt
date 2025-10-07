@@ -54,35 +54,36 @@ data class modelo_tienda(
     val instagram: Boolean = false,
     val nombre_user_ig: String = "",
     val facebook: Boolean = false,
-    val nombre_user_fb: String = ""
+    val nombre_user_fb: String = "",
+    val pagado: Boolean=false
 
 )
-
-data class modelo_tienda_temporal(
-    val nombre_tienda: String="",
-    val modelo_negocio: Boolean=false,
-    val localidad: String?="",
-    val categoria_tienda: String="",
-    val descripcion: String="",
-    val id_tienda: String="",
-    val img_perfil: String="",
-    val lista_img: List<String> =emptyList(),
-    val subcategoria: List<String> = emptyList(),
-    val ubicacion: Map<String, Any> = emptyMap(),
-    val metodo_contacto: Map<String, Any> = emptyMap(),
-
-    val whatsapp: Boolean = false,
-    val numero_whatsapp: String = "",
-    val tiktok: Boolean = false,
-    val nombre_tiktok: String = "",
-    val sitio_web: Boolean = false,
-    val url_sitio_web: String = "",
-    val instagram: Boolean = false,
-    val nombre_user_ig: String = "",
-    val facebook: Boolean = false,
-    val nombre_user_fb: String = ""
-
-)
+//
+//data class modelo_tienda_temporal(
+//    val nombre_tienda: String="",
+//    val modelo_negocio: Boolean=false,
+//    val localidad: String?="",
+//    val categoria_tienda: String="",
+//    val descripcion: String="",
+//    val id_tienda: String="",
+//    val img_perfil: String="",
+//    val lista_img: List<String> =emptyList(),
+//    val subcategoria: List<String> = emptyList(),
+//    val ubicacion: Map<String, Any> = emptyMap(),
+//    val metodo_contacto: Map<String, Any> = emptyMap(),
+//
+//    val whatsapp: Boolean = false,
+//    val numero_whatsapp: String = "",
+//    val tiktok: Boolean = false,
+//    val nombre_tiktok: String = "",
+//    val sitio_web: Boolean = false,
+//    val url_sitio_web: String = "",
+//    val instagram: Boolean = false,
+//    val nombre_user_ig: String = "",
+//    val facebook: Boolean = false,
+//    val nombre_user_fb: String = ""
+//
+//)
 
 
 
