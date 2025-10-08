@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -70,14 +71,30 @@ fun ui_servicio_tramite(localida: String) {
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares = viewmode_servicios_tramite.lugares.observeAsState(emptyList())
     val lista_servicios = constantes_lista_localidades.lista_fitlrado_servicios_basicos
-    var subCategoriaSeleccionada by rememberSaveable { mutableStateOf("Todos") }
+    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var dialog_servicos_tramite by remember { mutableStateOf(false) }
     var seleccionado by remember { mutableStateOf(dataclass_lugares_db()) }
     var expandedIndex by remember { mutableStateOf(-1) }
-    val state = rememberLazyListState()
+    var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
+    LaunchedEffect(lugares.value) {
+        viewmode_servicios_tramite.todos(lugares.value)
+    }
     LaunchedEffect(localida) {
         viewmode_servicios_tramite.obtener_lugares(localida)
     }
+
+    LaunchedEffect(lugares.value, subCategoriaSeleccionada) {
+        viewmode_servicios_tramite.todos(lugares.value)
+        if (subCategoriaSeleccionada == "Todos") {
+            lista_mostrar = lugares.value
+        } else {
+            viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
+            lista_mostrar = viewmode_servicios_tramite.listaFiltrada.value
+        }
+        Log.d("lista_value", subCategoriaSeleccionada)
+    }
+
+
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
@@ -92,13 +109,23 @@ fun ui_servicio_tramite(localida: String) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(lista_servicios) { it ->
                         val catSeleccionada = subCategoriaSeleccionada == it
-                        chisp_filtrado_busqueda(catSeleccionada, it, false, {}, {})
+                        Log.d("asnfaBNFIKBNFIDNASUIF","$subCategoriaSeleccionada == $it")
+                        chisp_filtrado_busqueda(catSeleccionada, it, false, {
+                            if (!catSeleccionada) {
+                                if (it == "Todos") {
+                                    subCategoriaSeleccionada = "Todos"
+                                }else{
+                                    subCategoriaSeleccionada=it
+                                }
+                            }
+
+                        }, {})
                     }
                 }
                 spacer_vertical(10.dp)
             }
         }
-        itemsIndexed(lugares.value, key = { _, item -> item.id }) { index, lugar ->
+        itemsIndexed(lista_mostrar, key = { _, item -> item.id }) { index, lugar ->
             carta_servicio_tramites(
                 lugar,
                 index,

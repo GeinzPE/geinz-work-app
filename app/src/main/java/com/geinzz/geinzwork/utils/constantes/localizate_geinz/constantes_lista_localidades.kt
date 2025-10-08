@@ -350,7 +350,7 @@ object constantes_lista_localidades {
         "Todos", "playas", "Hoteles", "Lugares", "restaurantes"
     )
     val lista_fitlrado_servicios_basicos = listOf(
-        "Todos", "Agua", "Gas", "Internet", "Cable", "Luz","Telefonía Móvil"
+        "Todos", "agua", "Gas", "internet", "cable", "luz","telefonia movil","tramites"
     )
 
     val lista_color_degradado_bottom = listOf(

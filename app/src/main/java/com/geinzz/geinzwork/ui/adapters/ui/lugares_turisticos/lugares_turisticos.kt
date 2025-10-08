@@ -199,7 +199,9 @@ fun pantalla_lugares_turisticos(
                     ) {
                         items(lista_con_todos) { subcategorias ->
                             val selecionado = subCategoriaSeleccionada == subcategorias
-                            chisp_filtrado_busqueda(carta_selecionada = selecionado, filtrado = subcategorias.capitalizeFirst(), btn_visible = false, clik_card = {
+                            chisp_filtrado_busqueda(carta_selecionada = selecionado, filtrado = subcategorias.capitalizeFirst(),
+                                btn_visible = false,
+                                clik_card = {
                                 if (!selecionado) {
                                     if (subcategorias == "Todos") {
                                         subCategoriaSeleccionada = "Todos"
