@@ -138,7 +138,7 @@ fun ui_servicio_tramite(localida: String) {
         }
     }
     if (dialog_servicos_tramite) {
-        dialog_servicios_tramite(ondimis = { dialog_servicos_tramite = false }, seleccionado)
+        dialog_servicios_tramite(localida,ondimis = { dialog_servicos_tramite = false }, seleccionado)
     }
 
 }
