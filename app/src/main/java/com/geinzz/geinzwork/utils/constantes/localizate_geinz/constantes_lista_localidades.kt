@@ -3,7 +3,9 @@ package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 import Item
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import android.graphics.Canvas
@@ -12,6 +14,7 @@ import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationManager
 import android.location.LocationRequest
+import android.net.Uri
 import android.os.Build
 import android.os.Looper
 import android.widget.Toast
@@ -48,6 +51,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
@@ -57,7 +61,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.seguridad_salud_publica
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.item_tiendas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.REQUEST_CALL_PHONE
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -69,6 +73,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import java.net.URLEncoder
 import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -350,7 +355,7 @@ object constantes_lista_localidades {
         "Todos", "playas", "Hoteles", "Lugares", "restaurantes"
     )
     val lista_fitlrado_servicios_basicos = listOf(
-        "Todos", "agua", "Gas", "internet", "cable", "luz","telefonia movil","tramites"
+        "Todos", "agua", "Gas", "internet", "cable", "luz", "telefonia movil", "tramites"
     )
 
     val lista_color_degradado_bottom = listOf(
@@ -1724,5 +1729,68 @@ object constantes_lista_localidades {
         Color(0xFF000000),
     )
 
+    fun abrir_whattsapp(context: Context, numero: String) {
+        val uri = Uri.parse(
+            "https://api.whatsapp.com/send?phone=${"+51 $numero"}&text=${
+                URLEncoder.encode(
+                    "",
+                    "UTF-8"
+                )
+            }"
+        )
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                "no se pudo abrir whatsapp",
+                Toast.LENGTH_LONG
+            )
+                .show()
+        }
+    }
 
+
+    fun llamar(context: Context, numero: String, open_dialog: () -> Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CALL_PHONE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            open_dialog()
+        } else {
+            makePhoneCall(context, numero)
+        }
+    }
+
+    private fun requestCallPermission(context: Context, phoneNumber: String) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CALL_PHONE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(android.Manifest.permission.CALL_PHONE),
+                REQUEST_CALL_PHONE
+            )
+        } else {
+            makePhoneCall(context, phoneNumber)
+        }
+    }
+
+    private fun makePhoneCall(context: Context, phoneNumber: String) {
+        val callIntent = Intent(Intent.ACTION_CALL)
+        callIntent.data = Uri.parse("tel:$phoneNumber")
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            context.startActivity(callIntent)
+        } else {
+            requestCallPermission(context, phoneNumber)
+        }
+    }
 }

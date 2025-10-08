@@ -2,6 +2,8 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -93,52 +96,76 @@ fun ui_servicio_tramite(localida: String) {
         }
         Log.d("lista_value", subCategoriaSeleccionada)
     }
-
-
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalItemSpacing = 10.dp
-    ) {
-        item(span = StaggeredGridItemSpan.FullLine) {
-            Column() {
-                cabezero_servicios_tramites(localida)
-                spacer_vertical(10.dp)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(lista_servicios) { it ->
-                        val catSeleccionada = subCategoriaSeleccionada == it
-                        Log.d("asnfaBNFIKBNFIDNASUIF","$subCategoriaSeleccionada == $it")
-                        chisp_filtrado_busqueda(catSeleccionada, it, false, {
-                            if (!catSeleccionada) {
-                                if (it == "Todos") {
-                                    subCategoriaSeleccionada = "Todos"
-                                }else{
-                                    subCategoriaSeleccionada=it
+    val listState = rememberLazyListState()
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalItemSpacing = 10.dp
+        ) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Column() {
+                    cabezero_servicios_tramites(localida)
+                    spacer_vertical(10.dp)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        items(lista_servicios) { it ->
+                            val catSeleccionada = subCategoriaSeleccionada == it
+                            Log.d("asnfaBNFIKBNFIDNASUIF", "$subCategoriaSeleccionada == $it")
+                            chisp_filtrado_busqueda(catSeleccionada, it, false, {
+                                if (!catSeleccionada) {
+                                    if (it == "Todos") {
+                                        subCategoriaSeleccionada = "Todos"
+                                    } else {
+                                        subCategoriaSeleccionada = it
+                                    }
                                 }
-                            }
 
-                        }, {})
+                            }, {})
+                        }
                     }
+                    spacer_vertical(10.dp)
                 }
-                spacer_vertical(10.dp)
+            }
+            itemsIndexed(lista_mostrar, key = { _, item -> item.id }) { index, lugar ->
+                carta_servicio_tramites(
+                    lugar,
+                    index,
+                    isExpanded = expandedIndex == index
+                ) {
+                    seleccionado = lugar
+                    dialog_servicos_tramite = true
+                }
             }
         }
-        itemsIndexed(lista_mostrar, key = { _, item -> item.id }) { index, lugar ->
-            carta_servicio_tramites(
-                lugar,
-                index,
-                isExpanded = expandedIndex == index
-            ) {
-                seleccionado = lugar
-//                expandedIndex = if (expandedIndex == index) -1 else index
-                dialog_servicos_tramite = true
-            }
+        if (dialog_servicos_tramite) {
+            dialog_servicios_tramite(
+                localida,
+                ondimis = { dialog_servicos_tramite = false },
+                seleccionado
+            )
         }
-    }
-    if (dialog_servicos_tramite) {
-        dialog_servicios_tramite(localida,ondimis = { dialog_servicos_tramite = false }, seleccionado)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
+                    )
+                )
+                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+        )
     }
 
 }

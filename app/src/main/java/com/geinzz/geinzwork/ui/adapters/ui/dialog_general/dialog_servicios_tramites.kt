@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -30,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +48,17 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import okhttp3.internal.wait
 
 @Composable
@@ -59,21 +70,25 @@ fun dialog_servicios_tramite(
     var mostar_redes by remember { mutableStateOf(false) }
     val latitud = dataclass_lugares_db.direccion.lat
     val longitud = dataclass_lugares_db.direccion.log
-    val calle = dataclass_lugares_db.direccion.direccion
+    val direccion = dataclass_lugares_db.direccion.direccion
     val referencia = dataclass_lugares_db.direccion.refencia
+    var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
+
+    var mostar_dialog_ubicacion by remember { mutableStateOf(false) }
+    var mostrarDialog_sin_google_maps by remember { mutableStateOf(false) }
+    val numero_llamada by remember { mutableStateOf("") }
+    val contex = LocalContext.current
 
     AlertDialog(
         onDismissRequest = { ondimis() },
         confirmButton = {},
         title = { dataclass_lugares_db.lugar_nombre },
         text = {
-
             Column {
                 AsyncImage(
                     model = coil3.request.ImageRequest.Builder(LocalContext.current)
                         .placeholder(R.drawable.cargando_img_categorias)
                         .error(R.drawable.cargando_img_categorias)
-
                         .data(dataclass_lugares_db.logo_img).build(),
                     contentDescription = "",
                     modifier = Modifier
@@ -91,7 +106,7 @@ fun dialog_servicios_tramite(
                 )
                 spacer_vertical(10.dp)
                 texto_generico_multilinea(
-                    "Llega facilemte creando una ruta o copiando la direccion y ubicacion",
+                    dataclass_lugares_db.descripcion.capitalizeFirst(),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(20.dp)
@@ -102,9 +117,17 @@ fun dialog_servicios_tramite(
                         .clip(RoundedCornerShape(10.dp))
                         .background(MaterialTheme.colorScheme.primary)
                         .fillMaxWidth()
-                        .clickable {}
+                        .clickable {
+                            constantes_lista_localidades.abrir_google_maps(
+                                contex,
+                                latitud,
+                                longitud
+                            ) { dialog ->
+                                mostar_dialog_ubicacion = dialog
+                            }
+                        }
                 ) {
-                    Row(Modifier.padding(10.dp)) {
+                    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         texto_generico_one_line(
                             "Crear Ruta",
                             style = MaterialTheme.typography.bodyMedium
@@ -127,29 +150,52 @@ fun dialog_servicios_tramite(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.whatsapp_icon),
-                                contentDescription = "",
-                                Modifier
-                                    .size(35.dp)
-                                    .clip(CircleShape)
-                            )
-                            Image(
-                                painter = painterResource(R.drawable.llamada_icon),
-                                contentDescription = "",
-                                Modifier
-                                    .size(35.dp)
-                                    .clip(CircleShape)
-                            )
+                            if (dataclass_lugares_db.contacto.whatsapp.isNotEmpty()) {
+                                dataclass_lugares_db.contacto.whatsapp.map { i ->
+                                    Image(
+                                        painter = painterResource(R.drawable.whatsapp_icon),
+                                        contentDescription = "",
+                                        Modifier
+                                            .size(35.dp)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                abrir_whattsapp(contex, i)
+                                            }
+                                    )
+                                }
+                            }
+                            if (dataclass_lugares_db.contacto.telefono.isNotEmpty()) {
+                                dataclass_lugares_db.contacto.telefono.map { i ->
 
-                            Image(
-                                painter = painterResource(R.drawable.sitio_web),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .size(35.dp)
-                                    .clip(CircleShape),
-                                colorFilter = ColorFilter.tint(Color.White)
-                            )
+                                Image(
+                                    painter = painterResource(R.drawable.llamada_icon),
+                                    contentDescription = "",
+                                    Modifier
+                                        .size(35.dp)
+                                        .clip(CircleShape).clickable{
+                                            llamar(contex,i,{
+                                                call_dialog_permise=true
+                                            })
+                                        }
+                                )
+                                }
+                            }
+                            if (dataclass_lugares_db.contacto.sitio_web.isNotEmpty()) {
+                                Image(
+                                    painter = painterResource(R.drawable.sitio_web),
+                                    contentDescription = "",
+                                    modifier = Modifier
+                                        .size(35.dp)
+                                        .clip(CircleShape)
+                                        .clickable {
+                                            openWebLink(
+                                                contex,
+                                                dataclass_lugares_db.contacto.sitio_web
+                                            )
+                                        },
+                                    colorFilter = ColorFilter.tint(Color.White)
+                                )
+                            }
 
                         }
                     }
@@ -159,99 +205,91 @@ fun dialog_servicios_tramite(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                Image(
-                                    painter = painterResource(R.drawable.instagram_icon),
-                                    contentDescription = "",
-                                    Modifier
-                                        .size(35.dp)
-                                        .clip(CircleShape)
-                                )
-                                Image(
-                                    painter = painterResource(R.drawable.facebook_icon),
-                                    contentDescription = "",
-                                    Modifier
-                                        .size(35.dp)
-                                        .clip(CircleShape)
-                                )
+                                if (dataclass_lugares_db.contacto.ig.isNotEmpty()) {
 
-                                Image(
-                                    painter = painterResource(R.drawable.tik_tok_icon),
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .size(35.dp)
-                                        .clip(CircleShape),
-
+                                    Image(
+                                        painter = painterResource(R.drawable.instagram_icon),
+                                        contentDescription = "",
+                                        Modifier
+                                            .size(35.dp)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                openInstagram(
+                                                    contex,
+                                                    dataclass_lugares_db.contacto.ig
+                                                )
+                                            }
                                     )
+                                }
+                                if (dataclass_lugares_db.contacto.facebook.isNotEmpty()) {
+                                    Image(
+                                        painter = painterResource(R.drawable.facebook_icon),
+                                        contentDescription = "",
+                                        Modifier
+                                            .size(35.dp)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                openFacebook(
+                                                    contex,
+                                                    dataclass_lugares_db.contacto.facebook
+                                                )
+                                            }
+                                    )
+                                }
+
+                                if (dataclass_lugares_db.contacto.ig.isNotEmpty()) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.tik_tok_icon),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .size(35.dp)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                openTiktok(
+                                                    contex,
+                                                    dataclass_lugares_db.contacto.tk
+                                                )
+                                            }
+                                    )
+                                }
 
                             }
                         }
                     }
                 }
-
-
             }
-//                LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-//                    item {
-//                        Image(
-//                            painter = painterResource(R.drawable.whatsapp_icon),
-//                            contentDescription = "",
-//                            Modifier
-//                                .size(35.dp)
-//                                .clip(CircleShape)
-//                        )
-//                    }
-//                    item {
-//                        Image(
-//                            painter = painterResource(R.drawable.llamada_icon),
-//                            contentDescription = "",
-//                            Modifier
-//                                .size(35.dp)
-//                                .clip(CircleShape)
-//                        )
-//                    }
-//                    item {
-//                        Image(
-//                            painter = painterResource(R.drawable.sitio_web),
-//                            contentDescription = "",
-//                            modifier = Modifier
-//                                .size(35.dp)
-//                                .clip(CircleShape),
-//                            colorFilter = ColorFilter.tint(Color.White)
-//                        )
-//                    }
-////                    item {
-////                        Image(
-////                            painter = painterResource(R.drawable.facebook_icon),
-////                            contentDescription = "",
-////                            Modifier
-////                                .size(35.dp)
-////                                .clip(CircleShape)
-////                        )
-////                    }
-////                    item {
-////                        Image(
-////                            painter = painterResource(R.drawable.instagram_icon),
-////                            contentDescription = "",
-////                            Modifier
-////                                .size(35.dp)
-////                                .clip(CircleShape)
-////                        )
-////                    }
-////                    item {
-////                        Image(
-////                            painter = painterResource(R.drawable.tik_tok_icon),
-////                            contentDescription = "",
-////                            Modifier
-////                                .size(35.dp)
-////                                .clip(CircleShape)
-////                        )
-////                    }
-//
-//
-//                }
+            if (call_dialog_permise) {
+                permisos_llamadas(aceptar_permisos = {
+                    requestCallPermission(contex,numero_llamada)
+                }, ondimis = {
+                    call_dialog_permise = false
+                })
+            }
 
 
+            if (mostar_dialog_ubicacion) {
+                dialog_sin_ubicacion_activa(
+                    onDismis = {
+                        mostar_dialog_ubicacion = false
+                    }, abrir_configuracion = {
+                        mostar_dialog_ubicacion = false
+                        contex.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    },
+                    dialog_sin_maps = {
+                        mostar_dialog_ubicacion = false
+                        mostrarDialog_sin_google_maps = true
+                    }
+                )
+            }
 
+            if (mostrarDialog_sin_google_maps) {
+                dialog_sin_ubi_activa(
+                    direccion = direccion,
+                    referencia = referencia,
+                    onDismis = { mostrarDialog_sin_google_maps = false },
+                    abrir_maps = { constantes.abrirGoogleMaps(contex, direccion) })
+            }
         }
     )
 }

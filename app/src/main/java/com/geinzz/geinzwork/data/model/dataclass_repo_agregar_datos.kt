@@ -9,13 +9,23 @@ data class dataclass_repo_agregar_datos(
 )
 
 data class dataclass_lugares_db(
+    var descripcion: String = "",
     var categoria: List<String> = emptyList(),
     var direccion: direccion_lugar = direccion_lugar(),
     val horario_atencion: Map<String, Any> = emptyMap(),
     val id: String = "",
     val lugar_nombre: String = "",
     var logo_img: String = "",
-    val contacto: String=""
+    val contacto: contacto_lugares_gratis = contacto_lugares_gratis()
+)
+
+data class contacto_lugares_gratis(
+    val facebook: String = "",
+    val ig: String = "",
+    val sitio_web: String = "",
+    val telefono: List<String> = emptyList(),
+    val tk: String = "",
+    val whatsapp: List<String> = emptyList(),
 )
 
 

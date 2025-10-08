@@ -353,7 +353,7 @@ fun pantalla_principal(
                 seguridad(
                     imgActual,
                     "Contactar",
-                    "Salud y seguridad cuidadana"
+                    "Salud y seguridad Pública"
                 ) { listener_seguridad(localidad_defaul) }
 
                 spacer_vertical(20.dp)

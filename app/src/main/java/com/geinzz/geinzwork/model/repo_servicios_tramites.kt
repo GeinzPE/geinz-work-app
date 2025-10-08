@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.model
 
+import com.geinzz.geinzwork.data.model.contacto_lugares_gratis
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.direccion_lugar
 import com.google.firebase.firestore.FirebaseFirestore
@@ -18,19 +19,30 @@ class repo_servicios_tramites {
         return snapshot.documents.mapNotNull { doc ->
             val data = doc.data ?: return@mapNotNull null
             val direccion = data["direccion"] as? Map<String, Any> ?: emptyMap()
+            val contacto = data["contacto"] as? Map<String, Any> ?: emptyMap()
+
             val datos_direcion = direccion_lugar(
                 lat = (direccion["lat"] as? Number)?.toDouble() ?: 0.0,
                 log = (direccion["log"] as? Number)?.toDouble() ?: 0.0,
                 direccion = direccion["direccion"] as? String ?: "",
                 refencia = direccion["referencia"] as? String ?: ""
             )
+            val datos_contacto = contacto_lugares_gratis(
+                facebook = (contacto["facebook"] as? String ?: ""),
+                ig = (contacto["ig"] as? String ?: ""),
+                sitio_web = (contacto["sitio_web"] as? String ?: ""),
+                telefono = (contacto["telefono"] as? List<String> ?: emptyList()),
+                tk = (contacto["tk"] as? String ?: ""),
+                whatsapp = (contacto["whatsapp"] as? List<String> ?: emptyList()),
+            )
 
             dataclass_lugares_db(
+                descripcion = data["descripcion"] as? String ?: "",
                 categoria = data["categoria"] as? List<String> ?: emptyList(),
                 direccion = datos_direcion,
                 id = data["id"] as? String ?: "",
                 lugar_nombre = data["lugar_nombre"] as? String ?: "",
-                logo_img = data["img_logo"] as? String ?: "",
+                logo_img = data["img_logo"] as? String ?: "", contacto = datos_contacto
             )
         }
     }

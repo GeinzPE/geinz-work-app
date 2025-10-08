@@ -37,7 +37,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import java.net.URLEncoder
 
 
-private val REQUEST_CALL_PHONE = 1
+val REQUEST_CALL_PHONE = 1
 @Composable
 fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss: () -> Unit) {
     val context= LocalContext.current
@@ -149,7 +149,7 @@ fun box_llamada_whatsap(
 
 }
 
-private fun requestCallPermission(context: Context, phoneNumber: String) {
+fun requestCallPermission(context: Context, phoneNumber: String) {
     if (ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.CALL_PHONE
