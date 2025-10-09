@@ -345,7 +345,7 @@ fun carta_servicio_tramites(
 
 @Composable
 fun cabezero_servicios_tramites(localiad: String) {
-    Text(text = "servicios esenciales y tramites", fontFamily = baners_geinz_work, fontSize = 25.sp)
+    Text(text = "servicios esenciales y tramites", fontFamily = baners_geinz_work, fontSize = 30.sp)
     spacer_vertical(5.dp)
     texto_generico_multilinea(
         "Accede al instante a todos los servicios y trámites esenciales de $localiad. Información verificada.",
