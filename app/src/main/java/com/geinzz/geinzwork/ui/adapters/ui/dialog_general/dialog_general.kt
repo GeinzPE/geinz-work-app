@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,18 +49,28 @@ fun dialog_sin_pago_tiendas(datos_tienda_free: datos_tienda_free, ondimis: () ->
             Column(
                 verticalArrangement = Arrangement.Center
             ) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(13.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
                     AsyncImage(
                         model = coil3.request.ImageRequest.Builder(LocalContext.current)
                             .placeholder(R.drawable.cargando_img_categorias)
                             .error(R.drawable.cargando_img_categorias)
-                            .size(200, 300)
-                            .data(datos_tienda_free.img).build(),
+                            .data(datos_tienda_free.img)
+                            .build(),
                         contentDescription = "",
-                        modifier = Modifier.clip(RoundedCornerShape(20.dp))
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        contentScale = ContentScale.Crop  // 👈 ajusta el recorte correctamente
                     )
                 }
-                spacer_vertical(10.dp)
+
+                spacer_vertical(15.dp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     texto_generico_one_line(
                         "Direccion",
@@ -71,7 +84,8 @@ fun dialog_sin_pago_tiendas(datos_tienda_free: datos_tienda_free, ondimis: () ->
                     Image(
                         painter = painterResource(R.drawable.baseline_content_copy_24),
                         contentDescription = "",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
                     )
                 }
                 spacer_vertical(10.dp)
@@ -88,7 +102,8 @@ fun dialog_sin_pago_tiendas(datos_tienda_free: datos_tienda_free, ondimis: () ->
                     Image(
                         painter = painterResource(R.drawable.baseline_content_copy_24),
                         contentDescription = "",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
                     )
 
                 }

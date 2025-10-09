@@ -64,11 +64,13 @@ import coil3.request.ImageRequest
 import com.algolia.search.dsl.attributes.DSLSearchableAttributes
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
+import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_servicios_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.filtrado_texfiel
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -81,13 +83,16 @@ import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 @Composable
 fun ui_servicio_tramite(localida: String) {
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
-    val lugares = viewmode_servicios_tramite.lugares.observeAsState(emptyList())
+    val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
     val lista_servicios = constantes_lista_localidades.lista_fitlrado_servicios_basicos
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var dialog_servicos_tramite by remember { mutableStateOf(false) }
     var seleccionado by remember { mutableStateOf(dataclass_lugares_db()) }
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
+    var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_lugares_db>()) }
+
+    var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var listState = rememberLazyListState()
     val showLeftShadow by remember {
         derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
@@ -108,22 +113,30 @@ fun ui_servicio_tramite(localida: String) {
         animationSpec = tween(400), label = "alphaRight"
     )
 
-    LaunchedEffect(lugares.value) {
-        viewmode_servicios_tramite.todos(lugares.value)
+    LaunchedEffect(lugares) {
+        viewmode_servicios_tramite.todos(lugares)
+        lista_base_seguridad=lugares
     }
     LaunchedEffect(localida) {
         viewmode_servicios_tramite.obtener_lugares(localida)
     }
+    LaunchedEffect(valor_filtrado, subCategoriaSeleccionada) {
+        lista_mostrar = viewmode_servicios_tramite.filtrar_nombre_categoria(
+            valor_filtrado,
+            subCategoriaSeleccionada,
+            lista_base_seguridad
+        )
+    }
 
-    LaunchedEffect(lugares.value, subCategoriaSeleccionada) {
-        viewmode_servicios_tramite.todos(lugares.value)
+
+    LaunchedEffect(lugares, subCategoriaSeleccionada) {
+        viewmode_servicios_tramite.todos(lugares)
         if (subCategoriaSeleccionada == "Todos") {
-            lista_mostrar = lugares.value
+            lista_mostrar = lugares
         } else {
             viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
             lista_mostrar = viewmode_servicios_tramite.listaFiltrada.value
         }
-        Log.d("lista_value", subCategoriaSeleccionada)
     }
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
@@ -141,6 +154,8 @@ fun ui_servicio_tramite(localida: String) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 Column() {
                     cabezero_servicios_tramites(localida)
+                    spacer_vertical(10.dp)
+                    filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
                     spacer_vertical(10.dp)
                     Box(
                         modifier = Modifier
@@ -225,7 +240,7 @@ fun ui_servicio_tramite(localida: String) {
                         )
                     )
                 )
-                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                .graphicsLayer { alpha = alphaAnim }
         )
     }
 

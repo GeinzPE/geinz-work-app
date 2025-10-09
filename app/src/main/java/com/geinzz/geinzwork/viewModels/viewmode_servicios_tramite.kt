@@ -48,4 +48,12 @@ class viewmode_servicios_tramite : ViewModel(){
         }
         Log.d("lista_value","${ todo_lugares.filter { it.categoria.contains(categorias) }}")
     }
+    fun filtrar_nombre_categoria(nombre:String,categoria:String,lista: List<dataclass_lugares_db>): List<dataclass_lugares_db>{
+        return lista.filter { item->
+            val conicide_TXT=nombre.isBlank() || item.lugar_nombre.contains(nombre,ignoreCase = true)
+            val coincidenciaExacta = categoria == "Todos" || item.categoria.any { i -> i.contains(categoria, ignoreCase = true) }
+            conicide_TXT && coincidenciaExacta
+        }
+
+    }
 }
