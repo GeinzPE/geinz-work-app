@@ -77,9 +77,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Surface
@@ -1337,80 +1339,102 @@ fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifie
 }
 
 
-
 @Composable
-fun baner_servicios_basicos_(listener_servicios:()-> Unit) {
-    Row(
+fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
+    Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFF1A1A1A))
-            .height(170.dp)
             .fillMaxWidth()
+            .defaultMinSize(minHeight = 180.dp)
+            .clickable( indication = null,
+                interactionSource = remember { MutableInteractionSource()}) {
+                listener_servicios()
+            }
     ) {
-        Column(modifier = Modifier.weight(1f).padding(10.dp)) {
-            Text(
-                text = "Servicios esenciales y trámites",
-                color = Color.White,
-                fontFamily = baners_geinz_work,
-                fontSize = 20.sp,
+        Row(
+            modifier = Modifier
+                .matchParentSize() // 🔹 el Row ocupa todo el Box
+        ) {
+            // === COLUMNA DE TEXTO Y BOTÓN ===
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            spacer_vertical(10.dp)
-
-            texto_generico_multilinea(
-                "Encuentra fácilmente todos los servicios y entidades esenciales",
-                style = MaterialTheme.typography.bodyMedium,
-                Color = Color.White
-            )
-            spacer_vertical(10.dp)
-            Box(
-                modifier = Modifier
-                    .size(35.dp)
-                    .clip(CircleShape)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {listener_servicios()},
-                contentAlignment = Alignment.Center
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
+                Column {
+                    Text(
+                        text = "Servicios esenciales y trámites",
+                        color = Color.White,
+                        fontFamily = baners_geinz_work,
+                        fontSize = 20.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    spacer_vertical(10.dp)
+
+                    texto_generico_multilinea(
+                        "Encuentra fácilmente todos los servicios y entidades esenciales",
+                        style = MaterialTheme.typography.bodyMedium,
+                        Color = Color.White
+                    )
+                }
+
+                spacer_vertical(10.dp)
+                // === BOTÓN FLECHA ===
                 Box(
                     modifier = Modifier
+                        .size(40.dp) // 🔹 tamaño fijo y respetado
                         .clip(CircleShape)
-                        .size(35.dp)
                         .background(Color.Gray.copy(alpha = 0.25f))
-                        .blur(12.dp),
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { listener_servicios() }
+                        .align(Alignment.Start), // evita que se estire horizontalmente
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Ir",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                spacer_vertical(10.dp)
+            }
+
+            // === IMAGEN ===
+            Box(
+                modifier = Modifier
+                    .weight(0.7f)
+                    .fillMaxHeight()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(R.drawable.servicios_basicos)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = "Cerrar",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+
+                // Gradiente para transición
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(80.dp)
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
+                            )
+                        )
                 )
             }
         }
-        Box(modifier = Modifier.weight(.7f)) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.servicios_basicos)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(80.dp)
-                    .align(Alignment.CenterStart)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
-                        )
-                    )
-            )
-        }
     }
-
 }

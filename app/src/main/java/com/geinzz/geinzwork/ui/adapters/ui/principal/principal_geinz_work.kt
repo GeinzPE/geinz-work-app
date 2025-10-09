@@ -57,6 +57,7 @@ import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -416,76 +417,76 @@ fun pantalla_principal(
 //        )
 //    }
 //}
-
-@Composable
-fun solicitar_permiso_notifi() {
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
-        }
-    }
-}
-
-@Composable
-fun SolicitarPermisoNotificacionLauncher(firebaseAuth: FirebaseAuth, permiso_notifi: Boolean) {
-    val context = LocalContext.current
-
-    // Launcher para pedir permiso de notificación
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Aquí ya se concedió el permiso
-            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
-        } else {
-            // Permiso denegado
-            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Lanzar el permiso automáticamente cuando hay usuario registrado
-    LaunchedEffect(firebaseAuth.currentUser) {
-        if (firebaseAuth.currentUser != null && permiso_notifi) {
-            // ✅ Aquí se lanza el permiso dentro del launcher
-            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-}
-
-@Composable
-fun AlbumBackgroundBlurOptimized(albumRes: Int, heightDp: Dp = 300.dp) {
-    val context = LocalContext.current
-    val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
-    var colors by remember { mutableStateOf(listOf(Color.Black, Color.DarkGray)) }
-
-    // Solo calculamos si no está en cache
-    LaunchedEffect(albumRes) {
-        paletteCache[albumRes]?.let {
-            colors = it
-        } ?: run {
-            val bitmap = getScaledBitmap(context, albumRes)
-            extractPaletteColors(bitmap) { extracted ->
-                colors = extracted.map { Color(it) } // <- convertimos Int a Color
-                paletteCache[albumRes] = colors
-            }
-        }
-    }
-
-    // Fondo con gradiente + blur
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(heightDp)
-            .background(Brush.verticalGradient(colors))
-            .blur(80.dp)
-    )
-}
-
+//
+//@Composable
+//fun solicitar_permiso_notifi() {
+//    val context = LocalContext.current
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.RequestPermission()
+//    ) { isGranted: Boolean ->
+//        if (isGranted) {
+//            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
+//        } else {
+//            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+//}
+//
+//@Composable
+//fun SolicitarPermisoNotificacionLauncher(firebaseAuth: FirebaseAuth, permiso_notifi: Boolean) {
+//    val context = LocalContext.current
+//
+//    // Launcher para pedir permiso de notificación
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.RequestPermission()
+//    ) { isGranted ->
+//        if (isGranted) {
+//            // Aquí ya se concedió el permiso
+//            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
+//        } else {
+//            // Permiso denegado
+//            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+//
+//    // Lanzar el permiso automáticamente cuando hay usuario registrado
+//    LaunchedEffect(firebaseAuth.currentUser) {
+//        if (firebaseAuth.currentUser != null && permiso_notifi) {
+//            // ✅ Aquí se lanza el permiso dentro del launcher
+//            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+//        }
+//    }
+//}
+//
+//@Composable
+//fun AlbumBackgroundBlurOptimized(albumRes: Int, heightDp: Dp = 300.dp) {
+//    val context = LocalContext.current
+//    val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
+//    var colors by remember { mutableStateOf(listOf(Color.Black, Color.DarkGray)) }
+//
+//    // Solo calculamos si no está en cache
+//    LaunchedEffect(albumRes) {
+//        paletteCache[albumRes]?.let {
+//            colors = it
+//        } ?: run {
+//            val bitmap = getScaledBitmap(context, albumRes)
+//            extractPaletteColors(bitmap) { extracted ->
+//                colors = extracted.map { Color(it) } // <- convertimos Int a Color
+//                paletteCache[albumRes] = colors
+//            }
+//        }
+//    }
+//
+//    // Fondo con gradiente + blur
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(heightDp)
+//            .background(Brush.verticalGradient(colors))
+//            .blur(80.dp)
+//    )
+//}
+//
 
 @Composable
 fun apartado_explora_cat(
@@ -792,6 +793,7 @@ fun filtrado_localidades(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
 
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.confetii))
     var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad) }

@@ -13,6 +13,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -36,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -44,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
@@ -52,6 +59,7 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
@@ -82,11 +90,18 @@ fun dialog_servicios_tramite(
     AlertDialog(
         onDismissRequest = { ondimis() },
         confirmButton = {},
-        title = { dataclass_lugares_db.lugar_nombre },
         text = {
             Column {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    btn_close_gris(
+                        modifier = Modifier.align(Alignment.TopEnd),
+                        size_icon = 15.dp,
+                        imageVector = Icons.Default.Close,
+                        onClick = { ondimis() })
+                }
+                spacer_vertical(10.dp)
                 AsyncImage(
-                    model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                    model = ImageRequest.Builder(LocalContext.current)
                         .placeholder(R.drawable.cargando_img_categorias)
                         .error(R.drawable.cargando_img_categorias)
                         .data(dataclass_lugares_db.logo_img).build(),
@@ -167,17 +182,18 @@ fun dialog_servicios_tramite(
                             if (dataclass_lugares_db.contacto.telefono.isNotEmpty()) {
                                 dataclass_lugares_db.contacto.telefono.map { i ->
 
-                                Image(
-                                    painter = painterResource(R.drawable.llamada_icon),
-                                    contentDescription = "",
-                                    Modifier
-                                        .size(35.dp)
-                                        .clip(CircleShape).clickable{
-                                            llamar(contex,i,{
-                                                call_dialog_permise=true
-                                            })
-                                        }
-                                )
+                                    Image(
+                                        painter = painterResource(R.drawable.llamada_icon),
+                                        contentDescription = "",
+                                        Modifier
+                                            .size(35.dp)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                llamar(contex, i, {
+                                                    call_dialog_permise = true
+                                                })
+                                            }
+                                    )
                                 }
                             }
                             if (dataclass_lugares_db.contacto.sitio_web.isNotEmpty()) {
@@ -261,7 +277,7 @@ fun dialog_servicios_tramite(
             }
             if (call_dialog_permise) {
                 permisos_llamadas(aceptar_permisos = {
-                    requestCallPermission(contex,numero_llamada)
+                    requestCallPermission(contex, numero_llamada)
                 }, ondimis = {
                     call_dialog_permise = false
                 })

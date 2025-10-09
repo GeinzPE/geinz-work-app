@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +46,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -52,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.CachePolicy
@@ -67,6 +72,10 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 
 @Composable
@@ -79,6 +88,26 @@ fun ui_servicio_tramite(localida: String) {
     var seleccionado by remember { mutableStateOf(dataclass_lugares_db()) }
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
+    var listState = rememberLazyListState()
+    val showLeftShadow by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showRightShadow by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < total - 1
+        }
+    }
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaLeft"
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaRight"
+    )
+
     LaunchedEffect(lugares.value) {
         viewmode_servicios_tramite.todos(lugares.value)
     }
@@ -96,7 +125,6 @@ fun ui_servicio_tramite(localida: String) {
         }
         Log.d("lista_value", subCategoriaSeleccionada)
     }
-    val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
         targetValue = targetAlpha,
@@ -114,22 +142,55 @@ fun ui_servicio_tramite(localida: String) {
                 Column() {
                     cabezero_servicios_tramites(localida)
                     spacer_vertical(10.dp)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(lista_servicios) { it ->
-                            val catSeleccionada = subCategoriaSeleccionada == it
-                            Log.d("asnfaBNFIKBNFIDNASUIF", "$subCategoriaSeleccionada == $it")
-                            chisp_filtrado_busqueda(catSeleccionada, it, false, {
-                                if (!catSeleccionada) {
-                                    if (it == "Todos") {
-                                        subCategoriaSeleccionada = "Todos"
-                                    } else {
-                                        subCategoriaSeleccionada = it
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LazyRow(
+                            state = listState,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(lista_servicios) { it ->
+                                val catSeleccionada = subCategoriaSeleccionada == it
+                                Log.d("asnfaBNFIKBNFIDNASUIF", "$subCategoriaSeleccionada == $it")
+                                chisp_filtrado_busqueda(catSeleccionada, it, false, {
+                                    if (!catSeleccionada) {
+                                        if (it == "Todos") {
+                                            subCategoriaSeleccionada = "Todos"
+                                        } else {
+                                            subCategoriaSeleccionada = it
+                                        }
                                     }
-                                }
 
-                            }, {})
+                                }, {})
+                            }
                         }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(40.dp)
+                                .align(Alignment.CenterStart)
+                                .zIndex(1f)
+                                .alpha(alphaLeft)
+                                .background(Brush.horizontalGradient(colors = shadow_left))
+                        )
+
+                        // 👉 derecha
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(40.dp)
+                                .align(Alignment.CenterEnd)
+                                .zIndex(1f)
+                                .alpha(alphaRight)
+                                .background(Brush.horizontalGradient(colors = shadow_right))
+                        )
                     }
+
+
                     spacer_vertical(10.dp)
                 }
             }
