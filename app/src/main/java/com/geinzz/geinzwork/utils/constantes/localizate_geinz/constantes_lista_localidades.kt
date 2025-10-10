@@ -344,16 +344,10 @@ object constantes_lista_localidades {
         "Explora tu ciudad",
         "¿Qué descubrir?",
         "Busca tiendas",
-        "Explora promos",
         "Todo en un lugar",
-        "Descubre cerca",
         "¿Qué explorar?"
     )
 
-
-    val chips_filtrado_busqueda = listOf(
-        "Todos", "playas", "Hoteles", "Lugares", "restaurantes"
-    )
     val lista_fitlrado_servicios_basicos = listOf(
         "Todos", "agua", "Gas", "internet", "cable", "luz", "telefonia movil", "tramites"
     )

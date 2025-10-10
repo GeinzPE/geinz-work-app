@@ -199,10 +199,14 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(ultimaLocalidad) {
         if (ultimaLocalidad != null) {
             tiendaLocalidadSeleccionada = ultimaLocalidad
+
         }
     }
 
+    var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
+
     var categoria_filtrad by remember { mutableStateOf("") }
+    Log.d("camibamos","${categoria_filtrad} ${localidad_Anterior_select}")
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
@@ -226,13 +230,30 @@ fun ui_pantalla_busqueda(
     var color_salud_seguirdad by remember { mutableStateOf(false) }
     var mostrar_centrado_visible by remember { mutableStateOf(true) }
 
+    var localidad_tienda_seklecioanda by remember { mutableStateOf("") }
+
     var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
+//    LaunchedEffect(tiendaLocalidadSeleccionada) {
+//        viewModel.clearResults()
+//    }
+    var previousLocalidad by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
         categoria_filtrad,
         subcategira_filtrado,
         salud_seguirdad
     ) {
+        Log.d("_cabiamos_localida",tiendaLocalidadSeleccionada?:"1123")
+
+        val localidadActual = tiendaLocalidadSeleccionada
+
+        if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty() || salud_seguirdad.isEmpty())) {
+            Log.d("_cambio_localidad", "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual")
+            viewModel.clearResults()
+            mostrar_centrado_visible = true
+            previousLocalidad = localidadActual
+        }
         if (firstLaunch) {
             firstLaunch = false
             return@LaunchedEffect
@@ -276,7 +297,7 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
             viewModelFiltros.obtener_campos_tiendas_por_id(
-                tiendaLocalidadSeleccionada ?: "barranca",
+                localidad_tienda_seklecioanda ?: "barranca",
                 id_tienda_selecionada
             )
         }
@@ -428,7 +449,7 @@ fun ui_pantalla_busqueda(
                     index,
                     { id, localidad, color ->
                         estadoColor = color
-                        tiendaLocalidadSeleccionada = localidad
+                        localidad_tienda_seklecioanda = localidad
                         id_tienda_selecionada = id
                         viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
                         show_bottom_sheeet = true
@@ -576,6 +597,8 @@ fun ui_pantalla_busqueda(
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
+//                localidad_Anterior_select=localidad
+//                searchText = TextFieldValue("")
             },
             categoria_filtrad,
             categoria_Selecionada = { categoria ->
@@ -1904,10 +1927,13 @@ fun TexfielFiltrado(
 ) {
     var icono_borrar by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-
+ if(texto.text.isEmpty()){
+     icono_borrar=false
+ }
     OutlinedTextField(
         value = texto,
         onValueChange = { newValue: TextFieldValue ->
+            Log.d("falta_señal",newValue.text)
             icono_borrar = newValue.text.isNotBlank()
             onvalueChage(newValue.text)
         },

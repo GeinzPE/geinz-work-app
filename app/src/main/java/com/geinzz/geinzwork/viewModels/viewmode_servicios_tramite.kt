@@ -9,6 +9,7 @@ import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_servicios_tramites
 import com.geinzz.geinzwork.ui.adapters.adapterCategorias
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -25,15 +26,27 @@ class viewmode_servicios_tramite : ViewModel(){
 
     private var todo_lugares=emptyList<dataclass_lugares_db>()
 
-    fun obtener_lugares(localida:String){
-        viewModelScope.launch {
-            try {
-                _lugares.value=isnta.obtenerServiciosTramites(localida)
-            }catch (e: Exception){
-                _lugares.value=emptyList()
+    private val state_servicios= MutableLiveData<carga_servicios>()
+    val _state_servicios : LiveData<carga_servicios> = state_servicios
+
+        fun obtener_lugares(localida:String){
+            viewModelScope.launch {
+                state_servicios.value= carga_servicios.loading
+                try {
+                    _lugares.value=isnta.obtenerServiciosTramites(localida)
+                    val res= isnta.obtenerServiciosTramites(localida)
+
+                    if(res.isNotEmpty()){
+                        state_servicios.value= carga_servicios.succes(res)
+                    }else{
+                        state_servicios.value= carga_servicios.emoty(texto = "No hay datos registrados de $localida")
+                    }
+                }catch (e: Exception){
+                    state_servicios.value= carga_servicios.error("Ocurrio un error")
+                    _lugares.value=emptyList()
+                }
             }
         }
-    }
     fun todos(lista: List<dataclass_lugares_db>){
         todo_lugares=lista
         _listaFiltrada.value=lista
@@ -55,5 +68,12 @@ class viewmode_servicios_tramite : ViewModel(){
             conicide_TXT && coincidenciaExacta
         }
 
+    }
+
+    sealed class carga_servicios{
+        object loading: carga_servicios()
+        data class emoty(val texto: String): carga_servicios()
+        data class succes(val items: List<dataclass_lugares_db>): carga_servicios()
+        data class error (val texto:String): carga_servicios()
     }
 }
