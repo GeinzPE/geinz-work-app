@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.model.repo_seguridad_salud
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.carta_salud_cuidad
+import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,6 +23,9 @@ class viewmode_seguridad_salud : ViewModel() {
     private val _listaFiltrada = MutableStateFlow<List<dataclass_seguridad>>(emptyList())
     val lista_filtrada: StateFlow<List<dataclass_seguridad>> = _listaFiltrada
 
+    private val _state_lista_filtrada = MutableStateFlow<carga_seguidad>(carga_seguidad.loading)
+    val state_lista_filtradad: StateFlow<carga_seguidad> = _state_lista_filtrada
+
     val coordenadasSeleccionadas: LiveData<Pair<Double, Double>?> = _coordenadasSeleccionadas
 
 
@@ -28,10 +34,19 @@ class viewmode_seguridad_salud : ViewModel() {
 
     fun obtener_servicios(localidad: String) {
         viewModelScope.launch {
+            _state_lista_filtrada.value= carga_seguidad.loading
             try {
-                datos_lugares.value = instancia.obtener_servicios_salud(localidad)
+                val respuesta=instancia.obtener_servicios_salud(localidad)
+                datos_lugares.value = respuesta
+                if(respuesta.isEmpty()){
+                    _state_lista_filtrada.value=carga_seguidad.succes(respuesta)
+                }else{
+                _state_lista_filtrada.value=carga_seguidad.empity("No se encontraron resultados en $localidad")
+                }
             } catch (e: Exception) {
                 datos_lugares.value = emptyList()
+                _state_lista_filtrada.value=carga_seguidad.error("Error al cargar los datos")
+
             }
         }
     }
@@ -45,7 +60,7 @@ class viewmode_seguridad_salud : ViewModel() {
         todos_lugares.addAll(lista)
     }
 
-    fun horario_atencion(nombre: String):String{
+    fun horario_atencion(nombre: String): String {
         return instancia.atencion_24h(nombre)
     }
 
@@ -61,22 +76,89 @@ class viewmode_seguridad_salud : ViewModel() {
 //    }
 
 
+//    fun filtrar_lugares(
+//        nombre: String,
+//        categoria: String,
+//        lista: List<dataclass_seguridad>
+//    ): List<dataclass_seguridad> {
+//
+//
+//        return lista.filter { item ->
+//            val coincideTexto = nombre.isBlank() || item.nombre_.contains(nombre, ignoreCase = true)
+//            val coincideCategoria =
+//                categoria == "Todos" || item.categoria.contains(categoria, ignoreCase = true)
+//            coincideTexto && coincideCategoria
+//        }
+//    }
     fun filtrar_lugares(
+        categoria: String,
+    ){
+        viewModelScope.launch {
+            _state_lista_filtrada.value=carga_seguidad.loading
+            delay(500)
+            try {
+                val resultado=if(categoria=="Todos"){
+                    todos_lugares
+                }else{
+                    todos_lugares.filter {
+                        it.categoria.lowercase().contains(categoria.lowercase())
+                    }
+                }
+
+                if(resultado.isNotEmpty()){
+                    _state_lista_filtrada.value= carga_seguidad.succes(resultado)
+                }else{
+                    _state_lista_filtrada.value= carga_seguidad.empity("No se encontraron resutlados")
+                }
+            }catch (e: Exception){
+                _state_lista_filtrada.value= carga_seguidad.empity("No se encontraron resutlados")
+
+            }
+        }
+
+    }
+
+    fun filtrar_nombre_categoria(
         nombre: String,
         categoria: String,
         lista: List<dataclass_seguridad>
-    ): List<dataclass_seguridad> {
-        return lista.filter { item ->
-            val coincideTexto = nombre.isBlank() || item.nombre_.contains(nombre, ignoreCase = true)
-            val coincideCategoria = categoria == "Todos" || item.categoria.contains(categoria, ignoreCase = true)
-            coincideTexto && coincideCategoria
+    ){
+        viewModelScope.launch {
+            try {
+                _state_lista_filtrada.value= carga_seguidad.loading
+                delay(400)
+
+                val res = lista.filter { item ->
+                    val textoCoincide = item.nombre_.contains(nombre, ignoreCase = true)
+                    val categoriaCoincide = categoria == "Todos" || item.categoria == categoria
+                    textoCoincide && categoriaCoincide
+                }
+                if (res.isNotEmpty()) {
+                    _state_lista_filtrada.value = carga_seguidad.succes(res)
+                } else {
+                    _state_lista_filtrada.value = carga_seguidad.empity("No se encontraron resultados")
+
+                }
+            }catch (e: Exception){
+                _state_lista_filtrada.value = carga_seguidad.error("Error al filtrar datos")
+
+            }
         }
     }
 
 
 
     fun actualizar_lista_filtrada(nuevaLista: List<dataclass_seguridad>) {
-        _listaFiltrada.value=nuevaLista
+        _listaFiltrada.value = nuevaLista
     }
+
+
+    sealed class carga_seguidad {
+        data class empity(val texto: String) : carga_seguidad()
+        data class succes(val list: List<dataclass_seguridad>) : carga_seguidad()
+        data class error(val texto: String) : carga_seguidad()
+        object loading : carga_seguidad()
+    }
+
 
 }

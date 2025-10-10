@@ -9,6 +9,7 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -43,6 +44,7 @@ import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -77,6 +79,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgenci
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -101,7 +104,10 @@ fun ui_salud_seguirdad(
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var chip_selecionado by rememberSaveable { mutableStateOf("Todos") }
+    val state_seguridad = viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState().value
     var isLoading by remember { mutableStateOf(false) }
+    var error_empity by remember { mutableStateOf(false) }
+    var texto_error_empity by remember { mutableStateOf("") }
 
 //    LaunchedEffect(valor_filtrado) {
 //        isLoading = true
@@ -114,15 +120,26 @@ fun ui_salud_seguirdad(
 //        isLoading = false
 //    }
 
-    LaunchedEffect(valor_filtrado, chip_selecionado) {
-        isLoading = true
-        delay(600) // simula búsqueda
-        lista_mostrar = viewmode_segurirdad_Salud.filtrar_lugares(
+//    LaunchedEffect(valor_filtrado, chip_selecionado) {
+////        isLoading = true
+////        delay(600) // simula búsqueda
+//        lista_mostrar = viewmode_segurirdad_Salud.filtrar_lugares(
+//            nombre = valor_filtrado,
+//            categoria = chip_selecionado,
+//            lista = lista_base_seguridad
+//        )
+////        isLoading = false
+//    }
+
+    LaunchedEffect(chip_selecionado) {
+        viewmode_segurirdad_Salud.filtrar_lugares(chip_selecionado)
+    }
+    LaunchedEffect(valor_filtrado) {
+        viewmode_segurirdad_Salud.filtrar_nombre_categoria(
             nombre = valor_filtrado,
             categoria = chip_selecionado,
             lista = lista_base_seguridad
         )
-        isLoading = false
     }
 
     // Llama servicios iniciales
@@ -193,7 +210,7 @@ fun ui_salud_seguirdad(
                         )
                     )
                 ) {
-                    Column (
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
@@ -210,10 +227,18 @@ fun ui_salud_seguirdad(
                     }
                 }
             }
-            if (!isLoading) {
-                if (lista_mostrar.isNotEmpty()) {
-                    items(lista_mostrar) { i ->
-                        sin_resultados = false
+            when (state_seguridad) {
+                is viewmode_seguridad_salud.carga_seguidad.loading -> {
+                    isLoading = true
+                    error_empity=false
+                }
+
+                is viewmode_seguridad_salud.carga_seguidad.succes -> {
+                    val lista =
+                        (state_seguridad as viewmode_seguridad_salud.carga_seguidad.succes).list
+                    items(lista) { i ->
+                        isLoading=false
+                        error_empity=false
                         Box(modifier = Modifier.padding(8.dp)) {
                             carta_salud_cuidad(
                                 viewmode_segurirdad_Salud,
@@ -224,33 +249,61 @@ fun ui_salud_seguirdad(
                                 })
                         }
                     }
-                } else {
-                    sin_resultados = true
+                }
+
+                is viewmode_seguridad_salud.carga_seguidad.empity -> {
+                    val texto =
+                        (state_seguridad as viewmode_seguridad_salud.carga_seguidad.empity).texto
+                    isLoading=false
+                    error_empity=true
+                    texto_error_empity=texto
+                }
+
+                is viewmode_seguridad_salud.carga_seguidad.error -> {
+                    val texto =
+                        (state_seguridad as viewmode_seguridad_salud.carga_seguidad.error).texto
+                    isLoading=false
+                    error_empity=true
+                    texto_error_empity=texto
+
+                }
+            }
+
+        }
+
+        AnimatedContent(
+            targetState = when {
+                isLoading -> "loading"
+                sin_resultados -> "empty"
+                error_empity -> "error"
+                else -> "none"
+            },
+            label = "estado_carga"
+        ) { estado ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                centrado_hori_vertical {
+                when (estado) {
+                    "loading" -> CircularProgressIndicator()
+                    "empty" -> texto_generico_one_line(
+                        texto_error_empity,
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    "error" -> texto_generico_one_line(
+                        texto_error_empity,
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 }
             }
         }
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                sin_resultados = false
-                CircularProgressIndicator()
-            }
-        }
-        if (sin_resultados) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                texto_generico_one_line(
-                    "No se encontraron resultados $valor_filtrado",
-                    color = Color.Gray
-                )
-            }
-        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()

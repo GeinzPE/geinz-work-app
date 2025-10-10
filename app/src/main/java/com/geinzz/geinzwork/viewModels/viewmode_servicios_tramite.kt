@@ -9,71 +9,152 @@ import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_servicios_tramites
 import com.geinzz.geinzwork.ui.adapters.adapterCategorias
-import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.carta_servicio_tramites
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class viewmode_servicios_tramite : ViewModel(){
-    private val isnta= repo_servicios_tramites()
-     private val _lugares= MutableLiveData<List<dataclass_lugares_db>>()
-    val lugares : LiveData<List<dataclass_lugares_db>> get() =_lugares
-    private val _listaFiltrada = MutableStateFlow<List<dataclass_lugares_db>>(emptyList())
-    val listaFiltrada: StateFlow<List<dataclass_lugares_db>> = _listaFiltrada
+class viewmode_servicios_tramite : ViewModel() {
+    private val isnta = repo_servicios_tramites()
+    private val _lugares = MutableLiveData<List<dataclass_lugares_db>>()
+    val lugares: LiveData<List<dataclass_lugares_db>> get() = _lugares
+//    private val _listaFiltrada = MutableStateFlow<List<dataclass_lugares_db>>(emptyList())
+//    val listaFiltrada: StateFlow<List<dataclass_lugares_db>> = _listaFiltrada
 
     var lugares_turisticos = mutableListOf<dataclass_lugares_db>()
         private set
 
-    private var todo_lugares=emptyList<dataclass_lugares_db>()
+    private var todo_lugares = emptyList<dataclass_lugares_db>()
 
-    private val state_servicios= MutableLiveData<carga_servicios>()
-    val _state_servicios : LiveData<carga_servicios> = state_servicios
 
-        fun obtener_lugares(localida:String){
-            viewModelScope.launch {
-                state_servicios.value= carga_servicios.loading
-                try {
-                    _lugares.value=isnta.obtenerServiciosTramites(localida)
-                    val res= isnta.obtenerServiciosTramites(localida)
+    private val state_servicios = MutableStateFlow<carga_servicios>(carga_servicios.loading)
+    val _state_servicios: StateFlow<carga_servicios> = state_servicios
 
-                    if(res.isNotEmpty()){
-                        state_servicios.value= carga_servicios.succes(res)
-                    }else{
-                        state_servicios.value= carga_servicios.emoty(texto = "No hay datos registrados de $localida")
-                    }
-                }catch (e: Exception){
-                    state_servicios.value= carga_servicios.error("Ocurrio un error")
-                    _lugares.value=emptyList()
+
+    fun obtener_lugares(localida: String) {
+        viewModelScope.launch {
+            try {
+                state_servicios.value = carga_servicios.loading
+
+                val res = isnta.obtenerServiciosTramites(localida)
+
+                _lugares.value = res
+
+                if (res.isNotEmpty()) {
+                    state_servicios.value = carga_servicios.succes(res)
+                } else {
+                    // Espera un poco antes de mostrar el "vacío"
+                    delay(300)
+                    state_servicios.value =
+                        carga_servicios.emoty("No hay datos registrados de $localida")
                 }
+
+            } catch (e: Exception) {
+                _lugares.value = emptyList()
+                state_servicios.value = carga_servicios.error("Ocurrió un error al cargar los datos")
             }
         }
-    fun todos(lista: List<dataclass_lugares_db>){
-        todo_lugares=lista
-        _listaFiltrada.value=lista
-        Log.d("todo_lugares",todo_lugares.toString())
     }
 
-    fun filtrar_por_categoria(categorias: String){
-        _listaFiltrada.value=if(categorias=="Todos"){
-            todo_lugares
-        }else{
-            todo_lugares.filter { it.categoria.contains(categorias) }
+
+    fun todos(lista: List<dataclass_lugares_db>) {
+        todo_lugares = lista
+        state_servicios.value = carga_servicios.succes(lista)
+//        _listaFiltrada.value = lista
+        Log.d("todo_lugares", todo_lugares.toString())
+    }
+
+    fun filtrar_por_categoria(categorias: String) {
+        viewModelScope.launch {
+            state_servicios.value = carga_servicios.loading
+            delay(500)
+            try {
+                val resultado = if (categorias == "Todos") {
+                    todo_lugares
+                } else {
+                    todo_lugares.filter {
+                        it.categoria.toString().lowercase().contains(categorias.lowercase())
+                    }
+                }
+
+                if (resultado.isNotEmpty()) {
+//                    _listaFiltrada.value = resultado
+                    state_servicios.value = carga_servicios.succes(resultado)
+                } else {
+//                    _listaFiltrada.value = emptyList()
+                    state_servicios.value =
+                        carga_servicios.emoty("No hay datos en la categoría $categorias")
+                }
+            } catch (e: Exception) {
+//                _listaFiltrada.value = emptyList()
+                state_servicios.value = carga_servicios.error("Ocurrió un error al filtrar")
+            }
         }
-        Log.d("lista_value","${ todo_lugares.filter { it.categoria.contains(categorias) }}")
     }
-    fun filtrar_nombre_categoria(nombre:String,categoria:String,lista: List<dataclass_lugares_db>): List<dataclass_lugares_db>{
-        return lista.filter { item->
-            val conicide_TXT=nombre.isBlank() || item.lugar_nombre.contains(nombre,ignoreCase = true)
-            val coincidenciaExacta = categoria == "Todos" || item.categoria.any { i -> i.contains(categoria, ignoreCase = true) }
-            conicide_TXT && coincidenciaExacta
+
+    //    fun filtrar_nombre_categoria(
+//        nombre: String,
+//        categoria: String,
+//        lista: List<dataclass_lugares_db>
+//    ): List<dataclass_lugares_db> {
+//        return lista.filter { item ->
+//            val conicide_TXT =
+//                nombre.isBlank() || item.lugar_nombre.contains(nombre, ignoreCase = true)
+//            val coincidenciaExacta = categoria == "Todos" || item.categoria.any { i ->
+//                i.contains(
+//                    categoria,
+//                    ignoreCase = true
+//                )
+//            }
+//            conicide_TXT && coincidenciaExacta
+//        }
+//
+//    }
+    fun filtrar_nombre_categoria(
+        nombre: String,
+        categoria: String,
+        lista: List<dataclass_lugares_db>
+    ) {
+        viewModelScope.launch {
+            try {
+                // 🔹 Si no hay texto suficiente, mostramos toda la lista sin pasar por "loading"
+//                if (nombre.length <= 2) {
+//                    state_servicios.value = carga_servicios.succes(lista)
+//                    return@launch
+//                }
+
+                // 🔹 Si hay búsqueda válida, mostramos el "loading"
+                state_servicios.value = carga_servicios.loading
+                delay(400)
+
+                val resultado = lista.filter { item ->
+                    val coincideTexto = item.lugar_nombre.contains(nombre, ignoreCase = true)
+                    val coincideCategoria =
+                        categoria == "Todos" || item.categoria.any {
+                            it.contains(categoria, ignoreCase = true)
+                        }
+                    coincideTexto && coincideCategoria
+                }
+
+                if (resultado.isNotEmpty()) {
+                    state_servicios.value = carga_servicios.succes(resultado)
+                } else {
+                    state_servicios.value = carga_servicios.emoty("No se encontraron resultados")
+                }
+
+            } catch (e: Exception) {
+                state_servicios.value = carga_servicios.error("Error al filtrar datos")
+            }
         }
-
     }
 
-    sealed class carga_servicios{
-        object loading: carga_servicios()
-        data class emoty(val texto: String): carga_servicios()
-        data class succes(val items: List<dataclass_lugares_db>): carga_servicios()
-        data class error (val texto:String): carga_servicios()
+
+
+    sealed class carga_servicios {
+        object loading : carga_servicios()
+        data class emoty(val texto: String) : carga_servicios()
+        data class succes(val items: List<dataclass_lugares_db>) : carga_servicios()
+        data class error(val texto: String) : carga_servicios()
     }
 }

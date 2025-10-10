@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,12 +33,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -91,7 +95,7 @@ fun ui_servicio_tramite(localida: String) {
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_lugares_db>()) }
-
+    val state_servicios = viewmode_servicios_tramite._state_servicios.collectAsState().value
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var listState = rememberLazyListState()
     val showLeftShadow by remember {
@@ -113,36 +117,53 @@ fun ui_servicio_tramite(localida: String) {
         animationSpec = tween(400), label = "alphaRight"
     )
 
+
     LaunchedEffect(lugares) {
         viewmode_servicios_tramite.todos(lugares)
-        lista_base_seguridad=lugares
+        lista_base_seguridad = lugares
     }
     LaunchedEffect(localida) {
         viewmode_servicios_tramite.obtener_lugares(localida)
     }
-    LaunchedEffect(valor_filtrado, subCategoriaSeleccionada) {
-        lista_mostrar = viewmode_servicios_tramite.filtrar_nombre_categoria(
-            valor_filtrado,
-            subCategoriaSeleccionada,
-            lista_base_seguridad
-        )
+    LaunchedEffect(valor_filtrado) {
+//        if (valor_filtrado.length >= 2) {
+            viewmode_servicios_tramite.filtrar_nombre_categoria(
+                valor_filtrado,
+                subCategoriaSeleccionada,
+                lista_base_seguridad
+            )
+//        }
+    }
+    LaunchedEffect(subCategoriaSeleccionada) {
+        valor_filtrado=""
     }
 
 
+//    LaunchedEffect(lugares, subCategoriaSeleccionada) {
+//        viewmode_servicios_tramite.todos(lugares)
+//        if (subCategoriaSeleccionada == "Todos") {
+//            lista_mostrar = lugares
+//        } else {
+//            viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
+//            lista_mostrar = viewmode_servicios_tramite.listaFiltrada.value
+//        }
+//    }
+
     LaunchedEffect(lugares, subCategoriaSeleccionada) {
+        // Solo seteas la lista completa la primera vez
         viewmode_servicios_tramite.todos(lugares)
-        if (subCategoriaSeleccionada == "Todos") {
-            lista_mostrar = lugares
-        } else {
-            viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
-            lista_mostrar = viewmode_servicios_tramite.listaFiltrada.value
-        }
+
+        // Y luego filtras según la categoría actual
+        viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
     }
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
+    var progress_bar by remember { mutableStateOf(false) }
+    var sin_resultados by remember { mutableStateOf(false) }
+    var texto_error_empity by remember { mutableStateOf("") }
     Box(modifier = Modifier.fillMaxSize()) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
@@ -152,11 +173,16 @@ fun ui_servicio_tramite(localida: String) {
             verticalItemSpacing = 10.dp
         ) {
             item(span = StaggeredGridItemSpan.FullLine) {
-                Column() {
+
+                Column {
                     cabezero_servicios_tramites(localida)
                     spacer_vertical(10.dp)
+
                     filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
+
                     spacer_vertical(10.dp)
+
+                    // 🔹 Chips de categorías
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -167,22 +193,17 @@ fun ui_servicio_tramite(localida: String) {
                             state = listState,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            items(lista_servicios) { it ->
+                            items(constantes_lista_localidades.lista_fitlrado_servicios_basicos) { it ->
                                 val catSeleccionada = subCategoriaSeleccionada == it
-                                Log.d("asnfaBNFIKBNFIDNASUIF", "$subCategoriaSeleccionada == $it")
                                 chisp_filtrado_busqueda(catSeleccionada, it, false, {
                                     if (!catSeleccionada) {
-                                        if (it == "Todos") {
-                                            subCategoriaSeleccionada = "Todos"
-                                        } else {
-                                            subCategoriaSeleccionada = it
-                                        }
+                                        subCategoriaSeleccionada = it
                                     }
-
                                 }, {})
                             }
                         }
 
+                        // 👉 sombras izquierda y derecha (decorativas)
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
@@ -205,28 +226,94 @@ fun ui_servicio_tramite(localida: String) {
                         )
                     }
 
-
                     spacer_vertical(10.dp)
+
+
                 }
             }
-            itemsIndexed(lista_mostrar, key = { _, item -> item.id }) { index, lugar ->
-                carta_servicio_tramites(
-                    lugar,
-                    index,
-                    isExpanded = expandedIndex == index
-                ) {
-                    seleccionado = lugar
-                    dialog_servicos_tramite = true
+
+            // 🔹 Contenido según el estado del ViewModel
+            when (state_servicios) {
+                is viewmode_servicios_tramite.carga_servicios.loading -> {
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        progress_bar=true
+                        sin_resultados=false
+
+                    }
+                }
+
+                is viewmode_servicios_tramite.carga_servicios.succes -> {
+                    progress_bar=false
+                    sin_resultados=false
+                    val lista =
+                        (state_servicios as viewmode_servicios_tramite.carga_servicios.succes).items
+                    itemsIndexed(lista, key = { _, item -> item.id }) { index, lugar ->
+                        carta_servicio_tramites(
+                            lugar,
+                            index,
+                            false
+                        ) {
+                            seleccionado = lugar
+                            dialog_servicos_tramite = true
+                        }
+                    }
+                }
+
+                is viewmode_servicios_tramite.carga_servicios.emoty -> {
+                    progress_bar=false
+                    sin_resultados=true
+                    val texto =
+                        (state_servicios as viewmode_servicios_tramite.carga_servicios.emoty).texto
+                    texto_error_empity=texto
+
+                }
+
+                is viewmode_servicios_tramite.carga_servicios.error -> {
+                    progress_bar=false
+                    sin_resultados=true
+                    val texto =
+                        (state_servicios as viewmode_servicios_tramite.carga_servicios.error).texto
+                    texto_error_empity=texto
+
                 }
             }
         }
-        if (dialog_servicos_tramite) {
+
+
+        val estadoActual = when {
+            progress_bar -> "loading"
+            sin_resultados -> "empty"
+            else -> "none"
+        }
+
+        AnimatedContent(
+            targetState = estadoActual,
+            label = "estado_pantalla",
+
+        ) { estado ->
+            centrado_hori_vertical {
+                when (estado) {
+                    "loading" -> CircularProgressIndicator()
+                    "empty" -> Text(
+                        texto_error_empity,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    "none" -> {}
+                }
+            }
+        }
+
+        // 🔹 Diálogo de detalle
+        if (dialog_servicos_tramite && seleccionado != null) {
             dialog_servicios_tramite(
                 localida,
                 ondimis = { dialog_servicos_tramite = false },
-                seleccionado
+                seleccionado!!
             )
         }
+
+        // 🔹 Sombra inferior
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -234,16 +321,31 @@ fun ui_servicio_tramite(localida: String) {
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black
-                        )
+                        colors = listOf(Color.Transparent, Color.Black)
                     )
                 )
-                .graphicsLayer { alpha = alphaAnim }
+                .graphicsLayer { alpha = 0.4f }
         )
+
     }
 
+}
+
+@Composable
+fun centrado_hori_vertical(
+    content: @Composable () -> Unit
+){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 40.dp, bottom = 100.dp), // controlas el margen visual
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Spacer(modifier = Modifier.weight(0.3f)) // sube el indicador ~30% del espacio disponible
+        content()
+        Spacer(modifier = Modifier.weight(0.1f))
+    }
 }
 
 @Composable
