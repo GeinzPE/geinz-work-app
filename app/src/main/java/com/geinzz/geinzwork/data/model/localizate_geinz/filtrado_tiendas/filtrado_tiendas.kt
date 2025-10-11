@@ -77,4 +77,3 @@ data class obtener_tiendas_lat_log_id(
 )
 
 
-

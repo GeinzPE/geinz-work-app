@@ -41,7 +41,7 @@ class viewmode_seguridad_salud : ViewModel() {
                 if(respuesta.isEmpty()){
                     _state_lista_filtrada.value=carga_seguidad.succes(respuesta)
                 }else{
-                _state_lista_filtrada.value=carga_seguidad.empity("No se encontraron resultados en $localidad")
+                    _state_lista_filtrada.value=carga_seguidad.empity("No se encontraron resultados en $localidad")
                 }
             } catch (e: Exception) {
                 datos_lugares.value = emptyList()
@@ -76,7 +76,7 @@ class viewmode_seguridad_salud : ViewModel() {
 //    }
 
 
-//    fun filtrar_lugares(
+    //    fun filtrar_lugares(
 //        nombre: String,
 //        categoria: String,
 //        lista: List<dataclass_seguridad>

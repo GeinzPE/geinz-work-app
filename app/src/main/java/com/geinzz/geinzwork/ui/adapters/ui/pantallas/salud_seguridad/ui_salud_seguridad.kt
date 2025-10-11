@@ -287,19 +287,19 @@ fun ui_salud_seguirdad(
                 contentAlignment = Alignment.Center
             ) {
                 centrado_hori_vertical {
-                when (estado) {
-                    "loading" -> CircularProgressIndicator()
-                    "empty" -> texto_generico_one_line(
-                        texto_error_empity,
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    "error" -> texto_generico_one_line(
-                        texto_error_empity,
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                    when (estado) {
+                        "loading" -> CircularProgressIndicator()
+                        "empty" -> texto_generico_one_line(
+                            texto_error_empity,
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        "error" -> texto_generico_one_line(
+                            texto_error_empity,
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }
