@@ -109,27 +109,6 @@ fun ui_salud_seguirdad(
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
 
-//    LaunchedEffect(valor_filtrado) {
-//        isLoading = true
-//        delay(600)
-//        lista_mostrar = if (valor_filtrado.isBlank()) {
-//            lista_base_seguridad
-//        } else {
-//            viewmode_segurirdad_Salud.mostar_lugar_por_nombre(valor_filtrado, lista_base_seguridad)
-//        }
-//        isLoading = false
-//    }
-
-//    LaunchedEffect(valor_filtrado, chip_selecionado) {
-////        isLoading = true
-////        delay(600) // simula búsqueda
-//        lista_mostrar = viewmode_segurirdad_Salud.filtrar_lugares(
-//            nombre = valor_filtrado,
-//            categoria = chip_selecionado,
-//            lista = lista_base_seguridad
-//        )
-////        isLoading = false
-//    }
 
     LaunchedEffect(chip_selecionado) {
         viewmode_segurirdad_Salud.filtrar_lugares(chip_selecionado)
@@ -149,16 +128,9 @@ fun ui_salud_seguirdad(
 
     LaunchedEffect(lista_seguridad_salud) {
         lista_base_seguridad = lista_seguridad_salud
-        lista_mostrar = lista_seguridad_salud
         viewmode_segurirdad_Salud.lugares_iniciales(lista_seguridad_salud)
     }
-//    LaunchedEffect(valor_filtrado, chip_selecionado) {
-//        lista_mostrar = viewmode_segurirdad_Salud.filtrar_lugares(
-//            nombre = valor_filtrado,
-//            categoria = chip_selecionado,
-//            lista = lista_base_seguridad
-//        )
-//    }
+
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(

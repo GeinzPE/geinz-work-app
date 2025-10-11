@@ -14,6 +14,8 @@ import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationManager
 import android.location.LocationRequest
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Looper
@@ -1787,4 +1789,11 @@ object constantes_lista_localidades {
             requestCallPermission(context, phoneNumber)
         }
     }
+    fun isInternetAvailable(context: Context): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
 }

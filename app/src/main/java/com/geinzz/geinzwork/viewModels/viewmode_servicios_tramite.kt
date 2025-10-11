@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_tur
 import com.geinzz.geinzwork.model.repo_servicios_tramites
 import com.geinzz.geinzwork.ui.adapters.adapterCategorias
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.carta_servicio_tramites
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,11 +34,15 @@ class viewmode_servicios_tramite : ViewModel() {
     val _state_servicios: StateFlow<carga_servicios> = state_servicios
 
 
-    fun obtener_lugares(localida: String) {
+    fun obtener_lugares(context: Context,localida: String) {
         viewModelScope.launch {
             try {
-                state_servicios.value = carga_servicios.loading
 
+                state_servicios.value = carga_servicios.loading
+                if (!isInternetAvailable(context)) {
+                    state_servicios.value = carga_servicios.error("Sin conexión a internet 😕")
+                    return@launch
+                }
                 val res = isnta.obtenerServiciosTramites(localida)
 
                 _lugares.value = res
@@ -65,10 +71,16 @@ class viewmode_servicios_tramite : ViewModel() {
         Log.d("todo_lugares", todo_lugares.toString())
     }
 
-    fun filtrar_por_categoria(categorias: String) {
+    fun filtrar_por_categoria(context: Context, categorias: String) {
         viewModelScope.launch {
             state_servicios.value = carga_servicios.loading
-            delay(500)
+            delay(300)
+
+            if (!isInternetAvailable(context)) {
+                state_servicios.value = carga_servicios.error("Sin conexión a internet 😕")
+                return@launch
+            }
+
             try {
                 val resultado = if (categorias == "Todos") {
                     todo_lugares
@@ -79,19 +91,18 @@ class viewmode_servicios_tramite : ViewModel() {
                 }
 
                 if (resultado.isNotEmpty()) {
-//                    _listaFiltrada.value = resultado
                     state_servicios.value = carga_servicios.succes(resultado)
                 } else {
-//                    _listaFiltrada.value = emptyList()
                     state_servicios.value =
                         carga_servicios.emoty("No hay datos en la categoría $categorias")
                 }
+
             } catch (e: Exception) {
-//                _listaFiltrada.value = emptyList()
-                state_servicios.value = carga_servicios.error("Ocurrió un error al filtrar")
+                state_servicios.value = carga_servicios.error("Error inesperado: ${e.localizedMessage}")
             }
         }
     }
+
 
     //    fun filtrar_nombre_categoria(
 //        nombre: String,

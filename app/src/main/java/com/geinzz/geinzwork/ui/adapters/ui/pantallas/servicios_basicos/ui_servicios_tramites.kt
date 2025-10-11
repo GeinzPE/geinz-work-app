@@ -118,12 +118,13 @@ fun ui_servicio_tramite(localida: String) {
     )
 
 
+    val context=LocalContext.current
     LaunchedEffect(lugares) {
         viewmode_servicios_tramite.todos(lugares)
         lista_base_seguridad = lugares
     }
     LaunchedEffect(localida) {
-        viewmode_servicios_tramite.obtener_lugares(localida)
+        viewmode_servicios_tramite.obtener_lugares(context,localida)
     }
     LaunchedEffect(valor_filtrado) {
 //        if (valor_filtrado.length >= 2) {
@@ -154,7 +155,7 @@ fun ui_servicio_tramite(localida: String) {
         viewmode_servicios_tramite.todos(lugares)
 
         // Y luego filtras según la categoría actual
-        viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
+        viewmode_servicios_tramite.filtrar_por_categoria(context,subCategoriaSeleccionada)
     }
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(

@@ -165,14 +165,11 @@ fun MyGoogle_maps(
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
     var long_luga_seg by remember { mutableStateOf(0.0) }
     val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
-    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaFiltrada.collectAsState()
+    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(emptyList())
     val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
-    val currentIndex =
-        lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
-//    Log.d("currentIndex","indice_clieado$indice_encontrado")
-//    var currentIndex by remember { mutableStateOf(indice_encontrado) }
+    val currentIndex = lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
 
 
     coordenadas?.let { (lat, lon) ->
@@ -194,7 +191,7 @@ fun MyGoogle_maps(
     var log_user by remember { mutableStateOf(0.0) }
     var lat_user by remember { mutableStateOf(0.0) }
 
-    val defaultLocation_barranca = LatLng(-10.8500, -77.7500)
+    val defaultLocation_barranca = LatLng(-10.751480371828691, -77.76088112286742)
     val defaultLocation_paramonga= LatLng(-10.678480703018984, -77.81957068618482)
     val defaultLocation_supe= LatLng(-10.795610086889571, -77.71618154413743)
     val defaultLocation_puerto_supe= LatLng(-10.796606548738318, -77.74082770132752)
@@ -209,7 +206,7 @@ fun MyGoogle_maps(
             "puerto_supe"->{defaultLocation_puerto_supe}
             else->{defaultLocation_barranca}
         }
-        position = CameraPosition.fromLatLngZoom(localidad_default, 12f)
+        position = CameraPosition.fromLatLngZoom(localidad_default, 15f)
     }
 
     var boxVisible by remember { mutableStateOf(true) }
@@ -320,6 +317,34 @@ fun MyGoogle_maps(
                     }
 
                     "tiendas" -> {
+
+//                        // Selecciona el primer marker solo si aún no hay ninguno seleccionado
+//                        if (seleccionadoId == null && lista_filtrada_tiendas.isNotEmpty()) {
+//                            val primeraTienda = lista_filtrada_tiendas.first()
+//                            seleccionadoId = primeraTienda.id_tienda
+//
+//                            // Mostrar datos del primer marker
+//                            lister_marker = dataclass_map(
+//                                primeraTienda.logo_tienda,
+//                                primeraTienda.nombre_tienda,
+//                                primeraTienda.lista_subcategoiras,
+//                                lat_user,
+//                                log_user,
+//                                primeraTienda.latitud,
+//                                primeraTienda.longitud,
+//                                primeraTienda.id_tienda,
+//                                "",
+//                                primeraTienda.direccion,
+//                                primeraTienda.referencia
+//                            )
+//
+//                            viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
+//                                "barranca",
+//                                primeraTienda.id_tienda
+//                            )
+//                            show_dialog_datos_lugares = true
+//                        }
+
                         lista_filtrada_tiendas.forEach { tienda ->
                             Log.d(
                                 "obtenoemos_la_tog",
@@ -343,7 +368,6 @@ fun MyGoogle_maps(
                                         tienda.direccion,
                                         tienda.referencia,
                                     )
-
 
                                     seleccionadoId = tienda.id_tienda
                                     viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
@@ -886,7 +910,7 @@ fun dialogo_lugar_tienda(
                                 MaterialTheme.typography.bodyMedium
                             )
                             spacer_vertical(10.dp)
-                            tags_subcateogiras(dataclass_map.tag, brush_start = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2), brush_end =Brush.horizontalGradient(colors = shadow_top_filtrado_v2))
+                            tags_subcateogiras(dataclass_map.tag, brush_start = Brush.horizontalGradient(colors = shadow_left), brush_end =Brush.horizontalGradient(colors = shadow_right))
                         }
 
                         Box(

@@ -99,6 +99,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFie
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.shadow_bottom_pantallas_generales
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -108,6 +109,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
@@ -145,21 +147,16 @@ fun Pantalla_filtrado_tiendas(
     )
     val state_filtrado_tiendas =
         viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState().value
-
     val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-//    val tiendasFiltradas by viewModelFiltros._tiendas_filtradas_por_categoria.observeAsState(
-//        emptyList()
-//    )
-//    Log.d("se_cambio", "$datosTienda $datosTienda $estado_tiendas $tiendasFiltradas")
-    var listaBaseSubcategoria by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
+    val lista_filtrada_tiendas by viewModelFiltros.listaTiendasGuardadas.observeAsState(emptyList())
+
+    var primeraCargaCompletada by rememberSaveable { mutableStateOf(false) }
+    var mostrandoCargaGlobal by remember { mutableStateOf(true) }
 
     val estadoFiltrosUi = EstadoFiltrosUi(
         subcategorias = subcategoriaObjs,
         tiendasFiltradas = emptyList()
     )
-    Log.d("estadoFiltrosUi", estadoFiltrosUi.tiendasFiltradas.toString())
-//    val estadoCarga =
-//        remember { mutableStateOf<selec_class_estados_carga>(selec_class_estados_carga.carga_principal) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var visible_texfiel by rememberSaveable { mutableStateOf(false) }
@@ -177,72 +174,46 @@ fun Pantalla_filtrado_tiendas(
 
     var btn_mostrar_mapa by rememberSaveable { mutableStateOf(false) }
 
-    val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_tiendas_filtradas))
-    val raw_carga_chips by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carga_subcategorias_tiendas))
-
     val listState = rememberLazyListState()
 
-    var categoria_anterior by remember { mutableStateOf("") }
     var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
-    var lista_fitrar by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     var bottom_shet_tienda by remember { mutableStateOf(false) }
     var dialog_tienda_no_pagada by remember { mutableStateOf(false) }
     var tienda_pagada by remember { mutableStateOf(false) }
     var sin_resultados by remember { mutableStateOf(false) }
-    val targetAlpha = if (listState.canScrollForward) 1f else 0f
-    val alphaAnim by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = 500)
-    )
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
 
+    var lista_base_seguridad by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
 
-//    LaunchedEffect(categoria_seleccionda) {
-//        if (categoria_seleccionda == "Todos") {
-//            estadoCarga.value = selec_class_estados_carga.carga_todos
-//            delay(6000)
-//            listaMostrar = estadoFiltrosUi.tiendasFiltradas
-//            estadoCarga.value = selec_class_estados_carga.sin_carga
-//            if (btn_mostrar_mapa == false) {
-//                btn_mostrar_mapa = false
-//            }
-//        } else if (categoria_seleccionda.isNotBlank() && categoria_seleccionda != categoria_anterior) {
-//            if (!btn_mostrar_mapa) {
-//                btn_mostrar_mapa = true
-//            }
-//            estadoCarga.value = selec_class_estados_carga.carga_chips
-//            delay(6000)
-//            val tiendas_filtradas = viewModelFiltros.filtrar_por_subcategoria(categoria_seleccionda)
-//            listaBaseSubcategoria = tiendas_filtradas
-//            listaMostrar = tiendas_filtradas
-//            categoria_anterior = categoria_seleccionda
-//            estadoCarga.value = selec_class_estados_carga.sin_carga
-//        }
-//        texto_filtrado = ""
-//    }
+    val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
+
+
+    LaunchedEffect(Unit) {
+        primeraCargaCompletada = false
+        mostrandoCargaGlobal = true
+
+    }
 
     LaunchedEffect(texto_filtrado) {
-//        viewModelFiltros.filtrar_por_nombre(texto_filtrado, listaBaseSubcategoria)
-//        listaMostrar = if (texto_filtrado.isBlank()) {
-//            listaBaseSubcategoria
-//        } else {
-//            viewModelFiltros.filtrar_por_nombre_en_lista(texto_filtrado, listaBaseSubcategoria)
-//        }
-//        existe = (texto_filtrado.length >= 2 && listaMostrar.isEmpty())
-//        if (texto_filtrado.isNotBlank()) {
-//            btn_mostrar_mapa = listaMostrar.isNotEmpty()
-//        }
-        viewModelFiltros.obtener_filtrado_nombre(texto_filtrado,subCategoriaSeleccionada)
+        viewModelFiltros.obtener_filtrado_nombre(
+            texto_filtrado,
+            subCategoriaSeleccionada,
+            lista_base_seguridad
+        )
+
+    }
+    LaunchedEffect(lista_datos_tiendas) {
+        lista_base_seguridad = lista_datos_tiendas
+        viewModelFiltros.tiendas_iniciales(lista_datos_tiendas)
 
     }
 
     LaunchedEffect(estadoFiltrosUi.subcategorias) {
         val subcategorias: List<String> = estadoFiltrosUi.subcategorias.flatMap { it.subcategorias }
         lista_subcategorias = subcategorias
-        delay(6000)
     }
 
     LaunchedEffect(showBottomSheet) {
@@ -267,42 +238,27 @@ fun Pantalla_filtrado_tiendas(
 
     LaunchedEffect(categoria) {
         Log.d("se_cambio", categoria)
-        listaMostrar = emptyList()
-//        listaBaseSubcategoria = emptyList()
-//        viewModelFiltros.tiendas_iniciales(listaMostrar)
         subCategoriaSeleccionada = "Todos"
-//        estadoCarga.value = selec_class_estados_carga.carga_principal
         viewModelFiltros.obtener_subcategorias(categoria)
         viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
-//        viewModelFiltros.resetearTiendasFiltradas()
-        delay(6000)
-//        estadoCarga.value = selec_class_estados_carga.sin_carga
-//        tiendasFiltradas.forEach { tienda ->
-//            viewModelFiltros.obtenerHorarioPorTienda_activa(
-//                localida,
-//                tienda.id_tienda
-//            )
-//        }
+
+
     }
 
-//    LaunchedEffect(tiendasFiltradas) {
-//        if (tiendasFiltradas.isNotEmpty()) {
-//            viewModelFiltros.tiendas_iniciales(tiendasFiltradas)
-//            listaMostrar = tiendasFiltradas
-//        }
-//    }
     LaunchedEffect(subCategoriaSeleccionada) {
-        Log.d("subcategoira_select", subCategoriaSeleccionada)
         viewModelFiltros.filtrar_por_subcategoria(subCategoriaSeleccionada)
-       viewModelFiltros.actualizarListaPorCategoria(lista_fitrar)
+        texto_filtrado = ""
+        btn_mostrar_mapa = when (val estado = state_filtrado_tiendas) {
+            is viewModel_filtado_tiendas.carga_tiendas.succes -> {
+                // Mostrar mapa solo si NO es "Todos"
+                !subCategoriaSeleccionada.equals("Todos", ignoreCase = true)
+            }
+            else -> false
+        }    }
 
-    }
-
-
-
-    LaunchedEffect(listaMostrar) {
-        viewModelFiltros.actualizarListaFiltrada(listaMostrar)
-    }
+//    LaunchedEffect(lista_filtrada_tiendas) {
+//        viewModelFiltros.actualizarListaFiltrada(lista_filtrada_tiendas)
+//    }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val scope = rememberCoroutineScope()
@@ -338,54 +294,78 @@ fun Pantalla_filtrado_tiendas(
                     }
                 }
             }
-                when (state_filtrado_tiendas) {
-                    is viewModel_filtado_tiendas.carga_tiendas.loading -> {
+
+
+            when (state_filtrado_tiendas) {
+                is viewModel_filtado_tiendas.carga_tiendas.loading -> {
+
+                    if (primeraCargaCompletada) {
+                        mostrandoCargaGlobal = false // loader pequeño
                         isLoading = true
-                        error_empity=false
-                    }
-
-                    is viewModel_filtado_tiendas.carga_tiendas.error -> {
-                        val texto =
-                            (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.error).texto
-                        isLoading=false
-                        error_empity=true
-                        texto_error_empity=texto
-                    }
-
-                    is viewModel_filtado_tiendas.carga_tiendas.succes -> {
-                        val lista =
-                            (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.succes).items
-                        viewModelFiltros.tiendas_iniciales(lista)
-                        lista_fitrar=lista
-                        isLoading=false
-                        error_empity=false
-                        val listaOrdenada = lista.sortedByDescending { tienda ->
-                            estado_tiendas?.get(tienda.id_tienda) == true
-                        }
-                        Log.d("logemoscambios", "$listaOrdenada")
-                        items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
-                            item_tiendas(
-                                tienda,
-                                estado_tiendas,
-                                { id_tienda, listener, estado_color, pagado ->
-                                    tienda_pagada = pagado
-                                    estadoColor = estado_color
-                                    showBottomSheet = listener
-                                    id_tienda_selecionada = id_tienda
-                                })
+                    } else {
+                        mostrandoCargaGlobal = true // overlay global
+                        // 🔹 Corrutina que mantiene visible el overlay 4s solo la primera vez
+                        scope.launch {
+                            delay(4000L)
+                            mostrandoCargaGlobal = false
+                            primeraCargaCompletada = true
                         }
                     }
-                    is viewModel_filtado_tiendas.carga_tiendas.empty -> {
-                        val texto =
-                            (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.empty).texto
-                        isLoading=false
-                        error_empity=true
-                        texto_error_empity=texto
+                    error_empity = false
+                }
+
+                is viewModel_filtado_tiendas.carga_tiendas.error -> {
+
+                    val texto =
+                        (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.error).texto
+                    error_empity = true
+                    texto_error_empity = texto
+//                    mostrandoCargaGlobal = false
+                    primeraCargaCompletada = true
+                    isLoading = false
+                }
+
+                is viewModel_filtado_tiendas.carga_tiendas.succes -> {
+                    val lista =
+                        (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.succes).items
+                   listaMostrar=lista
+//                    mostrandoCargaGlobal = false
+
+                    primeraCargaCompletada = true
+                    isLoading = false
+                    error_empity = false
+
+                    val listaOrdenada = lista.sortedByDescending { tienda ->
+                        estado_tiendas?.get(tienda.id_tienda) == true
+                    }
+
+                    items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
+                        item_tiendas(
+                            tienda,
+                            estado_tiendas,
+                            { id_tienda, listener, estado_color, pagado ->
+                                tienda_pagada = pagado
+                                estadoColor = estado_color
+                                showBottomSheet = listener
+                                id_tienda_selecionada = id_tienda
+                            })
                     }
                 }
 
+                is viewModel_filtado_tiendas.carga_tiendas.empty -> {
+                    val texto =
+                        (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.empty).texto
+                    isLoading = false
+                    error_empity = true
+//                    mostrandoCargaGlobal = false
+                    primeraCargaCompletada = true
+                    texto_error_empity = texto
+                }
+            }
+
+
         }
-        if (btn_mostrar_mapa && listaMostrar.isNotEmpty()) {
+        if (btn_mostrar_mapa) {
             open_map_perzonlizado(
                 modifier = Modifier
                     .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
@@ -436,6 +416,11 @@ fun Pantalla_filtrado_tiendas(
                 }
             )
         }
+
+        if (mostrandoCargaGlobal && !primeraCargaCompletada) {
+            pantalla_carga_login()
+        }
+
         AnimatedContent(
             targetState = when {
                 isLoading -> "loading"
@@ -459,6 +444,7 @@ fun Pantalla_filtrado_tiendas(
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
+
                         "error" -> texto_generico_one_line(
                             texto_error_empity,
                             color = Color.Gray,
@@ -468,266 +454,9 @@ fun Pantalla_filtrado_tiendas(
                 }
             }
         }
+        shadow_bottom_pantallas_generales(Modifier.align(Alignment.BottomCenter))
     }
 
-//    when (state_filtrado_tiendas) {
-//        is viewModel_filtado_tiendas.carga_tiendas.loading -> {
-//            Log.d("entramos", "carga")
-//        }
-//
-//        is viewModel_filtado_tiendas.carga_tiendas.error -> {
-//            Log.d("entramos", "error")
-//        }
-//
-//        is viewModel_filtado_tiendas.carga_tiendas.succes -> {
-//            val lista =
-//                (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.succes).items
-//            listaBaseSubcategoria = lista
-//            listaMostrar = lista                        // Lo que se muestra inicialmente
-//            viewModelFiltros.tiendas_iniciales(lista)
-//
-//            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-//                val density = LocalDensity.current
-//                val scope = rememberCoroutineScope()
-//
-//                val bubbleSizePx = with(density) { 60.dp.toPx() }
-//
-//                val screenWidth = constraints.maxWidth.toFloat()
-//                val screenHeight = constraints.maxHeight.toFloat()
-//                val paddingPx = with(LocalDensity.current) { 16.dp.toPx() }
-//
-//                val offsetX = remember { Animatable(screenWidth - bubbleSizePx - paddingPx) }
-//                val offsetY = remember { Animatable(screenHeight - bubbleSizePx - paddingPx) }
-//
-//                LazyColumn(
-//                    modifier = Modifier
-//                        .padding(horizontal = 10.dp)
-//                ) {
-//                    item { encabezado_chis_categorias() }
-//                    stickyHeader() {
-//                        ColumnContenedorComun {
-//                            chips_filtrado(
-//                                listState,
-//                                subCategoriaSeleccionada,
-//                                lista_subcategorias,
-//                                { expandir ->
-//                                    visible_texfiel = expandir
-//                                },
-//                                { categoria_selecionada ->
-//                                    categoria_seleccionda = categoria_selecionada
-//                                    subCategoriaSeleccionada = categoria_seleccionda
-//                                })
-//                            Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
-//                                texto_filtrado = it
-//                            }
-//                        }
-//                    }
-//                    val listaOrdenada = lista.sortedByDescending { tienda ->
-//                        estado_tiendas?.get(tienda.id_tienda) == true
-//                    }
-//                    Log.d("logemoscambios", "$listaOrdenada")
-//                    items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
-//                        item_tiendas(
-//                            tienda,
-//                            estado_tiendas,
-//                            { id_tienda, listener, estado_color, pagado ->
-//                                tienda_pagada = pagado
-//                                estadoColor = estado_color
-//                                showBottomSheet = listener
-//                                id_tienda_selecionada = id_tienda
-//                            })
-//                    }
-//                }
-//
-//
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(40.dp)
-//                        .align(Alignment.BottomCenter)
-//                        .background(
-//                            Brush.verticalGradient(
-//                                colors = listOf(
-//                                    Color.Transparent,
-//                                    Color.Black
-//                                )
-//                            )
-//                        )
-//                        .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
-//                )
-//            }
-//        }
-//
-//        is viewModel_filtado_tiendas.carga_tiendas.empty -> {
-//            Log.d("entramos", "vacio")
-//        }
-//    }
-
-//    Crossfade(targetState = estadoCarga.value, label = "Cargando transición") { estado ->
-
-//        when (estado) {
-//            is selec_class_estados_carga.carga_principal -> {
-//                cargando_categorias(
-//                    composision,
-//                    localida,
-//                    30.dp,
-//                    viewModelFiltros.fraces_loadin(localida, nombre_user, categoria)
-//                )
-//                Log.d("llamos_cargad", "carga_pricipañ")
-//            }
-//
-//            is selec_class_estados_carga.carga_chips -> {
-//                cargando_categorias(
-//                    raw_carga_chips,
-//                    localida,
-//                    30.dp,
-//                    viewModelFiltros.fraces_cargando_filtradas(
-//                        categoria_seleccionda,
-//                        nombre_user
-//                    )
-//                )
-//            }
-//
-//            is selec_class_estados_carga.carga_todos -> {
-//                cargando_categorias(
-//                    raw_carga_chips,
-//                    localida,
-//                    30.dp,
-//                    viewModelFiltros.fraces_cargando(
-//                        nombre_user
-//                    )
-//                )
-//            }
-//
-//            is selec_class_estados_carga.sin_carga -> {
-////                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-////                    val density = LocalDensity.current
-////                    val scope = rememberCoroutineScope()
-////
-////                    val bubbleSizePx = with(density) { 60.dp.toPx() }
-////                    var categorias_filtrado_res by remember {
-////                        mutableStateOf<List<dataclass_cat_sub_lista_cat>>(
-////                            emptyList()
-////                        )
-////                    }
-////                    val screenWidth = constraints.maxWidth.toFloat()
-////                    val screenHeight = constraints.maxHeight.toFloat()
-////                    val paddingPx = with(LocalDensity.current) { 16.dp.toPx() }
-////
-////                    val offsetX = remember { Animatable(screenWidth - bubbleSizePx - paddingPx) }
-////                    val offsetY = remember { Animatable(screenHeight - bubbleSizePx - paddingPx) }
-////
-////                    LazyColumn(
-////                        modifier = Modifier
-////                            .padding(horizontal = 10.dp)
-////                    ) {
-////                        item { encabezado_chis_categorias() }
-////                        stickyHeader() {
-////                            ColumnContenedorComun {
-////                                chips_filtrado(
-////                                    listState,
-////                                    subCategoriaSeleccionada,
-////                                    lista_subcategorias,
-////                                    { expandir ->
-////                                        visible_texfiel = expandir
-////                                    },
-////                                    { categoria_selecionada ->
-////                                        categoria_seleccionda = categoria_selecionada
-////                                        subCategoriaSeleccionada = categoria_seleccionda
-////                                    })
-////                                Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
-////                                    texto_filtrado = it
-////                                }
-////                            }
-////                        }
-////                        val listaOrdenada = listaMostrar.sortedByDescending { tienda ->
-////                            estado_tiendas?.get(tienda.id_tienda) == true
-////                        }
-////                        Log.d("logemoscambios", "$listaOrdenada")
-////                        items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
-////                            item_tiendas(
-////                                tienda,
-////                                estado_tiendas,
-////                                { id_tienda, listener, estado_color, pagado ->
-////                                    tienda_pagada = pagado
-////                                    estadoColor = estado_color
-////                                    showBottomSheet = listener
-////                                    id_tienda_selecionada = id_tienda
-////                                })
-////                        }
-////                    }
-////
-////                    if (btn_mostrar_mapa && listaMostrar.isNotEmpty()) {
-////                        open_map_perzonlizado(
-////                            modifier = Modifier
-////                                .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
-////                                .zIndex(1f)
-////                                .pointerInput(Unit) {
-////                                    detectDragGestures(
-////                                        onDrag = { change, dragAmount ->
-////                                            change.consume()
-////
-////                                            val newX = (offsetX.value + dragAmount.x)
-////                                                .coerceIn(
-////                                                    paddingPx,
-////                                                    screenWidth - bubbleSizePx - paddingPx
-////                                                )
-////                                            val newY = (offsetY.value + dragAmount.y)
-////                                                .coerceIn(
-////                                                    paddingPx,
-////                                                    screenHeight - bubbleSizePx - paddingPx
-////                                                )
-////
-////                                            scope.launch {
-////                                                offsetX.snapTo(newX)
-////                                                offsetY.snapTo(newY)
-////                                            }
-////                                        },
-////                                        onDragEnd = {
-////                                            val middle = screenWidth / 2
-////                                            val targetX = if (offsetX.value < middle) {
-////                                                paddingPx
-////                                            } else {
-////                                                screenWidth - bubbleSizePx - paddingPx
-////                                            }
-////                                            scope.launch {
-////                                                offsetX.animateTo(
-////                                                    targetX,
-////                                                    animationSpec = tween(
-////                                                        durationMillis = 400,
-////                                                        easing = FastOutSlowInEasing
-////                                                    )
-////                                                )
-////                                            }
-////                                        }
-////                                    )
-////                                },
-////                            tipo = "tiendas",
-////                            abrir_mapa = { tipo ->
-////                                abrir_mapa(tipo, localida)
-////                            }
-////                        )
-////                    }
-////
-////                    Box(
-////                        modifier = Modifier
-////                            .fillMaxWidth()
-////                            .height(40.dp)
-////                            .align(Alignment.BottomCenter)
-////                            .background(
-////                                Brush.verticalGradient(
-////                                    colors = listOf(
-////                                        Color.Transparent,
-////                                        Color.Black
-////                                    )
-////                                )
-////                            )
-////                            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
-////                    )
-////                }
-//            }
-//        }
-//    }
 
     if (showBottomSheet && firebaseAuth.currentUser != null) {
         if (tienda_pagada) {

@@ -1438,3 +1438,27 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun shadow_bottom_pantallas_generales(modifier: Modifier){
+    val listState = rememberLazyListState()
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black
+                    )
+                )
+            )
+            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+    )
+}
