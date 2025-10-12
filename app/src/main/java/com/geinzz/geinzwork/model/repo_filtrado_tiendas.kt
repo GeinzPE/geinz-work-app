@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.model
 
 import android.util.Log
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
@@ -89,15 +91,41 @@ class repo_filtrado_tiendas {
         id_tienda: String
     ): List<modelo_tienda> {
         val lista_modelo_tienda = mutableListOf<modelo_tienda>()
-        val tienda =
-            db.collection("Tiendas").document(localidad).collection(localidad).document(id_tienda)
-                .get().await()
-        val rutaCompleta = tienda.reference.path
-        Log.d("RutaTienda", rutaCompleta)
-        if (tienda.exists()) {
-            val data = tienda.data
+
+        // Obtener todas las tiendas de la localidad
+        val tiendasSnapshot = db.collection("Tiendas").document(localidad)
+            .collection(localidad).get().await()
+
+        // Buscar el documento específico por id_tienda
+        val tiendaDoc = tiendasSnapshot.documents.find { it.id == id_tienda }
+
+        if (tiendaDoc != null && tiendaDoc.exists()) {
+            val data = tiendaDoc.data
             val map_img = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
             val mapMetodoContacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+            val horarioMap = data?.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
+
+            // Función auxiliar para mapear un día
+            fun mapearDia(diaMap: Map<String, Any>?): HorarioDia {
+                if (diaMap == null) return HorarioDia()
+                return HorarioDia(
+                    cerrado = diaMap["cerrado"] as? Boolean ?: false,
+                    h_apertura = diaMap["h_apertura"] as? String ?: "",
+                    h_cierre = diaMap["h_cierre"] as? String ?: "",
+                    motivo = diaMap["motivo"] as? String ?: ""
+                )
+            }
+
+            val horarioTienda = HorarioAtencion(
+                lunes = mapearDia(horarioMap["lunes"] as? Map<String, Any>),
+                martes = mapearDia(horarioMap["martes"] as? Map<String, Any>),
+                miercoles = mapearDia(horarioMap["miércoles"] as? Map<String, Any>),
+                jueves = mapearDia(horarioMap["jueves"] as? Map<String, Any>),
+                viernes = mapearDia(horarioMap["viernes"] as? Map<String, Any>),
+                sabado = mapearDia(horarioMap["sábado"] as? Map<String, Any>),
+                domingo = mapearDia(horarioMap["domingo"] as? Map<String, Any>)
+            )
+
             val (estadoFb, nombreFb) = constantes_lista_localidades.obtenerMetodoContacto(
                 "facebook",
                 mapMetodoContacto
@@ -118,12 +146,13 @@ class repo_filtrado_tiendas {
                 "sitio_web",
                 mapMetodoContacto
             )
+
             val tiendaModelo = modelo_tienda(
                 categoria_tienda = data?.get("categoria_tienda") as? String ?: "",
                 descripcion = data?.get("descripcion") as? String ?: "",
                 id_tienda = data?.get("id_tienda") as? String ?: "",
-                img_perfil = map_img.get("logo_tienda") as? String ?: "",
-                lista_img = map_img.get("lista_img") as? List<String> ?: emptyList(),
+                img_perfil = map_img["logo_tienda"] as? String ?: "",
+                lista_img = map_img["lista_img"] as? List<String> ?: emptyList(),
                 localidad = data?.get("localidad") as? String ?: "",
                 modelo_negocio = data?.get("modelo_negocio") as? Boolean ?: false,
                 nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
@@ -139,13 +168,18 @@ class repo_filtrado_tiendas {
                 nombre_user_ig = nombreIg,
                 facebook = estadoFb,
                 nombre_user_fb = nombreFb,
-                pagado = data?.get("pagado") as? Boolean ?: false
+                pagado = data?.get("pagado") as? Boolean ?: false,
+                horario_atencion = horarioTienda
             )
+
             lista_modelo_tienda.add(tiendaModelo)
         }
-        return lista_modelo_tienda
 
+        return lista_modelo_tienda
     }
+
+
+
 
     suspend fun obtener_campos_tienda_free(
         localida: String,
@@ -234,7 +268,7 @@ class repo_filtrado_tiendas {
     }
 
 
-//    suspend fun obtener_tiendas_por_subcateogira(
+//    suspend fun obtener_tiendas_por_subcateogira(G
 //        subcategoria: String,
 //        localidad: String
 //    ): List<tiendas_por_categoria> {

@@ -328,7 +328,7 @@ fun Pantalla_filtrado_tiendas(
                 is viewModel_filtado_tiendas.carga_tiendas.succes -> {
                     val lista =
                         (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.succes).items
-                   listaMostrar=lista
+                    listaMostrar=lista
 //                    mostrandoCargaGlobal = false
 
                     primeraCargaCompletada = true

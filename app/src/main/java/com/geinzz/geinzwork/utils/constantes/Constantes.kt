@@ -36,10 +36,467 @@ import kotlin.collections.get
 
 object constantes {
 
+    data class datos_horario(val id_tienda: String = "", val localidad: String = "")
+    data class tiendas_ramdom(
+        val id_tienda: String,
+        val localidad: String = "barranca",
+        val categoria_tienda: String,
+        val descripcion: String,
+        val modelo_negocio: Boolean,
+        val nombre_tienda: String,
+        val pagado: Boolean,
+        val subcategoria: List<String>,
+        val ubicacion: direccion_tienda,
+        val img_tienda: img_tiendas,
+        val horario: Map<String, Map<String, Any>>
+    )
+
+
+    data class direccion_tienda(
+        val referencia: String = "",
+        val latitud: Double = 0.0,
+        val longitud: Double = 0.0,
+        val dirección: String = ""
+    )
+
+    data class img_tiendas(val lista_img: List<String> = emptyList(), val logo_img: String = "")
+
+    val listaDeTiendas = listOf(
+        tiendas_ramdom(
+            id_tienda = "ID_1234",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "Comida tradicional china peruana",
+            modelo_negocio = true,
+            nombre_tienda = "Gran chifa central",
+            pagado = true,
+            subcategoria = listOf("Chifas","Makis"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        ),
+        tiendas_ramdom(
+            id_tienda = "ID_1234",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "Comida tradicional china peruana",
+            modelo_negocio = true,
+            nombre_tienda = "Chifa El Buen Sabor",
+            pagado = false,
+            subcategoria = listOf("Chifas"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        ),
+        tiendas_ramdom(
+            id_tienda = "ID_2345",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "Deliciosos platos chifas con sabores auténticos",
+            modelo_negocio = false,
+            nombre_tienda = "Chifa La Gran Muralla",
+            pagado = false,
+            subcategoria = listOf("Chifas"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        ),
+        tiendas_ramdom(
+            id_tienda = "ID_3456",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "Platos exquisitos de comida china",
+            modelo_negocio = true,
+            nombre_tienda = "Chifa Imperial",
+            pagado = true,
+            subcategoria = listOf("Chifas"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        ),
+        tiendas_ramdom(
+            id_tienda = "ID_4567",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "Sabores únicos y frescos de la cocina china",
+            modelo_negocio = true,
+            nombre_tienda = "Chifa La Estrella",
+            pagado = true,
+            subcategoria = listOf("Chifas"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        ),
+        tiendas_ramdom(
+            id_tienda = "ID_2345",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "Deliciosos platos chifas con sabores auténticos",
+            modelo_negocio = false,
+            nombre_tienda = "Chifa La Gran Muralla",
+            pagado = false,
+            subcategoria = listOf("Chifas"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        ),
+        tiendas_ramdom(
+            id_tienda = "ID_3456",
+            localidad = "barranca",
+            categoria_tienda = "Comida y Restaurantes",
+            descripcion = "El mejor Chifa de la ciudad",
+            modelo_negocio = true,
+            nombre_tienda = "Chifa Delicioso",
+            pagado = true,
+            subcategoria = listOf("Pizzerias"),
+            ubicacion = direccion_tienda(),
+            img_tienda = img_tiendas(),
+            horario = mapOf(
+                "lunes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "martes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "miércoles" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "jueves" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "viernes" to hashMapOf(
+                    "h_apertura" to "09:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "sábado" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                ),
+                "domingo" to hashMapOf(
+                    "h_apertura" to "10:00",
+                    "h_cierre" to "22:00",
+                    "cerrado" to false,
+                    "motivo" to ""
+                )
+            )
+        )
+    )
+
+    val db = FirebaseFirestore . getInstance ()
+
+    fun agregar_horario_tiendas(lista: List<tiendas_ramdom>) {
+        lista.forEach { tienda ->
+            // Generar un ID único automáticamente
+            val docRef = db.collection("Tiendas")
+                .document(tienda.localidad)
+                .collection(tienda.localidad)
+                .document() // <-- sin parámetros, Firestore genera un ID único
+
+            val idTiendaGenerado = docRef.id
+
+            // Map para subir los datos
+            val mp = hashMapOf<String, Any>(
+                "categoria_tienda" to tienda.categoria_tienda,
+                "descripcion" to tienda.descripcion,
+                "id_tienda" to idTiendaGenerado, // Guardar el ID generado
+                "localidad" to tienda.localidad,
+                "modelo_negocio" to tienda.modelo_negocio,
+                "nombre_tienda" to tienda.nombre_tienda,
+                "pagado" to tienda.pagado,
+                "subcategoria" to tienda.subcategoria,
+                "ubicacion" to tienda.ubicacion,
+                "lista_img" to tienda.img_tienda,
+                "horario_atencion" to tienda.horario
+            )
+
+            // Subir la tienda
+            docRef.set(mp)
+                .addOnSuccessListener {
+                    Log.d("Firestore", "Tienda subida correctamente con ID: $idTiendaGenerado")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Firestore", "Error al subir tienda", e)
+                }
+        }
+    }
+
 
     fun vistaTrabajador(contexto: Context, dataClassTrabajosd: dataClassTrabajosd) {
-        var vista =
-            Intent(contexto, vistaTrabajador::class.java)
+        var vista = Intent(contexto, vistaTrabajador::class.java)
         vista.putExtra(Variables.id, dataClassTrabajosd.id)
         vista.putExtra(Variables.imagenPerfil, dataClassTrabajosd.imgpriamria)
         vista.putExtra(Variables.nombreUSer, dataClassTrabajosd.nombre)
@@ -114,38 +571,29 @@ object constantes {
         refStorage.downloadUrl.addOnSuccessListener { uri ->
             val imgUrl = uri.toString()
             try {
-                Glide.with(contexto)
-                    .load(imgUrl)
-                    .placeholder(R.drawable.cargando_img)
-                    .error(R.drawable.sin_foto_portada_con_marca)
-                    .into(img)
+                Glide.with(contexto).load(imgUrl).placeholder(R.drawable.cargando_img)
+                    .error(R.drawable.sin_foto_portada_con_marca).into(img)
             } catch (e: Exception) {
                 println(e)
             }
         }.addOnFailureListener { exception ->
             try {
-                Glide.with(contexto)
-                    .load(R.drawable.sin_foto_portada_con_marca)
-                    .into(img)
+                Glide.with(contexto).load(R.drawable.sin_foto_portada_con_marca).into(img)
             } catch (e: Exception) {
                 println(e)
             }
         }
 
         try {
-            Glide.with(contexto)
-                .load(dataClassTrabajosd.imgpriamria)
-                .placeholder(R.drawable.img_perfil)
-                .into(imgperfil)
+            Glide.with(contexto).load(dataClassTrabajosd.imgpriamria)
+                .placeholder(R.drawable.img_perfil).into(imgperfil)
         } catch (e: Exception) {
             println(e)
         }
     }
 
     fun setearBanderas(
-        dataClassTrabajosd: dataClassTrabajosd,
-        contexto: Context,
-        imagen: CircleImageView
+        dataClassTrabajosd: dataClassTrabajosd, contexto: Context, imagen: CircleImageView
     ) {
         val banderaResId = when (dataClassTrabajosd.nacionalidad?.trim()?.lowercase()) {
             Variables.Peruano.lowercase() -> R.drawable.bandera_peru
@@ -154,25 +602,19 @@ object constantes {
         }
 
         try {
-            Glide.with(contexto)
-                .load(banderaResId)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
-                .into(imagen)
+            Glide.with(contexto).load(banderaResId).diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true).into(imagen)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
 
-
-
     fun contactarWhatsapp(numero: String, mensaje: String, contexto: Context) {
         val uri = Uri.parse(
             "https://api.whatsapp.com/send?phone=$numero&text=${
                 URLEncoder.encode(
-                    mensaje,
-                    "UTF-8"
+                    mensaje, "UTF-8"
                 )
             }"
         )
@@ -191,37 +633,35 @@ object constantes {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)
 
-        db.get()
-            .addOnSuccessListener { valor ->
-                val data = valor.data
-                val horario1 = data?.get(Variables.horario1) as? String ?: ""
-                val horario2 = data?.get(Variables.horario2) as? String ?: ""
+        db.get().addOnSuccessListener { valor ->
+            val data = valor.data
+            val horario1 = data?.get(Variables.horario1) as? String ?: ""
+            val horario2 = data?.get(Variables.horario2) as? String ?: ""
 
-                if (horario1.isNotEmpty() && horario2.isNotEmpty()) {
-                    val ahora = LocalTime.now()
-                    val formatter = DateTimeFormatter.ofPattern("HH:mm")
+            if (horario1.isNotEmpty() && horario2.isNotEmpty()) {
+                val ahora = LocalTime.now()
+                val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
-                    try {
-                        val apertura = LocalTime.parse(horario1, formatter)
-                        val cierre = LocalTime.parse(horario2, formatter)
-                        val activoAhora = ahora.isAfter(apertura) && ahora.isBefore(cierre)
+                try {
+                    val apertura = LocalTime.parse(horario1, formatter)
+                    val cierre = LocalTime.parse(horario2, formatter)
+                    val activoAhora = ahora.isAfter(apertura) && ahora.isBefore(cierre)
 
-                        view.setBackgroundResource(
-                            if (activoAhora) R.drawable.round_activo else R.drawable.round_desactivado
-                        )
-                    } catch (e: Exception) {
-                        println("Error procesando horas para ID: $id. ${e.message}")
-                        view.setBackgroundResource(R.drawable.round_gris)
-                    }
-                } else {
-                    println("Usuario con ID: $id no tiene horario definido.")
+                    view.setBackgroundResource(
+                        if (activoAhora) R.drawable.round_activo else R.drawable.round_desactivado
+                    )
+                } catch (e: Exception) {
+                    println("Error procesando horas para ID: $id. ${e.message}")
                     view.setBackgroundResource(R.drawable.round_gris)
                 }
-            }
-            .addOnFailureListener { error ->
-                println("Error obteniendo datos para ID: $id. ${error.message}")
+            } else {
+                println("Usuario con ID: $id no tiene horario definido.")
                 view.setBackgroundResource(R.drawable.round_gris)
             }
+        }.addOnFailureListener { error ->
+            println("Error obteniendo datos para ID: $id. ${error.message}")
+            view.setBackgroundResource(R.drawable.round_gris)
+        }
     }
 
 
@@ -231,10 +671,8 @@ object constantes {
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
-                    contexto,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) ==
-                PackageManager.PERMISSION_DENIED
+                    contexto, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_DENIED
             ) {
                 permisoNotificaion.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
@@ -268,11 +706,10 @@ object constantes {
         }, time)
 
     }
-    
 
 
-    fun abrirGoogleMaps(contex: Context, direccion: String) {
-        val uri = Uri.parse("geo:0,0?q=${Uri.encode(direccion)}")
+    fun abrirGoogleMaps(contex: Context, ubicacion: String) {
+        val uri = Uri.parse("geo:0,0?q=${Uri.encode(ubicacion)}")
         val intent = Intent(Intent.ACTION_VIEW, uri)
         intent.setPackage("com.google.android.apps.maps")
         contex.startActivity(intent)
@@ -285,8 +722,7 @@ object constantes {
 
         try {
             if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.CALL_PHONE
+                    context, Manifest.permission.CALL_PHONE
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 context.startActivity(intent)
@@ -297,52 +733,44 @@ object constantes {
 
             e.printStackTrace()
             Toast.makeText(
-                context,
-                "No se pudo realizar la llamada. Permiso denegado.",
-                Toast.LENGTH_SHORT
+                context, "No se pudo realizar la llamada. Permiso denegado.", Toast.LENGTH_SHORT
             ).show()
         }
     }
 
     private fun showPermissionDialog(context: Context, REQUEST_CALL_PHONE: Int) {
-        AlertDialog.Builder(context)
-            .setTitle("Permiso necesario")
+        AlertDialog.Builder(context).setTitle("Permiso necesario")
             .setMessage("Esta aplicación necesita permiso para realizar llamadas. Por favor, activa el permiso.")
             .setPositiveButton("Aceptar") { dialog, which ->
                 requestCallPermission(context, REQUEST_CALL_PHONE)
-            }
-            .setNegativeButton("Cancelar") { dialog, which ->
+            }.setNegativeButton("Cancelar") { dialog, which ->
                 Toast.makeText(context, "Permiso de llamada denegado", Toast.LENGTH_SHORT).show()
-            }
-            .show()
+            }.show()
     }
 
     private fun requestCallPermission(context: Context, REQUEST_CALL_PHONE: Int) {
         if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CALL_PHONE
+                context, Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                context as Activity,
-                arrayOf(Manifest.permission.CALL_PHONE),
-                REQUEST_CALL_PHONE
+                context as Activity, arrayOf(Manifest.permission.CALL_PHONE), REQUEST_CALL_PHONE
             )
         }
     }
 
     fun obtenerToken_trabajador(
-        idTrabajador: String,
-        tokenCallback: (String, String, String) -> Unit
+        idTrabajador: String, tokenCallback: (String, String, String) -> Unit
     ) {
         val db = FirebaseFirestore.getInstance()
 
-        val tokenRef = db.collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(idTrabajador)
+        val tokenRef =
+            db.collection(Variables.trabajadores_usuariosDB).document(Variables.trabajadoresDB)
+                .collection(Variables.trabajadoresDB).document(idTrabajador)
 
-        val tokenUserRef = db.collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.usuarios_db).collection(Variables.usuarios_db)
-            .document(idTrabajador)
+        val tokenUserRef =
+            db.collection(Variables.trabajadores_usuariosDB).document(Variables.usuarios_db)
+                .collection(Variables.usuarios_db).document(idTrabajador)
 
         tokenRef.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -384,18 +812,17 @@ object constantes {
     }
 
     fun pertenecia_trabajador_user(
-        idTrabajador: String,
-        callback: (Boolean) -> Unit
+        idTrabajador: String, callback: (Boolean) -> Unit
     ) {
         val db = FirebaseFirestore.getInstance()
 
-        val tokenRef = db.collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB)
-            .document(idTrabajador)
+        val tokenRef =
+            db.collection(Variables.trabajadores_usuariosDB).document(Variables.trabajadoresDB)
+                .collection(Variables.trabajadoresDB).document(idTrabajador)
 
-        val tokenUserRef = db.collection(Variables.trabajadores_usuariosDB)
-            .document(Variables.usuarios_db).collection(Variables.usuarios_db)
-            .document(idTrabajador)
+        val tokenUserRef =
+            db.collection(Variables.trabajadores_usuariosDB).document(Variables.usuarios_db)
+                .collection(Variables.usuarios_db).document(idTrabajador)
 
         tokenRef.get().addOnSuccessListener { res ->
             if (res.exists()) {
@@ -422,9 +849,9 @@ object constantes {
     }
 
 
-
     fun obtnerTokenTienda(idTienda: String, tokenTienda: (String) -> Unit) {
-        val db = FirebaseFirestore.getInstance().collection(Variables.collection_Tiendas).document(idTienda)
+        val db = FirebaseFirestore.getInstance().collection(Variables.collection_Tiendas)
+            .document(idTienda)
         db.get().addOnSuccessListener { res ->
             if (res.exists()) {
                 val datos = res.data

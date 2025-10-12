@@ -55,9 +55,29 @@ data class modelo_tienda(
     val nombre_user_ig: String = "",
     val facebook: Boolean = false,
     val nombre_user_fb: String = "",
-    val pagado: Boolean=false
+    val pagado: Boolean=false,
+    val horario_atencion: HorarioAtencion = HorarioAtencion(), // 🔹 Aquí se agrega el horario
 
 )
+
+data class HorarioDia(
+    val cerrado: Boolean = false,
+    val h_apertura: String = "",
+    val h_cierre: String = "",
+    val motivo: String = ""
+)
+
+data class HorarioAtencion(
+    val lunes: HorarioDia = HorarioDia(),
+    val martes: HorarioDia = HorarioDia(),
+    val miercoles: HorarioDia = HorarioDia(),
+    val jueves: HorarioDia = HorarioDia(),
+    val viernes: HorarioDia = HorarioDia(),
+    val sabado: HorarioDia = HorarioDia(),
+    val domingo: HorarioDia = HorarioDia()
+)
+
+
 //
 //data class modelo_tienda_temporal(
 //    val nombre_tienda: String="",
