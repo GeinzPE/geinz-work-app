@@ -1018,7 +1018,12 @@ fun MostrarHorarioTienda(
                 val cierreAMPM = formatearHoraAMPM(horario.h_cierre)
 
                 val textoHorario = when {
-                    horario.cerrado -> horario.motivo.capitalizeFirst()
+                    horario.cerrado -> if (horario.motivo.isEmpty()) {
+                        "Cerrado"
+                    } else {
+                        horario.motivo.capitalizeFirst()
+                    }
+
                     horario.h_apertura == "00:00" && horario.h_cierre == "23:59" -> "Abierto las 24h"
                     else -> "$aperturaAMPM - $cierreAMPM"
                 }

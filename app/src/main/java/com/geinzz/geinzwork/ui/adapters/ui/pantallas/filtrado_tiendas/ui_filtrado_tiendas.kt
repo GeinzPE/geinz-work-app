@@ -754,22 +754,8 @@ fun item_tiendas(
 ) {
     val tick by viewModelFiltros.tick.collectAsState()
     var detalles_tienda by remember { mutableStateOf(false) }
-//    var estadoTexto by remember { mutableStateOf("") }
     var estadoColor by remember { mutableStateOf(Color.Red) }
 
-//    if (item_tiendas.pagado) {
-//        if (horario_tienda.cerrado) {
-//            estadoTexto = horario_tienda.motivo.ifEmpty { "Cerrado" }
-//            estadoColor = Color(0xFFF4C524)
-//        } else {
-//            val estaAbierto = abierto_cerrado
-//            estadoTexto = if (estaAbierto) "Abierto" else "Cerrado"
-//            estadoColor = if (estaAbierto) Color.Green else Color.Red
-//        }
-//    } else {
-//        estadoTexto = "Consultar al negocio"
-//        estadoColor = Color(0xFFA5A5A5) // Amarillo anaranjado típico
-//    }
     var showDialog by remember { mutableStateOf(false) }
 
     val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
@@ -845,7 +831,6 @@ fun item_tiendas(
                         estadoColor=color
                     }
 
-//                   estados_tiendas(estadoTexto.capitalizeFirst(), estadoColor)
                 }
                 Box(
                     modifier = Modifier.fillMaxHeight(),

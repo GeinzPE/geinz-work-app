@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+
 data class dataclass_map(
     val img: String = "",
     val nombre: String = "",
@@ -11,5 +13,7 @@ data class dataclass_map(
     val id: String = "",
     val categoria: String = "",
     val direccion: String = "",
-    val referencia: String = ""
+    val referencia: String = "",
+    val horario_tienda: horario_tienda =horario_tienda()
+
 )

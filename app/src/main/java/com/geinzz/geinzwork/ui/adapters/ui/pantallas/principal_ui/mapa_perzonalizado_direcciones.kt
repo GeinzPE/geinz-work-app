@@ -89,6 +89,7 @@ import coil3.request.placeholder
 import com.algolia.search.dsl.ranking.DSLCustomRanking
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -98,6 +99,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
@@ -306,7 +308,8 @@ fun MyGoogle_maps(
                                         lugar.id_lugar_turistico,
                                         "",
                                         lugar.direcccion,
-                                        lugar.referencia
+                                        lugar.referencia,
+
                                     )
                                     seleccionadoId = lugar.id_lugar_turistico
                                     show_dialog_datos_lugares = true
@@ -317,34 +320,6 @@ fun MyGoogle_maps(
                     }
 
                     "tiendas" -> {
-
-//                        // Selecciona el primer marker solo si aún no hay ninguno seleccionado
-//                        if (seleccionadoId == null && lista_filtrada_tiendas.isNotEmpty()) {
-//                            val primeraTienda = lista_filtrada_tiendas.first()
-//                            seleccionadoId = primeraTienda.id_tienda
-//
-//                            // Mostrar datos del primer marker
-//                            lister_marker = dataclass_map(
-//                                primeraTienda.logo_tienda,
-//                                primeraTienda.nombre_tienda,
-//                                primeraTienda.lista_subcategoiras,
-//                                lat_user,
-//                                log_user,
-//                                primeraTienda.latitud,
-//                                primeraTienda.longitud,
-//                                primeraTienda.id_tienda,
-//                                "",
-//                                primeraTienda.direccion,
-//                                primeraTienda.referencia
-//                            )
-//
-//                            viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
-//                                "barranca",
-//                                primeraTienda.id_tienda
-//                            )
-//                            show_dialog_datos_lugares = true
-//                        }
-
                         lista_filtrada_tiendas.forEach { tienda ->
                             Log.d(
                                 "obtenoemos_la_tog",
@@ -367,6 +342,7 @@ fun MyGoogle_maps(
                                         "",
                                         tienda.direccion,
                                         tienda.referencia,
+                                        tienda.horario_dia,
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -494,6 +470,7 @@ fun MyGoogle_maps(
                                 "",
                                 tienda.direccion,
                                 tienda.referencia,
+                                tienda.horario_dia,
                             )
 
                             seleccionadoId = tienda.id_tienda
@@ -544,6 +521,7 @@ fun MyGoogle_maps(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             dialogo_lugar_tienda(
+                viewModel_filtrado_tiendas,
                 show_botoom_sheet = show_botoom_sheet,
                 show_dialog_datos_lugares = show_dialog_datos_lugares,
                 horario_por_tienda = horario_por_tienda,
@@ -634,6 +612,7 @@ fun MarkerIcon(
 
 @Composable
 fun dialogo_lugar_tienda(
+    viewModelFiltros: viewModel_filtado_tiendas,
     show_botoom_sheet: Boolean,
     show_dialog_datos_lugares: Boolean,
     horario_por_tienda: Map<String, Boolean>?,
@@ -650,9 +629,12 @@ fun dialogo_lugar_tienda(
     onclick_iconos: (constantes_lista_localidades.data_redes_tiendas) -> Unit,
     mostrar_lista: () -> Unit
 ) {
-    val estado_tienda_filter = horario_por_tienda?.get(seleccionadoId) == true
-    val color = if (estado_tienda_filter) Color.Green else Color.Red
-    val estado_texto = if (estado_tienda_filter) "Abierto" else "Cerrado"
+//    val estado_tienda_filter = horario_por_tienda?.get(seleccionadoId) == true
+//    val color = if (estado_tienda_filter) Color.Green else Color.Red
+//    val estado_texto = if (estado_tienda_filter) "Abierto" else "Cerrado"
+    val tick by viewModelFiltros.tick.collectAsState()
+
+    var estadoColor by remember { mutableStateOf(Color.Red) }
 
 
     Log.d("boxVisibleboxVisible", boxVisible.toString())
@@ -876,17 +858,27 @@ fun dialogo_lugar_tienda(
                             )
                             spacer_vertical(10.dp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                texto_generico_one_line(
-                                    estado_texto,
-                                    MaterialTheme.typography.bodyMedium
-                                )
-                                spacer_horizonta(5.dp)
-                                Box(
-                                    Modifier
-                                        .clip(CircleShape)
-                                        .background(color)
-                                        .size(14.dp)
-                                )
+                                TiempoRestanteCierre(
+                                    dataclass_map.horario_tienda,
+                                    dataclass_map.horario_tienda.h_cierre,
+                                    dataclass_map.horario_tienda.cerrado,
+                                    dataclass_map.horario_tienda.motivo,
+                                    true,
+                                    tick
+                                ){color->
+                                    estadoColor=color
+                                }
+//                                texto_generico_one_line(
+//                                    estado_texto,
+//                                    MaterialTheme.typography.bodyMedium
+//                                )
+//                                spacer_horizonta(5.dp)
+//                                Box(
+//                                    Modifier
+//                                        .clip(CircleShape)
+//                                        .background(color)
+//                                        .size(14.dp)
+//                                )
                                 spacer_horizonta(10.dp)
                                 if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
                                     if (gpsActivo) texto_generico_one_line("Obteniendo ubicación...")
