@@ -37,18 +37,26 @@ class viewModel_filtado_tiendas : ViewModel() {
     val _subcategoiraList: LiveData<List<filtrado_tiendas_cat_sub>> get() = subcategorias
 
 
-    private val state_Tiendas_filtradas_por_categoria = MutableStateFlow<carga_tiendas>(carga_tiendas.loading)
-    val _Tiendas_filtradas_por_categoria: StateFlow<carga_tiendas> = state_Tiendas_filtradas_por_categoria
+    private val state_Tiendas_filtradas_por_categoria =
+        MutableStateFlow<carga_tiendas>(carga_tiendas.loading)
+    val _Tiendas_filtradas_por_categoria: StateFlow<carga_tiendas> =
+        state_Tiendas_filtradas_por_categoria
     private val datos_tienda = MutableLiveData<List<modelo_tienda>>()
     val _datos_tienda: LiveData<List<modelo_tienda>> get() = datos_tienda
 
 
-    private val datos_tiendas_sin_pago = MutableLiveData<datos_tienda_free>()
-    val _datos_tienda_sin_pago: LiveData<datos_tienda_free> get() = datos_tiendas_sin_pago
+    private val datos_tiendas_sin_pago = MutableLiveData<carga_tiendas_sin_pago>(carga_tiendas_sin_pago.loading_tiendas_free)
+    val _datos_tienda_sin_pago: LiveData<carga_tiendas_sin_pago> get() = datos_tiendas_sin_pago
 
 
     private val _listaTiendasGuardadas = MutableLiveData<List<tiendas_por_categoria>>()
     val listaTiendasGuardadas: LiveData<List<tiendas_por_categoria>> get() = _listaTiendasGuardadas
+
+
+    private val _tick = MutableStateFlow(System.currentTimeMillis())
+    val tick: StateFlow<Long> = _tick
+
+
     init {
         viewModelScope.launch {
             state_Tiendas_filtradas_por_categoria.collect { estado ->
@@ -59,6 +67,14 @@ class viewModel_filtado_tiendas : ViewModel() {
                         "Guardadas ${estado.items.size} tiendas en la lista local ✅"
                     )
                 }
+            }
+        }
+    }
+    init {
+        viewModelScope.launch {
+            while (true) {
+                delay(60_000) // cada minuto
+                _tick.value = System.currentTimeMillis()
             }
         }
     }
@@ -87,7 +103,6 @@ class viewModel_filtado_tiendas : ViewModel() {
 
     private val _lista_sub_lugares = MutableLiveData<List<String>>()
     val lista_sub_lugares: LiveData<List<String>> get() = _lista_sub_lugares
-
 
 
     private val datos_tiendas = MutableLiveData<List<tiendas_por_categoria>>()
@@ -256,14 +271,23 @@ class viewModel_filtado_tiendas : ViewModel() {
 
     fun obtener_tienda_no_pagada(localida: String, id_tienda: String) {
         viewModelScope.launch {
+            datos_tiendas_sin_pago.value = carga_tiendas_sin_pago.loading_tiendas_free
             try {
                 val datos = repo_filtrado.obtener_campos_tienda_free(localida, id_tienda)
-                datos_tiendas_sin_pago.value = datos
+
+                if (datos.nombre_.isBlank()) {
+                    datos_tiendas_sin_pago.value = carga_tiendas_sin_pago.empty_tiendas_free
+                } else {
+                    datos_tiendas_sin_pago.value = carga_tiendas_sin_pago.succes_tiendas_free(datos)
+                }
+
             } catch (e: Exception) {
-                datos_tiendas_sin_pago.value = datos_tienda_free()
+                datos_tiendas_sin_pago.value =
+                    carga_tiendas_sin_pago.error_tiendas_free("No se cargaron los datos")
             }
         }
     }
+
 
     fun obtenerHorarioPorTienda_activa(localidad: String, idTienda: String) {
         Log.d("id_registrado", idTienda)
@@ -271,12 +295,12 @@ class viewModel_filtado_tiendas : ViewModel() {
             try {
                 val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
                 data?.let { horarioTienda ->
-                    Log.d("datos_obtnidos", data.toString())
-                    val estaAbierto =
-                        constantes_lista_localidades.verificarSiEstaAbiertoHoy(horarioTienda)
-                    val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
-                    nuevoMapa[idTienda] = estaAbierto
-                    _estadoTiendas.postValue(nuevoMapa)
+//                    Log.d("datos_obtnidos", data.toString())
+//                    val estaAbierto =
+//                        constantes_lista_localidades.verificarSiEstaAbiertoHoy(horarioTienda)
+//                    val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
+//                    nuevoMapa[idTienda] = estaAbierto
+//                    _estadoTiendas.postValue(nuevoMapa)
                 }
                 Log.d("obtenos_dataios_teindas", _estadoTiendas.value.toString())
             } catch (e: Exception) {
@@ -296,35 +320,19 @@ class viewModel_filtado_tiendas : ViewModel() {
         }
     }
 
-
-//    fun obtener_tiendas_registradas(localidad: String) {
-//        viewModelScope.launch {
-//            try {
-//                val datos = repo_filtrado.obtener_tienas_filtradas(localidad)
-//                state_Tiendas_filtradas_por_categoria.value = datos
-//            } catch (e: Exception) {
-//                state_Tiendas_filtradas_por_categoria.value = emptyList()
-//            }
-//        }
-//
-//    }
-
+    sealed class carga_tiendas_sin_pago {
+        object loading_tiendas_free : carga_tiendas_sin_pago()
+        object empty_tiendas_free : carga_tiendas_sin_pago()
+        data class succes_tiendas_free(val item: datos_tienda_free): carga_tiendas_sin_pago()
+        data class error_tiendas_free(val texto: String = "Error al cargar los datos"): carga_tiendas_sin_pago()
+    }
 
     sealed class carga_subcategorias {
         object Loading : carga_subcategorias()
         object Empty : carga_subcategorias()
         data class loaded(val items: List<String>) : carga_subcategorias()
     }
-//    fun obtener_tiendas_por_subcategoria(subcategoria: String, localida: String) {
-//        viewModelScope.launch {
-//            try {
-//                val data = repo_filtrado.obtener_tiendas_por_subcateogira(subcategoria, localida)
-//                tiendas_por_subcategoria.value = data
-//            } catch (e: Exception) {
-//                tiendas_por_subcategoria.value = emptyList()
-//            }
-//        }
-//    }
+
 
     sealed class carga_tiendas {
         object loading : carga_tiendas()

@@ -6,6 +6,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
@@ -13,6 +14,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tiend
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
@@ -62,7 +64,29 @@ class repo_filtrado_tiendas {
                 val map_img_tienda = i.get("img_tienda") as? Map<String, Any> ?: emptyMap()
                 val logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: ""
                 val pagado = i.get("pagado") as? Boolean ?: false
+                val horario=i.get("horario_atencion") as? Map<String, Any>?:emptyMap()
 
+                val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+                val calendar = Calendar.getInstance()
+                val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+
+                val horarioDia = horario[diaActual] as? Map<String, Any> ?: emptyMap()
+                val cerrado = horarioDia["cerrado"] as? Boolean ?: false
+                val hApertura = horarioDia["h_apertura"] as? String ?: ""
+                val hCierre = horarioDia["h_cierre"] as? String ?: ""
+                val motivo = horarioDia["motivo"] as? String ?: ""
+                var datos_horario_actual= horario_tienda(hApertura,hCierre,cerrado,motivo)
+                val estaAbierto = if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
+                if (!estaAbierto) {
+                    val proximo = obtenerProximoDiaAbierto(horario, diaActual)
+                    if (proximo != null) {
+                        val (diaProx, horarioProx) = proximo
+                        datos_horario_actual = datos_horario_actual.copy(
+                            dia_prox_apertura = diaProx,
+                            hora_prox_apertura = horarioProx["h_apertura"] as? String ?: ""
+                        )
+                    }
+                }
 
                 lista_tiendas_filtradas.add(
                     tiendas_por_categoria(
@@ -74,7 +98,7 @@ class repo_filtrado_tiendas {
                         longitud = longitud.toDouble(),
                         lista_subcategoiras = subcategorias_list,
                         descripcion = descripcion,
-                        id_tienda = id_tienda, pagado = pagado
+                        id_tienda = id_tienda, pagado = pagado,horario_dia=datos_horario_actual,estaAbierto
                     )
                 )
 
@@ -85,6 +109,32 @@ class repo_filtrado_tiendas {
         }
         return lista_tiendas_filtradas
     }
+
+    private fun obtenerProximoDiaAbierto(
+        horario: Map<String, Any>,
+        diaActual: String
+    ): Pair<String, Map<String, Any>>? {
+        val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+        val indiceActual = dias.indexOf(diaActual)
+
+        // Recorremos desde el siguiente día hasta completar la semana
+        for (i in 1..7) {
+            val indice = (indiceActual + i) % 7
+            val dia = dias[indice]
+            val horarioDia = horario[dia] as? Map<String, Any> ?: continue
+
+            val cerrado = horarioDia["cerrado"] as? Boolean ?: true
+            if (!cerrado) {
+                // Día abierto encontrado ✅
+                return Pair(dia, horarioDia)
+            }
+        }
+
+        // Si no encuentra ningún día abierto
+        return null
+    }
+
+
 
     suspend fun obtenner_campos_tiendas_espesifica(
         localidad: String,

@@ -46,9 +46,21 @@ data class tiendas_por_categoria(
     val lista_subcategoiras: List<String> = emptyList(),
     val descripcion: String = "",
     val id_tienda: String = "",
-    val pagado : Boolean
-): Parcelable
+    val pagado: Boolean,
+    val horario_dia: horario_tienda = horario_tienda(),
+    val estaAbierto: Boolean = false
+) : Parcelable
 
+
+@Parcelize
+data class horario_tienda(
+    val h_apertura: String = "",   // 🔹 corregido: "h_apertura"
+    val h_cierre: String = "",
+    val cerrado: Boolean = false,
+    val motivo: String = "",
+    val dia_prox_apertura: String="",
+    val hora_prox_apertura: String=""
+) : Parcelable
 
 data class metodo_contacto_tienda(
     val whatsapp: Boolean = false,

@@ -13,42 +13,26 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationManager
-import android.location.LocationRequest
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
-import android.os.Looper
 import android.widget.Toast
 import androidx.palette.graphics.Palette
-import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
@@ -57,19 +41,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.seguridad_salud_publica
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.REQUEST_CALL_PHONE
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.firestore.FieldValue
@@ -81,7 +60,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
+import java.util.concurrent.TimeUnit
 
 
 object constantes_lista_localidades {
@@ -215,7 +194,7 @@ object constantes_lista_localidades {
         }
     }
 
-    fun verificarSiEstaAbiertoHoy(horarioHoy: horario_Dia?): Boolean {
+    fun verificarSiEstaAbiertoHoy(horarioHoy: horario_tienda): Boolean {
         return try {
             if (horarioHoy == null) {
                 Log.w("HORARIO_CHECK", "Horario recibido es NULL")
@@ -227,7 +206,7 @@ object constantes_lista_localidades {
 
             Log.d(
                 "HORARIO_CHECK",
-                "Horario recibido -> Día: ${horarioHoy.dia}, Apertura: ${horarioHoy.h_apertura}, Cierre: ${horarioHoy.h_cierre}"
+                "Horario recibido -> Apertura: ${horarioHoy.h_apertura}, Cierre: ${horarioHoy.h_cierre}"
             )
             Log.d("HORARIO_CHECK", "Hora actual: ${formato.format(ahora)}")
 
@@ -1789,11 +1768,86 @@ object constantes_lista_localidades {
             requestCallPermission(context, phoneNumber)
         }
     }
+
     fun isInternetAvailable(context: Context): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork ?: return false
         val capabilities = cm.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
+
+    data class TiempoRestanteResult(
+        val texto: String,
+        val color: Color
+    )
+
+    fun calcularTiempoRestante(
+        horario_total: horario_tienda,
+        hCierre: String,
+        cerrado: Boolean,
+        motivo: String
+    ): TiempoRestanteResult {
+        return try {
+            if (hCierre.isBlank()) return TiempoRestanteResult("", Color.Gray)
+            if (cerrado) return TiempoRestanteResult(motivo, Color(0xFFF4C524))
+            Log.d("cerrado", "$cerrado $motivo")
+
+            val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val ahora = Calendar.getInstance()
+            val horaCierre = Calendar.getInstance()
+
+            val parsed = formato.parse(hCierre)
+            horaCierre.time = parsed ?: return TiempoRestanteResult("", Color.Gray)
+
+            horaCierre.set(Calendar.YEAR, ahora.get(Calendar.YEAR))
+            horaCierre.set(Calendar.MONTH, ahora.get(Calendar.MONTH))
+            horaCierre.set(Calendar.DAY_OF_MONTH, ahora.get(Calendar.DAY_OF_MONTH))
+
+            val diffMillis = horaCierre.timeInMillis - ahora.timeInMillis
+
+            return if (diffMillis > 0) {
+                val horas = TimeUnit.MILLISECONDS.toHours(diffMillis)
+                val minutos = TimeUnit.MILLISECONDS.toMinutes(diffMillis) % 60
+
+                val texto = when {
+                    horas > 0 && minutos > 0 -> "Cierra en ${horas}h ${minutos}m"
+                    horas > 0 -> "Cierra en ${horas}h"
+                    minutos > 0 -> "Cierra en ${minutos}m"
+                    else -> "Cerrando"
+                }
+
+                val color = when {
+                    horas >= 1 -> Color.Green
+                    minutos in 15..59 -> Color(0xFFFFC107)
+                    else -> Color(0xFFFF5722)
+                }
+
+                TiempoRestanteResult(texto, color)
+            } else {
+                // ⏰ Está cerrado → mostramos el próximo día y hora si existen
+                val diaProx = horario_total.dia_prox_apertura
+                val horaProx = horario_total.hora_prox_apertura
+
+                if (diaProx.isNotBlank() && horaProx.isNotBlank()) {
+                    val formatoEntrada = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    val formatoSalida = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+                    val horaFormateada = try {
+                        val parsedProx = formatoEntrada.parse(horaProx)
+                        formatoSalida.format(parsedProx!!)
+                    } catch (e: Exception) {
+                        horaProx
+                    }
+
+                    TiempoRestanteResult("Abre $diaProx a las $horaFormateada", Color.Red)
+                } else {
+                    TiempoRestanteResult("Cerrado", Color.Red)
+                }
+            }
+        } catch (e: Exception) {
+            TiempoRestanteResult("", Color.Gray)
+        }
+    }
+
 
 }

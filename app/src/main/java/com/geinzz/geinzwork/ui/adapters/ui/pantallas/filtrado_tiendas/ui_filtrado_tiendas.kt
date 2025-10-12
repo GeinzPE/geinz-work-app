@@ -7,14 +7,12 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -42,18 +40,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import com.geinzz.geinzwork.R
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,7 +67,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -83,12 +76,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.rememberLottieComposition
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoFiltrosUi
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
@@ -96,7 +86,6 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.estados_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.shadow_bottom_pantallas_generales
@@ -106,23 +95,22 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -142,12 +130,12 @@ fun Pantalla_filtrado_tiendas(
 ) {
     val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
-    val datos_tienda_sin_pago by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
-        datos_tienda_free()
+    val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
+        viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
     )
     val state_filtrado_tiendas =
         viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState().value
-    val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
+//    val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
     val lista_filtrada_tiendas by viewModelFiltros.listaTiendasGuardadas.observeAsState(emptyList())
 
     var primeraCargaCompletada by rememberSaveable { mutableStateOf(false) }
@@ -189,6 +177,7 @@ fun Pantalla_filtrado_tiendas(
     var lista_base_seguridad by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
 
     val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
+    var mostrandoCarga_free by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
@@ -223,6 +212,7 @@ fun Pantalla_filtrado_tiendas(
     }
     LaunchedEffect(dialog_tienda_no_pagada) {
         if (dialog_tienda_no_pagada) {
+            mostrandoCarga_free = true
             viewModelFiltros.obtener_tienda_no_pagada(localida, id_tienda_selecionada)
         }
     }
@@ -232,8 +222,25 @@ fun Pantalla_filtrado_tiendas(
             dataclass_tienda_seleccionada = datosTienda.first()
         }
     }
-    LaunchedEffect(datos_tienda_sin_pago) {
-        dataclass_datos_tienda_free = datos_tienda_sin_pago
+    LaunchedEffect(estadoTiendaFree) {
+        val estado = estadoTiendaFree  // ✅ Smart cast habilitado
+        when (estado) {
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free -> {
+                mostrandoCarga_free = true // 🌀 Empieza a cargar
+            }
+
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.succes_tiendas_free -> {
+                mostrandoCarga_free = false // ✅ Deja de cargar
+                dataclass_datos_tienda_free = estado.item
+                dialog_tienda_no_pagada = true // 👉 Abre el diálogo
+            }
+
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.error_tiendas_free -> {
+                mostrandoCarga_free = false // ❌ Error, deja de cargar
+            }
+
+            else -> Unit
+        }
     }
 
     LaunchedEffect(categoria) {
@@ -253,8 +260,10 @@ fun Pantalla_filtrado_tiendas(
                 // Mostrar mapa solo si NO es "Todos"
                 !subCategoriaSeleccionada.equals("Todos", ignoreCase = true)
             }
+
             else -> false
-        }    }
+        }
+    }
 
 //    LaunchedEffect(lista_filtrada_tiendas) {
 //        viewModelFiltros.actualizarListaFiltrada(lista_filtrada_tiendas)
@@ -328,21 +337,23 @@ fun Pantalla_filtrado_tiendas(
                 is viewModel_filtado_tiendas.carga_tiendas.succes -> {
                     val lista =
                         (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.succes).items
-                    listaMostrar=lista
-//                    mostrandoCargaGlobal = false
-
                     primeraCargaCompletada = true
                     isLoading = false
                     error_empity = false
 
-                    val listaOrdenada = lista.sortedByDescending { tienda ->
-                        estado_tiendas?.get(tienda.id_tienda) == true
-                    }
+//
+                    val listaOrdenada = lista.sortedWith(
+                        compareByDescending<tiendas_por_categoria> { it.pagado }
+                            .thenByDescending { it.estaAbierto }
+                    )
+
+
 
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
                         item_tiendas(
+                            viewModelFiltros,
                             tienda,
-                            estado_tiendas,
+                            tienda.horario_dia, tienda.estaAbierto,
                             { id_tienda, listener, estado_color, pagado ->
                                 tienda_pagada = pagado
                                 estadoColor = estado_color
@@ -475,6 +486,7 @@ fun Pantalla_filtrado_tiendas(
         bottom_shet_tienda = false
         showBottomSheet = false
         dialog_sin_pago_tiendas(
+            mostrandoCarga_free,
             dataclass_datos_tienda_free,
             ondimis = { dialog_tienda_no_pagada = false })
     }
@@ -516,7 +528,46 @@ fun Pantalla_filtrado_tiendas(
 
 
 @Composable
+fun TiempoRestanteCierre(
+    horario_total: horario_tienda,
+    hCierre: String,
+    cerrado: Boolean,
+    motivo: String,
+    pagado: Boolean,
+    tick: Long,
+    color: (Color) -> Unit
+) {
+
+Log.d("horario_total",horario_total.toString())
+    val resultado = remember(tick) { calcularTiempoRestante(horario_total,hCierre, cerrado, motivo) }
+    if (pagado) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(resultado.color)
+            )
+            spacer_horizonta(5.dp)
+            Text(
+                text = resultado.texto.capitalizeFirst(),
+                color = resultado.color,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            color(resultado.color)
+        }
+    } else {
+        Text(
+            text = "Consultar al negocio",
+            color = Color(0xFFA5A5A5),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
 fun encabezado_chis_categorias() {
+
     titulos_genericos_one_line(
         "Busca tus tiendas favoritas", MaterialTheme.typography.headlineSmall,
         modifier = Modifier
@@ -695,14 +746,30 @@ fun Text_fiel_filtrado(
 
 @Composable
 fun item_tiendas(
+    viewModelFiltros: viewModel_filtado_tiendas,
     item_tiendas: tiendas_por_categoria,
-    estado_tiendas: Map<String, Boolean>?,
+    horario_tienda: horario_tienda,
+    abierto_cerrado: Boolean,
     listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit
 ) {
+    val tick by viewModelFiltros.tick.collectAsState()
     var detalles_tienda by remember { mutableStateOf(false) }
-    val estaAbierto = estado_tiendas?.get(item_tiendas.id_tienda) == true
-    val estadoTexto = if (estaAbierto) "Abierto" else "Cerrado"
-    val estadoColor = if (estaAbierto) Color.Green else Color.Red
+//    var estadoTexto by remember { mutableStateOf("") }
+    var estadoColor by remember { mutableStateOf(Color.Red) }
+
+//    if (item_tiendas.pagado) {
+//        if (horario_tienda.cerrado) {
+//            estadoTexto = horario_tienda.motivo.ifEmpty { "Cerrado" }
+//            estadoColor = Color(0xFFF4C524)
+//        } else {
+//            val estaAbierto = abierto_cerrado
+//            estadoTexto = if (estaAbierto) "Abierto" else "Cerrado"
+//            estadoColor = if (estaAbierto) Color.Green else Color.Red
+//        }
+//    } else {
+//        estadoTexto = "Consultar al negocio"
+//        estadoColor = Color(0xFFA5A5A5) // Amarillo anaranjado típico
+//    }
     var showDialog by remember { mutableStateOf(false) }
 
     val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
@@ -736,6 +803,7 @@ fun item_tiendas(
                 .fillMaxWidth()
                 .animateContentSize()
         ) {
+
             Row(
                 modifier = Modifier.padding(7.dp),
                 horizontalArrangement = Arrangement.Center,
@@ -766,7 +834,18 @@ fun item_tiendas(
                         brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow)
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-                    estados_tiendas(estadoTexto, estadoColor)
+                    TiempoRestanteCierre(
+                        horario_tienda,
+                        horario_tienda.h_cierre,
+                        horario_tienda.cerrado,
+                        horario_tienda.motivo,
+                        item_tiendas.pagado,
+                        tick
+                    ){color->
+                        estadoColor=color
+                    }
+
+//                   estados_tiendas(estadoTexto.capitalizeFirst(), estadoColor)
                 }
                 Box(
                     modifier = Modifier.fillMaxHeight(),
