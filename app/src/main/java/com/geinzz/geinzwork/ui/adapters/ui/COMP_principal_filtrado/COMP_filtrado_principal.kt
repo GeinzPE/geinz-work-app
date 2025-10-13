@@ -135,6 +135,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import kotlinx.coroutines.delay
@@ -842,7 +843,7 @@ fun carta_turismo_google_mpa(
 //        targetValue = if (overlayVisible) 0.6f else 0f,
 //        animationSpec = tween(durationMillis = 500)
 //    )
-    val targetColor = if (seleccionado) {
+    if (seleccionado) {
         mostrar_overlay = false
     } else {
         mostrar_overlay = true
@@ -863,9 +864,16 @@ fun carta_turismo_google_mpa(
             },
 
     ) {
-        Column {
-            img_carta_google_maps(img_ref)
-            datos_lugares_google_maps(titulo, datos_descripcion)
+        img_carta_google_maps(img_ref)
+        AnimatedVisibility(!mostrar_overlay, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(
+            Alignment.BottomCenter)) {
+            Column {
+                Box(modifier = Modifier.fillMaxWidth().height(15.dp)
+                    .background(brush = Brush.verticalGradient(end_subcategoria_shadow)))
+            Box(modifier = Modifier.fillMaxWidth().height(30.dp).background(MaterialTheme.colorScheme.surface)){
+                datos_lugares_google_maps(titulo, datos_descripcion)
+            }
+            }
         }
         AnimatedVisibility(mostrar_overlay, enter = fadeIn(), exit = fadeOut()) {
         Box(
@@ -874,9 +882,7 @@ fun carta_turismo_google_mpa(
                 .height(boxHeight)
                 .clip(RoundedCornerShape(10))
                 .background(Color.Black.copy(alpha = 0.6f))
-        ) {
-
-        }
+        ) {}
         }
 
     }
@@ -893,7 +899,7 @@ fun img_carta_google_maps(img: String) {
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(10),
+            .clip(RoundedCornerShape(10)),
 //                .clickable {
 //                    listener(true, lugar)
 //                },
@@ -904,9 +910,9 @@ fun img_carta_google_maps(img: String) {
 @Composable
 fun datos_lugares_google_maps(texto: String, descripcion: String) {
     Column(modifier = Modifier.padding(start = 10.dp, end = 20.dp, top = 5.dp, bottom = 5.dp)) {
-        texto_generico_one_line(texto = texto, MaterialTheme.typography.titleLarge)
+        texto_generico_one_line(texto = texto, MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 5.dp))
         spacer_vertical(5.dp)
-        text_expandible_wrapp(descripcion, maxlines = 2)
+//        text_expandible_wrapp(descripcion, maxlines = 2)
     }
 }
 
