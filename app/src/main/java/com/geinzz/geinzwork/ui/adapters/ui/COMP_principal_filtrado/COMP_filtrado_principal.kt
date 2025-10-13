@@ -857,7 +857,7 @@ fun carta_turismo_google_mpa(
         modifier = Modifier
             .fillMaxWidth()
             .height(boxHeight)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10))
             .clickable {
                 onClick(id_lugar, latitud, longitud)
             },
@@ -872,7 +872,7 @@ fun carta_turismo_google_mpa(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(boxHeight)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10))
                 .background(Color.Black.copy(alpha = 0.6f))
         ) {
 
@@ -893,7 +893,7 @@ fun img_carta_google_maps(img: String) {
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(10.dp)),
+            .clip(RoundedCornerShape(10),
 //                .clickable {
 //                    listener(true, lugar)
 //                },
