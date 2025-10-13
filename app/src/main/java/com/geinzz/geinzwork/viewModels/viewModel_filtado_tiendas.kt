@@ -61,7 +61,8 @@ class viewModel_filtado_tiendas : ViewModel() {
         viewModelScope.launch {
             state_Tiendas_filtradas_por_categoria.collect { estado ->
                 if (estado is carga_tiendas.succes) {
-                    _listaTiendasGuardadas.postValue(estado.items)
+                    val tiendasPagadas = estado.items.filter { it.pagado }
+                    _listaTiendasGuardadas.postValue(tiendasPagadas)
                     Log.d(
                         "TIENDAS_VM",
                         "Guardadas ${estado.items.size} tiendas en la lista local ✅"

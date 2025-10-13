@@ -167,11 +167,14 @@ fun MyGoogle_maps(
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
     var long_luga_seg by remember { mutableStateOf(0.0) }
     val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
-    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(emptyList())
+    val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
+        emptyList()
+    )
     val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
-    val currentIndex = lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
+    val currentIndex =
+        lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
 
 
     coordenadas?.let { (lat, lon) ->
@@ -194,25 +197,43 @@ fun MyGoogle_maps(
     var lat_user by remember { mutableStateOf(0.0) }
 
     val defaultLocation_barranca = LatLng(-10.751480371828691, -77.76088112286742)
-    val defaultLocation_paramonga= LatLng(-10.678480703018984, -77.81957068618482)
-    val defaultLocation_supe= LatLng(-10.795610086889571, -77.71618154413743)
-    val defaultLocation_puerto_supe= LatLng(-10.796606548738318, -77.74082770132752)
-    val defaultLocation_pativilca= LatLng(-10.696153944234334, -77.77668811678933)
+    val defaultLocation_paramonga = LatLng(-10.678480703018984, -77.81957068618482)
+    val defaultLocation_supe = LatLng(-10.795610086889571, -77.71618154413743)
+    val defaultLocation_puerto_supe = LatLng(-10.796606548738318, -77.74082770132752)
+    val defaultLocation_pativilca = LatLng(-10.696153944234334, -77.77668811678933)
 
     val cameraPositionState = rememberCameraPositionState {
-        val localidad_default=when(localidad){
-            "barranca"->{defaultLocation_barranca}
-            "paramonga"->{defaultLocation_paramonga}
-            "pativilca"->{defaultLocation_pativilca}
-            "supe"->{defaultLocation_supe}
-            "puerto_supe"->{defaultLocation_puerto_supe}
-            else->{defaultLocation_barranca}
+        val localidad_default = when (localidad) {
+            "barranca" -> {
+                defaultLocation_barranca
+            }
+
+            "paramonga" -> {
+                defaultLocation_paramonga
+            }
+
+            "pativilca" -> {
+                defaultLocation_pativilca
+            }
+
+            "supe" -> {
+                defaultLocation_supe
+            }
+
+            "puerto_supe" -> {
+                defaultLocation_puerto_supe
+            }
+
+            else -> {
+                defaultLocation_barranca
+            }
         }
         position = CameraPosition.fromLatLngZoom(localidad_default, 15f)
     }
 
-    var boxVisible by remember { mutableStateOf(true) }
 
+    var boxVisible by remember { mutableStateOf(true) }
+    var mostar_bottom_sheet by remember { mutableStateOf(false) }
     var id_lugar_tienda_select by remember { mutableStateOf("") }
     var localidad_tienda_lugar_Select by remember { mutableStateOf(localidad) }
     var show_bottom_sheet_datos_tienda_lugares by remember { mutableStateOf(false) }
@@ -310,7 +331,7 @@ fun MyGoogle_maps(
                                         lugar.direcccion,
                                         lugar.referencia,
 
-                                    )
+                                        )
                                     seleccionadoId = lugar.id_lugar_turistico
                                     show_dialog_datos_lugares = true
                                     true
@@ -346,10 +367,10 @@ fun MyGoogle_maps(
                                     )
 
                                     seleccionadoId = tienda.id_tienda
-                                    viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
-                                        "barranca",
-                                        tienda.id_tienda
-                                    )
+//                                    viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
+//                                        "barranca",
+//                                        tienda.id_tienda
+//                                    )
                                     show_dialog_datos_lugares = true
                                     true
                                 }
@@ -440,8 +461,9 @@ fun MyGoogle_maps(
                 contentDescription = "Mi ubicación"
             )
         }
+        Log.d("(!show_botoom_sheet && !boxVisible)", "${!show_botoom_sheet} ${!boxVisible}")
         AnimatedVisibility(
-            visible = (!show_botoom_sheet && !boxVisible) || !show_dialog_datos_lugares,
+            visible = (!show_botoom_sheet && !boxVisible) && show_dialog_datos_lugares,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -529,6 +551,7 @@ fun MyGoogle_maps(
                 seleccionadoId = seleccionadoId,
                 cerra_dialog = {
                     show_dialog_datos_lugares = false
+                    mostar_bottom_sheet = true
                 },
                 limpiar = {
                     seleccionadoId = ""
@@ -549,7 +572,10 @@ fun MyGoogle_maps(
                     }
                 },
                 boxVisible,
-                onBoxVisibleChange = { boxVisible = it },
+                onBoxVisibleChange = {
+                    Log.d("visible",it.toString())
+                    boxVisible = it
+                                     },
                 centrar_camara = { lat, log ->
                     scope.launch {
                         cameraPositionState.animate(
@@ -590,6 +616,28 @@ fun MyGoogle_maps(
                 mostrar_lista = {
                     show_botoom_sheet = true
                 })
+        }
+        AnimatedVisibility(
+            visible = (mostar_bottom_sheet && !show_dialog_datos_lugares) || seleccionadoId.isNullOrEmpty(),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .height(25.dp)
+                    .width(100.dp)
+                    .clickable {
+                        show_botoom_sheet = true
+                    }, contentAlignment = Alignment.Center
+            ){
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp, // ícono de flecha hacia arriba
+                    contentDescription = "Abrir",
+                    tint = Color.White, // color del ícono
+                    modifier = Modifier.size(20.dp) // tamaño del ícono
+                )
+            }
         }
     }
 }
@@ -635,11 +683,13 @@ fun dialogo_lugar_tienda(
     val tick by viewModelFiltros.tick.collectAsState()
 
     var estadoColor by remember { mutableStateOf(Color.Red) }
+    Log.d("llamoasalafun", "si")
 
 
     Log.d("boxVisibleboxVisible", boxVisible.toString())
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
+
     val distancia = verificarDistanciaFormateada(
         dataclass_map.my_latitud,
         dataclass_map.my_longitud,
@@ -666,6 +716,7 @@ fun dialogo_lugar_tienda(
         targetValue = if (showRightShadow) 1f else 0f,
         animationSpec = tween(400), label = "alphaRight"
     )
+
 
 
     LaunchedEffect(gpsActivo) {
@@ -716,7 +767,6 @@ fun dialogo_lugar_tienda(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 40.dp, horizontal = 20.dp)
-
     ) {
         Row(
             modifier = Modifier
@@ -757,6 +807,38 @@ fun dialogo_lugar_tienda(
                         },
                     contentScale = ContentScale.Crop
                 )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .zIndex(1f)
+                        .padding(bottom = 10.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.Black.copy(alpha = 0.85f)) // fondo semitransparente
+                ) {
+                    val textoPadding = Modifier.padding(horizontal = 16.dp, vertical = 10.dp) // padding interno del texto
+
+                    if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
+                        if (gpsActivo) {
+                            texto_generico_one_line(
+                                "Obteniendo ubicación...",
+                                modifier = textoPadding
+                            )
+                        } else {
+                            texto_generico_one_line(
+                                "",
+                                modifier = textoPadding
+                            )
+                        }
+                    } else {
+                        texto_generico_one_line(
+                            "A $distancia",
+                            MaterialTheme.typography.bodyMedium,
+                            modifier = textoPadding
+                        )
+                    }
+                }
+
+
 
                 this@Row.AnimatedVisibility(
                     visible = !boxVisible,
@@ -865,29 +947,8 @@ fun dialogo_lugar_tienda(
                                     dataclass_map.horario_tienda.motivo,
                                     true,
                                     tick
-                                ){color->
-                                    estadoColor=color
-                                }
-//                                texto_generico_one_line(
-//                                    estado_texto,
-//                                    MaterialTheme.typography.bodyMedium
-//                                )
-//                                spacer_horizonta(5.dp)
-//                                Box(
-//                                    Modifier
-//                                        .clip(CircleShape)
-//                                        .background(color)
-//                                        .size(14.dp)
-//                                )
-                                spacer_horizonta(10.dp)
-                                if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-                                    if (gpsActivo) texto_generico_one_line("Obteniendo ubicación...")
-                                    else texto_generico_one_line("")
-                                } else {
-                                    texto_generico_one_line(
-                                        "A $distancia",
-                                        MaterialTheme.typography.bodyMedium
-                                    )
+                                ) { color ->
+                                    estadoColor = color
                                 }
 
                             }
@@ -902,7 +963,11 @@ fun dialogo_lugar_tienda(
                                 MaterialTheme.typography.bodyMedium
                             )
                             spacer_vertical(10.dp)
-                            tags_subcateogiras(dataclass_map.tag, brush_start = Brush.horizontalGradient(colors = shadow_left), brush_end =Brush.horizontalGradient(colors = shadow_right))
+                            tags_subcateogiras(
+                                dataclass_map.tag,
+                                brush_start = Brush.horizontalGradient(colors = shadow_left),
+                                brush_end = Brush.horizontalGradient(colors = shadow_right)
+                            )
                         }
 
                         Box(

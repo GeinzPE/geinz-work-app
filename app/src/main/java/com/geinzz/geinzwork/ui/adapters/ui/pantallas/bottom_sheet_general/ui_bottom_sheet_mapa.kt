@@ -38,7 +38,6 @@ fun bottom_sheet_mapa(
     datos_selecionado_retornar: (dataclass_map) -> Unit
 ) {
 
-
     ModalBottomSheet(
         onDismissRequest = { onclose() },
         containerColor = MaterialTheme.colorScheme.background
@@ -102,7 +101,7 @@ fun bottom_sheet_mapa(
                                     id.id_tienda,
                                     "",
                                     id.direccion,
-                                    id.referencia,
+                                    id.referencia,id.horario_dia
                                 )
                             )
                         }

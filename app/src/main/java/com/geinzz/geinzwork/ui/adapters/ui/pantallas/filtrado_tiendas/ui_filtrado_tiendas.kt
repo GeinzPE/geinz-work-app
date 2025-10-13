@@ -75,6 +75,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoFiltrosUi
@@ -539,7 +540,9 @@ fun TiempoRestanteCierre(
 ) {
 
 Log.d("horario_total",horario_total.toString())
-    val resultado = remember(tick) { calcularTiempoRestante(horario_total,hCierre, cerrado, motivo) }
+    val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
+        derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
+    }
     if (pagado) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -552,7 +555,7 @@ Log.d("horario_total",horario_total.toString())
             Text(
                 text = resultado.texto.capitalizeFirst(),
                 color = resultado.color,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
             )
             color(resultado.color)
         }
