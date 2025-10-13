@@ -241,7 +241,7 @@ fun nativationWrapper(
                         ver_lugares = { localidad ->
 //                            Log.d("localidad_defautl_user", localidad)
 //                            navController.navigate(ui_agregar_lugares)
-                            agregar_horario_tiendas(listaDeTiendas)
+//                            agregar_horario_tiendas(listaDeTiendas)
                         },
                         listner_busqueda = {
                             navController.navigate("buscar")
