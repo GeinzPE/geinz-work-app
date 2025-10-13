@@ -1789,65 +1789,121 @@ object constantes_lista_localidades {
     ): TiempoRestanteResult {
         return try {
             if (hCierre.isBlank()) return TiempoRestanteResult("", Color.Gray)
-            if (cerrado) return TiempoRestanteResult(motivo, Color(0xFFF4C524))
-            Log.d("cerrado", "$cerrado $motivo")
 
             val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
             val ahora = Calendar.getInstance()
+
+            // 🔹 Obtener hora de apertura y cierre de hoy
+            val horaApertura = Calendar.getInstance()
             val horaCierre = Calendar.getInstance()
 
-            val parsed = formato.parse(hCierre)
-            horaCierre.time = parsed ?: return TiempoRestanteResult("", Color.Gray)
+            val parsedApertura = formato.parse(horario_total.h_apertura)
+            val parsedCierre = formato.parse(hCierre)
 
+            if (parsedApertura == null || parsedCierre == null)
+                return TiempoRestanteResult("", Color.Gray)
+
+            horaApertura.time = parsedApertura
+            horaCierre.time = parsedCierre
+
+            horaApertura.set(Calendar.YEAR, ahora.get(Calendar.YEAR))
+            horaApertura.set(Calendar.MONTH, ahora.get(Calendar.MONTH))
+            horaApertura.set(Calendar.DAY_OF_MONTH, ahora.get(Calendar.DAY_OF_MONTH))
             horaCierre.set(Calendar.YEAR, ahora.get(Calendar.YEAR))
             horaCierre.set(Calendar.MONTH, ahora.get(Calendar.MONTH))
             horaCierre.set(Calendar.DAY_OF_MONTH, ahora.get(Calendar.DAY_OF_MONTH))
 
-            val diffMillis = horaCierre.timeInMillis - ahora.timeInMillis
+            val ahoraMillis = ahora.timeInMillis
 
-            return if (diffMillis > 0) {
-                val horas = TimeUnit.MILLISECONDS.toHours(diffMillis)
-                val minutos = TimeUnit.MILLISECONDS.toMinutes(diffMillis) % 60
+            // ⚠️ Nuevo manejo de días cerrados
+            if (cerrado) {
+                // Si tiene motivo → mostrarlo directamente
+                if (motivo.isNotBlank()) {
+                    return TiempoRestanteResult(motivo, Color(0xFFF4C524))
+                } else {
+                    // Si NO tiene motivo → mostrar la próxima apertura
+                    val diaProx = horario_total.dia_prox_apertura
+                    val horaProx = horario_total.hora_prox_apertura
 
-                val texto = when {
-                    horas > 0 && minutos > 0 -> "Cierra en ${horas}h ${minutos}m"
-                    horas > 0 -> "Cierra en ${horas}h"
-                    minutos > 0 -> "Cierra en ${minutos}m"
-                    else -> "Cerrando"
+                    if (diaProx.isNotBlank() && horaProx.isNotBlank()) {
+                        val formatoEntrada = SimpleDateFormat("HH:mm", Locale.getDefault())
+                        val formatoSalida = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+                        val horaFormateada = try {
+                            val parsedProx = formatoEntrada.parse(horaProx)
+                            formatoSalida.format(parsedProx!!)
+                        } catch (e: Exception) {
+                            horaProx
+                        }
+
+                        return TiempoRestanteResult("Abre $diaProx a las $horaFormateada", Color.Red)
+                    } else {
+                        return TiempoRestanteResult("Cerrado", Color.Red)
+                    }
                 }
+            }
 
-                val color = when {
-                    horas >= 1 -> Color.Green
-                    minutos in 15..59 -> Color(0xFFFFC107)
-                    else -> Color(0xFFFF5722)
-                }
-
-                TiempoRestanteResult(texto, color)
-            } else {
-                // ⏰ Está cerrado → mostramos el próximo día y hora si existen
-                val diaProx = horario_total.dia_prox_apertura
-                val horaProx = horario_total.hora_prox_apertura
-
-                if (diaProx.isNotBlank() && horaProx.isNotBlank()) {
-                    val formatoEntrada = SimpleDateFormat("HH:mm", Locale.getDefault())
+            // 🧭 Si no está cerrado por configuración → flujo normal
+            return when {
+                // 🕗 Antes de abrir hoy
+                ahoraMillis < horaApertura.timeInMillis -> {
                     val formatoSalida = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    val horaFormateada = formatoSalida.format(horaApertura.time)
+                    TiempoRestanteResult(
+                        texto = "Abre hoy a las $horaFormateada",
+                        color = Color.Red
+                    )
+                }
 
-                    val horaFormateada = try {
-                        val parsedProx = formatoEntrada.parse(horaProx)
-                        formatoSalida.format(parsedProx!!)
-                    } catch (e: Exception) {
-                        horaProx
+                // 🟢 Durante el horario de atención
+                ahoraMillis in horaApertura.timeInMillis..horaCierre.timeInMillis -> {
+                    val diffMillis = horaCierre.timeInMillis - ahoraMillis
+                    val horas = TimeUnit.MILLISECONDS.toHours(diffMillis)
+                    val minutos = TimeUnit.MILLISECONDS.toMinutes(diffMillis) % 60
+
+                    val texto = when {
+                        horas > 0 && minutos > 0 -> "Cierra en ${horas}h ${minutos}m"
+                        horas > 0 -> "Cierra en ${horas}h"
+                        minutos > 0 -> "Cierra en ${minutos}m"
+                        else -> "Cerrando"
                     }
 
-                    TiempoRestanteResult("Abre $diaProx a las $horaFormateada", Color.Red)
-                } else {
-                    TiempoRestanteResult("Cerrado", Color.Red)
+                    val color = when {
+                        horas >= 1 -> Color.Green
+                        minutos in 15..59 -> Color(0xFFFFC107)
+                        else -> Color(0xFFFF5722)
+                    }
+
+                    TiempoRestanteResult(texto, color)
+                }
+
+                // 🔴 Ya cerró hoy → mostrar el próximo día de apertura
+                else -> {
+                    val diaProx = horario_total.dia_prox_apertura
+                    val horaProx = horario_total.hora_prox_apertura
+
+                    if (diaProx.isNotBlank() && horaProx.isNotBlank()) {
+                        val formatoEntrada = SimpleDateFormat("HH:mm", Locale.getDefault())
+                        val formatoSalida = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+                        val horaFormateada = try {
+                            val parsedProx = formatoEntrada.parse(horaProx)
+                            formatoSalida.format(parsedProx!!)
+                        } catch (e: Exception) {
+                            horaProx
+                        }
+
+                        TiempoRestanteResult("Abre $diaProx a las $horaFormateada", Color.Red)
+                    } else {
+                        TiempoRestanteResult("Cerrado", Color.Red)
+                    }
                 }
             }
         } catch (e: Exception) {
             TiempoRestanteResult("", Color.Gray)
         }
     }
+
 
 
 }

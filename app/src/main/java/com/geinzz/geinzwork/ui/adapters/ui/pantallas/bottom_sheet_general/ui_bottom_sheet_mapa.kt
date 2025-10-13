@@ -1,7 +1,16 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -12,8 +21,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
@@ -42,6 +53,12 @@ fun bottom_sheet_mapa(
         onDismissRequest = { onclose() },
         containerColor = MaterialTheme.colorScheme.background
     ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxHeight(0.8f)
+                .fillMaxWidth()
+        ){
         FuenteControladaApp {
             when (tipo) {
                 "turismo" -> {
@@ -114,6 +131,7 @@ fun bottom_sheet_mapa(
 //            selecionado_id(selecionado)
 //        }
         }
+        }
 
     }
 
@@ -171,9 +189,18 @@ fun <T> listado_items(
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    LazyColumn {
-        items(lista) { item ->
+//    val heightOptions = listOf(200.dp, 210.dp)
+//    val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalItemSpacing = 10.dp
+    ) {
+        itemsIndexed(lista, key = { _, item -> getId(item) }) { index, item ->
             carta_turismo_google_mpa(
+                index,
                 getId(item),
                 getLat(item),
                 getLng(item),
@@ -197,4 +224,9 @@ fun <T> listado_items(
             }
         }
     }
+//    LazyColumn {
+//        items(lista) { item ->
+//
+//        }
+//    }
 }

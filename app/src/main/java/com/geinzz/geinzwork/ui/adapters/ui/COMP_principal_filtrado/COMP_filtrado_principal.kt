@@ -59,6 +59,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -824,6 +825,7 @@ fun mascara_img(rounder: Int, alto: Dp, ancho: Dp, modifier: Modifier = Modifier
 
 @Composable
 fun carta_turismo_google_mpa(
+    index: Int,
     id_lugar: String,
     latitud: Double,
     longitud: Double,
@@ -833,33 +835,50 @@ fun carta_turismo_google_mpa(
     seleccionado: Boolean,
     onClick: (id: String, lat: Double, log: Double) -> Unit,
 ) {
+    val heightOptions = listOf(200.dp, 250.dp)
+    val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
+    var mostrar_overlay by remember { mutableStateOf(false) }
+//    val overlayAlpha by animateFloatAsState(
+//        targetValue = if (overlayVisible) 0.6f else 0f,
+//        animationSpec = tween(durationMillis = 500)
+//    )
     val targetColor = if (seleccionado) {
-        MaterialTheme.colorScheme.surfaceVariant
+        mostrar_overlay = false
     } else {
-        MaterialTheme.colorScheme.surface
+        mostrar_overlay = true
     }
 
-    val animatedColor by animateColorAsState(
-        targetValue = targetColor,
-        animationSpec = tween(durationMillis = 500)
-    )
+//    val animatedColor by animateColorAsState(
+//        targetValue = targetColor,
+//        animationSpec = tween(durationMillis = 500)
+//    )
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .height(boxHeight)
+            .clip(RoundedCornerShape(10.dp))
             .clickable {
                 onClick(id_lugar, latitud, longitud)
             },
 
-        colors = CardDefaults.cardColors(
-            containerColor = animatedColor
-        )
     ) {
-        Row {
+        Column {
             img_carta_google_maps(img_ref)
             datos_lugares_google_maps(titulo, datos_descripcion)
         }
+        AnimatedVisibility(mostrar_overlay, enter = fadeIn(), exit = fadeOut()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(boxHeight)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.Black.copy(alpha = 0.6f))
+        ) {
+
+        }
+        }
+
     }
 }
 
@@ -868,16 +887,13 @@ fun img_carta_google_maps(img: String) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(img)
-            .size(80, 80)
-            .crossfade(true)
             .placeholder(R.drawable.cargando_img_categorias)
-            .error(R.drawable.sin_item_carrito)
+            .error(R.drawable.cargando_img_categorias)
             .build(),
         contentDescription = null,
         modifier = Modifier
-            .width(80.dp)
-            .height(80.dp)
-            .clip(RoundedCornerShape(10)),
+            .fillMaxSize()
+            .clip(RoundedCornerShape(10.dp)),
 //                .clickable {
 //                    listener(true, lugar)
 //                },
@@ -1347,8 +1363,9 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
             .background(Color(0xFF1A1A1A))
             .fillMaxWidth()
             .defaultMinSize(minHeight = 180.dp)
-            .clickable( indication = null,
-                interactionSource = remember { MutableInteractionSource()}) {
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
                 listener_servicios()
             }
     ) {
@@ -1440,7 +1457,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 }
 
 @Composable
-fun shadow_bottom_pantallas_generales(modifier: Modifier){
+fun shadow_bottom_pantallas_generales(modifier: Modifier) {
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(

@@ -18,6 +18,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -161,7 +162,7 @@ fun MyGoogle_maps(
     localidad: String
 ) {
     val context = LocalContext.current
-
+var color_referencia by remember { mutableStateOf(Color.Red) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
@@ -173,7 +174,7 @@ fun MyGoogle_maps(
     val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
-    val currentIndex =
+    var currentIndex =
         lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
 
 
@@ -186,8 +187,6 @@ fun MyGoogle_maps(
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
     var longitud by remember { mutableStateOf(0.0) }
-
-//    Log.d("indexices",indice_encontrado.toString())
     var show_botoom_sheet by remember { mutableStateOf(true) }
     var show_dialog_datos_lugares by remember { mutableStateOf(false) }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
@@ -254,7 +253,7 @@ fun MyGoogle_maps(
 
     if (show_bottom_sheet_datos_tienda_lugares) {
         bottom_sheet_tiendas_filtradas(
-            Color.Red,
+            color_referencia,
             viewModel_filtrado_tiendas,
             dataclass_tienda_seleccionada, show_bottom_sheet_datos_tienda_lugares
         ) {
@@ -451,6 +450,7 @@ fun MyGoogle_maps(
                 } else {
                     validacion_mostrar_dialog_ubi_off = true
                 }
+                mostar_bottom_sheet = true
             },
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -574,8 +574,7 @@ fun MyGoogle_maps(
                 boxVisible,
                 onBoxVisibleChange = {
                     Log.d("visible",it.toString())
-                    boxVisible = it
-                                     },
+                    boxVisible = it },
                 centrar_camara = { lat, log ->
                     scope.launch {
                         cameraPositionState.animate(
@@ -584,12 +583,12 @@ fun MyGoogle_maps(
                         )
                     }
                 },
-                retornar_id_select = { id_tienda_lugar ->
+                retornar_id_select = { id_tienda_lugar,color->
+                    color_referencia=color
                     id_lugar_tienda_select = id_tienda_lugar
                     show_bottom_sheet_datos_tienda_lugares = true
                 },
                 onclick_iconos = { datos ->
-
                     when (datos.nombre_red) {
                         "llamar" -> {
                             // Lógica para llamada
@@ -615,7 +614,80 @@ fun MyGoogle_maps(
                 },
                 mostrar_lista = {
                     show_botoom_sheet = true
-                })
+                }, move_derecha = {
+                    if (lista_filtrada_tiendas.isNotEmpty()) {
+                        if (currentIndex != -1) {
+                            // Mover al elemento anterior (hacia la derecha)
+                            val anterior = if (currentIndex - 1 < 0) lista_filtrada_tiendas.lastIndex else currentIndex - 1
+                            val tienda = lista_filtrada_tiendas[anterior]
+
+                            lister_marker = dataclass_map(
+                                tienda.logo_tienda,
+                                tienda.nombre_tienda,
+                                tienda.lista_subcategoiras,
+                                lat_user,
+                                log_user,
+                                tienda.latitud,
+                                tienda.longitud,
+                                tienda.id_tienda,
+                                "",
+                                tienda.direccion,
+                                tienda.referencia,
+                                tienda.horario_dia,
+                            )
+
+                            seleccionadoId = tienda.id_tienda
+                            currentIndex = anterior // 🔹 Actualiza el índice
+
+                            scope.launch {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        LatLng(tienda.latitud, tienda.longitud), 16f
+                                    ),
+                                    1000
+                                )
+                            }
+                        }
+                    }
+                },
+
+                move_izquierda = {
+                    if (lista_filtrada_tiendas.isNotEmpty()) {
+                        if (currentIndex != -1) {
+                            // Mover al siguiente elemento (hacia la izquierda)
+                            val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
+                            val tienda = lista_filtrada_tiendas[siguiente]
+
+                            lister_marker = dataclass_map(
+                                tienda.logo_tienda,
+                                tienda.nombre_tienda,
+                                tienda.lista_subcategoiras,
+                                lat_user,
+                                log_user,
+                                tienda.latitud,
+                                tienda.longitud,
+                                tienda.id_tienda,
+                                "",
+                                tienda.direccion,
+                                tienda.referencia,
+                                tienda.horario_dia,
+                            )
+
+                            seleccionadoId = tienda.id_tienda
+                            currentIndex = siguiente // 🔹 Actualiza el índice
+
+                            scope.launch {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        LatLng(tienda.latitud, tienda.longitud), 16f
+                                    ),
+                                    1000
+                                )
+                            }
+                        }
+                    }
+                }
+            )
         }
         AnimatedVisibility(
             visible = (mostar_bottom_sheet && !show_dialog_datos_lugares) || seleccionadoId.isNullOrEmpty(),
@@ -673,9 +745,11 @@ fun dialogo_lugar_tienda(
     boxVisible: Boolean,
     onBoxVisibleChange: (Boolean) -> Unit,
     centrar_camara: (Double, Double) -> Unit,
-    retornar_id_select: (String) -> Unit,
+    retornar_id_select: (String,Color) -> Unit,
     onclick_iconos: (constantes_lista_localidades.data_redes_tiendas) -> Unit,
-    mostrar_lista: () -> Unit
+    mostrar_lista: () -> Unit,
+    move_izquierda:()-> Unit,
+    move_derecha:()-> Unit
 ) {
 //    val estado_tienda_filter = horario_por_tienda?.get(seleccionadoId) == true
 //    val color = if (estado_tienda_filter) Color.Green else Color.Red
@@ -684,6 +758,7 @@ fun dialogo_lugar_tienda(
 
     var estadoColor by remember { mutableStateOf(Color.Red) }
     Log.d("llamoasalafun", "si")
+
 
 
     Log.d("boxVisibleboxVisible", boxVisible.toString())
@@ -807,36 +882,40 @@ fun dialogo_lugar_tienda(
                         },
                     contentScale = ContentScale.Crop
                 )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .zIndex(1f)
-                        .padding(bottom = 10.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Black.copy(alpha = 0.85f)) // fondo semitransparente
-                ) {
-                    val textoPadding = Modifier.padding(horizontal = 16.dp, vertical = 10.dp) // padding interno del texto
+                if(gpsActivo){
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .zIndex(1f)
+                            .padding(bottom = 10.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = 0.85f))
+                    ) {
+                        val textoPadding = Modifier.padding(horizontal = 16.dp, vertical = 10.dp) // padding interno del texto
 
-                    if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-                        if (gpsActivo) {
-                            texto_generico_one_line(
-                                "Obteniendo ubicación...",
-                                modifier = textoPadding
-                            )
+                        if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
+//                            if (gpsActivo) {
+//                                texto_generico_one_line(
+//                                    "Obteniendo ubicación...",
+//                                    modifier = textoPadding
+//                                )
+//                            } else {
+//                                texto_generico_one_line(
+//                                    "",
+//                                    modifier = textoPadding
+//                                )
+//                            }
                         } else {
+
                             texto_generico_one_line(
-                                "",
+                                "A $distancia",
+                                MaterialTheme.typography.bodyMedium,
                                 modifier = textoPadding
                             )
                         }
-                    } else {
-                        texto_generico_one_line(
-                            "A $distancia",
-                            MaterialTheme.typography.bodyMedium,
-                            modifier = textoPadding
-                        )
                     }
                 }
+
 
 
 
@@ -899,7 +978,7 @@ fun dialogo_lugar_tienda(
                 }
 
             }
-
+            var totalDx by remember { mutableStateOf(0f) }
 
             AnimatedVisibility(
                 visible = boxVisible,
@@ -921,7 +1000,25 @@ fun dialogo_lugar_tienda(
                                 dataclass_map.latitud,
                                 dataclass_map.longitud
                             )
-
+                        }
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDrag = { _, dragAmount ->
+                                    val (dx, _) = dragAmount
+                                    totalDx += dx
+                                },
+                                onDragEnd = {
+                                    when {
+                                        totalDx > 80 -> {
+                                            move_derecha()
+                                        }
+                                        totalDx < -80 -> {
+                                            move_izquierda()
+                                        }
+                                    }
+                                    totalDx = 0f // reinicia para el siguiente gesto
+                                }
+                            )
                         }
                 ) {
                     Row(
@@ -995,7 +1092,7 @@ fun dialogo_lugar_tienda(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = Color.White,
                                     onClick = {
-                                        retornar_id_select(dataclass_map.id)
+                                        retornar_id_select(dataclass_map.id,estadoColor)
                                     },
                                     modifier = Modifier
                                         .size(35.dp)

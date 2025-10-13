@@ -2,126 +2,126 @@
   // 1️⃣ Fondo general del mapa (suelo/terreno)
   {
     "elementType": "geometry",
-    "stylers": [{ "color": "#384054" }]  // Color de fondo general (terrenos, espacios vacíos)
+    "stylers": [{ "color": "#1B2028" }]
   },
 
   // 2️⃣ Texto general (calles, barrios, ciudades)
   {
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#EFEFED" }]  // Color del texto general
+    "stylers": [{ "color": "#EAECEF" }]
   },
   {
     "elementType": "labels.text.stroke",
-    "stylers": [{ "color": "#828586" }]  // Contorno del texto general
+    "stylers": [{ "color": "#2E333B" }]
   },
 
   // 3️⃣ Texto de localidades (ciudades/pueblos)
   {
     "featureType": "administrative.locality",
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#BEBFC2" }]  // Color del texto de ciudades/pueblos
+    "stylers": [{ "color": "#CACDD1" }]
   },
 
   // 4️⃣ Puntos de interés generales (POI)
   {
     "featureType": "poi",
-    "stylers": [{ "visibility": "off" }]  // Oculta POI como negocios, museos, restaurantes
+    "stylers": [{ "visibility": "off" }]
   },
 
-  // 5️⃣ Parques
+  // 5️⃣ Parques 🌳 (más claros y naturales)
   {
     "featureType": "poi.park",
     "elementType": "geometry",
-    "stylers": [{ "visibility": "on" }, { "color": "#4B615F" }]  // Color de parques
+    "stylers": [{ "visibility": "on" }, { "color": "#3B5147" }]
   },
   {
     "featureType": "poi.park",
     "elementType": "labels",
-    "stylers": [{ "visibility": "off" }]  // Oculta el nombre del parque
+    "stylers": [{ "visibility": "off" }]
   },
 
   // 6️⃣ Calles
   {
     "featureType": "road",
     "elementType": "geometry",
-    "stylers": [{ "color": "#5D647D" }]  // Color del pavimento de calles normales
+    "stylers": [{ "color": "#454B56" }]
   },
   {
     "featureType": "road",
     "elementType": "geometry.stroke",
-    "stylers": [{ "color": "#27303D" }]  // Contorno de las calles
+    "stylers": [{ "color": "#232830" }]
   },
   {
     "featureType": "road",
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#EFEFED" }]  // Color del texto de calles
+    "stylers": [{ "color": "#F0F2F5" }]
   },
   {
     "featureType": "road",
     "elementType": "labels.text.stroke",
-    "stylers": [{ "color": "#828586" }]  // Contorno del texto de calles
+    "stylers": [{ "color": "#2E333B" }]
   },
 
   // 7️⃣ Carreteras principales / highways
   {
     "featureType": "road.highway",
     "elementType": "geometry",
-    "stylers": [{ "color": "#5D647D" }]  // Pavimento de carreteras principales
+    "stylers": [{ "color": "#5A5F6A" }]
   },
   {
     "featureType": "road.highway",
     "elementType": "geometry.stroke",
-    "stylers": [{ "color": "#605167" }]  // Contorno de carreteras principales
+    "stylers": [{ "color": "#343841" }]
   },
   {
     "featureType": "road.highway",
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#f3d19c" }]  // Texto de carreteras principales
+    "stylers": [{ "color": "#FFD47A" }]
   },
 
   // 8️⃣ Transporte / estaciones
   {
     "featureType": "transit",
     "elementType": "geometry",
-    "stylers": [{ "color": "#605167" }]  // Color de rutas de transporte
+    "stylers": [{ "color": "#363B45" }]
   },
   {
     "featureType": "transit.station",
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#d59563" }]  // Texto de estaciones
+    "stylers": [{ "color": "#D8A563" }]
   },
 
-  // 9️⃣ Agua
+  // 9️⃣ Agua 💧 (ligeramente más clara para mejor contraste)
   {
     "featureType": "water",
     "elementType": "geometry",
-    "stylers": [{ "color": "#2A3C56" }]  // Color de ríos, lagos y mares
+    "stylers": [{ "color": "#203047" }]
   },
   {
     "featureType": "water",
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#515c6d" }]  // Texto sobre el agua (ej. nombres de ríos)
+    "stylers": [{ "color": "#64738A" }]
   },
   {
     "featureType": "water",
     "elementType": "labels.text.stroke",
-    "stylers": [{ "color": "#17263c" }]  // Contorno del texto sobre el agua
+    "stylers": [{ "color": "#111922" }]
   },
 
-  // 🔟 Urbanizaciones / áreas residenciales
+  // 🔟 Urbanizaciones / áreas residenciales 🏙️ (más visibles)
   {
     "featureType": "landscape.man_made",
     "elementType": "geometry",
-    "stylers": [{ "color": "#384054" }]  // Color de las casas, edificios y urbanizaciones
+    "stylers": [{ "color": "#252A33" }]
   },
   {
     "featureType": "landscape.man_made",
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#667191" }]  // Texto dentro de urbanizaciones si existiera
+    "stylers": [{ "color": "#9097A6" }]
   },
   {
     "featureType": "landscape.man_made",
     "elementType": "labels.text.stroke",
-    "stylers": [{ "color": "#7A7D80" }]  // Contorno del texto de urbanizaciones
+    "stylers": [{ "color": "#2E333B" }]
   }
 ]
