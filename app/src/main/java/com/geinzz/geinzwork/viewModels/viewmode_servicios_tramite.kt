@@ -34,7 +34,6 @@ class viewmode_servicios_tramite : ViewModel() {
     val _state_servicios: StateFlow<carga_servicios> = state_servicios
 
     init {
-
         viewModelScope.launch {
             state_servicios.value = carga_servicios.loading
         }
@@ -71,13 +70,19 @@ class viewmode_servicios_tramite : ViewModel() {
 
     fun todos(lista: List<dataclass_lugares_db>) {
         todo_lugares = lista
-        state_servicios.value = carga_servicios.succes(lista)
+//        state_servicios.value = carga_servicios.succes(lista)
 //        _listaFiltrada.value = lista
         Log.d("todo_lugares", todo_lugares.toString())
     }
 
     fun filtrar_por_categoria(context: Context, categorias: String) {
         viewModelScope.launch {
+            // 🛑 Evita recargar innecesariamente cuando es "Todos" y ya hay datos cargados
+            if (categorias == "Todos" && todo_lugares.isNotEmpty()) {
+                state_servicios.value = carga_servicios.succes(todo_lugares)
+                return@launch
+            }
+
             state_servicios.value = carga_servicios.loading
             delay(300)
 
@@ -108,6 +113,7 @@ class viewmode_servicios_tramite : ViewModel() {
             }
         }
     }
+
 
 
     //    fun filtrar_nombre_categoria(

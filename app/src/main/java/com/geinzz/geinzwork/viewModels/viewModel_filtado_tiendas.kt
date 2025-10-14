@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
@@ -27,7 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class viewModel_filtado_tiendas : ViewModel() {
+class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHandle): ViewModel() {
 
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
@@ -49,8 +50,13 @@ class viewModel_filtado_tiendas : ViewModel() {
     val _datos_tienda_sin_pago: LiveData<carga_tiendas_sin_pago> get() = datos_tiendas_sin_pago
 
 
-    private val _listaTiendasGuardadas = MutableLiveData<List<tiendas_por_categoria>>()
-    val listaTiendasGuardadas: LiveData<List<tiendas_por_categoria>> get() = _listaTiendasGuardadas
+    private val _listaTiendasGuardadas =
+        MutableLiveData<List<tiendas_por_categoria>>(
+            savedStateHandle["lista_tiendas_guardadas"] ?: emptyList()
+        )
+
+    val listaTiendasGuardadas: LiveData<List<tiendas_por_categoria>>
+        get() = _listaTiendasGuardadas
 
 
     private val _tick = MutableStateFlow(System.currentTimeMillis())
@@ -63,6 +69,7 @@ class viewModel_filtado_tiendas : ViewModel() {
                 if (estado is carga_tiendas.succes) {
                     val tiendasPagadas = estado.items.filter { it.pagado }
                     _listaTiendasGuardadas.postValue(tiendasPagadas)
+                    savedStateHandle["lista_tiendas_guardadas"] = tiendasPagadas
                     Log.d(
                         "TIENDAS_VM",
                         "Guardadas ${estado.items.size} tiendas en la lista local ✅"

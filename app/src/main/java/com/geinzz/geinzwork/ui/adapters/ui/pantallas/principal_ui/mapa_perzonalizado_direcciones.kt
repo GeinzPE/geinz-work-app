@@ -307,12 +307,10 @@ fun MyGoogle_maps(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
-                    isMyLocationEnabled = true
-                ),
+                    isMyLocationEnabled = true),
                 uiSettings = MapUiSettings(
                     myLocationButtonEnabled = false,
-                    zoomControlsEnabled = false
-                )
+                    zoomControlsEnabled = false)
             ) {
 
                 when (tipo) {
@@ -379,10 +377,7 @@ fun MyGoogle_maps(
                                     )
 
                                     seleccionadoId = tienda.id_tienda
-//                                    viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
-//                                        "barranca",
-//                                        tienda.id_tienda
-//                                    )
+
                                     show_dialog_datos_lugares = true
                                     true
                                 }
@@ -506,12 +501,13 @@ fun MyGoogle_maps(
 
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
-                lat_user,
-                log_user,
-                cameraPositionState,
-                tipo,
-                lista_filtrada_turismo,
-                lista_filtrada_tiendas,
+                seleccionadoId = seleccionadoId?:"",
+                lat_user = lat_user,
+                log_user = log_user,
+                cameraPositionState = cameraPositionState,
+                tipo = tipo,
+                lista_filtrada_turismo = lista_filtrada_turismo,
+                lista = lista_filtrada_tiendas,
                 onclose = {
                     show_botoom_sheet = false
                 },
@@ -950,7 +946,6 @@ fun dialogo_lugar_tienda(
                                     Log.d("GESTO", "mostramos lista")
                                     mostrar_lista()
                                 } else if (dragAmount > 0) {
-                                    // 👉 Se movió hacia abajo
                                     Log.d("GESTO", "Swipe Down detectado")
                                 }
                             }

@@ -115,6 +115,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -143,18 +144,7 @@ fun bottom_sheet_tiendas_filtradas(
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
 
-    val metodoContacto = metodo_contacto_tienda(
-//        whatsapp = tiendas_filtradas.metodo_contacto_tienda.whatsapp,
-//        numero_whatsapp = tiendas_filtradas.metodo_contacto_tienda.numero_whatsapp,
-//        tiktok = tiendas_filtradas.metodo_contacto_tienda.tiktok,
-//        nombre_tiktok = tiendas_filtradas.metodo_contacto_tienda.nombre_tiktok,
-//        sitio_web = tiendas_filtradas.metodo_contacto_tienda.sitio_web,
-//        url_sitio_web = tiendas_filtradas.metodo_contacto_tienda.url_sitio_web,
-//        instagram = tiendas_filtradas.metodo_contacto_tienda.instagram,
-//        nombre_user_ig = tiendas_filtradas.metodo_contacto_tienda.nombre_user_ig,
-//        facebook = tiendas_filtradas.metodo_contacto_tienda.facebook,
-//        nombre_user_fb = tiendas_filtradas.metodo_contacto_tienda.nombre_user_fb
-    )
+
 
     var cargando by remember { mutableStateOf(true) }
 
@@ -819,8 +809,13 @@ fun Expandible_Metodo_contacto(
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
                         ){
-                            call_dialog_permise = true
-                            numero_llamada = metodos_contactos.llamada.numero
+
+                            llamar(context, metodos_contactos.llamada.numero, {
+                                call_dialog_permise = true
+                                numero_llamada = metodos_contactos.llamada.numero
+                            })
+//                            call_dialog_permise = true
+//                            numero_llamada = metodos_contactos.llamada.numero
                         }
                     }
                     if (metodos_contactos.tiktok.estado) {

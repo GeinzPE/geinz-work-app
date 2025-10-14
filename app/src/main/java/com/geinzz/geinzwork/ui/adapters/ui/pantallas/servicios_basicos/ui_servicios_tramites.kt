@@ -118,46 +118,56 @@ fun ui_servicio_tramite(localida: String) {
         animationSpec = tween(400), label = "alphaRight"
     )
 
+    var yaInicializado by remember { mutableStateOf(false) }
+
+//    LaunchedEffect(lugares) {
+//        if (!yaInicializado && lugares.isNotEmpty()) {
+//            yaInicializado = true
+//            viewmode_servicios_tramite.todos(lugares)
+//            lista_base_seguridad = lugares
+//        }
+//    }
+    LaunchedEffect(lugares) {
+        if (!yaInicializado && lugares.isNotEmpty()) {
+            yaInicializado = true
+            lista_base_seguridad = lugares
+            // Dejamos que obtener_lugares emita el success, no forzamos otro
+        }
+    }
+
 
     val context=LocalContext.current
-    LaunchedEffect(lugares) {
-        viewmode_servicios_tramite.todos(lugares)
-        lista_base_seguridad = lugares
-    }
+
     LaunchedEffect(Unit) {
         viewmode_servicios_tramite.obtener_lugares(context,localida)
     }
     LaunchedEffect(valor_filtrado) {
-//        if (valor_filtrado.length >= 2) {
-        viewmode_servicios_tramite.filtrar_nombre_categoria(
-            valor_filtrado,
-            subCategoriaSeleccionada,
-            lista_base_seguridad
-        )
-//        }
+        if (yaInicializado) {
+            if (valor_filtrado.isNotEmpty()) {
+                viewmode_servicios_tramite.filtrar_nombre_categoria(
+                    valor_filtrado,
+                    subCategoriaSeleccionada,
+                    lista_base_seguridad
+                )
+            } else {
+                viewmode_servicios_tramite.todos(lista_base_seguridad)
+                viewmode_servicios_tramite.filtrar_por_categoria(context, subCategoriaSeleccionada)
+            }
+        }
     }
+
     LaunchedEffect(subCategoriaSeleccionada) {
         valor_filtrado=""
     }
 
-
-//    LaunchedEffect(lugares, subCategoriaSeleccionada) {
-//        viewmode_servicios_tramite.todos(lugares)
-//        if (subCategoriaSeleccionada == "Todos") {
-//            lista_mostrar = lugares
-//        } else {
-//            viewmode_servicios_tramite.filtrar_por_categoria(subCategoriaSeleccionada)
-//            lista_mostrar = viewmode_servicios_tramite.listaFiltrada.value
-//        }
-//    }
-
     LaunchedEffect(lugares, subCategoriaSeleccionada) {
-        // Solo seteas la lista completa la primera vez
-        viewmode_servicios_tramite.todos(lugares)
-
-        // Y luego filtras según la categoría actual
-        viewmode_servicios_tramite.filtrar_por_categoria(context,subCategoriaSeleccionada)
+        if (yaInicializado && lugares.isNotEmpty() && subCategoriaSeleccionada != "Todos") {
+            viewmode_servicios_tramite.filtrar_por_categoria(context, subCategoriaSeleccionada)
+        }
     }
+
+
+
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
         targetValue = targetAlpha,

@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_mapa(
+    seleccionadoId:String,
     lat_user: Double,
     log_user: Double,
     cameraPositionState: CameraPositionState,
@@ -70,6 +71,7 @@ fun bottom_sheet_mapa(
                 when (tipo) {
                     "turismo" -> {
                         listado_items(
+                            seleccionadoId,
                             cameraPositionState,
                             lista = lista_filtrada_turismo,
                             getId = { it.id_lugar_turistico },
@@ -103,6 +105,7 @@ fun bottom_sheet_mapa(
 
                     "tiendas" -> {
                         listado_items(
+                            seleccionadoId,
                             cameraPositionState,
                             lista = lista,
                             getId = { it.id_tienda },
@@ -183,6 +186,7 @@ fun bottom_sheet_mapa(
 
 @Composable
 fun <T> listado_items(
+    seleccionadoId:String,
     cameraPositionState: CameraPositionState,
     lista: List<T>,
     getId: (T) -> String,
@@ -193,8 +197,7 @@ fun <T> listado_items(
     getDescripcion: (T) -> String,
     selecionado: (T) -> Unit // ← ahora retorna el objeto completo
 ) {
-    var seleccionadoId by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+   val scope = rememberCoroutineScope()
 
 //    val heightOptions = listOf(200.dp, 210.dp)
 //    val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
@@ -232,7 +235,7 @@ fun <T> listado_items(
                 seleccionado = (seleccionadoId == getId(item))
             ) { id, lat, log ->
                 val nuevaUbicacion = LatLng(lat, log)
-                seleccionadoId = id
+
 
                 // 🔹 Aquí en vez de mandar solo el id, mandamos todo el item
                 selecionado(item)
