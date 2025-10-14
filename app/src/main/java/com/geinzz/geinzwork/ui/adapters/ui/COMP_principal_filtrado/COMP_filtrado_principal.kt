@@ -863,26 +863,26 @@ fun carta_turismo_google_mpa(
                 onClick(id_lugar, latitud, longitud)
             },
 
-    ) {
+        ) {
         img_carta_google_maps(img_ref)
         AnimatedVisibility(!mostrar_overlay, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(
             Alignment.BottomCenter)) {
             Column {
                 Box(modifier = Modifier.fillMaxWidth().height(15.dp)
                     .background(brush = Brush.verticalGradient(end_subcategoria_shadow)))
-            Box(modifier = Modifier.fillMaxWidth().height(30.dp).background(MaterialTheme.colorScheme.surface)){
-                datos_lugares_google_maps(titulo, datos_descripcion)
-            }
+                Box(modifier = Modifier.fillMaxWidth().height(30.dp).background(MaterialTheme.colorScheme.surface)){
+                    datos_lugares_google_maps(titulo, datos_descripcion)
+                }
             }
         }
         AnimatedVisibility(mostrar_overlay, enter = fadeIn(), exit = fadeOut()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(boxHeight)
-                .clip(RoundedCornerShape(10))
-                .background(Color.Black.copy(alpha = 0.6f))
-        ) {}
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(boxHeight)
+                    .clip(RoundedCornerShape(10))
+                    .background(Color.Black.copy(alpha = 0.6f))
+            ) {}
         }
 
     }

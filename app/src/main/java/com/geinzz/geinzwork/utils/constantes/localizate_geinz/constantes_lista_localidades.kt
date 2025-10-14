@@ -40,9 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.REQUEST_CALL_PHONE
@@ -103,8 +106,7 @@ object constantes_lista_localidades {
     ): Pair<Boolean, String> {
         val metodoData = data[metodo] as? Map<String, Any> ?: emptyMap()
         val estado = metodoData["estado"] as? Boolean ?: false
-        val nombre =
-            metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
+        val nombre = metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
         return estado to nombre
     }
 
@@ -585,16 +587,22 @@ object constantes_lista_localidades {
             }
     }
 
-    data class data_redes_tiendas(val icono: Int, val nombre_red: String)
+    data class data_redes_tiendas(val enable: Boolean, val icono: Int, val nombre_red: String, val valor: String)
 
-    val lista_redes_tiendas = listOf(
-        data_redes_tiendas(icono = R.drawable.llamada_icon, "llamar"),
-        data_redes_tiendas(icono = R.drawable.whatsapp_icon, "whatsapp"),
-        data_redes_tiendas(icono = R.drawable.tik_tok_icon, "tiktok"),
-        data_redes_tiendas(icono = R.drawable.facebook_icon, "facebook"),
-        data_redes_tiendas(icono = R.drawable.instagram_icon, "instragram"),
+//    val lista_redes_tiendas = listOf(
+//        data_redes_tiendas(icono = R.drawable.llamada_icon, "llamar"),
+//        data_redes_tiendas(icono = R.drawable.whatsapp_icon, "whatsapp"),
+//        data_redes_tiendas(icono = R.drawable.tik_tok_icon, "tiktok"),
+//        data_redes_tiendas(icono = R.drawable.facebook_icon, "facebook"),
+//        data_redes_tiendas(icono = R.drawable.instagram_icon, "instragram"),
+//        data_redes_tiendas(icono =R.drawable.sitio_web,"web")
+//        )
+    data class ContactoItem(
+        val nombre_red: String,
+        val icono: Int,
+        val valor: String
+    )
 
-        )
 
     fun bitmapDescriptorFromDrawable(
         context: Context,
@@ -1903,6 +1911,30 @@ object constantes_lista_localidades {
             TiempoRestanteResult("", Color.Gray)
         }
     }
+    fun Map<String, Any>?.toMetodoContacto(): metodo_contacto_tienda {
+        fun Map<String, Any>?.toNumero() = contacto_numero(
+            estado = this?.get("estado") as? Boolean ?: false,
+            numero = this?.get("numero") as? String ?: ""
+        )
+
+        fun Map<String, Any>?.toRed() = contacto_red(
+            estado = this?.get("estado") as? Boolean ?: false,
+            nombre = this?.get("nombre") as? String ?: "",
+            url = this?.get("url") as? String ?: ""
+        )
+
+
+
+        return metodo_contacto_tienda(
+            whatsapp = (this?.get("whatsapp") as? Map<String, Any>).toNumero(),
+            llamada = (this?.get("llamada") as? Map<String, Any>).toNumero(),
+            facebook = (this?.get("facebook") as? Map<String, Any>).toRed(),
+            instagram = (this?.get("instagram") as? Map<String, Any>).toRed(),
+            tiktok = (this?.get("tiktok") as? Map<String, Any>).toRed(),
+            sitio_web = (this?.get("sitio_web") as? Map<String, Any>).toRed()
+        )
+    }
+
 
 
 

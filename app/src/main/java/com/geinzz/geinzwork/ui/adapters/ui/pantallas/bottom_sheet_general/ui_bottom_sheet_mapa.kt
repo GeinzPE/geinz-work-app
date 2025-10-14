@@ -125,7 +125,7 @@ fun bottom_sheet_mapa(
                                         id.id_tienda,
                                         "",
                                         id.direccion,
-                                        id.referencia, id.horario_dia
+                                        id.referencia, id.horario_dia,id.contacto_tienda
                                     )
                                 )
                             }

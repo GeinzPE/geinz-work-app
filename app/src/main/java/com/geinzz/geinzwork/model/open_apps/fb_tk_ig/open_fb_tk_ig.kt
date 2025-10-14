@@ -69,43 +69,33 @@ object open_fb_tk_ig {
         val facebookPackage = "com.facebook.katana"
         val facebookLitePackage = "com.facebook.lite"
 
-        val uriApp = Uri.parse(pageUrl)
-        val uriWeb = Uri.parse(pageUrl)
+        val uri = Uri.parse(pageUrl)
 
         try {
             when {
                 isPackageInstalled(context, facebookPackage) -> {
-                    // Intento abrir con Facebook normal
-                    val intent = Intent(Intent.ACTION_VIEW, uriApp).apply {
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                         setPackage(facebookPackage)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(intent)
                 }
                 isPackageInstalled(context, facebookLitePackage) -> {
-                    // Intento abrir con Facebook Lite
-                    val intent = Intent(Intent.ACTION_VIEW, uriApp).apply {
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                         setPackage(facebookLitePackage)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(intent)
                 }
                 else -> {
-                    // Si no hay ninguna app, abre en navegador
-                    val browserIntent = Intent(Intent.ACTION_VIEW, uriWeb).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
+                    val browserIntent = Intent(Intent.ACTION_VIEW, uri)
                     context.startActivity(browserIntent)
                 }
             }
         } catch (e: ActivityNotFoundException) {
-            // fallback por seguridad
-            val browserIntent = Intent(Intent.ACTION_VIEW, uriWeb).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            val browserIntent = Intent(Intent.ACTION_VIEW, uri)
             context.startActivity(browserIntent)
         }
     }
+
 
     fun openWebLink(context: Context, url: String) {
         try {

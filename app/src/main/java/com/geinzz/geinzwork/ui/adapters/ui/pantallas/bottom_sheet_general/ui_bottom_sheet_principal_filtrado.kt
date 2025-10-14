@@ -13,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -85,9 +86,13 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
@@ -96,6 +101,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
@@ -105,6 +112,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
@@ -136,18 +144,18 @@ fun bottom_sheet_tiendas_filtradas(
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
 
     val metodoContacto = metodo_contacto_tienda(
-        whatsapp = tiendas_filtradas.whatsapp,
-        numero_whatsapp = tiendas_filtradas.numero_whatsapp,
-        tiktok = tiendas_filtradas.tiktok,
-        nombre_tiktok = tiendas_filtradas.nombre_tiktok,
-        sitio_web = tiendas_filtradas.sitio_web,
-        url_sitio_web = tiendas_filtradas.url_sitio_web,
-        instagram = tiendas_filtradas.instagram,
-        nombre_user_ig = tiendas_filtradas.nombre_user_ig,
-        facebook = tiendas_filtradas.facebook,
-        nombre_user_fb = tiendas_filtradas.nombre_user_fb
+//        whatsapp = tiendas_filtradas.metodo_contacto_tienda.whatsapp,
+//        numero_whatsapp = tiendas_filtradas.metodo_contacto_tienda.numero_whatsapp,
+//        tiktok = tiendas_filtradas.metodo_contacto_tienda.tiktok,
+//        nombre_tiktok = tiendas_filtradas.metodo_contacto_tienda.nombre_tiktok,
+//        sitio_web = tiendas_filtradas.metodo_contacto_tienda.sitio_web,
+//        url_sitio_web = tiendas_filtradas.metodo_contacto_tienda.url_sitio_web,
+//        instagram = tiendas_filtradas.metodo_contacto_tienda.instagram,
+//        nombre_user_ig = tiendas_filtradas.metodo_contacto_tienda.nombre_user_ig,
+//        facebook = tiendas_filtradas.metodo_contacto_tienda.facebook,
+//        nombre_user_fb = tiendas_filtradas.metodo_contacto_tienda.nombre_user_fb
     )
-    Log.d("horario_teinda", tiendas_filtradas.horario_atencion.toString())
+
     var cargando by remember { mutableStateOf(true) }
 
     LaunchedEffect(visible) {
@@ -261,7 +269,7 @@ fun bottom_sheet_tiendas_filtradas(
                         item {
                             Expandible_Metodo_contacto(
                                 expander_contacto,
-                                metodoContacto
+                                tiendas_filtradas.metodo_contacto_tienda
                             ) { expander_contacto = !expander_contacto }
                             spacer_vertical(10.dp)
                         }
@@ -777,6 +785,9 @@ fun Expandible_Metodo_contacto(
     metodos_contactos: metodo_contacto_tienda,
     onClickExpand: () -> Unit
 ) {
+    val context=LocalContext.current
+    var call_dialog_permise by remember { mutableStateOf(false) }
+    var numero_llamada by remember { mutableStateOf("") }
     Cartas_expandibles {
         Column {
             expandibles_wrapp(
@@ -795,39 +806,67 @@ fun Expandible_Metodo_contacto(
                             vertical = 8.dp
                         )
                 ) {
-                    if (metodos_contactos.whatsapp) {
+                    if (metodos_contactos.whatsapp.estado) {
                         item_metodo_contacto(
                             R.drawable.whatsapp_icon,
-                            constantes_lista_localidades.ocultarNumero(metodos_contactos.numero_whatsapp)
-                        )
+                            constantes_lista_localidades.ocultarNumero(metodos_contactos.whatsapp.numero)
+                        ){
+                            abrir_whattsapp(context, metodos_contactos.whatsapp.numero)
+                        }
                     }
-                    if (metodos_contactos.tiktok) {
+                    if (metodos_contactos.llamada.estado) {
+                        item_metodo_contacto(
+                            R.drawable.llamada_icon,
+                            constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
+                        ){
+                            call_dialog_permise = true
+                            numero_llamada = metodos_contactos.llamada.numero
+                        }
+                    }
+                    if (metodos_contactos.tiktok.estado) {
                         item_metodo_contacto(
                             R.drawable.tik_tok_icon,
-                            metodos_contactos.nombre_tiktok
-                        )
+                            metodos_contactos.tiktok.nombre
+                        ){
+                            openTiktok(context,metodos_contactos.tiktok.url)
+                        }
                     }
-                    if (metodos_contactos.sitio_web) {
-                        item_metodo_contacto(R.drawable.web_icon, metodos_contactos.url_sitio_web)
+                    if (metodos_contactos.sitio_web.estado) {
+                        item_metodo_contacto(
+                            R.drawable.web_icon,
+                            metodos_contactos.sitio_web.nombre
+                        ){
+                            openWebLink(context,metodos_contactos.sitio_web.url)
+                        }
                     }
-                    if (metodos_contactos.instagram) {
+                    if (metodos_contactos.instagram.estado) {
                         item_metodo_contacto(
                             R.drawable.instagram_icon,
-                            metodos_contactos.nombre_user_ig
-                        )
+                            metodos_contactos.instagram.nombre
+                        ){
+                            openInstagram(context,metodos_contactos.instagram.url)
+                        }
                     }
-                    if (metodos_contactos.facebook) {
+                    if (metodos_contactos.facebook.estado) {
                         item_metodo_contacto(
                             R.drawable.facebook_icon,
-                            metodos_contactos.nombre_user_fb
-                        )
+                            metodos_contactos.facebook.nombre
+                        ){
+                            openFacebook(context, metodos_contactos.facebook.url)
+                        }
                     }
                 }
             }
 
         }
     }
-
+    if (call_dialog_permise) {
+        permisos_llamadas(aceptar_permisos = {
+            requestCallPermission(context, numero_llamada)
+        }, ondimis = {
+            call_dialog_permise = false
+        })
+    }
 }
 
 
@@ -877,7 +916,7 @@ fun Expandible_qr_tienda(
 }
 
 @Composable
-fun item_metodo_contacto(icono_red: Int, texto: String) {
+fun item_metodo_contacto(icono_red: Int, texto: String,click_icon:()-> Unit) {
     var context = LocalContext.current
     spacer_vertical(5.dp)
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -887,7 +926,10 @@ fun item_metodo_contacto(icono_red: Int, texto: String) {
         ) {
             Image(
                 painter = painterResource(icono_red),
-                modifier = Modifier.size(30.dp),
+                modifier = Modifier.size(30.dp).clickable( indication = null,
+                    interactionSource = remember { MutableInteractionSource() } ){
+                    click_icon()
+                },
                 contentDescription = ""
             )
             spacer_horizonta(10.dp)

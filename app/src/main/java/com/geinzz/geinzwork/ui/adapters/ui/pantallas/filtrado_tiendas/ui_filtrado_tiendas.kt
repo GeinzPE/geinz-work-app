@@ -112,6 +112,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas.carga_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -134,8 +135,7 @@ fun Pantalla_filtrado_tiendas(
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
     )
-    val state_filtrado_tiendas =
-        viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState().value
+    val state_filtrado_tiendas = viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState(carga_tiendas.loading).value
 //    val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
     val lista_filtrada_tiendas by viewModelFiltros.listaTiendasGuardadas.observeAsState(emptyList())
 
@@ -266,9 +266,6 @@ fun Pantalla_filtrado_tiendas(
         }
     }
 
-//    LaunchedEffect(lista_filtrada_tiendas) {
-//        viewModelFiltros.actualizarListaFiltrada(lista_filtrada_tiendas)
-//    }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val scope = rememberCoroutineScope()
@@ -539,7 +536,7 @@ fun TiempoRestanteCierre(
     color: (Color) -> Unit
 ) {
 
-Log.d("horario_total",horario_total.toString())
+    Log.d("horario_total", horario_total.toString())
     val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
         derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
     }
@@ -555,7 +552,9 @@ Log.d("horario_total",horario_total.toString())
             Text(
                 text = resultado.texto.capitalizeFirst(),
                 color = resultado.color,
-                style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             color(resultado.color)
         }
@@ -567,6 +566,23 @@ Log.d("horario_total",horario_total.toString())
         )
     }
 }
+
+
+@Composable
+fun retornar_color_estado_tienda(
+    horario_total: horario_tienda,
+    hCierre: String,
+    cerrado: Boolean,
+    motivo: String,
+    tick: Long,
+    color: (Color) -> Unit
+) {
+    val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
+        derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
+    }
+    color(resultado.color)
+}
+
 
 @Composable
 fun encabezado_chis_categorias() {
@@ -830,8 +846,8 @@ fun item_tiendas(
                         horario_tienda.motivo,
                         item_tiendas.pagado,
                         tick
-                    ){color->
-                        estadoColor=color
+                    ) { color ->
+                        estadoColor = color
                     }
 
                 }

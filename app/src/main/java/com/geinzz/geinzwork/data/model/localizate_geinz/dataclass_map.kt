@@ -14,6 +14,7 @@ data class dataclass_map(
     val categoria: String = "",
     val direccion: String = "",
     val referencia: String = "",
-    val horario_tienda: horario_tienda =horario_tienda()
+    val horario_tienda: horario_tienda =horario_tienda(),
+    val contacto_tienda: metodo_contacto_tienda= metodo_contacto_tienda()
 
 )

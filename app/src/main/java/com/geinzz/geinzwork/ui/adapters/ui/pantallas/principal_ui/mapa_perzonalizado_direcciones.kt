@@ -60,10 +60,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,20 +94,29 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_redes_tiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
@@ -237,6 +248,8 @@ fun MyGoogle_maps(
     var localidad_tienda_lugar_Select by remember { mutableStateOf(localidad) }
     var show_bottom_sheet_datos_tienda_lugares by remember { mutableStateOf(false) }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
+    var numero_llamada by remember { mutableStateOf("") }
 
 
     LaunchedEffect(id_lugar_tienda_select) {
@@ -328,9 +341,9 @@ fun MyGoogle_maps(
                                         lugar.id_lugar_turistico,
                                         "",
                                         lugar.direcccion,
-                                        lugar.referencia,
+                                        lugar.referencia
 
-                                        )
+                                    )
                                     seleccionadoId = lugar.id_lugar_turistico
                                     show_dialog_datos_lugares = true
                                     true
@@ -362,7 +375,7 @@ fun MyGoogle_maps(
                                         "",
                                         tienda.direccion,
                                         tienda.referencia,
-                                        tienda.horario_dia,
+                                        tienda.horario_dia, tienda.contacto_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -381,33 +394,6 @@ fun MyGoogle_maps(
                         Marker(
                             state = MarkerState(LatLng(latitud_luga_seg, long_luga_seg)),
                             title = "lugar seguro ajaj",
-//                            icon = markerColor
-
-
-//                            onClick = {
-//                                lister_marker = dataclass_map(
-//                                    tienda.logo_tienda,
-//                                    tienda.nombre_tienda,
-//                                    tienda.lista_subcategoiras,
-//                                    lat_user,
-//                                    log_user,
-//                                    tienda.latitud,
-//                                    tienda.longitud,
-//                                    tienda.id_tienda,
-//                                    "",
-//                                    tienda.direccion,
-//                                    tienda.referencia,
-//                                )
-//
-//
-//                                seleccionadoId = tienda.id_tienda
-//                                viewModel_filtrado_tiendas.obtenerHorarioPorTienda_activa(
-//                                    "barranca",
-//                                    tienda.id_tienda
-//                                )
-//                                show_dialog_datos_lugares = true
-//                                true
-//                            }
                         )
                     }
 
@@ -492,8 +478,9 @@ fun MyGoogle_maps(
                                 "",
                                 tienda.direccion,
                                 tienda.referencia,
-                                tienda.horario_dia,
+                                tienda.horario_dia, tienda.contacto_tienda
                             )
+                            Log.d("ecnotramos","${tienda.contacto_tienda}")
 
                             seleccionadoId = tienda.id_tienda
                             show_dialog_datos_lugares = true
@@ -588,23 +575,43 @@ fun MyGoogle_maps(
                 onclick_iconos = { datos ->
                     when (datos.nombre_red) {
                         "llamar" -> {
-                            // Lógica para llamada
+                            llamar(context, datos.valor, {
+                                call_dialog_permise = true
+                                numero_llamada = datos.valor
+                            })
                         }
 
                         "whatsapp" -> {
-                            // Lógica para abrir whatsapp
+                            abrir_whattsapp(context, datos.valor)
                         }
 
                         "tiktok" -> {
-                            // Lógica para abrir TikTok
+                            openTiktok(
+                                context,
+                                datos.valor
+                            )
                         }
 
                         "facebook" -> {
-                            // Abrir facebook
+                            Log.d("    datos.valor","${datos.valor}")
+                            openFacebook(
+                                context,
+                                datos.valor
+                            )
                         }
 
                         "instagram" -> {
-                            // Abrir instagram
+                            Log.d("    datos.valor","${datos.valor}")
+                            openInstagram(
+                                context,
+                                datos.valor
+                            )
+                        }
+
+                        "Web" -> {
+                            openWebLink(
+                                context, datos.valor
+                            )
                         }
 
                     }
@@ -631,7 +638,7 @@ fun MyGoogle_maps(
                                 "",
                                 tienda.direccion,
                                 tienda.referencia,
-                                tienda.horario_dia,
+                                tienda.horario_dia, tienda.contacto_tienda
                             )
 
                             seleccionadoId = tienda.id_tienda
@@ -668,7 +675,7 @@ fun MyGoogle_maps(
                                 "",
                                 tienda.direccion,
                                 tienda.referencia,
-                                tienda.horario_dia,
+                                tienda.horario_dia, tienda.contacto_tienda
                             )
 
                             seleccionadoId = tienda.id_tienda
@@ -710,6 +717,14 @@ fun MyGoogle_maps(
             }
         }
     }
+    if (call_dialog_permise) {
+        permisos_llamadas(aceptar_permisos = {
+            requestCallPermission(context, numero_llamada)
+        }, ondimis = {
+            call_dialog_permise = false
+        })
+    }
+
 }
 
 @Composable
@@ -740,7 +755,7 @@ fun dialogo_lugar_tienda(
     onBoxVisibleChange: (Boolean) -> Unit,
     centrar_camara: (Double, Double) -> Unit,
     retornar_id_select: (String, Color) -> Unit,
-    onclick_iconos: (constantes_lista_localidades.data_redes_tiendas) -> Unit,
+    onclick_iconos: (data_redes_tiendas) -> Unit,
     mostrar_lista: () -> Unit,
     move_izquierda: () -> Unit,
     move_derecha: () -> Unit
@@ -827,7 +842,47 @@ fun dialogo_lugar_tienda(
     )
     var totalDx by remember { mutableStateOf(0f) }
     var totalDY by remember { mutableStateOf(0f) }
+    var validad_horario by remember { mutableStateOf(false) }
 
+    val lista_redes_tiendas = listOf(
+        data_redes_tiendas(
+            enable = dataclass_map.contacto_tienda.llamada.estado,
+            icono = R.drawable.llamada_icon,
+            nombre_red = "llamar",
+            valor = dataclass_map.contacto_tienda.llamada.numero
+        ),
+        data_redes_tiendas(
+            enable = dataclass_map.contacto_tienda.whatsapp.estado,
+            icono = R.drawable.whatsapp_icon,
+            nombre_red = "whatsapp",
+            valor = dataclass_map.contacto_tienda.whatsapp.numero
+        ),
+        data_redes_tiendas(
+            enable = dataclass_map.contacto_tienda.tiktok.estado,
+            icono = R.drawable.tik_tok_icon,
+            nombre_red = "tiktok",
+            valor = dataclass_map.contacto_tienda.tiktok.url
+        ),
+        data_redes_tiendas(
+            enable = dataclass_map.contacto_tienda.facebook.estado,
+            icono = R.drawable.facebook_icon,
+            nombre_red = "facebook",
+            valor = dataclass_map.contacto_tienda.facebook.url
+        ),
+        data_redes_tiendas(
+            enable = dataclass_map.contacto_tienda.instagram.estado,
+            icono = R.drawable.instagram_icon,
+            nombre_red = "instagram",
+            valor = dataclass_map.contacto_tienda.instagram.url
+        ),
+        data_redes_tiendas(
+            enable = dataclass_map.contacto_tienda.sitio_web.estado,
+            icono = R.drawable.sitio_web,
+            nombre_red = "web",
+            valor = dataclass_map.contacto_tienda.sitio_web.url
+        )
+    )
+    Log.d("campos_enviados", lista_redes_tiendas.toString())
 
 
     Column(
@@ -860,7 +915,6 @@ fun dialogo_lugar_tienda(
                         .clip(cornerShape)
                         .clickable { onBoxVisibleChange(!boxVisible) }
                         .pointerInput(Unit) {
-
                             detectDragGestures(
                                 onDrag = { _, dragAmount ->
                                     val (dx, dy) = dragAmount
@@ -871,10 +925,12 @@ fun dialogo_lugar_tienda(
                                     when {
                                         totalDx > 80 -> {
                                             move_derecha()
+                                            validad_horario = true
                                         }
 
                                         totalDx < -80 -> {
                                             move_izquierda()
+                                            validad_horario = true
                                         }
 
                                         totalDY > 80 -> {
@@ -925,14 +981,14 @@ fun dialogo_lugar_tienda(
                                     MaterialTheme.typography.bodyMedium,
                                 )
                                 spacer_horizonta(5.dp)
-                                if(!boxVisible){
-                                Box(
-                                    modifier = Modifier
-                                        .size(10.dp)
-                                        .size(10.dp)
-                                        .clip(RoundedCornerShape(50))
-                                        .background(estadoColor)
-                                )
+                                if (!boxVisible) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .size(10.dp)
+                                            .clip(RoundedCornerShape(50))
+                                            .background(estadoColor)
+                                    )
                                 }
                             }
                         }
@@ -1034,20 +1090,13 @@ fun dialogo_lugar_tienda(
                                     when {
                                         totalDx > 80 -> {
                                             move_derecha()
-                                            TiempoRestanteCierre(
-                                                dataclass_map.horario_tienda,
-                                                dataclass_map.horario_tienda.h_cierre,
-                                                dataclass_map.horario_tienda.cerrado,
-                                                dataclass_map.horario_tienda.motivo,
-                                                true,
-                                                tick
-                                            ) { color ->
-                                                estadoColor = color
-                                            }
+                                            validad_horario = true
+
                                         }
 
                                         totalDx < -80 -> {
                                             move_izquierda()
+                                            validad_horario = true
                                         }
 
                                         totalDY > 80 -> {
@@ -1179,6 +1228,8 @@ fun dialogo_lugar_tienda(
                         shape = RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)
                     )
             ) {
+
+
                 LazyRow(
                     state = listate,
                     horizontalArrangement = Arrangement.spacedBy(7.dp),
@@ -1187,7 +1238,8 @@ fun dialogo_lugar_tienda(
                         .padding(vertical = 5.dp)
                         .align(Alignment.BottomCenter)
                 ) {
-                    items(lista_redes_tiendas) { i ->
+                    items(lista_redes_tiendas.filter { it.enable }) { i ->
+                        Log.d("lsitaeclicalda",lista_redes_tiendas.toString())
                         Box(
                             modifier = Modifier
                                 .size(35.dp)
@@ -1199,16 +1251,13 @@ fun dialogo_lugar_tienda(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .clickable {
-//                                        crear_ruta(
-//                                            dataclass_map.latitud,
-//                                            dataclass_map.longitud
-//                                        )
                                         onclick_iconos(i)
                                     }
                             )
                         }
                     }
                 }
+
                 // 👈 izquierda
                 Box(
                     modifier = Modifier
@@ -1233,6 +1282,17 @@ fun dialogo_lugar_tienda(
                         .background(Brush.horizontalGradient(colors = shadow_right))
                 )
 
+            }
+        }
+        if (validad_horario) {
+            retornar_color_estado_tienda(
+                dataclass_map.horario_tienda,
+                dataclass_map.horario_tienda.h_cierre,
+                dataclass_map.horario_tienda.cerrado,
+                dataclass_map.horario_tienda.motivo,
+                tick
+            ) { color ->
+                estadoColor = color
             }
         }
     }

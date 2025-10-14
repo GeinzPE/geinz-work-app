@@ -83,6 +83,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
+import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 
 @Composable
 fun ui_servicio_tramite(localida: String) {
@@ -95,7 +96,7 @@ fun ui_servicio_tramite(localida: String) {
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_lugares_db>()) }
-    val state_servicios = viewmode_servicios_tramite._state_servicios.collectAsState().value
+    val state_servicios = viewmode_servicios_tramite._state_servicios.collectAsState(carga_servicios.loading).value
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var listState = rememberLazyListState()
     val showLeftShadow by remember {
@@ -123,16 +124,16 @@ fun ui_servicio_tramite(localida: String) {
         viewmode_servicios_tramite.todos(lugares)
         lista_base_seguridad = lugares
     }
-    LaunchedEffect(localida) {
+    LaunchedEffect(Unit) {
         viewmode_servicios_tramite.obtener_lugares(context,localida)
     }
     LaunchedEffect(valor_filtrado) {
 //        if (valor_filtrado.length >= 2) {
-            viewmode_servicios_tramite.filtrar_nombre_categoria(
-                valor_filtrado,
-                subCategoriaSeleccionada,
-                lista_base_seguridad
-            )
+        viewmode_servicios_tramite.filtrar_nombre_categoria(
+            valor_filtrado,
+            subCategoriaSeleccionada,
+            lista_base_seguridad
+        )
 //        }
     }
     LaunchedEffect(subCategoriaSeleccionada) {
@@ -236,6 +237,7 @@ fun ui_servicio_tramite(localida: String) {
             // 🔹 Contenido según el estado del ViewModel
             when (state_servicios) {
                 is viewmode_servicios_tramite.carga_servicios.loading -> {
+                    Log.d("entramos","cargando")
                     item(span = StaggeredGridItemSpan.FullLine) {
                         progress_bar=true
                         sin_resultados=false
@@ -244,6 +246,7 @@ fun ui_servicio_tramite(localida: String) {
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.succes -> {
+                    Log.d("entramos","succes")
                     progress_bar=false
                     sin_resultados=false
                     val lista =
@@ -261,6 +264,7 @@ fun ui_servicio_tramite(localida: String) {
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.emoty -> {
+                    Log.d("entramos","vacio")
                     progress_bar=false
                     sin_resultados=true
                     val texto =
@@ -270,6 +274,7 @@ fun ui_servicio_tramite(localida: String) {
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.error -> {
+                    Log.d("entramos","error")
                     progress_bar=false
                     sin_resultados=true
                     val texto =
@@ -291,7 +296,7 @@ fun ui_servicio_tramite(localida: String) {
             targetState = estadoActual,
             label = "estado_pantalla",
 
-        ) { estado ->
+            ) { estado ->
             centrado_hori_vertical {
                 when (estado) {
                     "loading" -> CircularProgressIndicator()

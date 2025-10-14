@@ -33,8 +33,14 @@ class viewmode_servicios_tramite : ViewModel() {
     private val state_servicios = MutableStateFlow<carga_servicios>(carga_servicios.loading)
     val _state_servicios: StateFlow<carga_servicios> = state_servicios
 
+    init {
 
-    fun obtener_lugares(context: Context,localida: String) {
+        viewModelScope.launch {
+            state_servicios.value = carga_servicios.loading
+        }
+    }
+
+    fun obtener_lugares(context: Context, localida: String) {
         viewModelScope.launch {
             try {
 
@@ -44,9 +50,7 @@ class viewmode_servicios_tramite : ViewModel() {
                     return@launch
                 }
                 val res = isnta.obtenerServiciosTramites(localida)
-
                 _lugares.value = res
-
                 if (res.isNotEmpty()) {
                     state_servicios.value = carga_servicios.succes(res)
                 } else {
@@ -58,7 +62,8 @@ class viewmode_servicios_tramite : ViewModel() {
 
             } catch (e: Exception) {
                 _lugares.value = emptyList()
-                state_servicios.value = carga_servicios.error("Ocurrió un error al cargar los datos")
+                state_servicios.value =
+                    carga_servicios.error("Ocurrió un error al cargar los datos")
             }
         }
     }
@@ -98,7 +103,8 @@ class viewmode_servicios_tramite : ViewModel() {
                 }
 
             } catch (e: Exception) {
-                state_servicios.value = carga_servicios.error("Error inesperado: ${e.localizedMessage}")
+                state_servicios.value =
+                    carga_servicios.error("Error inesperado: ${e.localizedMessage}")
             }
         }
     }
@@ -122,11 +128,14 @@ class viewmode_servicios_tramite : ViewModel() {
 //        }
 //
 //    }
+    private var cargado=false
     fun filtrar_nombre_categoria(
         nombre: String,
         categoria: String,
         lista: List<dataclass_lugares_db>
     ) {
+        if(cargado) return
+        cargado=true
         viewModelScope.launch {
             try {
                 // 🔹 Si no hay texto suficiente, mostramos toda la lista sin pasar por "loading"
@@ -159,7 +168,6 @@ class viewmode_servicios_tramite : ViewModel() {
             }
         }
     }
-
 
 
     sealed class carga_servicios {

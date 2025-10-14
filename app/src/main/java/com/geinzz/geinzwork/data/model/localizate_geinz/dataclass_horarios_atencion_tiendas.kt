@@ -1,5 +1,8 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
 
 //data class encontradas_por_categoria(
 //    val cantidad_registradas: Int?,
@@ -45,20 +48,33 @@ data class modelo_tienda(
     val lista_img: List<String> =emptyList(),
     val subcategoria: List<String> = emptyList(),
     val ubicacion: Map<String, Any> = emptyMap(),
-    val whatsapp: Boolean = false,
-    val numero_whatsapp: String = "",
-    val tiktok: Boolean = false,
-    val nombre_tiktok: String = "",
-    val sitio_web: Boolean = false,
-    val url_sitio_web: String = "",
-    val instagram: Boolean = false,
-    val nombre_user_ig: String = "",
-    val facebook: Boolean = false,
-    val nombre_user_fb: String = "",
     val pagado: Boolean=false,
+    val metodo_contacto_tienda:metodo_contacto_tienda= metodo_contacto_tienda(),
     val horario_atencion: HorarioAtencion = HorarioAtencion(), // 🔹 Aquí se agrega el horario
 
 )
+@Parcelize
+data class metodo_contacto_tienda(
+    val whatsapp: contacto_numero = contacto_numero(),
+    val llamada: contacto_numero = contacto_numero(),
+    val facebook: contacto_red = contacto_red(),
+    val instagram: contacto_red = contacto_red(),
+    val tiktok: contacto_red = contacto_red(),
+    val sitio_web: contacto_red = contacto_red()
+) : Parcelable
+
+@Parcelize
+data class contacto_numero(
+    val estado: Boolean = false,
+    val numero: String = ""
+) : Parcelable
+
+@Parcelize
+data class contacto_red(
+    val estado: Boolean = false,
+    val nombre: String = "",
+    val url: String = ""
+) : Parcelable
 
 data class HorarioDia(
     val cerrado: Boolean = false,

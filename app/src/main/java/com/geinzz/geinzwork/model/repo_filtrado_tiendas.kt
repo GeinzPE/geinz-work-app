@@ -4,6 +4,8 @@ import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
@@ -11,13 +13,16 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
+import kotlin.Boolean
 import kotlin.Number
 
 class repo_filtrado_tiendas {
@@ -64,9 +69,11 @@ class repo_filtrado_tiendas {
                 val map_img_tienda = i.get("img_tienda") as? Map<String, Any> ?: emptyMap()
                 val logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: ""
                 val pagado = i.get("pagado") as? Boolean ?: false
-                val horario=i.get("horario_atencion") as? Map<String, Any>?:emptyMap()
+                val horario = i.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
+                val metodos_contacto = i.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
 
-                val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+                val dias =
+                    listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
                 val calendar = Calendar.getInstance()
                 val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
 
@@ -75,8 +82,11 @@ class repo_filtrado_tiendas {
                 val hApertura = horarioDia["h_apertura"] as? String ?: ""
                 val hCierre = horarioDia["h_cierre"] as? String ?: ""
                 val motivo = horarioDia["motivo"] as? String ?: ""
-                var datos_horario_actual= horario_tienda(hApertura,hCierre,cerrado,motivo)
-                val estaAbierto = if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
+                              val contacto_obs = metodos_contacto.toMetodoContacto()
+
+                var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
+                val estaAbierto =
+                    if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
                 if (!estaAbierto) {
                     val proximo = obtenerProximoDiaAbierto(horario, diaActual)
                     if (proximo != null) {
@@ -98,7 +108,10 @@ class repo_filtrado_tiendas {
                         longitud = longitud.toDouble(),
                         lista_subcategoiras = subcategorias_list,
                         descripcion = descripcion,
-                        id_tienda = id_tienda, pagado = pagado,horario_dia=datos_horario_actual,estaAbierto
+                        id_tienda = id_tienda,
+                        pagado = pagado,
+                        horario_dia = datos_horario_actual,
+                        estaAbierto,contacto_obs
                     )
                 )
 
@@ -135,7 +148,6 @@ class repo_filtrado_tiendas {
     }
 
 
-
     suspend fun obtenner_campos_tiendas_espesifica(
         localidad: String,
         id_tienda: String
@@ -152,8 +164,9 @@ class repo_filtrado_tiendas {
         if (tiendaDoc != null && tiendaDoc.exists()) {
             val data = tiendaDoc.data
             val map_img = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
-            val mapMetodoContacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
             val horarioMap = data?.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
+            val metodos_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+            Log.d("viendo_contacto",metodos_contacto.toString())
 
             // Función auxiliar para mapear un día
             fun mapearDia(diaMap: Map<String, Any>?): HorarioDia {
@@ -165,6 +178,9 @@ class repo_filtrado_tiendas {
                     motivo = diaMap["motivo"] as? String ?: ""
                 )
             }
+            val contacto_obs = metodos_contacto.toMetodoContacto()
+            Log.d("metodo_contacot",contacto_obs.toString())
+
 
             val horarioTienda = HorarioAtencion(
                 lunes = mapearDia(horarioMap["lunes"] as? Map<String, Any>),
@@ -176,26 +192,26 @@ class repo_filtrado_tiendas {
                 domingo = mapearDia(horarioMap["domingo"] as? Map<String, Any>)
             )
 
-            val (estadoFb, nombreFb) = constantes_lista_localidades.obtenerMetodoContacto(
-                "facebook",
-                mapMetodoContacto
-            )
-            val (estadoIg, nombreIg) = constantes_lista_localidades.obtenerMetodoContacto(
-                "instagram",
-                mapMetodoContacto
-            )
-            val (estadoTk, nombreTk) = constantes_lista_localidades.obtenerMetodoContacto(
-                "tiktok",
-                mapMetodoContacto
-            )
-            val (estadoWa, numeroWa) = constantes_lista_localidades.obtenerMetodoContacto(
-                "whatsapp",
-                mapMetodoContacto
-            )
-            val (estadoWeb, urlWeb) = constantes_lista_localidades.obtenerMetodoContacto(
-                "sitio_web",
-                mapMetodoContacto
-            )
+//            val (estadoFb, nombreFb) = constantes_lista_localidades.obtenerMetodoContacto(
+//                "facebook",
+//                mapMetodoContacto
+//            )
+//            val (estadoIg, nombreIg) = constantes_lista_localidades.obtenerMetodoContacto(
+//                "instagram",
+//                mapMetodoContacto
+//            )
+//            val (estadoTk, nombreTk) = constantes_lista_localidades.obtenerMetodoContacto(
+//                "tiktok",
+//                mapMetodoContacto
+//            )
+//            val (estadoWa, numeroWa) = constantes_lista_localidades.obtenerMetodoContacto(
+//                "whatsapp",
+//                mapMetodoContacto
+//            )
+//            val (estadoWeb, urlWeb) = constantes_lista_localidades.obtenerMetodoContacto(
+//                "sitio_web",
+//                mapMetodoContacto
+//            )
 
             val tiendaModelo = modelo_tienda(
                 categoria_tienda = data?.get("categoria_tienda") as? String ?: "",
@@ -208,18 +224,10 @@ class repo_filtrado_tiendas {
                 nombre_tienda = data?.get("nombre_tienda") as? String ?: "",
                 subcategoria = data?.get("subcategoria") as? List<String> ?: emptyList(),
                 ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap(),
-                whatsapp = estadoWa,
-                numero_whatsapp = numeroWa,
-                tiktok = estadoTk,
-                nombre_tiktok = nombreTk,
-                sitio_web = estadoWeb,
-                url_sitio_web = urlWeb,
-                instagram = estadoIg,
-                nombre_user_ig = nombreIg,
-                facebook = estadoFb,
-                nombre_user_fb = nombreFb,
                 pagado = data?.get("pagado") as? Boolean ?: false,
-                horario_atencion = horarioTienda
+                metodo_contacto_tienda=contacto_obs,
+                horario_atencion = horarioTienda,
+
             )
 
             lista_modelo_tienda.add(tiendaModelo)
@@ -229,8 +237,6 @@ class repo_filtrado_tiendas {
     }
 
 
-
-
     suspend fun obtener_campos_tienda_free(
         localida: String,
         id_tienda: String
@@ -238,11 +244,11 @@ class repo_filtrado_tiendas {
         val data =
             db.collection("Tiendas").document(localida).collection(localida).document(id_tienda)
                 .get().await()
-        val map_img=data?.get("img_tienda")as? Map<String, Any>?:emptyMap()
-        val map_ubicacion=data?.get("ubicacion") as? Map<String, Any>?:emptyMap()
-        val dirección=map_ubicacion.get("dirección") as? String?:""
-        val referencia =map_ubicacion.get("referencia") as? String?:""
-        val logo_tienda=map_img.get("logo_tienda") as? String?:""
+        val map_img = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+        val map_ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+        val dirección = map_ubicacion.get("dirección") as? String ?: ""
+        val referencia = map_ubicacion.get("referencia") as? String ?: ""
+        val logo_tienda = map_img.get("logo_tienda") as? String ?: ""
         return datos_tienda_free(
             nombre_ = data.get("nombre_tienda") as? String ?: "",
             img = logo_tienda,
