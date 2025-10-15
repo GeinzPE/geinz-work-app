@@ -108,7 +108,7 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
         )
     if (call_dialog_permise) {
         permisos_llamadas(aceptar_permisos = {
-            requestCallPermission(context,numero_llamada)
+            requestCallPermission(context=context, phoneNumber = numero_llamada)
         }, ondimis = {
             call_dialog_permise = false
         })
@@ -149,7 +149,7 @@ fun box_llamada_whatsap(
 
 }
 
-fun requestCallPermission(context: Context, phoneNumber: String) {
+fun requestCallPermission(llamar: Boolean=true, context: Context, phoneNumber: String="") {
     if (ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.CALL_PHONE
@@ -161,7 +161,9 @@ fun requestCallPermission(context: Context, phoneNumber: String) {
             REQUEST_CALL_PHONE
         )
     } else {
+        if(llamar){
         makePhoneCall(context, phoneNumber)
+        }
     }
 }
 
@@ -175,6 +177,6 @@ private fun makePhoneCall(context: Context, phoneNumber: String) {
     ) {
         context.startActivity(callIntent)
     } else {
-        requestCallPermission(context, phoneNumber)
+        requestCallPermission(context=context, phoneNumber= phoneNumber)
     }
 }

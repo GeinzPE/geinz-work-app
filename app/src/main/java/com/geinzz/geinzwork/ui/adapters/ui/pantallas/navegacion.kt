@@ -248,7 +248,8 @@ fun nativationWrapper(
                         },
                         listener_seguridad = { localida ->
                             navController.navigate(ui_salud_seguridad(localida))
-                        }, listner_sevicios_tramites = {localidad->
+                        },
+                        listner_sevicios_tramites = { localidad ->
                             navController.navigate(ui_servicios_tramites(localidad))
 
                         },
@@ -340,7 +341,13 @@ fun nativationWrapper(
                         categoria_localidad.nombre_user,
                         navigation_regresar = { navController.popBackStack() },
                         abrir_mapa = { tipo, localidad ->
-                            navController.navigate(map_perzonalizado(tipo, localidad))
+                            if (firebaseAuth.currentUser != null) {
+                                bottom_sheet_iniciar_seccion = false
+                                navController.navigate(map_perzonalizado(tipo, localidad))
+                            } else {
+                                bottom_sheet_iniciar_seccion = true
+
+                            }
                         }, iniciar_normal = {
                             navController.navigate("login_principal")
                         }, con_google = {
@@ -382,12 +389,12 @@ fun nativationWrapper(
                         })
                 }
 
-                composable <ui_agregar_lugares> {
+                composable<ui_agregar_lugares> {
                     datos_teindas()
                 }
 
-                composable <ui_servicios_tramites>{navback ->
-                    val servicio=navback.toRoute<ui_servicios_tramites>()
+                composable<ui_servicios_tramites> { navback ->
+                    val servicio = navback.toRoute<ui_servicios_tramites>()
                     ui_servicio_tramite(servicio.localidad)
                 }
 
@@ -414,7 +421,6 @@ fun nativationWrapper(
             }
         }
 
-
         AnimatedVisibility(
             visible = mostrarCarga,
             enter = fadeIn(),
@@ -431,9 +437,13 @@ fun nativationWrapper(
         if (bottom_sheet_iniciar_seccion) {
             bottom_sheet_registrate(
                 ondimis = { bottom_sheet_iniciar_seccion = false },
-                iniciar_seccion_normal = {},
-                continuar_con_google = { },
-                crear_cuenta_geinz = { })
+                iniciar_seccion_normal = {
+                    navController.navigate("login_principal")
+                },
+                crear_cuenta_geinz = {
+                    navController.navigate(crear_cuenta_geinz("crear"))
+                }, "Desbloquea el mapa completo y explora lo que te rodea"
+            )
         }
     }
 }

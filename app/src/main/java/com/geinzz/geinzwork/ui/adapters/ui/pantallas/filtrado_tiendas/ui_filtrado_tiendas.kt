@@ -374,7 +374,7 @@ fun Pantalla_filtrado_tiendas(
 
 
         }
-        if (btn_mostrar_mapa) {
+        if (btn_mostrar_mapa ) {
             open_map_perzonlizado(
                 modifier = Modifier
                     .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
@@ -424,6 +424,7 @@ fun Pantalla_filtrado_tiendas(
                     abrir_mapa(tipo, localida)
                 }
             )
+
         }
 
         if (mostrandoCargaGlobal && !primeraCargaCompletada) {
@@ -511,16 +512,11 @@ fun Pantalla_filtrado_tiendas(
                 iniciar_normal()
                 bottom_sheet_iniciar_seccion
             },
-            continuar_con_google = {
-                showBottomSheet = false
-                con_google()
-                bottom_sheet_iniciar_seccion
-            },
             crear_cuenta_geinz = {
                 showBottomSheet = false
                 crear_cuenta()
                 bottom_sheet_iniciar_seccion
-            })
+            }, texto_bottom_Sheet = "Regístrate para ver los detalles completos y las funciones exclusivas")
     }
 }
 

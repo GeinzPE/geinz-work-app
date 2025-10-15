@@ -277,7 +277,7 @@ fun dialog_servicios_tramite(
             }
             if (call_dialog_permise) {
                 permisos_llamadas(aceptar_permisos = {
-                    requestCallPermission(contex, numero_llamada)
+                    requestCallPermission(context = contex, phoneNumber = numero_llamada)
                 }, ondimis = {
                     call_dialog_permise = false
                 })

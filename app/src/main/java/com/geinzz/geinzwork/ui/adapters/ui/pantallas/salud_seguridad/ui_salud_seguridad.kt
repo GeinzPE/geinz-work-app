@@ -18,6 +18,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,12 +80,16 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgencias
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_alerta_llamada
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
+import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud.carga_seguidad
 import kotlinx.coroutines.delay
 import java.net.URLEncoder
 
@@ -99,19 +105,25 @@ fun ui_salud_seguirdad(
 
     val lista_filtrado = listOf<String>("Todos", "salud", "seguridad")
     val lista_seguridad_salud by viewmode_segurirdad_Salud._datos_lugares.observeAsState(emptyList())
+    val context=LocalContext.current
 
     var lista_mostrar by rememberSaveable { mutableStateOf<List<dataclass_seguridad>>(emptyList()) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var chip_selecionado by rememberSaveable { mutableStateOf("Todos") }
-    val state_seguridad = viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState().value
+    val state_seguridad =
+        viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
-
+    var yaInicializado by remember { mutableStateOf(false) }
 
     LaunchedEffect(chip_selecionado) {
-        viewmode_segurirdad_Salud.filtrar_lugares(chip_selecionado)
+        if (yaInicializado && lista_seguridad_salud.isNotEmpty() && chip_selecionado != "Todos") {
+            viewmode_segurirdad_Salud.filtrar_lugares(chip_selecionado)
+        } else {
+            viewmode_segurirdad_Salud.lista_base_completa(chip_selecionado)
+        }
     }
     LaunchedEffect(valor_filtrado) {
         viewmode_segurirdad_Salud.filtrar_nombre_categoria(
@@ -127,8 +139,11 @@ fun ui_salud_seguirdad(
     }
 
     LaunchedEffect(lista_seguridad_salud) {
-        lista_base_seguridad = lista_seguridad_salud
-        viewmode_segurirdad_Salud.lugares_iniciales(lista_seguridad_salud)
+        if (!yaInicializado && lista_seguridad_salud.isNotEmpty()) {
+            yaInicializado = true
+            lista_base_seguridad = lista_seguridad_salud
+            viewmode_segurirdad_Salud.lugares_iniciales(lista_seguridad_salud)
+        }
     }
 
     val listState = rememberLazyListState()
@@ -147,6 +162,7 @@ fun ui_salud_seguirdad(
             toastShown = false
         }
     }
+    var bottom_sheet_llamda by remember { mutableStateOf(false) }
     val paddingAnim by animateDpAsState(
         targetValue = if (toastShown) 10.dp else 0.dp,
         animationSpec = tween(
@@ -169,7 +185,7 @@ fun ui_salud_seguirdad(
                 )
                 spacer_vertical(5.dp)
                 texto_generico_multilinea(
-                    "Tu bienestar es primero: localiza hospitales, comisarías, bomberos y servicios de ayuda cuando los necesites.",
+                    "Tu bienestar es primero, localiza hospitales, comisarías, bomberos y servicios de ayuda cuando los necesites.",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -193,24 +209,26 @@ fun ui_salud_seguirdad(
                     ) {
                         filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
                         spacer_vertical(10.dp)
-                        chips_filtrado(chip_selecionado, lista_filtrado) { i ->
+                        chips_filtrado(context,chip_selecionado, lista_filtrado, { i ->
                             chip_selecionado = i
-                        }
+                        }, {
+                            bottom_sheet_llamda = true
+                        })
                     }
                 }
             }
             when (state_seguridad) {
                 is viewmode_seguridad_salud.carga_seguidad.loading -> {
                     isLoading = true
-                    error_empity=false
+                    error_empity = false
                 }
 
                 is viewmode_seguridad_salud.carga_seguidad.succes -> {
                     val lista =
                         (state_seguridad as viewmode_seguridad_salud.carga_seguidad.succes).list
                     items(lista) { i ->
-                        isLoading=false
-                        error_empity=false
+                        isLoading = false
+                        error_empity = false
                         Box(modifier = Modifier.padding(8.dp)) {
                             carta_salud_cuidad(
                                 viewmode_segurirdad_Salud,
@@ -226,21 +244,20 @@ fun ui_salud_seguirdad(
                 is viewmode_seguridad_salud.carga_seguidad.empity -> {
                     val texto =
                         (state_seguridad as viewmode_seguridad_salud.carga_seguidad.empity).texto
-                    isLoading=false
-                    error_empity=true
-                    texto_error_empity=texto
+                    isLoading = false
+                    error_empity = true
+                    texto_error_empity = texto
                 }
 
                 is viewmode_seguridad_salud.carga_seguidad.error -> {
                     val texto =
                         (state_seguridad as viewmode_seguridad_salud.carga_seguidad.error).texto
-                    isLoading=false
-                    error_empity=true
-                    texto_error_empity=texto
+                    isLoading = false
+                    error_empity = true
+                    texto_error_empity = texto
 
                 }
             }
-
         }
 
         AnimatedContent(
@@ -266,6 +283,7 @@ fun ui_salud_seguirdad(
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
+
                         "error" -> texto_generico_one_line(
                             texto_error_empity,
                             color = Color.Gray,
@@ -291,15 +309,48 @@ fun ui_salud_seguirdad(
                 )
                 .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
         )
+
+        if (bottom_sheet_llamda) {
+            bottom_sheet_alerta_llamada(
+                ondimis = { bottom_sheet_llamda = false },
+                mostrar_permiso = {
+                    requestCallPermission(false,context)
+                })
+        }
+
     }
 }
 
 @Composable
 fun chips_filtrado(
+    context: Context,
     selecionado_chip: String,
     lista_filtrado: List<String>,
-    selecionado_fun: (String) -> Unit
+    selecionado_fun: (String) -> Unit,
+    select_alerta: () -> Unit,
 ) {
+    var tienePermisoLlamada by remember {
+        mutableStateOf(
+            ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // 🔁 Efecto que escucha cuando el permiso cambia
+    LaunchedEffect(Unit) {
+        // Usamos un callback del ciclo de vida o un listener si quieres hacerlo más fino
+        // Pero también puedes revalidar el permiso al volver a la pantalla:
+        snapshotFlow {
+            ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED
+        }.collect { granted ->
+            tienePermisoLlamada = granted
+        }
+    }
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -315,7 +366,36 @@ fun chips_filtrado(
                 }, onClick_delete = {})
 
         }
-    }
+        if (!tienePermisoLlamada) {
+            item {
+            Row(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .height(45.dp)
+                    .padding(horizontal = 15.dp, vertical = 10.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
+                        select_alerta()
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                texto_generico_one_line("Alerta", style = MaterialTheme.typography.bodyMedium)
+                spacer_horizonta(5.dp)
+                Image(
+                    painter = painterResource(R.drawable.icono_alerta_3d_webp),
+                    contentDescription = "alerta",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            }
+            }
+        }
+
+
+
+
 }
 
 @Composable

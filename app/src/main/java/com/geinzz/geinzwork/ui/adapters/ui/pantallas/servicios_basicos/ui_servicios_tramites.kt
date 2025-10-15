@@ -131,7 +131,7 @@ fun ui_servicio_tramite(localida: String) {
         if (!yaInicializado && lugares.isNotEmpty()) {
             yaInicializado = true
             lista_base_seguridad = lugares
-            // Dejamos que obtener_lugares emita el success, no forzamos otro
+            viewmode_servicios_tramite.todos(lugares)
         }
     }
 
@@ -140,6 +140,7 @@ fun ui_servicio_tramite(localida: String) {
 
     LaunchedEffect(Unit) {
         viewmode_servicios_tramite.obtener_lugares(context,localida)
+
     }
     LaunchedEffect(valor_filtrado) {
         if (yaInicializado) {
@@ -149,8 +150,8 @@ fun ui_servicio_tramite(localida: String) {
                     subCategoriaSeleccionada,
                     lista_base_seguridad
                 )
+                Log.d("actuliazmos_lugares","${ lista_base_seguridad}")
             } else {
-                viewmode_servicios_tramite.todos(lista_base_seguridad)
                 viewmode_servicios_tramite.filtrar_por_categoria(context, subCategoriaSeleccionada)
             }
         }
@@ -163,6 +164,8 @@ fun ui_servicio_tramite(localida: String) {
     LaunchedEffect(lugares, subCategoriaSeleccionada) {
         if (yaInicializado && lugares.isNotEmpty() && subCategoriaSeleccionada != "Todos") {
             viewmode_servicios_tramite.filtrar_por_categoria(context, subCategoriaSeleccionada)
+        }else{
+            viewmode_servicios_tramite.mostar_lista_completa(subCategoriaSeleccionada)
         }
     }
 

@@ -857,7 +857,7 @@ fun Expandible_Metodo_contacto(
     }
     if (call_dialog_permise) {
         permisos_llamadas(aceptar_permisos = {
-            requestCallPermission(context, numero_llamada)
+            requestCallPermission(context = context, phoneNumber = numero_llamada)
         }, ondimis = {
             call_dialog_permise = false
         })

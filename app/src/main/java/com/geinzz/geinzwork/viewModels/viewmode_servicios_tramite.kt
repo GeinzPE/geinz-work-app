@@ -69,22 +69,23 @@ class viewmode_servicios_tramite : ViewModel() {
 
 
     fun todos(lista: List<dataclass_lugares_db>) {
+
         todo_lugares = lista
 //        state_servicios.value = carga_servicios.succes(lista)
 //        _listaFiltrada.value = lista
-        Log.d("todo_lugares", todo_lugares.toString())
+        Log.d("todo_lugares_agregardos", lista.toString())
     }
 
     fun filtrar_por_categoria(context: Context, categorias: String) {
+        Log.d("filtraoms",categorias)
         viewModelScope.launch {
-            // 🛑 Evita recargar innecesariamente cuando es "Todos" y ya hay datos cargados
-            if (categorias == "Todos" && todo_lugares.isNotEmpty()) {
-                state_servicios.value = carga_servicios.succes(todo_lugares)
-                return@launch
-            }
+//            if (categorias == "Todos" && todo_lugares.isNotEmpty()) {
+//                state_servicios.value = carga_servicios.succes(todo_lugares)
+//                return@launch
+//            }
 
             state_servicios.value = carga_servicios.loading
-            delay(300)
+
 
             if (!isInternetAvailable(context)) {
                 state_servicios.value = carga_servicios.error("Sin conexión a internet 😕")
@@ -92,13 +93,13 @@ class viewmode_servicios_tramite : ViewModel() {
             }
 
             try {
-                val resultado = if (categorias == "Todos") {
-                    todo_lugares
-                } else {
-                    todo_lugares.filter {
-                        it.categoria.toString().lowercase().contains(categorias.lowercase())
-                    }
+//                val resultado = if (categorias == "Todos") {
+//                    todo_lugares
+//                } else {
+                val resultado= todo_lugares.filter {
+                    it.categoria.toString().lowercase().contains(categorias.lowercase())
                 }
+//                }
 
                 if (resultado.isNotEmpty()) {
                     state_servicios.value = carga_servicios.succes(resultado)
@@ -114,7 +115,15 @@ class viewmode_servicios_tramite : ViewModel() {
         }
     }
 
+    fun mostar_lista_completa(categorias: String){
+        viewModelScope.launch {
+            if (categorias == "Todos" && todo_lugares.isNotEmpty()) {
+                state_servicios.value = carga_servicios.succes(todo_lugares)
+                return@launch
+            }
+        }
 
+    }
 
     //    fun filtrar_nombre_categoria(
 //        nombre: String,
@@ -134,25 +143,18 @@ class viewmode_servicios_tramite : ViewModel() {
 //        }
 //
 //    }
-    private var cargado=false
+
     fun filtrar_nombre_categoria(
         nombre: String,
         categoria: String,
         lista: List<dataclass_lugares_db>
     ) {
-        if(cargado) return
-        cargado=true
+        Log.d("bucamos_por","${nombre} $categoria $lista")
+
         viewModelScope.launch {
             try {
-                // 🔹 Si no hay texto suficiente, mostramos toda la lista sin pasar por "loading"
-//                if (nombre.length <= 2) {
-//                    state_servicios.value = carga_servicios.succes(lista)
-//                    return@launch
-//                }
-
                 // 🔹 Si hay búsqueda válida, mostramos el "loading"
                 state_servicios.value = carga_servicios.loading
-                delay(400)
 
                 val resultado = lista.filter { item ->
                     val coincideTexto = item.lugar_nombre.contains(nombre, ignoreCase = true)

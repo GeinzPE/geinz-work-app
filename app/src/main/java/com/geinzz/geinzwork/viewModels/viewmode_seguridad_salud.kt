@@ -38,9 +38,10 @@ class viewmode_seguridad_salud : ViewModel() {
             try {
                 val respuesta=instancia.obtener_servicios_salud(localidad)
                 datos_lugares.value = respuesta
-                if(respuesta.isEmpty()){
+                if(respuesta.isNotEmpty()){
                     _state_lista_filtrada.value=carga_seguidad.succes(respuesta)
                 }else{
+                    delay(300)
                     _state_lista_filtrada.value=carga_seguidad.empity("No se encontraron resultados en $localidad")
                 }
             } catch (e: Exception) {
@@ -95,7 +96,6 @@ class viewmode_seguridad_salud : ViewModel() {
     ){
         viewModelScope.launch {
             _state_lista_filtrada.value=carga_seguidad.loading
-            delay(500)
             try {
                 val resultado=if(categoria=="Todos"){
                     todos_lugares
@@ -115,7 +115,15 @@ class viewmode_seguridad_salud : ViewModel() {
 
             }
         }
+    }
 
+    fun lista_base_completa(categorias: String){
+        viewModelScope.launch {
+            if (categorias == "Todos" && todos_lugares.isNotEmpty()) {
+                _state_lista_filtrada.value= carga_seguidad.succes(todos_lugares)
+                return@launch
+            }
+        }
     }
 
     fun filtrar_nombre_categoria(
@@ -126,8 +134,6 @@ class viewmode_seguridad_salud : ViewModel() {
         viewModelScope.launch {
             try {
                 _state_lista_filtrada.value= carga_seguidad.loading
-                delay(400)
-
                 val res = lista.filter { item ->
                     val textoCoincide = item.nombre_.contains(nombre, ignoreCase = true)
                     val categoriaCoincide = categoria == "Todos" || item.categoria == categoria
@@ -145,13 +151,6 @@ class viewmode_seguridad_salud : ViewModel() {
             }
         }
     }
-
-
-
-    fun actualizar_lista_filtrada(nuevaLista: List<dataclass_seguridad>) {
-        _listaFiltrada.value = nuevaLista
-    }
-
 
     sealed class carga_seguidad {
         data class empity(val texto: String) : carga_seguidad()
