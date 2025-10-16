@@ -30,6 +30,7 @@ class repo_seguridad_salud {
                 val numero_contacto = data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
 
                 val latitud = (ubicacion["latitud"] as? Number ?: 0).toDouble()
+                val referencia = (ubicacion["referencia"] as? String ?: "")
                 val longitud = (ubicacion["longitud"] as? Number ?: 0).toDouble()
                 val categoria = data?.get("categoria") as? String ?: ""
 
@@ -44,6 +45,7 @@ class repo_seguridad_salud {
                     img_ref = data?.get("img") as? String ?: "",
                     latidud = latitud,
                     longitud = longitud,
+                    referencia=referencia,
                     categoria = categoria
                 )
 

@@ -412,19 +412,8 @@ fun carta_servicio_tramites(
             }
         )
 
-//        // 🌈 Degradado inferior
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .align(Alignment.BottomCenter)
-//                .background(gradient)
-//        ) {
-//            Column(modifier = Modifier.padding(8.dp)) {
-//                texto_generico_one_line(dataclass_lugares_db.lugar_nombre.capitalizeFirst())
-//            }
-//        }
 
-        // 🟢 Overlay cuando está expandido (no cambia la altura)
+
         AnimatedVisibility(
             visible = isExpanded,
             modifier = Modifier
@@ -446,21 +435,7 @@ fun carta_servicio_tramites(
             }
         }
 
-//        Box(
-//            modifier = Modifier   .padding(7.dp)
-//                .size(35.dp)
-//                .clip(CircleShape)
-//                .background(MaterialTheme.colorScheme.primary)
-//                .padding(9.dp)
-//                .align(Alignment.BottomEnd),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Icon(
-//                imageVector = Icons.Default.Visibility ,
-//                contentDescription = "Ver u ocultar",
-//                tint = Color.White
-//            )
-//        }
+
     }
 }
 

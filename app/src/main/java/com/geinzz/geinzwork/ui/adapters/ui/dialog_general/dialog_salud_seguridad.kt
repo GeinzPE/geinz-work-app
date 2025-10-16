@@ -9,6 +9,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general.copiarTexto_portapapeles_compouse
 import java.net.URLEncoder
 
 
@@ -92,7 +95,7 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
                                 }
                             }
                         },
-                        click_copiar = {})
+                        click_copiar = {copiarTexto_portapapeles_compouse(i,context)})
 
                 }
             }
@@ -133,7 +136,10 @@ fun box_llamada_whatsap(
                 painter = painterResource(if (tipo.equals("whatsapp")) R.drawable.whatsapp_icon else R.drawable.llamada_icon),
                 contentDescription = "", modifier = Modifier
                     .size(25.dp)
-                    .clickable { click_icon() }
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { click_icon() }
             )
             spacer_horizonta(10.dp)
             Image(
@@ -141,7 +147,10 @@ fun box_llamada_whatsap(
                 contentDescription = "",
                 modifier = Modifier
                     .size(25.dp)
-                    .clickable { click_copiar() },
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    )  { click_copiar() },
                 colorFilter = ColorFilter.tint(Color.White)
             )
         }

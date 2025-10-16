@@ -11,6 +11,7 @@ data class dataclass_seguridad(
     val numero_whatsapp:  List<String>,
     val latidud: Double=0.0,
     val longitud: Double=0.0,
+    val referencia: String="",
     val img_ref:String="",
     val categoria:String=""
 ): Parcelable

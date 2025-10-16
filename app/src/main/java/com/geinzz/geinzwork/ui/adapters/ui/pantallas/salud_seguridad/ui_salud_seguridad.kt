@@ -1,16 +1,12 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad
 
-import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.provider.Settings
-import android.util.Log
-import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -66,7 +62,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
@@ -78,7 +73,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgencias
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -86,12 +81,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_alerta_llamada
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud.carga_seguidad
-import kotlinx.coroutines.delay
-import java.net.URLEncoder
 
 private val REQUEST_CALL_PHONE = 1
 
@@ -105,7 +99,7 @@ fun ui_salud_seguirdad(
 
     val lista_filtrado = listOf<String>("Todos", "salud", "seguridad")
     val lista_seguridad_salud by viewmode_segurirdad_Salud._datos_lugares.observeAsState(emptyList())
-    val context=LocalContext.current
+    val context = LocalContext.current
 
     var lista_mostrar by rememberSaveable { mutableStateOf<List<dataclass_seguridad>>(emptyList()) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
@@ -154,6 +148,26 @@ fun ui_salud_seguirdad(
     )
     var sin_resultados by remember { mutableStateOf(false) }
     var toastShown by remember { mutableStateOf(false) }
+//    var tienePermisoLlamada by remember {
+//        mutableStateOf(
+//            ActivityCompat.checkSelfPermission(
+//                context,
+//                android.Manifest.permission.CALL_PHONE
+//            ) == PackageManager.PERMISSION_GRANTED
+//        )
+//    }
+
+
+//    LaunchedEffect(Unit) {
+//        snapshotFlow {
+//            ActivityCompat.checkSelfPermission(
+//                context,
+//                android.Manifest.permission.CALL_PHONE
+//            ) == PackageManager.PERMISSION_GRANTED
+//        }.collect { granted ->
+//            tienePermisoLlamada = granted
+//        }
+//    }
     val stickyHeaderIndex = 1
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
         if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
@@ -170,6 +184,22 @@ fun ui_salud_seguirdad(
             easing = FastOutSlowInEasing
         )
     )
+    var tienePermisoLlamada by remember {
+        mutableStateOf(
+            ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // ✅ Launcher que reacciona cuando el usuario acepta o rechaza el permiso
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        tienePermisoLlamada = isGranted
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -209,7 +239,7 @@ fun ui_salud_seguirdad(
                     ) {
                         filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
                         spacer_vertical(10.dp)
-                        chips_filtrado(context,chip_selecionado, lista_filtrado, { i ->
+                        chips_filtrado(tienePermisoLlamada,context, chip_selecionado, lista_filtrado, { i ->
                             chip_selecionado = i
                         }, {
                             bottom_sheet_llamda = true
@@ -307,14 +337,14 @@ fun ui_salud_seguirdad(
                         )
                     )
                 )
-                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                .graphicsLayer { alpha = alphaAnim }
         )
 
         if (bottom_sheet_llamda) {
             bottom_sheet_alerta_llamada(
                 ondimis = { bottom_sheet_llamda = false },
                 mostrar_permiso = {
-                    requestCallPermission(false,context)
+                    requestPermissionLauncher.launch(android.Manifest.permission.CALL_PHONE)
                 })
         }
 
@@ -323,34 +353,14 @@ fun ui_salud_seguirdad(
 
 @Composable
 fun chips_filtrado(
+    tienePermisoLlamada1: Boolean,
     context: Context,
     selecionado_chip: String,
     lista_filtrado: List<String>,
     selecionado_fun: (String) -> Unit,
     select_alerta: () -> Unit,
 ) {
-    var tienePermisoLlamada by remember {
-        mutableStateOf(
-            ActivityCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.CALL_PHONE
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
 
-    // 🔁 Efecto que escucha cuando el permiso cambia
-    LaunchedEffect(Unit) {
-        // Usamos un callback del ciclo de vida o un listener si quieres hacerlo más fino
-        // Pero también puedes revalidar el permiso al volver a la pantalla:
-        snapshotFlow {
-            ActivityCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.CALL_PHONE
-            ) == PackageManager.PERMISSION_GRANTED
-        }.collect { granted ->
-            tienePermisoLlamada = granted
-        }
-    }
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -366,34 +376,33 @@ fun chips_filtrado(
                 }, onClick_delete = {})
 
         }
-        if (!tienePermisoLlamada) {
+        if (!tienePermisoLlamada1) {
             item {
-            Row(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .height(45.dp)
-                    .padding(horizontal = 15.dp, vertical = 10.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                        select_alerta()
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                texto_generico_one_line("Alerta", style = MaterialTheme.typography.bodyMedium)
-                spacer_horizonta(5.dp)
-                Image(
-                    painter = painterResource(R.drawable.icono_alerta_3d_webp),
-                    contentDescription = "alerta",
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            }
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .height(45.dp)
+                        .padding(horizontal = 15.dp, vertical = 10.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            select_alerta()
+
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    texto_generico_one_line("Alerta", style = MaterialTheme.typography.bodyMedium)
+                    spacer_horizonta(5.dp)
+                    Image(
+                        painter = painterResource(R.drawable.icono_alerta_3d_webp),
+                        contentDescription = "alerta",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
-
-
+    }
 
 
 }
@@ -452,6 +461,7 @@ fun carta_salud_cuidad(
     var dialogo_contacto by remember { mutableStateOf(false) }
     var lista_numero by remember { mutableStateOf(listOf<String>()) }
     var icono_dialogo by remember { mutableStateOf("") }
+    var dialog_sin_lat_log by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -499,7 +509,6 @@ fun carta_salud_cuidad(
                     BtnCirculares(R.drawable.llamada_icon) {
                         dialogo_contacto = true
                         lista_numero = i.numero_llamada
-
                         icono_dialogo = "llamada"
 
                     }
@@ -539,9 +548,17 @@ fun carta_salud_cuidad(
                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             },
             dialog_sin_maps = {
+                dialog_sin_lat_log=true
                 dialogo_activar_ubicacion = false
             }
         )
+    }
+    if(dialog_sin_lat_log){
+        dialog_sin_ubi_activa(
+            direccion = i.direccion,
+            referencia = i.referencia,
+            onDismis = { dialog_sin_lat_log = false },
+            abrir_maps = { constantes.abrirGoogleMaps(context, i.direccion) })
     }
     if (dialogo_contacto) {
         dialog_llamada_urgencias(lista_numero, icono_dialogo) {
