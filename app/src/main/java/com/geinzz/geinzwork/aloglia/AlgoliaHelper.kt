@@ -249,8 +249,49 @@ class AlgoliaHelper(
         }
     }
 
+    suspend fun obtener_items_por_categoria_y_localidad(
+        categoria: String,
+        localidad: String
+    ): List<Item> {
+        return try {
+            // 🔹 Creamos la query con categoría y localidad
+            val filtros = """categoria:"$categoria" AND lugar:"$localidad""""
+            val query = Query().apply {
+                filters = filtros
+            }
+
+            Log.d("AlgoliaQuery", "Buscando todos los items de la categoría='$categoria' en localidad='$localidad'")
+
+            // 🔹 Ejecutamos la búsqueda
+            val response = index.search(query)
+            Log.d("AlgoliaQuery", "Resultados encontrados: ${response.hits.size}")
+
+            // 🔹 Mapeamos los resultados
+            response.hits.mapNotNull { hit ->
+                val json = hit.json.jsonObject
+                val nombre = json["nombre"]?.jsonPrimitive?.content.orEmpty()
+                val lugar = json["lugar"]?.jsonPrimitive?.content.orEmpty()
+                val id = json["id_tienda"]?.jsonPrimitive?.content.orEmpty()
+                val categoriaJson = json["categoria"]?.jsonPrimitive?.content.orEmpty()
+                val img = json["img"]?.jsonPrimitive?.content.orEmpty()
+                val tags = json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
+                val ubicacionJson = json["ubicacion"]?.jsonObject
+                val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng)
+            }
+
+        } catch (e: Exception) {
+            Log.e("AlgoliaQuery", "Error en búsqueda por categoría y localidad: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+
 
     suspend fun retornar_items_categorias(
+        lista_guardada: List<Item>,
         selecionado: Boolean,
         localidad: String,
         categoria: String? = null,
@@ -258,8 +299,6 @@ class AlgoliaHelper(
         search: String,
         it: String
     ): Pair<List<Item>, List<String>> {
-
-//        if (search.isBlank()) return Pair(emptyList(), emptyList())
 
         val filtros = buildList {
             add("""lugar:"$localidad"""")
@@ -269,14 +308,14 @@ class AlgoliaHelper(
             }
         }.joinToString(" AND ")
 
-        if (it.length==2) {
+        if (it.length == 2) {
             Log.d("valor_id", "No hay texto ni filtros, retornando vacío")
             return Pair(emptyList(), emptyList())
         }
 
         val query =
             // Si el texto de búsqueda está vacío o solo tiene espacios...
-            if (search.isBlank() ) {
+            if (search.isBlank()) {
                 // Creamos un Query vacío (sin término de búsqueda)
                 Query().apply {
                     // Si existe algún filtro válido (no vacío ni solo espacios), lo aplicamos
@@ -285,7 +324,7 @@ class AlgoliaHelper(
             } else {
                 // Si sí hay texto en "search"...
                 if (selecionado) {
-                    // Creamos un Query con el texto de búsqueda
+                    Log.d("hay_select","hay un selecionado")
                     Query(search).apply {
                         // Si existe algún filtro válido, lo aplicamos
                         if (filtros.isNotBlank()) this.filters = filtros
@@ -314,6 +353,25 @@ class AlgoliaHelper(
     """.trimIndent()
         )
 
+        if (lista_guardada.isNotEmpty()) {
+            // 🔹 Filtramos por nombre primero
+            var filtrados = if (search.isNotBlank()) filtrar_por_nombre_local(lista_guardada, search) else lista_guardada
+
+// Solo filtramos por categoría/subcategoría si el usuario seleccionó algo
+            if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
+                filtrados = filtrados.filter { item ->
+                    val coincideCategoria = categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
+                    val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any { it.equals(subcategoria, ignoreCase = true) }
+                    coincideCategoria && coincideSubcategoria
+                }
+            }
+
+// Si no hay categoría ni subcategoría, 'filtrados' sigue siendo toda la lista
+            return Pair(filtrados, filtrados.map { it.categoria }.distinct())
+        }
+
+
+
         val response = index.search(query)
         Log.d("AlgoliaQuery", "Total resultados: ${response.hits.size}")
 
@@ -340,6 +398,8 @@ class AlgoliaHelper(
         return Pair(items, categoriasUnicas)
 //        return Pair(emptyList(), emptyList())
     }
+
+
 
 
     suspend fun filtrar_categoria_sub_algolia(
@@ -383,5 +443,39 @@ class AlgoliaHelper(
 //        return emptyList()
     }
 
+    fun filtrar_categoria_local(
+        localidad: String,
+        lista_filtrada: List<Item>,
+        categoria: String? = null,
+        subcategoria: String? = null
+    ): List<Item> {
+        return try {
+            lista_filtrada.filter { item ->
 
+                val coincideCategoria = categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
+                val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any { it.equals(subcategoria, ignoreCase = true) }
+
+                coincideCategoria && coincideSubcategoria
+            }
+        } catch (e: Exception) {
+            Log.e("FILTRAR_LOCAL", "Error al filtrar localmente: ${e.message}")
+            emptyList()
+        }
+    }
+
+    fun filtrar_por_nombre_local(
+        lista_filtrada: List<Item>,
+        nombre: String
+    ): List<Item> {
+        return try {
+            if (nombre.isBlank()) return lista_filtrada
+
+            lista_filtrada.filter { item ->
+                item.nombre.contains(nombre, ignoreCase = true)
+            }
+        } catch (e: Exception) {
+            Log.e("FILTRAR_NOMBRE", "Error al filtrar localmente por nombre: ${e.message}")
+            emptyList()
+        }
+    }
 }

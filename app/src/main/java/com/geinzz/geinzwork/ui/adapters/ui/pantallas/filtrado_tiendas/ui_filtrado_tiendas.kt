@@ -130,22 +130,17 @@ fun Pantalla_filtrado_tiendas(
     con_google: () -> Unit,
     crear_cuenta: () -> Unit,
 ) {
-    val subcategoriaObjs by viewModelFiltros._subcategoiraList.observeAsState(emptyList())
+    val scope = rememberCoroutineScope()
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
     )
-    val state_filtrado_tiendas = viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState(carga_tiendas.loading).value
-//    val estado_tiendas by viewModelFiltros.estadoTiendas.observeAsState()
-    val lista_filtrada_tiendas by viewModelFiltros.listaTiendasGuardadas.observeAsState(emptyList())
+    val state_filtrado_tiendas =
+        viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState(carga_tiendas.loading).value
 
-    var primeraCargaCompletada by rememberSaveable { mutableStateOf(false) }
-    var mostrandoCargaGlobal by remember { mutableStateOf(true) }
+    val categoria_filtrado = viewModelFiltros._subcategoria_lis.collectAsState(emptyList())
 
-    val estadoFiltrosUi = EstadoFiltrosUi(
-        subcategorias = subcategoriaObjs,
-        tiendasFiltradas = emptyList()
-    )
+    var mostrandoCargaGlobal by remember { mutableStateOf(false) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var visible_texfiel by rememberSaveable { mutableStateOf(false) }
@@ -165,7 +160,6 @@ fun Pantalla_filtrado_tiendas(
 
     val listState = rememberLazyListState()
 
-    var listaMostrar by remember { mutableStateOf<List<tiendas_por_categoria>>(emptyList()) }
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     var bottom_shet_tienda by remember { mutableStateOf(false) }
     var dialog_tienda_no_pagada by remember { mutableStateOf(false) }
@@ -180,10 +174,13 @@ fun Pantalla_filtrado_tiendas(
     val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
     var mostrandoCarga_free by remember { mutableStateOf(false) }
 
+    var yaInicializado by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        primeraCargaCompletada = false
+        subCategoriaSeleccionada = "Todos"
         mostrandoCargaGlobal = true
+        viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
+        viewModelFiltros.get_subcategorias_sola(categoria)
 
     }
 
@@ -193,36 +190,41 @@ fun Pantalla_filtrado_tiendas(
             subCategoriaSeleccionada,
             lista_base_seguridad
         )
-
+    }
+    LaunchedEffect(categoria_filtrado.value) {
+        Log.d("categoriacategoria123", categoria_filtrado.value.toString())
+        if (categoria_filtrado.value.isNotEmpty()) {
+            lista_subcategorias = categoria_filtrado.value
+        }
     }
     LaunchedEffect(lista_datos_tiendas) {
-        lista_base_seguridad = lista_datos_tiendas
-        viewModelFiltros.tiendas_iniciales(lista_datos_tiendas)
-
-    }
-
-    LaunchedEffect(estadoFiltrosUi.subcategorias) {
-        val subcategorias: List<String> = estadoFiltrosUi.subcategorias.flatMap { it.subcategorias }
-        lista_subcategorias = subcategorias
-    }
-
-    LaunchedEffect(showBottomSheet) {
-        if (showBottomSheet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
+        if (!yaInicializado && lista_datos_tiendas.isNotEmpty()) {
+            yaInicializado = true
+            lista_base_seguridad = lista_datos_tiendas
+            viewModelFiltros.tiendas_iniciales(lista_datos_tiendas)
         }
     }
-    LaunchedEffect(dialog_tienda_no_pagada) {
-        if (dialog_tienda_no_pagada) {
-            mostrandoCarga_free = true
-            viewModelFiltros.obtener_tienda_no_pagada(localida, id_tienda_selecionada)
-        }
-    }
+
 
     LaunchedEffect(datosTienda) {
         if (datosTienda.isNotEmpty()) {
             dataclass_tienda_seleccionada = datosTienda.first()
         }
     }
+
+
+    LaunchedEffect(subCategoriaSeleccionada) {
+        texto_filtrado = ""
+        if (yaInicializado && lista_datos_tiendas.isNotEmpty() && subCategoriaSeleccionada != "Todos") {
+            viewModelFiltros.filtrar_por_subcategoria(subCategoriaSeleccionada, lista_datos_tiendas)
+            btn_mostrar_mapa = true
+        } else {
+            viewModelFiltros.lista_completa_inicial(subCategoriaSeleccionada)
+            btn_mostrar_mapa = false
+        }
+    }
+
+
     LaunchedEffect(estadoTiendaFree) {
         val estado = estadoTiendaFree  // ✅ Smart cast habilitado
         when (estado) {
@@ -243,35 +245,22 @@ fun Pantalla_filtrado_tiendas(
             else -> Unit
         }
     }
-
-    LaunchedEffect(categoria) {
-        Log.d("se_cambio", categoria)
-        subCategoriaSeleccionada = "Todos"
-        viewModelFiltros.obtener_subcategorias(categoria)
-        viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
-
-
+    LaunchedEffect(showBottomSheet) {
+        if (showBottomSheet) {
+            viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
+        }
     }
-
-    LaunchedEffect(subCategoriaSeleccionada) {
-        viewModelFiltros.filtrar_por_subcategoria(subCategoriaSeleccionada)
-        texto_filtrado = ""
-        btn_mostrar_mapa = when (val estado = state_filtrado_tiendas) {
-            is viewModel_filtado_tiendas.carga_tiendas.succes -> {
-                // Mostrar mapa solo si NO es "Todos"
-                !subCategoriaSeleccionada.equals("Todos", ignoreCase = true)
-            }
-
-            else -> false
+    LaunchedEffect(dialog_tienda_no_pagada) {
+        if (dialog_tienda_no_pagada) {
+            mostrandoCarga_free = true
+            viewModelFiltros.obtener_tienda_no_pagada(localida, id_tienda_selecionada)
         }
     }
 
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
-        val scope = rememberCoroutineScope()
-
         val bubbleSizePx = with(density) { 60.dp.toPx() }
-
         val screenWidth = constraints.maxWidth.toFloat()
         val screenHeight = constraints.maxHeight.toFloat()
         val paddingPx = with(LocalDensity.current) { 16.dp.toPx() }
@@ -304,48 +293,45 @@ fun Pantalla_filtrado_tiendas(
 
 
             when (state_filtrado_tiendas) {
-                is viewModel_filtado_tiendas.carga_tiendas.loading -> {
-
-                    if (primeraCargaCompletada) {
-                        mostrandoCargaGlobal = false // loader pequeño
-                        isLoading = true
-                    } else {
-                        mostrandoCargaGlobal = true // overlay global
-                        // 🔹 Corrutina que mantiene visible el overlay 4s solo la primera vez
-                        scope.launch {
-                            delay(4000L)
-                            mostrandoCargaGlobal = false
-                            primeraCargaCompletada = true
-                        }
-                    }
+                is carga_tiendas.loading -> {
+                    Log.d("entramos", "loading")
+                    mostrandoCargaGlobal = true
                     error_empity = false
+                    isLoading = true
                 }
 
-                is viewModel_filtado_tiendas.carga_tiendas.error -> {
-
-                    val texto =
-                        (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.error).texto
+                is carga_tiendas.error -> {
+                    Log.d("entramos", "error")
+                    val texto = (state_filtrado_tiendas as carga_tiendas.error).texto
                     error_empity = true
                     texto_error_empity = texto
-//                    mostrandoCargaGlobal = false
-                    primeraCargaCompletada = true
+                    scope.launch {
+                        delay(4000)
+                        mostrandoCargaGlobal = false
+
+                    }
                     isLoading = false
                 }
 
-                is viewModel_filtado_tiendas.carga_tiendas.succes -> {
-                    val lista =
-                        (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.succes).items
-                    primeraCargaCompletada = true
-                    isLoading = false
-                    error_empity = false
+                is carga_tiendas.succes -> {
+                    Log.d("entramos", "sucecs")
+                    val lista = (state_filtrado_tiendas as carga_tiendas.succes).items
 
-//
+                    if (lista.isNotEmpty()) {
+                        scope.launch {
+                            delay(4000)
+                            mostrandoCargaGlobal = false
+
+                        }
+
+                        isLoading = false
+                        error_empity = false
+                    }
+
                     val listaOrdenada = lista.sortedWith(
                         compareByDescending<tiendas_por_categoria> { it.pagado }
                             .thenByDescending { it.estaAbierto }
                     )
-
-
 
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
                         item_tiendas(
@@ -361,20 +347,26 @@ fun Pantalla_filtrado_tiendas(
                     }
                 }
 
-                is viewModel_filtado_tiendas.carga_tiendas.empty -> {
+
+                is carga_tiendas.empty -> {
+                    Log.d("entramos", "vacio")
                     val texto =
-                        (state_filtrado_tiendas as viewModel_filtado_tiendas.carga_tiendas.empty).texto
+                        (state_filtrado_tiendas as carga_tiendas.empty).texto
+                    scope.launch {
+                        delay(4000)
+                        mostrandoCargaGlobal = false
+
+                    }
                     isLoading = false
                     error_empity = true
-//                    mostrandoCargaGlobal = false
-                    primeraCargaCompletada = true
                     texto_error_empity = texto
                 }
+
             }
 
 
         }
-        if (btn_mostrar_mapa ) {
+        if (btn_mostrar_mapa) {
             open_map_perzonlizado(
                 modifier = Modifier
                     .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
@@ -427,8 +419,17 @@ fun Pantalla_filtrado_tiendas(
 
         }
 
-        if (mostrandoCargaGlobal && !primeraCargaCompletada) {
-            pantalla_carga_login()
+        if (mostrandoCargaGlobal) {
+            Log.d("entramos", "global sii")
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .zIndex(5f),
+                contentAlignment = Alignment.Center
+            ) {
+                pantalla_carga_login(false)
+            }
         }
 
         AnimatedContent(
@@ -516,7 +517,9 @@ fun Pantalla_filtrado_tiendas(
                 showBottomSheet = false
                 crear_cuenta()
                 bottom_sheet_iniciar_seccion
-            }, texto_bottom_Sheet = "Regístrate para ver los detalles completos y las funciones exclusivas")
+            },
+            texto_bottom_Sheet = "Regístrate para ver los detalles completos y las funciones exclusivas"
+        )
     }
 }
 

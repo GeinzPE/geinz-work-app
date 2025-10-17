@@ -412,6 +412,15 @@ object constantes_lista_localidades {
         )
     )
 
+
+    val fracespantalla11 = dataclass_pantalla1(
+            "Tu camino más fácil",
+            "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
+            R.drawable.p1_1
+
+
+    )
+
     @Composable
     fun FuenteControladaApp(content: @Composable () -> Unit) {
         val currentDensity = LocalDensity.current

@@ -271,15 +271,15 @@ fun nativationWrapper(
 
                 composable("buscar") {
                     ui_pantalla_busqueda(
-                        datos_principales_user,
+                        localida_defauld = datos_principales_user,
                         focusRequester = focusRequester,
-                        mostrar = {
-                            isvisble_buttomvar = true
-
-                        },
                         ocultar = {
                             isvisble_buttomvar = false
-                        }, estado_mostar = isvisble_buttomvar, estado_ocultar = isvisble_buttomvar
+                        }, estado_mostar = isvisble_buttomvar, iniciar_seccion_normal = {
+                            navController.navigate("login_principal")
+                        }, crear_cuenta_geinz = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
+                        }
                     )
 
 
@@ -431,7 +431,7 @@ fun nativationWrapper(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.6f))
             ) {
-                pantalla_carga_login()
+                pantalla_carga_login(true)
             }
         }
         if (bottom_sheet_iniciar_seccion) {
@@ -439,8 +439,10 @@ fun nativationWrapper(
                 ondimis = { bottom_sheet_iniciar_seccion = false },
                 iniciar_seccion_normal = {
                     navController.navigate("login_principal")
+                    bottom_sheet_iniciar_seccion = false
                 },
                 crear_cuenta_geinz = {
+                    bottom_sheet_iniciar_seccion = false
                     navController.navigate(crear_cuenta_geinz("crear"))
                 }, "Desbloquea el mapa completo y explora lo que te rodea"
             )

@@ -43,6 +43,30 @@ class repo_filtrado_tiendas {
         return lista_cat_subcategoria
     }
 
+
+    suspend fun obtenerSubcategorias(categoria: String): List<String> {
+        Log.d("categoriacategoria",categoria)
+        return try {
+            val snapshot = db.collection("Tiendas")
+                .document("categorias")
+                .collection("categorias")
+                .document(categoria)
+                .get()
+                .await()
+
+            if (snapshot.exists()) {
+                snapshot.get("subcategorias") as? List<String> ?: emptyList()
+            } else {
+                emptyList()
+            }
+
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener subcategorías de $categoria", e)
+            emptyList()
+        }
+    }
+
+
     suspend fun obtenerTiendasFiltradas(
         localidad: String,
         categoria: String

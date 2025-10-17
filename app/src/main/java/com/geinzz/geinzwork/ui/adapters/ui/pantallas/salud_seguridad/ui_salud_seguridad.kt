@@ -148,26 +148,7 @@ fun ui_salud_seguirdad(
     )
     var sin_resultados by remember { mutableStateOf(false) }
     var toastShown by remember { mutableStateOf(false) }
-//    var tienePermisoLlamada by remember {
-//        mutableStateOf(
-//            ActivityCompat.checkSelfPermission(
-//                context,
-//                android.Manifest.permission.CALL_PHONE
-//            ) == PackageManager.PERMISSION_GRANTED
-//        )
-//    }
 
-
-//    LaunchedEffect(Unit) {
-//        snapshotFlow {
-//            ActivityCompat.checkSelfPermission(
-//                context,
-//                android.Manifest.permission.CALL_PHONE
-//            ) == PackageManager.PERMISSION_GRANTED
-//        }.collect { granted ->
-//            tienePermisoLlamada = granted
-//        }
-//    }
     val stickyHeaderIndex = 1
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
         if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {

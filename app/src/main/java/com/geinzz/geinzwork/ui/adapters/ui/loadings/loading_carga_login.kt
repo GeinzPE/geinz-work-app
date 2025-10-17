@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -44,6 +46,8 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -52,7 +56,7 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun pantalla_carga_login() {
+fun pantalla_carga_login(inner_pading:Boolean) {
     val iimg_random = constantes_lista_localidades.lista_img_carga.random()
     val lista_fraces_ramdo = constantes_lista_localidades.frasesCarga.random()
 
@@ -71,7 +75,7 @@ fun pantalla_carga_login() {
         )
     }
     Scaffold { innerPading ->
-        Box(modifier = Modifier.padding(innerPading)) {
+        Box(modifier = Modifier.padding(if(inner_pading)innerPading else PaddingValues(0.dp))) {
             fondo_img(iimg_random.img)
             fondo_osucro(lista_colocares = lista_colores_degradado_top)
             Box(modifier = Modifier.align(Alignment.BottomStart)) {
@@ -87,71 +91,8 @@ fun pantalla_carga_login() {
                 localida = iimg_random.nombre_localidad, true
             )
         }
-//    Column(modifier = Modifier.padding(innerPading).fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-//        respiracion_logo_profesional()
-//
-//        texto_generico_one_line("espere un momento")
-//    }
+
     }
-}
-
-@Composable
-fun respiracion_logo_profesional() {
-    val infiniteTransition = rememberInfiniteTransition(label = "logo breathing")
-
-
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 2000,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
-    )
-
-
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 2000,
-                easing = LinearEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
-    )
-
-    val offsetY by infiniteTransition.animateFloat(
-        initialValue = -5f,
-        targetValue = 5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 2000,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY"
-    )
-
-    Image(
-        painter = painterResource(R.drawable.logo_geinz_500x500),
-        contentDescription = "Logo Geinz",
-        modifier = Modifier
-            .size(150.dp)
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                alpha = alpha,
-                translationY = offsetY
-            )
-    )
 }
 
 @Composable
@@ -168,7 +109,8 @@ fun CargandoPalabra() {
 
     Text(
         text = "Cargando" + ".".repeat(puntos),
-        style = MaterialTheme.typography.busquedaGeinzWork,
+        fontFamily = baners_geinz_work,
+        fontSize = 35.sp,
         color = Color.White
     )
 
@@ -177,16 +119,10 @@ fun CargandoPalabra() {
 
 @Composable
 fun fondo_img(randomImg: Int) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(randomImg)
-            .crossfade(false)
-            .placeholder(R.drawable.cargando_img_categorias)
-            .error(R.drawable.sin_item_carrito)
-            .build(),
+    Image(
+        painter = painterResource(randomImg),
         contentDescription = null,
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
     )
 }

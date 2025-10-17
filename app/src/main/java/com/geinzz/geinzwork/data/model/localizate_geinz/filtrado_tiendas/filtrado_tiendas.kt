@@ -56,7 +56,7 @@ data class tiendas_por_categoria(
 
 @Parcelize
 data class horario_tienda(
-    val h_apertura: String = "",   // 🔹 corregido: "h_apertura"
+    val h_apertura: String = "",
     val h_cierre: String = "",
     val cerrado: Boolean = false,
     val motivo: String = "",

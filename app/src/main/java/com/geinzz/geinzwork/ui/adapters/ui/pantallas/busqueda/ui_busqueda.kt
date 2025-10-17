@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -123,6 +124,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
@@ -140,6 +142,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -149,17 +152,20 @@ import kotlinx.coroutines.launch
 fun ui_pantalla_busqueda(
     localida_defauld: datos_principales_user,
     focusRequester: FocusRequester,
-    mostrar: () -> Unit,
+
     ocultar: () -> Unit,
     estado_mostar: Boolean,
-    estado_ocultar: Boolean
+
+    iniciar_seccion_normal:()-> Unit,
+    crear_cuenta_geinz:()-> Unit
 ) {
+    val firebaseAuth = FirebaseAuth.getInstance()
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
-//    val ls_items_ls_cat by viewModel.ls_items_ls_cat.collectAsState()
     val state by viewModel.state.collectAsState()
+    val lista_encontrada_items by viewModel.lista_encontrada.collectAsState()
     val items: List<Item>
     val categorias: List<String>
     when (state) {
@@ -175,12 +181,7 @@ fun ui_pantalla_busqueda(
         }
     }
 
-//    val items = ls_items_ls_cat.first   // Lista<Item>
-//    val categorias = ls_items_ls_cat.second // Lista<String> de categorías
-
     val categoria_filtrado by viewModelFiltros._subcategoria_filtrado.observeAsState()
-    val categorias_lugares by viewModelFiltros.lista_sub_lugares.observeAsState()
-
     var subcategira_filtrado by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var salud_seguirdad by remember { mutableStateOf("") }
@@ -206,7 +207,7 @@ fun ui_pantalla_busqueda(
     var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
 
     var categoria_filtrad by remember { mutableStateOf("") }
-    Log.d("camibamos","${categoria_filtrad} ${localidad_Anterior_select}")
+    Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
@@ -233,10 +234,9 @@ fun ui_pantalla_busqueda(
     var localidad_tienda_seklecioanda by remember { mutableStateOf("") }
 
     var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
-//    LaunchedEffect(tiendaLocalidadSeleccionada) {
-//        viewModel.clearResults()
-//    }
+
     var previousLocalidad by remember { mutableStateOf<String?>(null) }
+
 
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
@@ -244,15 +244,23 @@ fun ui_pantalla_busqueda(
         subcategira_filtrado,
         salud_seguirdad
     ) {
-        Log.d("_cabiamos_localida",tiendaLocalidadSeleccionada?:"1123")
+        Log.d("_cabiamos_localida", tiendaLocalidadSeleccionada ?: "1123")
 
         val localidadActual = tiendaLocalidadSeleccionada
 
         if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty() || salud_seguirdad.isEmpty())) {
-            Log.d("_cambio_localidad", "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual")
+            Log.d(
+                "_cambio_localidad",
+                "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual"
+            )
             viewModel.clearResults()
             mostrar_centrado_visible = true
             previousLocalidad = localidadActual
+            searchText = TextFieldValue("")
+            categoria_filtrad = ""
+            subcategira_filtrado = ""
+            salud_seguirdad = ""
+            return@LaunchedEffect
         }
         if (firstLaunch) {
             firstLaunch = false
@@ -282,11 +290,20 @@ fun ui_pantalla_busqueda(
 
         // 🔹 Llamar solo una vez si hay categoría/subcategoría
         if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
+            Log.d("buscamosen", "entramos_condiocn")
             viewModel.filtar_sub_cat(
                 tiendaLocalidadSeleccionada ?: "barranca",
                 categoriaFinal,
                 subcategira_filtrado
             )
+        }
+    }
+
+
+
+    LaunchedEffect(lista_encontrada_items) {
+        if (lista_encontrada_items.isNotEmpty()) {
+            Log.d("valor_encontrado", "${lista_encontrada_items.toString()}")
         }
     }
 
@@ -414,9 +431,6 @@ fun ui_pantalla_busqueda(
                         },
                         cat_sub_select = { hay_selecccion ->
                             cat_sub_seleciondo = hay_selecccion
-//                            mostrar_centrado_visible=  if(hay_selecccion)  false else true
-                            Log.d("lecioandoaosdnasd", hay_selecccion.toString())
-
                         },
                         seguridad_salud_selec = { saud_select ->
                             salud_seguirdad = saud_select
@@ -444,10 +458,11 @@ fun ui_pantalla_busqueda(
 
             itemsIndexed(items) { index, item ->
                 ramdoBox(
-                    horario_por_tienda,
-                    item,
-                    index,
-                    { id, localidad, color ->
+                    firebaseAuth = firebaseAuth,
+                    estado_tienda = horario_por_tienda,
+                    i = item,
+                    index = index,
+                    listener_carta = { id, localidad, color ->
                         estadoColor = color
                         localidad_tienda_seklecioanda = localidad
                         id_tienda_selecionada = id
@@ -458,7 +473,7 @@ fun ui_pantalla_busqueda(
                         dialog_Crear_ruta = true
                         latitud = lat
                         longitud = log
-                    }
+                    }, iniciar_seccion_normal = {iniciar_seccion_normal()}, crear_cuenta_geinz = {crear_cuenta_geinz()}
                 )
             }
         }
@@ -482,7 +497,7 @@ fun ui_pantalla_busqueda(
                     if (searchText.text.isNotEmpty()) {
                         "No se encontraron resultados con \"${searchText.text}\""
                     } else {
-                        "No se encontraron resultados"
+                       "No se encontraron resultados"
                     },
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -1927,13 +1942,13 @@ fun TexfielFiltrado(
 ) {
     var icono_borrar by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
- if(texto.text.isEmpty()){
-     icono_borrar=false
- }
+    if (texto.text.isEmpty()) {
+        icono_borrar = false
+    }
     OutlinedTextField(
         value = texto,
         onValueChange = { newValue: TextFieldValue ->
-            Log.d("falta_señal",newValue.text)
+            Log.d("falta_señal", newValue.text)
             icono_borrar = newValue.text.isNotBlank()
             onvalueChage(newValue.text)
         },
@@ -1990,11 +2005,14 @@ fun TexfielFiltrado(
 
 @Composable
 fun ramdoBox(
+    firebaseAuth: FirebaseAuth,
     estado_tienda: Map<String, Boolean>?,
     i: Item,
     index: Int,
     listener_carta: (String, String, Color) -> Unit,
-    abrir_gogle_map: (Double, Double) -> Unit
+    abrir_gogle_map: (Double, Double) -> Unit,
+    iniciar_seccion_normal:()-> Unit,
+    crear_cuenta_geinz:()-> Unit,
 ) {
     val heightOptions = listOf(300.dp, 350.dp)
     val estado_tienda_filter = estado_tienda?.get(i.id_tienda) == true
@@ -2002,8 +2020,9 @@ fun ramdoBox(
     var Estado_color = if (estado_tienda_filter) Color.Green else Color.Red
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val iconCategoria = constantes_lista_localidades.getCategoriaIcon(i.categoria)
-    val density = LocalDensity.current
-    val endYpx = with(density) { 200.dp.toPx() }
+    var mostra_dialog_login by remember { mutableStateOf(false) }
+    var texto_bottom_sheet_dialog_login by remember { mutableStateOf("") }
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -2026,7 +2045,23 @@ fun ramdoBox(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { listener_carta(i.id_tienda, i.lugar, Estado_color) },
+                        .clickable {
+                            if (firebaseAuth.currentUser != null) {
+                                if (i.categoria == "turismo") {
+                                    Toast.makeText(
+                                        context,
+                                        "mostramos_dialog_turismo",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    listener_carta(i.id_tienda, i.lugar, Estado_color)
+                                }
+                            } else {
+                                texto_bottom_sheet_dialog_login="¡Regístrate para ver todos los detalles y disfrutar la experiencia completa!"
+                                mostra_dialog_login=true
+                            }
+
+                        },
                     contentScale = ContentScale.Crop
                 )
 
@@ -2072,7 +2107,14 @@ fun ramdoBox(
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White,
-                        onClick = { abrir_gogle_map(i.latitud, i.longitud) },
+                        onClick = {
+                            if (firebaseAuth.currentUser != null) {
+                                abrir_gogle_map(i.latitud, i.longitud)
+                            } else {
+                                texto_bottom_sheet_dialog_login="Crea tu ruta registrándote ahora"
+                                mostra_dialog_login=true
+                            }
+                        },
                         modifier = Modifier.size(30.dp)
                     ) {
                         Icon(
@@ -2110,6 +2152,14 @@ fun ramdoBox(
                 )
             }
         }
+    }
+    if (mostra_dialog_login) {
+        bottom_sheet_registrate(
+            ondimis = { mostra_dialog_login = false },
+            iniciar_seccion_normal = {iniciar_seccion_normal()},
+            crear_cuenta_geinz = {crear_cuenta_geinz()},
+            texto_bottom_Sheet = texto_bottom_sheet_dialog_login
+        )
     }
 }
 
