@@ -70,6 +70,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes.agregar_horario_tiendas
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes.listaDeTiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.agregar_lugares_turisticos
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtener_seguridad
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -239,6 +241,15 @@ fun nativationWrapper(
 
                         },
                         ver_lugares = { localidad ->
+
+//                            val datos=obtener_seguridad{lista->
+//                                Log.d("datos","${lista}")
+//                                lista.forEach { i->
+//                                    agregar_lugares_turisticos(i)
+//
+//                                }
+//
+//                            }
 //                            Log.d("localidad_defautl_user", localidad)
 //                            navController.navigate(ui_agregar_lugares)
 //                            agregar_horario_tiendas(listaDeTiendas)

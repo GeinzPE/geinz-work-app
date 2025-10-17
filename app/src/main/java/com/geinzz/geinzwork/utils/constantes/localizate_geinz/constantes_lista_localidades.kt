@@ -57,6 +57,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.tasks.await
 import java.net.URLEncoder
 import java.text.Normalizer
 import java.text.SimpleDateFormat
@@ -1652,11 +1653,49 @@ object constantes_lista_localidades {
 //    }
 
     //
-    fun agregar_lugares_turisticos(Item: Item, latitud: Double, longitud: Double) {
+
+    fun obtener_seguridad(onResult: (List<Item>) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document("salud_seguridad")
+            .collection("barranca")
+
+        db.get().addOnSuccessListener { res ->
+            val dattt = res.map { datos ->
+                val data = datos.data
+                val categoria = data?.get("categoria") as? String ?: ""
+                val id = data?.get("id") as? String ?: ""
+                val img = data?.get("img") as? String ?: ""
+                val lugar = data?.get("lugar") as? String ?: ""
+                val nombre = data?.get("nombre") as? String ?: ""
+                val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+                val latitud = (ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
+                val longitud = (ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
+
+                Item(
+                    nombre = nombre,
+                    lugar = lugar,
+                    id_tienda = id,
+                    categoria = categoria,
+                    img = img,
+                    lista = listOf(categoria),
+                    latitud = latitud,
+                    longitud = longitud
+                )
+            }
+
+            onResult(dattt)
+        }.addOnFailureListener {
+            onResult(emptyList())
+        }
+    }
+
+
+    fun agregar_lugares_turisticos(Item: Item) {
         val db = FirebaseFirestore.getInstance().collection("lugares").document(Item.id_tienda)
         val hasmap_ubicacion = hashMapOf<String, Any>(
-            "latitud" to latitud,
-            "longitud" to longitud
+            "latitud" to Item.latitud,
+            "longitud" to Item.longitud
         )
         val hashMap = hashMapOf<String, Any>(
             "categoria" to Item.categoria,
@@ -1667,7 +1706,7 @@ object constantes_lista_localidades {
             "tag" to Item.lista,
             "ubicacion" to hasmap_ubicacion
         )
-        db.set(hashMap, SetOptions.merge()).addOnSuccessListener { res ->
+        db.set(hashMap).addOnSuccessListener { res ->
             Log.d("creado_correcto", "${Item.id_tienda} creado correctamente :)")
         }.addOnFailureListener { e ->
             Log.d("error_subir_datos", "error")

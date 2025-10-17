@@ -164,10 +164,9 @@ fun dialog_crear_ruta_lugares(onDismis: () -> Unit, crear_ruta: (Boolean) -> Uni
         onDismissRequest = { onDismis() },
         icon = {
             Icon(
-                modifier = Modifier.size(25.dp),
-                painter = painterResource(R.drawable.vector_ruta_icon),
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.onBackground
+                modifier = Modifier.size(40.dp),
+                painter = painterResource(R.drawable.icon_3d_ruta),
+                contentDescription = "",  tint = Color.Unspecified
             )
         },
         title = {

@@ -612,8 +612,6 @@ fun ui_pantalla_busqueda(
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
-//                localidad_Anterior_select=localidad
-//                searchText = TextFieldValue("")
             },
             categoria_filtrad,
             categoria_Selecionada = { categoria ->
@@ -2046,23 +2044,34 @@ fun ramdoBox(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            if (firebaseAuth.currentUser != null) {
-                                if (i.categoria == "turismo") {
-                                    Toast.makeText(
-                                        context,
-                                        "mostramos_dialog_turismo",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    listener_carta(i.id_tienda, i.lugar, Estado_color)
+                            when {
+                                i.categoria == "seguridad" || i.categoria == "salud" -> {
+                                    // Caso 1: seguridad o salud
+                                    Toast.makeText(context, "no damos click", Toast.LENGTH_SHORT).show()
                                 }
-                            } else {
-                                texto_bottom_sheet_dialog_login="¡Regístrate para ver todos los detalles y disfrutar la experiencia completa!"
-                                mostra_dialog_login=true
-                            }
 
+                                firebaseAuth.currentUser != null -> {
+                                    // Caso 2: usuario registrado
+                                    when (i.categoria) {
+                                        "turismo" -> {
+                                            Toast.makeText(context, "mostramos dialog turismo", Toast.LENGTH_SHORT).show()
+                                        }
+                                        else -> {
+                                            listener_carta(i.id_tienda, i.lugar, Estado_color)
+                                        }
+                                    }
+                                }
+
+                                else -> {
+                                    // Caso 3: usuario NO registrado
+                                    texto_bottom_sheet_dialog_login =
+                                        "¡Regístrate para ver todos los detalles y disfrutar la experiencia completa!"
+                                    mostra_dialog_login = true
+                                }
+                            }
                         },
-                    contentScale = ContentScale.Crop
+
+                            contentScale = ContentScale.Crop
                 )
 
                 Box(
@@ -2108,14 +2117,34 @@ fun ramdoBox(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White,
                         onClick = {
-                            if (firebaseAuth.currentUser != null) {
-                                abrir_gogle_map(i.latitud, i.longitud)
-                            } else {
-                                texto_bottom_sheet_dialog_login="Crea tu ruta registrándote ahora"
-                                mostra_dialog_login=true
+                            val coordenadasValidas = i.latitud != 0.0 && i.longitud != 0.0
+
+                            when {
+                                i.categoria == "seguridad" || i.categoria == "salud" -> {
+                                    // Categoría seguridad o salud
+                                    if (coordenadasValidas) {
+                                        abrir_gogle_map(i.latitud, i.longitud)
+                                    }
+                                    // Si no hay coordenadas, no hace nada
+                                }
+
+                                firebaseAuth.currentUser != null -> {
+                                    // Categoría diferente y usuario registrado
+                                    if (coordenadasValidas) {
+                                        abrir_gogle_map(i.latitud, i.longitud)
+                                    }
+                                    // Si no hay coordenadas, no hace nada
+                                }
+
+                                else -> {
+                                    // Categoría diferente y usuario NO registrado
+                                    texto_bottom_sheet_dialog_login = "Crea tu ruta registrándote ahora"
+                                    mostra_dialog_login = true
+                                }
                             }
                         },
-                        modifier = Modifier.size(30.dp)
+
+                                modifier = Modifier.size(30.dp)
                     ) {
                         Icon(
                             Icons.Default.LocationOn,
