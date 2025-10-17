@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.aloglia.AlgoliaHelper
+import com.geinzz.geinzwork.model.repo_seguridad_salud
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -22,6 +23,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         indexName = application.getString(R.string.IDEX_NAME_ALGOLIA)
     )
     private var searchJob: Job? = null
+
 
 //    private val _results = MutableStateFlow<List<Item>>(emptyList())
 //    val results: StateFlow<List<Item>> = _results
@@ -42,8 +44,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val _state = MutableStateFlow<List_items_result>(List_items_result.Empty)
     val state: StateFlow<List_items_result> = _state
 
-    private val _lista_encontrada=MutableStateFlow<List<Item>>(emptyList())
-    val lista_encontrada: StateFlow<List<Item>> =_lista_encontrada
+    private val _lista_encontrada = MutableStateFlow<List<Item>>(emptyList())
+    val lista_encontrada: StateFlow<List<Item>> = _lista_encontrada
     private var ultimaLocalidad: String? = null
 
 //    val resultadosCombinados: StateFlow<List<Item>> =
@@ -88,7 +90,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         searchJob = viewModelScope.launch {
 
 
-
             _state.value = List_items_result.Loading
 
             val start = System.currentTimeMillis()
@@ -96,12 +97,12 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 Log.d("LS_ITEMS", "⏳ Consultando Algolia...")
                 val res = algoliaHelper.retornar_items_categorias(
                     _lista_encontrada.value,
-                        selecionado,
-                        localidad,
-                        categoria,
-                        subcategoria,
-                        search,it
-                    )
+                    selecionado,
+                    localidad,
+                    categoria,
+                    subcategoria,
+                    search, it
+                )
 
                 coroutineContext.ensureActive()
                 val elapsed = System.currentTimeMillis() - start
@@ -123,10 +124,10 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 } else {
                     List_items_result.succes(res.second, res.first)
                 }
-                if(res.first.isNotEmpty() && res.first.size>1){
-                    Log.d("enviamos_valor_anulado",res.first.toString())
-                _lista_encontrada.value=res.first
-                    Log.d("hay_select","${res.first.size}")
+                if (res.first.isNotEmpty() && res.first.size > 1) {
+                    Log.d("enviamos_valor_anulado", res.first.toString())
+                    _lista_encontrada.value = res.first
+                    Log.d("hay_select", "${res.first.size}")
                 }
 
             } catch (e: Exception) {
@@ -148,9 +149,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //        }
 
         viewModelScope.launch {
-            val a1=algoliaHelper.obtener_items_por_categoria_y_localidad(cat?:"",localidad)
-            val lista_base_busqueda=a1
-            Log.d("a1","${a1.toString()}")
+            val a1 = algoliaHelper.obtener_items_por_categoria_y_localidad(cat ?: "", localidad)
+            val lista_base_busqueda = a1
+            Log.d("a1", "${a1.toString()}")
 
             _state.value = List_items_result.Loading
             delay(500)
@@ -160,17 +161,22 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 if (lista_base_busqueda.isEmpty()) {
                     Log.d("buscamosen", "algolia")
                     res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
-                    _lista_encontrada.value=res
+                    _lista_encontrada.value = res
                 } else {
                     Log.d("buscamosen", "local")
-                    res = algoliaHelper.filtrar_categoria_local(localidad,lista_base_busqueda, cat, sub)
+                    res = algoliaHelper.filtrar_categoria_local(
+                        localidad,
+                        lista_base_busqueda,
+                        cat,
+                        sub
+                    )
                 }
 
                 val categoriasActuales = when (val currentState = _state.value) {
                     is List_items_result.succes -> currentState.categoira
                     else -> emptyList()
                 }
-                _state.value = if (res.isEmpty() && categoriasActuales.isEmpty() ) {
+                _state.value = if (res.isEmpty() && categoriasActuales.isEmpty()) {
                     List_items_result.Empty
                 } else {
                     List_items_result.succes(categoriasActuales, res)
@@ -184,9 +190,11 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
 
+
+
     fun clearResults() {
         _state.value = List_items_result.Cleared
-        _lista_encontrada.value=emptyList()
+        _lista_encontrada.value = emptyList()
     }
 
 

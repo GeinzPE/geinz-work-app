@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import kotlin.system.measureTimeMillis
 
 class repo_seguridad_salud {
     val db = FirebaseFirestore.getInstance()
@@ -27,7 +28,8 @@ class repo_seguridad_salud {
                 Log.d("DEBUG_SERVICIOS", "Documento ID: ${datos.id} → Data: $data")
 
                 val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
-                val numero_contacto = data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
+                val numero_contacto =
+                    data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
 
                 val latitud = (ubicacion["latitud"] as? Number ?: 0).toDouble()
                 val referencia = (ubicacion["referencia"] as? String ?: "")
@@ -45,7 +47,7 @@ class repo_seguridad_salud {
                     img_ref = data?.get("img") as? String ?: "",
                     latidud = latitud,
                     longitud = longitud,
-                    referencia=referencia,
+                    referencia = referencia,
                     categoria = categoria
                 )
 
@@ -63,19 +65,53 @@ class repo_seguridad_salud {
     }
 
 
-    fun atencion_24h(i:String): String {
+    fun atencion_24h(i: String): String {
 
-            return when (i) {
-                "Divpol Barranca" -> "Atencion 24h (física)"
-                "Comisaría PNP Barranca" -> "Atencion 24h (física)"
-                "Diprincri Barranca" -> "Atencion 24h (física)"
-                "Bomberos Voluntarios Barranca" -> "Atencion 24h (física)"
-                "SAMU Barranca" -> "Servicio 24h "
-                "Hospital de Barranca"->"Atencion 24h (física)"
-                "Serenazgo Municipal Barranca" -> "Operativo 24h (patrullaje)"
-                else -> "Atención (08:00 - 14:00)"
-            }
+        return when (i) {
+            "Divpol Barranca" -> "Atencion 24h (física)"
+            "Comisaría PNP Barranca" -> "Atencion 24h (física)"
+            "Diprincri Barranca" -> "Atencion 24h (física)"
+            "Bomberos Voluntarios Barranca" -> "Atencion 24h (física)"
+            "SAMU Barranca" -> "Servicio 24h "
+            "Hospital de Barranca" -> "Atencion 24h (física)"
+            "Serenazgo Municipal Barranca" -> "Operativo 24h (patrullaje)"
+            else -> "Atención (08:00 - 14:00)"
+        }
 
     }
+
+
+    suspend fun get_numeros(
+        localidad: String,
+        id_selecionado: String
+    ): Triple<List<String>, List<String>, Long> { // 🔹 Ahora devuelve también el tiempo (en ms)
+        var lista_llamada: List<String> = emptyList()
+        var lista_whatsapp: List<String> = emptyList()
+        var tiempoCarga: Long = 0L
+
+        try {
+            tiempoCarga = measureTimeMillis {
+                val ref = db.collection("Tiendas")
+                    .document("salud_seguridad")
+                    .collection(localidad)
+                    .document(id_selecionado)
+                    .get()
+                    .await()
+
+                if (ref.exists()) {
+                    val data = ref.data
+                    val numeros_contactos = data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
+                    lista_whatsapp = numeros_contactos["whatsapp"] as? List<String> ?: emptyList()
+                    lista_llamada = numeros_contactos["llamada"] as? List<String> ?: emptyList()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return Triple(lista_llamada, lista_whatsapp, tiempoCarga)
+    }
+
+
 
 }

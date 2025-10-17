@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -41,9 +42,10 @@ import java.net.URLEncoder
 
 
 val REQUEST_CALL_PHONE = 1
+
 @Composable
 fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss: () -> Unit) {
-    val context= LocalContext.current
+    val context = LocalContext.current
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     var numero_llamada by rememberSaveable { mutableStateOf("") }
     AlertDialog(
@@ -57,7 +59,7 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
                     "En caso de emergencia, comunícate de inmediato con los servicios de seguridad y salud.Puedes llamar o ir a whatsApp directamente tocando el ícono de teléfono o copiar el número que necesites.",
                     MaterialTheme.typography.bodyMedium
                 )
-                spacer_vertical(10.dp)
+
                 lista_numeros.forEach { i ->
                     box_llamada_whatsap(
                         i, tipo,
@@ -89,13 +91,13 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
                                     ) != PackageManager.PERMISSION_GRANTED
                                 ) {
                                     call_dialog_permise = true
-                                    numero_llamada=i
+                                    numero_llamada = i
                                 } else {
                                     makePhoneCall(context, i)
                                 }
                             }
                         },
-                        click_copiar = {copiarTexto_portapapeles_compouse(i,context)})
+                        click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
 
                 }
             }
@@ -111,7 +113,7 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
         )
     if (call_dialog_permise) {
         permisos_llamadas(aceptar_permisos = {
-            requestCallPermission(context=context, phoneNumber = numero_llamada)
+            requestCallPermission(context = context, phoneNumber = numero_llamada)
         }, ondimis = {
             call_dialog_permise = false
         })
@@ -125,7 +127,7 @@ fun box_llamada_whatsap(
     click_icon: () -> Unit,
     click_copiar: () -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
         texto_generico_one_line(
             numero,
             style = MaterialTheme.typography.bodyMedium,
@@ -150,7 +152,7 @@ fun box_llamada_whatsap(
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
-                    )  { click_copiar() },
+                    ) { click_copiar() },
                 colorFilter = ColorFilter.tint(Color.White)
             )
         }
@@ -158,7 +160,7 @@ fun box_llamada_whatsap(
 
 }
 
-fun requestCallPermission(llamar: Boolean=true, context: Context, phoneNumber: String="") {
+fun requestCallPermission(llamar: Boolean = true, context: Context, phoneNumber: String = "") {
     if (ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.CALL_PHONE
@@ -170,8 +172,8 @@ fun requestCallPermission(llamar: Boolean=true, context: Context, phoneNumber: S
             REQUEST_CALL_PHONE
         )
     } else {
-        if(llamar){
-        makePhoneCall(context, phoneNumber)
+        if (llamar) {
+            makePhoneCall(context, phoneNumber)
         }
     }
 }
@@ -186,6 +188,6 @@ private fun makePhoneCall(context: Context, phoneNumber: String) {
     ) {
         context.startActivity(callIntent)
     } else {
-        requestCallPermission(context=context, phoneNumber= phoneNumber)
+        requestCallPermission(context = context, phoneNumber = phoneNumber)
     }
 }

@@ -111,6 +111,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
+import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salud_algolia
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -122,6 +123,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_salud_seguridad_algolia
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
@@ -156,8 +158,8 @@ fun ui_pantalla_busqueda(
     ocultar: () -> Unit,
     estado_mostar: Boolean,
 
-    iniciar_seccion_normal:()-> Unit,
-    crear_cuenta_geinz:()-> Unit
+    iniciar_seccion_normal: () -> Unit,
+    crear_cuenta_geinz: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
@@ -188,6 +190,7 @@ fun ui_pantalla_busqueda(
     val scope = rememberCoroutineScope()
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
+    val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
 
@@ -236,7 +239,11 @@ fun ui_pantalla_busqueda(
     var placeholder by remember { mutableStateOf("A dónde quieres ir?") }
 
     var previousLocalidad by remember { mutableStateOf<String?>(null) }
-
+    var aler_dialog_contacto by remember { mutableStateOf(false) }
+    var nombre_seguridad_salud by remember { mutableStateOf("") }
+    var localidad_seguridad_salud by remember { mutableStateOf("") }
+    var id_seguridad_salud by remember { mutableStateOf("") }
+    var img_seguirdad_salud by remember { mutableStateOf("") }
 
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
@@ -299,13 +306,18 @@ fun ui_pantalla_busqueda(
         }
     }
 
-
-
-    LaunchedEffect(lista_encontrada_items) {
-        if (lista_encontrada_items.isNotEmpty()) {
-            Log.d("valor_encontrado", "${lista_encontrada_items.toString()}")
+    LaunchedEffect(aler_dialog_contacto) {
+        if (aler_dialog_contacto) {
+        viewModelFiltros.obtener_numeros_seguridad_salud(localidad_seguridad_salud,id_seguridad_salud)
         }
     }
+
+
+//    LaunchedEffect(lista_encontrada_items) {
+//        if (lista_encontrada_items.isNotEmpty()) {
+//            Log.d("valor_encontrado", "${lista_encontrada_items.toString()}")
+//        }
+//    }
 
     LaunchedEffect(categoria_filtrad) {
         subcategorias = viewModelFiltros.obtener_lista_sub(categoria_filtrad)
@@ -458,6 +470,7 @@ fun ui_pantalla_busqueda(
 
             itemsIndexed(items) { index, item ->
                 ramdoBox(
+                    aler_dialog_contacto,
                     firebaseAuth = firebaseAuth,
                     estado_tienda = horario_por_tienda,
                     i = item,
@@ -473,7 +486,16 @@ fun ui_pantalla_busqueda(
                         dialog_Crear_ruta = true
                         latitud = lat
                         longitud = log
-                    }, iniciar_seccion_normal = {iniciar_seccion_normal()}, crear_cuenta_geinz = {crear_cuenta_geinz()}
+                    },
+                    iniciar_seccion_normal = { iniciar_seccion_normal() },
+                    crear_cuenta_geinz = { crear_cuenta_geinz() },
+                    aler_dialog_contacto_fun = { lugar,nombre, img, id ->
+                        aler_dialog_contacto=true
+                        localidad_seguridad_salud=lugar
+                        nombre_seguridad_salud=nombre
+                        img_seguirdad_salud=img
+                        id_seguridad_salud=id
+                    }
                 )
             }
         }
@@ -497,7 +519,7 @@ fun ui_pantalla_busqueda(
                     if (searchText.text.isNotEmpty()) {
                         "No se encontraron resultados con \"${searchText.text}\""
                     } else {
-                       "No se encontraron resultados"
+                        "No se encontraron resultados"
                     },
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -533,6 +555,13 @@ fun ui_pantalla_busqueda(
 
 
 
+        if (aler_dialog_contacto) {
+            val (llamada, whatsapp,long) = datos_numeros_salud_seguridad
+            dialog_salud_seguridad_algolia(
+                long,
+                dialog_seguridad_salud_algolia(whatsapp,llamada,nombre_seguridad_salud, img_seguirdad_salud),
+                ondimis = { aler_dialog_contacto = false })
+        }
 
 
         if (dialog_Crear_ruta) {
@@ -2003,14 +2032,16 @@ fun TexfielFiltrado(
 
 @Composable
 fun ramdoBox(
+    aler_dialog_contacto: Boolean,
     firebaseAuth: FirebaseAuth,
     estado_tienda: Map<String, Boolean>?,
     i: Item,
     index: Int,
     listener_carta: (String, String, Color) -> Unit,
     abrir_gogle_map: (Double, Double) -> Unit,
-    iniciar_seccion_normal:()-> Unit,
-    crear_cuenta_geinz:()-> Unit,
+    iniciar_seccion_normal: () -> Unit,
+    crear_cuenta_geinz: () -> Unit,
+    aler_dialog_contacto_fun: (lugar:String,nombre: String, img: String, id: String) -> Unit
 ) {
     val heightOptions = listOf(300.dp, 350.dp)
     val estado_tienda_filter = estado_tienda?.get(i.id_tienda) == true
@@ -2021,6 +2052,7 @@ fun ramdoBox(
     var mostra_dialog_login by remember { mutableStateOf(false) }
     var texto_bottom_sheet_dialog_login by remember { mutableStateOf("") }
     val context = LocalContext.current
+//    var aler_dialog_contacto by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -2047,15 +2079,20 @@ fun ramdoBox(
                             when {
                                 i.categoria == "seguridad" || i.categoria == "salud" -> {
                                     // Caso 1: seguridad o salud
-                                    Toast.makeText(context, "no damos click", Toast.LENGTH_SHORT).show()
+                                    aler_dialog_contacto_fun(i.lugar,i.nombre, i.img, i.id_tienda)
                                 }
 
                                 firebaseAuth.currentUser != null -> {
                                     // Caso 2: usuario registrado
                                     when (i.categoria) {
                                         "turismo" -> {
-                                            Toast.makeText(context, "mostramos dialog turismo", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "mostramos dialog turismo",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
+
                                         else -> {
                                             listener_carta(i.id_tienda, i.lugar, Estado_color)
                                         }
@@ -2071,7 +2108,7 @@ fun ramdoBox(
                             }
                         },
 
-                            contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop
                 )
 
                 Box(
@@ -2113,44 +2150,48 @@ fun ramdoBox(
                         modifier = Modifier.weight(1f)
                     )
                     Spacer(modifier = Modifier.width(5.dp))
-                    FloatingActionButton(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.White,
-                        onClick = {
-                            val coordenadasValidas = i.latitud != 0.0 && i.longitud != 0.0
+                    val coordenadasValidas = i.latitud != 0.0 && i.longitud != 0.0
+                    if (coordenadasValidas) {
+                        FloatingActionButton(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = Color.White,
+                            onClick = {
 
-                            when {
-                                i.categoria == "seguridad" || i.categoria == "salud" -> {
-                                    // Categoría seguridad o salud
-                                    if (coordenadasValidas) {
-                                        abrir_gogle_map(i.latitud, i.longitud)
+
+                                when {
+                                    i.categoria == "seguridad" || i.categoria == "salud" -> {
+                                        // Categoría seguridad o salud
+                                        if (coordenadasValidas) {
+                                            abrir_gogle_map(i.latitud, i.longitud)
+                                        }
+                                        // Si no hay coordenadas, no hace nada
                                     }
-                                    // Si no hay coordenadas, no hace nada
-                                }
 
-                                firebaseAuth.currentUser != null -> {
-                                    // Categoría diferente y usuario registrado
-                                    if (coordenadasValidas) {
-                                        abrir_gogle_map(i.latitud, i.longitud)
+                                    firebaseAuth.currentUser != null -> {
+                                        // Categoría diferente y usuario registrado
+                                        if (coordenadasValidas) {
+                                            abrir_gogle_map(i.latitud, i.longitud)
+                                        }
+                                        // Si no hay coordenadas, no hace nada
                                     }
-                                    // Si no hay coordenadas, no hace nada
-                                }
 
-                                else -> {
-                                    // Categoría diferente y usuario NO registrado
-                                    texto_bottom_sheet_dialog_login = "Crea tu ruta registrándote ahora"
-                                    mostra_dialog_login = true
+                                    else -> {
+                                        // Categoría diferente y usuario NO registrado
+                                        texto_bottom_sheet_dialog_login =
+                                            "Crea tu ruta registrándote ahora"
+                                        mostra_dialog_login = true
+                                    }
                                 }
-                            }
-                        },
+                            },
 
-                                modifier = Modifier.size(30.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.LocationOn,
-                            contentDescription = "centrar",
-                            modifier = Modifier.padding(5.dp)
-                        )
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.LocationOn,
+                                contentDescription = "centrar",
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
                     }
                 }
 
@@ -2185,11 +2226,13 @@ fun ramdoBox(
     if (mostra_dialog_login) {
         bottom_sheet_registrate(
             ondimis = { mostra_dialog_login = false },
-            iniciar_seccion_normal = {iniciar_seccion_normal()},
-            crear_cuenta_geinz = {crear_cuenta_geinz()},
+            iniciar_seccion_normal = { iniciar_seccion_normal() },
+            crear_cuenta_geinz = { crear_cuenta_geinz() },
             texto_bottom_Sheet = texto_bottom_sheet_dialog_login
         )
     }
+
+
 }
 
 

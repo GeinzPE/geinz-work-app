@@ -139,15 +139,19 @@ fun PantallaExplorarTiendas(
     }
 
     // Cambio de localidad
+//    LaunchedEffect(localidadSeleccionada.value) {
+//        if (primeraVez.value) {
+//            primeraVez.value = false
+//        } else {
+//            cargando.value = true
+//            cartaExpandida.value = null
+//            fraces_localidad = viewModel.obtenerFrasesCarga(localidadSeleccionada.value, nombreUser)
+//            mostrar_fab = false
+//        }
+//    }
+
     LaunchedEffect(localidadSeleccionada.value) {
-        if (primeraVez.value) {
-            primeraVez.value = false
-        } else {
-            cargando.value = true
-            cartaExpandida.value = null
-            fraces_localidad = viewModel.obtenerFrasesCarga(localidadSeleccionada.value, nombreUser)
-            mostrar_fab = false
-        }
+
     }
 
     LaunchedEffect(encontrados_activos_tiendass) {
@@ -155,6 +159,7 @@ fun PantallaExplorarTiendas(
             lista.clear()
             lista.addAll(listaNueva)
             texto_filtrado = ""
+            delay(4000)
             cargando.value = false
         }
     }
@@ -166,7 +171,7 @@ fun PantallaExplorarTiendas(
             if (isCargando && fraces_localidad.isNotEmpty()) {
                 cargando_categorias(
                     composision,
-                    localidadSeleccionada.value, // ✅ ahora usa la seleccionada
+                    localidadSeleccionada.value,
                     5.dp,
                     fraces_localidad
                 )

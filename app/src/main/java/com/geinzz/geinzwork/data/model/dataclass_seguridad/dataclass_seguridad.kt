@@ -15,3 +15,10 @@ data class dataclass_seguridad(
     val img_ref:String="",
     val categoria:String=""
 ): Parcelable
+
+data class dialog_seguridad_salud_algolia(
+    val lista_whatsapp: List<String>,
+    val lista_llamada: List<String>,
+    val nombre:String,
+    val img: String
+)

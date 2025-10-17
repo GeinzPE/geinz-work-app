@@ -21,6 +21,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.tiendas_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
+import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +37,13 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
 
     private val subcategorias = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
     val _subcategoiraList: LiveData<List<filtrado_tiendas_cat_sub>> get() = subcategorias
+
+    private val instacia_repo_salud = repo_seguridad_salud()
+    private val _instance_salud_seguridad =
+        MutableStateFlow(Triple(emptyList<String>(), emptyList<String>(), 0L))
+
+    val instance_salud_seguridad: StateFlow<Triple<List<String>, List<String>, Long>> =
+        _instance_salud_seguridad
 
 
     private val state_Tiendas_filtradas_por_categoria =
@@ -342,6 +350,22 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
             }
         }
     }
+
+    fun obtener_numeros_seguridad_salud(localidad: String, idSelect: String) {
+        viewModelScope.launch {
+            try {
+                val datosSaludSeguridad = instacia_repo_salud.get_numeros(localidad, idSelect)
+                // Asegúrate de que el repo retorne Triple<List<String>, List<String>, Long>
+                _instance_salud_seguridad.value = datosSaludSeguridad
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error al obtener números: ${e.localizedMessage}", e)
+                // Triple vacío si ocurre un error
+                _instance_salud_seguridad.value = Triple(emptyList(), emptyList(), 0L)
+            }
+        }
+    }
+
+
 
     sealed class carga_tiendas_sin_pago {
         object loading_tiendas_free : carga_tiendas_sin_pago()
