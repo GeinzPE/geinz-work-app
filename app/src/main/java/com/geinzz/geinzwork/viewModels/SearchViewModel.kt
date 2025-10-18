@@ -88,32 +88,27 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-
-
             _state.value = List_items_result.Loading
 
             val start = System.currentTimeMillis()
             try {
                 Log.d("LS_ITEMS", "⏳ Consultando Algolia...")
+
                 val res = algoliaHelper.retornar_items_categorias(
                     _lista_encontrada.value,
                     selecionado,
                     localidad,
                     categoria,
                     subcategoria,
-                    search, it
+                    search, // usa solo el valor actual
+                    search  // quita el parámetro 'it'
                 )
 
                 coroutineContext.ensureActive()
                 val elapsed = System.currentTimeMillis() - start
 
-                // 🔹 Mantener mínimo 400ms en loading para que el usuario lo note
+                // 🔹 Mantener mínimo 400ms de carga para mejor UX
                 if (elapsed < 400) delay(400 - elapsed)
-                if (it != search) {
-                    Log.d("LS_ITEMS", "Texto cambió, ignorando resultados")
-                    _state.value = List_items_result.Cleared
-                    return@launch
-                }
 
                 Log.d("LS_ITEMS", "✅ Resultados recibidos:")
                 Log.d("LS_ITEMS", "   Items encontrados      = ${res.first.size}")
@@ -124,6 +119,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 } else {
                     List_items_result.succes(res.second, res.first)
                 }
+
                 if (res.first.isNotEmpty() && res.first.size > 1) {
                     Log.d("enviamos_valor_anulado", res.first.toString())
                     _lista_encontrada.value = res.first
@@ -132,7 +128,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
             } catch (e: Exception) {
                 Log.e("LS_ITEMS", "${e.message.toString()}")
-                _state.value = List_items_result.error("Ocurrio un error vuelvalo a intentar")
+                _state.value = List_items_result.error("Ocurrió un error, vuelva a intentarlo")
             }
         }
     }
@@ -193,6 +189,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
 
     fun clearResults() {
+        Log.d("limpiamos_valor","valor_limiado")
         _state.value = List_items_result.Cleared
         _lista_encontrada.value = emptyList()
     }

@@ -14,17 +14,20 @@ class repo_principal_geinz_work {
     val db = FirebaseFirestore.getInstance()
 
     suspend fun obtener_lugares_turisticos(localidad: String): List<lugares_turisticos> {
-        Log.d("localida_pasada",localidad)
+        Log.d("localida_pasada", localidad)
         val lista_lugares = mutableListOf<lugares_turisticos>()
         val lugares_turisticos =
-            db.collection("Tiendas").document(localidad.lowercase()).collection("lugares_turisticos")
+            db.collection("Tiendas").document(localidad.lowercase())
+                .collection("lugares_turisticos")
                 .get().await()
         for (datos in lugares_turisticos) {
             val data = datos.data
             val id = data?.get("id") as? String ?: ""
             val titulo = data?.get("titulo") as? String ?: ""
             val descripcion = data?.get("descripcion") as? String ?: ""
-            val img_refencia = data?.get("img") as? String ?: ""
+            val img_refencia = data?.get("img") as? Map<String, Any> ?: emptyMap()
+            val lista_img_ref = img_refencia?.get("lista_img") as? List<String> ?: emptyList()
+            val img_principal = img_refencia?.get("principal") as? String ?: ""
             val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
             val dirección = ubicacion?.get("dirección") as? String ?: ""
             val referencia = ubicacion?.get("referencia") as? String ?: ""
@@ -36,7 +39,7 @@ class repo_principal_geinz_work {
                 id,
                 titulo,
                 descripcion,
-                img_refencia,
+                lista_img_ref, img_principal,
                 dirección,
                 referencia,
                 latitud.toDouble(),
@@ -63,11 +66,9 @@ class repo_principal_geinz_work {
             val dia = aniversario.get("dia") as? Number ?: 0
             val mes = aniversario.get("mes") as? Number ?: 0
             val imgPrincipal = listaImg.randomOrNull() ?: ""
-            localidades_filtrado(nombre, listOf(imgPrincipal),dia,mes)
+            localidades_filtrado(nombre, listOf(imgPrincipal), dia, mes)
         }
     }
-
-
 
 
 //    suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {

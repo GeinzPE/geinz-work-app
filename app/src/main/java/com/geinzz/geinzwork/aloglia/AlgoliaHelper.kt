@@ -308,7 +308,7 @@ class AlgoliaHelper(
             }
         }.joinToString(" AND ")
 
-        if (it.length == 2) {
+        if (search.length < 3) {
             Log.d("valor_id", "No hay texto ni filtros, retornando vacío")
             return Pair(emptyList(), emptyList())
         }
@@ -354,10 +354,13 @@ class AlgoliaHelper(
         )
 
         if (lista_guardada.isNotEmpty()) {
-            // 🔹 Filtramos por nombre primero
-            var filtrados = if (search.isNotBlank()) filtrar_por_nombre_local(lista_guardada, search) else lista_guardada
+            // 🔹 Intentar filtrar localmente
+            var filtrados = if (search.isNotBlank())
+                filtrar_por_nombre_local(lista_guardada, search)
+            else
+                lista_guardada
 
-// Solo filtramos por categoría/subcategoría si el usuario seleccionó algo
+            // 🔹 Aplicar filtros adicionales
             if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
                 filtrados = filtrados.filter { item ->
                     val coincideCategoria = categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
@@ -366,10 +369,11 @@ class AlgoliaHelper(
                 }
             }
 
-// Si no hay categoría ni subcategoría, 'filtrados' sigue siendo toda la lista
-            return Pair(filtrados, filtrados.map { it.categoria }.distinct())
+            // 🔹 ⚠️ Si no hay coincidencias locales, consultar Algolia igual
+            if (filtrados.isNotEmpty()) {
+                return Pair(filtrados, filtrados.map { it.categoria }.distinct())
+            }
         }
-
 
 
         val response = index.search(query)

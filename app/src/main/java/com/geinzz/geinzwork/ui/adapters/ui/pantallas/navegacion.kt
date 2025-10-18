@@ -251,7 +251,7 @@ fun nativationWrapper(
 //
 //                            }
 //                            Log.d("localidad_defautl_user", localidad)
-//                            navController.navigate(ui_agregar_lugares)
+                            navController.navigate(lugares_turisticos(localidad))
 //                            agregar_horario_tiendas(listaDeTiendas)
                         },
                         listner_busqueda = {

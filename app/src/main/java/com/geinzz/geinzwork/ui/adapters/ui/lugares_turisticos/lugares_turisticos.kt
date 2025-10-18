@@ -70,6 +70,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Estados_lug
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.LazyRowConSombras
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -271,7 +272,8 @@ fun pantalla_lugares_turisticos(
 }
 
 @Composable
-fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos) {
+fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos,) {
+    var mostrar_dialog by remember { mutableStateOf(false) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     Box(
         modifier = Modifier
@@ -280,7 +282,7 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos)
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(lugar.img_ref)
+                .data(lugar.img_principal)
                 .size(screenWidth.value.toInt(), alto.value.toInt())
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
@@ -289,7 +291,10 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos)
             modifier = Modifier
                 .width(screenWidth)
                 .height(alto)
-                .clip(RoundedCornerShape(rounder)),
+                .clip(RoundedCornerShape(rounder))
+                .clickable{
+                    mostrar_dialog=true
+                },
 
             contentScale = ContentScale.Crop
         )
@@ -300,5 +305,8 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos)
                 .align(Alignment.BottomStart)
                 .padding(10.dp)
         )
+    }
+    if(mostrar_dialog){
+        bottom_sheet_lugares_turisticos(lugar,{mostrar_dialog=false})
     }
 }

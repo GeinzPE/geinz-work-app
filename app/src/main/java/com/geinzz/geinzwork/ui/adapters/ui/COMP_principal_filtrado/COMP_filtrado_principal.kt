@@ -562,11 +562,13 @@ fun expandibles_wrapp(
 
 @Composable
 fun text_expandible_wrapp(
+    modifier: Modifier= Modifier,
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
     maxlines: Int = 1
 ) {
     Text(
+        modifier=modifier,
         text = texto,
         color = MaterialTheme.colorScheme.onBackground,
         style = style,

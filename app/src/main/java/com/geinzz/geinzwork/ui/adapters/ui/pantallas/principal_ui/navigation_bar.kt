@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -388,11 +389,7 @@ fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa
             )
         },
         icon = {
-            Icon(
-                imageVector = Icons.Filled.LocationOn,
-                contentDescription = "Ubicación",
-                modifier = Modifier.size(25.dp)
-            )
+            Image(painter = painterResource(R.drawable.pin_3d_webp), contentDescription = "marker3d"  ,modifier = Modifier.size(40.dp))
         }, properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true

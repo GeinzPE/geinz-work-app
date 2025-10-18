@@ -251,15 +251,21 @@ fun ui_pantalla_busqueda(
         subcategira_filtrado,
         salud_seguirdad
     ) {
-        Log.d("_cabiamos_localida", tiendaLocalidadSeleccionada ?: "1123")
+
 
         val localidadActual = tiendaLocalidadSeleccionada
 
+        if (salud_seguirdad.isEmpty()) {
+            viewModel.clearResults()
+            salud_seguirdad = ""
+            Log.d("_cabiamos_localida", "$salud_seguirdad,$categoria_filtrad,$subcategira_filtrado")
+
+        }
         if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty() || salud_seguirdad.isEmpty())) {
-            Log.d(
-                "_cambio_localidad",
-                "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual"
-            )
+//            Log.d(
+//                "_cambio_localidad",
+//                "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual"
+//            )
             viewModel.clearResults()
             mostrar_centrado_visible = true
             previousLocalidad = localidadActual
@@ -308,7 +314,10 @@ fun ui_pantalla_busqueda(
 
     LaunchedEffect(aler_dialog_contacto) {
         if (aler_dialog_contacto) {
-        viewModelFiltros.obtener_numeros_seguridad_salud(localidad_seguridad_salud,id_seguridad_salud)
+            viewModelFiltros.obtener_numeros_seguridad_salud(
+                localidad_seguridad_salud,
+                id_seguridad_salud
+            )
         }
     }
 
@@ -489,12 +498,12 @@ fun ui_pantalla_busqueda(
                     },
                     iniciar_seccion_normal = { iniciar_seccion_normal() },
                     crear_cuenta_geinz = { crear_cuenta_geinz() },
-                    aler_dialog_contacto_fun = { lugar,nombre, img, id ->
-                        aler_dialog_contacto=true
-                        localidad_seguridad_salud=lugar
-                        nombre_seguridad_salud=nombre
-                        img_seguirdad_salud=img
-                        id_seguridad_salud=id
+                    aler_dialog_contacto_fun = { lugar, nombre, img, id ->
+                        aler_dialog_contacto = true
+                        localidad_seguridad_salud = lugar
+                        nombre_seguridad_salud = nombre
+                        img_seguirdad_salud = img
+                        id_seguridad_salud = id
                     }
                 )
             }
@@ -515,17 +524,40 @@ fun ui_pantalla_busqueda(
 
         when (state) {
             is SearchViewModel.List_items_result.Empty -> {
-                texto_generico_one_line(
-                    if (searchText.text.isNotEmpty()) {
-                        "No se encontraron resultados con \"${searchText.text}\""
-                    } else {
-                        "No se encontraron resultados"
-                    },
+                Column(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(horizontal = 20.dp),
-                    color = Color.Gray
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (searchText.text.isNotEmpty()) {
+
+                        texto_generico_one_line(
+                            "No se encontraron resultados con ${searchText.text}",
+                            modifier = Modifier,
+                            color = Color.Gray
+                        )
+                    }else{
+                        texto_generico_one_line(
+                            "No se encontraron resultados",
+                            modifier = Modifier,
+                            color = Color.Gray
+                        )
+                        spacer_vertical(10.dp)
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            texto_generico_one_line(
+                                "¿Conoces alguno?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+
+                }
             }
 
             is SearchViewModel.List_items_result.Cleared -> {}
@@ -556,10 +588,15 @@ fun ui_pantalla_busqueda(
 
 
         if (aler_dialog_contacto) {
-            val (llamada, whatsapp,long) = datos_numeros_salud_seguridad
+            val (llamada, whatsapp, long) = datos_numeros_salud_seguridad
             dialog_salud_seguridad_algolia(
                 long,
-                dialog_seguridad_salud_algolia(whatsapp,llamada,nombre_seguridad_salud, img_seguirdad_salud),
+                dialog_seguridad_salud_algolia(
+                    whatsapp,
+                    llamada,
+                    nombre_seguridad_salud,
+                    img_seguirdad_salud
+                ),
                 ondimis = { aler_dialog_contacto = false })
         }
 
@@ -652,6 +689,7 @@ fun ui_pantalla_busqueda(
             },
             seguridad_salud_selec = { select ->
                 salud_seguirdad = select
+                Log.d("salid_se", select)
             },
             click_carta_localidad = {
                 color_localidad = !color_localidad
@@ -678,6 +716,8 @@ fun ui_pantalla_busqueda(
             },
             click_carta_seguridad_delete = {
                 color_salud_seguirdad = false
+                Log.d("salid_se", "eliminadomosfiltrado")
+
             },
             click_carta_subcategoria = {
                 color_subcategoria = !color_subcategoria
@@ -1111,7 +1151,6 @@ fun FloatingBubble(
 
                                                 },
                                                 onClick_delete = {
-
                                                     click_carta_subcategoria_delete()
                                                     subcategoria_selecionada("")
                                                     mostrarChipsubcategoria.value = false
@@ -1134,10 +1173,12 @@ fun FloatingBubble(
                                                 seguidad_salud.ifEmpty { filtros.salud_seguridad },
                                                 clik_card = {
                                                     click_carta_seguridad()
-
                                                 },
                                                 onClick_delete = {
+                                                    Log.d("elimoasno_valo", "dealte")
                                                     seguridad_salud_selec("")
+                                                    categoria_Selecionada("")
+                                                    subcategoria_selecionada("")
                                                     click_carta_seguridad_delete()
                                                     mostrarChipsubcategoria.value = false
                                                     mostrarChipCategoria.value = false
@@ -1737,7 +1778,10 @@ fun filtrado_chips(
                     carta_selecionada = salud_seguirdad_valor,
                     filtrado = salud_seguirdad,
                     btn_visible = true,
-                    clik_card = { seguridad_salud_selec(salud_seguirdad) },
+                    clik_card = {
+                        seguridad_salud_selec(salud_seguirdad)
+                        Log.d("salud_segudad", salud_seguirdad)
+                    },
                     onClick_delete = {
                         categoria_selecionada_fun("")
                         subcateogira_selecionada_fun("")
@@ -1766,7 +1810,22 @@ fun filtrado_chips(
                         carta_selecionada = catSeleccionada,
                         filtrado = cat,
                         btn_visible = true,
-                        clik_card = { categoria_selecionada_fun(cat) },
+                        clik_card = {
+                            when (cat) {
+                                "salud" -> {
+                                    seguridad_salud_selec("salud")
+                                }
+
+                                "seguridad" -> {
+                                    seguridad_salud_selec("seguridad")
+                                }
+
+                                else -> {
+                                    categoria_selecionada_fun(cat)
+                                }
+                            }
+                            Log.d("select", cat)
+                        },
                         onClick_delete = {
                             categoria_selecionada_fun("")
                             subcateogira_selecionada_fun("")
@@ -2041,7 +2100,7 @@ fun ramdoBox(
     abrir_gogle_map: (Double, Double) -> Unit,
     iniciar_seccion_normal: () -> Unit,
     crear_cuenta_geinz: () -> Unit,
-    aler_dialog_contacto_fun: (lugar:String,nombre: String, img: String, id: String) -> Unit
+    aler_dialog_contacto_fun: (lugar: String, nombre: String, img: String, id: String) -> Unit
 ) {
     val heightOptions = listOf(300.dp, 350.dp)
     val estado_tienda_filter = estado_tienda?.get(i.id_tienda) == true
@@ -2079,7 +2138,7 @@ fun ramdoBox(
                             when {
                                 i.categoria == "seguridad" || i.categoria == "salud" -> {
                                     // Caso 1: seguridad o salud
-                                    aler_dialog_contacto_fun(i.lugar,i.nombre, i.img, i.id_tienda)
+                                    aler_dialog_contacto_fun(i.lugar, i.nombre, i.img, i.id_tienda)
                                 }
 
                                 firebaseAuth.currentUser != null -> {
@@ -2412,4 +2471,3 @@ fun AnimatedFabItem(
         }
     }
 }
-

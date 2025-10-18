@@ -70,36 +70,36 @@ fun bottom_sheet_mapa(
             FuenteControladaApp {
                 when (tipo) {
                     "turismo" -> {
-                        listado_items(
-                            seleccionadoId,
-                            cameraPositionState,
-                            lista = lista_filtrada_turismo,
-                            getId = { it.id_lugar_turistico },
-                            getLat = { it.latitud },
-                            getLng = { it.longitud },
-                            getLogo = { it.img_ref },
-                            getNombre = { it.titulo },
-                            getDescripcion = { it.descripcion },
-                            selecionado = { id ->
-                                selecionado_id(id.id_lugar_turistico)
-                                datos_selecionado_retornar(
-                                    dataclass_map(
-                                        id.id_lugar_turistico,
-                                        id.titulo,
-                                        id.subcategoria_filtrado,
-                                        lat_user,
-                                        log_user,
-                                        id.latitud,
-                                        id.longitud,
-                                        id.id_lugar_turistico,
-                                        "",
-                                        id.direcccion,
-                                        id.referencia
-                                    )
-                                )
-                            }
-
-                        )
+//                        listado_items(
+//                            seleccionadoId,
+//                            cameraPositionState,
+//                            lista = lista_filtrada_turismo,
+//                            getId = { it.id_lugar_turistico },
+//                            getLat = { it.latitud },
+//                            getLng = { it.longitud },
+//                            getLogo = { it.img_ref },
+//                            getNombre = { it.titulo },
+//                            getDescripcion = { it.descripcion },
+//                            selecionado = { id ->
+//                                selecionado_id(id.id_lugar_turistico)
+//                                datos_selecionado_retornar(
+//                                    dataclass_map(
+//                                        id.id_lugar_turistico,
+//                                        id.titulo,
+//                                        id.subcategoria_filtrado,
+//                                        lat_user,
+//                                        log_user,
+//                                        id.latitud,
+//                                        id.longitud,
+//                                        id.id_lugar_turistico,
+//                                        "",
+//                                        id.direcccion,
+//                                        id.referencia
+//                                    )
+//                                )
+//                            }
+//
+//                        )
 
                     }
 
