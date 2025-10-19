@@ -71,6 +71,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes.agregar_horario_tiendas
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes.listaDeTiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.agregar_lugares_turisticos
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_cordenadas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtener_seguridad
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
@@ -250,6 +252,11 @@ fun nativationWrapper(
 //                                }
 //
 //                            }
+//                            lista_cordenadas.forEach { i->
+//                                Log.d("cordenada","${geohashing(i.lat,i.longitud)}")
+//
+//                            }
+
 //                            Log.d("localidad_defautl_user", localidad)
                             navController.navigate(lugares_turisticos(localidad))
 //                            agregar_horario_tiendas(listaDeTiendas)

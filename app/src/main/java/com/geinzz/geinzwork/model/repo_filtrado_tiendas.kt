@@ -16,6 +16,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tiend
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
@@ -147,29 +148,6 @@ class repo_filtrado_tiendas {
         return lista_tiendas_filtradas
     }
 
-    private fun obtenerProximoDiaAbierto(
-        horario: Map<String, Any>,
-        diaActual: String
-    ): Pair<String, Map<String, Any>>? {
-        val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
-        val indiceActual = dias.indexOf(diaActual)
-
-        // Recorremos desde el siguiente día hasta completar la semana
-        for (i in 1..7) {
-            val indice = (indiceActual + i) % 7
-            val dia = dias[indice]
-            val horarioDia = horario[dia] as? Map<String, Any> ?: continue
-
-            val cerrado = horarioDia["cerrado"] as? Boolean ?: true
-            if (!cerrado) {
-                // Día abierto encontrado ✅
-                return Pair(dia, horarioDia)
-            }
-        }
-
-        // Si no encuentra ningún día abierto
-        return null
-    }
 
 
     suspend fun obtenner_campos_tiendas_espesifica(

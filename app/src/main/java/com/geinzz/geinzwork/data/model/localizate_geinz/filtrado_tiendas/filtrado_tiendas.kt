@@ -53,6 +53,18 @@ data class tiendas_por_categoria(
     var contacto_tienda: metodo_contacto_tienda
 ) : Parcelable
 
+data class lugares_cercanos(
+    val nombre_tienda: String = "",
+    val logo_tienda: String = "",
+    val categoria: String="",
+    val lista_subcategoiras: List<String> = emptyList(),
+    val id_tienda: String = "",
+    val pagado: Boolean,
+    val horario_dia: horario_tienda = horario_tienda(),
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
+    val esta_abierto: Boolean=false
+)
 
 @Parcelize
 data class horario_tienda(

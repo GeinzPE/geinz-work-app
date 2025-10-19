@@ -179,7 +179,7 @@ dependencies {
 
     // Motor HTTP Ktor para Android
     implementation("io.ktor:ktor-client-okhttp:2.0.1")
-
+    implementation("com.firebase:geofire-android:3.2.0")
     implementation("androidx.compose.foundation:foundation:1.9.1")
 
 

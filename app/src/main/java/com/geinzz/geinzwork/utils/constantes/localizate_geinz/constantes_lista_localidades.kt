@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.firebase.geofire.GeoFireUtils
+import com.firebase.geofire.GeoLocation
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
@@ -1982,7 +1984,18 @@ object constantes_lista_localidades {
             sitio_web = (this?.get("sitio_web") as? Map<String, Any>).toRed()
         )
     }
-
+    data class cordenasdas(val lat: Double,val  longitud: Double)
+val lista_cordenadas=listOf(
+    cordenasdas(-10.753678140767667,-77.7606940142457),
+    cordenasdas(-10.753678140767667,-77.7606940142457),
+    cordenasdas(-10.773781012257036,-77.75711758569838),
+    cordenasdas(-10.777492436839502,-77.75307261358448),
+    cordenasdas(-10.772871780783907,-77.75480232020463),
+    cordenasdas(-10.779266153712394,-77.75023528781286)
+)
+    fun geohashing(lat: Double,lon: Double): String{
+        return GeoFireUtils.getGeoHashForLocation(GeoLocation(lat, lon))
+    }
 
 
 
