@@ -531,6 +531,7 @@ fun TiempoRestanteCierre(
     cerrado: Boolean,
     motivo: String,
     pagado: Boolean,
+    max_line:Int=1,
     tick: Long,
     color: (Color) -> Unit
 ) {
@@ -552,7 +553,7 @@ fun TiempoRestanteCierre(
                 text = resultado.texto.capitalizeFirst(),
                 color = resultado.color,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
+                maxLines = max_line,
                 overflow = TextOverflow.Ellipsis
             )
             color(resultado.color)
@@ -564,6 +565,24 @@ fun TiempoRestanteCierre(
             style = MaterialTheme.typography.bodyMedium
         )
     }
+}
+
+@Composable
+fun texto_tiempo_restante(
+    horario_total: horario_tienda,
+    hCierre: String,
+    cerrado: Boolean,
+    motivo: String,
+    tick: Long,
+    txt: (String) -> Unit
+) {
+
+    Log.d("horario_total", horario_total.toString())
+    val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
+        derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
+    }
+    txt(resultado.texto.capitalizeFirst())
+
 }
 
 
@@ -839,12 +858,12 @@ fun item_tiendas(
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                     TiempoRestanteCierre(
-                        horario_tienda,
-                        horario_tienda.h_cierre,
-                        horario_tienda.cerrado,
-                        horario_tienda.motivo,
-                        item_tiendas.pagado,
-                        tick
+                        horario_total = horario_tienda,
+                        hCierre = horario_tienda.h_cierre,
+                        cerrado = horario_tienda.cerrado,
+                        motivo = horario_tienda.motivo,
+                        pagado = item_tiendas.pagado,
+                        max_line = 1, tick = tick
                     ) { color ->
                         estadoColor = color
                     }

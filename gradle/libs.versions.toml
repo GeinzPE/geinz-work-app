@@ -66,6 +66,7 @@ playServicesMaps = "19.2.0"
 uiTextVersion = "1.9.0"
 animationCore = "1.9.0"
 volley = "1.2.1"
+foundationLayout = "1.9.3"
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPagerIndicators" }
@@ -139,6 +140,7 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiTextVersion" }
 androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 
 
 [plugins]

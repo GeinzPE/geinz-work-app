@@ -496,6 +496,7 @@ fun perfil_cabezero(
             lista_tags,
             brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default),
             brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default)
+            , modifier = Modifier.padding(end = 40.dp)
         )
     }
 

@@ -107,7 +107,7 @@ class repo_filtrado_tiendas {
                 val hApertura = horarioDia["h_apertura"] as? String ?: ""
                 val hCierre = horarioDia["h_cierre"] as? String ?: ""
                 val motivo = horarioDia["motivo"] as? String ?: ""
-                              val contacto_obs = metodos_contacto.toMetodoContacto()
+                val contacto_obs = metodos_contacto.toMetodoContacto()
 
                 var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
                 val estaAbierto =

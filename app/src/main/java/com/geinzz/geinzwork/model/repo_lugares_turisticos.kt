@@ -8,6 +8,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -144,7 +145,8 @@ class repo_lugares_turisticos {
                     val hApertura = horarioDia["h_apertura"] as? String ?: ""
                     val hCierre = horarioDia["h_cierre"] as? String ?: ""
                     val motivo = horarioDia["motivo"] as? String ?: ""
-
+                    val metodos_contacto = doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+                    val contacto_obs = metodos_contacto.toMetodoContacto()
                     var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
                     val estaAbierto =
                         if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
@@ -164,7 +166,7 @@ class repo_lugares_turisticos {
                         GeoLocation(latitud.toDouble(), longitud.toDouble())
                     )
 
-                    if (distancia <= radiusInM && pagado) {
+                    if (distancia <= radiusInM  && pagado) {
                         Log.d("geoquery", "✅ ${doc.id} dentro del radio (${distancia.toInt()} m)")
                         tiendas.add(
                             lugares_cercanos(
@@ -176,7 +178,7 @@ class repo_lugares_turisticos {
                                 pagado = pagado,
                                 horario_dia = datos_horario_actual,
                                 latitud = latitud.toDouble(),
-                                longitud = longitud.toDouble(),estaAbierto
+                                longitud = longitud.toDouble(),estaAbierto,contacto_obs
                             )
                         )
                     } else {

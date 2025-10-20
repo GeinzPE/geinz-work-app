@@ -963,7 +963,6 @@ fun dialogo_lugar_tienda(
                     ) {
 
                         if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-
                         } else {
                             Row(
                                 modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
@@ -1125,12 +1124,12 @@ fun dialogo_lugar_tienda(
                             spacer_vertical(10.dp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 TiempoRestanteCierre(
-                                    dataclass_map.horario_tienda,
-                                    dataclass_map.horario_tienda.h_cierre,
-                                    dataclass_map.horario_tienda.cerrado,
-                                    dataclass_map.horario_tienda.motivo,
-                                    true,
-                                    tick
+                                    horario_total = dataclass_map.horario_tienda,
+                                    hCierre = dataclass_map.horario_tienda.h_cierre,
+                                    cerrado = dataclass_map.horario_tienda.cerrado,
+                                    motivo = dataclass_map.horario_tienda.motivo,
+                                    pagado = true,
+                                    max_line = 1,tick
                                 ) { color ->
                                     estadoColor = color
                                 }

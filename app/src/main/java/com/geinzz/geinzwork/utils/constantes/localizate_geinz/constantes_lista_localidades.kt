@@ -26,6 +26,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -42,6 +46,7 @@ import androidx.core.content.ContextCompat
 import com.firebase.geofire.GeoFireUtils
 import com.firebase.geofire.GeoLocation
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.botom_shet_turismobtn
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_localidad_escudos
@@ -51,6 +56,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_onboarding
 import com.geinzz.geinzwork.data.model.localizate_geinz.onboarding.dataclass_pantalla1
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.REQUEST_CALL_PHONE
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -75,6 +81,11 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Paramonga".lowercase(), R.drawable.escudo_paramonga),
         dataclass_localidad_escudos("Supe".lowercase(), R.drawable.escudo_supe),
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
+    )
+    val lista_turismo_bottom_sheet=listOf(
+        botom_shet_turismobtn("Ir al lugar",Icons.Filled.Place),
+        botom_shet_turismobtn("ver en mapa", Icons.Filled.Map),
+        botom_shet_turismobtn("compartir",Icons.Filled.Share)
     )
     val cat_sub_seguirar_salud = listOf("seguridad", "salud")
     val categorias_defaul = listOf(

@@ -1,0 +1,137 @@
+package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
+
+
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
+import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_cecanas_km
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.texto_tiempo_restante
+
+@Composable
+fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
+    var texto_cierre by remember { mutableStateOf("") }
+    texto_tiempo_restante(
+        item.horario_total,
+        item.hora_cierre,
+        item.cerrado,
+        item.motivo,
+        item.tick
+    ) { txt ->
+        Log.d("falta", txt)
+        texto_cierre = txt
+    }
+    val textoFinal = buildAnnotatedString {
+        withStyle(style = SpanStyle(color = Color.White)) {
+            append("Actualmente su horario indica: ")
+        }
+        withStyle(style = SpanStyle(color = item.color)) {
+            append(texto_cierre)
+        }
+    }
+
+
+    AlertDialog(
+        onDismissRequest = { ondimis() },
+        confirmButton = {
+            Button(onClick = {
+                ondimis()
+            }) {
+                texto_generico_one_line("Aceptar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { ondimis() }) {
+                texto_generico_one_line(
+                    "cerrar",
+                    MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        title = {},
+        text = {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(item.img_tienda)
+                            .size(40, 40)
+                            .crossfade(true)
+                            .placeholder(R.drawable.cargando_img_categorias)
+                            .error(R.drawable.cargando_img_categorias)
+                            .build(), contentDescription = "Imagen",
+                        modifier = Modifier
+                            .width(40.dp)
+                            .height(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    spacer_horizonta(10.dp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        texto_generico_one_line(item.nombre_tienda)
+                        spacer_horizonta(5.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(item.color)
+                        )
+                    }
+                }
+                spacer_vertical(10.dp)
+
+                texto_generico_multilinea(
+                    "A solo ${item.kl} de ${item.nombre_lugar}, encontrarás ${item.nombre_tienda}.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(5.dp)
+                Text(
+                    textoFinal, style = MaterialTheme.typography.bodyMedium,
+                )
+                spacer_vertical(5.dp)
+                texto_generico_multilinea(
+                    "Un lugar perfecto para disfrutar y descubrir lo mejor de la zona.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+    )
+
+
+}

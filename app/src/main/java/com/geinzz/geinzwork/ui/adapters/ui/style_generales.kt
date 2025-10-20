@@ -126,7 +126,8 @@ fun ImagenCollage(url: String?, modifier: Modifier = Modifier) {
         modifier = modifier
             .padding(2.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(Color.Transparent)
+
     ) {
         if (url != null && url.isNotEmpty()) {
             AsyncImage(
@@ -145,11 +146,12 @@ fun ImagenCollage(url: String?, modifier: Modifier = Modifier) {
             }
 
         } else {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(Color.LightGray)
-//            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Transparent)
+
+            )
         }
     }
 }
