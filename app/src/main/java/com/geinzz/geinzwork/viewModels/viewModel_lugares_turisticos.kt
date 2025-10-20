@@ -5,9 +5,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,6 +25,11 @@ class viewModel_lugares_turisticos : ViewModel() {
 
     private val _listaFiltrada = MutableStateFlow<List<lugares_turisticos>>(emptyList())
     val listaFiltrada: StateFlow<List<lugares_turisticos>> = _listaFiltrada
+
+    private val _state_carga_tiendas_cercanas =
+        MutableStateFlow<carga_tienda_cercanos>(carga_tienda_cercanos.loading)
+    val state_carga_tiendas_cercanas: StateFlow<carga_tienda_cercanos> =
+        _state_carga_tiendas_cercanas
 
     var lugares_turisticos = mutableListOf<lugares_turisticos>()
         private set
@@ -41,6 +48,32 @@ class viewModel_lugares_turisticos : ViewModel() {
                 categorias_filtrado.value = emptyList()
             }
         }
+    }
+
+    fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
+        viewModelScope.launch {
+            _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
+            delay(250)
+            try {
+                repo_lugares.obtenerTiendasCercanas(lat, long, radio, localida) { it,lista_categoria ->
+                    if (it.isNotEmpty() && lista_categoria.isNotEmpty()) {
+                        Log.d("encontramos_cal",lista_categoria.toString())
+                        _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.succes(it)
+                    } else {
+                        _state_carga_tiendas_cercanas.value =
+                            carga_tienda_cercanos.empty("No se encontraron tiendas cercanas en el radio de $radio Km")
+                    }
+                }
+
+            } catch (e: Exception) {
+                _state_carga_tiendas_cercanas.value =
+                    carga_tienda_cercanos.empty("Error al encontrar tiendas")
+            }
+        }
+    }
+
+    fun limpiar_tiendas_cercanas() {
+        _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
     }
 
 
@@ -74,5 +107,13 @@ class viewModel_lugares_turisticos : ViewModel() {
             "Lista filtrada por '$subcategoria': ${_listaFiltrada.value.map { it.titulo }}"
         )
     }
+
+    sealed class carga_tienda_cercanos {
+        data class succes(val lista_lugares: List<lugares_cercanos>) : carga_tienda_cercanos()
+        object loading : carga_tienda_cercanos()
+        data class error(val texto: String) : carga_tienda_cercanos()
+        data class empty(val txt: String) : carga_tienda_cercanos()
+    }
+
 
 }

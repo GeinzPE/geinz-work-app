@@ -36,6 +36,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ZoomableImageDialogFullScreen
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
 
@@ -77,26 +78,27 @@ fun GrupoCollageGoogle(aspectRatio: Float,
         modifier = Modifier
             .width(with)
             .aspectRatio(aspectRatio)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(12.dp))
+
     ) {
         // Imagen grande
-        ImagenCollage(
 
+        ImagenCollage(
             url = imagenes.getOrNull(0),
             modifier = Modifier
                 .weight(2f)
                 .fillMaxHeight()
         )
 
+
         // Dos pequeñas en columna
         Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .fillMaxHeight().padding(horizontal = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             ImagenCollage(
-
                 url = imagenes.getOrNull(1),
                 modifier = Modifier
                     .weight(1f)
