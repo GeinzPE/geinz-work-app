@@ -58,7 +58,7 @@ class viewModel_lugares_turisticos : ViewModel() {
                 repo_lugares.obtenerTiendasCercanas(lat, long, radio, localida) { it,lista_categoria ->
                     if (it.isNotEmpty() && lista_categoria.isNotEmpty()) {
                         Log.d("encontramos_cal",lista_categoria.toString())
-                        _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.succes(it)
+                        _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.succes(it,lista_categoria)
                     } else {
                         _state_carga_tiendas_cercanas.value =
                             carga_tienda_cercanos.empty("No se encontraron tiendas cercanas en el radio de $radio Km")
@@ -109,7 +109,7 @@ class viewModel_lugares_turisticos : ViewModel() {
     }
 
     sealed class carga_tienda_cercanos {
-        data class succes(val lista_lugares: List<lugares_cercanos>) : carga_tienda_cercanos()
+        data class succes(val lista_lugares: List<lugares_cercanos>,val lista_categorias: List<String>) : carga_tienda_cercanos()
         object loading : carga_tienda_cercanos()
         data class error(val texto: String) : carga_tienda_cercanos()
         data class empty(val txt: String) : carga_tienda_cercanos()

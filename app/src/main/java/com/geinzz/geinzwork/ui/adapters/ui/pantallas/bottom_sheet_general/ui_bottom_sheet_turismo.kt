@@ -94,6 +94,7 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -241,6 +242,7 @@ fun card_img_container(
     var nueva_busqueda by remember { mutableStateOf(1.0f) }
     var mostrar_slider by remember { mutableStateOf(false) }
     var expandedItemId by remember { mutableStateOf<String?>(null) }
+    var sub_categoria_selecionada by remember { mutableStateOf("") }
 
 
 
@@ -380,7 +382,7 @@ fun card_img_container(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(270.dp), contentAlignment = Alignment.Center
+                .height(320.dp), contentAlignment = Alignment.Center
         ) {
             when (val state = lista_items) {
                 is viewModel_lugares_turisticos.carga_tienda_cercanos.loading -> {
@@ -408,75 +410,98 @@ fun card_img_container(
                 }
 
                 is viewModel_lugares_turisticos.carga_tienda_cercanos.succes -> {
-                    val listaOrdenada = state.lista_lugares.sortedWith(
-                        compareByDescending { it.esta_abierto }
-                    )
-                    LazyRow(
-                        modifier = Modifier.fillMaxSize(),
-                        state = listState,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 8.dp)
-                    ) {
-                        items(listaOrdenada, key = { it.id_tienda }) { item ->
-                            item_cercanos(
-                                expanded = expandedItemId == item.id_tienda,
-                                tick,
-                                datos = datos,
-                                item = item,
-                                onExpand = { id ->
-                                    expandedItemId = if (expandedItemId == id) null else id
-                                },
-                                clik_card = { id, localidad, color ->
-                                    coroutineScope.launch {
-                                        clik_card(id, localidad, color)
+                    val lista_subcat= listOf("Todos") + state.lista_categorias
+                    Column {
+                        val listaOrdenada = state.lista_lugares.sortedWith(
+                            compareByDescending { it.esta_abierto }
+                        )
+
+                        spacer_vertical(10.dp)
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            state = listState,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 8.dp)
+                        ) {
+                            items(listaOrdenada, key = { it.id_tienda }) { item ->
+                                item_cercanos(
+                                    expanded = expandedItemId == item.id_tienda,
+                                    tick,
+                                    datos = datos,
+                                    item = item,
+                                    onExpand = { id ->
+                                        expandedItemId = if (expandedItemId == id) null else id
+                                    },
+                                    clik_card = { id, localidad, color ->
+                                        coroutineScope.launch {
+                                            clik_card(id, localidad, color)
+                                        }
+                                    },
+                                    clik_icono = { i ->
+                                        when (i.nombre_red) {
+                                            "llamar" -> {
+                                                llamar(context, i.valor, {
+                                                    call_dialog_permise = true
+                                                    numero_llamada = i.valor
+                                                })
+                                            }
+
+                                            "whatsapp" -> {
+                                                abrir_whattsapp(context, i.valor)
+                                            }
+
+                                            "tiktok" -> {
+                                                openTiktok(
+                                                    context, i.valor
+                                                )
+                                            }
+
+                                            "facebook" -> {
+                                                openFacebook(
+                                                    context, i.valor
+                                                )
+                                            }
+
+                                            "instagram" -> {
+                                                openInstagram(
+                                                    context, i.valor
+                                                )
+                                            }
+
+                                            "Web" -> {
+                                                openWebLink(
+                                                    context, i.valor
+                                                )
+                                            }
+
+                                        }
+                                    },
+                                    click_crear_ruta = { lat, log ->
+                                        lat_tienda = lat
+                                        long_tienda = log
+                                        dialog_Crear_ruta = true
+                                    })
+                            }
+                        }
+                        spacer_vertical(10.dp)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            Log.d("obyenossub","${lista_subcat.size}")
+                            items(lista_subcat) { i ->
+                                val selecionado = sub_categoria_selecionada == i
+                                chisp_filtrado_busqueda(selecionado, i, false, clik_card = {}) { }
+                                if (!selecionado) {
+//                                expandir_carta(true)
+                                    if (i == "Todos") {
+//                                    expandir_carta(false)
+//                                    selecionado("Todos")
+                                    } else {
+//                                    selecionado(subcategorias)
                                     }
-                                },
-                                clik_icono = { i ->
-                                    when (i.nombre_red) {
-                                        "llamar" -> {
-                                            llamar(context, i.valor, {
-                                                call_dialog_permise = true
-                                                numero_llamada = i.valor
-                                            })
-                                        }
-
-                                        "whatsapp" -> {
-                                            abrir_whattsapp(context, i.valor)
-                                        }
-
-                                        "tiktok" -> {
-                                            openTiktok(
-                                                context, i.valor
-                                            )
-                                        }
-
-                                        "facebook" -> {
-                                            openFacebook(
-                                                context, i.valor
-                                            )
-                                        }
-
-                                        "instagram" -> {
-                                            openInstagram(
-                                                context, i.valor
-                                            )
-                                        }
-
-                                        "Web" -> {
-                                            openWebLink(
-                                                context, i.valor
-                                            )
-                                        }
-
-                                    }
-                                },
-                                click_crear_ruta = { lat, log ->
-                                    lat_tienda = lat
-                                    long_tienda = log
-                                    dialog_Crear_ruta = true
-                                })
+                                }
+                            }
                         }
                     }
+
                 }
             }
         }
