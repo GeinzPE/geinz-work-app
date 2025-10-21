@@ -18,6 +18,86 @@ import java.util.Calendar
 class repo_lugares_turisticos {
     val db = FirebaseFirestore.getInstance()
 
+
+    suspend fun obtener_lugares_turisticos(localidad: String): List<lugares_turisticos> {
+        Log.d("localida_pasada", localidad)
+        val lista_lugares = mutableListOf<lugares_turisticos>()
+        val lugares_turisticos =
+            db.collection("Tiendas").document(localidad.lowercase())
+                .collection("lugares_turisticos")
+                .get().await()
+        for (datos in lugares_turisticos) {
+            val data = datos.data
+            val id = data?.get("id") as? String ?: ""
+            val titulo = data?.get("titulo") as? String ?: ""
+            val descripcion = data?.get("descripcion") as? String ?: ""
+            val img_refencia = data?.get("img") as? Map<String, Any> ?: emptyMap()
+            val lista_img_ref = img_refencia?.get("lista_img") as? List<String> ?: emptyList()
+            val img_principal = img_refencia?.get("principal") as? String ?: ""
+            val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+            val dirección = ubicacion?.get("dirección") as? String ?: ""
+            val referencia = ubicacion?.get("referencia") as? String ?: ""
+            val longitud = ubicacion?.get("longitud") as? Number ?: 0
+            val latitud = ubicacion?.get("latitud") as? Number ?: 0
+            val lista_categorias = data?.get("categoria") as? List<String> ?: emptyList()
+
+            val lista = lugares_turisticos(
+                id,
+                titulo,
+                descripcion,
+                lista_img_ref, img_principal,
+                dirección,
+                referencia,
+                latitud.toDouble(),
+                longitud.toDouble(), lista_categorias
+            )
+            lista_lugares.add(lista)
+        }
+
+        return lista_lugares
+    }
+
+    suspend fun get_lugar_turistico(localidad: String, id: String): lugares_turisticos {
+        val docSnapshot = db.collection("Tiendas")
+            .document(localidad.lowercase())
+            .collection("lugares_turisticos")
+            .document(id)
+            .get()
+            .await()
+
+        if (!docSnapshot.exists()) lugares_turisticos()
+
+        val data = docSnapshot.data
+        val id = data?.get("id") as? String ?: ""
+        val titulo = data?.get("titulo") as? String ?: ""
+        val descripcion = data?.get("descripcion") as? String ?: ""
+        val img_refencia = data?.get("img") as? Map<String, Any> ?: emptyMap()
+        val lista_img_ref = img_refencia?.get("lista_img") as? List<String> ?: emptyList()
+        val img_principal = img_refencia?.get("principal") as? String ?: ""
+        val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+        val dirección = ubicacion?.get("dirección") as? String ?: ""
+        val referencia = ubicacion?.get("referencia") as? String ?: ""
+        val longitud = ubicacion?.get("longitud") as? Number ?: 0
+        val latitud = ubicacion?.get("latitud") as? Number ?: 0
+        val lista_categorias = data?.get("categoria") as? List<String> ?: emptyList()
+
+
+        // ✅ Retornamos el objeto completo
+        return lugares_turisticos(
+            id_lugar_turistico = id,
+            titulo = titulo,
+            descripcion = descripcion,
+            lista_img = lista_img_ref,
+            img_principal = img_principal,
+            direcccion = dirección,
+            referencia = referencia,
+            latitud = latitud.toDouble(),
+            longitud = longitud.toDouble(),
+            subcategoria_filtrado = lista_categorias
+        )
+    }
+
+
     suspend fun obtener_filtrado_lugares(): List<String> {
         val lista_filtrado = mutableListOf<String>()
         val lugares = db.collection("Tiendas")

@@ -18,8 +18,6 @@ class viewModel_principal_geinz_work : ViewModel() {
     val instacia = repo_principal_geinz_work()
     val instacia_repo_cat_sub = repo_agregar_cat_sub_localizate()
 
-    private val lugares_turisiticos = MutableLiveData<List<lugares_turisticos>>()
-    val _lugares_turisticos: LiveData<List<lugares_turisticos>> get() = lugares_turisiticos
 
     private val sub_cat_tiendas =
         MutableLiveData<List<com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub>>()
@@ -41,16 +39,6 @@ class viewModel_principal_geinz_work : ViewModel() {
         obtner_filtrado_localidades()
     }
 
-
-    fun lugares_turisticos(localidad: String) {
-        viewModelScope.launch {
-            try {
-                lugares_turisiticos.value = instacia.obtener_lugares_turisticos(localidad)
-            } catch (e: Exception) {
-                lugares_turisiticos.value = emptyList()
-            }
-        }
-    }
 
 //    fun obtener_datos_user_registrado(id_user: String) {
 //        viewModelScope.launch {

@@ -118,10 +118,12 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -130,6 +132,7 @@ import kotlin.math.roundToInt
 @Composable
 fun bottom_sheet_lugares_turisticos(
     datos: lugares_turisticos,
+    visible: Boolean,
     onClose: () -> Unit,
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
@@ -144,9 +147,12 @@ fun bottom_sheet_lugares_turisticos(
     val state_tiendas_cercanas by viewmodel_turismo.state_carga_tiendas_cercanas.collectAsState()
     val tick by viewmodel_filtrado.tick.collectAsState()
 
-    val nueva_busqueda by remember { mutableFloatStateOf(0f) }
+    var nueva_busqueda by remember { mutableFloatStateOf(0f) }
     var buscar_nuevamente by remember { mutableStateOf(false) }
     var radioAnterior by remember { mutableStateOf(1.0) }
+    var lista_base by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
+    var lista_subacteogorias by remember { mutableStateOf(emptyList<String>()) }
+    var subcategoriatienda_select by remember { mutableStateOf("") }
 
 
     LaunchedEffect(mostrar_bottom_datos) {
@@ -161,49 +167,81 @@ fun bottom_sheet_lugares_turisticos(
             dataclass_tienda_seleccionada = datosTienda!!.first()
         }
     }
+
     LaunchedEffect(datos.id_lugar_turistico) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
         viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
+
     }
-    Surface {
-        ModalBottomSheet(
-            onDismissRequest = { onClose() },
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.background
-        ) {
+    var cargando by remember { mutableStateOf(true) }
 
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 20.dp)
-            ) {
-                card_img_container(
-                    firebaseAuth1 = firebaseAuth,
-                    datos = datos,
-                    tick = tick,
-                    lista_items = state_tiendas_cercanas,
-                    clik_card = { id, localidad, color ->
-                        mostrar_bottom_datos = true
-                        id_tienda = id
-                        localida_tienda = localidad
-                        color_estado_tienda = color
-                    },
-                    buscar_nuevas_tiendas = { radio ->
-                        if (radio != radioAnterior) {
-                            radioAnterior = radio
-                            viewmodel_turismo.obtener_tiendas_cercanas(
-                                datos.latitud,
-                                datos.longitud,
-                                radio,
-                                "barranca"
-                            )
-                        }
-                    })
-            }
+    LaunchedEffect(visible) {
+        if (visible) {
+            cargando = true
+            delay(2000)
+            cargando = false
         }
     }
+
+    ModalBottomSheet(
+        onDismissRequest = { onClose() },
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
+        if (cargando) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material.CircularProgressIndicator()
+            }
+        } else {
+            AnimatedVisibility(visible = true) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 20.dp)
+                ) {
+                    card_img_container(
+                        firebaseAuth1 = firebaseAuth,
+                        datos = datos,
+                        tick = tick,
+                        lista_items = state_tiendas_cercanas,
+                        clik_card = { id, localidad, color ->
+                            mostrar_bottom_datos = true
+                            id_tienda = id
+                            localida_tienda = localidad
+                            color_estado_tienda = color
+                        },
+                        buscar_nuevas_tiendas = { radio ->
+                            if (radio != radioAnterior) {
+                                radioAnterior = radio
+                                viewmodel_turismo.obtener_tiendas_cercanas(
+                                    datos.latitud,
+                                    datos.longitud,
+                                    radio,
+                                    "barranca"
+                                )
+                            }
+                        }, lista_base = { lista_baseparams, lista_sub ->
+                            lista_base = lista_baseparams
+                            lista_subacteogorias = lista_sub
+                        }, subcategoria_seleciondafun = { i ->
+                            subcategoriatienda_select = i
+                            viewmodel_turismo.filtrar_por_subcategoria(lista_subacteogorias, i)
+                        }, nuevo_rango_km = { rango ->
+                            nueva_busqueda = rango
+                        })
+                }
+            }
+        }
+
+
+    }
+
 
 
     if (mostrar_bottom_datos) {
@@ -227,8 +265,12 @@ fun card_img_container(
     tick: Long,
     lista_items: viewModel_lugares_turisticos.carga_tienda_cercanos,
     clik_card: (String, String, Color) -> Unit,
-    buscar_nuevas_tiendas: (Double) -> Unit
+    buscar_nuevas_tiendas: (Double) -> Unit,
+    lista_base: (List<lugares_cercanos>, List<String>) -> Unit,
+    subcategoria_seleciondafun: (String) -> Unit,
+    nuevo_rango_km: (Float) -> Unit
 ) {
+
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -238,12 +280,17 @@ fun card_img_container(
     var long_tienda by remember { mutableStateOf(0.0) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
-
     var nueva_busqueda by remember { mutableStateOf(1.0f) }
     var mostrar_slider by remember { mutableStateOf(false) }
+    var mostar_filtrado_categorias by remember { mutableStateOf(false) }
     var expandedItemId by remember { mutableStateOf<String?>(null) }
-    var sub_categoria_selecionada by remember { mutableStateOf("") }
+    var sub_categoria_selecionada by remember { mutableStateOf("Todos") }
 
+    var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
+
+    LaunchedEffect(sub_categoria_selecionada) {
+        subcategoria_seleciondafun(sub_categoria_selecionada)
+    }
 
 
     Card(
@@ -304,14 +351,28 @@ fun card_img_container(
             }
 
             spacer_vertical(10.dp)
+
             val annotatedText = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.White)) {
+                    append("Descubre sitios cercanos a ${datos.titulo} ")
+                }
+
+                pushStringAnnotation(tag = "filtrar", annotation = "filtrar")
                 withStyle(
                     style = SpanStyle(
-                        color = Color.White
+                        textDecoration = TextDecoration.Underline,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
                 ) {
-                    append("Descubre sitios cercanos a ${datos.titulo} y disfruta lo mejor a menos de ")
+                    append("filtra")
                 }
+                pop()
+
+                withStyle(style = SpanStyle(color = Color.White)) {
+                    append(" y disfruta lo mejor a menos de ")
+                }
+
                 pushStringAnnotation(tag = "RADIO", annotation = nueva_busqueda.toInt().toString())
                 withStyle(
                     style = SpanStyle(
@@ -329,52 +390,108 @@ fun card_img_container(
                 text = annotatedText,
                 style = MaterialTheme.typography.bodyMedium,
                 onClick = { offset ->
+
+                    annotatedText.getStringAnnotations(
+                        tag = "filtrar",
+                        start = offset,
+                        end = offset
+                    )
+                        .firstOrNull()?.let { _ ->
+                            println("Se hizo clic en filtrar")
+                            mostrar_slider = false
+                            mostar_filtrado_categorias = !mostar_filtrado_categorias
+                        }
+
                     annotatedText.getStringAnnotations(tag = "RADIO", start = offset, end = offset)
                         .firstOrNull()?.let { annotation ->
+                            mostar_filtrado_categorias = false
                             mostrar_slider = !mostrar_slider
+
                         }
                 }
             )
 
+
+
             spacer_vertical(10.dp)
-            AnimatedVisibility(mostrar_slider, enter = fadeIn(), exit = fadeOut()) {
-                Column() {
-                    Slider(
-                        value = nueva_busqueda,
-                        onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
-                        valueRange = 1f..10f,
-                        steps = 8,
-                        onValueChangeFinished = {
-                            buscar_nuevas_tiendas(nueva_busqueda.toDouble())
-                        },
-                        colors = SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
-                            activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
-                            inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // 🔹 Color de la línea inactiva (parte a la derecha del thumb)
-                            activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
-                            inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
-                        ),
-                        thumb = {
-                            // Nuestra bolita blanca sin borde negro
-                            Box(
-                                modifier = Modifier
-                                    .size(25.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White), contentAlignment = Alignment.Center
-                            ) {
-                                texto_generico_one_line(
-                                    nueva_busqueda.toInt().toString(),
-                                    color = Color.Black,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                    )
+            Box() {
+                this@Column.AnimatedVisibility(mostrar_slider, enter = fadeIn(), exit = fadeOut()) {
+                    Column() {
+                        Slider(
+                            value = nueva_busqueda,
+                            onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            onValueChangeFinished = {
+                                buscar_nuevas_tiendas(nueva_busqueda.toDouble())
+                                nuevo_rango_km(nueva_busqueda)
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
+                                activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
+                                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // 🔹 Color de la línea inactiva (parte a la derecha del thumb)
+                                activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
+                                inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
+                            ),
+                            thumb = {
+                                // Nuestra bolita blanca sin borde negro
+                                Box(
+                                    modifier = Modifier
+                                        .size(25.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    texto_generico_one_line(
+                                        nueva_busqueda.toInt().toString(),
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                        )
 
 
+                    }
+                }
+                this@Column.AnimatedVisibility(
+                    mostar_filtrado_categorias,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        items(lista_string_filtrado_tiendas) { i ->
+                            val selecionado = sub_categoria_selecionada == i
+                            Log.d("selecionad", "$sub_categoria_selecionada == $i")
+                            chisp_filtrado_busqueda(
+                                selecionado,
+                                simplificarCategoria(i),
+                                false,
+                                clik_card = {
+                                    coroutineScope.launch {
+
+                                    if (!selecionado) {
+                                        if (i == "Todos") {
+                                            sub_categoria_selecionada = "Todos"
+                                            listState.scrollToItem(0)
+                                        } else {
+                                            sub_categoria_selecionada = i
+
+                                            listState.scrollToItem(0)
+                                        }
+                                    }
+                                    }
+                                },
+                                onClick_delete = {},
+                                true,
+                                40.dp
+                            )
+
+                        }
+                    }
                 }
             }
 
@@ -382,7 +499,7 @@ fun card_img_container(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp), contentAlignment = Alignment.Center
+                .height(270.dp), contentAlignment = Alignment.Center
         ) {
             when (val state = lista_items) {
                 is viewModel_lugares_turisticos.carga_tienda_cercanos.loading -> {
@@ -410,7 +527,9 @@ fun card_img_container(
                 }
 
                 is viewModel_lugares_turisticos.carga_tienda_cercanos.succes -> {
-                    val lista_subcat= listOf("Todos") + state.lista_categorias
+                    lista_base(state.lista_lugares, state.lista_categorias)
+                    val lista_subcat = listOf("Todos") + state.lista_categorias
+                    lista_string_filtrado_tiendas = lista_subcat
                     Column {
                         val listaOrdenada = state.lista_lugares.sortedWith(
                             compareByDescending { it.esta_abierto }
@@ -483,25 +602,7 @@ fun card_img_container(
                                     })
                             }
                         }
-                        spacer_vertical(10.dp)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Log.d("obyenossub","${lista_subcat.size}")
-                            items(lista_subcat) { i ->
-                                val selecionado = sub_categoria_selecionada == i
-                                chisp_filtrado_busqueda(selecionado, i, false, clik_card = {}) { }
-                                if (!selecionado) {
-//                                expandir_carta(true)
-                                    if (i == "Todos") {
-//                                    expandir_carta(false)
-//                                    selecionado("Todos")
-                                    } else {
-//                                    selecionado(subcategorias)
-                                    }
-                                }
-                            }
-                        }
                     }
-
                 }
             }
         }

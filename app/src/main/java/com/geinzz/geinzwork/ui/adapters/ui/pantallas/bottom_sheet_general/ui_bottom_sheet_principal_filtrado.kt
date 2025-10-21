@@ -12,7 +12,11 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +35,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
@@ -59,6 +65,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -82,6 +89,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
@@ -146,7 +154,6 @@ fun bottom_sheet_tiendas_filtradas(
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
 
 
-
     var cargando by remember { mutableStateOf(true) }
 
     LaunchedEffect(visible) {
@@ -187,7 +194,12 @@ fun bottom_sheet_tiendas_filtradas(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 10.dp, bottom = 12.dp , start = 10.dp , end = 10.dp),
+                                    .padding(
+                                        top = 10.dp,
+                                        bottom = 12.dp,
+                                        start = 10.dp,
+                                        end = 10.dp
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Box(
@@ -290,10 +302,9 @@ fun bottom_sheet_tiendas_filtradas(
 }
 
 
-
 @Composable
 fun cabezero_tiendas(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     estadoColor: Color,
     direccion: String,
     referencia: String,
@@ -362,7 +373,7 @@ fun cabezero_tiendas(
                 { mostrarDialogozoom = true })
 
             AnimatedVisibility(expdir_img, modifier = Modifier.clip(RoundedCornerShape(12.dp))) {
-                CollageGoogleMapsStyle(imagenes=lista_img)
+                CollageGoogleMapsStyle(imagenes = lista_img)
 //                LazyRow(
 //                    modifier = Modifier
 //                        .fillMaxWidth()
@@ -401,7 +412,7 @@ fun cabezero_tiendas(
 
 @Composable
 fun perfil_img_zooom(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     img_tienda_perfil: String,
     expandido: () -> Unit,
     mostrarDialogozoom: () -> Unit
@@ -495,8 +506,8 @@ fun perfil_cabezero(
         tags_subcateogiras(
             lista_tags,
             brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default),
-            brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default)
-            , modifier = Modifier.padding(end = 40.dp)
+            brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default),
+            modifier = Modifier.padding(end = 40.dp)
         )
     }
 
@@ -533,12 +544,12 @@ fun abrir_google_maps(
 
 @Composable
 fun Expandible_descripcion_tienda(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     descipcion_tienda: String,
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    Cartas_expandibles (modifier= modifier){
+    Cartas_expandibles(modifier = modifier) {
         Column() {
             expandibles_wrapp(
                 "Descripcion",
@@ -564,7 +575,7 @@ fun Expandible_descripcion_tienda(
 
 @Composable
 fun Expandible_direccion_ref(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     direccion: String,
     referencia: String,
     fisica_virtual: String,
@@ -591,11 +602,11 @@ fun Expandible_direccion_ref(
                             vertical = 8.dp
                         )
                 ) {
-                    text_expandible_wrapp(texto="Dirección : $direccion")
+                    text_expandible_wrapp(texto = "Dirección : $direccion")
                     spacer_vertical(10.dp)
-                    text_expandible_wrapp(texto="Referencia : $referencia")
+                    text_expandible_wrapp(texto = "Referencia : $referencia")
                     spacer_vertical(10.dp)
-                    text_expandible_wrapp(texto="Tipo de tienda : $fisica_virtual")
+                    text_expandible_wrapp(texto = "Tipo de tienda : $fisica_virtual")
                     spacer_vertical(10.dp)
                 }
             }
@@ -606,15 +617,15 @@ fun Expandible_direccion_ref(
 
 @Composable
 fun Expandible_Metodo_contacto(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     expandido: Boolean,
     metodos_contactos: metodo_contacto_tienda,
     onClickExpand: () -> Unit
 ) {
-    val context=LocalContext.current
+    val context = LocalContext.current
     var call_dialog_permise by remember { mutableStateOf(false) }
     var numero_llamada by remember { mutableStateOf("") }
-    Cartas_expandibles (modifier=modifier){
+    Cartas_expandibles(modifier = modifier) {
         Column {
             expandibles_wrapp(
                 "Metodos de contacto",
@@ -636,7 +647,7 @@ fun Expandible_Metodo_contacto(
                         item_metodo_contacto(
                             R.drawable.whatsapp_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.whatsapp.numero)
-                        ){
+                        ) {
                             abrir_whattsapp(context, metodos_contactos.whatsapp.numero)
                         }
                     }
@@ -644,7 +655,7 @@ fun Expandible_Metodo_contacto(
                         item_metodo_contacto(
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
-                        ){
+                        ) {
 
                             llamar(context, metodos_contactos.llamada.numero, {
                                 call_dialog_permise = true
@@ -658,31 +669,31 @@ fun Expandible_Metodo_contacto(
                         item_metodo_contacto(
                             R.drawable.tik_tok_icon,
                             metodos_contactos.tiktok.nombre
-                        ){
-                            openTiktok(context,metodos_contactos.tiktok.url)
+                        ) {
+                            openTiktok(context, metodos_contactos.tiktok.url)
                         }
                     }
                     if (metodos_contactos.sitio_web.estado) {
                         item_metodo_contacto(
                             R.drawable.web_icon,
                             metodos_contactos.sitio_web.nombre
-                        ){
-                            openWebLink(context,metodos_contactos.sitio_web.url)
+                        ) {
+                            openWebLink(context, metodos_contactos.sitio_web.url)
                         }
                     }
                     if (metodos_contactos.instagram.estado) {
                         item_metodo_contacto(
                             R.drawable.instagram_icon,
                             metodos_contactos.instagram.nombre
-                        ){
-                            openInstagram(context,metodos_contactos.instagram.url)
+                        ) {
+                            openInstagram(context, metodos_contactos.instagram.url)
                         }
                     }
                     if (metodos_contactos.facebook.estado) {
                         item_metodo_contacto(
                             R.drawable.facebook_icon,
                             metodos_contactos.facebook.nombre
-                        ){
+                        ) {
                             openFacebook(context, metodos_contactos.facebook.url)
                         }
                     }
@@ -703,7 +714,7 @@ fun Expandible_Metodo_contacto(
 
 @Composable
 fun Expandible_qr_tienda(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     id_tienda: String,
     latitud: Double,
     longitud: Double,
@@ -719,7 +730,7 @@ fun Expandible_qr_tienda(
     val generar_qr_tienda_id = remember(id_tienda, latitud, longitud) {
         retornar_id_Tienda_lugar(id_tienda, latitud, longitud)
     }
-    Cartas_expandibles (modifier = modifier){
+    Cartas_expandibles(modifier = modifier) {
         Column {
             expandibles_wrapp(
                 "QR de Tienda",
@@ -748,7 +759,7 @@ fun Expandible_qr_tienda(
 }
 
 @Composable
-fun item_metodo_contacto(icono_red: Int, texto: String,click_icon:()-> Unit) {
+fun item_metodo_contacto(icono_red: Int, texto: String, click_icon: () -> Unit) {
     var context = LocalContext.current
     spacer_vertical(5.dp)
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -811,7 +822,7 @@ fun texto_expandido_wrapp_sin_max_line(
 
 @Composable
 fun Expandible_horario_atencion(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     horario_atencion: HorarioAtencion,
     estadoColor: Color,
     localidad_tienda: String?,

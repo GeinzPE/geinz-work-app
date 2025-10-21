@@ -112,6 +112,7 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salud_algolia
+import com.geinzz.geinzwork.data.model.localizate_geinz.botom_shet_turismobtn
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -126,6 +127,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_luga
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_salud_seguridad_algolia
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -167,7 +169,6 @@ fun ui_pantalla_busqueda(
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-    val lista_encontrada_items by viewModel.lista_encontrada.collectAsState()
     val items: List<Item>
     val categorias: List<String>
     when (state) {
@@ -191,6 +192,8 @@ fun ui_pantalla_busqueda(
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
+    val datos_lugares_turisticos by viewModelFiltros.instance_lugar_turistico.collectAsState()
+
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
 
@@ -244,6 +247,10 @@ fun ui_pantalla_busqueda(
     var localidad_seguridad_salud by remember { mutableStateOf("") }
     var id_seguridad_salud by remember { mutableStateOf("") }
     var img_seguirdad_salud by remember { mutableStateOf("") }
+
+    var id_lugar_turistico_select by remember { mutableStateOf("") }
+    var localdad_llugar_turistico by remember { mutableStateOf("") }
+    var bottom_sheet_turismo by remember { mutableStateOf(false) }
 
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
@@ -335,8 +342,17 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
             viewModelFiltros.obtener_campos_tiendas_por_id(
-                localidad_tienda_seklecioanda ?: "barranca",
+                localidad_tienda_seklecioanda,
                 id_tienda_selecionada
+            )
+        }
+    }
+
+    LaunchedEffect(bottom_sheet_turismo) {
+        if (bottom_sheet_turismo) {
+            viewModelFiltros.obtener_datos_lugares_turisticos(
+                id_lugar_turistico_select,
+                localdad_llugar_turistico
             )
         }
     }
@@ -490,6 +506,10 @@ fun ui_pantalla_busqueda(
                         id_tienda_selecionada = id
                         viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
                         show_bottom_sheeet = true
+                    }, listner_carta_turismo = { id, localidad ->
+                        id_lugar_turistico_select = id
+                        localdad_llugar_turistico = localidad
+                        bottom_sheet_turismo = true
                     },
                     abrir_gogle_map = { lat, log ->
                         dialog_Crear_ruta = true
@@ -537,7 +557,7 @@ fun ui_pantalla_busqueda(
                             modifier = Modifier,
                             color = Color.Gray
                         )
-                    }else{
+                    } else {
                         texto_generico_one_line(
                             "No se encontraron resultados",
                             modifier = Modifier,
@@ -634,6 +654,10 @@ fun ui_pantalla_busqueda(
             ) {
                 show_bottom_sheeet = false
             }
+        }
+
+        if (bottom_sheet_turismo) {
+            bottom_sheet_lugares_turisticos(datos_lugares_turisticos,bottom_sheet_turismo,{ bottom_sheet_turismo = false })
         }
 
         Box(
@@ -2097,6 +2121,7 @@ fun ramdoBox(
     i: Item,
     index: Int,
     listener_carta: (String, String, Color) -> Unit,
+    listner_carta_turismo: (String, String) -> Unit,
     abrir_gogle_map: (Double, Double) -> Unit,
     iniciar_seccion_normal: () -> Unit,
     crear_cuenta_geinz: () -> Unit,
@@ -2145,11 +2170,7 @@ fun ramdoBox(
                                     // Caso 2: usuario registrado
                                     when (i.categoria) {
                                         "turismo" -> {
-                                            Toast.makeText(
-                                                context,
-                                                "mostramos dialog turismo",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            listner_carta_turismo(i.id_tienda, i.lugar)
                                         }
 
                                         else -> {

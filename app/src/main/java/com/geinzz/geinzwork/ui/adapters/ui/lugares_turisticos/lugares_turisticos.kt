@@ -15,6 +15,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -87,71 +91,24 @@ fun pantalla_lugares_turisticos(
     viewModel_cordenadas: viewModel_principal_geinz_work = viewModel(),
     abrir_mapa: (String) -> Unit,
 ) {
-    val _lugares_turisticos by viewModel_cordenadas._lugares_turisticos.observeAsState(emptyList())
-
-    val filtrado_lugares_turisticos by viewmodel_lugares_turisticos._categorias_filtrados.observeAsState(
+    val _lugares_turisticos by viewmodel_lugares_turisticos._lugares_turisticos.observeAsState(
         emptyList()
     )
+
+    val state_lugares_turisticos by viewmodel_lugares_turisticos.stata_lugares_turisticos.collectAsState()
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var buttom_mapa by remember { mutableStateOf(false) }
-    val lista_con_todos = listOf("Todos") + filtrado_lugares_turisticos
-    var listaMostrar by remember { mutableStateOf<List<lugares_turisticos>>(emptyList()) }
-
-
-    var lista_base_turisticos by remember { mutableStateOf(emptyList<lugares_turisticos>()) }
-
-    val estado_fitlrado_datos = Estados_lugares_turisticos(
-        subcategorias = filtrado_lugares_turisticos,
-        lista_filtrada = _lugares_turisticos
-    )
-
+    var Box_mostrar_vacio by remember { mutableStateOf(false) }
+    var texto_vacio_error by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        viewModel_cordenadas.lugares_turisticos(localidad_selecionada)
-        viewmodel_lugares_turisticos.obtener_categorias()
+        viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada)
     }
 
     LaunchedEffect(_lugares_turisticos) {
         if (_lugares_turisticos.isNotEmpty()) {
             viewmodel_lugares_turisticos.todos_lugares(_lugares_turisticos)
-            listaMostrar = if (subCategoriaSeleccionada == "Todos") {
-                _lugares_turisticos
-            } else {
-                _lugares_turisticos.filter {
-                    it.subcategoria_filtrado.contains(
-                        subCategoriaSeleccionada
-                    )
-                }
-            }
         }
     }
-
-    // Cuando cambie la subcategoría
-    LaunchedEffect(subCategoriaSeleccionada) {
-        viewmodel_lugares_turisticos.filtrar_por_subcategoria(subCategoriaSeleccionada)
-        // Actualizamos la variable local para LazyColumn
-        listaMostrar = viewmodel_lugares_turisticos.listaFiltrada.value
-    }
-
-
-// Cuando cambies de chip
-//    LaunchedEffect(subCategoriaSeleccionada) {
-//        val lugares_filtrados=viewmodel_lugares_turisticos.filtrar_por_subcategoria(subCategoriaSeleccionada)
-//        lista_base_turisticos=lugares_filtrados
-//
-//    }
-
-//    LaunchedEffect(_lugares_turisticos) {
-//
-//    }
-//
-//    LaunchedEffect(subCategoriaSeleccionada) {
-
-//        Log.d("lugares_fitlrado",lista_base_turisticos.toString())
-//    }
-//
-//    LaunchedEffect(subCategoriaSeleccionada, _lugares_turisticos) {
-//        viewmodel_lugares_turisticos.lista_filtrada_por_subcategoira(subCategoriaSeleccionada, _lugares_turisticos)
-//    }
     val listState = rememberLazyListState()
 
     val showLeftShadow by remember {
@@ -165,7 +122,6 @@ fun pantalla_lugares_turisticos(
         }
     }
 
-    // 🔥 animar alpha, no crear/destruir Box
     val alphaLeft by animateFloatAsState(
         targetValue = if (showLeftShadow) 1f else 0f,
         animationSpec = tween(400), label = "alphaLeft"
@@ -179,78 +135,170 @@ fun pantalla_lugares_turisticos(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
+    val state = state_lugares_turisticos
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp)
     ) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item { texto_generico_multilinea("Lugares en ${localidad_selecionada.capitalizeFirst()}",style= MaterialTheme.typography.banerGeinzWork, modifier = Modifier.padding(end = 20.dp)) }
-            item {
-                texto_generico_multilinea("Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
-                    MaterialTheme.typography.bodyMedium)
+        when (state) {
+            is viewModel_lugares_turisticos.carga_lugares_turisticos.loading -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
-            item {
-                Box(modifier = Modifier.fillMaxWidth()
-                    .height(45.dp)){
-                    LazyRow( state = listState,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(lista_con_todos) { subcategorias ->
-                            val selecionado = subCategoriaSeleccionada == subcategorias
-                            chisp_filtrado_busqueda(carta_selecionada = selecionado, filtrado = subcategorias.capitalizeFirst(),
-                                btn_visible = false,
-                                clik_card = {
-                                if (!selecionado) {
-                                    if (subcategorias == "Todos") {
-                                        subCategoriaSeleccionada = "Todos"
-                                        buttom_mapa = false
-                                    } else {
-                                        buttom_mapa = true
-                                        subCategoriaSeleccionada = subcategorias
-                                    }
-                                }
-                            }, onClick_delete = {
 
-                            })
+            is viewModel_lugares_turisticos.carga_lugares_turisticos.succes -> {
+                val lista_con_todos = listOf("Todos") + state.lista_categoria
+                val lista_original = state.lista_lugares
+
+                val lista_filtrada = remember(subCategoriaSeleccionada, lista_original) {
+                    if (subCategoriaSeleccionada == "Todos") lista_original
+                    else lista_original.filter { lugar ->
+                        lugar.subcategoria_filtrado.any {
+                            it.equals(subCategoriaSeleccionada, ignoreCase = true)
                         }
                     }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(40.dp)
-                            .align(Alignment.CenterStart)
-                            .zIndex(1f)
-                            .alpha(alphaLeft)
-                            .background(Brush.horizontalGradient(colors = shadow_left))
-                    )
+                }
 
-                    // 👉 derecha
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(40.dp)
-                            .align(Alignment.CenterEnd)
-                            .zIndex(1f)
-                            .alpha(alphaRight)
-                            .background(Brush.horizontalGradient(colors = shadow_right))
-                    )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    item {
+                        texto_generico_multilinea(
+                            "Lugares en ${localidad_selecionada.capitalizeFirst()}",
+                            style = MaterialTheme.typography.banerGeinzWork,
+                            modifier = Modifier.padding(end = 20.dp)
+                        )
+                    }
+
+                    item {
+                        texto_generico_multilinea(
+                            "Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
+                            MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    // Chips de categorías
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .height(45.dp)
+                                .fillMaxWidth()
+                        ) {
+                            LazyRow(
+                                state = listState,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(lista_con_todos) { subcategoria ->
+                                    val seleccionado = subCategoriaSeleccionada == subcategoria
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            if (!seleccionado) {
+                                                subCategoriaSeleccionada = subcategoria
+                                                buttom_mapa = subcategoria != "Todos"
+                                            }
+                                        },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+
+                            // Sombras laterales
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(45.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .width(40.dp)
+                                        .align(Alignment.CenterStart)
+                                        .zIndex(1f)
+                                        .alpha(alphaLeft)
+                                        .background(Brush.horizontalGradient(colors = shadow_left))
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .width(40.dp)
+                                        .align(Alignment.CenterEnd)
+                                        .zIndex(1f)
+                                        .alpha(alphaRight)
+                                        .background(Brush.horizontalGradient(colors = shadow_right))
+                                )
+                            }
+                        }
+                    }
+
+                    if (lista_filtrada.isNotEmpty()) {
+                        // 🟩 Mostrar lugares
+                        items(lista_filtrada) { lugar ->
+                            carta_lugares_turisticosa(
+                                alto = 200.dp,
+                                rounder = 10,
+                                lugar = lugar
+                            )
+                        }
+                    } else {
+                        // 🟥 Mostrar mensaje vacío centrado pero sin tapar los chips
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxHeight(0.8f) // ocupa el espacio restante visible
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                texto_generico_multilinea(
+                                    "No hay lugares disponibles en esta categoría 😕",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    Color = Color.Gray
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            items(listaMostrar) { lugares ->
-                carta_lugares_turisticosa(200.dp, 10, lugares)
+
+
+            is viewModel_lugares_turisticos.carga_lugares_turisticos.error -> {
+                texto_generico_multilinea(
+                    "Error al cargar lugares turísticos.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                texto_vacio_error=state.txt
+                Box_mostrar_vacio=true
+            }
+
+            is viewModel_lugares_turisticos.carga_lugares_turisticos.empty -> {
+                texto_vacio_error=state.txt
+                Box_mostrar_vacio=true
+                texto_generico_multilinea(
+                    "No se encontraron lugares turísticos en esta zona.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
         }
+
+        // 🟦 Botón mapa flotante
         AnimatedVisibility(buttom_mapa) {
             open_map_perzonlizado(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp),"turismo",
+                    .padding(bottom = 16.dp),
+                "turismo",
                 abrir_mapa
             )
         }
+
+        // 🟦 Fade inferior
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -264,15 +312,20 @@ fun pantalla_lugares_turisticos(
                         )
                     )
                 )
-                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                .graphicsLayer { alpha = alphaAnim }
         )
 
+        if(Box_mostrar_vacio){
+
+        }
     }
+
+
 
 }
 
 @Composable
-fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos,) {
+fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos) {
     var mostrar_dialog by remember { mutableStateOf(false) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     Box(
@@ -292,8 +345,8 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos,
                 .width(screenWidth)
                 .height(alto)
                 .clip(RoundedCornerShape(rounder))
-                .clickable{
-                    mostrar_dialog=true
+                .clickable {
+                    mostrar_dialog = true
                 },
 
             contentScale = ContentScale.Crop
@@ -306,7 +359,7 @@ fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos,
                 .padding(10.dp)
         )
     }
-    if(mostrar_dialog){
-        bottom_sheet_lugares_turisticos(lugar,{mostrar_dialog=false})
+    if (mostrar_dialog) {
+        bottom_sheet_lugares_turisticos(lugar, mostrar_dialog,{ mostrar_dialog = false })
     }
 }

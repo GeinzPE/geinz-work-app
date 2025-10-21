@@ -21,6 +21,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.tiendas_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
+import com.geinzz.geinzwork.model.repo_lugares_turisticos
 import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.delay
@@ -34,11 +35,17 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
 
+    private val instancia_repo_lugar_turistico= repo_lugares_turisticos()
+
+    private val _instance_lugar_turistico = MutableStateFlow(lugares_turisticos())
+    val instance_lugar_turistico: StateFlow<lugares_turisticos> = _instance_lugar_turistico
+
 
     private val subcategorias = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
     val _subcategoiraList: LiveData<List<filtrado_tiendas_cat_sub>> get() = subcategorias
 
     private val instacia_repo_salud = repo_seguridad_salud()
+
     private val _instance_salud_seguridad =
         MutableStateFlow(Triple(emptyList<String>(), emptyList<String>(), 0L))
 
@@ -230,9 +237,9 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
             state_Tiendas_filtradas_por_categoria.value = carga_tiendas.loading
             val listaBase =lista
 
-               val resultado=listaBase.filter { tienda ->
-                    tienda.lista_subcategoiras.any { it.equals(subcategoria, ignoreCase = true) }
-                }
+            val resultado=listaBase.filter { tienda ->
+                tienda.lista_subcategoiras.any { it.equals(subcategoria, ignoreCase = true) }
+            }
 
             state_Tiendas_filtradas_por_categoria.value = if (resultado.isNotEmpty()) {
                 carga_tiendas.succes(resultado)
@@ -363,6 +370,17 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
                 _instance_salud_seguridad.value = Triple(emptyList(), emptyList(), 0L)
             }
         }
+    }
+
+    fun obtener_datos_lugares_turisticos(id: String,localida: String){
+        viewModelScope.launch {
+            try {
+                _instance_lugar_turistico.value=instancia_repo_lugar_turistico.get_lugar_turistico(localida,id)
+            }catch (e: Exception){
+                _instance_lugar_turistico.value=lugares_turisticos()
+            }
+        }
+
     }
 
 

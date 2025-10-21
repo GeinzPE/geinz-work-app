@@ -178,7 +178,7 @@ fun MyGoogle_maps(
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
     var long_luga_seg by remember { mutableStateOf(0.0) }
-    val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
+//    val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
         emptyList()
     )
@@ -314,41 +314,41 @@ fun MyGoogle_maps(
             ) {
 
                 when (tipo) {
-                    "turismo" -> {
-                        lista_filtrada_turismo.forEach { lugar ->
-                            Log.d(
-                                "obtenoemos_la_tog",
-                                "user = ${lat_user} ${log_user}tusirmo= ${lugar.latitud} ${lugar.longitud}"
-                            )
-                            Marker(
-                                state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
-                                title = lugar.titulo,
-                                icon = MarkerIcon(
-                                    context,
-                                    seleccionadoId == lugar.id_lugar_turistico
-                                ),
-                                onClick = {
-                                    lister_marker = dataclass_map(
-                                        lugar.id_lugar_turistico,
-                                        lugar.titulo,
-                                        lugar.subcategoria_filtrado,
-                                        lat_user,
-                                        log_user,
-                                        lugar.latitud,
-                                        lugar.longitud,
-                                        lugar.id_lugar_turistico,
-                                        "",
-                                        lugar.direcccion,
-                                        lugar.referencia
-
-                                    )
-                                    seleccionadoId = lugar.id_lugar_turistico
-                                    show_dialog_datos_lugares = true
-                                    true
-                                }
-                            )
-                        }
-                    }
+//                    "turismo" -> {
+//                        lista_filtrada_turismo.forEach { lugar ->
+//                            Log.d(
+//                                "obtenoemos_la_tog",
+//                                "user = ${lat_user} ${log_user}tusirmo= ${lugar.latitud} ${lugar.longitud}"
+//                            )
+//                            Marker(
+//                                state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
+//                                title = lugar.titulo,
+//                                icon = MarkerIcon(
+//                                    context,
+//                                    seleccionadoId == lugar.id_lugar_turistico
+//                                ),
+//                                onClick = {
+//                                    lister_marker = dataclass_map(
+//                                        lugar.id_lugar_turistico,
+//                                        lugar.titulo,
+//                                        lugar.subcategoria_filtrado,
+//                                        lat_user,
+//                                        log_user,
+//                                        lugar.latitud,
+//                                        lugar.longitud,
+//                                        lugar.id_lugar_turistico,
+//                                        "",
+//                                        lugar.direcccion,
+//                                        lugar.referencia
+//
+//                                    )
+//                                    seleccionadoId = lugar.id_lugar_turistico
+//                                    show_dialog_datos_lugares = true
+//                                    true
+//                                }
+//                            )
+//                        }
+//                    }
 
                     "tiendas" -> {
                         lista_filtrada_tiendas.forEach { tienda ->
@@ -506,7 +506,7 @@ fun MyGoogle_maps(
                 log_user = log_user,
                 cameraPositionState = cameraPositionState,
                 tipo = tipo,
-                lista_filtrada_turismo = lista_filtrada_turismo,
+                lista_filtrada_turismo = emptyList(),
                 lista = lista_filtrada_tiendas,
                 onclose = {
                     show_botoom_sheet = false

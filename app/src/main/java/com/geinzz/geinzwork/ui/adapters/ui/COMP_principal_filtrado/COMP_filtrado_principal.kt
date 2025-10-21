@@ -1181,8 +1181,9 @@ fun chisp_filtrado_busqueda(
     btn_visible: Boolean = true,
     clik_card: () -> Unit,
     onClick_delete: () -> Unit,
-
-    ) {
+    color_invertido: Boolean=false,
+    alto: Dp=45.dp
+) {
     val color_chips by animateColorAsState(
         targetValue = if (!carta_selecionada)
             MaterialTheme.colorScheme.primary
@@ -1193,13 +1194,23 @@ fun chisp_filtrado_busqueda(
             easing = LinearOutSlowInEasing
         ), label = ""
     )
+    val color_invertido_chips by animateColorAsState(
+        targetValue = if(!carta_selecionada){
+            Color.White
+        }else{
+            MaterialTheme.colorScheme.primary
+        }
+    )
+
+
     val color_text = if (!carta_selecionada) Color.White else Color.Black
+    val color_text_ivnertido=if(color_invertido && !carta_selecionada) Color.Black else Color.White
 
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(color_chips)
-            .height(45.dp)
+            .background(if(!color_invertido) color_chips else color_invertido_chips )
+            .height(alto)
             .padding(horizontal = 15.dp, vertical = 10.dp)
             .clickable(
                 indication = null,
@@ -1208,7 +1219,7 @@ fun chisp_filtrado_busqueda(
     ) {
         texto_generico_one_line(
             filtrado.capitalizeFirst(),
-            color = color_text,
+            color = if(!color_invertido)color_text else color_text_ivnertido,
             style = MaterialTheme.typography.bodyMedium
         )
         if (btn_visible) {

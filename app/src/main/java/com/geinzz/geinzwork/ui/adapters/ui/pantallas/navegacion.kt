@@ -226,13 +226,14 @@ fun nativationWrapper(
                         },
                         clikear_cartas = { categoria, nombre, localidad ->
                             if (categoria.equals("turismo")) {
-                                Toast.makeText(
-                                    context,
-                                    "Geinz esta trabajando para darle mejor experiencia",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                return@pantalla_principal
-                            }
+//                                Toast.makeText(
+//                                    context,
+//                                    "Geinz esta trabajando para darle mejor experiencia",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                                return@pantalla_principal
+                                navController.navigate(lugares_turisticos(localidad))
+                            }else{
                             navController.navigate(
                                 screen_filtrado(
                                     categoria,
@@ -240,6 +241,7 @@ fun nativationWrapper(
                                     localidad,
                                 )
                             )
+                            }
 
                         },
                         ver_lugares = { localidad ->
@@ -317,22 +319,26 @@ fun nativationWrapper(
                         viewModel_localizate_geinz,
                         clik_img = { categoria, localidada, nombre_user ->
                             if (categoria.equals("turismo")) {
-                                Toast.makeText(
-                                    context,
-                                    "Geinz esta trabajando para darle mejor experiencia",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+//                                Toast.makeText(
+//                                    context,
+//                                    "Geinz esta trabajando para darle mejor experiencia",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                                return@PantallaExplorarTiendas
+                                navController.navigate(lugares_turisticos(localidada))
                                 return@PantallaExplorarTiendas
-                            }
-                            Log.d("clikeamos_img", "$categoria")
+                            }else{
+                                Log.d("clikeamos_img", "$categoria")
 
-                            navController.navigate(
-                                screen_filtrado(
-                                    categoria,
-                                    localidada,
-                                    nombre_user
+                                navController.navigate(
+                                    screen_filtrado(
+                                        categoria,
+                                        localidada,
+                                        nombre_user
+                                    )
                                 )
-                            )
+                            }
+
 
 
                         }
