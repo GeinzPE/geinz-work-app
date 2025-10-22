@@ -60,8 +60,10 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.utils.localizate_geinz.abrirRutaEnGoogleMaps
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -73,6 +75,12 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import android.os.Looper
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+
+
 
 
 object constantes_lista_localidades {
@@ -82,10 +90,10 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Supe".lowercase(), R.drawable.escudo_supe),
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
-    val lista_turismo_bottom_sheet=listOf(
-        botom_shet_turismobtn("Ir al lugar",Icons.Filled.Place),
+    val lista_turismo_bottom_sheet = listOf(
+        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place),
         botom_shet_turismobtn("ver en mapa", Icons.Filled.Map),
-        botom_shet_turismobtn("compartir",Icons.Filled.Share)
+        botom_shet_turismobtn("compartir", Icons.Filled.Share)
     )
     val cat_sub_seguirar_salud = listOf("seguridad", "salud")
     val categorias_defaul = listOf(
@@ -120,7 +128,8 @@ object constantes_lista_localidades {
     ): Pair<Boolean, String> {
         val metodoData = data[metodo] as? Map<String, Any> ?: emptyMap()
         val estado = metodoData["estado"] as? Boolean ?: false
-        val nombre = metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
+        val nombre =
+            metodoData["nombre_buscador"] as? String ?: metodoData["numero"] as? String ?: ""
         return estado to nombre
     }
 
@@ -428,9 +437,9 @@ object constantes_lista_localidades {
 
 
     val fracespantalla11 = dataclass_pantalla1(
-            "Tu camino más fácil",
-            "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
-            R.drawable.p1_1
+        "Tu camino más fácil",
+        "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
+        R.drawable.p1_1
 
 
     )
@@ -610,9 +619,14 @@ object constantes_lista_localidades {
             }
     }
 
-    data class data_redes_tiendas(val enable: Boolean, val icono: Int, val nombre_red: String, val valor: String)
+    data class data_redes_tiendas(
+        val enable: Boolean,
+        val icono: Int,
+        val nombre_red: String,
+        val valor: String
+    )
 
-//    val lista_redes_tiendas = listOf(
+    //    val lista_redes_tiendas = listOf(
 //        data_redes_tiendas(icono = R.drawable.llamada_icon, "llamar"),
 //        data_redes_tiendas(icono = R.drawable.whatsapp_icon, "whatsapp"),
 //        data_redes_tiendas(icono = R.drawable.tik_tok_icon, "tiktok"),
@@ -1667,41 +1681,41 @@ object constantes_lista_localidades {
 
     //
 
-    fun obtener_seguridad(onResult: (List<Item>) -> Unit) {
-        val db = FirebaseFirestore.getInstance()
-            .collection("Tiendas")
-            .document("salud_seguridad")
-            .collection("barranca")
-
-        db.get().addOnSuccessListener { res ->
-            val dattt = res.map { datos ->
-                val data = datos.data
-                val categoria = data?.get("categoria") as? String ?: ""
-                val id = data?.get("id") as? String ?: ""
-                val img = data?.get("img") as? String ?: ""
-                val lugar = data?.get("lugar") as? String ?: ""
-                val nombre = data?.get("nombre") as? String ?: ""
-                val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
-                val latitud = (ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
-                val longitud = (ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
-
-                Item(
-                    nombre = nombre,
-                    lugar = lugar,
-                    id_tienda = id,
-                    categoria = categoria,
-                    img = img,
-                    lista = listOf(categoria),
-                    latitud = latitud,
-                    longitud = longitud
-                )
-            }
-
-            onResult(dattt)
-        }.addOnFailureListener {
-            onResult(emptyList())
-        }
-    }
+//    fun obtener_seguridad(onResult: (List<Item>) -> Unit) {
+//        val db = FirebaseFirestore.getInstance()
+//            .collection("Tiendas")
+//            .document("salud_seguridad")
+//            .collection("barranca")
+//
+//        db.get().addOnSuccessListener { res ->
+//            val dattt = res.map { datos ->
+//                val data = datos.data
+//                val categoria = data?.get("categoria") as? String ?: ""
+//                val id = data?.get("id") as? String ?: ""
+//                val img = data?.get("img") as? String ?: ""
+//                val lugar = data?.get("lugar") as? String ?: ""
+//                val nombre = data?.get("nombre") as? String ?: ""
+//                val ubicacion = data?.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+//                val latitud = (ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
+//                val longitud = (ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
+//
+//                Item(
+//                    nombre = nombre,
+//                    lugar = lugar,
+//                    id_tienda = id,
+//                    categoria = categoria,
+//                    img = img,
+//                    lista = listOf(categoria),
+//                    latitud = latitud,
+//                    longitud = longitud
+//                )
+//            }
+//
+//            onResult(dattt)
+//        }.addOnFailureListener {
+//            onResult(emptyList())
+//        }
+//    }
 
 
     fun agregar_lugares_turisticos(Item: Item) {
@@ -1905,7 +1919,10 @@ object constantes_lista_localidades {
                             horaProx
                         }
 
-                        return TiempoRestanteResult("Abre $diaProx a las $horaFormateada", Color.Red)
+                        return TiempoRestanteResult(
+                            "Abre $diaProx a las $horaFormateada",
+                            Color.Red
+                        )
                     } else {
                         return TiempoRestanteResult("Cerrado", Color.Red)
                     }
@@ -1972,6 +1989,7 @@ object constantes_lista_localidades {
             TiempoRestanteResult("", Color.Gray)
         }
     }
+
     fun Map<String, Any>?.toMetodoContacto(): metodo_contacto_tienda {
         fun Map<String, Any>?.toNumero() = contacto_numero(
             estado = this?.get("estado") as? Boolean ?: false,
@@ -1995,17 +2013,73 @@ object constantes_lista_localidades {
             sitio_web = (this?.get("sitio_web") as? Map<String, Any>).toRed()
         )
     }
-    data class cordenasdas(val lat: Double,val  longitud: Double)
-val lista_cordenadas=listOf(
-    cordenasdas(-10.753678140767667,-77.7606940142457),
-    cordenasdas(-10.753678140767667,-77.7606940142457),
-    cordenasdas(-10.773781012257036,-77.75711758569838),
-    cordenasdas(-10.777492436839502,-77.75307261358448),
-    cordenasdas(-10.772871780783907,-77.75480232020463),
-    cordenasdas(-10.779266153712394,-77.75023528781286)
-)
-    fun geohashing(lat: Double,lon: Double): String{
+
+    data class cordenasdas(val lat: Double, val longitud: Double)
+
+    val lista_cordenadas = listOf(
+        cordenasdas(-10.892064926519373, -77.52363743208294),
+        cordenasdas(-10.814415381147068, -77.74162389966081),
+        cordenasdas(-10.760706064882067, -77.764686746073),
+        cordenasdas(-10.653336709267442, -77.84137903741973),
+        cordenasdas(-10.695440708535772, -77.78065684226628),
+        cordenasdas(-10.7699116708496, -77.76427946867258)
+    )
+
+    suspend fun subir_cordenas_algolioa() {
+        val db = FirebaseFirestore.getInstance()
+            .collection("lugares")
+            .whereEqualTo("categoria", "turismo")
+            .get()
+            .await()
+
+        val firestore = FirebaseFirestore.getInstance() // instancia única
+
+        for (datos in db.documents) {
+            val data = datos.data
+            val ubicacion = data?.get("ubicacion") as? Map<String, Any>
+            val lat = ubicacion?.get("latitud") as? Number ?: 0
+            val longitud = ubicacion?.get("longitud") as? Number ?: 0
+            val geohash = geohashing(lat.toDouble(), longitud.toDouble())
+            val idTienda = data?.get("id_tienda") as? String ?: continue
+
+            val hashMap = hashMapOf<String, Any>(
+                "geohash" to geohash
+            )
+
+            // Actualiza solo el campo geohash sin borrar otros datos
+            firestore.collection("lugares").document(idTienda).update(hashMap).await()
+        }
+    }
+
+
+    fun geohashing(lat: Double, lon: Double): String {
         return GeoFireUtils.getGeoHashForLocation(GeoLocation(lat, lon))
+    }
+
+    fun obtenerUbicacion(context: Context, onLocation: (LatLng) -> Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval = 1000
+            fastestInterval = 500
+            numUpdates = 1 // solo queremos 1 actualización
+        }
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult.lastLocation?.let {
+                    onLocation(LatLng(it.latitude, it.longitude))
+                }
+                fusedLocationClient.removeLocationUpdates(this)
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
 
 

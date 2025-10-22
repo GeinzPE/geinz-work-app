@@ -7,7 +7,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.aloglia.AlgoliaHelper
-import com.geinzz.geinzwork.model.repo_seguridad_salud
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -124,6 +123,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     Log.d("enviamos_valor_anulado", res.first.toString())
                     _lista_encontrada.value = res.first
                     Log.d("hay_select", "${res.first.size}")
+
                 }
 
             } catch (e: Exception) {
@@ -138,11 +138,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         //activador donde tenemos que pasar la lista_ya filtrada
 
         Log.d("buscamosen", "valor_lista_base ${cat}")
-//        val localidadCambio = ultimaLocalidad != localidad
-//
-//        if (localidadCambio) {
-//            clearResults()
-//        }
 
         viewModelScope.launch {
             val a1 = algoliaHelper.obtener_items_por_categoria_y_localidad(cat ?: "", localidad)
@@ -158,6 +153,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     Log.d("buscamosen", "algolia")
                     res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
                     _lista_encontrada.value = res
+
                 } else {
                     Log.d("buscamosen", "local")
                     res = algoliaHelper.filtrar_categoria_local(
@@ -166,6 +162,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                         cat,
                         sub
                     )
+                    _lista_encontrada.value = res
                 }
 
                 val categoriasActuales = when (val currentState = _state.value) {
@@ -186,10 +183,73 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
 
+    fun filtrar_por_radio(lista_base_filtrada: List<Item>, radio: Float, hasing_user: String) {
+        Log.d("lalamos","llamosfuin $hasing_user",)
+        val lista_base = lista_base_filtrada
+       viewModelScope.launch {
+
+            try {
+                // Determina precisión dinámica del geohash según el radio (máx 10 km)
+                val precision = when {
+                    radio <= 0.1 -> 8   // ~20 m
+                    radio <= 0.3 -> 7   // ~150 m
+                    radio <= 1 -> 6     // ~1 km
+                    radio <= 5 -> 5     // ~5 km
+                    else -> 4           // ~10 km
+                }
+                Log.d("filtrar_por_radio", "🎯 Precisión usada: $precision")
+
+                // Tomamos solo el prefijo del geohash del usuario según la precisión
+                val prefijo = hasing_user.take(precision)
+                Log.d("filtrar_por_radio", "🔡 Prefijo geohash usado: $prefijo")
+
+                // Filtrar tiendas que compartan el prefijo del geohash según precisión dinámica
+                val lista_filtrada = lista_base.filter { tienda ->
+                    val coincide = tienda.geohasing.startsWith(prefijo)
+                    if (coincide) {
+                        Log.d(
+                            "filtrar_por_radio",
+                            "✅ Coincide: ${tienda.nombre} (${tienda.geohasing})"
+                        )
+                    } else {
+                        Log.d(
+                            "filtrar_por_radio",
+                            "❌ No coincide: ${tienda.nombre} (${tienda.geohasing})"
+                        )
+                    }
+                    coincide
+                }
+                _state.value = List_items_result.Loading
+                delay(500)
+                if(lista_filtrada.isNotEmpty()){
+                    val categoriasActuales = when (val currentState = _state.value) {
+                        is List_items_result.succes -> currentState.categoira
+                        else -> emptyList()
+                    }
+                    _state.value=List_items_result.succes(categoriasActuales,lista_filtrada)
+                }else{
+                _state.value=List_items_result.Empty
+                }
+            } catch (e: Exception) {
+                _state.value=List_items_result.error("")
+            }
+        }
+//        Log.d("lista_base", lista_base.size.toString())
+//        Log.d("filtrar_por_radio", "🛰️ Iniciando filtrado por radio")
+//        Log.d("filtrar_por_radio", "📏 Radio recibido: $radio km")
+//        Log.d("filtrar_por_radio", "🧭 Geohash usuario: $hasing_user")
+//
+//
+////        _lista_encontrada.value = lista_filtrada
+//
+//        Log.d("filtrar_por_radio", "📦 Total tiendas base: ${lista_base.size}")
+//        Log.d("filtrar_por_radio", "🎯 Total tiendas filtradas: ${lista_filtrada.size}")
+//        Log.d("filtrar_por_radio", "📜 Lista final: ${lista_filtrada.joinToString { it.nombre }}")
+   }
 
 
     fun clearResults() {
-        Log.d("limpiamos_valor","valor_limiado")
+        Log.d("limpiamos_valor", "valor_limiado")
         _state.value = List_items_result.Cleared
         _lista_encontrada.value = emptyList()
     }

@@ -383,8 +383,6 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
 
     }
 
-
-
     sealed class carga_tiendas_sin_pago {
         object loading_tiendas_free : carga_tiendas_sin_pago()
         object empty_tiendas_free : carga_tiendas_sin_pago()

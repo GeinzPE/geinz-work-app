@@ -11,7 +11,8 @@ data class Item(
     val img: String="",
     val lista: List<String> = emptyList(),
     val latitud: Double=0.0,
-    val longitud: Double=0.0
+    val longitud: Double=0.0,
+    val geohasing :String
 )
 
 @Serializable

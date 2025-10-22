@@ -6,13 +6,9 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -22,11 +18,9 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -35,8 +29,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,7 +48,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -75,6 +66,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,19 +80,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -110,10 +97,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salud_algolia
-import com.geinzz.geinzwork.data.model.localizate_geinz.botom_shet_turismobtn
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
@@ -134,8 +118,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.categorias_defaul
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -193,6 +178,7 @@ fun ui_pantalla_busqueda(
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
     val datos_lugares_turisticos by viewModelFiltros.instance_lugar_turistico.collectAsState()
+    val lista_base_filtrada by viewModel.lista_encontrada.collectAsState()
 
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
@@ -210,8 +196,15 @@ fun ui_pantalla_busqueda(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.lista_encontrada.collect { lista ->
+            Log.d("listaaa", "Cambio detectado, tamaño: ${lista.size}")
+            if (lista.isNotEmpty()) {
+                Log.d("listaaa", lista.toString())
+            }
+        }
+    }
     var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
-
     var categoria_filtrad by remember { mutableStateOf("") }
     Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
     var estadoColor by remember { mutableStateOf(Color.Gray) }
@@ -251,6 +244,18 @@ fun ui_pantalla_busqueda(
     var id_lugar_turistico_select by remember { mutableStateOf("") }
     var localdad_llugar_turistico by remember { mutableStateOf("") }
     var bottom_sheet_turismo by remember { mutableStateOf(false) }
+    var lat_user by remember { mutableStateOf<Double?>(null) }
+    var log_user by remember { mutableStateOf<Double?>(null) }
+    var hash_user by remember { mutableStateOf<String?>(null) }
+    var cerca_de_ti_enable by remember { mutableStateOf(false) }
+
+
+//    LaunchedEffect(radio_user) {
+//        if (lista_base_filtrada.isNotEmpty() && radio_user > 0f && geo_hasging_user.isNotEmpty()) {
+//            Log.d("LaunchedEffect", "Aplicando filtro por radio: $radio_user km")
+//            viewModel.filtrar_por_radio(lista_base_filtrada, radio_user, geo_hasging_user)
+//        }
+//    }
 
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
@@ -268,7 +273,7 @@ fun ui_pantalla_busqueda(
             Log.d("_cabiamos_localida", "$salud_seguirdad,$categoria_filtrad,$subcategira_filtrado")
 
         }
-        if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty() || salud_seguirdad.isEmpty())) {
+        if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty())) {
 //            Log.d(
 //                "_cambio_localidad",
 //                "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual"
@@ -360,6 +365,12 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(Unit) {
         viewModelFiltros.obtener_categorias()
         viewModelFiltros.obtener_cat_lugares()
+        obtenerUbicacion(context) { userLatLng ->
+            lat_user = userLatLng.latitude
+            log_user = userLatLng.longitude
+            hash_user = geohashing(lat_user!!, log_user!!)
+            Log.d("UbicacionInicial", "Lat: $lat_user, Lon: $log_user")
+        }
     }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
@@ -657,7 +668,10 @@ fun ui_pantalla_busqueda(
         }
 
         if (bottom_sheet_turismo) {
-            bottom_sheet_lugares_turisticos(datos_lugares_turisticos,bottom_sheet_turismo,{ bottom_sheet_turismo = false })
+            bottom_sheet_lugares_turisticos(
+                datos_lugares_turisticos,
+                bottom_sheet_turismo,
+                { bottom_sheet_turismo = false })
         }
 
         Box(
@@ -677,6 +691,8 @@ fun ui_pantalla_busqueda(
         )
 
         FloatingBubble(
+            cerca_de_ti_enable = cerca_de_ti_enable,
+            geohashin = hash_user,
             color_categoria = color_categoria,
             color_localidad = color_localidad,
             color_subcategoria = color_subcategoria,
@@ -760,1008 +776,14 @@ fun ui_pantalla_busqueda(
             tiene_categorias = {
                 color_salud_seguirdad = false
                 color_subcategoria = false
+            }, filtrado_cerca_de_ti = { radio, hasing_user ->
+                viewModel.filtrar_por_radio(lista_base_filtrada, radio, hasing_user)
+            }, fun_cerca_de_ti_enable = { it ->
+                cerca_de_ti_enable = it
             })
     }
 }
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Composable
-fun FloatingBubble(
-    color_categoria: Boolean,
-    color_localidad: Boolean,
-    color_subcategoria: Boolean,
-    color_salud_seguridad: Boolean,
-    seguidad_salud: String,
-    viewModel: SearchViewModel,
-    viewModelFiltros: viewModel_filtado_tiendas,
-    categoria_filtrado: List<dataclass_cat_sub_lista_cat>?,
-    subir_btn: Boolean,
-    expanded: Boolean,
-    onClick: () -> Unit,
-    expanded_fun: () -> Unit,
-    localidad_selecionada: String,
-    localidad_filtrado: (String) -> Unit,
-    categoria_filtrad: String,
-    categoria_Selecionada: (String) -> Unit,
-    subcategira_filtrado: String,
-    subcategoria_selecionada: (String) -> Unit,
-    seguridad_salud_selec: (String) -> Unit,
-    click_carta_localidad: () -> Unit,
-    click_carta_localidad_delete: () -> Unit,
-    click_carta_categoria: () -> Unit,
-    click_carta_categoria_delete: () -> Unit,
-    click_carta_seguridad: () -> Unit,
-    click_carta_seguridad_delete: () -> Unit,
-    click_carta_subcategoria: () -> Unit,
-    click_carta_subcategoria_delete: () -> Unit,
-    click_salud_general: () -> Unit,
-    tiene_categorias: () -> Unit
-) {
-    Log.d("minitosvalor", subir_btn.toString())
-    val density = LocalDensity.current
-    val scope = rememberCoroutineScope()
-
-    val bubbleSizePx = with(density) { 60.dp.toPx() }
-    val paddingPx = with(density) { 16.dp.toPx() }
-    var categorias_filtrado_res by remember {
-        mutableStateOf<List<dataclass_cat_sub_lista_cat>>(
-            emptyList()
-        )
-    }
-    val subctegorias by viewModelFiltros._obtener_subacategoria.observeAsState()
-
-    var subcategoira_filtrado_res by remember { mutableStateOf<List<String>>(emptyList()) }
-    var filtros by remember { mutableStateOf(dataclass_filtrado_ui()) }
-
-    var mostar_carga_subcategorias by remember { mutableStateOf(false) }
-
-
-    val icono: Int? = if (!expanded) {
-        R.drawable.icono_filtrado_webp
-    } else {
-        null
-    }
-
-    LaunchedEffect(categoria_filtrado) {
-        categoria_filtrado?.let {
-            Log.d("categoria_filtrado", it.toString())
-            categorias_filtrado_res = it
-        }
-    }
-    LaunchedEffect(categoria_filtrad) {
-        viewModelFiltros.obtener_subcategoiras(categoria_filtrad)
-    }
-    LaunchedEffect(subctegorias) {
-        Log.d("selecian odasmo", subctegorias.toString())
-        mostar_carga_subcategorias = true
-        val listaSoloSubcategorias = subctegorias?.flatMap { it.subcategorias }
-        listaSoloSubcategorias?.let {
-            Log.d("categoria_filtrado", it.toString())
-            subcategoira_filtrado_res = it
-        }
-        delay(500)
-        mostar_carga_subcategorias = false
-    }
-
-    val state_subcategoria: viewModel_filtado_tiendas.carga_subcategorias = when {
-        mostar_carga_subcategorias -> viewModel_filtado_tiendas.carga_subcategorias.Loading
-        subcategoira_filtrado_res.isNotEmpty() -> viewModel_filtado_tiendas.carga_subcategorias.loaded(
-            subcategoira_filtrado_res
-        )
-
-        else -> viewModel_filtado_tiendas.carga_subcategorias.Empty
-    }
-
-
-    var expandedIndex by remember { mutableStateOf(-1) }
-
-    val weightBox1 by animateFloatAsState(
-        targetValue = when (expandedIndex) {
-            0 -> 0.7f
-            1 -> 0.3f
-            else -> 0.5f
-        },
-        animationSpec = tween(300, easing = FastOutSlowInEasing)
-    )
-
-    val weightBox2 by animateFloatAsState(
-        targetValue = when (expandedIndex) {
-            0 -> 0.3f
-            1 -> 0.7f
-            else -> 0.5f
-        },
-        animationSpec = tween(300, easing = FastOutSlowInEasing)
-    )
-
-
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val screenWidth = constraints.maxWidth.toFloat()
-        val screenHeight = constraints.maxHeight.toFloat()
-
-        val offsetX = remember { Animatable(screenWidth - bubbleSizePx - paddingPx) }
-        val offsetY = remember { Animatable(screenHeight - bubbleSizePx - paddingPx) }
-
-
-        val maxY = if (subir_btn) {
-            screenHeight - bubbleSizePx - paddingPx - with(density) { 80.dp.toPx() }
-        } else {
-            screenHeight - bubbleSizePx - paddingPx
-        }
-
-        LaunchedEffect(subir_btn) {
-            if (offsetY.value > maxY) {
-                offsetY.animateTo(
-                    maxY,
-                    animationSpec = tween(400, easing = FastOutSlowInEasing)
-                )
-            }
-        }
-
-        val animatedColor by animateColorAsState(
-            targetValue = if (!expanded) MaterialTheme.colorScheme.primary else Color.Transparent,
-            animationSpec = tween(600, easing = FastOutSlowInEasing),
-            label = "colorAnim"
-        )
-
-
-        val lista_localidades = constantes_lista_localidades.lista_localidad
-        val icono_expandido = if (expandedIndex == 0) {
-            Icons.Default.ExpandLess
-        } else {
-            Icons.Default.ExpandMore
-        }
-        val icono_expandido2 = if (expandedIndex == 1) {
-            Icons.Default.ExpandMore
-        } else {
-            Icons.Default.ExpandLess
-        }
-        val mostrarChipCategoria = remember { mutableStateOf(filtros.categoria.isNotEmpty()) }
-
-        val mostrarChipsubcategoria = remember { mutableStateOf(filtros.subcategoria.isNotEmpty()) }
-
-        val mostrar_chip_salud_seguridad =
-            remember { mutableStateOf(filtros.salud_seguridad.isNotEmpty()) }
-
-        if (categoria_filtrad.isNotEmpty()) {
-            mostrarChipCategoria.value = true
-        } else {
-            mostrarChipCategoria.value = false
-        }
-
-        if (subcategira_filtrado.isNotEmpty()) {
-            mostrarChipsubcategoria.value = true
-        } else {
-            mostrarChipsubcategoria.value = false
-        }
-
-        if (seguidad_salud.isNotEmpty()) {
-            mostrar_chip_salud_seguridad.value = true
-        } else {
-            mostrar_chip_salud_seguridad.value = false
-
-        }
-
-        val backgroundColor_categorias by animateColorAsState(
-            targetValue = if (!color_categoria)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.surfaceVariant,
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = LinearOutSlowInEasing
-            ), label = ""
-        )
-
-        val backgrpound_salud_seguridad by animateColorAsState(
-            targetValue = if (!color_salud_seguridad)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.surfaceVariant,
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = LinearOutSlowInEasing
-            ), label = ""
-        )
-
-        val startTopColor_categorias by animateColorAsState(
-            targetValue = if (!color_categoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-            animationSpec = tween(500), label = ""
-        )
-
-        val endTopColor_categorias by animateColorAsState(
-            targetValue = if (!color_categoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-            animationSpec = tween(500), label = ""
-        )
-
-        val startBottomColor_categorias by animateColorAsState(
-            targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-            animationSpec = tween(500), label = ""
-        )
-
-        val endBottomColor_categorias by animateColorAsState(
-            targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-            animationSpec = tween(500), label = ""
-        )
-
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
-                .size(60.dp)
-                .clip(CircleShape)
-                .background(animatedColor)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) { onClick() }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            val newX = (offsetX.value + dragAmount.x)
-                                .coerceIn(paddingPx, screenWidth - bubbleSizePx - paddingPx)
-                            val newY = (offsetY.value + dragAmount.y)
-                                .coerceIn(paddingPx, maxY)
-                            scope.launch {
-                                offsetX.snapTo(newX)
-                                offsetY.snapTo(newY)
-                            }
-                        },
-                        onDragEnd = {
-                            val middle = screenWidth / 2
-                            val targetX = if (offsetX.value < middle) {
-                                paddingPx
-                            } else {
-                                screenWidth - bubbleSizePx - paddingPx
-                            }
-                            scope.launch {
-                                offsetX.animateTo(
-                                    targetX,
-                                    animationSpec = tween(
-                                        durationMillis = 400,
-                                        easing = FastOutSlowInEasing
-                                    )
-                                )
-                            }
-                        }
-                    )
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Crossfade(
-                targetState = icono,
-                animationSpec = tween(600, easing = FastOutSlowInEasing),
-                label = "crossfadeIcon"
-            ) { currentIcon ->
-                currentIcon?.let {
-                    Image(
-                        modifier = Modifier.size(25.dp),
-                        painter = painterResource(it),
-                        contentDescription = "",
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                }
-            }
-        }
-
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                        expanded_fun()
-                    }
-            )
-        }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.End,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 25.dp)
-        ) {
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn(animationSpec = tween(250)) + scaleIn(initialScale = 0.8f),
-                exit = fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.8f)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.85f), horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-//                            .fillMaxHeight(0.22f)
-                            .heightIn(min = 150.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) {}
-                            .clip(RoundedCornerShape(30.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(15.dp)
-                    ) {
-                        Column {
-                            texto_generico_one_line(
-                                "Filtra tu búsqueda",
-                                MaterialTheme.typography.headlineSmall
-                            )
-                            spacer_vertical(10.dp)
-                            texto_generico_multilinea(
-                                "Elige una categoría y explora desde playas y museos hasta tiendas y restaurantes locales.",
-                                MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(end = 20.dp)
-                            )
-                            spacer_vertical(15.dp)
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                // Localidad
-                                if (filtros.localidad.isNotEmpty()) {
-                                    item {
-                                        AnimatedVisibility(
-                                            visible = true,
-                                            enter = fadeIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            chisp_filtrado_busqueda(
-                                                color_localidad,
-                                                filtros.localidad,
-                                                false,
-                                                clik_card = {
-                                                    click_carta_localidad()
-                                                },
-                                                onClick_delete = {
-                                                    click_carta_localidad_delete()
-                                                    filtros = filtros.copy(localidad = "")
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-// Categoria
-                                if (mostrarChipCategoria.value) {
-                                    item {
-                                        AnimatedVisibility(
-                                            visible = true,
-                                            enter = fadeIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            chisp_filtrado_busqueda(
-                                                color_categoria,
-                                                categoria_filtrad.ifEmpty { filtros.categoria },
-                                                clik_card = {
-                                                    click_carta_categoria()
-
-                                                },
-                                                onClick_delete = {
-                                                    click_carta_categoria_delete()
-                                                    categoria_Selecionada("")
-                                                    subcategoria_selecionada("")
-                                                    mostrarChipCategoria.value = false
-                                                    mostrarChipsubcategoria.value = false
-                                                    viewModel.clearResults()
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-// Subcategoria
-                                if (mostrarChipsubcategoria.value) {
-                                    item {
-                                        AnimatedVisibility(
-                                            visible = true,
-                                            enter = fadeIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            chisp_filtrado_busqueda(
-                                                color_subcategoria,
-                                                subcategira_filtrado.ifEmpty { filtros.subcategoria },
-                                                clik_card = {
-                                                    click_carta_subcategoria()
-
-                                                },
-                                                onClick_delete = {
-                                                    click_carta_subcategoria_delete()
-                                                    subcategoria_selecionada("")
-                                                    mostrarChipsubcategoria.value = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-
-                                if (mostrar_chip_salud_seguridad.value) {
-                                    item {
-                                        AnimatedVisibility(
-                                            visible = true,
-                                            enter = fadeIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            chisp_filtrado_busqueda(
-                                                color_salud_seguridad,
-                                                seguidad_salud.ifEmpty { filtros.salud_seguridad },
-                                                clik_card = {
-                                                    click_carta_seguridad()
-                                                },
-                                                onClick_delete = {
-                                                    Log.d("elimoasno_valo", "dealte")
-                                                    seguridad_salud_selec("")
-                                                    categoria_Selecionada("")
-                                                    subcategoria_selecionada("")
-                                                    click_carta_seguridad_delete()
-                                                    mostrarChipsubcategoria.value = false
-                                                    mostrarChipCategoria.value = false
-                                                    mostrar_chip_salud_seguridad.value = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-                        btn_close_gris(
-                            modifier = Modifier.align(Alignment.TopEnd),
-                            Icons.Default.Close,
-                            onClick = {
-                                expanded_fun()
-                            }
-                        )
-                    }
-                    spacer_vertical(10.dp)
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f), // 90%
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(.50f)   // ocupa 50% del ancho
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(backgroundColor_categorias)
-                                    .padding(8.dp)
-                                    .weight(.7f)
-                            ) {
-                                val listState = rememberLazyListState()
-                                val showTopShadow by remember {
-                                    derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
-                                }
-                                val showBottomShadow by remember {
-                                    derivedStateOf {
-                                        val lastVisible =
-                                            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                        val totalItems = listState.layoutInfo.totalItemsCount
-                                        lastVisible != null && lastVisible < totalItems - 1
-                                    }
-                                }
-                                val selectedCategoria = categoria_filtrad
-
-                                this@Row.AnimatedVisibility(true) {
-                                    Crossfade(
-                                        targetState = categorias_filtrado_res.isNotEmpty(),
-                                        label = ""
-                                    ) { tieneCategorias ->
-                                        if (tieneCategorias) {
-                                            LazyColumn(
-                                                state = listState,
-                                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                contentPadding = PaddingValues(
-                                                    horizontal = 16.dp,
-                                                    vertical = 8.dp
-                                                ),
-                                                modifier = Modifier.fillMaxSize()
-                                            ) {
-                                                item {
-                                                    texto_generico_one_line(
-                                                        "Categoria",
-                                                        MaterialTheme.typography.titleMedium
-                                                    )
-                                                    spacer_vertical(5.dp)
-                                                }
-
-                                                items(categorias_filtrado_res) { i ->
-                                                    val isSelected =
-                                                        selectedCategoria.equals(
-                                                            i.nombre_cat,
-                                                            ignoreCase = true
-                                                        )
-
-                                                    AnimatedFabItem(
-                                                        text = simplificarCategoria(i.nombre_cat),
-                                                        color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
-                                                        visible = expanded
-                                                    ) {
-                                                        categoria_Selecionada(i.nombre_cat)
-                                                        subcategoria_selecionada("")
-                                                        seguridad_salud_selec("")
-                                                        mostrar_chip_salud_seguridad.value = false
-                                                        mostrarChipCategoria.value = true
-                                                        mostrarChipsubcategoria.value = false
-                                                        mostar_carga_subcategorias = true
-                                                        tiene_categorias()
-
-                                                        filtros =
-                                                            filtros.copy(categoria = i.nombre_cat)
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Box(
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Column(
-                                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                                    verticalArrangement = Arrangement.Center
-                                                ) {
-                                                    Text(
-                                                        text = "Cargando categorías",
-                                                        textAlign = TextAlign.Center,
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                    spacer_vertical(15.dp)
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(35.dp)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                this@Row.AnimatedVisibility(
-                                    showTopShadow,
-                                    enter = fadeIn(),
-                                    exit = fadeOut(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp)
-                                        .align(Alignment.TopCenter)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        startTopColor_categorias,
-                                                        endTopColor_categorias
-                                                    ),
-
-                                                    )
-                                            )
-                                    )
-                                }
-                                this@Row.AnimatedVisibility(
-                                    showBottomShadow, enter = fadeIn(), exit = fadeOut(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp)
-                                        .align(Alignment.BottomCenter)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        startBottomColor_categorias,
-                                                        endBottomColor_categorias
-                                                    ),
-
-                                                    )
-                                            )
-                                    )
-                                }
-                            }
-                            spacer_vertical(10.dp)
-                            var expandedIndex by remember { mutableStateOf(-1) }
-                            val weigh_lugares_inters by animateFloatAsState(
-                                targetValue = when (expandedIndex) {
-                                    0 -> 0.5f
-                                    1 -> 0.3f
-                                    else -> 0.3f
-                                },
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            )
-                            apartado_lugares_interes(
-                                color_salud_seguridad,
-                                expandedIndex = expandedIndex,
-                                texto = "Seguridad y salud",
-                                lista_subcategoria = cat_sub_seguirar_salud,
-                                enColumna = true,
-                                modifier = Modifier
-                                    .weight(weigh_lugares_inters)
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(backgrpound_salud_seguridad), expandir_clik = {
-                                    expandedIndex = if (expandedIndex == 0) -1 else 0
-                                }, cat_sub_selection = seguidad_salud,
-                                cat_sub_clik = { i ->
-                                    seguridad_salud_selec(i)
-                                    filtros = filtros.copy(salud_seguridad = i)
-                                    mostrar_chip_salud_seguridad.value = true
-                                    mostrarChipsubcategoria.value = false
-                                    mostrarChipCategoria.value = false
-                                    click_salud_general()
-                                    categoria_Selecionada("")
-                                    subcategoria_selecionada("")
-                                })
-                        }
-
-
-                        // Columna derecha: dos cuadros apilados verticalmente
-                        Column(
-                            modifier = Modifier
-                                .weight(.5f) // ocupa 50% del ancho
-                                .fillMaxHeight(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            // ------- LOCALIDAD -------
-                            val listStateLocalidad = rememberLazyListState()
-                            val showTopShadowLocalidad by remember {
-                                derivedStateOf { listStateLocalidad.firstVisibleItemScrollOffset > 0 }
-                            }
-                            val showBottomShadowLocalidad by remember {
-                                derivedStateOf {
-                                    val lastVisible =
-                                        listStateLocalidad.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                    val totalItems = listStateLocalidad.layoutInfo.totalItemsCount
-                                    lastVisible != null && lastVisible < totalItems - 1
-                                }
-                            }
-                            val backgroundColor_localidad by animateColorAsState(
-                                targetValue = if (!color_localidad)
-                                    MaterialTheme.colorScheme.surface
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                animationSpec = tween(
-                                    durationMillis = 500, // velocidad (medio segundo)
-                                    easing = LinearOutSlowInEasing
-                                ), label = ""
-                            )
-                            val startTopColor_localidad by animateColorAsState(
-                                targetValue = if (!color_localidad) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val endTopColor_localidad by animateColorAsState(
-                                targetValue = if (!color_localidad) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val startBottomColor_localidad by animateColorAsState(
-                                targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val endBottomColor_localidad by animateColorAsState(
-                                targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-                                animationSpec = tween(500), label = ""
-                            )
-
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .weight(weightBox1)
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(backgroundColor_localidad)
-                                    .padding(8.dp)
-                            ) {
-                                LazyColumn(
-                                    state = listStateLocalidad,
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(
-                                        horizontal = 16.dp,
-                                        vertical = 8.dp
-                                    ),
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    item {
-                                        texto_generico_one_line(
-                                            "Localidad",
-                                            MaterialTheme.typography.titleMedium
-                                        )
-                                        spacer_vertical(5.dp)
-                                    }
-
-                                    items(lista_localidades) { i ->
-                                        val colorSeleccionado =
-                                            if (localidad_selecionada.equals(i, ignoreCase = true))
-                                                Color.Black
-                                            else
-                                                MaterialTheme.colorScheme.primary
-
-                                        AnimatedFabItem(
-                                            text = i.capitalizeFirst(),
-                                            color = colorSeleccionado,
-                                            visible = expanded
-                                        ) {
-                                            localidad_filtrado(i)
-                                            filtros = filtros.copy(localidad = i)
-                                        }
-                                        filtros = filtros.copy(localidad = localidad_selecionada)
-                                    }
-                                }
-
-                                this@Row.AnimatedVisibility(
-                                    showTopShadowLocalidad,
-                                    enter = fadeIn(),
-                                    exit = fadeOut(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp)
-                                        .align(Alignment.TopCenter)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        startTopColor_localidad,
-                                                        endTopColor_localidad
-                                                    ),
-                                                )
-                                            )
-                                    )
-                                }
-
-                                this@Row.AnimatedVisibility(
-                                    showBottomShadowLocalidad,
-                                    enter = fadeIn(),
-                                    exit = fadeOut(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp)
-                                        .align(Alignment.BottomCenter)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        startBottomColor_localidad,
-                                                        endBottomColor_localidad
-                                                    ),
-
-                                                    )
-                                            )
-                                    )
-                                }
-
-                                btn_close_gris(
-                                    modifier = Modifier.align(Alignment.TopEnd),
-                                    icono_expandido,
-                                    onClick = {
-                                        expandedIndex = if (expandedIndex == 0) -1 else 0
-                                    }
-                                )
-                            }
-
-                            // ------- SUBCATEGORÍAS -------
-                            val listStateSub = rememberLazyListState()
-                            val showTopShadowSub by remember {
-                                derivedStateOf { listStateSub.firstVisibleItemScrollOffset > 0 }
-                            }
-                            val showBottomShadowSub by remember {
-                                derivedStateOf {
-                                    val lastVisible =
-                                        listStateSub.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                    val totalItems = listStateSub.layoutInfo.totalItemsCount
-                                    lastVisible != null && lastVisible < totalItems - 1
-                                }
-                            }
-                            val backgroundColor by animateColorAsState(
-                                targetValue = if (!color_subcategoria)
-                                    MaterialTheme.colorScheme.surface
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                animationSpec = tween(
-                                    durationMillis = 500, // velocidad (medio segundo)
-                                    easing = LinearOutSlowInEasing
-                                ), label = ""
-                            )
-                            val startTopColor by animateColorAsState(
-                                targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val endTopColor by animateColorAsState(
-                                targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val startBottomColor by animateColorAsState(
-                                targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val endBottomColor by animateColorAsState(
-                                targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-                                animationSpec = tween(500), label = ""
-                            )
-                            val subcategoria_select = subcategira_filtrado
-
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .weight(weightBox2)
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(backgroundColor)
-                                    .padding(8.dp)
-                            ) {
-                                this@Row.AnimatedVisibility(true) {
-                                    Crossfade(
-                                        targetState = subcategoira_filtrado_res.isNotEmpty(),
-                                        label = ""
-                                    ) { tiene_categria ->
-                                        when (state_subcategoria) {
-                                            is viewModel_filtado_tiendas.carga_subcategorias.Loading -> {
-                                                Column(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .padding(5.dp),
-                                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                                    verticalArrangement = Arrangement.Center
-                                                ) {
-                                                    Text(
-                                                        text = "Cargando subcategorías",
-                                                        textAlign = TextAlign.Center,
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                    spacer_vertical(15.dp)
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(
-                                                            35.dp
-                                                        )
-                                                    )
-                                                }
-                                            }
-
-                                            is viewModel_filtado_tiendas.carga_subcategorias.loaded -> {
-                                                if (tiene_categria) {
-                                                    LazyColumn(
-                                                        state = listStateSub,
-                                                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                        contentPadding = PaddingValues(
-                                                            horizontal = 16.dp,
-                                                            vertical = 8.dp
-                                                        ),
-                                                        modifier = Modifier.fillMaxSize()
-                                                    ) {
-                                                        item {
-                                                            texto_generico_one_line(
-                                                                "Subcategoría",
-                                                                MaterialTheme.typography.titleMedium
-                                                            )
-                                                            spacer_vertical(5.dp)
-                                                        }
-                                                        items(subcategoira_filtrado_res) { sub ->
-                                                            val isSelected =
-                                                                subcategoria_select.equals(
-                                                                    sub,
-                                                                    ignoreCase = true
-                                                                )
-
-                                                            AnimatedFabItem(
-                                                                text = sub.replaceFirstChar { it.uppercase() },
-                                                                color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
-                                                                visible = expanded
-                                                            ) {
-                                                                subcategoria_selecionada(sub)
-                                                                filtros =
-                                                                    filtros.copy(subcategoria = sub)
-                                                                mostrarChipsubcategoria.value = true
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            is viewModel_filtado_tiendas.carga_subcategorias.Empty -> {
-                                                this@Column.AnimatedVisibility(
-                                                    visible = true,
-                                                    enter = fadeIn(),
-                                                    exit = fadeOut()
-                                                ) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .padding(horizontal = 10.dp),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Text(
-                                                            text = "Selecciona una categoría",
-                                                            textAlign = TextAlign.Center,
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            color = MaterialTheme.colorScheme.onBackground
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                this@Row.AnimatedVisibility(
-                                    showTopShadowSub,
-                                    enter = fadeIn(),
-                                    exit = fadeOut(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp)
-                                        .align(Alignment.TopCenter)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(startTopColor, endTopColor),
-
-                                                    )
-                                            )
-                                    )
-                                }
-
-                                this@Row.AnimatedVisibility(
-                                    showBottomShadowSub,
-                                    enter = fadeIn(),
-                                    exit = fadeOut(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp)
-                                        .align(Alignment.BottomCenter)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        startBottomColor,
-                                                        endBottomColor
-                                                    ),
-
-                                                    )
-                                            )
-                                    )
-                                }
-                                btn_close_gris(
-                                    modifier = Modifier.align(Alignment.TopEnd),
-                                    icono_expandido2,
-                                    onClick = {
-                                        expandedIndex = if (expandedIndex == 1) -1 else 1
-                                    }
-                                )
-                            }
-
-                        }
-                    }
-
-                }
-
-            }
-
-
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

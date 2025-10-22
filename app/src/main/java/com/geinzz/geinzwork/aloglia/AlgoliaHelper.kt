@@ -239,8 +239,9 @@ class AlgoliaHelper(
                 val ubicacionJson = json["ubicacion"]?.jsonObject
                 val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng)
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
             }
 
         } catch (e: Exception) {
@@ -278,8 +279,9 @@ class AlgoliaHelper(
                 val ubicacionJson = json["ubicacion"]?.jsonObject
                 val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng)
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
             }
 
         } catch (e: Exception) {
@@ -392,8 +394,9 @@ class AlgoliaHelper(
             val ubicacionJson = json["ubicacion"]?.jsonObject
             val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
             val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+            val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng)
+            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
         }
 
         // Lista de categorías únicas
@@ -436,8 +439,9 @@ class AlgoliaHelper(
                 val ubicacionJson = json["ubicacion"]?.jsonObject
                 val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng)
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
             }
 
         } catch (e: Exception) {

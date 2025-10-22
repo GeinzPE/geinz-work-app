@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -73,7 +74,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantes.listaDeTienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.agregar_lugares_turisticos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_cordenadas
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtener_seguridad
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.subir_cordenas_algolioa
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -82,6 +83,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -115,6 +117,7 @@ fun nativationWrapper(
     }
 
     val localidad_shader_user by remember { mutableStateOf("") }
+    val scope= rememberCoroutineScope()
 
     LaunchedEffect(firebaseAuth.currentUser) {
         val current = firebaseAuth.currentUser
@@ -245,18 +248,20 @@ fun nativationWrapper(
 
                         },
                         ver_lugares = { localidad ->
-
 //                            val datos=obtener_seguridad{lista->
 //                                Log.d("datos","${lista}")
-//                                lista.forEach { i->
-//                                    agregar_lugares_turisticos(i)
-//
-//                                }
+////                                lista.forEach { i->
+////                                    agregar_lugares_turisticos(i)
+////
+////                                }
 //
 //                            }
 //                            lista_cordenadas.forEach { i->
 //                                Log.d("cordenada","${geohashing(i.lat,i.longitud)}")
 //
+//                            }
+//                            scope.launch {
+//                                subir_cordenas_algolioa()
 //                            }
 
 //                            Log.d("localidad_defautl_user", localidad)
