@@ -1338,6 +1338,7 @@ fun ImagenConInclinacion(
             .rotate(anguloRotacion)
             .clip(RoundedCornerShape(12.dp))
     ) {
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(drawableResId)

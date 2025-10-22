@@ -8,8 +8,10 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -68,7 +70,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -102,11 +106,16 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.shimmer_carga_general.shimmer
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.valentinilk.shimmer.ShimmerBounds
+import com.valentinilk.shimmer.ShimmerTheme
+import com.valentinilk.shimmer.rememberShimmer
+import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -1013,29 +1022,41 @@ fun FloatingBubble(
                                         this@Row.AnimatedVisibility(true) {
                                             Crossfade(
                                                 targetState = subcategoira_filtrado_res.isNotEmpty(),
+                                                animationSpec = tween(
+                                                    durationMillis = 500,
+                                                    easing = FastOutSlowInEasing
+                                                ),
                                                 label = ""
                                             ) { tiene_categria ->
                                                 when (state_subcategoria) {
                                                     is viewModel_filtado_tiendas.carga_subcategorias.Loading -> {
-                                                        Column(
+                                                        LazyColumn(
                                                             modifier = Modifier
                                                                 .fillMaxSize()
-                                                                .padding(5.dp),
-                                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                                            verticalArrangement = Arrangement.Center
+                                                                .padding(16.dp),
+                                                            verticalArrangement = Arrangement.spacedBy(
+                                                                12.dp
+                                                            )
                                                         ) {
-                                                            Text(
-                                                                text = "Cargando subcategorías",
-                                                                textAlign = TextAlign.Center,
-                                                                style = MaterialTheme.typography.titleMedium,
-                                                                color = MaterialTheme.colorScheme.onBackground
-                                                            )
-                                                            spacer_vertical(15.dp)
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier.size(
-                                                                    35.dp
+                                                            item {
+                                                                texto_generico_one_line(
+                                                                    "Subcategoría",
+                                                                    MaterialTheme.typography.titleMedium
                                                                 )
-                                                            )
+                                                                spacer_vertical(5.dp)
+                                                            }
+                                                            items(10) {
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .fillMaxWidth()
+                                                                        .clip(CircleShape)
+                                                                        .height(40.dp)
+                                                                        .shimmer(shimmer())
+                                                                        .background(
+                                                                            MaterialTheme.colorScheme.surfaceVariant
+                                                                        )
+                                                                )
+                                                            }
                                                         }
                                                     }
 
@@ -1212,15 +1233,19 @@ fun FloatingBubble(
                                         modifier = Modifier.weight(1f)
                                     )
                                     Switch(
+                                        modifier = Modifier
+                                            .scale(0.8f)
+                                            .padding(end = 20.dp), // 👈 reduce el tamaño a 80%
                                         checked = cerca_de_ti_enable,
                                         onCheckedChange = { fun_cerca_de_ti_enable(it) },
                                         colors = SwitchDefaults.colors(
-                                            checkedThumbColor = Color.White
+                                            checkedThumbColor = Color.White,
+                                            checkedTrackColor = MaterialTheme.colorScheme.primary
                                         )
                                     )
                                 }
 
-                                spacer_vertical(10.dp)
+
 
                                 texto_generico_multilinea(
                                     "Explora lugares, tiendas y servicios que están cerca de tu ubicación. Encuentra lo que necesitas sin perder tiempo.",
@@ -1233,7 +1258,7 @@ fun FloatingBubble(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(40.dp), contentAlignment = Alignment.Center
+                                            .wrapContentHeight(), contentAlignment = Alignment.Center
                                     ) {
                                         AnimatedContent(
                                             targetState = enable_cerca,
@@ -1243,50 +1268,70 @@ fun FloatingBubble(
                                             label = "animacion_cerca"
                                         ) { habilitado ->
                                             if (habilitado) {
-                                                Slider(
-                                                    enabled = enable_cerca,
-                                                    value = radioActual,
-                                                    onValueChange = {
-                                                        radioActual = it.roundToInt().toFloat()
-                                                    },
-                                                    valueRange = 1f..10f,
-                                                    steps = 8,
-                                                    onValueChangeFinished = {
-                                                        scope.launch {
-                                                            data_store_localidad.guardar_radio_user(context, radioActual)
-                                                        }
-                                                        if (geohashin != null) {
-                                                            filtrado_cerca_de_ti(radioActual, geohashin!!)
-                                                        } else {
-                                                            Log.d("Ubicacion", "❌ Aún no se ha obtenido la ubicación")
-                                                        }
-                                                    },
-                                                    colors = SliderDefaults.colors(
-                                                        thumbColor = MaterialTheme.colorScheme.primary,
-                                                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                                                        inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                                        activeTickColor = MaterialTheme.colorScheme.primary,
-                                                        inactiveTickColor = Color.Gray
-                                                    ),
-                                                    thumb = {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .size(25.dp)
-                                                                .clip(CircleShape)
-                                                                .background(Color.White),
-                                                            contentAlignment = Alignment.Center
-                                                        ) {
-                                                            texto_generico_one_line(
-                                                                radioActual.toInt().toString(),
-                                                                color = Color.Black,
-                                                                style = MaterialTheme.typography.bodyMedium
-                                                            )
-                                                        }
-                                                    },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(40.dp)
-                                                )
+                                                Column {
+                                                    texto_generico_one_line(
+                                                        "Rango aproximado de búsqueda: ${radioActual} km",
+                                                        MaterialTheme.typography.bodyMedium
+                                                    )
+                                                    spacer_vertical(10.dp)
+                                                    Slider(
+                                                        enabled = enable_cerca,
+                                                        value = radioActual,
+                                                        onValueChange = {
+                                                            radioActual = it.roundToInt().toFloat()
+                                                        },
+                                                        valueRange = 1f..10f,
+                                                        steps = 8,
+                                                        onValueChangeFinished = {
+                                                            scope.launch {
+                                                                data_store_localidad.guardar_radio_user(
+                                                                    context,
+                                                                    radioActual
+                                                                )
+                                                            }
+                                                            if (geohashin != null) {
+                                                                filtrado_cerca_de_ti(
+                                                                    radioActual,
+                                                                    geohashin!!
+                                                                )
+                                                            } else {
+                                                                Log.d(
+                                                                    "Ubicacion",
+                                                                    "❌ Aún no se ha obtenido la ubicación"
+                                                                )
+                                                            }
+                                                        },
+                                                        colors = SliderDefaults.colors(
+                                                            thumbColor = MaterialTheme.colorScheme.primary,
+                                                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                                                            inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                                alpha = 0.2f
+                                                            ),
+                                                            activeTickColor = MaterialTheme.colorScheme.primary,
+                                                            inactiveTickColor = Color.Gray
+                                                        ),
+                                                        thumb = {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(25.dp)
+                                                                    .clip(CircleShape)
+                                                                    .background(Color.White),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                texto_generico_one_line(
+                                                                    radioActual.toInt().toString(),
+                                                                    color = Color.Black,
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+                                                            }
+                                                        },
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .height(40.dp)
+                                                    )
+                                                    spacer_vertical(10.dp)
+                                                }
+
                                             } else {
                                                 texto_generico_one_line(
                                                     "Selecciona una categoría",

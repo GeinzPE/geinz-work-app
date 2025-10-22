@@ -183,5 +183,7 @@ dependencies {
     implementation("com.firebase:geofire-android:3.2.0")
     implementation("androidx.compose.foundation:foundation:1.9.1")
 
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
+
 
 }
