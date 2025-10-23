@@ -2082,6 +2082,24 @@ object constantes_lista_localidades {
         )
     }
 
+    fun filtrar_por_radio_interno(
+        radio: Float,
+        hasing_user: String,
+        lista_base: List<Item>
+    ): List<Item> {
+        Log.d("llamaointer", "funfiltradainteran")
+        val precision = when {
+            radio <= 0.1 -> 8
+            radio <= 0.3 -> 7
+            radio <= 1 -> 6
+            radio <= 5 -> 5
+            else -> 4
+        }
+        val prefijo = hasing_user.take(precision)
+
+        return lista_base.filter { it.geohasing.startsWith(prefijo) }
+    }
+
 
 
 }

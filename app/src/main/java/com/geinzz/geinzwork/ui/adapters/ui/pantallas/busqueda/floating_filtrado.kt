@@ -1213,8 +1213,7 @@ fun FloatingBubble(
                         }
 
                         var enable_cerca by remember { mutableStateOf(false) }
-                        enable_cerca =
-                            categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
+                        enable_cerca = categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
 
 
                         Box(
@@ -1248,7 +1247,7 @@ fun FloatingBubble(
 
 
                                 texto_generico_multilinea(
-                                    "Explora lugares, tiendas y servicios que están cerca de tu ubicación. Encuentra lo que necesitas sin perder tiempo.",
+                                    "Explora lugares, tiendas y servicios que estén cerca de tu ubicación (distancias aproximadas). Encuentra lo que necesites sin perder tiempo.",
                                     MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(end = 20.dp)
                                 )

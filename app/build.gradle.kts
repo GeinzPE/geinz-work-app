@@ -184,6 +184,6 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.9.1")
 
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
-
+ 
 
 }

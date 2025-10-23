@@ -2,16 +2,20 @@ package com.geinzz.geinzwork.viewModels
 
 import Item
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.aloglia.AlgoliaHelper
+import com.geinzz.geinzwork.data_store.data_store_localidad
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
@@ -21,249 +25,218 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         apiKey = application.getString(R.string.APIKEY_ALGOLIA_SEARCH),
         indexName = application.getString(R.string.IDEX_NAME_ALGOLIA)
     )
+
     private var searchJob: Job? = null
+    private var filterJob: Job? = null
 
+    private val _state = MutableStateFlow<ListItemsResult>(ListItemsResult.Empty(""))
+    val state: StateFlow<ListItemsResult> = _state
 
-//    private val _results = MutableStateFlow<List<Item>>(emptyList())
-//    val results: StateFlow<List<Item>> = _results
+    private val _listaEncontrada = MutableStateFlow<List<Item>>(emptyList())
+    val listaEncontrada: StateFlow<List<Item>> = _listaEncontrada
 
-//    private val _resultado_categorias = MutableStateFlow<String>("")
-//
-//    val resultado_categorias: StateFlow<String> = _resultado_categorias
+    private var listaOriginalCompleta: List<Item> = emptyList()
+    private var listaGeohashCompleta: List<Item> = emptyList()
 
-//
-//    val _resultado_solo_nombre = MutableStateFlow<List<Item>>(emptyList())
-//    val resultado_solo_nombre: StateFlow<List<Item>> = _resultado_solo_nombre
+    fun setListaOriginal(lista: List<Item>) {
+        listaOriginalCompleta = lista
+    }
 
-
-//    private val _ls_items_ls_cat =
-//         MutableStateFlow<Pair<List<Item>, List<String>>>(Pair(emptyList(), emptyList()))
-//    val ls_items_ls_cat: StateFlow<Pair<List<Item>, List<String>>> = _ls_items_ls_cat
-
-    private val _state = MutableStateFlow<List_items_result>(List_items_result.Empty)
-    val state: StateFlow<List_items_result> = _state
-
-    private val _lista_encontrada = MutableStateFlow<List<Item>>(emptyList())
-    val lista_encontrada: StateFlow<List<Item>> = _lista_encontrada
-    private var ultimaLocalidad: String? = null
-
-//    val resultadosCombinados: StateFlow<List<Item>> =
-//        combine(resultado_categorias, resultado_solo_nombre) { categorias, tiendas ->
-//            val deCategorias: List<Item> = categorias.flatMap { it.listaItems }
-//            val deTiendas: List<Item> = tiendas
-//
-//            (deCategorias + deTiendas)
-//                .distinctBy { it.id_tienda } // 🔹 elimina duplicados por id
-//        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-
-//    fun search(query: String, subcategoria_selecionada: String, localidad: String = "") {
-//        viewModelScope.launch {
-//            try {
-//                val hits = algoliaHelper.search(query, subcategoria_selecionada, localidad)
-//                _results.value = hits
-//            } catch (e: Exception) {
-//                _results.value = emptyList()
-//            }
-//        }
-//    }
-
-
-    fun ls_items_ls_cat_fun(
-        selecionado: Boolean,
+    /** ---------- FILTRO PRINCIPAL (BÚSQUEDA + CATEGORÍA + SUBCATEGORÍA + GEOHASH) ---------- */
+    fun buscarItems(
+        context: Context,
+        geohashEnable: Boolean,
+        hashUser: String?,
+        seleccionado: Boolean,
         localidad: String,
         categoria: String?,
         subcategoria: String?,
-        search: String,
-        it: String
+        search: String
     ) {
-        Log.d("LS_ITEMS", "➡️ INICIO FUNCIÓN")
-        Log.d("LS_ITEMS", "Parámetros recibidos:")
-        Log.d("LS_ITEMS", "   selecionado = $selecionado")
-        Log.d("LS_ITEMS", "   localidad   = $localidad")
-        Log.d("LS_ITEMS", "   categoria   = $categoria")
-        Log.d("LS_ITEMS", "   subcategoria= $subcategoria")
-        Log.d("LS_ITEMS", "   search      = $search")
-
+        Log.d("isntqa_fun", "buscarItems")
         searchJob?.cancel()
+
         searchJob = viewModelScope.launch {
-            _state.value = List_items_result.Loading
-
-            val start = System.currentTimeMillis()
+            _state.value = ListItemsResult.Loading
             try {
-                Log.d("LS_ITEMS", "⏳ Consultando Algolia...")
+                // -------------------------
+                // 🔹 1️⃣ Filtrar localmente si hay categoría/subcategoría
+                // -------------------------
+                if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
+                    if(geohashEnable)Log.d("asd123","con geohasing")
+                    Log.d("asd123", "Filtraremos solo por nombre local")
 
-                val res = algoliaHelper.retornar_items_categorias(
-                    _lista_encontrada.value,
-                    selecionado,
-                    localidad,
-                    categoria,
-                    subcategoria,
-                    search, // usa solo el valor actual
-                    search  // quita el parámetro 'it'
-                )
+                    // Filtrar lista original por nombre (search)
+                    val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(listaOriginalCompleta, search)
+                    val categorias = listaFiltrada.map { it.categoria }.distinct()
 
-                coroutineContext.ensureActive()
-                val elapsed = System.currentTimeMillis() - start
+                    _listaEncontrada.value = listaFiltrada
+                    _state.value = if (listaFiltrada.isEmpty()) {
+                        ListItemsResult.Empty("No se encontraron resultados en la localidad")
+                    } else {
+                        ListItemsResult.Success(categorias, listaFiltrada)
+                    }
 
-                // 🔹 Mantener mínimo 400ms de carga para mejor UX
-                if (elapsed < 400) delay(400 - elapsed)
-
-                Log.d("LS_ITEMS", "✅ Resultados recibidos:")
-                Log.d("LS_ITEMS", "   Items encontrados      = ${res.first.size}")
-                Log.d("LS_ITEMS", "   Categorías encontradas = ${res.second.size}")
-
-                _state.value = if (res.first.isEmpty() && res.second.isEmpty()) {
-                    List_items_result.Empty
                 } else {
-                    List_items_result.succes(res.second, res.first)
-                }
+                    // -------------------------
+                    // 🔹 2️⃣ Buscar en Algolia si no hay cat/subcat seleccionada
+                    // -------------------------
+                    Log.d("asd123", "Buscando en Algolia")
 
-                if (res.first.isNotEmpty() && res.first.size > 1) {
-                    Log.d("enviamos_valor_anulado", res.first.toString())
-                    _lista_encontrada.value = res.first
-                    Log.d("hay_select", "${res.first.size}")
+                    // Búsqueda con texto y filtros en Algolia
+                    val (listaFiltrada, categorias) = algoliaHelper.buscar_en_algolia(
+                        localidad,
+                        categoria,
+                        subcategoria,
+                        search,
+                        seleccionado
+                    )
 
+                    _listaEncontrada.value = listaFiltrada
+                    _state.value = if (listaFiltrada.isEmpty() && categorias.isEmpty()) {
+//                        if (geohashEnable) {
+//                            val radioGuardado = data_store_localidad.get_radio_user(context).first()
+//                            ListItemsResult.Empty("No se encontraron resultados en ${radioGuardado.toInt()} Km")
+//                        } else {
+                            ListItemsResult.Empty("No se encontraron resultados")
+//                        }
+                    } else {
+                        ListItemsResult.Success(categorias, listaFiltrada)
+                    }
                 }
 
             } catch (e: Exception) {
-                Log.e("LS_ITEMS", "${e.message.toString()}")
-                _state.value = List_items_result.error("Ocurrió un error, vuelva a intentarlo")
+                Log.e("SearchViewModel", "Error buscarItems: ${e.message}")
+                _state.value = ListItemsResult.Error("Ocurrió un error, vuelva a intentarlo")
             }
         }
     }
 
 
-    fun filtar_sub_cat(localidad: String, cat: String?, sub: String?) {
-        //activador donde tenemos que pasar la lista_ya filtrada
+    /** ---------- FILTRAR POR SUBCATEGORÍA Y CATEGORÍA ---------- */
+    fun filtrarSubCat(
+        context: Context,
+        hashUser: String?,
+        cercaDeTiEnable: Boolean,
+        localidad: String,
+        categoria: String?,
+        subcategoria: String?
+    ) {
+        Log.d("isntqa_fun", "filtrarSubCat")
+        filterJob?.cancel()
+        filterJob = viewModelScope.launch {
+            try {
+                _state.value = ListItemsResult.Loading
 
-        Log.d("buscamosen", "valor_lista_base ${cat}")
+                if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
+                    val algolia = algoliaHelper.filtrar_categoria_sub_algolia(
+                        localidad,
+                        categoria,
+                        subcategoria
+                    )
+
+                    _listaEncontrada.value = algolia
+
+                    _state.value = if (algolia.isEmpty()) {
+                        ListItemsResult.Empty("No se encontraron resultados")
+                    } else {
+                        val categoriasActuales = algolia.map { it.categoria }.distinct()
+                        listaOriginalCompleta = algolia
+                        ListItemsResult.Success(categoriasActuales, algolia)
+
+                    }
+                }
+
+            } catch (e: CancellationException) {
+                Log.d("SearchViewModel", "Filtro cancelado por nueva solicitud")
+            } catch (e: Exception) {
+                _state.value = ListItemsResult.Error("Ocurrió un error, vuelva a intentarlo")
+            }
+        }
+    }
+
+
+    /** ---------- RESTAURAR LISTA ORIGINAL ---------- */
+    fun restaurarListaOriginal() {
+        val base =
+            if (listaGeohashCompleta.isNotEmpty()) listaGeohashCompleta else listaOriginalCompleta
+        _listaEncontrada.value = base
+        val categorias = base.map { it.categoria }.distinct()
+        _state.value = if (base.isEmpty()) ListItemsResult.Empty("No se encontraron resultados")
+        else ListItemsResult.Success(categorias, base)
+    }
+
+    /** ---------- FILTRAR POR RADIO INTERNO ---------- */
+    fun filtrarPorRadioInterno(radio: Float, hashUser: String, listaBase: List<Item>): List<Item> {
+        Log.d("isntqa_fun", "filtrarPorRadioInterno")
+
+        val precision = when {
+            radio <= 0.1 -> 8
+            radio <= 0.3 -> 7
+            radio <= 1 -> 6
+            radio <= 5 -> 5
+            else -> 4
+        }
+        val prefijo = hashUser.take(precision)
+        return listaBase.filter { it.geohasing.startsWith(prefijo) }
+    }
+
+    fun filtrar_por_radio(
+        context: Context,
+        cat_select: String,
+        sub_select: String,
+        cerca_de_ti_enable: Boolean,
+        hash_user: String?
+    ) {
+        Log.d("isntqa_fun", "filtrar_por_radio")
 
         viewModelScope.launch {
-            val a1 = algoliaHelper.obtener_items_por_categoria_y_localidad(cat ?: "", localidad)
-            val lista_base_busqueda = a1
-            Log.d("a1", "${a1.toString()}")
-
-            _state.value = List_items_result.Loading
-            delay(500)
             try {
-                val res: List<Item>
+                _state.value = ListItemsResult.Loading
 
-                if (lista_base_busqueda.isEmpty()) {
-                    Log.d("buscamosen", "algolia")
-                    res = algoliaHelper.filtrar_categoria_sub_algolia(localidad, cat, sub)
-                    _lista_encontrada.value = res
+                val radioGuardado = data_store_localidad.get_radio_user(context).first()
 
-                } else {
-                    Log.d("buscamosen", "local")
-                    res = algoliaHelper.filtrar_categoria_local(
-                        localidad,
-                        lista_base_busqueda,
-                        cat,
-                        sub
-                    )
-                    _lista_encontrada.value = res
+                var listaFiltrable = listaOriginalCompleta
+                if (cerca_de_ti_enable && !hash_user.isNullOrEmpty()) {
+                    listaFiltrable =
+                        filtrarPorRadioInterno(radioGuardado, hash_user, listaOriginalCompleta)
                 }
 
-                val categoriasActuales = when (val currentState = _state.value) {
-                    is List_items_result.succes -> currentState.categoira
-                    else -> emptyList()
+                if (cat_select.isNotBlank() || sub_select.isNotBlank()) {
+                    listaFiltrable = listaFiltrable.filter { item ->
+                        (cat_select.isBlank() || item.categoria == cat_select) &&
+                                (sub_select.isBlank() || item.lista.contains(sub_select))
+                    }
                 }
-                _state.value = if (res.isEmpty() && categoriasActuales.isEmpty()) {
-                    List_items_result.Empty
-                } else {
-                    List_items_result.succes(categoriasActuales, res)
-                }
+
+
+                _listaEncontrada.value = listaFiltrable
+
+                val categorias = listaFiltrable.map { it.categoria }.distinct()
+                _state.value = if (listaFiltrable.isEmpty()) {
+                    if (cerca_de_ti_enable) ListItemsResult.Empty("No se encontraron resultados en ${radioGuardado.toInt()} Km")
+                    else ListItemsResult.Empty("No se encontraron resultados")
+                } else ListItemsResult.Success(categorias, listaFiltrable)
 
             } catch (e: Exception) {
-
-                _state.value = List_items_result.error("Ocurrio un error vuelvalo a intentar")
+                _state.value = ListItemsResult.Error("Ocurrió un error, vuelva a intentarlo")
             }
         }
     }
 
-
-    fun filtrar_por_radio(lista_base_filtrada: List<Item>, radio: Float, hasing_user: String) {
-        Log.d("lalamos","llamosfuin $hasing_user",)
-        val lista_base = lista_base_filtrada
-       viewModelScope.launch {
-
-            try {
-                // Determina precisión dinámica del geohash según el radio (máx 10 km)
-                val precision = when {
-                    radio <= 0.1 -> 8   // ~20 m
-                    radio <= 0.3 -> 7   // ~150 m
-                    radio <= 1 -> 6     // ~1 km
-                    radio <= 5 -> 5     // ~5 km
-                    else -> 4           // ~10 km
-                }
-                Log.d("filtrar_por_radio", "🎯 Precisión usada: $precision")
-
-                // Tomamos solo el prefijo del geohash del usuario según la precisión
-                val prefijo = hasing_user.take(precision)
-                Log.d("filtrar_por_radio", "🔡 Prefijo geohash usado: $prefijo")
-
-                // Filtrar tiendas que compartan el prefijo del geohash según precisión dinámica
-                val lista_filtrada = lista_base.filter { tienda ->
-                    val coincide = tienda.geohasing.startsWith(prefijo)
-                    if (coincide) {
-                        Log.d(
-                            "filtrar_por_radio",
-                            "✅ Coincide: ${tienda.nombre} (${tienda.geohasing})"
-                        )
-                    } else {
-                        Log.d(
-                            "filtrar_por_radio",
-                            "❌ No coincide: ${tienda.nombre} (${tienda.geohasing})"
-                        )
-                    }
-                    coincide
-                }
-                _state.value = List_items_result.Loading
-                delay(500)
-                if(lista_filtrada.isNotEmpty()){
-                    val categoriasActuales = when (val currentState = _state.value) {
-                        is List_items_result.succes -> currentState.categoira
-                        else -> emptyList()
-                    }
-                    _state.value=List_items_result.succes(categoriasActuales,lista_filtrada)
-                }else{
-                _state.value=List_items_result.Empty
-                }
-            } catch (e: Exception) {
-                _state.value=List_items_result.error("")
-            }
-        }
-//        Log.d("lista_base", lista_base.size.toString())
-//        Log.d("filtrar_por_radio", "🛰️ Iniciando filtrado por radio")
-//        Log.d("filtrar_por_radio", "📏 Radio recibido: $radio km")
-//        Log.d("filtrar_por_radio", "🧭 Geohash usuario: $hasing_user")
-//
-//
-////        _lista_encontrada.value = lista_filtrada
-//
-//        Log.d("filtrar_por_radio", "📦 Total tiendas base: ${lista_base.size}")
-//        Log.d("filtrar_por_radio", "🎯 Total tiendas filtradas: ${lista_filtrada.size}")
-//        Log.d("filtrar_por_radio", "📜 Lista final: ${lista_filtrada.joinToString { it.nombre }}")
-   }
-
-
+    /** ---------- LIMPIAR RESULTADOS ---------- */
     fun clearResults() {
-        Log.d("limpiamos_valor", "valor_limiado")
-        _state.value = List_items_result.Cleared
-        _lista_encontrada.value = emptyList()
+        _state.value = ListItemsResult.Cleared
+        _listaEncontrada.value = emptyList()
+        listaGeohashCompleta = emptyList()
     }
 
-
-    sealed class List_items_result {
-        object Loading : List_items_result()
-        data class succes(
-            val categoira: List<String>,
-            val items: List<Item>,
-        ) : List_items_result()
-
-        object Empty : List_items_result()
-        object Cleared : List_items_result()
-        data class error(val msje: String) : List_items_result()
+    /** ---------- CLASE SELLADA PARA ESTADOS ---------- */
+    sealed class ListItemsResult {
+        object Loading : ListItemsResult()
+        data class Success(val categorias: List<String>, val items: List<Item>) : ListItemsResult()
+        data class Empty(val mensaje: String) : ListItemsResult()
+        object Cleared : ListItemsResult()
+        data class Error(val mensaje: String) : ListItemsResult()
     }
 }

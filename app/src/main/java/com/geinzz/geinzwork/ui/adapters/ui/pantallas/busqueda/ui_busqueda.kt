@@ -66,7 +66,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -157,10 +156,12 @@ fun ui_pantalla_busqueda(
     val items: List<Item>
     val categorias: List<String>
     when (state) {
-        is SearchViewModel.List_items_result.succes -> {
-            val succes = state as SearchViewModel.List_items_result.succes
+        is SearchViewModel.ListItemsResult.Success -> {
+
+            val succes = state as SearchViewModel.ListItemsResult.Success
             items = succes.items
-            categorias = succes.categoira
+            categorias = succes.categorias
+            Log.d("items_result", "${items.size}")
         }
 
         else -> {
@@ -178,7 +179,7 @@ fun ui_pantalla_busqueda(
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
     val datos_lugares_turisticos by viewModelFiltros.instance_lugar_turistico.collectAsState()
-    val lista_base_filtrada by viewModel.lista_encontrada.collectAsState()
+    val lista_base_filtrada by viewModel.listaEncontrada.collectAsState()
 
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
@@ -197,7 +198,7 @@ fun ui_pantalla_busqueda(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.lista_encontrada.collect { lista ->
+        viewModel.listaEncontrada.collect { lista ->
             Log.d("listaaa", "Cambio detectado, tamaño: ${lista.size}")
             if (lista.isNotEmpty()) {
                 Log.d("listaaa", lista.toString())
@@ -248,6 +249,8 @@ fun ui_pantalla_busqueda(
     var log_user by remember { mutableStateOf<Double?>(null) }
     var hash_user by remember { mutableStateOf<String?>(null) }
     var cerca_de_ti_enable by remember { mutableStateOf(false) }
+    var radio_filtrado_user_fitlrado by remember { mutableStateOf(0f) }
+    var hasing_user_user_filtrado by remember { mutableStateOf("") }
 
 
 //    LaunchedEffect(radio_user) {
@@ -257,13 +260,58 @@ fun ui_pantalla_busqueda(
 //        }
 //    }
 
+    LaunchedEffect(cerca_de_ti_enable) {
+        Log.d("FiltroRadioEffect", "🚀 LaunchedEffect disparado")
+        Log.d("FiltroRadioEffect", "cerca_de_ti_enable = $cerca_de_ti_enable")
+        Log.d("FiltroRadioEffect", "categoria_filtrad = $categoria_filtrad")
+        Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
+
+        if (cerca_de_ti_enable) {
+            Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
+            if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
+                Log.d(
+                    "FiltroRadioEffect",
+                    "Hay categorías o subcategorías seleccionadas, filtrando por radio..."
+                )
+                viewModel.filtrar_por_radio(
+                    context,
+                    categoria_filtrad,
+                    subcategira_filtrado,
+                    cerca_de_ti_enable,
+                    hash_user
+                )
+            } else {
+                Log.d(
+                    "FiltroRadioEffect",
+                    "No hay categorías ni subcategorías seleccionadas, no se filtra aún"
+                )
+            }
+        } else {
+            Log.d("FiltroRadioEffect", "Switch Cerca de Ti DESACTIVADO")
+            if (categoria_filtrad.isEmpty() && subcategira_filtrado.isEmpty()) {
+                Log.d(
+                    "FiltroRadioEffect",
+                    "No hay filtros seleccionados, limpiando todos los resultados"
+                )
+                viewModel.clearResults()
+            } else {
+                Log.d(
+                    "FiltroRadioEffect",
+                    "Hay filtros de categoría/subcategoría, restaurando lista original"
+                )
+                viewModel.restaurarListaOriginal()
+            }
+        }
+
+        Log.d("FiltroRadioEffect", "✅ LaunchedEffect finalizado")
+    }
+
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
         categoria_filtrad,
         subcategira_filtrado,
         salud_seguirdad
     ) {
-
 
         val localidadActual = tiendaLocalidadSeleccionada
 
@@ -316,11 +364,16 @@ fun ui_pantalla_busqueda(
         // 🔹 Llamar solo una vez si hay categoría/subcategoría
         if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
             Log.d("buscamosen", "entramos_condiocn")
-            viewModel.filtar_sub_cat(
+            viewModel.filtrarSubCat(
+                context,
+                hash_user,
+                cerca_de_ti_enable,
                 tiendaLocalidadSeleccionada ?: "barranca",
                 categoriaFinal,
                 subcategira_filtrado
             )
+        } else {
+            viewModel.clearResults()
         }
     }
 
@@ -413,39 +466,50 @@ fun ui_pantalla_busqueda(
                                 selection = TextRange(it.length)
                             )
                             if (it.isNotEmpty() && it.length >= 2) {
-
+                                Log.d("entramos123123", "1mayor")
                                 mostrar_centrado_visible = false
                                 if (!cat_sub_seleciondo) {
-                                    viewModel.ls_items_ls_cat_fun(
+                                    Log.d("entramos123123", "1menor")
+                                    viewModel.buscarItems(
+                                        context,
+                                        cerca_de_ti_enable,
+                                        hash_user,
                                         false,
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         null,
                                         null,
                                         searchText.text,
-                                        it
+
                                     )
                                 } else {
-
-                                    viewModel.ls_items_ls_cat_fun(
+                                    Log.d("entramos123123", "2menor")
+                                    viewModel.buscarItems(
+                                        context,
+                                        cerca_de_ti_enable,
+                                        hash_user,
                                         true,
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         categoria_filtrad.ifEmpty { salud_seguirdad },
                                         subcategira_filtrado,
-                                        searchText.text, it
+                                        searchText.text,
                                     )
                                 }
                             } else {
                                 // 📝 Si no hay texto suficiente (<2)
+                                Log.d("entramos123123", "2")
                                 if (cat_sub_seleciondo) {
 
                                     mostrar_centrado_visible = false
-                                    viewModel.ls_items_ls_cat_fun(
+                                    viewModel.buscarItems(
+                                        context,
+                                        cerca_de_ti_enable,
+                                        hash_user,
                                         true,
                                         tiendaLocalidadSeleccionada ?: "barranca",
                                         categoria_filtrad.ifEmpty { salud_seguirdad },
                                         subcategira_filtrado,
                                         "",
-                                        it // 🔥 búsqueda vacía
+                                         // 🔥 búsqueda vacía
                                     )
 
                                 } else {
@@ -540,7 +604,7 @@ fun ui_pantalla_busqueda(
             }
         }
 
-        if (state is SearchViewModel.List_items_result.Loading) {
+        if (state is SearchViewModel.ListItemsResult.Loading) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -554,7 +618,8 @@ fun ui_pantalla_busqueda(
         }
 
         when (state) {
-            is SearchViewModel.List_items_result.Empty -> {
+            is SearchViewModel.ListItemsResult.Empty -> {
+
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -562,7 +627,6 @@ fun ui_pantalla_busqueda(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (searchText.text.isNotEmpty()) {
-
                         texto_generico_one_line(
                             "No se encontraron resultados con ${searchText.text}",
                             modifier = Modifier,
@@ -570,7 +634,7 @@ fun ui_pantalla_busqueda(
                         )
                     } else {
                         texto_generico_one_line(
-                            "No se encontraron resultados",
+                            (state as SearchViewModel.ListItemsResult.Empty).mensaje,
                             modifier = Modifier,
                             color = Color.Gray
                         )
@@ -591,11 +655,11 @@ fun ui_pantalla_busqueda(
                 }
             }
 
-            is SearchViewModel.List_items_result.Cleared -> {}
-            is SearchViewModel.List_items_result.error -> {
-                val errorState = state as SearchViewModel.List_items_result.error
+            is SearchViewModel.ListItemsResult.Cleared -> {}
+            is SearchViewModel.ListItemsResult.Error -> {
+                val errorState = state as SearchViewModel.ListItemsResult.Error
                 Text(
-                    "${errorState.msje}",
+                    "${errorState.mensaje}",
                     color = Color.Red,
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -777,9 +841,18 @@ fun ui_pantalla_busqueda(
                 color_salud_seguirdad = false
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
-                viewModel.filtrar_por_radio(lista_base_filtrada, radio, hasing_user)
+                viewModel.filtrar_por_radio(
+                    context,
+                    categoria_filtrad,
+                    subcategira_filtrado,
+                    cerca_de_ti_enable,
+                    hasing_user
+                )
+                radio_filtrado_user_fitlrado = radio
+                hasing_user_user_filtrado = hasing_user
             }, fun_cerca_de_ti_enable = { it ->
                 cerca_de_ti_enable = it
+
             })
     }
 }
@@ -947,6 +1020,7 @@ fun filtrado_chips(
                         btn_visible = true,
                         clik_card = { categoria_selecionada_fun(cat) },
                         onClick_delete = {
+                            Log.d("eliminado", "eliminasdos_fitrlado1")
                             categoria_selecionada_fun("")
                             subcateogira_selecionada_fun("")
                             viewModel.clearResults()
@@ -964,6 +1038,8 @@ fun filtrado_chips(
                         btn_visible = true,
                         clik_card = { subcateogira_selecionada_fun(sub) },
                         onClick_delete = {
+                            Log.d("eliminado", "eliminasdos_fitrlado2")
+
                             subcateogira_selecionada_fun("")
                             descolorar_carta_sub()
                         }

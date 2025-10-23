@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.aloglia
 
 import Item
+import android.content.Context
 import android.util.Log
 import com.algolia.search.client.ClientSearch
 import com.algolia.search.model.APIKey
@@ -8,6 +9,9 @@ import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.Attribute
 import com.algolia.search.model.IndexName
 import com.algolia.search.model.search.Query
+import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.filtrar_por_radio_interno
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
@@ -241,7 +245,7 @@ class AlgoliaHelper(
                 val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohasing)
             }
 
         } catch (e: Exception) {
@@ -261,7 +265,10 @@ class AlgoliaHelper(
                 filters = filtros
             }
 
-            Log.d("AlgoliaQuery", "Buscando todos los items de la categoría='$categoria' en localidad='$localidad'")
+            Log.d(
+                "AlgoliaQuery",
+                "Buscando todos los items de la categoría='$categoria' en localidad='$localidad'"
+            )
 
             // 🔹 Ejecutamos la búsqueda
             val response = index.search(query)
@@ -275,13 +282,14 @@ class AlgoliaHelper(
                 val id = json["id_tienda"]?.jsonPrimitive?.content.orEmpty()
                 val categoriaJson = json["categoria"]?.jsonPrimitive?.content.orEmpty()
                 val img = json["img"]?.jsonPrimitive?.content.orEmpty()
-                val tags = json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
+                val tags = json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }
+                    ?: emptyList()
                 val ubicacionJson = json["ubicacion"]?.jsonObject
                 val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohasing)
             }
 
         } catch (e: Exception) {
@@ -291,16 +299,120 @@ class AlgoliaHelper(
     }
 
 
-
     suspend fun retornar_items_categorias(
-        lista_guardada: List<Item>,
-        selecionado: Boolean,
+        context: Context,
+        lista_base: List<Item>,          // lista completa de tiendas con geohash
+        geohasing_enable: Boolean,       // si usar geohash
+        hasing_user: String?,            // geohash del usuario
+        lista_guardada: List<Item>,      // lista cacheada / original
+        selecionado: Boolean,            // hay categoría/subcategoría seleccionada
         localidad: String,
         categoria: String? = null,
         subcategoria: String? = null,
-        search: String,
-        it: String
+        search: String
     ): Pair<List<Item>, List<String>> {
+
+        Log.d("RetornarItems", "🚀 Iniciando retornar_items_categorias()")
+        Log.d(
+            "RetornarItems",
+            "Parámetros → geohash=$geohasing_enable, lista_base=${lista_base.size}, lista_guardada=${lista_guardada.size}, categoria=$categoria, subcategoria=$subcategoria, search='$search'"
+        )
+
+        // 🔹 Si no hay filtros ni búsqueda, devolver lista_guardada completa
+        if (!selecionado && categoria.isNullOrBlank() && subcategoria.isNullOrBlank() && search.isBlank()) {
+            Log.d("RetornarItems", "🔹 No hay filtros activos → devolviendo lista_guardada completa")
+            val categoriasUnicas = lista_guardada.map { it.categoria }.distinct()
+            return Pair(lista_guardada, categoriasUnicas)
+        }
+
+        // ===============================================
+        // 🔹 1️⃣ GEOHASHING
+        // ===============================================
+        if (geohasing_enable) {
+            Log.d("RetornarItems", "📍 Geohashing activo")
+
+            val radioGuardado = data_store_localidad.get_radio_user(context).first()
+            Log.d("RetornarItems", "📏 Radio guardado del usuario: $radioGuardado km")
+
+            var filtrados = if (!hasing_user.isNullOrEmpty()) {
+                filtrar_por_radio_interno(radioGuardado, hasing_user, lista_base)
+            } else emptyList()
+
+            Log.d("RetornarItems", "🔹 Tras filtro por radio → ${filtrados.size} items")
+
+            // Filtro por categoría/subcategoría
+            filtrados = filtrados.filter { item ->
+                (categoria.isNullOrBlank() || item.categoria.equals(
+                    categoria,
+                    ignoreCase = true
+                )) &&
+                        (subcategoria.isNullOrBlank() || item.lista.any {
+                            it.equals(
+                                subcategoria,
+                                ignoreCase = true
+                            )
+                        })
+            }
+            Log.d(
+                "RetornarItems",
+                "🔹 Tras filtro geohash categoría/subcategoría → ${filtrados.size}"
+            )
+
+            // Filtro por búsqueda
+            if (search.length >= 3) {
+                filtrados = filtrados.filter { it.nombre.contains(search, ignoreCase = true) }
+                Log.d("RetornarItems", "🔹 Tras filtro geohash búsqueda → ${filtrados.size}")
+            }
+
+            val categoriasUnicas = filtrados.map { it.categoria }.distinct()
+            Log.d("RetornarItems", "✅ Geohash final → ${filtrados.size} resultados")
+            return Pair(filtrados, categoriasUnicas)
+        }
+
+        // ===============================================
+        // 🔹 2️⃣ LISTA LOCAL
+        // ===============================================
+        if (lista_guardada.isNotEmpty()) {
+            Log.d("RetornarItems", "💾 Filtrando lista local (${lista_guardada.size})")
+
+            // Siempre usar lista_guardada como base, no sobrescribirla
+            var filtrados = lista_guardada
+
+            // Filtro categoría/subcategoría
+            if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
+                filtrados = filtrados.filter { item ->
+                    (categoria.isNullOrBlank() || item.categoria.equals(
+                        categoria,
+                        ignoreCase = true
+                    )) &&
+                            (subcategoria.isNullOrBlank() || item.lista.any {
+                                it.equals(
+                                    subcategoria,
+                                    ignoreCase = true
+                                )
+                            })
+                }
+                Log.d(
+                    "RetornarItems",
+                    "🔹 Tras filtro local categoría/subcategoría → ${filtrados.size}"
+                )
+            }
+
+            // Filtro por búsqueda
+            if (search.length >= 3) {
+                filtrados = filtrados.filter { it.nombre.contains(search, ignoreCase = true) }
+                Log.d("RetornarItems", "🔹 Tras filtro local búsqueda → ${filtrados.size}")
+            }
+
+            val categoriasUnicas = filtrados.map { it.categoria }.distinct()
+            Log.d("RetornarItems", "✅ Filtrado local final → ${filtrados.size} resultados")
+            return Pair(filtrados, categoriasUnicas)
+        }
+
+        // ===============================================
+        // 🔹 3️⃣ CONSULTA ALGOLIA (último recurso)
+        // ===============================================
+        Log.d("RetornarItems", "🌐 Lista local vacía, consultando Algolia...")
 
         val filtros = buildList {
             add("""lugar:"$localidad"""")
@@ -310,78 +422,18 @@ class AlgoliaHelper(
             }
         }.joinToString(" AND ")
 
-        if (search.length < 3) {
-            Log.d("valor_id", "No hay texto ni filtros, retornando vacío")
-            return Pair(emptyList(), emptyList())
-        }
-
-        val query =
-            // Si el texto de búsqueda está vacío o solo tiene espacios...
-            if (search.isBlank()) {
-                // Creamos un Query vacío (sin término de búsqueda)
-                Query().apply {
-                    // Si existe algún filtro válido (no vacío ni solo espacios), lo aplicamos
-                    if (filtros.isNotBlank()) this.filters = filtros
-                }
-            } else {
-                // Si sí hay texto en "search"...
-                if (selecionado) {
-                    Log.d("hay_select","hay un selecionado")
-                    Query(search).apply {
-                        // Si existe algún filtro válido, lo aplicamos
-                        if (filtros.isNotBlank()) this.filters = filtros
-                        // Limitamos la búsqueda solo al atributo "nombre"
-                        restrictSearchableAttributes = listOf(Attribute("nombre"))
-                    }
-                } else {
-                    // Creamos un Query con el texto de búsqueda
-                    Query(search).apply {
-                        // Si existe algún filtro válido, lo aplicamos
-                        if (filtros.isNotBlank()) this.filters = filtros
-                        // Aquí no restringimos los atributos -> busca en todos los campos indexados
-                    }
-                }
-            }
-
-
-        Log.d(
-            "AlgoliaQuery",
-            """
-    🔎 QUERY CONSTRUIDA:
-    search = "$search"
-    filtros = "$filtros"
-    selecionado = $selecionado
-    restrictSearchableAttributes = ${if (selecionado && search.isNotBlank()) "nombre" else "todos"}
-    """.trimIndent()
-        )
-
-        if (lista_guardada.isNotEmpty()) {
-            // 🔹 Intentar filtrar localmente
-            var filtrados = if (search.isNotBlank())
-                filtrar_por_nombre_local(lista_guardada, search)
-            else
-                lista_guardada
-
-            // 🔹 Aplicar filtros adicionales
-            if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
-                filtrados = filtrados.filter { item ->
-                    val coincideCategoria = categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
-                    val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any { it.equals(subcategoria, ignoreCase = true) }
-                    coincideCategoria && coincideSubcategoria
-                }
-            }
-
-            // 🔹 ⚠️ Si no hay coincidencias locales, consultar Algolia igual
-            if (filtrados.isNotEmpty()) {
-                return Pair(filtrados, filtrados.map { it.categoria }.distinct())
+        val query = if (search.isBlank()) {
+            Query().apply { if (filtros.isNotBlank()) this.filters = filtros }
+        } else {
+            Query(search).apply {
+                if (filtros.isNotBlank()) this.filters = filtros
+                if (selecionado) restrictSearchableAttributes = listOf(Attribute("nombre"))
             }
         }
-
 
         val response = index.search(query)
-        Log.d("AlgoliaQuery", "Total resultados: ${response.hits.size}")
+        Log.d("RetornarItems", "🔹 Algolia retornó ${response.hits.size} resultados")
 
-        // Lista de items
         val items = response.hits.mapNotNull { hit ->
             val json = hit.json.jsonObject
             val nombre = json["nombre"]?.jsonPrimitive?.content.orEmpty()
@@ -394,19 +446,19 @@ class AlgoliaHelper(
             val ubicacionJson = json["ubicacion"]?.jsonObject
             val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
             val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
-            val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
+            val geohashing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
+            Log.d(
+                "RetornarItems",
+                "📌 Hit procesado → nombre=$nombre, categoria=$categoriaJson, lat=$lat, lng=$lng"
+            )
+            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohashing)
         }
 
-        // Lista de categorías únicas
         val categoriasUnicas = items.map { it.categoria }.distinct()
-
+        Log.d("RetornarItems", "✅ Algolia final → ${items.size} resultados")
         return Pair(items, categoriasUnicas)
-//        return Pair(emptyList(), emptyList())
     }
-
-
 
 
     suspend fun filtrar_categoria_sub_algolia(
@@ -441,7 +493,7 @@ class AlgoliaHelper(
                 val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
                 val geohasing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
 
-                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng,geohasing)
+                Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohasing)
             }
 
         } catch (e: Exception) {
@@ -460,8 +512,14 @@ class AlgoliaHelper(
         return try {
             lista_filtrada.filter { item ->
 
-                val coincideCategoria = categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
-                val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any { it.equals(subcategoria, ignoreCase = true) }
+                val coincideCategoria =
+                    categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
+                val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any {
+                    it.equals(
+                        subcategoria,
+                        ignoreCase = true
+                    )
+                }
 
                 coincideCategoria && coincideSubcategoria
             }
@@ -486,4 +544,59 @@ class AlgoliaHelper(
             emptyList()
         }
     }
+
+
+    suspend fun buscar_en_algolia(
+        localidad: String,
+        categoria: String?,
+        subcategoria: String?,
+        search: String,
+        selecionado: Boolean
+    ): Pair<List<Item>, List<String>> {
+        val filtros = buildList {
+            add("""lugar:"$localidad"""")
+            if (selecionado) {
+                if (!categoria.isNullOrBlank()) add("""categoria:"$categoria"""")
+                if (!subcategoria.isNullOrBlank()) add("""tag:"$subcategoria"""")
+            }
+        }.joinToString(" AND ")
+
+        val query = if (search.isBlank()) {
+            Query().apply { if (filtros.isNotBlank()) this.filters = filtros }
+        } else {
+            Query(search).apply {
+                if (filtros.isNotBlank()) this.filters = filtros
+                if (selecionado) restrictSearchableAttributes = listOf(Attribute("nombre"))
+            }
+        }
+
+        val response = index.search(query)
+        Log.d("RetornarItems", "🔹 Algolia retornó ${response.hits.size} resultados")
+
+        val items = response.hits.mapNotNull { hit ->
+            val json = hit.json.jsonObject
+            val nombre = json["nombre"]?.jsonPrimitive?.content.orEmpty()
+            val lugar = json["lugar"]?.jsonPrimitive?.content.orEmpty()
+            val id = json["id_tienda"]?.jsonPrimitive?.content.orEmpty()
+            val categoriaJson = json["categoria"]?.jsonPrimitive?.content.orEmpty()
+            val img = json["img"]?.jsonPrimitive?.content.orEmpty()
+            val tags =
+                json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
+            val ubicacionJson = json["ubicacion"]?.jsonObject
+            val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+            val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+            val geohashing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
+
+            Log.d(
+                "RetornarItems",
+                "📌 Hit procesado → nombre=$nombre, categoria=$categoriaJson, lat=$lat, lng=$lng"
+            )
+            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohashing)
+        }
+
+        val categoriasUnicas = items.map { it.categoria }.distinct()
+        Log.d("RetornarItems", "✅ Algolia final → ${items.size} resultados")
+        return Pair(items, categoriasUnicas)
+    }
+
 }
