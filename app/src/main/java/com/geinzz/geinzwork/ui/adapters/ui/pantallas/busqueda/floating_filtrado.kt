@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -109,12 +110,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.shimmer_carga_general.shimmer
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.LatLng
-import com.valentinilk.shimmer.ShimmerBounds
-import com.valentinilk.shimmer.ShimmerTheme
-import com.valentinilk.shimmer.rememberShimmer
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -1236,7 +1231,13 @@ fun FloatingBubble(
                                             .scale(0.8f)
                                             .padding(end = 20.dp), // 👈 reduce el tamaño a 80%
                                         checked = cerca_de_ti_enable,
-                                        onCheckedChange = { fun_cerca_de_ti_enable(it) },
+                                        onCheckedChange = {
+                                            if(seguidad_salud.isEmpty()){
+                                            fun_cerca_de_ti_enable(it)
+                                            }else{
+                                                Toast.makeText(context, "solo puedes activarlo con categoria", Toast.LENGTH_SHORT).show()
+                                            }
+                                                          },
                                         colors = SwitchDefaults.colors(
                                             checkedThumbColor = Color.White,
                                             checkedTrackColor = MaterialTheme.colorScheme.primary

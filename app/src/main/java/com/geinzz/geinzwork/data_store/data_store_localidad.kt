@@ -10,6 +10,8 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore by preferencesDataStore(name = "settings")
@@ -20,6 +22,10 @@ object data_store_localidad {
     private val MOSTRAR_DIALOG_NOTI = booleanPreferencesKey("notifi_dialog")
 
     private val RADIO_USER_KEY = floatPreferencesKey("radio_user_value")
+
+    private val _radioUserFlow = MutableStateFlow(1f)
+    val radioUserFlow: StateFlow<Float> get() = _radioUserFlow
+
 
 
     suspend fun guardar_localida(context: Context, nombre: String) {

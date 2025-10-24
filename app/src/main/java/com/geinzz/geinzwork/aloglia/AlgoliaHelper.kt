@@ -298,167 +298,167 @@ class AlgoliaHelper(
         }
     }
 
-
-    suspend fun retornar_items_categorias(
-        context: Context,
-        lista_base: List<Item>,          // lista completa de tiendas con geohash
-        geohasing_enable: Boolean,       // si usar geohash
-        hasing_user: String?,            // geohash del usuario
-        lista_guardada: List<Item>,      // lista cacheada / original
-        selecionado: Boolean,            // hay categoría/subcategoría seleccionada
-        localidad: String,
-        categoria: String? = null,
-        subcategoria: String? = null,
-        search: String
-    ): Pair<List<Item>, List<String>> {
-
-        Log.d("RetornarItems", "🚀 Iniciando retornar_items_categorias()")
-        Log.d(
-            "RetornarItems",
-            "Parámetros → geohash=$geohasing_enable, lista_base=${lista_base.size}, lista_guardada=${lista_guardada.size}, categoria=$categoria, subcategoria=$subcategoria, search='$search'"
-        )
-
-        // 🔹 Si no hay filtros ni búsqueda, devolver lista_guardada completa
-        if (!selecionado && categoria.isNullOrBlank() && subcategoria.isNullOrBlank() && search.isBlank()) {
-            Log.d("RetornarItems", "🔹 No hay filtros activos → devolviendo lista_guardada completa")
-            val categoriasUnicas = lista_guardada.map { it.categoria }.distinct()
-            return Pair(lista_guardada, categoriasUnicas)
-        }
-
-        // ===============================================
-        // 🔹 1️⃣ GEOHASHING
-        // ===============================================
-        if (geohasing_enable) {
-            Log.d("RetornarItems", "📍 Geohashing activo")
-
-            val radioGuardado = data_store_localidad.get_radio_user(context).first()
-            Log.d("RetornarItems", "📏 Radio guardado del usuario: $radioGuardado km")
-
-            var filtrados = if (!hasing_user.isNullOrEmpty()) {
-                filtrar_por_radio_interno(radioGuardado, hasing_user, lista_base)
-            } else emptyList()
-
-            Log.d("RetornarItems", "🔹 Tras filtro por radio → ${filtrados.size} items")
-
-            // Filtro por categoría/subcategoría
-            filtrados = filtrados.filter { item ->
-                (categoria.isNullOrBlank() || item.categoria.equals(
-                    categoria,
-                    ignoreCase = true
-                )) &&
-                        (subcategoria.isNullOrBlank() || item.lista.any {
-                            it.equals(
-                                subcategoria,
-                                ignoreCase = true
-                            )
-                        })
-            }
-            Log.d(
-                "RetornarItems",
-                "🔹 Tras filtro geohash categoría/subcategoría → ${filtrados.size}"
-            )
-
-            // Filtro por búsqueda
-            if (search.length >= 3) {
-                filtrados = filtrados.filter { it.nombre.contains(search, ignoreCase = true) }
-                Log.d("RetornarItems", "🔹 Tras filtro geohash búsqueda → ${filtrados.size}")
-            }
-
-            val categoriasUnicas = filtrados.map { it.categoria }.distinct()
-            Log.d("RetornarItems", "✅ Geohash final → ${filtrados.size} resultados")
-            return Pair(filtrados, categoriasUnicas)
-        }
-
-        // ===============================================
-        // 🔹 2️⃣ LISTA LOCAL
-        // ===============================================
-        if (lista_guardada.isNotEmpty()) {
-            Log.d("RetornarItems", "💾 Filtrando lista local (${lista_guardada.size})")
-
-            // Siempre usar lista_guardada como base, no sobrescribirla
-            var filtrados = lista_guardada
-
-            // Filtro categoría/subcategoría
-            if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
-                filtrados = filtrados.filter { item ->
-                    (categoria.isNullOrBlank() || item.categoria.equals(
-                        categoria,
-                        ignoreCase = true
-                    )) &&
-                            (subcategoria.isNullOrBlank() || item.lista.any {
-                                it.equals(
-                                    subcategoria,
-                                    ignoreCase = true
-                                )
-                            })
-                }
-                Log.d(
-                    "RetornarItems",
-                    "🔹 Tras filtro local categoría/subcategoría → ${filtrados.size}"
-                )
-            }
-
-            // Filtro por búsqueda
-            if (search.length >= 3) {
-                filtrados = filtrados.filter { it.nombre.contains(search, ignoreCase = true) }
-                Log.d("RetornarItems", "🔹 Tras filtro local búsqueda → ${filtrados.size}")
-            }
-
-            val categoriasUnicas = filtrados.map { it.categoria }.distinct()
-            Log.d("RetornarItems", "✅ Filtrado local final → ${filtrados.size} resultados")
-            return Pair(filtrados, categoriasUnicas)
-        }
-
-        // ===============================================
-        // 🔹 3️⃣ CONSULTA ALGOLIA (último recurso)
-        // ===============================================
-        Log.d("RetornarItems", "🌐 Lista local vacía, consultando Algolia...")
-
-        val filtros = buildList {
-            add("""lugar:"$localidad"""")
-            if (selecionado) {
-                if (!categoria.isNullOrBlank()) add("""categoria:"$categoria"""")
-                if (!subcategoria.isNullOrBlank()) add("""tag:"$subcategoria"""")
-            }
-        }.joinToString(" AND ")
-
-        val query = if (search.isBlank()) {
-            Query().apply { if (filtros.isNotBlank()) this.filters = filtros }
-        } else {
-            Query(search).apply {
-                if (filtros.isNotBlank()) this.filters = filtros
-                if (selecionado) restrictSearchableAttributes = listOf(Attribute("nombre"))
-            }
-        }
-
-        val response = index.search(query)
-        Log.d("RetornarItems", "🔹 Algolia retornó ${response.hits.size} resultados")
-
-        val items = response.hits.mapNotNull { hit ->
-            val json = hit.json.jsonObject
-            val nombre = json["nombre"]?.jsonPrimitive?.content.orEmpty()
-            val lugar = json["lugar"]?.jsonPrimitive?.content.orEmpty()
-            val id = json["id_tienda"]?.jsonPrimitive?.content.orEmpty()
-            val categoriaJson = json["categoria"]?.jsonPrimitive?.content.orEmpty()
-            val img = json["img"]?.jsonPrimitive?.content.orEmpty()
-            val tags =
-                json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
-            val ubicacionJson = json["ubicacion"]?.jsonObject
-            val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
-            val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
-            val geohashing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
-
-            Log.d(
-                "RetornarItems",
-                "📌 Hit procesado → nombre=$nombre, categoria=$categoriaJson, lat=$lat, lng=$lng"
-            )
-            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohashing)
-        }
-
-        val categoriasUnicas = items.map { it.categoria }.distinct()
-        Log.d("RetornarItems", "✅ Algolia final → ${items.size} resultados")
-        return Pair(items, categoriasUnicas)
-    }
+//
+//    suspend fun retornar_items_categorias(
+//        context: Context,
+//        lista_base: List<Item>,          // lista completa de tiendas con geohash
+//        geohasing_enable: Boolean,       // si usar geohash
+//        hasing_user: String?,            // geohash del usuario
+//        lista_guardada: List<Item>,      // lista cacheada / original
+//        selecionado: Boolean,            // hay categoría/subcategoría seleccionada
+//        localidad: String,
+//        categoria: String? = null,
+//        subcategoria: String? = null,
+//        search: String
+//    ): Pair<List<Item>, List<String>> {
+//
+//        Log.d("RetornarItems", "🚀 Iniciando retornar_items_categorias()")
+//        Log.d(
+//            "RetornarItems",
+//            "Parámetros → geohash=$geohasing_enable, lista_base=${lista_base.size}, lista_guardada=${lista_guardada.size}, categoria=$categoria, subcategoria=$subcategoria, search='$search'"
+//        )
+//
+//        // 🔹 Si no hay filtros ni búsqueda, devolver lista_guardada completa
+//        if (!selecionado && categoria.isNullOrBlank() && subcategoria.isNullOrBlank() && search.isBlank()) {
+//            Log.d("RetornarItems", "🔹 No hay filtros activos → devolviendo lista_guardada completa")
+//            val categoriasUnicas = lista_guardada.map { it.categoria }.distinct()
+//            return Pair(lista_guardada, categoriasUnicas)
+//        }
+//
+//        // ===============================================
+//        // 🔹 1️⃣ GEOHASHING
+//        // ===============================================
+//        if (geohasing_enable) {
+//            Log.d("RetornarItems", "📍 Geohashing activo")
+//
+////            val radioGuardado = data_store_localidad.get_radio_user(context).first()
+//            Log.d("RetornarItems", "📏 Radio guardado del usuario: $radioGuardado km")
+//
+//            var filtrados = if (!hasing_user.isNullOrEmpty()) {
+//                filtrar_por_radio_interno(radioGuardado, hasing_user, lista_base)
+//            } else emptyList()
+//
+//            Log.d("RetornarItems", "🔹 Tras filtro por radio → ${filtrados.size} items")
+//
+//            // Filtro por categoría/subcategoría
+//            filtrados = filtrados.filter { item ->
+//                (categoria.isNullOrBlank() || item.categoria.equals(
+//                    categoria,
+//                    ignoreCase = true
+//                )) &&
+//                        (subcategoria.isNullOrBlank() || item.lista.any {
+//                            it.equals(
+//                                subcategoria,
+//                                ignoreCase = true
+//                            )
+//                        })
+//            }
+//            Log.d(
+//                "RetornarItems",
+//                "🔹 Tras filtro geohash categoría/subcategoría → ${filtrados.size}"
+//            )
+//
+//            // Filtro por búsqueda
+//            if (search.length >= 3) {
+//                filtrados = filtrados.filter { it.nombre.contains(search, ignoreCase = true) }
+//                Log.d("RetornarItems", "🔹 Tras filtro geohash búsqueda → ${filtrados.size}")
+//            }
+//
+//            val categoriasUnicas = filtrados.map { it.categoria }.distinct()
+//            Log.d("RetornarItems", "✅ Geohash final → ${filtrados.size} resultados")
+//            return Pair(filtrados, categoriasUnicas)
+//        }
+//
+//        // ===============================================
+//        // 🔹 2️⃣ LISTA LOCAL
+//        // ===============================================
+//        if (lista_guardada.isNotEmpty()) {
+//            Log.d("RetornarItems", "💾 Filtrando lista local (${lista_guardada.size})")
+//
+//            // Siempre usar lista_guardada como base, no sobrescribirla
+//            var filtrados = lista_guardada
+//
+//            // Filtro categoría/subcategoría
+//            if (!categoria.isNullOrBlank() || !subcategoria.isNullOrBlank()) {
+//                filtrados = filtrados.filter { item ->
+//                    (categoria.isNullOrBlank() || item.categoria.equals(
+//                        categoria,
+//                        ignoreCase = true
+//                    )) &&
+//                            (subcategoria.isNullOrBlank() || item.lista.any {
+//                                it.equals(
+//                                    subcategoria,
+//                                    ignoreCase = true
+//                                )
+//                            })
+//                }
+//                Log.d(
+//                    "RetornarItems",
+//                    "🔹 Tras filtro local categoría/subcategoría → ${filtrados.size}"
+//                )
+//            }
+//
+//            // Filtro por búsqueda
+//            if (search.length >= 3) {
+//                filtrados = filtrados.filter { it.nombre.contains(search, ignoreCase = true) }
+//                Log.d("RetornarItems", "🔹 Tras filtro local búsqueda → ${filtrados.size}")
+//            }
+//
+//            val categoriasUnicas = filtrados.map { it.categoria }.distinct()
+//            Log.d("RetornarItems", "✅ Filtrado local final → ${filtrados.size} resultados")
+//            return Pair(filtrados, categoriasUnicas)
+//        }
+//
+//        // ===============================================
+//        // 🔹 3️⃣ CONSULTA ALGOLIA (último recurso)
+//        // ===============================================
+//        Log.d("RetornarItems", "🌐 Lista local vacía, consultando Algolia...")
+//
+//        val filtros = buildList {
+//            add("""lugar:"$localidad"""")
+//            if (selecionado) {
+//                if (!categoria.isNullOrBlank()) add("""categoria:"$categoria"""")
+//                if (!subcategoria.isNullOrBlank()) add("""tag:"$subcategoria"""")
+//            }
+//        }.joinToString(" AND ")
+//
+//        val query = if (search.isBlank()) {
+//            Query().apply { if (filtros.isNotBlank()) this.filters = filtros }
+//        } else {
+//            Query(search).apply {
+//                if (filtros.isNotBlank()) this.filters = filtros
+//                if (selecionado) restrictSearchableAttributes = listOf(Attribute("nombre"))
+//            }
+//        }
+//
+//        val response = index.search(query)
+//        Log.d("RetornarItems", "🔹 Algolia retornó ${response.hits.size} resultados")
+//
+//        val items = response.hits.mapNotNull { hit ->
+//            val json = hit.json.jsonObject
+//            val nombre = json["nombre"]?.jsonPrimitive?.content.orEmpty()
+//            val lugar = json["lugar"]?.jsonPrimitive?.content.orEmpty()
+//            val id = json["id_tienda"]?.jsonPrimitive?.content.orEmpty()
+//            val categoriaJson = json["categoria"]?.jsonPrimitive?.content.orEmpty()
+//            val img = json["img"]?.jsonPrimitive?.content.orEmpty()
+//            val tags =
+//                json["tag"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
+//            val ubicacionJson = json["ubicacion"]?.jsonObject
+//            val lat = ubicacionJson?.get("latitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+//            val lng = ubicacionJson?.get("longitud")?.jsonPrimitive?.doubleOrNull ?: 0.0
+//            val geohashing = json["geohash"]?.jsonPrimitive?.content.orEmpty()
+//
+//            Log.d(
+//                "RetornarItems",
+//                "📌 Hit procesado → nombre=$nombre, categoria=$categoriaJson, lat=$lat, lng=$lng"
+//            )
+//            Item(nombre, lugar, id, categoriaJson, img, tags, lat, lng, geohashing)
+//        }
+//
+//        val categoriasUnicas = items.map { it.categoria }.distinct()
+//        Log.d("RetornarItems", "✅ Algolia final → ${items.size} resultados")
+//        return Pair(items, categoriasUnicas)
+//    }
 
 
     suspend fun filtrar_categoria_sub_algolia(
@@ -466,6 +466,7 @@ class AlgoliaHelper(
         categoria: String? = null,
         subcategoria: String? = null
     ): List<Item> {
+        Log.d("entrmaos_solo","filtrar_categoria_sub_algolia")
         return try {
             // 🔹 Construimos los filtros según lo que venga
             val filtros = buildList {
@@ -503,49 +504,6 @@ class AlgoliaHelper(
 //        return emptyList()
     }
 
-    fun filtrar_categoria_local(
-        localidad: String,
-        lista_filtrada: List<Item>,
-        categoria: String? = null,
-        subcategoria: String? = null
-    ): List<Item> {
-        return try {
-            lista_filtrada.filter { item ->
-
-                val coincideCategoria =
-                    categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
-                val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any {
-                    it.equals(
-                        subcategoria,
-                        ignoreCase = true
-                    )
-                }
-
-                coincideCategoria && coincideSubcategoria
-            }
-        } catch (e: Exception) {
-            Log.e("FILTRAR_LOCAL", "Error al filtrar localmente: ${e.message}")
-            emptyList()
-        }
-    }
-
-    fun filtrar_por_nombre_local(
-        lista_filtrada: List<Item>,
-        nombre: String
-    ): List<Item> {
-        return try {
-            if (nombre.isBlank()) return lista_filtrada
-
-            lista_filtrada.filter { item ->
-                item.nombre.contains(nombre, ignoreCase = true)
-            }
-        } catch (e: Exception) {
-            Log.e("FILTRAR_NOMBRE", "Error al filtrar localmente por nombre: ${e.message}")
-            emptyList()
-        }
-    }
-
-
     suspend fun buscar_en_algolia(
         localidad: String,
         categoria: String?,
@@ -553,6 +511,8 @@ class AlgoliaHelper(
         search: String,
         selecionado: Boolean
     ): Pair<List<Item>, List<String>> {
+        Log.d("entrmaos_solo","buscar_en_algolia")
+
         val filtros = buildList {
             add("""lugar:"$localidad"""")
             if (selecionado) {
@@ -597,6 +557,50 @@ class AlgoliaHelper(
         val categoriasUnicas = items.map { it.categoria }.distinct()
         Log.d("RetornarItems", "✅ Algolia final → ${items.size} resultados")
         return Pair(items, categoriasUnicas)
+    }
+
+
+    fun filtrar_por_nombre_local(
+        lista_filtrada: List<Item>,
+        nombre: String
+    ): List<Item> {
+        return try {
+            if (nombre.isBlank()) return lista_filtrada
+
+            lista_filtrada.filter { item ->
+                item.nombre.contains(nombre, ignoreCase = true)
+            }
+        } catch (e: Exception) {
+            Log.e("FILTRAR_NOMBRE", "Error al filtrar localmente por nombre: ${e.message}")
+            emptyList()
+        }
+    }
+
+
+    fun filtrar_categoria_local(
+        localidad: String,
+        lista_filtrada: List<Item>,
+        categoria: String? = null,
+        subcategoria: String? = null
+    ): List<Item> {
+        return try {
+            lista_filtrada.filter { item ->
+
+                val coincideCategoria =
+                    categoria.isNullOrBlank() || item.categoria.equals(categoria, ignoreCase = true)
+                val coincideSubcategoria = subcategoria.isNullOrBlank() || item.lista.any {
+                    it.equals(
+                        subcategoria,
+                        ignoreCase = true
+                    )
+                }
+
+                coincideCategoria && coincideSubcategoria
+            }
+        } catch (e: Exception) {
+            Log.e("FILTRAR_LOCAL", "Error al filtrar localmente: ${e.message}")
+            emptyList()
+        }
     }
 
 }

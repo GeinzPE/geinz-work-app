@@ -179,7 +179,6 @@ fun ui_pantalla_busqueda(
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
     val datos_lugares_turisticos by viewModelFiltros.instance_lugar_turistico.collectAsState()
-    val lista_base_filtrada by viewModel.listaEncontrada.collectAsState()
 
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
@@ -197,14 +196,6 @@ fun ui_pantalla_busqueda(
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.listaEncontrada.collect { lista ->
-            Log.d("listaaa", "Cambio detectado, tamaño: ${lista.size}")
-            if (lista.isNotEmpty()) {
-                Log.d("listaaa", lista.toString())
-            }
-        }
-    }
     var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
     var categoria_filtrad by remember { mutableStateOf("") }
     Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
@@ -249,23 +240,32 @@ fun ui_pantalla_busqueda(
     var log_user by remember { mutableStateOf<Double?>(null) }
     var hash_user by remember { mutableStateOf<String?>(null) }
     var cerca_de_ti_enable by remember { mutableStateOf(false) }
-    var radio_filtrado_user_fitlrado by remember { mutableStateOf(0f) }
+    val radioGuardado by data_store_localidad.get_radio_user(context)
+        .collectAsState(initial = 1f)
+    // 👇 este estado se actualiza automáticamente cuando cambia el valor guardado
+    var radioActual by remember { mutableStateOf(1f) }
+    var radio_cambiado by remember {  mutableStateOf(1f) }
+
+    // Cuando el valor de DataStore cambia, actualizamos el radioActual (solo si el usuario no está moviendo el slider)
+    LaunchedEffect(radioGuardado) {
+        radioActual = radioGuardado
+    }
     var hasing_user_user_filtrado by remember { mutableStateOf("") }
 
+    LaunchedEffect(radio_cambiado) {
+        searchText = TextFieldValue("")
+    }
 
-//    LaunchedEffect(radio_user) {
-//        if (lista_base_filtrada.isNotEmpty() && radio_user > 0f && geo_hasging_user.isNotEmpty()) {
-//            Log.d("LaunchedEffect", "Aplicando filtro por radio: $radio_user km")
-//            viewModel.filtrar_por_radio(lista_base_filtrada, radio_user, geo_hasging_user)
+//    LaunchedEffect(cerca_de_ti_enable) {
+//        if(categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()){
+//            searchText = TextFieldValue("")
 //        }
 //    }
-
     LaunchedEffect(cerca_de_ti_enable) {
         Log.d("FiltroRadioEffect", "🚀 LaunchedEffect disparado")
         Log.d("FiltroRadioEffect", "cerca_de_ti_enable = $cerca_de_ti_enable")
         Log.d("FiltroRadioEffect", "categoria_filtrad = $categoria_filtrad")
         Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
-
         if (cerca_de_ti_enable) {
             Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
             if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
@@ -274,6 +274,7 @@ fun ui_pantalla_busqueda(
                     "Hay categorías o subcategorías seleccionadas, filtrando por radio..."
                 )
                 viewModel.filtrar_por_radio(
+                    radioActual,
                     context,
                     categoria_filtrad,
                     subcategira_filtrado,
@@ -293,18 +294,37 @@ fun ui_pantalla_busqueda(
                     "FiltroRadioEffect",
                     "No hay filtros seleccionados, limpiando todos los resultados"
                 )
+                Log.d(
+                    "clearResults",
+                    "borramos dentro del launcher efect"
+                )
                 viewModel.clearResults()
             } else {
                 Log.d(
                     "FiltroRadioEffect",
                     "Hay filtros de categoría/subcategoría, restaurando lista original"
                 )
-                viewModel.restaurarListaOriginal()
+         viewModel.restaurarListaOriginal(categoria_filtrad,subcategira_filtrado)
             }
         }
 
         Log.d("FiltroRadioEffect", "✅ LaunchedEffect finalizado")
     }
+
+//    LaunchedEffect(tiendaLocalidadSeleccionada) {
+//        if (tiendaLocalidadSeleccionada != previousLocalidad) {
+//            Log.d("clearResults","cambio de localidad")
+//            viewModel.clearResults()
+//            mostrar_centrado_visible = true
+//            previousLocalidad = tiendaLocalidadSeleccionada
+//            searchText = TextFieldValue("")
+//            categoria_filtrad = ""
+//            subcategira_filtrado = ""
+//            salud_seguirdad = ""
+//        }
+//    }
+
+
 
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
@@ -315,17 +335,25 @@ fun ui_pantalla_busqueda(
 
         val localidadActual = tiendaLocalidadSeleccionada
 
-        if (salud_seguirdad.isEmpty()) {
-            viewModel.clearResults()
-            salud_seguirdad = ""
-            Log.d("_cabiamos_localida", "$salud_seguirdad,$categoria_filtrad,$subcategira_filtrado")
-
+        if (salud_seguirdad.isNotEmpty()) {
+//            Log.d(
+//                "clearResults",
+//                "si seguirdad es vacia"
+//            )
+//            viewModel.clearResults()
+//            salud_seguirdad = ""
+//            Log.d("_cabiamos_localida", "$salud_seguirdad,$categoria_filtrad,$subcategira_filtrado")
+            cerca_de_ti_enable=false
         }
         if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty())) {
 //            Log.d(
 //                "_cambio_localidad",
 //                "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual"
 //            )
+            Log.d(
+                "clearResults",
+                "si cateogira esta vacia y sub igual"
+            )
             viewModel.clearResults()
             mostrar_centrado_visible = true
             previousLocalidad = localidadActual
@@ -365,6 +393,7 @@ fun ui_pantalla_busqueda(
         if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
             Log.d("buscamosen", "entramos_condiocn")
             viewModel.filtrarSubCat(
+                radioActual,
                 context,
                 hash_user,
                 cerca_de_ti_enable,
@@ -373,6 +402,10 @@ fun ui_pantalla_busqueda(
                 subcategira_filtrado
             )
         } else {
+            Log.d(
+                "clearResults",
+                "si categoira final y sub categoira filtrado esta vacio otra vez"
+            )
             viewModel.clearResults()
         }
     }
@@ -514,7 +547,12 @@ fun ui_pantalla_busqueda(
 
                                 } else {
                                     // 👉 No hay cat/sub seleccionado → limpio
+                                    Log.d("entramos123123", "limpiamoscartas en si ")
                                     mostrar_centrado_visible = true
+                                    Log.d(
+                                        "clearResults",
+                                        "no hay cat ni sub se limpia"
+                                    )
                                     viewModel.clearResults()
                                 }
                             }
@@ -523,6 +561,10 @@ fun ui_pantalla_busqueda(
                         },
                         listener_borrar_texto = {
                             viewModel.clearResults()
+                            Log.d(
+                                "clearResults",
+                                "caundo borramos el texto completo con el boton de borrar"
+                            )
                         })
 
                     spacer_vertical(5.dp)
@@ -785,7 +827,9 @@ fun ui_pantalla_busqueda(
             },
             categoria_filtrad,
             categoria_Selecionada = { categoria ->
+                Log.d("catgoria","se cambio categoria")
                 categoria_filtrad = categoria
+                viewModel.clearResults()
             },
             subcategira_filtrado,
             subcategoria_selecionada = { subcategoria_select ->
@@ -794,6 +838,8 @@ fun ui_pantalla_busqueda(
             seguridad_salud_selec = { select ->
                 salud_seguirdad = select
                 Log.d("salid_se", select)
+                viewModel.clearResults()
+
             },
             click_carta_localidad = {
                 color_localidad = !color_localidad
@@ -841,18 +887,22 @@ fun ui_pantalla_busqueda(
                 color_salud_seguirdad = false
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
+                Log.d("logemos","${radio}")
                 viewModel.filtrar_por_radio(
+                    radio,
                     context,
                     categoria_filtrad,
                     subcategira_filtrado,
                     cerca_de_ti_enable,
                     hasing_user
                 )
-                radio_filtrado_user_fitlrado = radio
+                radio_cambiado = radio
                 hasing_user_user_filtrado = hasing_user
             }, fun_cerca_de_ti_enable = { it ->
                 cerca_de_ti_enable = it
-
+                if(categoria_filtrad.isNotEmpty() ||  subcategira_filtrado.isNotEmpty()){
+                searchText = TextFieldValue("")
+                }
             })
     }
 }
@@ -905,7 +955,12 @@ fun filtrado_chips(
                         categoria_selecionada_fun("")
                         subcateogira_selecionada_fun("")
                         seguridad_salud_selec("")
+//                        viewModel.limpiar_lista_datos_original_cat()
                         viewModel.clearResults()
+                        Log.d(
+                            "clearResults",
+                            "caundo borramos el de salud o seguridad solo chip"
+                        )
                         descolorar_carta_segu()
                     }
                 )
@@ -949,7 +1004,12 @@ fun filtrado_chips(
                             categoria_selecionada_fun("")
                             subcateogira_selecionada_fun("")
                             viewModel.clearResults()
+                            Log.d(
+                                "clearResults",
+                                "caundo borramos alguna categoria selecioanda"
+                            )
                             descolorar_carta_cat()
+//                            viewModel.limpiar_lista_datos_original_cat()
                         }
                     )
                 }
@@ -983,6 +1043,11 @@ fun filtrado_chips(
                                 categoria_selecionada_fun("")
                                 subcateogira_selecionada_fun("")
                                 viewModel.clearResults()
+                                Log.d(
+                                    "clearResults",
+                                    "en los  chips 2 cunado borramos alguna categoria"
+                                )
+//                                viewModel.limpiar_lista_datos_original_cat()
                                 descolorar_carta_cat()
                             }
                         )
@@ -1023,7 +1088,12 @@ fun filtrado_chips(
                             Log.d("eliminado", "eliminasdos_fitrlado1")
                             categoria_selecionada_fun("")
                             subcateogira_selecionada_fun("")
+                            Log.d(
+                                "clearResults",
+                                "seararch 3 caundo borramops otra cat selecianoda"
+                            )
                             viewModel.clearResults()
+//                            viewModel.limpiar_lista_datos_original_cat()
                             descolorar_carta_cat()
                         }
                     )
@@ -1039,7 +1109,7 @@ fun filtrado_chips(
                         clik_card = { subcateogira_selecionada_fun(sub) },
                         onClick_delete = {
                             Log.d("eliminado", "eliminasdos_fitrlado2")
-
+//viewModel.limpiar_lista_datos_original_sub()
                             subcateogira_selecionada_fun("")
                             descolorar_carta_sub()
                         }
