@@ -30,6 +30,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.icon_geinz_mas_fondo_violeta
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 
 
@@ -137,26 +138,6 @@ fun dialog_sin_pago_tiendas(
             }
         },
         icon = {
-            Box(contentAlignment = Alignment.Center) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    Color(0xFF8700F3).copy(alpha = 0.7f),
-                                    Color.Transparent
-                                ),
-                            ),
-                            shape = RoundedCornerShape(200.dp)
-                        )
-                )
-                Image(
-                    painter = painterResource(R.drawable.logo_geinz_blanco),
-                    contentDescription = "",
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
+            icon_geinz_mas_fondo_violeta()
         })
 }

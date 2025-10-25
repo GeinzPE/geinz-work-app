@@ -635,13 +635,13 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 fun TextoSubrayado(
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,color_subrallado: Color=MaterialTheme.colorScheme.onBackground
 ) {
     Text(
         text = texto,
         modifier = modifier,
         textDecoration = TextDecoration.Underline,
-        color = MaterialTheme.colorScheme.onBackground,
+        color = color_subrallado,
         style = style,
     )
 }
@@ -796,8 +796,8 @@ fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, lis
             modifier = Modifier.weight(1f)
         )
         TextoSubrayado(
-            texto_subrallado,
-            MaterialTheme.typography.bodySmall,
+            texto = texto_subrallado,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.clickable { listener() })
 
     }
@@ -1499,3 +1499,4 @@ fun shadow_bottom_pantallas_generales(modifier: Modifier) {
             .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
     )
 }
+

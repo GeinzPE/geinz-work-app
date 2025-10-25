@@ -1,0 +1,144 @@
+package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
+
+import android.content.Context
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun dialogo_cabiar_rango_busqueda(geohashin: String?,context: Context, ondimis: () -> Unit,ondimis_aceptar: (Float,String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val radioGuardado by data_store_localidad.get_radio_user(context)
+        .collectAsState(initial = 1f)
+    var radioActual by remember { mutableStateOf(1f) }
+    LaunchedEffect(radioGuardado) {
+        radioActual = radioGuardado
+    }
+    AlertDialog(
+        onDismissRequest = { ondimis() },
+        confirmButton = {
+            btn_aceptar_etc_dialog_general {
+                scope.launch {
+                    // Guarda el nuevo rango
+                    data_store_localidad.guardar_radio_user(context, radioActual)
+
+                    // Si hay ubicación disponible, aplica el cambio
+                    geohashin?.let {
+                        ondimis_aceptar(radioActual, it)
+                    } ?: Log.d("Ubicacion", "❌ Aún no se ha obtenido la ubicación")
+
+                    // Cierra el diálogo al final
+                    ondimis()
+                }
+            }
+        },
+        dismissButton = {
+            btn_cerra_etc_dialog_general { ondimis() }
+        },
+        text = {
+            Column (){
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
+                texto_generico_one_line(
+                    "Cambia tu rango de busqueda",
+                    MaterialTheme.typography.titleLarge
+                )
+                }
+                spacer_vertical(15.dp)
+                texto_generico_multilinea(
+                    "Puedes ajustar el rango para encontrar resultados más cerca o más lejos de tu ubicación actual.",
+                    MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(15.dp)
+                texto_generico_one_line(
+                    "¿Deseas cambiar el rango a ${radioActual} km?",
+                    MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(15.dp)
+                Slider(
+                    enabled = true,
+                    value = radioActual,
+                    onValueChange = {
+                        radioActual = it.roundToInt().toFloat()
+                    },
+                    valueRange = 1f..10f,
+                    steps = 8,
+                    onValueChangeFinished = {
+//                    scope.launch {
+//                        data_store_localidad.guardar_radio_user(
+//                            context, radioActual
+//                        )
+//                    }
+//                    if (geohashin != null) {
+//                        filtrado_cerca_de_ti(
+//                            radioActual, geohashin!!
+//                        )
+//                    } else {
+//                        Log.d(
+//                            "Ubicacion",
+//                            "❌ Aún no se ha obtenido la ubicación"
+//                        )
+//                    }
+                    },
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.2f
+                        ),
+                        activeTickColor = MaterialTheme.colorScheme.primary,
+                        inactiveTickColor = Color.Gray
+                    ),
+                    thumb = {
+                        Box(
+                            modifier = Modifier
+                                .size(25.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line(
+                                radioActual.toInt().toString(),
+                                color = Color.Black,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                )
+            }
+        },
+    )
+}

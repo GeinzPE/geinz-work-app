@@ -5,14 +5,19 @@ import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -22,11 +27,12 @@ object data_store_localidad {
     private val MOSTRAR_DIALOG_NOTI = booleanPreferencesKey("notifi_dialog")
 
     private val RADIO_USER_KEY = floatPreferencesKey("radio_user_value")
+    private val HASHING_USER_KEY = stringPreferencesKey("hashing_user")
 
+    private val LATITUD_USER_KEY = doublePreferencesKey("latitud")
+    private val LONGITUD_USER_KEY = doublePreferencesKey("longitud")
+    private val HORA_HASHING_USER_KEY = stringPreferencesKey("hora_hashing_user")
     private val _radioUserFlow = MutableStateFlow(1f)
-    val radioUserFlow: StateFlow<Float> get() = _radioUserFlow
-
-
 
     suspend fun guardar_localida(context: Context, nombre: String) {
         context.dataStore.edit { preferences ->
@@ -66,7 +72,7 @@ object data_store_localidad {
     }
 
     suspend fun guardar_radio_user(context: Context, radio: Float) {
-        Log.d("guarmod_radio","$radio")
+        Log.d("guarmod_radio", "$radio")
         context.dataStore.edit { preferences ->
             preferences[RADIO_USER_KEY] = radio
         }
@@ -75,6 +81,43 @@ object data_store_localidad {
     fun get_radio_user(context: Context): Flow<Float> {
         return context.dataStore.data.map { pref ->
             pref[RADIO_USER_KEY] ?: 1f
+        }
+    }
+
+    suspend fun guardar_hasgin_lat_lon_user(context: Context, hashin: String, hora: String) {
+        Log.d("hasing_user_guardo","$hashin $hora")
+        context.dataStore.edit { preferences ->
+            preferences[HASHING_USER_KEY] = hashin
+            preferences[HORA_HASHING_USER_KEY] = hora
+        }
+        Log.d("guardar_hashing", "Hash: $hashin - Hora: $hora")
+    }
+
+    suspend fun guardar_lat_log_user(context: Context, lat: Double, long: Double){
+        context.dataStore.edit { preferences ->
+            preferences[LATITUD_USER_KEY] = lat
+            preferences[LONGITUD_USER_KEY] = long
+        }
+    }
+
+    suspend fun obtenerLatLonUsuario(context: Context): Pair<Double?, Double?> {
+        val preferences = context.dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .first()
+        val lat = preferences[LATITUD_USER_KEY]
+        val lon = preferences[LONGITUD_USER_KEY]
+        return Pair(lat, lon)
+    }
+
+    fun get_hora_hashin_user(context: Context): Flow<String?> {
+        return context.dataStore.data.map { pref ->
+            pref[HORA_HASHING_USER_KEY]
         }
     }
 }

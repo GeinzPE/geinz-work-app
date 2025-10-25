@@ -2,10 +2,16 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
 
 import Item
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -45,6 +51,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -84,12 +91,19 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -109,6 +123,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_salud_seguridad_algolia
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cabiar_rango_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
@@ -119,7 +134,9 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.categorias_defaul
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGPSEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -127,12 +144,16 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -140,14 +161,13 @@ import kotlinx.coroutines.launch
 fun ui_pantalla_busqueda(
     localida_defauld: datos_principales_user,
     focusRequester: FocusRequester,
-
     ocultar: () -> Unit,
     estado_mostar: Boolean,
-
     iniciar_seccion_normal: () -> Unit,
     crear_cuenta_geinz: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
+    var mostrar_dialog_cambiar_radio by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewModel: SearchViewModel = viewModel()
@@ -244,7 +264,7 @@ fun ui_pantalla_busqueda(
         .collectAsState(initial = 1f)
     // 👇 este estado se actualiza automáticamente cuando cambia el valor guardado
     var radioActual by remember { mutableStateOf(1f) }
-    var radio_cambiado by remember {  mutableStateOf(1f) }
+    var radio_cambiado by remember { mutableStateOf(1f) }
 
     // Cuando el valor de DataStore cambia, actualizamos el radioActual (solo si el usuario no está moviendo el slider)
     LaunchedEffect(radioGuardado) {
@@ -252,6 +272,26 @@ fun ui_pantalla_busqueda(
     }
     var hasing_user_user_filtrado by remember { mutableStateOf("") }
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+            obtenerUbicacionEnTiempoReal(context) { lat, lng ->
+                Log.d("lat_log_user", "$lat $lng")
+                hash_user = geohashing(lat, lng)
+                val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
+                scope.launch {
+                    data_store_localidad.guardar_hasgin_lat_lon_user(context, hash_user ?: "", hora)
+                    data_store_localidad.guardar_lat_log_user(context, lat, lng)
+                }
+            }
+            cerca_de_ti_enable = true
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+            cerca_de_ti_enable = false
+        }
+    }
     LaunchedEffect(radio_cambiado) {
         searchText = TextFieldValue("")
     }
@@ -268,6 +308,15 @@ fun ui_pantalla_busqueda(
         Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
         if (cerca_de_ti_enable) {
             Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
+            obtenerUbicacionEnTiempoReal(context) { lat, lng ->
+                Log.d("lat_log_user", "$lat $lng")
+                hash_user = geohashing(lat, lng)
+                val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
+                scope.launch {
+                    data_store_localidad.guardar_hasgin_lat_lon_user(context, hash_user ?: "", hora)
+                    data_store_localidad.guardar_lat_log_user(context, lat, lng)
+                }
+            }
             if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
                 Log.d(
                     "FiltroRadioEffect",
@@ -304,7 +353,7 @@ fun ui_pantalla_busqueda(
                     "FiltroRadioEffect",
                     "Hay filtros de categoría/subcategoría, restaurando lista original"
                 )
-         viewModel.restaurarListaOriginal(categoria_filtrad,subcategira_filtrado)
+                viewModel.restaurarListaOriginal(categoria_filtrad, subcategira_filtrado)
             }
         }
 
@@ -324,7 +373,16 @@ fun ui_pantalla_busqueda(
 //        }
 //    }
 
-
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            verificarGPS(context, launcher)
+//            Toast.makeText(context, "Verificamos que el gps este activo", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(
         tiendaLocalidadSeleccionada,
@@ -343,7 +401,7 @@ fun ui_pantalla_busqueda(
 //            viewModel.clearResults()
 //            salud_seguirdad = ""
 //            Log.d("_cabiamos_localida", "$salud_seguirdad,$categoria_filtrad,$subcategira_filtrado")
-            cerca_de_ti_enable=false
+            cerca_de_ti_enable = false
         }
         if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty())) {
 //            Log.d(
@@ -451,12 +509,6 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(Unit) {
         viewModelFiltros.obtener_categorias()
         viewModelFiltros.obtener_cat_lugares()
-        obtenerUbicacion(context) { userLatLng ->
-            lat_user = userLatLng.latitude
-            log_user = userLatLng.longitude
-            hash_user = geohashing(lat_user!!, log_user!!)
-            Log.d("UbicacionInicial", "Lat: $lat_user, Lon: $log_user")
-        }
     }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
@@ -504,6 +556,7 @@ fun ui_pantalla_busqueda(
                                 if (!cat_sub_seleciondo) {
                                     Log.d("entramos123123", "1menor")
                                     viewModel.buscarItems(
+                                        radioActual,
                                         context,
                                         cerca_de_ti_enable,
                                         hash_user,
@@ -513,10 +566,11 @@ fun ui_pantalla_busqueda(
                                         null,
                                         searchText.text,
 
-                                    )
+                                        )
                                 } else {
                                     Log.d("entramos123123", "2menor")
                                     viewModel.buscarItems(
+                                        radioActual,
                                         context,
                                         cerca_de_ti_enable,
                                         hash_user,
@@ -534,6 +588,7 @@ fun ui_pantalla_busqueda(
 
                                     mostrar_centrado_visible = false
                                     viewModel.buscarItems(
+                                        radioActual,
                                         context,
                                         cerca_de_ti_enable,
                                         hash_user,
@@ -542,7 +597,7 @@ fun ui_pantalla_busqueda(
                                         categoria_filtrad.ifEmpty { salud_seguirdad },
                                         subcategira_filtrado,
                                         "",
-                                         // 🔥 búsqueda vacía
+                                        // 🔥 búsqueda vacía
                                     )
 
                                 } else {
@@ -661,7 +716,8 @@ fun ui_pantalla_busqueda(
 
         when (state) {
             is SearchViewModel.ListItemsResult.Empty -> {
-
+                val mensaje = (state as SearchViewModel.ListItemsResult.Empty).mensaje
+                val radioTexto = Regex("""\d+\s*Km""").find(mensaje)?.value ?: ""
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -675,10 +731,52 @@ fun ui_pantalla_busqueda(
                             color = Color.Gray
                         )
                     } else {
-                        texto_generico_one_line(
-                            (state as SearchViewModel.ListItemsResult.Empty).mensaje,
-                            modifier = Modifier,
-                            color = Color.Gray
+                        val annotatedText = buildAnnotatedString {
+                            val before = mensaje.substringBefore(radioTexto)
+                            val after = mensaje.substringAfter(radioTexto, "")
+
+                            append(before)
+
+                            if (radioTexto.isNotEmpty()) {
+                                pushStringAnnotation(tag = "radio", annotation = radioTexto)
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textDecoration = TextDecoration.Underline,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                ) {
+                                    append(radioTexto)
+                                }
+                                pop()
+                            }
+
+                            append(after)
+                        }
+                        ClickableText(
+                            text = annotatedText,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                textAlign = TextAlign.Center,
+                                color = Color.Gray
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { offset ->
+                                annotatedText
+                                    .getStringAnnotations(
+                                        tag = "radio",
+                                        start = offset,
+                                        end = offset
+                                    )
+                                    .firstOrNull()
+                                    ?.let {
+                                        Toast.makeText(
+                                            context,
+                                            "cambiamos texto realiazdo",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        mostrar_dialog_cambiar_radio = true
+                                    }
+                            }
                         )
                         spacer_vertical(10.dp)
                         Box(
@@ -693,7 +791,6 @@ fun ui_pantalla_busqueda(
                             )
                         }
                     }
-
                 }
             }
 
@@ -780,6 +877,21 @@ fun ui_pantalla_busqueda(
                 { bottom_sheet_turismo = false })
         }
 
+        if (mostrar_dialog_cambiar_radio) {
+            dialogo_cabiar_rango_busqueda(hash_user,context,
+                { mostrar_dialog_cambiar_radio = !mostrar_dialog_cambiar_radio },{ radio, hasing_user ->
+                    Log.d("logemos", "${radio}")
+                    viewModel.filtrar_por_radio(
+                        radio,
+                        context,
+                        categoria_filtrad,
+                        subcategira_filtrado,
+                        cerca_de_ti_enable,
+                        hasing_user
+                    )
+                    radio_cambiado = radio
+                })
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -827,7 +939,7 @@ fun ui_pantalla_busqueda(
             },
             categoria_filtrad,
             categoria_Selecionada = { categoria ->
-                Log.d("catgoria","se cambio categoria")
+                Log.d("catgoria", "se cambio categoria")
                 categoria_filtrad = categoria
                 viewModel.clearResults()
             },
@@ -887,7 +999,7 @@ fun ui_pantalla_busqueda(
                 color_salud_seguirdad = false
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
-                Log.d("logemos","${radio}")
+                Log.d("logemos", "${radio}")
                 viewModel.filtrar_por_radio(
                     radio,
                     context,
@@ -899,10 +1011,32 @@ fun ui_pantalla_busqueda(
                 radio_cambiado = radio
                 hasing_user_user_filtrado = hasing_user
             }, fun_cerca_de_ti_enable = { it ->
-                cerca_de_ti_enable = it
-                if(categoria_filtrad.isNotEmpty() ||  subcategira_filtrado.isNotEmpty()){
-                searchText = TextFieldValue("")
+                try {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        if (isGPSEnabled(context)) {
+                            cerca_de_ti_enable = it
+                        } else {
+                            verificarGPS(context, launcher)
+                        }
+                    } else {
+                        permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                } catch (e: SecurityException) {
+                    Log.e("Ubicacion", "Error de seguridad al verificar permisos: ${e.message}")
+                    Toast.makeText(context, "Error de permiso de ubicación", Toast.LENGTH_SHORT)
+                        .show()
+                } catch (e: Exception) {
+                    Log.e("Ubicacion", "Error inesperado: ${e.message}")
                 }
+
+            }, fun_nuevo_geohasing_actualizado = { it ->
+                hash_user = it
+            },{
+                mostrar_dialog_cambiar_radio=true
             })
     }
 }

@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,11 +51,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -91,17 +98,25 @@ import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
+import com.geinzz.geinzwork.data_store.dataStore
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cerca_de_ti_desable
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
+//import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionOptima
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
+//import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
@@ -113,6 +128,9 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,7 +169,9 @@ fun FloatingBubble(
     click_salud_general: () -> Unit,
     tiene_categorias: () -> Unit,
     filtrado_cerca_de_ti: (Float, String) -> Unit,
-    fun_cerca_de_ti_enable: (Boolean) -> Unit
+    fun_cerca_de_ti_enable: (Boolean) -> Unit,
+    fun_nuevo_geohasing_actualizado: (String) -> Unit,
+    fun_abrir_dialog_filtrado_radio:()-> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
     val density = LocalDensity.current
@@ -216,8 +236,7 @@ fun FloatingBubble(
             0 -> 0.26f
             1 -> 0.3f
             else -> 0.3f
-        },
-        animationSpec = tween(300, easing = FastOutSlowInEasing)
+        }, animationSpec = tween(300, easing = FastOutSlowInEasing)
     )
 
     val weightBox2 by animateFloatAsState(
@@ -225,8 +244,7 @@ fun FloatingBubble(
             0 -> 0.3f
             1 -> 0.7f
             else -> 0.5f
-        },
-        animationSpec = tween(300, easing = FastOutSlowInEasing)
+        }, animationSpec = tween(300, easing = FastOutSlowInEasing)
     )
 
     val animatedColor by animateColorAsState(
@@ -272,46 +290,43 @@ fun FloatingBubble(
     }
 
     val backgroundColor_categorias by animateColorAsState(
-        targetValue = if (!color_categoria)
-            MaterialTheme.colorScheme.surface
-        else
-            MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(
-            durationMillis = 500,
-            easing = LinearOutSlowInEasing
+        targetValue = if (!color_categoria) MaterialTheme.colorScheme.surface
+        else MaterialTheme.colorScheme.surfaceVariant, animationSpec = tween(
+            durationMillis = 500, easing = LinearOutSlowInEasing
         ), label = ""
     )
 
     val backgrpound_salud_seguridad by animateColorAsState(
-        targetValue = if (!color_salud_seguridad)
-            MaterialTheme.colorScheme.surface
-        else
-            MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(
-            durationMillis = 500,
-            easing = LinearOutSlowInEasing
+        targetValue = if (!color_salud_seguridad) MaterialTheme.colorScheme.surface
+        else MaterialTheme.colorScheme.surfaceVariant, animationSpec = tween(
+            durationMillis = 500, easing = LinearOutSlowInEasing
         ), label = ""
     )
 
     val startTopColor_categorias by animateColorAsState(
         targetValue = if (!color_categoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-        animationSpec = tween(500), label = ""
+        animationSpec = tween(500),
+        label = ""
     )
 
     val endTopColor_categorias by animateColorAsState(
         targetValue = if (!color_categoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-        animationSpec = tween(500), label = ""
+        animationSpec = tween(500),
+        label = ""
     )
 
     val startBottomColor_categorias by animateColorAsState(
         targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-        animationSpec = tween(500), label = ""
+        animationSpec = tween(500),
+        label = ""
     )
 
     val endBottomColor_categorias by animateColorAsState(
         targetValue = if (!color_categoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-        animationSpec = tween(500), label = ""
+        animationSpec = tween(500),
+        label = ""
     )
+    val snackbarHostState = remember { SnackbarHostState() }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -333,71 +348,101 @@ fun FloatingBubble(
         LaunchedEffect(subir_btn) {
             if (offsetY.value > maxY) {
                 offsetY.animateTo(
-                    maxY,
-                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                    maxY, animationSpec = tween(400, easing = FastOutSlowInEasing)
                 )
             }
         }
-
         Box(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
-                .size(60.dp)
-                .clip(CircleShape)
-                .background(animatedColor)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) { onClick() }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            val newX = (offsetX.value + dragAmount.x)
-                                .coerceIn(paddingPx, screenWidth - bubbleSizePx - paddingPx)
-                            val newY = (offsetY.value + dragAmount.y)
-                                .coerceIn(paddingPx, maxY)
-                            scope.launch {
-                                offsetX.snapTo(newX)
-                                offsetY.snapTo(newY)
-                            }
-                        },
-                        onDragEnd = {
-                            val middle = screenWidth / 2
-                            val targetX = if (offsetX.value < middle) {
-                                paddingPx
-                            } else {
-                                screenWidth - bubbleSizePx - paddingPx
-                            }
-                            scope.launch {
-                                offsetX.animateTo(
-                                    targetX,
-                                    animationSpec = tween(
-                                        durationMillis = 400,
-                                        easing = FastOutSlowInEasing
-                                    )
-                                )
-                            }
-                        }
-                    )
-                },
-            contentAlignment = Alignment.Center
         ) {
-            Crossfade(
-                targetState = icono,
-                animationSpec = tween(600, easing = FastOutSlowInEasing),
-                label = "crossfadeIcon"
-            ) { currentIcon ->
-                currentIcon?.let {
-                    Image(
-                        modifier = Modifier.size(25.dp),
-                        painter = painterResource(it),
-                        contentDescription = "",
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if(cerca_de_ti_enable && (categoria_filtrad.isNotEmpty() || categoria_filtrad.isNotEmpty())){
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary).clickable{
+                                fun_abrir_dialog_filtrado_radio()
+                            },
+                        contentAlignment = Alignment.Center // 👈 centra el icono
+                    ) {
+                        Image(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = "Mi ubicación",
+                            colorFilter = ColorFilter.tint(Color.White), // 👈 icono blanco
+                            modifier = Modifier.size(22.dp) // 👈 tamaño equilibrado dentro del círculo
+                        )
+                    }
+
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                // 🔵 Burbuja principal
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(animatedColor)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) { onClick() }
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    val newX = (offsetX.value + dragAmount.x).coerceIn(
+                                        paddingPx, screenWidth - bubbleSizePx - paddingPx
+                                    )
+                                    val newY = (offsetY.value + dragAmount.y).coerceIn(paddingPx, maxY)
+                                    scope.launch {
+                                        offsetX.snapTo(newX)
+                                        offsetY.snapTo(newY)
+                                    }
+                                },
+                                onDragEnd = {
+                                    val middle = screenWidth / 2
+                                    val targetX = if (offsetX.value < middle) {
+                                        paddingPx
+                                    } else {
+                                        screenWidth - bubbleSizePx - paddingPx
+                                    }
+                                    scope.launch {
+                                        offsetX.animateTo(
+                                            targetX, animationSpec = tween(
+                                                durationMillis = 400, easing = FastOutSlowInEasing
+                                            )
+                                        )
+                                    }
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Crossfade(
+                        targetState = icono,
+                        animationSpec = tween(600, easing = FastOutSlowInEasing),
+                        label = "crossfadeIcon"
+                    ) { currentIcon ->
+                        currentIcon?.let {
+                            Image(
+                                modifier = Modifier.size(25.dp),
+                                painter = painterResource(it),
+                                contentDescription = "",
+                                colorFilter = ColorFilter.tint(Color.White)
+                            )
+                        }
+                    }
+                }
+
+
+
+
+                // 🩵 Texto debajo
             }
         }
+
 
         AnimatedVisibility(
             visible = expanded,
@@ -412,8 +457,7 @@ fun FloatingBubble(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
                         expanded_fun()
-                    }
-            )
+                    })
         }
         val screenHeight123 = LocalConfiguration.current.screenHeightDp.dp
         val topPadding = screenHeight123 * 0.1f
@@ -450,12 +494,10 @@ fun FloatingBubble(
                                             expanded_fun()
                                         }
                                     }
-                                }
-                        ) {
+                                }) {
                             Column {
                                 texto_generico_one_line(
-                                    "Filtra tu búsqueda",
-                                    MaterialTheme.typography.headlineSmall
+                                    "Filtra tu búsqueda", MaterialTheme.typography.headlineSmall
                                 )
                                 spacer_vertical(10.dp)
                                 texto_generico_multilinea(
@@ -472,9 +514,7 @@ fun FloatingBubble(
                                     if (filtros.localidad.isNotEmpty()) {
                                         item {
                                             AnimatedVisibility(
-                                                visible = true,
-                                                enter = fadeIn(),
-                                                exit = fadeOut()
+                                                visible = true, enter = fadeIn(), exit = fadeOut()
                                             ) {
                                                 chisp_filtrado_busqueda(
                                                     color_localidad,
@@ -486,8 +526,7 @@ fun FloatingBubble(
                                                     onClick_delete = {
                                                         click_carta_localidad_delete()
                                                         filtros = filtros.copy(localidad = "")
-                                                    }
-                                                )
+                                                    })
                                             }
                                         }
                                     }
@@ -496,9 +535,7 @@ fun FloatingBubble(
                                     if (mostrarChipCategoria.value) {
                                         item {
                                             AnimatedVisibility(
-                                                visible = true,
-                                                enter = fadeIn(),
-                                                exit = fadeOut()
+                                                visible = true, enter = fadeIn(), exit = fadeOut()
                                             ) {
                                                 chisp_filtrado_busqueda(
                                                     color_categoria,
@@ -514,8 +551,7 @@ fun FloatingBubble(
                                                         mostrarChipCategoria.value = false
                                                         mostrarChipsubcategoria.value = false
                                                         viewModel.clearResults()
-                                                    }
-                                                )
+                                                    })
                                             }
                                         }
                                     }
@@ -524,9 +560,7 @@ fun FloatingBubble(
                                     if (mostrarChipsubcategoria.value) {
                                         item {
                                             AnimatedVisibility(
-                                                visible = true,
-                                                enter = fadeIn(),
-                                                exit = fadeOut()
+                                                visible = true, enter = fadeIn(), exit = fadeOut()
                                             ) {
                                                 chisp_filtrado_busqueda(
                                                     color_subcategoria,
@@ -539,8 +573,7 @@ fun FloatingBubble(
                                                         click_carta_subcategoria_delete()
                                                         subcategoria_selecionada("")
                                                         mostrarChipsubcategoria.value = false
-                                                    }
-                                                )
+                                                    })
                                             }
                                         }
                                     }
@@ -549,9 +582,7 @@ fun FloatingBubble(
                                     if (mostrar_chip_salud_seguridad.value) {
                                         item {
                                             AnimatedVisibility(
-                                                visible = true,
-                                                enter = fadeIn(),
-                                                exit = fadeOut()
+                                                visible = true, enter = fadeIn(), exit = fadeOut()
                                             ) {
                                                 chisp_filtrado_busqueda(
                                                     color_salud_seguridad,
@@ -568,8 +599,7 @@ fun FloatingBubble(
                                                         mostrarChipsubcategoria.value = false
                                                         mostrarChipCategoria.value = false
                                                         mostrar_chip_salud_seguridad.value = false
-                                                    }
-                                                )
+                                                    })
                                             }
                                         }
                                     }
@@ -581,8 +611,7 @@ fun FloatingBubble(
                                 Icons.Default.Close,
                                 onClick = {
                                     expanded_fun()
-                                }
-                            )
+                                })
                         }
                         spacer_vertical(10.dp)
                     }
@@ -592,21 +621,16 @@ fun FloatingBubble(
                         val nestedScrollConnection = remember {
                             object : NestedScrollConnection {
                                 override fun onPreScroll(
-                                    available: Offset,
-                                    source: NestedScrollSource
+                                    available: Offset, source: NestedScrollSource
                                 ): Offset {
                                     // Devuelve cero vertical si el hijo puede moverse en esa dirección
                                     return when {
-                                        available.y < 0 && childScrollState.firstVisibleItemIndex + childScrollState.firstVisibleItemScrollOffset <
-                                                childScrollState.layoutInfo.totalItemsCount -> Offset(
-                                            0f,
-                                            available.y
+                                        available.y < 0 && childScrollState.firstVisibleItemIndex + childScrollState.firstVisibleItemScrollOffset < childScrollState.layoutInfo.totalItemsCount -> Offset(
+                                            0f, available.y
                                         )
 
-                                        available.y > 0 && (childScrollState.firstVisibleItemIndex > 0 ||
-                                                childScrollState.firstVisibleItemScrollOffset > 0) -> Offset(
-                                            0f,
-                                            available.y
+                                        available.y > 0 && (childScrollState.firstVisibleItemIndex > 0 || childScrollState.firstVisibleItemScrollOffset > 0) -> Offset(
+                                            0f, available.y
                                         )
 
                                         else -> Offset.Zero
@@ -626,8 +650,7 @@ fun FloatingBubble(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Column(
-                                    modifier = Modifier
-                                        .weight(.50f)   // ocupa 50% del ancho
+                                    modifier = Modifier.weight(.50f)   // ocupa 50% del ancho
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -661,8 +684,7 @@ fun FloatingBubble(
                                                         state = listState,
                                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                                         contentPadding = PaddingValues(
-                                                            horizontal = 16.dp,
-                                                            vertical = 8.dp
+                                                            horizontal = 16.dp, vertical = 8.dp
                                                         ),
 
                                                         modifier = Modifier
@@ -680,8 +702,7 @@ fun FloatingBubble(
                                                         items(categorias_filtrado_res) { i ->
                                                             val isSelected =
                                                                 selectedCategoria.equals(
-                                                                    i.nombre_cat,
-                                                                    ignoreCase = true
+                                                                    i.nombre_cat, ignoreCase = true
                                                                 )
 
                                                             AnimatedFabItem(
@@ -754,7 +775,9 @@ fun FloatingBubble(
                                             )
                                         }
                                         this@Row.AnimatedVisibility(
-                                            showBottomShadow, enter = fadeIn(), exit = fadeOut(),
+                                            showBottomShadow,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .height(80.dp)
@@ -782,8 +805,7 @@ fun FloatingBubble(
                                             0 -> 0.20f
                                             1 -> 0.25f
                                             else -> 0.13f
-                                        },
-                                        animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                        }, animationSpec = tween(300, easing = FastOutSlowInEasing)
                                     )
                                     apartado_lugares_interes(
                                         color_salud_seguridad,
@@ -834,30 +856,33 @@ fun FloatingBubble(
                                         }
                                     }
                                     val backgroundColor_localidad by animateColorAsState(
-                                        targetValue = if (!color_localidad)
-                                            MaterialTheme.colorScheme.surface
-                                        else
-                                            MaterialTheme.colorScheme.surfaceVariant,
+                                        targetValue = if (!color_localidad) MaterialTheme.colorScheme.surface
+                                        else MaterialTheme.colorScheme.surfaceVariant,
                                         animationSpec = tween(
                                             durationMillis = 500, // velocidad (medio segundo)
                                             easing = LinearOutSlowInEasing
-                                        ), label = ""
+                                        ),
+                                        label = ""
                                     )
                                     val startTopColor_localidad by animateColorAsState(
                                         targetValue = if (!color_localidad) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val endTopColor_localidad by animateColorAsState(
                                         targetValue = if (!color_localidad) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val startBottomColor_localidad by animateColorAsState(
                                         targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val endBottomColor_localidad by animateColorAsState(
                                         targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
 
                                     BoxWithConstraints(
@@ -871,8 +896,7 @@ fun FloatingBubble(
                                             state = listStateLocalidad,
                                             verticalArrangement = Arrangement.spacedBy(8.dp),
                                             contentPadding = PaddingValues(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp
+                                                horizontal = 16.dp, vertical = 8.dp
                                             ),
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -889,13 +913,10 @@ fun FloatingBubble(
                                             items(lista_localidades) { i ->
                                                 val colorSeleccionado =
                                                     if (localidad_selecionada.equals(
-                                                            i,
-                                                            ignoreCase = true
+                                                            i, ignoreCase = true
                                                         )
-                                                    )
-                                                        Color.Black
-                                                    else
-                                                        MaterialTheme.colorScheme.primary
+                                                    ) Color.Black
+                                                    else MaterialTheme.colorScheme.primary
 
                                                 AnimatedFabItem(
                                                     text = i.capitalizeFirst(),
@@ -962,8 +983,7 @@ fun FloatingBubble(
                                             icono_expandido,
                                             onClick = {
                                                 expandedIndex = if (expandedIndex == 0) -1 else 0
-                                            }
-                                        )
+                                            })
                                     }
 
                                     // ------- SUBCATEGORÍAS -------
@@ -980,30 +1000,33 @@ fun FloatingBubble(
                                         }
                                     }
                                     val backgroundColor by animateColorAsState(
-                                        targetValue = if (!color_subcategoria)
-                                            MaterialTheme.colorScheme.surface
-                                        else
-                                            MaterialTheme.colorScheme.surfaceVariant,
+                                        targetValue = if (!color_subcategoria) MaterialTheme.colorScheme.surface
+                                        else MaterialTheme.colorScheme.surfaceVariant,
                                         animationSpec = tween(
                                             durationMillis = 500, // velocidad (medio segundo)
                                             easing = LinearOutSlowInEasing
-                                        ), label = ""
+                                        ),
+                                        label = ""
                                     )
                                     val startTopColor by animateColorAsState(
                                         targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val endTopColor by animateColorAsState(
                                         targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val startBottomColor by animateColorAsState(
                                         targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val endBottomColor by animateColorAsState(
                                         targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-                                        animationSpec = tween(500), label = ""
+                                        animationSpec = tween(500),
+                                        label = ""
                                     )
                                     val subcategoria_select = subcategira_filtrado
 
@@ -1082,8 +1105,7 @@ fun FloatingBubble(
                                                                 items(subcategoira_filtrado_res) { sub ->
                                                                     val isSelected =
                                                                         subcategoria_select.equals(
-                                                                            sub,
-                                                                            ignoreCase = true
+                                                                            sub, ignoreCase = true
                                                                         )
 
                                                                     AnimatedFabItem(
@@ -1092,10 +1114,9 @@ fun FloatingBubble(
                                                                         visible = expanded
                                                                     ) {
                                                                         subcategoria_selecionada(sub)
-                                                                        filtros =
-                                                                            filtros.copy(
-                                                                                subcategoria = sub
-                                                                            )
+                                                                        filtros = filtros.copy(
+                                                                            subcategoria = sub
+                                                                        )
                                                                         mostrarChipsubcategoria.value =
                                                                             true
                                                                     }
@@ -1144,8 +1165,7 @@ fun FloatingBubble(
                                                     .background(
                                                         brush = Brush.verticalGradient(
                                                             colors = listOf(
-                                                                startTopColor,
-                                                                endTopColor
+                                                                startTopColor, endTopColor
                                                             ),
 
                                                             )
@@ -1168,8 +1188,7 @@ fun FloatingBubble(
                                                     .background(
                                                         brush = Brush.verticalGradient(
                                                             colors = listOf(
-                                                                startBottomColor,
-                                                                endBottomColor
+                                                                startBottomColor, endBottomColor
                                                             ),
 
                                                             )
@@ -1181,8 +1200,7 @@ fun FloatingBubble(
                                             icono_expandido2,
                                             onClick = {
                                                 expandedIndex = if (expandedIndex == 1) -1 else 1
-                                            }
-                                        )
+                                            })
                                     }
 
                                 }
@@ -1195,20 +1213,50 @@ fun FloatingBubble(
                         val context = LocalContext.current
                         val scope = rememberCoroutineScope()
 
-
+                        var nuevo_geohasing_user by remember { mutableStateOf("") }
                         val radioGuardado by data_store_localidad.get_radio_user(context)
                             .collectAsState(initial = 1f)
 
-                        // 👇 este estado se actualiza automáticamente cuando cambia el valor guardado
                         var radioActual by remember { mutableStateOf(1f) }
 
-                        // Cuando el valor de DataStore cambia, actualizamos el radioActual (solo si el usuario no está moviendo el slider)
                         LaunchedEffect(radioGuardado) {
                             radioActual = radioGuardado
                         }
+                        var mostra_dialog_salud_Seguridad_cerano by remember { mutableStateOf(false) }
+
+                        val ultima_cordenada_actualziada by data_store_localidad.get_hora_hashin_user(
+                            context
+                        ).collectAsState(initial = null)
+
+                        var ultima_hora_actualziada by remember { mutableStateOf("") }
+
+                        LaunchedEffect(ultima_cordenada_actualziada) {
+                            ultima_hora_actualziada = ultima_cordenada_actualziada ?: ""
+                        }
+
+                        var localidadEncontrada by remember { mutableStateOf("Fuera de zona") }
+
+
+                        LaunchedEffect(cerca_de_ti_enable) {
+                            if (cerca_de_ti_enable) {
+                                Log.d("cambismos_hola", "hoaa")
+                                val (latUser, lonUser) = data_store_localidad.obtenerLatLonUsuario(
+                                    context
+                                )
+
+                                localidadEncontrada = if (latUser != null && lonUser != null) {
+                                    obtenerZonaActual(latUser, lonUser)
+                                } else {
+                                    "Fuera de zona"
+                                }
+                            }
+                        }
 
                         var enable_cerca by remember { mutableStateOf(false) }
-                        enable_cerca = categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
+                        var cargandoUbicacion by remember { mutableStateOf(false) }
+
+                        enable_cerca =
+                            categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
 
 
                         Box(
@@ -1229,15 +1277,15 @@ fun FloatingBubble(
                                     Switch(
                                         modifier = Modifier
                                             .scale(0.8f)
-                                            .padding(end = 20.dp), // 👈 reduce el tamaño a 80%
+                                            .padding(end = 20.dp),
                                         checked = cerca_de_ti_enable,
                                         onCheckedChange = {
-                                            if(seguidad_salud.isEmpty()){
-                                            fun_cerca_de_ti_enable(it)
-                                            }else{
-                                                Toast.makeText(context, "solo puedes activarlo con categoria", Toast.LENGTH_SHORT).show()
+                                            if (seguidad_salud.isEmpty()) {
+                                                fun_cerca_de_ti_enable(it)
+                                            } else {
+                                                mostra_dialog_salud_Seguridad_cerano = true
                                             }
-                                                          },
+                                        },
                                         colors = SwitchDefaults.colors(
                                             checkedThumbColor = Color.White,
                                             checkedTrackColor = MaterialTheme.colorScheme.primary
@@ -1253,27 +1301,142 @@ fun FloatingBubble(
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
 
-                                spacer_vertical(15.dp)
+                                spacer_vertical(17.dp)
                                 if (cerca_de_ti_enable) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .wrapContentHeight(), contentAlignment = Alignment.Center
+                                            .wrapContentHeight(),
+                                        contentAlignment = Alignment.Center
                                     ) {
+
+
                                         AnimatedContent(
-                                            targetState = enable_cerca,
-                                            transitionSpec = {
+                                            targetState = enable_cerca, transitionSpec = {
                                                 fadeIn(tween(400)) togetherWith fadeOut(tween(300))
-                                            },
-                                            label = "animacion_cerca"
+                                            }, label = "animacion_cerca"
                                         ) { habilitado ->
                                             if (habilitado) {
                                                 Column {
+
+                                                    this@Column.AnimatedVisibility(cargandoUbicacion) {
+                                                        Box(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            CircularProgressIndicator(
+                                                                modifier = Modifier
+                                                                    .size(25.dp)
+                                                                    .padding(start = 6.dp),
+                                                                strokeWidth = 2.dp,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
+
+                                                    this@Column.AnimatedVisibility(!cargandoUbicacion) {
+                                                        Column {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.Center
+                                                            ) {
+                                                                texto_generico_one_line(
+                                                                    "Ubicación actualizada  ",
+                                                                    MaterialTheme.typography.bodyMedium
+                                                                )
+                                                                TextoSubrayado(
+                                                                    "$ultima_hora_actualziada",
+                                                                    MaterialTheme.typography.bodyMedium,
+                                                                    modifier = Modifier.clickable {
+                                                                        cargandoUbicacion = true
+                                                                        obtenerUbicacionReal(context) { lat, lng ->
+                                                                            Log.d(
+                                                                                "guardar_hashing123",
+                                                                                "$lat $lng"
+                                                                            )
+                                                                            val nuevoGeohash =
+                                                                                geohashing(lat, lng)
+                                                                            val hora =
+                                                                                SimpleDateFormat(
+                                                                                    "hh:mm a",
+                                                                                    Locale.getDefault()
+                                                                                ).format(Date())
+                                                                            Toast.makeText(
+                                                                                context,
+                                                                                "$lat $lng",
+                                                                                Toast.LENGTH_SHORT
+                                                                            ).show()
+                                                                            scope.launch {
+                                                                                data_store_localidad.guardar_hasgin_lat_lon_user(
+                                                                                    context,
+                                                                                    nuevoGeohash
+                                                                                        ?: "",
+                                                                                    hora
+                                                                                )
+                                                                                data_store_localidad.guardar_lat_log_user(
+                                                                                    context,
+                                                                                    lat,
+                                                                                    lng
+                                                                                )
+                                                                                fun_nuevo_geohasing_actualizado(
+                                                                                    nuevoGeohash
+                                                                                )
+                                                                                cargandoUbicacion =
+                                                                                    false
+
+                                                                                localidadEncontrada =
+                                                                                    obtenerZonaActual(
+                                                                                        lat,
+                                                                                        lng
+                                                                                    )
+
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    color_subrallado = MaterialTheme.colorScheme.primary
+                                                                )
+                                                            }
+                                                            spacer_vertical(17.dp)
+                                                            if (localidadEncontrada != "Fuera de zona" && localidadEncontrada.isNotBlank()) {
+                                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                                    texto_generico_one_line(
+                                                                        "¿Quieres filtrar por tu ubicación actual?  ",
+                                                                        MaterialTheme.typography.bodyMedium
+                                                                    )
+                                                                    TextoSubrayado(
+                                                                        localidadEncontrada,
+                                                                        MaterialTheme.typography.bodyMedium,
+                                                                        modifier = Modifier.clickable {
+                                                                            if (localidad_selecionada.lowercase() == localidadEncontrada.lowercase()) {
+                                                                                scope.launch {
+                                                                                    // Llama al SnackbarHostState para mostrar el mensaje
+                                                                                    snackbarHostState.showSnackbar(
+                                                                                        message = "$localidadEncontrada se encuentra seleccionado",
+
+                                                                                        duration = SnackbarDuration.Short
+                                                                                    )
+                                                                                }
+                                                                            } else {
+
+                                                                                localidad_filtrado(
+                                                                                    localidadEncontrada.lowercase()
+                                                                                )
+                                                                            }
+                                                                        },
+                                                                        color_subrallado = MaterialTheme.colorScheme.primary
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+
+                                                    }
+
+                                                    spacer_vertical(17.dp)
                                                     texto_generico_one_line(
                                                         "Rango aproximado de búsqueda: ${radioActual} km",
                                                         MaterialTheme.typography.bodyMedium
                                                     )
-                                                    spacer_vertical(10.dp)
+                                                    spacer_vertical(17.dp)
                                                     Slider(
                                                         enabled = enable_cerca,
                                                         value = radioActual,
@@ -1285,14 +1448,12 @@ fun FloatingBubble(
                                                         onValueChangeFinished = {
                                                             scope.launch {
                                                                 data_store_localidad.guardar_radio_user(
-                                                                    context,
-                                                                    radioActual
+                                                                    context, radioActual
                                                                 )
                                                             }
                                                             if (geohashin != null) {
                                                                 filtrado_cerca_de_ti(
-                                                                    radioActual,
-                                                                    geohashin!!
+                                                                    radioActual, geohashin!!
                                                                 )
                                                             } else {
                                                                 Log.d(
@@ -1345,6 +1506,11 @@ fun FloatingBubble(
 
                             }
                         }
+                        if (mostra_dialog_salud_Seguridad_cerano) {
+                            dialog_cerca_de_ti_desable {
+                                mostra_dialog_salud_Seguridad_cerano = false
+                            }
+                        }
                     }
 
 
@@ -1355,5 +1521,26 @@ fun FloatingBubble(
 
 
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            // *** CLAVE: Alinea el Host al centro inferior del Box ***
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) { data ->
+            // Opcional: Puedes personalizar la apariencia del Snackbar aquí
+            Snackbar(
+                snackbarData = data,
+                // 1. Define la forma redondeada
+                shape = RoundedCornerShape(50), // Puedes ajustar el radio (ej. 4.dp, 12.dp)
+                // 2. Opcional: Dale un fondo diferente
+                containerColor = Color.White,
+                // 3. Opcional: Ajusta el color del texto del mensaje
+                contentColor = Color.Black,
+
+
+                )
+        }
     }
 }
+

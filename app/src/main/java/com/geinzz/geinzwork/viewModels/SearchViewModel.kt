@@ -56,6 +56,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     /** ---------- FILTRO PRINCIPAL (BÚSQUEDA + CATEGORÍA + SUBCATEGORÍA + GEOHASH) ---------- */
     fun buscarItems(
+        radio: Float,
         context: Context,
         geohashEnable: Boolean,
         hashUser: String?,
@@ -90,7 +91,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                           _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
-                                ListItemsResult.Empty("No se encontraron resultados en la localidad")
+                                ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km")
                             } else {
                                 ListItemsResult.Success(categorias, listaFiltrada)
                             }
@@ -105,7 +106,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                            _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
-                                ListItemsResult.Empty("No se encontraron resultados en la localidad")
+                                ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km")
                             } else {
                                 ListItemsResult.Success(categorias, listaFiltrada)
                             }
@@ -241,7 +242,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                 _state.value = if (listaFiltrada.isEmpty()) {
                     if(cercaDeTiEnable){
-                    ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km 123")
+                    ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km ")
                     }else{
                         ListItemsResult.Empty("No se encontraron resultados ")
                     }
@@ -410,7 +411,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     sealed class ListItemsResult {
         object Loading : ListItemsResult()
         data class Success(val categorias: List<String>, val items: List<Item>) : ListItemsResult()
-        data class Empty(val mensaje: String) : ListItemsResult()
+        data class Empty(
+            val mensaje: String,
+        ) : ListItemsResult()
         object Cleared : ListItemsResult()
         data class Error(val mensaje: String) : ListItemsResult()
     }

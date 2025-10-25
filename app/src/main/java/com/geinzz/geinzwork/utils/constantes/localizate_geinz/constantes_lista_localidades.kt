@@ -76,11 +76,15 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import android.os.Looper
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
-
-
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
 
 
 object constantes_lista_localidades {
@@ -2053,6 +2057,7 @@ object constantes_lista_localidades {
 
 
     fun geohashing(lat: Double, lon: Double): String {
+        Log.d("generar_geo","$lat $lon")
         return GeoFireUtils.getGeoHashForLocation(GeoLocation(lat, lon))
     }
 
@@ -2099,6 +2104,169 @@ object constantes_lista_localidades {
 
         return lista_base.filter { it.geohasing.startsWith(prefijo) }
     }
+    fun verificarGPS(context: Context, launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) {
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 10000L
+        ).build()
+
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+
+        val client = LocationServices.getSettingsClient(context)
+
+        client.checkLocationSettings(builder.build())
+            .addOnFailureListener { exception ->
+                if (exception is ResolvableApiException) {
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(exception.resolution).build()
+                    launcher.launch(intentSenderRequest)
+                } else {
+                    Log.e("GPS", "Error al verificar ajustes de ubicación: ${exception.message}")
+                }
+            }
+    }
+    @SuppressLint("MissingPermission")
+    fun obtenerUbicacionEnTiempoReal(
+        context: Context,
+        onLocation: (Double, Double) -> Unit
+    ) {
+        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            5000L
+        ).build()
+
+        fusedClient.requestLocationUpdates(
+            locationRequest,
+            object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    val location = result.lastLocation ?: return
+                    onLocation(location.latitude, location.longitude)
+                    fusedClient.removeLocationUpdates(this) // 🧹 Detener después de una lectura
+                }
+            },
+            Looper.getMainLooper()
+        )
+    }
+
+
+//    @SuppressLint("MissingPermission")
+//    fun obtenerUbicacionEnTiempoReal(
+//        context: Context,
+//        onLocation: (Double, Double) -> Unit
+//    ) {
+//        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+//
+//        val locationRequest = LocationRequest.Builder(
+//            Priority.PRIORITY_HIGH_ACCURACY,
+//            5000L
+//        ).setMinUpdateDistanceMeters(1f) // que se actualice aunque te muevas poco
+//            .build()
+//
+//        val callback = object : LocationCallback() {
+//            override fun onLocationResult(result: LocationResult) {
+//                val location = result.locations.lastOrNull()
+//                if (location != null && location.time + 1000 < System.currentTimeMillis()) {
+//                    // aceptamos solo ubicaciones recientes
+//                    onLocation(location.latitude, location.longitude)
+//                    fusedClient.removeLocationUpdates(this)
+//                }
+//            }
+//        }
+//
+//        fusedClient.requestLocationUpdates(locationRequest, callback, Looper.getMainLooper())
+//    }
+
+
+    @SuppressLint("MissingPermission")
+    fun obtenerUbicacionReal(
+        context: Context,
+        onLocation: (Double, Double) -> Unit
+    ) {
+        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+
+        val request = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            2000L
+        )
+            .setMinUpdateDistanceMeters(1f)
+            .build()
+
+        val callback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.lastLocation
+                if (location != null && System.currentTimeMillis() - location.time < 3000) {
+                    onLocation(location.latitude, location.longitude)
+                    fusedClient.removeLocationUpdates(this)
+                }
+            }
+        }
+
+        fusedClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+    }
+
+
+    fun isGPSEnabled(context: Context): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+
+    data class Zona(
+        val nombre: String,
+        val latCentro: Double,
+        val lonCentro: Double,
+        val radioMetros: Float
+    )
+
+    fun obtenerZonaActual(lat: Double, lon: Double): String {
+        val zonas = listOf(
+            // Barranca
+            Zona("Barranca", (-10.765930966672173 + -10.734900166019248)/2,
+                (-77.77396853283058 + -77.74749175899862)/2,
+                2000f), // radio aprox en metros, ajustable
+
+            // Paramonga
+            Zona("Paramonga", (-10.685016624601586 + -10.669801905728185)/2,
+                (-77.82962033203749 + -77.80104060212672)/2,
+                1500f),
+
+            // Pativilca
+            Zona("Pativilca", (-10.698773512630765 + -10.682664398504912)/2,
+                (-77.7866623110201 + -77.76211013918135)/2,
+                1500f),
+
+            // Supe
+            Zona("Supe", (-10.811428204280524 + -10.789381067260994)/2,
+                (-77.72432363579379 + -77.70737207471483)/2,
+                2000f),
+
+            // Puerto Supe
+            Zona("Puerto Supe", (-10.809531719111968 + -10.786008946053377)/2,
+                (-77.74698266301623 + -77.72672662103633)/2,
+                1000f)
+        )
+
+        var zonaMasCercana: Zona? = null
+        var distanciaMin = Float.MAX_VALUE
+
+        for (z in zonas) {
+            val results = FloatArray(1)
+            Location.distanceBetween(lat, lon, z.latCentro, z.lonCentro, results)
+            val distancia = results[0]
+
+            if (distancia <= z.radioMetros && distancia < distanciaMin) {
+                distanciaMin = distancia
+                zonaMasCercana = z
+            }
+        }
+
+        return zonaMasCercana?.nombre ?: "Fuera de zona"
+    }
+
+
+
 
 
 

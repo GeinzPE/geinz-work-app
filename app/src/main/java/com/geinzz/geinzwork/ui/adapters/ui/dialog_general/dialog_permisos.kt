@@ -107,4 +107,3 @@ fun permiso_primario_notifi(clik_si:()-> Unit, clik_no:()-> Unit, ondimis: () ->
         }
     )
 }
-
