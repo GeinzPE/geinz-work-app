@@ -50,84 +50,151 @@ class viewModel_lugares_turisticos : ViewModel() {
         _lista_obtenida.value = lista
     }
 
-    private var lista_general_completa= MutableStateFlow<List<lugares_cercanos>> (emptyList())
+    private var lista_general_completa = MutableStateFlow<List<lugares_cercanos>>(emptyList())
+    val _lista_general_completa: StateFlow<List<lugares_cercanos>> =lista_general_completa
+    private var lista_categoiras_encontrada = MutableStateFlow<List<String>>(emptyList())
 
 
-
-//    fun obtener_categorias() {
-//        viewModelScope.launch {
-//            try {
-//                categorias_filtrado.value = repo_lugares.obtener_filtrado_lugares()
-//            } catch (e: Exception) {
-//                categorias_filtrado.value = emptyList()
-//            }
-//        }
-//    }
-
-    fun obtener_tiendas_cercanas(lista_subcategorias: List<String>,categoria:String,lat: Double, long: Double, radio: Double, localida: String) {
-        Log.d("FltrmosPOR"," $categoria $lista_subcategorias")
+    fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
         viewModelScope.launch {
-            _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
             delay(250)
             try {
-
                 repo_lugares.obtenerTiendasCercanas(
-                    categoria,
                     lat,
                     long,
-                    radio,
+                    10.0,
                     localida
                 ) { it, lista_categoria ->
-                    if (it.isNotEmpty() && lista_categoria.isNotEmpty()) {
-                        Log.d("encontramos_cal", lista_categoria.toString())
-                        llenarlista_completa(it)
-
-                        _state_carga_tiendas_cercanas.value =
-                            carga_tienda_cercanos.succes(it, lista_categoria)
-                        lista_general_completa.value=it
-                    } else {
-                        _state_carga_tiendas_cercanas.value =
-                            carga_tienda_cercanos.empty("No se encontraron tiendas cercanas en el radio de $radio Km")
-                    }
+                    lista_general_completa.value = it
+                    lista_categoiras_encontrada.value = lista_categoria
                 }
             } catch (e: Exception) {
-                _state_carga_tiendas_cercanas.value =
-                    carga_tienda_cercanos.empty("Error al encontrar tiendas")
+//                _state_carga_tiendas_cercanas.value =
+//                    carga_tienda_cercanos.empty("Error al encontrar negocios")
             }
         }
     }
-
-
-
 
 
     fun limpiar_tiendas_cercanas() {
         _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
+        lista_general_completa.value = emptyList()
+        lista_categoiras_encontrada.value = emptyList()
     }
 
     fun filtrar_por_subcategoria(
         lista_subcategorias: List<String>,
-        subcategoria: String
+        subcategoria: String,
+        latUser: Double,
+        lonUser: Double,
+        radioKm: Float
     ) {
+        Log.d("filtrar_por_subcategoria", "📍 Subcategoria: $subcategoria | Radio: ${radioKm}km")
         viewModelScope.launch {
-            val lista_base = _lista_obtenida.value
+            val lista_base = lista_general_completa.value
             _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
             try {
-                val result = if (subcategoria == "Todos") {
+                // --- Filtramos primero por categoría ---
+                val listaFiltradaCategoria = if (subcategoria == "Todos") {
                     lista_base
                 } else {
-                    lista_base.filter { i ->
-                        i.categoria.lowercase().contains(subcategoria.lowercase())
+                    lista_base.filter { tienda ->
+                        tienda.categoria.lowercase().contains(subcategoria.lowercase())
                     }
                 }
 
-                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.succes(result, lista_subcategorias)
+                // --- Luego filtramos por radio ---
+                val listaFiltradaFinal = listaFiltradaCategoria.filter { tienda ->
+                    val distanciaKm = GeoFireUtils.getDistanceBetween(
+                        GeoLocation(latUser, lonUser),
+                        GeoLocation(tienda.latitud, tienda.longitud)
+                    ) / 1000.0  // Convertimos a km
+                    distanciaKm <= radioKm.toDouble()
+                }
+
+                Log.d("filtrar_por_subcategoria", "✅ Resultados finales: ${listaFiltradaFinal.size}")
+
+                if (listaFiltradaFinal.isNotEmpty()) {
+                    _state_carga_tiendas_cercanas.value =
+                        carga_tienda_cercanos.succes(listaFiltradaFinal, lista_subcategorias)
+                } else {
+                    _state_carga_tiendas_cercanas.value =
+                        carga_tienda_cercanos.empty("No se encontraron negocios cerca con esos filtros")
+                }
 
             } catch (e: Exception) {
+                Log.e("filtrar_por_subcategoria", "❌ Error: ${e.message}", e)
                 _state_carga_tiendas_cercanas.value =
-                    carga_tienda_cercanos.error("error al obtener los resultados")
+                    carga_tienda_cercanos.error("Error al obtener los resultados")
             }
         }
+    }
+
+
+    fun mostrar_listas_completas(
+        lat_lugar: Double,
+        lon_lugar: Double
+    ) {
+        val lista_base = lista_general_completa.value
+        val lista_base_categorias = lista_categoiras_encontrada.value
+        val radioInicialKm = 1.0  // 🔹 Siempre 1 km por defecto
+
+        viewModelScope.launch {
+            try {
+                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
+
+                if (lista_base.isNotEmpty() && lista_base_categorias.isNotEmpty()) {
+                    // 🔸 Filtramos solo las tiendas dentro de 1 km
+                    val listaFiltrada = lista_base.filter { tienda ->
+                        val distanciaKm = GeoFireUtils.getDistanceBetween(
+                            GeoLocation(lat_lugar, lon_lugar),
+                            GeoLocation(tienda.latitud, tienda.longitud)
+                        ) / 1000.0  // convertir a kilómetros
+                        distanciaKm <= radioInicialKm
+                    }
+
+                    if (listaFiltrada.isNotEmpty()) {
+                        _state_carga_tiendas_cercanas.value =
+                            carga_tienda_cercanos.succes(listaFiltrada, lista_base_categorias)
+                    } else {
+                        _state_carga_tiendas_cercanas.value =
+                            carga_tienda_cercanos.empty("No se encontraron negocios dentro de 1 km")
+                    }
+                } else {
+                    _state_carga_tiendas_cercanas.value =
+                        carga_tienda_cercanos.empty("No se encontraron negocios cerca")
+                }
+            } catch (e: Exception) {
+                _state_carga_tiendas_cercanas.value =
+                    carga_tienda_cercanos.error("No se encontraron negocios cerca")
+            }
+        }
+    }
+
+
+    fun filtrar_por_cat_radio(radio: Double, categoria: String) {
+        val lista_base = lista_general_completa.value
+        val lista_base_categorias = lista_categoiras_encontrada.value
+        viewModelScope.launch {
+            try {
+                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
+                if (lista_base.isNotEmpty() && lista_base_categorias.isNotEmpty()) {
+                    val result = if (categoria == "Todos") {
+                        lista_base
+                    } else {
+                        lista_base.filter { i ->
+                            i.categoria.lowercase().contains(categoria.lowercase())
+                        }
+                    }
+                    carga_tienda_cercanos.succes(result, lista_base_categorias)
+                }else{
+                    carga_tienda_cercanos.empty("No se encontraron negocios cerca")
+                }
+            }catch (e: Exception){
+
+            }
+        }
+
     }
 
 
@@ -152,37 +219,13 @@ class viewModel_lugares_turisticos : ViewModel() {
     }
 
 
-    //    fun obtener_Lugares_filtrado(localidad: String, subcategoria: String) {
-//        viewModelScope.launch {
-//            try {
-//                lugares_turisiticos_filtrados.value =
-//                    repo_lugares.obtener_lugares_turisticos_filtrados(localidad, subcategoria)
-//            } catch (e: Exception) {
-//                lugares_turisiticos_filtrados.value = emptyList()
-//            }
-//        }
-//
-//    }
     private var todosLosLugares = emptyList<lugares_turisticos>()
 
     fun todos_lugares(lista: List<lugares_turisticos>) {
         todosLosLugares = lista
     }
 
-//    fun filtrar_por_subcategoria(subcategoria: String) {
-//        _listaFiltrada.value = if (subcategoria == "Todos") {
-//            todosLosLugares
-//        } else {
-//            todosLosLugares.filter { it.subcategoria_filtrado.contains(subcategoria) }
-//        }
-//
-//        Log.d(
-//            "ViewModel",
-//            "Lista filtrada por '$subcategoria': ${_listaFiltrada.value.map { it.titulo }}"
-//        )
-//    }
-//
-
+    /** ---------- SEALED CLASS PARA LUGARES TURISTICOS ---------- */
     sealed class carga_lugares_turisticos {
         data class succes(
             val lista_categoria: List<String>,
@@ -194,6 +237,7 @@ class viewModel_lugares_turisticos : ViewModel() {
         data class empty(val txt: String) : carga_lugares_turisticos()
     }
 
+    /** ---------- SEALED CLASS PARA CARGAS DE TIENDAS CERCANAS ---------- */
     sealed class carga_tienda_cercanos {
         data class succes(
             val lista_lugares: List<lugares_cercanos>,

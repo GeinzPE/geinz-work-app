@@ -146,6 +146,7 @@ fun bottom_sheet_lugares_turisticos(
     val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     val state_tiendas_cercanas by viewmodel_turismo.state_carga_tiendas_cercanas.collectAsState()
     val tick by viewmodel_filtrado.tick.collectAsState()
+    val lista_general_completa by viewmodel_turismo._lista_general_completa.collectAsState()
 
     var nueva_busqueda by remember { mutableFloatStateOf(0f) }
     var buscar_nuevamente by remember { mutableStateOf(false) }
@@ -168,11 +169,20 @@ fun bottom_sheet_lugares_turisticos(
         }
     }
 
-    LaunchedEffect(datos.id_lugar_turistico) {
+    LaunchedEffect(Unit) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
-        viewmodel_turismo.obtener_tiendas_cercanas(lista_subacteogorias,subcategoriatienda_select,datos.latitud, datos.longitud, 1.0, "barranca")
+        viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
+
 
     }
+    LaunchedEffect(lista_general_completa) {
+        if (lista_general_completa.isNotEmpty()) {
+            viewmodel_turismo.mostrar_listas_completas(datos.latitud,datos.longitud)
+        } else {
+            Log.d("mostrar_listas", "🚫 No se llama aún, lista vacía inicial")
+        }
+    }
+
     var cargando by remember { mutableStateOf(true) }
 
     LaunchedEffect(visible) {
@@ -186,6 +196,7 @@ fun bottom_sheet_lugares_turisticos(
     ModalBottomSheet(
         onDismissRequest = { onClose() },
         modifier = Modifier.fillMaxWidth(),
+        dragHandle = {},
         containerColor = MaterialTheme.colorScheme.background
     ) {
         if (cargando) {
@@ -221,23 +232,35 @@ fun bottom_sheet_lugares_turisticos(
                                 radioAnterior = radio
 //                                viewmodel_turismo.filtrar_por_radio( datos.latitud,
 //                                    datos.longitud,radio,subcategoriatienda_select,lista_subacteogorias)
-                                viewmodel_turismo.obtener_tiendas_cercanas(
-                                    lista_subacteogorias,
-                                    subcategoriatienda_select,
-                                    datos.latitud,
-                                    datos.longitud,
-                                    radio,
-                                    "barranca"
-                                )
+//                                viewmodel_turismo.obtener_tiendas_cercanas(
+//                                    lista_subacteogorias,
+//                                    subcategoriatienda_select,
+//                                    datos.latitud,
+//                                    datos.longitud,
+//                                    radio,
+//                                    "barranca"
+//                                )
                             }
                         }, lista_base = { lista_baseparams, lista_sub ->
                             lista_base = lista_baseparams
                             lista_subacteogorias = lista_sub
                         }, subcategoria_seleciondafun = { i ->
                             subcategoriatienda_select = i
-                            viewmodel_turismo.filtrar_por_subcategoria(lista_subacteogorias, i)
+                            viewmodel_turismo.filtrar_por_subcategoria(
+                                lista_subacteogorias,
+                                i,
+                                datos.latitud,
+                                datos.longitud,nueva_busqueda
+                            )
                         }, nuevo_rango_km = { rango ->
                             nueva_busqueda = rango
+                            viewmodel_turismo.filtrar_por_subcategoria(
+                                lista_subacteogorias,
+                                subcategoriatienda_select,
+                                datos.latitud,
+                                datos.longitud,rango
+                            )
+                            Log.d("Rangonuevo", nueva_busqueda.toString())
                         })
                 }
             }
@@ -292,9 +315,9 @@ fun card_img_container(
 
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
 
-    LaunchedEffect(sub_categoria_selecionada) {
-        subcategoria_seleciondafun(sub_categoria_selecionada)
-    }
+//    LaunchedEffect(sub_categoria_selecionada) {
+//        subcategoria_seleciondafun(sub_categoria_selecionada)
+//    }
 
 
     Card(
@@ -477,16 +500,17 @@ fun card_img_container(
                                 clik_card = {
                                     coroutineScope.launch {
 
-                                    if (!selecionado) {
-                                        if (i == "Todos") {
-                                            sub_categoria_selecionada = "Todos"
-                                            listState.scrollToItem(0)
-                                        } else {
-                                            sub_categoria_selecionada = i
-
-                                            listState.scrollToItem(0)
+                                        if (!selecionado) {
+                                            if (i == "Todos") {
+                                                sub_categoria_selecionada = "Todos"
+                                                subcategoria_seleciondafun("Todos")
+                                                listState.scrollToItem(0)
+                                            } else {
+                                                sub_categoria_selecionada = i
+                                                subcategoria_seleciondafun(i)
+                                                listState.scrollToItem(0)
+                                            }
                                         }
-                                    }
                                     }
                                 },
                                 onClick_delete = {},
@@ -532,6 +556,7 @@ fun card_img_container(
 
                 is viewModel_lugares_turisticos.carga_tienda_cercanos.succes -> {
                     lista_base(state.lista_lugares, state.lista_categorias)
+                    Log.d("listassssssss", "${state.lista_lugares} ${state.lista_categorias}")
                     val lista_subcat = listOf("Todos") + state.lista_categorias
                     lista_string_filtrado_tiendas = lista_subcat
                     Column {

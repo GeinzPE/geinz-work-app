@@ -117,7 +117,6 @@ class repo_lugares_turisticos {
 
 
     fun obtenerTiendasCercanas(
-        categoria: String,
         lat: Double,
         lon: Double,
         radioKm: Double,
@@ -218,9 +217,7 @@ class repo_lugares_turisticos {
 
                     if (distancia <= radiusInM && pagado) {
                         Log.d("geoquery", "✅ ${doc.id} dentro del radio (${distancia.toInt()} m)")
-
                         // ✅ Filtrar por categoría seleccionada
-                        if (categoria == "Todos" || categoria_tienda == categoria) {
                             tiendas.add(
                                 lugares_cercanos(
                                     nombre_tienda = nombre,
@@ -237,9 +234,7 @@ class repo_lugares_turisticos {
                                     has_tienda = geohash
                                 )
                             )
-                        } else {
-                            Log.d("geoquery", "🚫 ${doc.id} filtrada por categoría ($categoria_tienda ≠ $categoria)")
-                        }
+
                     } else {
                         Log.d("geoquery", "❌ ${doc.id} fuera del radio (${distancia.toInt()} m)")
                     }
