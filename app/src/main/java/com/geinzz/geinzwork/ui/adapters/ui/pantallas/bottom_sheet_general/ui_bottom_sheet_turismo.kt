@@ -152,7 +152,7 @@ fun bottom_sheet_lugares_turisticos(
     var radioAnterior by remember { mutableStateOf(1.0) }
     var lista_base by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
     var lista_subacteogorias by remember { mutableStateOf(emptyList<String>()) }
-    var subcategoriatienda_select by remember { mutableStateOf("") }
+    var subcategoriatienda_select by remember { mutableStateOf("Todos") }
 
 
     LaunchedEffect(mostrar_bottom_datos) {
@@ -170,7 +170,7 @@ fun bottom_sheet_lugares_turisticos(
 
     LaunchedEffect(datos.id_lugar_turistico) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
-        viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
+        viewmodel_turismo.obtener_tiendas_cercanas(lista_subacteogorias,subcategoriatienda_select,datos.latitud, datos.longitud, 1.0, "barranca")
 
     }
     var cargando by remember { mutableStateOf(true) }
@@ -219,7 +219,11 @@ fun bottom_sheet_lugares_turisticos(
                         buscar_nuevas_tiendas = { radio ->
                             if (radio != radioAnterior) {
                                 radioAnterior = radio
+//                                viewmodel_turismo.filtrar_por_radio( datos.latitud,
+//                                    datos.longitud,radio,subcategoriatienda_select,lista_subacteogorias)
                                 viewmodel_turismo.obtener_tiendas_cercanas(
+                                    lista_subacteogorias,
+                                    subcategoriatienda_select,
                                     datos.latitud,
                                     datos.longitud,
                                     radio,

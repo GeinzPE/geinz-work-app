@@ -5,8 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.firebase.geofire.GeoFireUtils
+import com.firebase.geofire.GeoLocation
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
 import kotlinx.coroutines.delay
@@ -49,6 +50,9 @@ class viewModel_lugares_turisticos : ViewModel() {
         _lista_obtenida.value = lista
     }
 
+    private var lista_general_completa= MutableStateFlow<List<lugares_cercanos>> (emptyList())
+
+
 
 //    fun obtener_categorias() {
 //        viewModelScope.launch {
@@ -60,12 +64,15 @@ class viewModel_lugares_turisticos : ViewModel() {
 //        }
 //    }
 
-    fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
+    fun obtener_tiendas_cercanas(lista_subcategorias: List<String>,categoria:String,lat: Double, long: Double, radio: Double, localida: String) {
+        Log.d("FltrmosPOR"," $categoria $lista_subcategorias")
         viewModelScope.launch {
             _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
             delay(250)
             try {
+
                 repo_lugares.obtenerTiendasCercanas(
+                    categoria,
                     lat,
                     long,
                     radio,
@@ -73,12 +80,11 @@ class viewModel_lugares_turisticos : ViewModel() {
                 ) { it, lista_categoria ->
                     if (it.isNotEmpty() && lista_categoria.isNotEmpty()) {
                         Log.d("encontramos_cal", lista_categoria.toString())
-
                         llenarlista_completa(it)
-
 
                         _state_carga_tiendas_cercanas.value =
                             carga_tienda_cercanos.succes(it, lista_categoria)
+                        lista_general_completa.value=it
                     } else {
                         _state_carga_tiendas_cercanas.value =
                             carga_tienda_cercanos.empty("No se encontraron tiendas cercanas en el radio de $radio Km")
@@ -90,6 +96,9 @@ class viewModel_lugares_turisticos : ViewModel() {
             }
         }
     }
+
+
+
 
 
     fun limpiar_tiendas_cercanas() {
@@ -112,8 +121,7 @@ class viewModel_lugares_turisticos : ViewModel() {
                     }
                 }
 
-                _state_carga_tiendas_cercanas.value =
-                    carga_tienda_cercanos.succes(result, lista_subcategorias)
+                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.succes(result, lista_subcategorias)
 
             } catch (e: Exception) {
                 _state_carga_tiendas_cercanas.value =

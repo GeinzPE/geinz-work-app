@@ -65,7 +65,8 @@ data class lugares_cercanos(
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
     val esta_abierto: Boolean = false,
-    var contacto_tienda: metodo_contacto_tienda
+    var contacto_tienda: metodo_contacto_tienda,
+    var has_tienda:String
 )
 
 data class tiendas_cecanas_km(

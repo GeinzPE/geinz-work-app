@@ -259,7 +259,6 @@ fun ui_servicio_tramite(localida: String) {
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.succes -> {
-
                     Log.d("entramos","succes")
                     progress_bar=false
                     sin_resultados=false

@@ -69,10 +69,7 @@ class viewmode_servicios_tramite : ViewModel() {
 
 
     fun todos(lista: List<dataclass_lugares_db>) {
-
         todo_lugares = lista
-//        state_servicios.value = carga_servicios.succes(lista)
-//        _listaFiltrada.value = lista
         Log.d("todo_lugares_agregardos", lista.toString())
     }
 
@@ -104,8 +101,13 @@ class viewmode_servicios_tramite : ViewModel() {
                 if (resultado.isNotEmpty()) {
                     state_servicios.value = carga_servicios.succes(resultado)
                 } else {
+                    if (categorias == "Todos"){
+                        mostar_lista_completa(categorias)
+                    }else{
                     state_servicios.value =
-                        carga_servicios.emoty("No hay datos en la categoría $categorias")
+                        carga_servicios.emoty("No hay datos en la categoría $categorias 123")
+                    }
+
                 }
 
             } catch (e: Exception) {
@@ -125,24 +127,6 @@ class viewmode_servicios_tramite : ViewModel() {
 
     }
 
-    //    fun filtrar_nombre_categoria(
-//        nombre: String,
-//        categoria: String,
-//        lista: List<dataclass_lugares_db>
-//    ): List<dataclass_lugares_db> {
-//        return lista.filter { item ->
-//            val conicide_TXT =
-//                nombre.isBlank() || item.lugar_nombre.contains(nombre, ignoreCase = true)
-//            val coincidenciaExacta = categoria == "Todos" || item.categoria.any { i ->
-//                i.contains(
-//                    categoria,
-//                    ignoreCase = true
-//                )
-//            }
-//            conicide_TXT && coincidenciaExacta
-//        }
-//
-//    }
 
     fun filtrar_nombre_categoria(
         nombre: String,

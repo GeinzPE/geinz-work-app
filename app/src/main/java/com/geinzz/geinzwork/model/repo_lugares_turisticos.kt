@@ -1,6 +1,5 @@
 package com.geinzz.geinzwork.model
 
-import Item
 import android.util.Log
 import com.firebase.geofire.GeoFireUtils
 import com.firebase.geofire.GeoLocation
@@ -118,6 +117,7 @@ class repo_lugares_turisticos {
 
 
     fun obtenerTiendasCercanas(
+        categoria: String,
         lat: Double,
         lon: Double,
         radioKm: Double,
@@ -218,22 +218,32 @@ class repo_lugares_turisticos {
 
                     if (distancia <= radiusInM && pagado) {
                         Log.d("geoquery", "✅ ${doc.id} dentro del radio (${distancia.toInt()} m)")
-                        tiendas.add(
-                            lugares_cercanos(
-                                nombre_tienda = nombre,
-                                logo_tienda = logo,
-                                categoria = categoria_tienda,
-                                lista_subcategoiras = tag,
-                                id_tienda = idTienda,
-                                pagado = pagado,
-                                horario_dia = datos_horario_actual,
-                                latitud = latitud.toDouble(),
-                                longitud = longitud.toDouble(), estaAbierto, contacto_obs
+
+                        // ✅ Filtrar por categoría seleccionada
+                        if (categoria == "Todos" || categoria_tienda == categoria) {
+                            tiendas.add(
+                                lugares_cercanos(
+                                    nombre_tienda = nombre,
+                                    logo_tienda = logo,
+                                    categoria = categoria_tienda,
+                                    lista_subcategoiras = tag,
+                                    id_tienda = idTienda,
+                                    pagado = pagado,
+                                    horario_dia = datos_horario_actual,
+                                    latitud = latitud.toDouble(),
+                                    longitud = longitud.toDouble(),
+                                    esta_abierto = estaAbierto,
+                                    contacto_tienda = contacto_obs,
+                                    has_tienda = geohash
+                                )
                             )
-                        )
+                        } else {
+                            Log.d("geoquery", "🚫 ${doc.id} filtrada por categoría ($categoria_tienda ≠ $categoria)")
+                        }
                     } else {
                         Log.d("geoquery", "❌ ${doc.id} fuera del radio (${distancia.toInt()} m)")
                     }
+
                 }
             }.addOnFailureListener { e ->
                 Log.e("geoquery", "⚠️ Error al obtener documentos: ${e.message}")
