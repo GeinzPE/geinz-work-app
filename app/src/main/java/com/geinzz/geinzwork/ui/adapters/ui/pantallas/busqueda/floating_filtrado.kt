@@ -55,6 +55,7 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Snackbar
@@ -64,6 +65,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -171,7 +173,7 @@ fun FloatingBubble(
     filtrado_cerca_de_ti: (Float, String) -> Unit,
     fun_cerca_de_ti_enable: (Boolean) -> Unit,
     fun_nuevo_geohasing_actualizado: (String) -> Unit,
-    fun_abrir_dialog_filtrado_radio:()-> Unit
+    fun_abrir_dialog_filtrado_radio: () -> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
     val density = LocalDensity.current
@@ -327,6 +329,10 @@ fun FloatingBubble(
         label = ""
     )
     val snackbarHostState = remember { SnackbarHostState() }
+    val screenHeight123 = LocalConfiguration.current.screenHeightDp.dp
+    val screenHeight12 = LocalConfiguration.current.screenHeightDp.dp
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -343,7 +349,6 @@ fun FloatingBubble(
         } else {
             screenHeight - bubbleSizePx - paddingPx
         }
-        val screenHeight12 = LocalConfiguration.current.screenHeightDp.dp
 
         LaunchedEffect(subir_btn) {
             if (offsetY.value > maxY) {
@@ -359,12 +364,13 @@ fun FloatingBubble(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if(cerca_de_ti_enable && (categoria_filtrad.isNotEmpty() || categoria_filtrad.isNotEmpty())){
+                if (cerca_de_ti_enable && (categoria_filtrad.isNotEmpty() || categoria_filtrad.isNotEmpty())) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary).clickable{
+                            .background(animatedColor)
+                            .clickable {
                                 fun_abrir_dialog_filtrado_radio()
                             },
                         contentAlignment = Alignment.Center // 👈 centra el icono
@@ -395,7 +401,8 @@ fun FloatingBubble(
                                     val newX = (offsetX.value + dragAmount.x).coerceIn(
                                         paddingPx, screenWidth - bubbleSizePx - paddingPx
                                     )
-                                    val newY = (offsetY.value + dragAmount.y).coerceIn(paddingPx, maxY)
+                                    val newY =
+                                        (offsetY.value + dragAmount.y).coerceIn(paddingPx, maxY)
                                     scope.launch {
                                         offsetX.snapTo(newX)
                                         offsetY.snapTo(newY)
@@ -435,48 +442,24 @@ fun FloatingBubble(
                         }
                     }
                 }
-
-
-
-
-                // 🩵 Texto debajo
             }
         }
+    }
 
-
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300))
+    if (expanded)
+        ModalBottomSheet(
+            onDismissRequest = { expanded_fun() },
+            sheetState = sheetState,
+            dragHandle = {},
+            containerColor = MaterialTheme.colorScheme.background
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                        expanded_fun()
-                    })
-        }
-        val screenHeight123 = LocalConfiguration.current.screenHeightDp.dp
-        val topPadding = screenHeight123 * 0.1f
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.End,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 25.dp)
-        ) {
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn(animationSpec = tween(250)) + scaleIn(initialScale = 0.8f),
-                exit = fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.8f)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f)
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(top = topPadding), // ocupa toda la pantalla
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
@@ -710,19 +693,33 @@ fun FloatingBubble(
                                                                 color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
                                                                 visible = expanded
                                                             ) {
-                                                                categoria_Selecionada(i.nombre_cat)
-                                                                subcategoria_selecionada("")
-                                                                seguridad_salud_selec("")
-                                                                mostrar_chip_salud_seguridad.value =
-                                                                    false
-                                                                mostrarChipCategoria.value = true
-                                                                mostrarChipsubcategoria.value =
-                                                                    false
-                                                                mostar_carga_subcategorias = true
-                                                                tiene_categorias()
+                                                                if (i.nombre_cat != categoria_filtrad) {
+                                                                    categoria_Selecionada(i.nombre_cat)
+                                                                    subcategoria_selecionada("")
+                                                                    seguridad_salud_selec("")
+                                                                    mostrar_chip_salud_seguridad.value =
+                                                                        false
+                                                                    mostrarChipCategoria.value =
+                                                                        true
+                                                                    mostrarChipsubcategoria.value =
+                                                                        false
+                                                                    mostar_carga_subcategorias =
+                                                                        true
+                                                                    tiene_categorias()
 
-                                                                filtros =
-                                                                    filtros.copy(categoria = i.nombre_cat)
+                                                                    filtros =
+                                                                        filtros.copy(categoria = i.nombre_cat)
+                                                                } else {
+                                                                    scope.launch {
+                                                                        // Llama al SnackbarHostState para mostrar el mensaje
+                                                                        snackbarHostState.showSnackbar(
+                                                                            message = "${i.nombre_cat.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                            duration = SnackbarDuration.Short
+                                                                        )
+                                                                    }
+                                                                }
+
                                                             }
                                                         }
                                                     }
@@ -822,14 +819,26 @@ fun FloatingBubble(
                                         },
                                         cat_sub_selection = seguidad_salud,
                                         cat_sub_clik = { i ->
-                                            seguridad_salud_selec(i)
-                                            filtros = filtros.copy(salud_seguridad = i)
-                                            mostrar_chip_salud_seguridad.value = true
-                                            mostrarChipsubcategoria.value = false
-                                            mostrarChipCategoria.value = false
-                                            click_salud_general()
-                                            categoria_Selecionada("")
-                                            subcategoria_selecionada("")
+                                            if (i != seguidad_salud) {
+
+                                                seguridad_salud_selec(i)
+                                                filtros = filtros.copy(salud_seguridad = i)
+                                                mostrar_chip_salud_seguridad.value = true
+                                                mostrarChipsubcategoria.value = false
+                                                mostrarChipCategoria.value = false
+                                                click_salud_general()
+                                                categoria_Selecionada("")
+                                                subcategoria_selecionada("")
+                                            } else {
+                                                scope.launch {
+                                                    // Llama al SnackbarHostState para mostrar el mensaje
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "${i.capitalizeFirst()} se encuentra seleccionado",
+
+                                                        duration = SnackbarDuration.Short
+                                                    )
+                                                }
+                                            }
                                         })
                                 }
 
@@ -923,11 +932,25 @@ fun FloatingBubble(
                                                     color = colorSeleccionado,
                                                     visible = expanded
                                                 ) {
-                                                    localidad_filtrado(i)
-                                                    filtros = filtros.copy(localidad = i)
+                                                    if (i.lowercase() != localidad_selecionada.lowercase()) {
+
+                                                        localidad_filtrado(i)
+                                                        filtros = filtros.copy(localidad = i)
+
+                                                    } else {
+                                                        scope.launch {
+                                                            // Llama al SnackbarHostState para mostrar el mensaje
+                                                            snackbarHostState.showSnackbar(
+                                                                message = "${i.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                duration = SnackbarDuration.Short
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                                 filtros =
                                                     filtros.copy(localidad = localidad_selecionada)
+
                                             }
                                         }
 
@@ -1113,12 +1136,26 @@ fun FloatingBubble(
                                                                         color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
                                                                         visible = expanded
                                                                     ) {
-                                                                        subcategoria_selecionada(sub)
-                                                                        filtros = filtros.copy(
-                                                                            subcategoria = sub
-                                                                        )
-                                                                        mostrarChipsubcategoria.value =
-                                                                            true
+                                                                        if (subcategira_filtrado != sub) {
+
+                                                                            subcategoria_selecionada(
+                                                                                sub
+                                                                            )
+                                                                            filtros = filtros.copy(
+                                                                                subcategoria = sub
+                                                                            )
+                                                                            mostrarChipsubcategoria.value =
+                                                                                true
+                                                                        } else {
+                                                                            scope.launch {
+                                                                                // Llama al SnackbarHostState para mostrar el mensaje
+                                                                                snackbarHostState.showSnackbar(
+                                                                                    message = "${subcategira_filtrado.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                                    duration = SnackbarDuration.Short
+                                                                                )
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
                                                             }
@@ -1213,7 +1250,6 @@ fun FloatingBubble(
                         val context = LocalContext.current
                         val scope = rememberCoroutineScope()
 
-                        var nuevo_geohasing_user by remember { mutableStateOf("") }
                         val radioGuardado by data_store_localidad.get_radio_user(context)
                             .collectAsState(initial = 1f)
 
@@ -1350,12 +1386,13 @@ fun FloatingBubble(
                                                                     modifier = Modifier.clickable {
                                                                         cargandoUbicacion = true
                                                                         obtenerUbicacionReal(context) { lat, lng ->
-                                                                            Log.d(
-                                                                                "guardar_hashing123",
-                                                                                "$lat $lng"
-                                                                            )
+
                                                                             val nuevoGeohash =
                                                                                 geohashing(lat, lng)
+                                                                            Log.d(
+                                                                                "nuevoGeohashnuevoGeohash",
+                                                                                "$nuevoGeohash de $lat $lng"
+                                                                            )
                                                                             val hora =
                                                                                 SimpleDateFormat(
                                                                                     "hh:mm a",
@@ -1397,6 +1434,7 @@ fun FloatingBubble(
                                                                 )
                                                             }
                                                             spacer_vertical(17.dp)
+                                                            Log.d("localidadEncontrada",localidadEncontrada)
                                                             if (localidadEncontrada != "Fuera de zona" && localidadEncontrada.isNotBlank()) {
                                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                                     texto_generico_one_line(
@@ -1411,7 +1449,7 @@ fun FloatingBubble(
                                                                                 scope.launch {
                                                                                     // Llama al SnackbarHostState para mostrar el mensaje
                                                                                     snackbarHostState.showSnackbar(
-                                                                                        message = "$localidadEncontrada se encuentra seleccionado",
+                                                                                        message = "${localidadEncontrada.capitalizeFirst()} se encuentra seleccionado",
 
                                                                                         duration = SnackbarDuration.Short
                                                                                     )
@@ -1512,35 +1550,29 @@ fun FloatingBubble(
                             }
                         }
                     }
+                }
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    // *** CLAVE: Alinea el Host al centro inferior del Box ***
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                ) { data ->
+
+                    Snackbar(
+                        snackbarData = data,
+                        // 1. Define la forma redondeada
+                        shape = RoundedCornerShape(50), // Puedes ajustar el radio (ej. 4.dp, 12.dp)
+                        // 2. Opcional: Dale un fondo diferente
+                        containerColor = Color.White,
+                        // 3. Opcional: Ajusta el color del texto del mensaje
+                        contentColor = Color.Black,
 
 
+                        )
                 }
 
-
             }
-
-
         }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            // *** CLAVE: Alinea el Host al centro inferior del Box ***
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) { data ->
-            // Opcional: Puedes personalizar la apariencia del Snackbar aquí
-            Snackbar(
-                snackbarData = data,
-                // 1. Define la forma redondeada
-                shape = RoundedCornerShape(50), // Puedes ajustar el radio (ej. 4.dp, 12.dp)
-                // 2. Opcional: Dale un fondo diferente
-                containerColor = Color.White,
-                // 3. Opcional: Ajusta el color del texto del mensaje
-                contentColor = Color.Black,
-
-
-                )
-        }
-    }
 }
 

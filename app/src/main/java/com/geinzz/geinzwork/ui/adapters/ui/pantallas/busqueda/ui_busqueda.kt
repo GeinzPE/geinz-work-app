@@ -476,6 +476,23 @@ fun ui_pantalla_busqueda(
             )
         }
     }
+    val ultima_cordenada_actualziada by data_store_localidad.obtener_hashing_user(context).collectAsState(initial = null)
+    LaunchedEffect(ultima_cordenada_actualziada, cerca_de_ti_enable) {
+        if (ultima_cordenada_actualziada != null && cerca_de_ti_enable) {
+            Log.d("cambiamos_hasuser", "📍 Nueva coordenada: $ultima_cordenada_actualziada")
+            viewModel.filtrar_por_radio(
+                radioActual,
+                context,
+                categoria_filtrad,
+                subcategira_filtrado,
+                cerca_de_ti_enable,
+                ultima_cordenada_actualziada
+            )
+        } else {
+            Log.d("cambiamos_hasuser", "⚠️ No hay coordenada o cerca_de_ti_enable = false")
+        }
+    }
+
 
 
 //    LaunchedEffect(lista_encontrada_items) {
@@ -539,7 +556,6 @@ fun ui_pantalla_busqueda(
                 Column {
                     fraces_filtrado(expandedFloatingMenuFadeDemo)
                     spacer_vertical(10.dp)
-
                     TexfielFiltrado(
                         cat_sub_seleciondo,
                         placeholder,
@@ -878,8 +894,11 @@ fun ui_pantalla_busqueda(
         }
 
         if (mostrar_dialog_cambiar_radio) {
-            dialogo_cabiar_rango_busqueda(hash_user,context,
-                { mostrar_dialog_cambiar_radio = !mostrar_dialog_cambiar_radio },{ radio, hasing_user ->
+            dialogo_cabiar_rango_busqueda(
+                geohashin = hash_user,
+                context = context,
+                ondimis = { mostrar_dialog_cambiar_radio = !mostrar_dialog_cambiar_radio },
+                ondimis_aceptar = { radio, hasing_user ->
                     Log.d("logemos", "${radio}")
                     viewModel.filtrar_por_radio(
                         radio,
@@ -890,6 +909,26 @@ fun ui_pantalla_busqueda(
                         hasing_user
                     )
                     radio_cambiado = radio
+                },
+                cancelar_dialog_filtrado_cerncano = {
+                    cerca_de_ti_enable = !cerca_de_ti_enable
+                },
+                localidad_busqueda_general = tiendaLocalidadSeleccionada
+                    ?: localida_defauld.localida,
+                listner_localidad_busqueda = {
+                    scope.launch {
+                        if (!estado_mostar) {
+                            expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
+                        } else {
+                            ocultar()
+                            delay(400)
+                            expandedFloatingMenuFadeDemo = !expandedFloatingMenuFadeDemo
+                        }
+                    }
+                    color_localidad = !color_localidad
+                    color_categoria = false
+                    color_subcategoria = false
+                    color_salud_seguirdad = false
                 })
         }
         Box(
@@ -932,7 +971,13 @@ fun ui_pantalla_busqueda(
                     }
                 }
             },
-            expanded_fun = { expandedFloatingMenuFadeDemo = false },
+            expanded_fun = {
+                expandedFloatingMenuFadeDemo = false
+                color_localidad = false
+                color_categoria = false
+                color_subcategoria = false
+                color_salud_seguirdad = false
+            },
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
@@ -1035,8 +1080,8 @@ fun ui_pantalla_busqueda(
 
             }, fun_nuevo_geohasing_actualizado = { it ->
                 hash_user = it
-            },{
-                mostrar_dialog_cambiar_radio=true
+            }, {
+                mostrar_dialog_cambiar_radio = true
             })
     }
 }

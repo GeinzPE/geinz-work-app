@@ -113,18 +113,14 @@ fun nativationWrapper(
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
 
     var datos_principales_user by remember {
-        mutableStateOf(datos_principales_user("Usuario", "", ""))
+        mutableStateOf(datos_principales_user("Usuario", "", "barranca"))
     }
-
-    val localidad_shader_user by remember { mutableStateOf("") }
-    val scope= rememberCoroutineScope()
-
     LaunchedEffect(firebaseAuth.currentUser) {
         val current = firebaseAuth.currentUser
         if (current != null) {
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
         } else {
-            datos_principales_user = datos_principales_user("Usuario", "", "")
+            datos_principales_user = datos_principales_user("Usuario", "", "barranca")
         }
     }
 

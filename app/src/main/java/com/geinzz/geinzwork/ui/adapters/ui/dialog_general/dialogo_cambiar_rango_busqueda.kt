@@ -2,18 +2,28 @@ package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,25 +35,51 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun dialogo_cabiar_rango_busqueda(geohashin: String?,context: Context, ondimis: () -> Unit,ondimis_aceptar: (Float,String) -> Unit) {
+fun dialogo_cabiar_rango_busqueda(
+    geohashin: String?,
+    context: Context,
+    ondimis: () -> Unit,
+    ondimis_aceptar: (Float, String) -> Unit,
+    cancelar_dialog_filtrado_cerncano: () -> Unit,
+    localidad_busqueda_general:String,
+    listner_localidad_busqueda:()-> Unit
+) {
     val scope = rememberCoroutineScope()
     val radioGuardado by data_store_localidad.get_radio_user(context)
         .collectAsState(initial = 1f)
     var radioActual by remember { mutableStateOf(1f) }
     LaunchedEffect(radioGuardado) {
         radioActual = radioGuardado
+    }
+    val ultima_cordenada_actualziada by data_store_localidad.get_hora_hashin_user(
+        context
+    ).collectAsState(initial = null)
+
+    var ultima_hora_actualziada by remember { mutableStateOf("") }
+
+    LaunchedEffect(ultima_cordenada_actualziada) {
+        ultima_hora_actualziada = ultima_cordenada_actualziada ?: ""
     }
     AlertDialog(
         onDismissRequest = { ondimis() },
@@ -67,12 +103,29 @@ fun dialogo_cabiar_rango_busqueda(geohashin: String?,context: Context, ondimis: 
             btn_cerra_etc_dialog_general { ondimis() }
         },
         text = {
-            Column (){
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
-                texto_generico_one_line(
-                    "Cambia tu rango de busqueda",
-                    MaterialTheme.typography.titleLarge
-                )
+            Column() {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        texto_generico_one_line(
+                            "Cerca de ti",
+                            MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            modifier = Modifier
+                                .scale(0.8f)
+                                .padding(end = 20.dp),
+                            checked = true,
+                            onCheckedChange = {
+                                cancelar_dialog_filtrado_cerncano()
+                                ondimis()
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                    }
                 }
                 spacer_vertical(15.dp)
                 texto_generico_multilinea(
@@ -80,11 +133,96 @@ fun dialogo_cabiar_rango_busqueda(geohashin: String?,context: Context, ondimis: 
                     MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(15.dp)
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        texto_generico_one_line(
+                            "Ubicación actualizada  ",
+                            MaterialTheme.typography.bodyMedium
+                        )
+                        TextoSubrayado(
+                            "$ultima_hora_actualziada",
+                            MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.clickable {
+//                                cargandoUbicacion = true
+                                obtenerUbicacionReal(context) { lat, lng ->
+                                    Log.d(
+                                        "guardar_hashing123",
+                                        "$lat $lng"
+                                    )
+                                    val nuevoGeohash =
+                                        geohashing(lat, lng)
+                                    val hora =
+                                        SimpleDateFormat(
+                                            "hh:mm a",
+                                            Locale.getDefault()
+                                        ).format(Date())
+                                    Toast.makeText(
+                                        context,
+                                        "$lat $lng",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    scope.launch {
+                                        data_store_localidad.guardar_hasgin_lat_lon_user(
+                                            context,
+                                            nuevoGeohash
+                                                ?: "",
+                                            hora
+                                        )
+                                        data_store_localidad.guardar_lat_log_user(
+                                            context,
+                                            lat,
+                                            lng
+                                        )
+//                                        fun_nuevo_geohasing_actualizado(
+//                                            nuevoGeohash
+//                                        )
+//                                        cargandoUbicacion =
+//                                            false
+//
+//                                        localidadEncontrada =
+//                                            obtenerZonaActual(
+//                                                lat,
+//                                                lng
+//                                            )
+
+                                    }
+                                }
+                            },
+                            color_subrallado = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+
+                }
+                spacer_vertical(15.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    texto_generico_one_line(
+                        "Localidad de busqueda  ",
+                        MaterialTheme.typography.bodyMedium
+                    )
+                    TextoSubrayado(
+                        "${localidad_busqueda_general.capitalizeFirst()}",
+                        MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.clickable {listner_localidad_busqueda()
+                            ondimis()},
+                        color_subrallado = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+
+                spacer_vertical(15.dp)
                 texto_generico_one_line(
-                    "¿Deseas cambiar el rango a ${radioActual} km?",
+                    "Rango aproximado de búsqueda: ${radioActual} km",
                     MaterialTheme.typography.bodyMedium
                 )
-                spacer_vertical(15.dp)
+                spacer_vertical(10.dp)
+
                 Slider(
                     enabled = true,
                     value = radioActual,
@@ -93,23 +231,7 @@ fun dialogo_cabiar_rango_busqueda(geohashin: String?,context: Context, ondimis: 
                     },
                     valueRange = 1f..10f,
                     steps = 8,
-                    onValueChangeFinished = {
-//                    scope.launch {
-//                        data_store_localidad.guardar_radio_user(
-//                            context, radioActual
-//                        )
-//                    }
-//                    if (geohashin != null) {
-//                        filtrado_cerca_de_ti(
-//                            radioActual, geohashin!!
-//                        )
-//                    } else {
-//                        Log.d(
-//                            "Ubicacion",
-//                            "❌ Aún no se ha obtenido la ubicación"
-//                        )
-//                    }
-                    },
+                    onValueChangeFinished = {},
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary,

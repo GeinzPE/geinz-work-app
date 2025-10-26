@@ -93,6 +93,14 @@ object data_store_localidad {
         Log.d("guardar_hashing", "Hash: $hashin - Hora: $hora")
     }
 
+    fun obtener_hashing_user(context: Context): Flow<String?> {
+        return context.dataStore.data.map { pref ->
+            pref[HASHING_USER_KEY] ?: ""
+        }
+
+    }
+
+
     suspend fun guardar_lat_log_user(context: Context, lat: Double, long: Double){
         context.dataStore.edit { preferences ->
             preferences[LATITUD_USER_KEY] = lat

@@ -2213,57 +2213,72 @@ object constantes_lista_localidades {
     }
 
 
+
     data class Zona(
         val nombre: String,
-        val latCentro: Double,
-        val lonCentro: Double,
-        val radioMetros: Float
+        val latMin: Double,
+        val latMax: Double,
+        val lonMin: Double,
+        val lonMax: Double
     )
 
     fun obtenerZonaActual(lat: Double, lon: Double): String {
         val zonas = listOf(
-            // Barranca
-            Zona("Barranca", (-10.765930966672173 + -10.734900166019248)/2,
-                (-77.77396853283058 + -77.74749175899862)/2,
-                2000f), // radio aprox en metros, ajustable
+            // 🟢 Supe
+            Zona(
+                "Supe",
+                latMin = -10.819538261079375,
+                latMax = -10.786853029158221,
+                lonMin = -77.72571490375917,
+                lonMax = -77.69103646347199
+            ),
 
-            // Paramonga
-            Zona("Paramonga", (-10.685016624601586 + -10.669801905728185)/2,
-                (-77.82962033203749 + -77.80104060212672)/2,
-                1500f),
+            // 🟣 Puerto Supe
+            Zona(
+                "Puerto Supe",
+                latMin = -10.82069349776264,
+                latMax = -10.782293146257883,
+                lonMin = -77.76089119930481,
+                lonMax = -77.72195131770866
+            ),
 
-            // Pativilca
-            Zona("Pativilca", (-10.698773512630765 + -10.682664398504912)/2,
-                (-77.7866623110201 + -77.76211013918135)/2,
-                1500f),
+            // 🔵 Barranca
+            Zona(
+                "Barranca",
+                latMin = -10.782337175402573,
+                latMax = -10.72179267853299,
+                lonMin = -77.7902832245304,
+                lonMax = -77.74226095544132
+            ),
 
-            // Supe
-            Zona("Supe", (-10.811428204280524 + -10.789381067260994)/2,
-                (-77.72432363579379 + -77.70737207471483)/2,
-                2000f),
+            // 🟠 Pativilca
+            Zona(
+                "Pativilca",
+                latMin = -10.701136877458813,
+                latMax = -10.67908010034809,
+                lonMin = -77.79371612285841,
+                lonMax = -77.76034972738653
+            ),
 
-            // Puerto Supe
-            Zona("Puerto Supe", (-10.809531719111968 + -10.786008946053377)/2,
-                (-77.74698266301623 + -77.72672662103633)/2,
-                1000f)
+            // 🔴 Paramonga
+            Zona(
+                "Paramonga",
+                latMin = -10.686996630651555,
+                latMax = -10.66270517917747,
+                lonMin = -77.83882787730298,
+                lonMax = -77.79363802091774
+            )
         )
 
-        var zonaMasCercana: Zona? = null
-        var distanciaMin = Float.MAX_VALUE
-
         for (z in zonas) {
-            val results = FloatArray(1)
-            Location.distanceBetween(lat, lon, z.latCentro, z.lonCentro, results)
-            val distancia = results[0]
-
-            if (distancia <= z.radioMetros && distancia < distanciaMin) {
-                distanciaMin = distancia
-                zonaMasCercana = z
+            if (lat in z.latMin..z.latMax && lon in z.lonMin..z.lonMax) {
+                return z.nombre
             }
         }
 
-        return zonaMasCercana?.nombre ?: "Fuera de zona"
+        return "Fuera de zona"
     }
+
 
 
 

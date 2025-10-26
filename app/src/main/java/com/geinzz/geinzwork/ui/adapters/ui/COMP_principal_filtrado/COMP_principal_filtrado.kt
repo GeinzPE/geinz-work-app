@@ -52,7 +52,7 @@ fun btn_aceptar_etc_dialog_general(txt_btn:String="Aceptar",ondimis:()-> Unit){
 }
 
 @Composable
-fun btn_cerra_etc_dialog_general(txt_btn:String="cerrar",ondimis:()-> Unit){
+fun btn_cerra_etc_dialog_general(txt_btn:String="cancelar",ondimis:()-> Unit){
     TextButton(onClick = { ondimis() }) {
         texto_generico_one_line(
             txt_btn,

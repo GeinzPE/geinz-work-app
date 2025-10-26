@@ -79,7 +79,7 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
         dismissButton = {
             TextButton(onClick = { ondimis() }) {
                 texto_generico_one_line(
-                    "cerrar",
+                    "cancelar",
                     MaterialTheme.typography.bodyMedium
                 )
             }
