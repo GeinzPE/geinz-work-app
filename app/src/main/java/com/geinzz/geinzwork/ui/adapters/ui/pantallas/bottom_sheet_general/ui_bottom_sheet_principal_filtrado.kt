@@ -29,9 +29,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -107,6 +109,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_w
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
@@ -401,7 +404,7 @@ fun cabezero_tiendas(
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(nombre_tienda, estadoColor, categoritienda, lista_tags)
             }
-            spacer_horizonta(10.dp)
+            spacer_horizonta(15.dp)
             abrir_google_maps(context, latitud, longitud) { dialog_ ->
                 mostrarDialogo.value = dialog_
             }
@@ -460,49 +463,57 @@ fun perfil_cabezero(
     categoritienda: String,
     lista_tags: List<String>
 ) {
+    val color_casi_cerrando = Color(0xFFFF5722)
+    val poco_tiempo_cerra = Color(0xFFFFC107)
+    var cerrado_motivo=Color(0xFFF4C524)
+    var texto = ""
+    if (estadoColor == Color.Red) {
+        texto = "Cerrado"
+    } else if (estadoColor == Color.Green) {
+        texto = "Abierto"
+    } else if (estadoColor == poco_tiempo_cerra) {
+        texto = "Por cerrar"
+    } else if (estadoColor == color_casi_cerrando) {
+        texto = "Últimos minutos"
+    }else if(estadoColor == cerrado_motivo){
+        texto = "Cerrado"
+    }
     Column {
-        val iconId = "icon"
-        val annotatedText = buildAnnotatedString {
-            append(nombre_tienda.uppercase())
-            append(" ")
-            appendInlineContent(iconId, "[icon]")
-        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
+            Text(
+                text = nombre_tienda.uppercase(),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
 
-        val inlineContent = mapOf(
-            iconId to InlineTextContent(
-                Placeholder(
-                    width = 20.sp,
-                    height = 20.sp,
-                    placeholderVerticalAlign = PlaceholderVerticalAlign.Center
-                )
-            ) {
+            )
+            spacer_vertical(5.dp)
+            Box( modifier = Modifier.weight(2f)){
                 Box(
                     modifier = Modifier
-                        .size(15.dp)
+                        .padding(horizontal = 5.dp)
                         .clip(RoundedCornerShape(50))
                         .background(estadoColor)
-                )
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = texto,
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
-        )
-
-        Text(
-            text = annotatedText,
-            inlineContent = inlineContent,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-
+        }
+        spacer_vertical(5.dp)
         text_expandible_wrapp(
             texto = "Categoria : $categoritienda",
             style = MaterialTheme.typography.bodyMedium
         )
         spacer_vertical(10.dp)
-
         tags_subcateogiras(
             lista_tags,
             brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default),
@@ -510,7 +521,6 @@ fun perfil_cabezero(
             modifier = Modifier.padding(end = 40.dp)
         )
     }
-
 }
 
 @Composable

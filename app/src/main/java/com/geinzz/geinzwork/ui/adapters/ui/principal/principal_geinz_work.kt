@@ -581,7 +581,7 @@ fun cartas_filtrado(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(i.lista_img)
                             .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.sin_item_carrito)
+                            .error(R.drawable.cargando_img_categorias)
                             .build(),
                         contentDescription = "Imagen de la tienda",
                         modifier = Modifier.matchParentSize(), // ocupa todo el Box
@@ -612,7 +612,7 @@ fun cartas_filtrado(
                         .padding(5.dp)
                 ) {
                     Text(
-                        text = simplificarCategoria(i.nombre),
+                        text = simplificarCategoria(i.nombre).capitalizeFirst(),
                         fontFamily = baners_geinz_work,
                         fontSize = fontSizeAnimada.sp,
                         color = Color.White,

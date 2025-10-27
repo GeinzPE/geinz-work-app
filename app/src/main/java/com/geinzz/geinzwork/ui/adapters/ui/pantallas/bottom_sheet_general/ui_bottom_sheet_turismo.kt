@@ -80,6 +80,7 @@ import com.geinzz.geinzwork.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -131,13 +132,15 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
+    viewmodel_lugares_turisticos:viewModel_lugares_turisticos,
     datos: lugares_turisticos,
     visible: Boolean,
     onClose: () -> Unit,
+    ver_mapa: (List<lugares_cercanos>) -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
-    val viewmodel_turismo: viewModel_lugares_turisticos = viewModel()
+    val viewmodel_turismo= viewmodel_lugares_turisticos
     var id_tienda by remember { mutableStateOf("") }
     var localida_tienda by remember { mutableStateOf("") }
     var color_estado_tienda by remember { mutableStateOf(Color.Gray) }
@@ -147,6 +150,7 @@ fun bottom_sheet_lugares_turisticos(
     val state_tiendas_cercanas by viewmodel_turismo.state_carga_tiendas_cercanas.collectAsState()
     val tick by viewmodel_filtrado.tick.collectAsState()
     val lista_general_completa by viewmodel_turismo._lista_general_completa.collectAsState()
+    val lista_lugares_cercanos by viewmodel_turismo.lista_filtrada_turistica.collectAsState()
 
     var nueva_busqueda by remember { mutableFloatStateOf(0f) }
     var buscar_nuevamente by remember { mutableStateOf(false) }
@@ -172,12 +176,12 @@ fun bottom_sheet_lugares_turisticos(
     LaunchedEffect(Unit) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
         viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
-
-
     }
+
     LaunchedEffect(lista_general_completa) {
+
         if (lista_general_completa.isNotEmpty()) {
-            viewmodel_turismo.mostrar_listas_completas(datos.latitud,datos.longitud)
+            viewmodel_turismo.mostrar_listas_completas(datos.latitud, datos.longitud)
         } else {
             Log.d("mostrar_listas", "🚫 No se llama aún, lista vacía inicial")
         }
@@ -250,7 +254,7 @@ fun bottom_sheet_lugares_turisticos(
                                 lista_subacteogorias,
                                 i,
                                 datos.latitud,
-                                datos.longitud,nueva_busqueda
+                                datos.longitud, nueva_busqueda
                             )
                         }, nuevo_rango_km = { rango ->
                             nueva_busqueda = rango
@@ -258,9 +262,11 @@ fun bottom_sheet_lugares_turisticos(
                                 lista_subacteogorias,
                                 subcategoriatienda_select,
                                 datos.latitud,
-                                datos.longitud,rango
+                                datos.longitud, rango
                             )
                             Log.d("Rangonuevo", nueva_busqueda.toString())
+                        }, ver_mapa = {lugares_cercanos->
+                            ver_mapa(lugares_cercanos)
                         })
                 }
             }
@@ -295,7 +301,8 @@ fun card_img_container(
     buscar_nuevas_tiendas: (Double) -> Unit,
     lista_base: (List<lugares_cercanos>, List<String>) -> Unit,
     subcategoria_seleciondafun: (String) -> Unit,
-    nuevo_rango_km: (Float) -> Unit
+    nuevo_rango_km: (Float) -> Unit,
+    ver_mapa: (List<lugares_cercanos>) -> Unit
 ) {
 
     val listState = rememberLazyListState()
@@ -315,9 +322,12 @@ fun card_img_container(
 
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
 
+    var lugares_turisticos_filtrados by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
+
 //    LaunchedEffect(sub_categoria_selecionada) {
 //        subcategoria_seleciondafun(sub_categoria_selecionada)
 //    }
+
 
 
     Card(
@@ -350,7 +360,10 @@ fun card_img_container(
                     dialog_Crear_ruta = true
                 }
 
-                "ver en mapa" -> {}
+                "ver en mapa" -> {
+
+                }
+
                 "compartir" -> {}
             }
         }
@@ -373,7 +386,12 @@ fun card_img_container(
                 texto_generico_one_line(
                     "ver en mapa",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable{
+                        if(lugares_turisticos_filtrados.isNotEmpty()){
+                            ver_mapa(lugares_turisticos_filtrados)
+                        }
+
+                    }
                 )
             }
 
@@ -556,6 +574,7 @@ fun card_img_container(
 
                 is viewModel_lugares_turisticos.carga_tienda_cercanos.succes -> {
                     lista_base(state.lista_lugares, state.lista_categorias)
+                    lugares_turisticos_filtrados=state.lista_lugares
                     Log.d("listassssssss", "${state.lista_lugares} ${state.lista_categorias}")
                     val lista_subcat = listOf("Todos") + state.lista_categorias
                     lista_string_filtrado_tiendas = lista_subcat

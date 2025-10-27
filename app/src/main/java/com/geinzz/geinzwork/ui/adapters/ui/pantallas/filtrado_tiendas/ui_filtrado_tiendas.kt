@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -40,12 +41,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
 import com.geinzz.geinzwork.R
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -321,7 +325,6 @@ fun Pantalla_filtrado_tiendas(
                         scope.launch {
                             delay(4000)
                             mostrandoCargaGlobal = false
-
                         }
 
                         isLoading = false
@@ -334,6 +337,10 @@ fun Pantalla_filtrado_tiendas(
                     )
 
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
+                        Log.d(
+                            "metoods_pago_teindas",
+                            "${tienda.id_tienda}  ${tienda.metodos_pago_tienda}"
+                        )
                         item_tiendas(
                             viewModelFiltros,
                             tienda,
@@ -531,7 +538,7 @@ fun TiempoRestanteCierre(
     cerrado: Boolean,
     motivo: String,
     pagado: Boolean,
-    max_line:Int=1,
+    max_line: Int = 1,
     tick: Long,
     color: (Color) -> Unit
 ) {
@@ -604,7 +611,6 @@ fun retornar_color_estado_tienda(
 
 @Composable
 fun encabezado_chis_categorias() {
-
     titulos_genericos_one_line(
         "Busca tus tiendas favoritas", MaterialTheme.typography.headlineSmall,
         modifier = Modifier
@@ -800,6 +806,31 @@ fun item_tiendas(
             item_tiendas.latitud, item_tiendas.longitud
         )
     }
+    val targetHeight = if (!detalles_tienda) 90.dp else 110.dp
+
+    val altoImgAnimado by animateDpAsState(
+        targetValue = targetHeight
+    )
+    val listState = rememberLazyListState()
+
+    val showLeftShadow by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+    }
+    val showRightShadow by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible != null && lastVisible < total - 1
+        }
+    }
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaLeft"
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400), label = "alphaRight"
+    )
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -826,21 +857,127 @@ fun item_tiendas(
                 .fillMaxWidth()
                 .animateContentSize()
         ) {
-
             Row(
                 modifier = Modifier.padding(7.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = item_tiendas.logo_tienda,
-                    contentDescription = "Imagen local",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(110.dp)
-                        .clip(RoundedCornerShape(15))
-                )
+
+                Column {
+                    AsyncImage(
+                        model = item_tiendas.logo_tienda,
+                        contentDescription = "Imagen local",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(altoImgAnimado)
+                            .clip(RoundedCornerShape(15))
+                    )
+                    spacer_vertical(5.dp)
+                    AnimatedVisibility(!detalles_tienda) {
+                        Box(
+                            modifier = Modifier
+                                .width(80.dp)
+                                .height(25.dp),
+                            contentAlignment = Alignment.Center
+                        ){
+                            LazyRow(    state = listState,horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.width(80.dp)) {
+                                item {
+                                    Image(
+                                        painter = painterResource(R.drawable.yape_logo),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                }
+                                item {
+                                    Image(
+                                        painter = painterResource(R.drawable.logo_plin),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                item {
+                                    Image(
+                                        painter = painterResource(R.drawable.visa_logo),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                }
+                                item {
+                                    Image(
+                                        painter = painterResource(R.drawable.master_car_logo),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                }
+
+                                item {
+                                    Image(
+                                        painter = painterResource(R.drawable.logo_agora),
+                                        contentDescription = "",
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                }
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF4CAF50)) // Verde tipo "dinero"
+                                            .padding(6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AttachMoney,
+                                            contentDescription = "Efectivo",
+                                            tint = Color.White, // Ícono blanco
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            // 👈 izquierda
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(20.dp)
+                                    .align(Alignment.CenterStart)
+                                    .zIndex(1f)
+                                    .alpha(alphaLeft)
+                                    .background(Brush.horizontalGradient(colors = strat_subcategoria_shadow))
+                            )
+
+                            // 👉 derecha
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(20.dp)
+
+                                    .align(Alignment.CenterEnd)
+                                    .zIndex(1f)
+                                    .alpha(alphaRight)
+                                    .background( Brush.horizontalGradient(colors = end_subcategoria_shadow)
+                            ))
+                        }
+                    }
+
+                }
+
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(
                     modifier = Modifier.weight(1f)
@@ -889,8 +1026,89 @@ fun item_tiendas(
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-
-
+                    spacer_vertical(10.dp)
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+//                    ) {
+//                        Text(
+//                            text = "Formas de pago :",
+//                            style = MaterialTheme.typography.bodySmall,
+//                            maxLines = 4,
+//                            overflow = TextOverflow.Ellipsis,
+//                            color = MaterialTheme.colorScheme.onBackground
+//                        )
+//                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+//                            item {
+//                                Image(
+//                                    painter = painterResource(R.drawable.yape_logo),
+//                                    contentDescription = "",
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape),
+//                                    contentScale = ContentScale.Crop,
+//                                )
+//                            }
+//                            item {
+//                                Image(
+//                                    painter = painterResource(R.drawable.logo_plin),
+//                                    contentDescription = "",
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape),
+//                                    contentScale = ContentScale.Crop
+//                                )
+//                            }
+//                            item {
+//                                Image(
+//                                    painter = painterResource(R.drawable.visa_logo),
+//                                    contentDescription = "",
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape),
+//                                    contentScale = ContentScale.Crop,
+//                                )
+//                            }
+//                            item {
+//                                Image(
+//                                    painter = painterResource(R.drawable.master_car_logo),
+//                                    contentDescription = "",
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape),
+//                                    contentScale = ContentScale.Crop,
+//                                )
+//                            }
+//
+//                            item {
+//                                Image(
+//                                    painter = painterResource(R.drawable.logo_agora),
+//                                    contentDescription = "",
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape),
+//                                    contentScale = ContentScale.Crop,
+//                                )
+//                            }
+//                            item {
+//                                Box(
+//                                    modifier = Modifier
+//                                        .size(30.dp)
+//                                        .clip(CircleShape)
+//                                        .background(Color(0xFF4CAF50)) // Verde tipo "dinero"
+//                                        .padding(6.dp),
+//                                    contentAlignment = Alignment.Center
+//                                ) {
+//                                    Icon(
+//                                        imageVector = Icons.Default.AttachMoney,
+//                                        contentDescription = "Efectivo",
+//                                        tint = Color.White, // Ícono blanco
+//                                        modifier = Modifier.size(24.dp)
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
                 }
             }
         }

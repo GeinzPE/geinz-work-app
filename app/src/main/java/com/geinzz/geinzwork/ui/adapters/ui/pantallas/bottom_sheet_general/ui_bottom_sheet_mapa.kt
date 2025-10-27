@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.carta_turismo_google_mpa
@@ -50,7 +51,7 @@ fun bottom_sheet_mapa(
     log_user: Double,
     cameraPositionState: CameraPositionState,
     tipo: String,
-    lista_filtrada_turismo: List<lugares_turisticos>,
+    lista_filtrada_turismo: List<lugares_cercanos>,
     lista: List<tiendas_por_categoria>,
     onclose: () -> Unit,
     selecionado_id: (String?) -> Unit,
@@ -70,36 +71,37 @@ fun bottom_sheet_mapa(
             FuenteControladaApp {
                 when (tipo) {
                     "turismo" -> {
-//                        listado_items(
-//                            seleccionadoId,
-//                            cameraPositionState,
-//                            lista = lista_filtrada_turismo,
-//                            getId = { it.id_lugar_turistico },
-//                            getLat = { it.latitud },
-//                            getLng = { it.longitud },
-//                            getLogo = { it.img_ref },
-//                            getNombre = { it.titulo },
-//                            getDescripcion = { it.descripcion },
-//                            selecionado = { id ->
-//                                selecionado_id(id.id_lugar_turistico)
-//                                datos_selecionado_retornar(
-//                                    dataclass_map(
-//                                        id.id_lugar_turistico,
-//                                        id.titulo,
-//                                        id.subcategoria_filtrado,
-//                                        lat_user,
-//                                        log_user,
-//                                        id.latitud,
-//                                        id.longitud,
-//                                        id.id_lugar_turistico,
-//                                        "",
-//                                        id.direcccion,
-//                                        id.referencia
-//                                    )
-//                                )
-//                            }
-//
-//                        )
+                        listado_items(
+                            seleccionadoId,
+                            cameraPositionState,
+                            lista = lista_filtrada_turismo,
+                            getId = { it.id_tienda },
+                            getLat = { it.latitud },
+                            getLng = { it.longitud },
+                            getLogo = { it.logo_tienda },
+                            getNombre = { it.nombre_tienda },
+                            getDescripcion = { it.descripcion },
+                            selecionado = { id ->
+                                selecionado_id(id.id_tienda)
+                                datos_selecionado_retornar(
+                                    dataclass_map(
+                                        img = id.logo_tienda,
+                                        nombre = id.nombre_tienda,
+                                        tag = id.lista_subcategoiras,
+                                        my_latitud = id.latitud,
+                                        my_longitud = log_user,
+                                        latitud = id.latitud,
+                                        longitud = id.longitud,
+                                        id = id.id_tienda,
+                                        categoria = "",
+                                        direccion = id.direccion,
+                                        referencia = id.referencia,
+                                        horario_tienda = id.horario_dia,
+                                        contacto_tienda = id.contacto_tienda
+                                    )
+                                )
+                            }
+                        )
 
                     }
 

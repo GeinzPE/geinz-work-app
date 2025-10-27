@@ -142,6 +142,7 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
     }
 
 
+
     fun obtener_cat_lugares() {
         viewModelScope.launch {
             try {

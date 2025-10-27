@@ -217,7 +217,7 @@ fun dialogo_cabiar_rango_busqueda(
 
 
                 spacer_vertical(15.dp)
-                texto_generico_one_line(
+                texto_generico_multilinea(
                     "Rango aproximado de búsqueda: ${radioActual} km",
                     MaterialTheme.typography.bodyMedium
                 )

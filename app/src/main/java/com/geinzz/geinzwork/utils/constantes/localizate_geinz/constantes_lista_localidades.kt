@@ -79,6 +79,8 @@ import android.os.Looper
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -2016,6 +2018,26 @@ object constantes_lista_localidades {
             tiktok = (this?.get("tiktok") as? Map<String, Any>).toRed(),
             sitio_web = (this?.get("sitio_web") as? Map<String, Any>).toRed()
         )
+    }
+
+    fun  Map<String, Any>?.to_metodo_pago():modelo_pagos_tienda{
+        if (this == null) return modelo_pagos_tienda()
+        fun getMetodo(key: String): modelo_metodo_individual {
+            val metodo = this[key] as? Map<*, *> ?: return modelo_metodo_individual()
+            return modelo_metodo_individual(
+                numero = metodo["numero"] as? String ?:"",
+                qr = metodo["qr"] as? String ?:"",
+                enable = metodo["enable"] as? Boolean ?: false,
+            )
+        }
+        return modelo_pagos_tienda(
+            visa_mastercard = getMetodo("Visa/Mastercard"),
+            agora = getMetodo("agora"),
+            efectivo = getMetodo("efectivo"),
+            plin = getMetodo("plin"),
+            yape = getMetodo("yape")
+        )
+
     }
 
     data class cordenasdas(val lat: Double, val longitud: Double)

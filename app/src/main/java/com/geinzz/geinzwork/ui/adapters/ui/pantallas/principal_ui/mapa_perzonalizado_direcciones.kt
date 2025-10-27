@@ -147,7 +147,7 @@ import java.nio.file.WatchEvent
 fun pantalla_mapa_perzonalizado(
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
-    viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     tipo: String,
     localidad: String
 ) {
@@ -167,7 +167,7 @@ fun pantalla_mapa_perzonalizado(
 @Composable
 fun MyGoogle_maps(
     tipo: String,
-    viewmodel_lugares_turisticos: viewModel_lugares_turisticos = viewModel(),
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     localidad: String
@@ -182,17 +182,25 @@ fun MyGoogle_maps(
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
         emptyList()
     )
-    val horario_por_tienda by viewModel_filtrado_tiendas.estadoTiendas.observeAsState()
+
+    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos
+        .listaTiendasGuardadas
+        .collectAsState()
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
     var currentIndex =
         lista_filtrada_tiendas.indexOfFirst { data -> data.id_tienda == seleccionadoId }
+
+    var currentIndex_turismo =
+        lista_tiendas_cecanas_turismo.indexOfFirst { data -> data.id_tienda == seleccionadoId }
 
 
     coordenadas?.let { (lat, lon) ->
         latitud_luga_seg = lat
         long_luga_seg = lon
     }
+    val tick by viewModel_filtrado_tiendas.tick.collectAsState()
+
 
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
@@ -211,7 +219,6 @@ fun MyGoogle_maps(
     val defaultLocation_supe = LatLng(-10.795610086889571, -77.71618154413743)
     val defaultLocation_puerto_supe = LatLng(-10.796606548738318, -77.74082770132752)
     val defaultLocation_pativilca = LatLng(-10.696153944234334, -77.77668811678933)
-
     val cameraPositionState = rememberCameraPositionState {
         val localidad_default = when (localidad) {
             "barranca" -> {
@@ -240,8 +247,6 @@ fun MyGoogle_maps(
         }
         position = CameraPosition.fromLatLngZoom(localidad_default, 15f)
     }
-
-
     var boxVisible by remember { mutableStateOf(true) }
     var mostar_bottom_sheet by remember { mutableStateOf(false) }
     var id_lugar_tienda_select by remember { mutableStateOf("") }
@@ -307,48 +312,50 @@ fun MyGoogle_maps(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
-                    isMyLocationEnabled = true),
+                    isMyLocationEnabled = true
+                ),
                 uiSettings = MapUiSettings(
                     myLocationButtonEnabled = false,
-                    zoomControlsEnabled = false)
+                    zoomControlsEnabled = false
+                )
             ) {
 
                 when (tipo) {
-//                    "turismo" -> {
-//                        lista_filtrada_turismo.forEach { lugar ->
-//                            Log.d(
-//                                "obtenoemos_la_tog",
-//                                "user = ${lat_user} ${log_user}tusirmo= ${lugar.latitud} ${lugar.longitud}"
-//                            )
-//                            Marker(
-//                                state = MarkerState(LatLng(lugar.latitud, lugar.longitud)),
-//                                title = lugar.titulo,
-//                                icon = MarkerIcon(
-//                                    context,
-//                                    seleccionadoId == lugar.id_lugar_turistico
-//                                ),
-//                                onClick = {
-//                                    lister_marker = dataclass_map(
-//                                        lugar.id_lugar_turistico,
-//                                        lugar.titulo,
-//                                        lugar.subcategoria_filtrado,
-//                                        lat_user,
-//                                        log_user,
-//                                        lugar.latitud,
-//                                        lugar.longitud,
-//                                        lugar.id_lugar_turistico,
-//                                        "",
-//                                        lugar.direcccion,
-//                                        lugar.referencia
-//
-//                                    )
-//                                    seleccionadoId = lugar.id_lugar_turistico
-//                                    show_dialog_datos_lugares = true
-//                                    true
-//                                }
-//                            )
-//                        }
-//                    }
+                    "turismo" -> {
+                        Log.d("ntramosad123", "${lista_tiendas_cecanas_turismo.size}")
+                        lista_tiendas_cecanas_turismo.forEach { tienda ->
+                            Log.d(
+                                "obtenoemos_la_tog",
+                                " user = ${lat_user} ${log_user} teinda=${tienda.latitud} ${tienda.longitud}"
+                            )
+                            Marker(
+                                state = MarkerState(LatLng(tienda.latitud, tienda.longitud)),
+                                title = tienda.nombre_tienda,
+                                icon = MarkerIcon(context, seleccionadoId == tienda.id_tienda),
+                                onClick = {
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
+
+                                    seleccionadoId = tienda.id_tienda
+
+                                    show_dialog_datos_lugares = true
+                                    true
+                                }
+                            )
+                        }
+                    }
 
                     "tiendas" -> {
                         lista_filtrada_tiendas.forEach { tienda ->
@@ -455,41 +462,87 @@ fun MyGoogle_maps(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 onClick = {
-                    if (lista_filtrada_tiendas.isNotEmpty()) {
-                        Log.d("currentIndex", currentIndex.toString())
-                        if (currentIndex != -1) {
-                            val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
-                            val tienda = lista_filtrada_tiendas[siguiente]
-                            Log.d("currentIndex", "$siguiente")
-                            lister_marker = dataclass_map(
-                                tienda.logo_tienda,
-                                tienda.nombre_tienda,
-                                tienda.lista_subcategoiras,
-                                lat_user,
-                                log_user,
-                                tienda.latitud,
-                                tienda.longitud,
-                                tienda.id_tienda,
-                                "",
-                                tienda.direccion,
-                                tienda.referencia,
-                                tienda.horario_dia, tienda.contacto_tienda
-                            )
-                            Log.d("ecnotramos","${tienda.contacto_tienda}")
+                    when (tipo) {
+                        "turismo" -> {
+                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
+                                Log.d("currentIndex", currentIndex_turismo.toString())
+                                if (currentIndex_turismo != -1) {
+                                    val siguiente =
+                                        (currentIndex_turismo + 1) % lista_tiendas_cecanas_turismo.size
+                                    val tienda = lista_tiendas_cecanas_turismo[siguiente]
+                                    Log.d("currentIndex", "$siguiente")
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
+                                    Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
-                            seleccionadoId = tienda.id_tienda
-                            show_dialog_datos_lugares = true
+                                    seleccionadoId = tienda.id_tienda
+                                    show_dialog_datos_lugares = true
 
-                            scope.launch {
-                                cameraPositionState.animate(
-                                    CameraUpdateFactory.newLatLngZoom(
-                                        LatLng(tienda.latitud, tienda.longitud), 16f
-                                    ),
-                                    1000
-                                )
+                                    scope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(tienda.latitud, tienda.longitud), 16f
+                                            ),
+                                            1000
+                                        )
+                                    }
+                                }
                             }
                         }
+
+                        "tiendas" -> {
+                            if (lista_filtrada_tiendas.isNotEmpty()) {
+                                Log.d("currentIndex", currentIndex.toString())
+                                if (currentIndex != -1) {
+                                    val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
+                                    val tienda = lista_filtrada_tiendas[siguiente]
+                                    Log.d("currentIndex", "$siguiente")
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
+                                    Log.d("ecnotramos", "${tienda.contacto_tienda}")
+
+                                    seleccionadoId = tienda.id_tienda
+                                    show_dialog_datos_lugares = true
+
+                                    scope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(tienda.latitud, tienda.longitud), 16f
+                                            ),
+                                            1000
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        else -> {}
                     }
+
                 },
             ) {
                 Icon(
@@ -501,12 +554,12 @@ fun MyGoogle_maps(
 
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
-                seleccionadoId = seleccionadoId?:"",
+                seleccionadoId = seleccionadoId ?: "",
                 lat_user = lat_user,
                 log_user = log_user,
                 cameraPositionState = cameraPositionState,
                 tipo = tipo,
-                lista_filtrada_turismo = emptyList(),
+                lista_filtrada_turismo = lista_tiendas_cecanas_turismo,
                 lista = lista_filtrada_tiendas,
                 onclose = {
                     show_botoom_sheet = false
@@ -526,7 +579,7 @@ fun MyGoogle_maps(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             dialogo_lugar_tienda(
-                viewModel_filtrado_tiendas,
+                time = tick,
                 dataclass_map = lister_marker,
                 cerra_dialog = {
                     show_dialog_datos_lugares = false
@@ -550,7 +603,7 @@ fun MyGoogle_maps(
                         )
                     }
                 },
-                boxVisible,
+                boxVisible = boxVisible,
                 onBoxVisibleChange = {
                     Log.d("visible", it.toString())
                     boxVisible = it
@@ -589,7 +642,7 @@ fun MyGoogle_maps(
                         }
 
                         "facebook" -> {
-                            Log.d("    datos.valor","${datos.valor}")
+                            Log.d("    datos.valor", "${datos.valor}")
                             openFacebook(
                                 context,
                                 datos.valor
@@ -597,7 +650,7 @@ fun MyGoogle_maps(
                         }
 
                         "instagram" -> {
-                            Log.d("    datos.valor","${datos.valor}")
+                            Log.d("    datos.valor", "${datos.valor}")
                             openInstagram(
                                 context,
                                 datos.valor
@@ -614,79 +667,166 @@ fun MyGoogle_maps(
                 },
                 mostrar_lista = {
                     show_botoom_sheet = true
-                }, move_derecha = {
-                    if (lista_filtrada_tiendas.isNotEmpty()) {
-                        if (currentIndex != -1) {
-                            // Mover al elemento anterior (hacia la derecha)
-                            val anterior =
-                                if (currentIndex - 1 < 0) lista_filtrada_tiendas.lastIndex else currentIndex - 1
-                            val tienda = lista_filtrada_tiendas[anterior]
+                },
+                move_derecha = {
+                    when (tipo) {
+                        "turismo" -> {
+                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
+                                if (currentIndex_turismo != -1) {
+                                    // Mover al elemento anterior (hacia la derecha)
+                                    val anterior =
+                                        if (currentIndex_turismo - 1 < 0) lista_tiendas_cecanas_turismo.lastIndex else currentIndex_turismo - 1
+                                    val tienda = lista_tiendas_cecanas_turismo[anterior]
 
-                            lister_marker = dataclass_map(
-                                tienda.logo_tienda,
-                                tienda.nombre_tienda,
-                                tienda.lista_subcategoiras,
-                                lat_user,
-                                log_user,
-                                tienda.latitud,
-                                tienda.longitud,
-                                tienda.id_tienda,
-                                "",
-                                tienda.direccion,
-                                tienda.referencia,
-                                tienda.horario_dia, tienda.contacto_tienda
-                            )
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
 
-                            seleccionadoId = tienda.id_tienda
-                            currentIndex = anterior // 🔹 Actualiza el índice
+                                    seleccionadoId = tienda.id_tienda
+                                    currentIndex_turismo = anterior // 🔹 Actualiza el índice
 
-                            scope.launch {
-                                cameraPositionState.animate(
-                                    CameraUpdateFactory.newLatLngZoom(
-                                        LatLng(tienda.latitud, tienda.longitud), 16f
-                                    ),
-                                    1000
-                                )
+                                    scope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(tienda.latitud, tienda.longitud), 16f
+                                            ),
+                                            1000
+                                        )
+                                    }
+                                }
                             }
                         }
+                        "tiendas" -> {
+
+                            if (lista_filtrada_tiendas.isNotEmpty()) {
+                                if (currentIndex != -1) {
+                                    // Mover al elemento anterior (hacia la derecha)
+                                    val anterior =
+                                        if (currentIndex - 1 < 0) lista_filtrada_tiendas.lastIndex else currentIndex - 1
+                                    val tienda = lista_filtrada_tiendas[anterior]
+
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
+
+                                    seleccionadoId = tienda.id_tienda
+                                    currentIndex = anterior // 🔹 Actualiza el índice
+
+                                    scope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(tienda.latitud, tienda.longitud), 16f
+                                            ),
+                                            1000
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        else->{}
                     }
+
                 },
 
                 move_izquierda = {
-                    if (lista_filtrada_tiendas.isNotEmpty()) {
-                        if (currentIndex != -1) {
-                            // Mover al siguiente elemento (hacia la izquierda)
-                            val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
-                            val tienda = lista_filtrada_tiendas[siguiente]
+                    when (tipo) {
+                        "turismo" -> {
+                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
+                                if (currentIndex_turismo != -1) {
+                                    // Mover al siguiente elemento (hacia la izquierda)
+                                    val siguiente = (currentIndex_turismo + 1) % lista_tiendas_cecanas_turismo.size
+                                    val tienda = lista_tiendas_cecanas_turismo[siguiente]
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
 
-                            lister_marker = dataclass_map(
-                                tienda.logo_tienda,
-                                tienda.nombre_tienda,
-                                tienda.lista_subcategoiras,
-                                lat_user,
-                                log_user,
-                                tienda.latitud,
-                                tienda.longitud,
-                                tienda.id_tienda,
-                                "",
-                                tienda.direccion,
-                                tienda.referencia,
-                                tienda.horario_dia, tienda.contacto_tienda
-                            )
+                                    seleccionadoId = tienda.id_tienda
+                                    currentIndex_turismo = siguiente // 🔹 Actualiza el índice
 
-                            seleccionadoId = tienda.id_tienda
-                            currentIndex = siguiente // 🔹 Actualiza el índice
-
-                            scope.launch {
-                                cameraPositionState.animate(
-                                    CameraUpdateFactory.newLatLngZoom(
-                                        LatLng(tienda.latitud, tienda.longitud), 16f
-                                    ),
-                                    1000
-                                )
+                                    scope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(tienda.latitud, tienda.longitud), 16f
+                                            ),
+                                            1000
+                                        )
+                                    }
+                                }
                             }
                         }
+                        "tiendas" -> {
+                            if (lista_filtrada_tiendas.isNotEmpty()) {
+                                if (currentIndex != -1) {
+                                    // Mover al siguiente elemento (hacia la izquierda)
+                                    val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
+                                    val tienda = lista_filtrada_tiendas[siguiente]
+
+                                    lister_marker = dataclass_map(
+                                        tienda.logo_tienda,
+                                        tienda.nombre_tienda,
+                                        tienda.lista_subcategoiras,
+                                        lat_user,
+                                        log_user,
+                                        tienda.latitud,
+                                        tienda.longitud,
+                                        tienda.id_tienda,
+                                        "",
+                                        tienda.direccion,
+                                        tienda.referencia,
+                                        tienda.horario_dia, tienda.contacto_tienda
+                                    )
+
+                                    seleccionadoId = tienda.id_tienda
+                                    currentIndex = siguiente // 🔹 Actualiza el índice
+
+                                    scope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(tienda.latitud, tienda.longitud), 16f
+                                            ),
+                                            1000
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        else->{}
                     }
+
+
                 }
             )
         }
@@ -715,7 +855,7 @@ fun MyGoogle_maps(
     }
     if (call_dialog_permise) {
         permisos_llamadas(aceptar_permisos = {
-            requestCallPermission( context =context, phoneNumber = numero_llamada)
+            requestCallPermission(context = context, phoneNumber = numero_llamada)
         }, ondimis = {
             call_dialog_permise = false
         })
@@ -741,7 +881,8 @@ fun MarkerIcon(
 
 @Composable
 fun dialogo_lugar_tienda(
-    viewModelFiltros: viewModel_filtado_tiendas,
+
+    time: Long,
     dataclass_map: dataclass_map,
     cerra_dialog: () -> Unit,
     limpiar: () -> Unit,
@@ -756,7 +897,7 @@ fun dialogo_lugar_tienda(
     move_izquierda: () -> Unit,
     move_derecha: () -> Unit
 ) {
-    val tick by viewModelFiltros.tick.collectAsState()
+    val tick = time
 
     var estadoColor by remember { mutableStateOf(Color.Red) }
     Log.d("llamoasalafun", "si")
@@ -1129,7 +1270,7 @@ fun dialogo_lugar_tienda(
                                     cerrado = dataclass_map.horario_tienda.cerrado,
                                     motivo = dataclass_map.horario_tienda.motivo,
                                     pagado = true,
-                                    max_line = 1,tick
+                                    max_line = 1, tick
                                 ) { color ->
                                     estadoColor = color
                                 }
@@ -1233,7 +1374,7 @@ fun dialogo_lugar_tienda(
                         .align(Alignment.BottomCenter)
                 ) {
                     items(lista_redes_tiendas.filter { it.enable }) { i ->
-                        Log.d("lsitaeclicalda",lista_redes_tiendas.toString())
+                        Log.d("lsitaeclicalda", lista_redes_tiendas.toString())
                         Box(
                             modifier = Modifier
                                 .size(35.dp)

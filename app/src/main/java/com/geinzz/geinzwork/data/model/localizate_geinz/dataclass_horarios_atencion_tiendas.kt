@@ -51,8 +51,24 @@ data class modelo_tienda(
     val pagado: Boolean=false,
     val metodo_contacto_tienda:metodo_contacto_tienda= metodo_contacto_tienda(),
     val horario_atencion: HorarioAtencion = HorarioAtencion(), // 🔹 Aquí se agrega el horario
-
+    val metodos_pago_tienda:modelo_pagos_tienda =modelo_pagos_tienda()
 )
+@Parcelize
+data class modelo_pagos_tienda(
+    val visa_mastercard: modelo_metodo_individual = modelo_metodo_individual(),
+    val agora: modelo_metodo_individual = modelo_metodo_individual(),
+    val efectivo: modelo_metodo_individual = modelo_metodo_individual(),
+    val plin: modelo_metodo_individual = modelo_metodo_individual(),
+    val yape: modelo_metodo_individual = modelo_metodo_individual()
+): Parcelable
+
+@Parcelize
+data class modelo_metodo_individual(
+    val numero: String="",
+    val qr:String="",
+    val enable: Boolean=false
+): Parcelable
+
 @Parcelize
 data class metodo_contacto_tienda(
     val whatsapp: contacto_numero = contacto_numero(),

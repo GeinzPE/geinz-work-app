@@ -402,6 +402,14 @@ fun carta_servicio_tramites(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
+            loading = {
+                Image(
+                    painter = painterResource(R.drawable.cargando_img_categorias),
+                    contentDescription = "Cargando...",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            },
             error = {
                 Image(
                     painter = painterResource(R.drawable.cargando_img_categorias),

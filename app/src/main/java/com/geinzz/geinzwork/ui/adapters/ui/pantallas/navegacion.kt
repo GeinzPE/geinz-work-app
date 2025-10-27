@@ -223,7 +223,8 @@ fun nativationWrapper(
                                 )
                             )
                         },
-                        clikear_cartas = { categoria, nombre, localidad ->
+                        clikear_cartas = { categoria, localidad, nombre_user ->
+                            Log.d("categoriass","$categoria $nombre_user $localidad")
                             if (categoria.equals("turismo")) {
 //                                Toast.makeText(
 //                                    context,
@@ -236,8 +237,8 @@ fun nativationWrapper(
                             navController.navigate(
                                 screen_filtrado(
                                     categoria,
-                                    nombre,
                                     localidad,
+                                    nombre_user,
                                 )
                             )
                             }
@@ -345,6 +346,16 @@ fun nativationWrapper(
                         }
                     )
                 }
+                composable<lugares_turisticos> { navback ->
+                    val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
+                    pantalla_lugares_turisticos(
+                        localidad_selecionada = datos_lugares_turisticos.localidad,
+                        viewmodel_lugares_turisticos = viewModelLugares,
+                    ) { tipo ->
+
+                        navController.navigate(map_perzonalizado(tipo, "barranca"))
+                    }
+                }
 
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
@@ -383,16 +394,7 @@ fun nativationWrapper(
                     )
                 }
 
-                composable<lugares_turisticos> { navback ->
-                    val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
-                    pantalla_lugares_turisticos(
-                        datos_lugares_turisticos.localidad,
-                        viewModelLugares,
-                        viewModelCordenadas
-                    ) { tipo ->
-                        navController.navigate(map_perzonalizado(tipo, ""))
-                    }
-                }
+
 
                 composable<crear_cuenta_geinz> { navback ->
                     val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()

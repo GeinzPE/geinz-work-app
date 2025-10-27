@@ -3,19 +3,26 @@ package com.geinzz.geinzwork.viewModels
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.firebase.geofire.GeoFireUtils
 import com.firebase.geofire.GeoLocation
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas.carga_tiendas
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.collections.emptyList
 
-class viewModel_lugares_turisticos : ViewModel() {
+class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandle) : ViewModel() {
     private val repo_lugares = repo_lugares_turisticos()
 
 //    private val categorias_filtrado = MutableLiveData<List<String>>()
@@ -45,14 +52,43 @@ class viewModel_lugares_turisticos : ViewModel() {
         MutableStateFlow<carga_lugares_turisticos>(carga_lugares_turisticos.loading)
     val stata_lugares_turisticos: StateFlow<carga_lugares_turisticos> = _stata_lugares_turisticos
 
-    fun llenarlista_completa(lista: List<lugares_cercanos>) {
-        Log.d("lista_encontrada", lista.size.toString())
-        _lista_obtenida.value = lista
-    }
+    private val lista_completa_lugares_turisticos =
+        MutableStateFlow<List<lugares_turisticos>>(emptyList())
+
+    val _lista_completa_lugares_turisticos: StateFlow<List<lugares_turisticos>> =
+        lista_completa_lugares_turisticos
+    private val lista_completa_categorias_fitlrado =
+        MutableStateFlow<List<String>>(emptyList())
 
     private var lista_general_completa = MutableStateFlow<List<lugares_cercanos>>(emptyList())
-    val _lista_general_completa: StateFlow<List<lugares_cercanos>> =lista_general_completa
+    val _lista_general_completa: StateFlow<List<lugares_cercanos>> = lista_general_completa
     private var lista_categoiras_encontrada = MutableStateFlow<List<String>>(emptyList())
+
+    private var _lista_filtrada_turistica = MutableStateFlow<List<lugares_cercanos>>(emptyList())
+    var lista_filtrada_turistica: StateFlow<List<lugares_cercanos>> = _lista_filtrada_turistica
+
+    private val _listaTiendasGuardadasFlow = MutableSharedFlow<List<lugares_cercanos>>(replay = 1)
+    val listaTiendasGuardadas = _listaTiendasGuardadasFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
+        )
+
+    init {
+        viewModelScope.launch {
+            _state_carga_tiendas_cercanas.collect { estado ->
+                if (estado is carga_tienda_cercanos.succes) {
+                    val tiendasPagadas = estado.lista_lugares
+                    Log.d("tiendasPagadas", "${tiendasPagadas.size}")
+                    _listaTiendasGuardadasFlow.emit(tiendasPagadas)
+                }
+            }
+        }
+    }
+
+
+
 
 
     fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
@@ -67,6 +103,7 @@ class viewModel_lugares_turisticos : ViewModel() {
                 ) { it, lista_categoria ->
                     lista_general_completa.value = it
                     lista_categoiras_encontrada.value = lista_categoria
+                    _lista_filtrada_turistica.value=it
                 }
             } catch (e: Exception) {
 //                _state_carga_tiendas_cercanas.value =
@@ -74,6 +111,7 @@ class viewModel_lugares_turisticos : ViewModel() {
             }
         }
     }
+
 
 
     fun limpiar_tiendas_cercanas() {
@@ -112,11 +150,17 @@ class viewModel_lugares_turisticos : ViewModel() {
                     distanciaKm <= radioKm.toDouble()
                 }
 
-                Log.d("filtrar_por_subcategoria", "✅ Resultados finales: ${listaFiltradaFinal.size}")
+
+
+                Log.d(
+                    "filtrar_por_subcategoria",
+                    "✅ Resultados finales: ${listaFiltradaFinal.size}"
+                )
 
                 if (listaFiltradaFinal.isNotEmpty()) {
                     _state_carga_tiendas_cercanas.value =
                         carga_tienda_cercanos.succes(listaFiltradaFinal, lista_subcategorias)
+                    _lista_filtrada_turistica.value=listaFiltradaFinal
                 } else {
                     _state_carga_tiendas_cercanas.value =
                         carga_tienda_cercanos.empty("No se encontraron negocios cerca con esos filtros")
@@ -187,10 +231,10 @@ class viewModel_lugares_turisticos : ViewModel() {
                         }
                     }
                     carga_tienda_cercanos.succes(result, lista_base_categorias)
-                }else{
+                } else {
                     carga_tienda_cercanos.empty("No se encontraron negocios cerca")
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
 
             }
         }
@@ -201,12 +245,15 @@ class viewModel_lugares_turisticos : ViewModel() {
     fun lugares_turisticos(localidad: String) {
         viewModelScope.launch {
             _stata_lugares_turisticos.value = carga_lugares_turisticos.loading
+            delay(4000)
             try {
                 val lugares_turisticos = repo_lugares.obtener_lugares_turisticos(localidad)
                 val categoria_filtrado = repo_lugares.obtener_filtrado_lugares()
                 if (lugares_turisticos.isNotEmpty() && categoria_filtrado.isNotEmpty()) {
                     _stata_lugares_turisticos.value =
                         carga_lugares_turisticos.succes(categoria_filtrado, lugares_turisticos)
+                    lista_completa_lugares_turisticos.value = lugares_turisticos
+                    lista_completa_categorias_fitlrado.value = categoria_filtrado
                 } else {
                     _stata_lugares_turisticos.value =
                         carga_lugares_turisticos.empty("No se encontraron lugares en $localidad")
@@ -214,6 +261,39 @@ class viewModel_lugares_turisticos : ViewModel() {
             } catch (e: Exception) {
                 _stata_lugares_turisticos.value =
                     carga_lugares_turisticos.error("Error al cargar los lugares de $localidad")
+            }
+        }
+    }
+
+    fun filtrar_lugares_turisticos(categoria: String) {
+        viewModelScope.launch {
+            _stata_lugares_turisticos.value = carga_lugares_turisticos.loading
+            try {
+                val lista_original = lista_completa_lugares_turisticos.value
+                val lista_filtrada = if (categoria == "Todos") {
+                    lista_original
+                } else {
+                    lista_original.filter { lugar ->
+                        lugar.subcategoria_filtrado.any {
+                            it.equals(categoria, ignoreCase = true)
+                        }
+                    }
+                }
+
+                if (lista_filtrada.isNotEmpty()) {
+                    _stata_lugares_turisticos.value =
+                        carga_lugares_turisticos.succes(
+                            lista_completa_categorias_fitlrado.value,
+                            lista_filtrada
+                        )
+                } else {
+                    _stata_lugares_turisticos.value =
+                        carga_lugares_turisticos.empty("No hay lugares disponibles en la categoría $categoria")
+                }
+
+            } catch (e: Exception) {
+                _stata_lugares_turisticos.value =
+                    carga_lugares_turisticos.error("Error al filtrar los lugares de $categoria")
             }
         }
     }

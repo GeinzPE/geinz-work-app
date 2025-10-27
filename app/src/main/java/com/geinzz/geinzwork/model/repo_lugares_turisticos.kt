@@ -8,7 +8,10 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -115,7 +118,6 @@ class repo_lugares_turisticos {
     }
 
 
-
     fun obtenerTiendasCercanas(
         lat: Double,
         lon: Double,
@@ -127,7 +129,7 @@ class repo_lugares_turisticos {
         val center = GeoLocation(lat, lon)
         val radiusInM = radioKm * 1000
         val bounds = GeoFireUtils.getGeoHashQueryBounds(center, radiusInM)
-        val tasks = mutableListOf<com.google.android.gms.tasks.Task<*>>()
+        val tasks = mutableListOf<Task<*>>()
         val tiendas = mutableListOf<lugares_cercanos>()
         val categoriasSet = mutableSetOf<String>()
         Log.d(
@@ -169,6 +171,10 @@ class repo_lugares_turisticos {
                     val pagado = doc.get("pagado") as? Boolean ?: false
                     val latitud = ubicacion["latitud"] as? Number ?: 0
                     val longitud = ubicacion["longitud"] as? Number ?: 0
+                    val direccion = ubicacion["dirección"] as? String?:""
+                    val referencia = ubicacion["referencia"] as? String?:""
+                    val descripcion = doc["descripcion"] as? String?:""
+
                     val categoria_tienda = doc.getString("categoria_tienda") ?: ""
                     val horario_dia = doc.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
                     if (categoria_tienda.isNotEmpty()) {
@@ -196,6 +202,8 @@ class repo_lugares_turisticos {
                     val metodos_contacto =
                         doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
                     val contacto_obs = metodos_contacto.toMetodoContacto()
+                    val metodo_pago = doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+                    val metodo_pago_separado = metodo_pago.to_metodo_pago()
                     var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
                     val estaAbierto =
                         if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
@@ -218,22 +226,25 @@ class repo_lugares_turisticos {
                     if (distancia <= radiusInM && pagado) {
                         Log.d("geoquery", "✅ ${doc.id} dentro del radio (${distancia.toInt()} m)")
                         // ✅ Filtrar por categoría seleccionada
-                            tiendas.add(
-                                lugares_cercanos(
-                                    nombre_tienda = nombre,
-                                    logo_tienda = logo,
-                                    categoria = categoria_tienda,
-                                    lista_subcategoiras = tag,
-                                    id_tienda = idTienda,
-                                    pagado = pagado,
-                                    horario_dia = datos_horario_actual,
-                                    latitud = latitud.toDouble(),
-                                    longitud = longitud.toDouble(),
-                                    esta_abierto = estaAbierto,
-                                    contacto_tienda = contacto_obs,
-                                    has_tienda = geohash
-                                )
+                        tiendas.add(
+                            lugares_cercanos(
+                                nombre_tienda = nombre,
+                                logo_tienda = logo,
+                                categoria = categoria_tienda,
+                                lista_subcategoiras = tag,
+                                id_tienda = idTienda,
+                                pagado = pagado,
+                                horario_dia = datos_horario_actual,
+                                latitud = latitud.toDouble(),
+                                longitud = longitud.toDouble(),
+                                esta_abierto = estaAbierto,
+                                contacto_tienda = contacto_obs,
+                                has_tienda = geohash,
+                                direccion = direccion, referencia = referencia,
+                                descripcion = descripcion,
+                                metodos_pago_tienda = metodo_pago_separado,
                             )
+                        )
 
                     } else {
                         Log.d("geoquery", "❌ ${doc.id} fuera del radio (${distancia.toInt()} m)")
@@ -245,14 +256,12 @@ class repo_lugares_turisticos {
             })
         }
 
-        com.google.android.gms.tasks.Tasks.whenAllComplete(tasks)
+        Tasks.whenAllComplete(tasks)
             .addOnSuccessListener {
                 Log.d("geoquery", "🎯 Total tiendas encontradas: ${tiendas.size}")
                 callback(tiendas, categoriasSet.toList())
             }
     }
-
-
 
 
 }

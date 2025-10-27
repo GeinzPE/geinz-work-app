@@ -679,8 +679,6 @@ fun ui_pantalla_busqueda(
                     spacer_vertical(5.dp)
                 }
             }
-
-
             itemsIndexed(items) { index, item ->
                 ramdoBox(
                     aler_dialog_contacto,
@@ -886,12 +884,13 @@ fun ui_pantalla_busqueda(
             }
         }
 
-        if (bottom_sheet_turismo) {
-            bottom_sheet_lugares_turisticos(
-                datos_lugares_turisticos,
-                bottom_sheet_turismo,
-                { bottom_sheet_turismo = false })
-        }
+//        if (bottom_sheet_turismo) {
+//            bottom_sheet_lugares_turisticos(
+//                viewmodel_lugares_turisticos
+//                datos_lugares_turisticos,
+//                bottom_sheet_turismo,
+//                { bottom_sheet_turismo = false },{})
+//        }
 
         if (mostrar_dialog_cambiar_radio) {
             dialogo_cabiar_rango_busqueda(

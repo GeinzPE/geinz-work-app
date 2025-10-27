@@ -11,6 +11,7 @@ import com.geinzz.geinzwork.aloglia.AlgoliaHelper
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +52,27 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     /** ---------- FALG YA CARGADO DESDE ALGOLIA ---------- */
     private var algoliaCargado = false
+
+    init {
+        logSizeListasPeriodicamente() // se ejecuta automáticamente al crear el ViewModel
+    }
+
+
+    fun logSizeListasPeriodicamente() {
+        viewModelScope.launch {
+            while (true) {
+                Log.d("SizeLists","lista_completa_busqueda: ${lista_completa_busqueda.size}")
+                Log.d("SizeLists","listaOriginalCompleta: ${listaOriginalCompleta.size}")
+                Log.d("SizeLists", "lista_filtrada_geohasing: ${lista_filtrada_geohasing.value.size}")
+                Log.d("SizeLists", "lista_filtrada_subcategoria: ${lista_filtrada_subcategoria.value.size}")
+                Log.d("SizeLists", "lista_original_algolia1: ${lista_original_algolia1.value.size}")
+                Log.d("SizeLists", "_listaEncontrada: ${_listaEncontrada.value.size}")
+
+                delay(1000L) // 1 segundo
+            }
+        }
+    }
+
 
 
 
@@ -151,13 +173,21 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     // -----------------------------
                     // 🔹 2️⃣ Sin categoría/subcategoría → Buscar directamente en Algolia
                     // -----------------------------
+
+                    if(search.length<3) {
+                        clearResults()
+                        _state.value = ListItemsResult.Empty("")
+                        return@launch
+                    }
                     Log.d("asd123", "Buscando directamente en Algolia")
                     val (listaFiltrada, categorias) = algoliaHelper.buscar_en_algolia(
                         localidad, categoria, subcategoria, search, seleccionado
                     )
 
-                _listaEncontrada.value = listaFiltrada
+                    _listaEncontrada.value = listaFiltrada
                     listaOriginalCompleta = listaFiltrada
+
+
                     _state.value = if (listaFiltrada.isEmpty() && categorias.isEmpty()) {
                         ListItemsResult.Empty("No se encontraron resultados algolia")
                     } else {
@@ -364,6 +394,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         Log.d("llamaos", "cat_original_sub")
         lista_original_algolia1.value = emptyList()
         listaOriginalCompleta = emptyList()
+        _listaEncontrada.value=emptyList()
+        lista_filtrada_subcategoria.value = emptyList()
+
     }
 
     fun restaurarListaOriginal(categoria: String, subcategoria: String) {

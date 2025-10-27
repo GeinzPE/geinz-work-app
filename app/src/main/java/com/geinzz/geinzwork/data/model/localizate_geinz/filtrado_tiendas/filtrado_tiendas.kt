@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas
 import android.os.Parcelable
 import androidx.compose.ui.graphics.Color
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import kotlinx.android.parcel.Parcelize
 
 
@@ -51,9 +52,11 @@ data class tiendas_por_categoria(
     val pagado: Boolean,
     val horario_dia: horario_tienda = horario_tienda(),
     val estaAbierto: Boolean = false,
-    var contacto_tienda: metodo_contacto_tienda
+    var contacto_tienda: metodo_contacto_tienda,
+    val metodos_pago_tienda: modelo_pagos_tienda
 ) : Parcelable
 
+@Parcelize
 data class lugares_cercanos(
     val nombre_tienda: String = "",
     val logo_tienda: String = "",
@@ -66,8 +69,12 @@ data class lugares_cercanos(
     val longitud: Double = 0.0,
     val esta_abierto: Boolean = false,
     var contacto_tienda: metodo_contacto_tienda,
-    var has_tienda:String
-)
+    var has_tienda:String,
+    val direccion: String ,
+    val referencia: String ,
+    val descripcion: String ,
+    val metodos_pago_tienda: modelo_pagos_tienda
+): Parcelable
 
 data class tiendas_cecanas_km(
     val img_tienda: String="",
