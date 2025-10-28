@@ -179,9 +179,9 @@ fun PantallaExplorarTiendas(
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalItemSpacing = 10.dp
+                    contentPadding = PaddingValues(7.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    verticalItemSpacing = 7.dp
                 ) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Column {
@@ -441,14 +441,14 @@ fun cartas_categorias(
     clik_img: (categoria: String, localidad: String, nombre: String) -> Unit
 ) {
     val categoriaKey = item.categoria?.let { normalizarTexto(it) } ?: return
-    val heightOptions = listOf(300.dp, 350.dp)
+    val heightOptions = listOf(300.dp, 320.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val gradient = remember {
         Brush.verticalGradient(
             colors  = listOf(
-                 Color.Transparent,
+                Color.Transparent,
                 Color.Black.copy(alpha = 0.55f),
-                 Color.Black.copy(alpha = 1f)
+                Color.Black.copy(alpha = 1f)
             )
         )
     }
@@ -457,7 +457,7 @@ fun cartas_categorias(
         modifier = Modifier
             .fillMaxWidth()
             .height(boxHeight)
-            .padding(8.dp),
+            .padding(5.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
     ) {
         Column(

@@ -165,11 +165,11 @@ fun pantalla_lugares_turisticos(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 10.dp)
+
     ) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalItemSpacing = 10.dp
         ) {

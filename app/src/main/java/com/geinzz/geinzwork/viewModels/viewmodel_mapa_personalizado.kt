@@ -12,9 +12,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class viewmodel_mapa_personalizado: ViewModel() {
+class viewmodel_mapa_personalizado : ViewModel() {
     private val repo_principal_geinz = repo_principal_geinz_work()
     private val repo_lugares = repo_lugares_turisticos()
+
+    private val _estadoLocation = MutableStateFlow(false) // mutable interno
+    val estadoLocation: StateFlow<Boolean> = _estadoLocation   // público inmutable
 
     private val lugares_turisiticos = MutableLiveData<List<lugares_turisticos>>()
     val _lugares_turisticos: LiveData<List<lugares_turisticos>> get() = lugares_turisiticos
@@ -24,10 +27,15 @@ class viewmodel_mapa_personalizado: ViewModel() {
     val listaFiltrada: StateFlow<List<lugares_turisticos>> = _listaFiltrada
 
 
+    fun actualziar_estado (valor: Boolean){
+        _estadoLocation.value=valor
+    }
+
     fun lugares_turisticos(localidad: String) {
         viewModelScope.launch {
             try {
-                lugares_turisiticos.value = repo_principal_geinz.obtener_lugares_turisticos(localidad)
+                lugares_turisiticos.value =
+                    repo_principal_geinz.obtener_lugares_turisticos(localidad)
             } catch (e: Exception) {
                 lugares_turisiticos.value = emptyList()
             }

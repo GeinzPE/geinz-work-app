@@ -73,20 +73,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.EstadoFiltrosUi
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
@@ -111,6 +113,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.mostrar_iconos_pagos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
@@ -806,7 +809,7 @@ fun item_tiendas(
             item_tiendas.latitud, item_tiendas.longitud
         )
     }
-    val targetHeight = if (!detalles_tienda) 90.dp else 110.dp
+    val targetHeight = if (!detalles_tienda && item_tiendas.metodos_pago_tienda!=modelo_pagos_tienda()) 90.dp else 110.dp
 
     val altoImgAnimado by animateDpAsState(
         targetValue = targetHeight
@@ -874,83 +877,15 @@ fun item_tiendas(
                             .clip(RoundedCornerShape(15))
                     )
                     spacer_vertical(5.dp)
-                    AnimatedVisibility(!detalles_tienda) {
+                    AnimatedVisibility(!detalles_tienda && item_tiendas.metodos_pago_tienda!=modelo_pagos_tienda()) {
                         Box(
                             modifier = Modifier
                                 .width(80.dp)
                                 .height(25.dp),
                             contentAlignment = Alignment.Center
                         ){
-                            LazyRow(    state = listState,horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.width(80.dp)) {
-                                item {
-                                    Image(
-                                        painter = painterResource(R.drawable.yape_logo),
-                                        contentDescription = "",
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                }
-                                item {
-                                    Image(
-                                        painter = painterResource(R.drawable.logo_plin),
-                                        contentDescription = "",
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                                item {
-                                    Image(
-                                        painter = painterResource(R.drawable.visa_logo),
-                                        contentDescription = "",
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                }
-                                item {
-                                    Image(
-                                        painter = painterResource(R.drawable.master_car_logo),
-                                        contentDescription = "",
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                }
 
-                                item {
-                                    Image(
-                                        painter = painterResource(R.drawable.logo_agora),
-                                        contentDescription = "",
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                }
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF4CAF50)) // Verde tipo "dinero"
-                                            .padding(6.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.AttachMoney,
-                                            contentDescription = "Efectivo",
-                                            tint = Color.White, // Ícono blanco
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            }
+                            campos_de_pago(listState,item_tiendas.metodos_pago_tienda)
                             // 👈 izquierda
                             Box(
                                 modifier = Modifier
@@ -972,7 +907,7 @@ fun item_tiendas(
                                     .zIndex(1f)
                                     .alpha(alphaRight)
                                     .background( Brush.horizontalGradient(colors = end_subcategoria_shadow)
-                            ))
+                                    ))
                         }
                     }
 
@@ -1183,4 +1118,47 @@ fun Btn_Expandir_card(expandir_carta: (Boolean) -> Unit) {
             colorFilter = ColorFilter.tint(Color.White)
         )
     }
+}
+
+@Composable
+fun campos_de_pago(listState: LazyListState, metodosPagoTienda: modelo_pagos_tienda,width_complete: Boolean=false,modifier: Modifier= Modifier) {
+    LazyRow(state = listState,horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = modifier.then(
+        if (width_complete) Modifier.fillMaxWidth()
+        else Modifier.width(80.dp)
+    )) {
+        var lista_metodos_pagos= mostrar_iconos_pagos(metodosPagoTienda)
+        items(lista_metodos_pagos,key = { it.nombre_metodo }){i->
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(i.img)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier.size(22.dp).clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+
+        }
+        item{
+            if(metodosPagoTienda.efectivo.enable){
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF4CAF50)) // Verde tipo "dinero"
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AttachMoney,
+                        contentDescription = "Efectivo",
+                        tint = Color.White, // Ícono blanco
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    }
+
+
 }

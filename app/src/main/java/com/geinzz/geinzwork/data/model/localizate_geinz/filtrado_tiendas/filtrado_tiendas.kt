@@ -53,7 +53,7 @@ data class tiendas_por_categoria(
     val horario_dia: horario_tienda = horario_tienda(),
     val estaAbierto: Boolean = false,
     var contacto_tienda: metodo_contacto_tienda,
-    val metodos_pago_tienda: modelo_pagos_tienda
+    val metodos_pago_tienda: modelo_pagos_tienda= modelo_pagos_tienda()
 ) : Parcelable
 
 @Parcelize
@@ -108,4 +108,3 @@ data class obtener_tiendas_lat_log_id(
     val referencia: String,
     val nombre_tienda: String
 )
-

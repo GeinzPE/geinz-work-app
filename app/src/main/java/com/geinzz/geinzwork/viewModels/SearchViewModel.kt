@@ -52,26 +52,26 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     /** ---------- FALG YA CARGADO DESDE ALGOLIA ---------- */
     private var algoliaCargado = false
+//
+//    init {
+//        logSizeListasPeriodicamente() // se ejecuta automáticamente al crear el ViewModel
+//    }
 
-    init {
-        logSizeListasPeriodicamente() // se ejecuta automáticamente al crear el ViewModel
-    }
-
-
-    fun logSizeListasPeriodicamente() {
-        viewModelScope.launch {
-            while (true) {
-                Log.d("SizeLists","lista_completa_busqueda: ${lista_completa_busqueda.size}")
-                Log.d("SizeLists","listaOriginalCompleta: ${listaOriginalCompleta.size}")
-                Log.d("SizeLists", "lista_filtrada_geohasing: ${lista_filtrada_geohasing.value.size}")
-                Log.d("SizeLists", "lista_filtrada_subcategoria: ${lista_filtrada_subcategoria.value.size}")
-                Log.d("SizeLists", "lista_original_algolia1: ${lista_original_algolia1.value.size}")
-                Log.d("SizeLists", "_listaEncontrada: ${_listaEncontrada.value.size}")
-
-                delay(1000L) // 1 segundo
-            }
-        }
-    }
+//
+//    fun logSizeListasPeriodicamente() {
+//        viewModelScope.launch {
+//            while (true) {
+//                Log.d("SizeLists","lista_completa_busqueda: ${lista_completa_busqueda.size}")
+//                Log.d("SizeLists","listaOriginalCompleta: ${listaOriginalCompleta.size}")
+//                Log.d("SizeLists", "lista_filtrada_geohasing: ${lista_filtrada_geohasing.value.size}")
+//                Log.d("SizeLists", "lista_filtrada_subcategoria: ${lista_filtrada_subcategoria.value.size}")
+//                Log.d("SizeLists", "lista_original_algolia1: ${lista_original_algolia1.value.size}")
+//                Log.d("SizeLists", "_listaEncontrada: ${_listaEncontrada.value.size}")
+//
+//                delay(1000L) // 1 segundo
+//            }
+//        }
+//    }
 
 
 
@@ -103,6 +103,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     if (geohashEnable && !hashUser.isNullOrBlank()) {
 
                         if (!subcategoria.isNullOrBlank()) {
+                            Log.d("lista",lista_filtrada_geohasing.value.size.toString())
                             Log.d("asd123", "Geohash activado - filtrando por subcategoría")
                             val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
                                 lista_filtrada_geohasing.value,
@@ -111,7 +112,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
                             Log.d("res_geohasing", listaFiltrada.size.toString())
 
-                          _listaEncontrada.value = listaFiltrada
+                            _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
                                 ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km")
                             } else {
@@ -126,7 +127,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             )
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
 
-                           _listaEncontrada.value = listaFiltrada
+                            _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
                                 ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km")
                             } else {
@@ -146,7 +147,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             )
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
 
-                         _listaEncontrada.value = listaFiltrada
+                            _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
                                 ListItemsResult.Empty("No se encontraron resultados en la localidad")
                             } else {
@@ -160,7 +161,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             )
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
 
-                        _listaEncontrada.value = listaFiltrada
+                            _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
                                 ListItemsResult.Empty("No se encontraron resultados en la localidad")
                             } else {
@@ -272,7 +273,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                 _state.value = if (listaFiltrada.isEmpty()) {
                     if(cercaDeTiEnable){
-                    ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km ")
+                        ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km ")
                     }else{
                         ListItemsResult.Empty("No se encontraron resultados ")
                     }
@@ -360,6 +361,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
 
                 _listaEncontrada.value = listaFiltrable
+                lista_filtrada_geohasing.value=listaFiltrable
 
                 val categorias = listaFiltrable.map { it.categoria }.distinct()
                 _state.value = if (listaFiltrable.isEmpty()) {

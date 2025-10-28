@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -31,7 +32,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,14 +45,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -60,7 +58,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,7 +76,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -87,12 +86,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.error
-import coil3.request.placeholder
-import com.algolia.search.dsl.ranking.DSLCustomRanking
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
@@ -109,27 +105,32 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.campos_de_pago
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isLocationEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarDistanciaFormateada
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
@@ -140,8 +141,8 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.nio.file.WatchEvent
 
 @Composable
 fun pantalla_mapa_perzonalizado(
@@ -182,6 +183,7 @@ fun MyGoogle_maps(
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
         emptyList()
     )
+    val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
 
     val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos
         .listaTiendasGuardadas
@@ -257,6 +259,10 @@ fun MyGoogle_maps(
     var numero_llamada by remember { mutableStateOf("") }
 
 
+    var isLocationEnabled by remember { mutableStateOf(false) }
+
+
+
     LaunchedEffect(id_lugar_tienda_select) {
         viewModel_filtrado_tiendas.obtener_campos_tiendas_por_id(
             localidad_tienda_lugar_Select,
@@ -267,6 +273,44 @@ fun MyGoogle_maps(
         if (datosTienda.isNotEmpty()) {
             dataclass_tienda_seleccionada = datosTienda.first()
         }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            isLocationEnabled = isLocationEnabled(context)
+            delay(5000L)
+        }
+    }
+    LaunchedEffect(Unit) {
+
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            5000L
+        ).build()
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val location = locationResult.lastLocation ?: return
+                val latLng = LatLng(location.latitude, location.longitude)
+                lat_user = location.latitude
+                log_user = location.longitude
+//                Log.d("ubiaion_teimpo_real", "$latLng  ")
+
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+
+    }
+
+    if (isLocationEnabled) {
+        viewmodelMapa.actualziar_estado(true)
+
+    } else {
+        viewmodelMapa.actualziar_estado(false)
     }
 
     if (show_bottom_sheet_datos_tienda_lugares) {
@@ -334,18 +378,20 @@ fun MyGoogle_maps(
                                 icon = MarkerIcon(context, seleccionadoId == tienda.id_tienda),
                                 onClick = {
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -369,18 +415,20 @@ fun MyGoogle_maps(
                                 icon = MarkerIcon(context, seleccionadoId == tienda.id_tienda),
                                 onClick = {
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -472,18 +520,20 @@ fun MyGoogle_maps(
                                     val tienda = lista_tiendas_cecanas_turismo[siguiente]
                                     Log.d("currentIndex", "$siguiente")
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -510,18 +560,20 @@ fun MyGoogle_maps(
                                     val tienda = lista_filtrada_tiendas[siguiente]
                                     Log.d("currentIndex", "$siguiente")
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -579,6 +631,8 @@ fun MyGoogle_maps(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             dialogo_lugar_tienda(
+                viewmodelMapa,
+                lat_user, log_user,
                 time = tick,
                 dataclass_map = lister_marker,
                 cerra_dialog = {
@@ -679,18 +733,20 @@ fun MyGoogle_maps(
                                     val tienda = lista_tiendas_cecanas_turismo[anterior]
 
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -707,6 +763,7 @@ fun MyGoogle_maps(
                                 }
                             }
                         }
+
                         "tiendas" -> {
 
                             if (lista_filtrada_tiendas.isNotEmpty()) {
@@ -717,18 +774,20 @@ fun MyGoogle_maps(
                                     val tienda = lista_filtrada_tiendas[anterior]
 
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -745,32 +804,35 @@ fun MyGoogle_maps(
                                 }
                             }
                         }
-                        else->{}
+
+                        else -> {}
                     }
 
                 },
-
                 move_izquierda = {
                     when (tipo) {
                         "turismo" -> {
                             if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
                                 if (currentIndex_turismo != -1) {
                                     // Mover al siguiente elemento (hacia la izquierda)
-                                    val siguiente = (currentIndex_turismo + 1) % lista_tiendas_cecanas_turismo.size
+                                    val siguiente =
+                                        (currentIndex_turismo + 1) % lista_tiendas_cecanas_turismo.size
                                     val tienda = lista_tiendas_cecanas_turismo[siguiente]
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -787,6 +849,7 @@ fun MyGoogle_maps(
                                 }
                             }
                         }
+
                         "tiendas" -> {
                             if (lista_filtrada_tiendas.isNotEmpty()) {
                                 if (currentIndex != -1) {
@@ -795,18 +858,20 @@ fun MyGoogle_maps(
                                     val tienda = lista_filtrada_tiendas[siguiente]
 
                                     lister_marker = dataclass_map(
-                                        tienda.logo_tienda,
-                                        tienda.nombre_tienda,
-                                        tienda.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        tienda.latitud,
-                                        tienda.longitud,
-                                        tienda.id_tienda,
-                                        "",
-                                        tienda.direccion,
-                                        tienda.referencia,
-                                        tienda.horario_dia, tienda.contacto_tienda
+                                        img = tienda.logo_tienda,
+                                        nombre = tienda.nombre_tienda,
+                                        tag = tienda.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = tienda.latitud,
+                                        longitud = tienda.longitud,
+                                        id = tienda.id_tienda,
+                                        categoria = "",
+                                        direccion = tienda.direccion,
+                                        referencia = tienda.referencia,
+                                        horario_tienda = tienda.horario_dia,
+                                        contacto_tienda = tienda.contacto_tienda,
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -823,7 +888,8 @@ fun MyGoogle_maps(
                                 }
                             }
                         }
-                        else->{}
+
+                        else -> {}
                     }
 
 
@@ -879,9 +945,12 @@ fun MarkerIcon(
     return bitmapDescriptorFromDrawable(context, drawableId, size, size)
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun dialogo_lugar_tienda(
-
+    viewmodelMapa: viewmodel_mapa_personalizado,
+    lat_user: Double,
+    log_user: Double,
     time: Long,
     dataclass_map: dataclass_map,
     cerra_dialog: () -> Unit,
@@ -897,21 +966,26 @@ fun dialogo_lugar_tienda(
     move_izquierda: () -> Unit,
     move_derecha: () -> Unit
 ) {
+
     val tick = time
-
     var estadoColor by remember { mutableStateOf(Color.Red) }
-    Log.d("llamoasalafun", "si")
-
-    Log.d("boxVisibleboxVisible", boxVisible.toString())
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
+    val distancia by remember(lat_user, log_user, dataclass_map.latitud, dataclass_map.longitud) {
+        derivedStateOf {
+            verificarDistanciaFormateada(
+                lat_user,
+                log_user,
+                dataclass_map.latitud,
+                dataclass_map.longitud
+            )
+        }
+    }
+    val estadoKM by viewmodelMapa.estadoLocation.collectAsState(initial = false)
+    LaunchedEffect(estadoKM) {
+        Log.d("activo_desctivo_km", estadoKM.toString())
+    }
 
-    val distancia = verificarDistanciaFormateada(
-        dataclass_map.my_latitud,
-        dataclass_map.my_longitud,
-        dataclass_map.latitud,
-        dataclass_map.longitud
-    )
 
     val listate = rememberLazyListState()
     val showLeftShadow by remember {
@@ -932,7 +1006,6 @@ fun dialogo_lugar_tienda(
         targetValue = if (showRightShadow) 1f else 0f,
         animationSpec = tween(400), label = "alphaRight"
     )
-
     LaunchedEffect(gpsActivo) {
         if (gpsActivo && (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0)) {
             actualizar()
@@ -1093,40 +1166,42 @@ fun dialogo_lugar_tienda(
                         },
                     contentScale = ContentScale.Crop
                 )
-                if (gpsActivo) {
+                this@Row.AnimatedVisibility(
+                    estadoKM,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .zIndex(1f)
+                        .padding(bottom = 8.dp)
+                ) {
                     Box(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .zIndex(1f)
-                            .padding(bottom = 10.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color.Black.copy(alpha = 0.85f))
                     ) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
 
-                        if (dataclass_map.my_latitud == 0.0 || dataclass_map.my_longitud == 0.0) {
-                        } else {
-                            Row(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-
-                                texto_generico_one_line(
-                                    "A $distancia",
-                                    MaterialTheme.typography.bodyMedium,
+                            texto_generico_one_line(
+                                "A $distancia",
+                                MaterialTheme.typography.bodyMedium,
+                            )
+                            spacer_horizonta(5.dp)
+                            if (!boxVisible) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .size(10.dp)
+                                        .clip(RoundedCornerShape(50))
+                                        .background(estadoColor)
                                 )
-                                spacer_horizonta(5.dp)
-                                if (!boxVisible) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .size(10.dp)
-                                            .clip(RoundedCornerShape(50))
-                                            .background(estadoColor)
-                                    )
-                                }
                             }
                         }
+
                     }
                 }
 
@@ -1258,10 +1333,18 @@ fun dialogo_lugar_tienda(
                                 .weight(1f)
                                 .padding(top = 5.dp)
                         ) {
-                            texto_generico_one_line(
-                                dataclass_map.nombre,
-                                MaterialTheme.typography.titleLarge
+                            Text(
+                                text = dataclass_map.nombre,
+                                fontFamily = baners_geinz_work,
+                                fontSize = 20.sp,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+
                             )
+//                            texto_generico_one_line(
+//                                dataclass_map.nombre,
+//                                MaterialTheme.typography.titleLarge
+//                            )
                             spacer_vertical(10.dp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 TiempoRestanteCierre(
@@ -1282,16 +1365,47 @@ fun dialogo_lugar_tienda(
                                 MaterialTheme.typography.bodyMedium
                             )
                             spacer_vertical(10.dp)
-                            texto_generico_one_line(
-                                dataclass_map.referencia,
-                                MaterialTheme.typography.bodyMedium
-                            )
+                            if (dataclass_map.metodos_pago_tienda != modelo_pagos_tienda()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(end = 30.dp)
+                                        .height(25.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    campos_de_pago(listate, dataclass_map.metodos_pago_tienda, true)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .width(20.dp)
+                                            .align(Alignment.CenterStart)
+                                            .zIndex(1f)
+                                            .alpha(alphaLeft)
+                                            .background(Brush.horizontalGradient(colors = shadow_left))
+                                    )
+
+                                    // 👉 derecha
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .width(20.dp)
+
+                                            .align(Alignment.CenterEnd)
+                                            .zIndex(1f)
+                                            .alpha(alphaRight)
+                                            .background(
+                                                Brush.horizontalGradient(colors = shadow_right)
+                                            )
+                                    )
+                                }
+                            }
                             spacer_vertical(10.dp)
                             tags_subcateogiras(
                                 dataclass_map.tag,
                                 brush_start = Brush.horizontalGradient(colors = shadow_left),
                                 brush_end = Brush.horizontalGradient(colors = shadow_right)
                             )
+                            Log.d("metos_pago", dataclass_map.metodos_pago_tienda.toString())
                         }
 
                         Box(

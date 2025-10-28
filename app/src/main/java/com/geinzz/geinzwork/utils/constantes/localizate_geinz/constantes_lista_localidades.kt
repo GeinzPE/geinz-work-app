@@ -4,8 +4,10 @@ import Item
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.util.Log
 import android.graphics.Canvas
@@ -79,6 +81,10 @@ import android.os.Looper
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.google.android.gms.common.api.ResolvableApiException
@@ -2020,13 +2026,13 @@ object constantes_lista_localidades {
         )
     }
 
-    fun  Map<String, Any>?.to_metodo_pago():modelo_pagos_tienda{
+    fun Map<String, Any>?.to_metodo_pago(): modelo_pagos_tienda {
         if (this == null) return modelo_pagos_tienda()
         fun getMetodo(key: String): modelo_metodo_individual {
             val metodo = this[key] as? Map<*, *> ?: return modelo_metodo_individual()
             return modelo_metodo_individual(
-                numero = metodo["numero"] as? String ?:"",
-                qr = metodo["qr"] as? String ?:"",
+                numero = metodo["numero"] as? String ?: "",
+                qr = metodo["qr"] as? String ?: "",
                 enable = metodo["enable"] as? Boolean ?: false,
             )
         }
@@ -2079,7 +2085,7 @@ object constantes_lista_localidades {
 
 
     fun geohashing(lat: Double, lon: Double): String {
-        Log.d("generar_geo","$lat $lon")
+        Log.d("generar_geo", "$lat $lon")
         return GeoFireUtils.getGeoHashForLocation(GeoLocation(lat, lon))
     }
 
@@ -2126,7 +2132,11 @@ object constantes_lista_localidades {
 
         return lista_base.filter { it.geohasing.startsWith(prefijo) }
     }
-    fun verificarGPS(context: Context, launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) {
+
+    fun verificarGPS(
+        context: Context,
+        launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
+    ) {
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY, 10000L
         ).build()
@@ -2147,6 +2157,7 @@ object constantes_lista_localidades {
                 }
             }
     }
+
     @SuppressLint("MissingPermission")
     fun obtenerUbicacionEnTiempoReal(
         context: Context,
@@ -2235,7 +2246,6 @@ object constantes_lista_localidades {
     }
 
 
-
     data class Zona(
         val nombre: String,
         val latMin: Double,
@@ -2302,9 +2312,60 @@ object constantes_lista_localidades {
     }
 
 
+    data class metodos_pago_tiendas(
+        val enable: Boolean,
+        val img: Int=0,
+        val nombre_metodo:String
+    )
+
+    fun mostrar_iconos_pagos(i: modelo_pagos_tienda): List<metodos_pago_tiendas> {
+        val lista = listOf(
+            metodos_pago_tiendas(i.yape.enable, R.drawable.yape_logo,"yape"),
+            metodos_pago_tiendas(i.plin.enable, R.drawable.logo_plin,"plin"),
+            metodos_pago_tiendas(i.agora.enable, R.drawable.logo_agora,"agora"),
+            metodos_pago_tiendas(i.visa_mastercard.enable, R.drawable.master_car_logo,"mastercard"),
+            metodos_pago_tiendas(i.visa_mastercard.enable, R.drawable.visa_logo,"visa"),
 
 
+            )
+        return lista
 
+    }
+
+//    @Composable
+//    fun rememberMyLocationVisibility(context: Context): State<Boolean> {
+//        val isLocationVisible = remember { mutableStateOf(false) }
+//
+//        // Verificar al inicio
+//        LaunchedEffect(Unit) {
+//            isLocationVisible.value = isLocationEnabled(context)
+//        }
+//
+//        // Detectar cambios (cuando el usuario activa/desactiva GPS)
+//        DisposableEffect(Unit) {
+//            val receiver = object : BroadcastReceiver() {
+//                override fun onReceive(ctx: Context?, intent: Intent?) {
+//                    if (intent?.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
+//                        isLocationVisible.value = isLocationEnabled(context)
+//                    }
+//                }
+//            }
+//
+//            val filter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+//            context.registerReceiver(receiver, filter)
+//
+//            onDispose { context.unregisterReceiver(receiver) }
+//        }
+//
+//        return isLocationVisible
+//    }
+
+    // Función auxiliar
+    fun isLocationEnabled(context: Context): Boolean {
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
 
 
 }

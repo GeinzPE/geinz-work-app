@@ -1,8 +1,13 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -50,6 +55,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 
 import androidx.compose.material3.SliderState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -80,6 +88,7 @@ import com.geinzz.geinzwork.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -108,6 +117,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.verificar_hora_abierta_ykm
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.calcularDistanciaKm
@@ -132,7 +142,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
-    viewmodel_lugares_turisticos:viewModel_lugares_turisticos,
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     datos: lugares_turisticos,
     visible: Boolean,
     onClose: () -> Unit,
@@ -140,7 +150,7 @@ fun bottom_sheet_lugares_turisticos(
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
-    val viewmodel_turismo= viewmodel_lugares_turisticos
+    val viewmodel_turismo = viewmodel_lugares_turisticos
     var id_tienda by remember { mutableStateOf("") }
     var localida_tienda by remember { mutableStateOf("") }
     var color_estado_tienda by remember { mutableStateOf(Color.Gray) }
@@ -265,7 +275,7 @@ fun bottom_sheet_lugares_turisticos(
                                 datos.longitud, rango
                             )
                             Log.d("Rangonuevo", nueva_busqueda.toString())
-                        }, ver_mapa = {lugares_cercanos->
+                        }, ver_mapa = { lugares_cercanos ->
                             ver_mapa(lugares_cercanos)
                         })
                 }
@@ -323,341 +333,392 @@ fun card_img_container(
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
 
     var lugares_turisticos_filtrados by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    var scope = rememberCoroutineScope()
 
-//    LaunchedEffect(sub_categoria_selecionada) {
-//        subcategoria_seleciondafun(sub_categoria_selecionada)
-//    }
-
-
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
-    ) {
-        spacer_vertical(10.dp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 10.dp)
-        ) {
-            Text(text = datos.titulo, fontFamily = baners_geinz_work, fontSize = 30.sp)
-            spacer_horizonta(10.dp)
-            abierto_flag("Abierto las 24h")
-        }
-
-        texto_generico_multilinea(
-            datos.descripcion,
-            MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(10.dp)
-        )
-        spacer_vertical(10.dp)
-        CollageGoogleMapsStyle(aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
-        spacer_vertical(10.dp)
-        chips_filtrado(lista_turismo_bottom_sheet) { i ->
-            when (i) {
-                "Ir al lugar" -> {
-                    lat_tienda = datos.latitud
-                    long_tienda = datos.longitud
-                    dialog_Crear_ruta = true
+    // Launcher para pedir permiso
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            if (lugares_turisticos_filtrados.isNotEmpty()) {
+                ver_mapa(lugares_turisticos_filtrados)
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "No se encontraron lugares cercanos",
+                        duration = SnackbarDuration.Short
+                    )
                 }
-
-                "ver en mapa" -> {
-
-                }
-
-                "compartir" -> {}
             }
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
         }
-        spacer_vertical(10.dp)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize()
-                .padding(horizontal = 10.dp)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
         ) {
             spacer_vertical(10.dp)
             Row(
-                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 10.dp)
             ) {
-                texto_generico_multilinea(
-                    "Lugares que no puedes perderte",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                texto_generico_one_line(
-                    "ver en mapa",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable{
-                        if(lugares_turisticos_filtrados.isNotEmpty()){
-                            ver_mapa(lugares_turisticos_filtrados)
-                        }
-
-                    }
-                )
+                Text(text = datos.titulo, fontFamily = baners_geinz_work, fontSize = 30.sp)
+                spacer_horizonta(10.dp)
+                abierto_flag("Abierto las 24h")
             }
 
-            spacer_vertical(10.dp)
-
-            val annotatedText = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.White)) {
-                    append("Descubre sitios cercanos a ${datos.titulo} ")
-                }
-
-                pushStringAnnotation(tag = "filtrar", annotation = "filtrar")
-                withStyle(
-                    style = SpanStyle(
-                        textDecoration = TextDecoration.Underline,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append("filtra")
-                }
-                pop()
-
-                withStyle(style = SpanStyle(color = Color.White)) {
-                    append(" y disfruta lo mejor a menos de ")
-                }
-
-                pushStringAnnotation(tag = "RADIO", annotation = nueva_busqueda.toInt().toString())
-                withStyle(
-                    style = SpanStyle(
-                        textDecoration = TextDecoration.Underline,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append("${nueva_busqueda.toInt()} Km")
-                }
-                pop()
-            }
-
-            ClickableText(
-                text = annotatedText,
-                style = MaterialTheme.typography.bodyMedium,
-                onClick = { offset ->
-
-                    annotatedText.getStringAnnotations(
-                        tag = "filtrar",
-                        start = offset,
-                        end = offset
-                    )
-                        .firstOrNull()?.let { _ ->
-                            println("Se hizo clic en filtrar")
-                            mostrar_slider = false
-                            mostar_filtrado_categorias = !mostar_filtrado_categorias
-                        }
-
-                    annotatedText.getStringAnnotations(tag = "RADIO", start = offset, end = offset)
-                        .firstOrNull()?.let { annotation ->
-                            mostar_filtrado_categorias = false
-                            mostrar_slider = !mostrar_slider
-
-                        }
-                }
+            texto_generico_multilinea(
+                datos.descripcion,
+                MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(10.dp)
             )
-
-
-
             spacer_vertical(10.dp)
-            Box() {
-                this@Column.AnimatedVisibility(mostrar_slider, enter = fadeIn(), exit = fadeOut()) {
-                    Column() {
-                        Slider(
-                            value = nueva_busqueda,
-                            onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
-                            valueRange = 1f..10f,
-                            steps = 8,
-                            onValueChangeFinished = {
-                                buscar_nuevas_tiendas(nueva_busqueda.toDouble())
-                                nuevo_rango_km(nueva_busqueda)
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
-                                activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
-                                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // 🔹 Color de la línea inactiva (parte a la derecha del thumb)
-                                activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
-                                inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
-                            ),
-                            thumb = {
-                                // Nuestra bolita blanca sin borde negro
-                                Box(
-                                    modifier = Modifier
-                                        .size(25.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    texto_generico_one_line(
-                                        nueva_busqueda.toInt().toString(),
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                        )
+            CollageGoogleMapsStyle(aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
+            spacer_vertical(10.dp)
+            chips_filtrado(lista_turismo_bottom_sheet) { i ->
+                when (i) {
+                    "Ir al lugar" -> {
+                        lat_tienda = datos.latitud
+                        long_tienda = datos.longitud
+                        dialog_Crear_ruta = true
+                    }
 
+                    "ver en mapa" -> {
 
                     }
-                }
-                this@Column.AnimatedVisibility(
-                    mostar_filtrado_categorias,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                        items(lista_string_filtrado_tiendas) { i ->
-                            val selecionado = sub_categoria_selecionada == i
-                            Log.d("selecionad", "$sub_categoria_selecionada == $i")
-                            chisp_filtrado_busqueda(
-                                selecionado,
-                                simplificarCategoria(i),
-                                false,
-                                clik_card = {
-                                    coroutineScope.launch {
 
-                                        if (!selecionado) {
-                                            if (i == "Todos") {
-                                                sub_categoria_selecionada = "Todos"
-                                                subcategoria_seleciondafun("Todos")
-                                                listState.scrollToItem(0)
-                                            } else {
-                                                sub_categoria_selecionada = i
-                                                subcategoria_seleciondafun(i)
-                                                listState.scrollToItem(0)
-                                            }
-                                        }
+                    "compartir" -> {}
+                }
+            }
+            spacer_vertical(10.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize()
+                    .padding(horizontal = 10.dp)
+            ) {
+                spacer_vertical(10.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    texto_generico_multilinea(
+                        "Lugares que no puedes perderte",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    texto_generico_one_line(
+                        "ver en mapa",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                if (lugares_turisticos_filtrados.isNotEmpty()) {
+                                    ver_mapa(lugares_turisticos_filtrados)
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "No se encontraron lugares cercanos",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            } else {
+                                permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            }
+
+
+                        }
+                    )
+                }
+
+                spacer_vertical(10.dp)
+
+                val annotatedText = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.White)) {
+                        append("Descubre sitios cercanos a ${datos.titulo} ")
+                    }
+
+                    pushStringAnnotation(tag = "filtrar", annotation = "filtrar")
+                    withStyle(
+                        style = SpanStyle(
+                            textDecoration = TextDecoration.Underline,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append("filtra")
+                    }
+                    pop()
+
+                    withStyle(style = SpanStyle(color = Color.White)) {
+                        append(" y disfruta lo mejor a menos de ")
+                    }
+
+                    pushStringAnnotation(
+                        tag = "RADIO",
+                        annotation = nueva_busqueda.toInt().toString()
+                    )
+                    withStyle(
+                        style = SpanStyle(
+                            textDecoration = TextDecoration.Underline,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append("${nueva_busqueda.toInt()} Km")
+                    }
+                    pop()
+                }
+
+                ClickableText(
+                    text = annotatedText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    onClick = { offset ->
+
+                        annotatedText.getStringAnnotations(
+                            tag = "filtrar",
+                            start = offset,
+                            end = offset
+                        )
+                            .firstOrNull()?.let { _ ->
+                                println("Se hizo clic en filtrar")
+                                mostrar_slider = false
+                                mostar_filtrado_categorias = !mostar_filtrado_categorias
+                            }
+
+                        annotatedText.getStringAnnotations(
+                            tag = "RADIO",
+                            start = offset,
+                            end = offset
+                        )
+                            .firstOrNull()?.let { annotation ->
+                                mostar_filtrado_categorias = false
+                                mostrar_slider = !mostrar_slider
+
+                            }
+                    }
+                )
+
+
+
+                spacer_vertical(10.dp)
+                Box() {
+                    this@Column.AnimatedVisibility(
+                        mostrar_slider,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Column() {
+                            Slider(
+                                value = nueva_busqueda,
+                                onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
+                                valueRange = 1f..10f,
+                                steps = 8,
+                                onValueChangeFinished = {
+                                    buscar_nuevas_tiendas(nueva_busqueda.toDouble())
+                                    nuevo_rango_km(nueva_busqueda)
+                                },
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
+                                    activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
+                                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+                                        alpha = 0.2f
+                                    ), // 🔹 Color de la línea inactiva (parte a la derecha del thumb)
+                                    activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
+                                    inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
+                                ),
+                                thumb = {
+                                    // Nuestra bolita blanca sin borde negro
+                                    Box(
+                                        modifier = Modifier
+                                            .size(25.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.White),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        texto_generico_one_line(
+                                            nueva_busqueda.toInt().toString(),
+                                            color = Color.Black,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
                                     }
                                 },
-                                onClick_delete = {},
-                                true,
-                                40.dp
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(40.dp)
                             )
+
 
                         }
                     }
-                }
-            }
-
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(270.dp), contentAlignment = Alignment.Center
-        ) {
-            when (val state = lista_items) {
-                is viewModel_lugares_turisticos.carga_tienda_cercanos.loading -> {
-                    CircularProgressIndicator()
-                }
-
-                is viewModel_lugares_turisticos.carga_tienda_cercanos.empty -> {
-                    Text(
-                        state.txt,
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
-                }
-
-                is viewModel_lugares_turisticos.carga_tienda_cercanos.error -> {
-                    Text(
-                        state.texto,
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
-                }
-
-                is viewModel_lugares_turisticos.carga_tienda_cercanos.succes -> {
-                    lista_base(state.lista_lugares, state.lista_categorias)
-                    lugares_turisticos_filtrados=state.lista_lugares
-                    Log.d("listassssssss", "${state.lista_lugares} ${state.lista_categorias}")
-                    val lista_subcat = listOf("Todos") + state.lista_categorias
-                    lista_string_filtrado_tiendas = lista_subcat
-                    Column {
-                        val listaOrdenada = state.lista_lugares.sortedWith(
-                            compareByDescending { it.esta_abierto }
-                        )
-
-                        spacer_vertical(10.dp)
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            state = listState,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 8.dp)
-                        ) {
-                            items(listaOrdenada, key = { it.id_tienda }) { item ->
-                                item_cercanos(
-                                    expanded = expandedItemId == item.id_tienda,
-                                    tick,
-                                    datos = datos,
-                                    item = item,
-                                    onExpand = { id ->
-                                        expandedItemId = if (expandedItemId == id) null else id
-                                    },
-                                    clik_card = { id, localidad, color ->
+                    this@Column.AnimatedVisibility(
+                        mostar_filtrado_categorias,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            items(lista_string_filtrado_tiendas) { i ->
+                                val selecionado = sub_categoria_selecionada == i
+                                Log.d("selecionad", "$sub_categoria_selecionada == $i")
+                                chisp_filtrado_busqueda(
+                                    selecionado,
+                                    simplificarCategoria(i),
+                                    false,
+                                    clik_card = {
                                         coroutineScope.launch {
-                                            clik_card(id, localidad, color)
+
+                                            if (!selecionado) {
+                                                if (i == "Todos") {
+                                                    sub_categoria_selecionada = "Todos"
+                                                    subcategoria_seleciondafun("Todos")
+                                                    listState.scrollToItem(0)
+                                                } else {
+                                                    sub_categoria_selecionada = i
+                                                    subcategoria_seleciondafun(i)
+                                                    listState.scrollToItem(0)
+                                                }
+                                            }
                                         }
                                     },
-                                    clik_icono = { i ->
-                                        when (i.nombre_red) {
-                                            "llamar" -> {
-                                                llamar(context, i.valor, {
-                                                    call_dialog_permise = true
-                                                    numero_llamada = i.valor
-                                                })
-                                            }
+                                    onClick_delete = {},
+                                    true,
+                                    40.dp
+                                )
 
-                                            "whatsapp" -> {
-                                                abrir_whattsapp(context, i.valor)
-                                            }
+                            }
+                        }
+                    }
+                }
 
-                                            "tiktok" -> {
-                                                openTiktok(
-                                                    context, i.valor
-                                                )
-                                            }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(270.dp), contentAlignment = Alignment.Center
+            ) {
+                when (val state = lista_items) {
+                    is viewModel_lugares_turisticos.carga_tienda_cercanos.loading -> {
+                        CircularProgressIndicator()
+                    }
 
-                                            "facebook" -> {
-                                                openFacebook(
-                                                    context, i.valor
-                                                )
-                                            }
+                    is viewModel_lugares_turisticos.carga_tienda_cercanos.empty -> {
+                        Text(
+                            state.txt,
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        )
+                    }
 
-                                            "instagram" -> {
-                                                openInstagram(
-                                                    context, i.valor
-                                                )
-                                            }
+                    is viewModel_lugares_turisticos.carga_tienda_cercanos.error -> {
+                        Text(
+                            state.texto,
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        )
+                    }
 
-                                            "Web" -> {
-                                                openWebLink(
-                                                    context, i.valor
-                                                )
-                                            }
+                    is viewModel_lugares_turisticos.carga_tienda_cercanos.succes -> {
+                        lista_base(state.lista_lugares, state.lista_categorias)
+                        lugares_turisticos_filtrados = state.lista_lugares
+                        Log.d("listassssssss", "${state.lista_lugares} ${state.lista_categorias}")
+                        val lista_subcat = listOf("Todos") + state.lista_categorias
+                        lista_string_filtrado_tiendas = lista_subcat
+                        Column {
+                            val listaOrdenada = state.lista_lugares.sortedWith(
+                                compareByDescending { it.esta_abierto }
+                            )
 
-                                        }
-                                    },
-                                    click_crear_ruta = { lat, log ->
-                                        lat_tienda = lat
-                                        long_tienda = log
-                                        dialog_Crear_ruta = true
-                                    })
+                            spacer_vertical(10.dp)
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                state = listState,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 8.dp)
+                            ) {
+                                items(listaOrdenada, key = { it.id_tienda }) { item ->
+                                    item_cercanos(
+                                        expanded = expandedItemId == item.id_tienda,
+                                        tick,
+                                        datos = datos,
+                                        item = item,
+                                        onExpand = { id ->
+                                            expandedItemId = if (expandedItemId == id) null else id
+                                        },
+                                        clik_card = { id, localidad, color ->
+                                            coroutineScope.launch {
+                                                clik_card(id, localidad, color)
+                                            }
+                                        },
+                                        clik_icono = { i ->
+                                            when (i.nombre_red) {
+                                                "llamar" -> {
+                                                    llamar(context, i.valor, {
+                                                        call_dialog_permise = true
+                                                        numero_llamada = i.valor
+                                                    })
+                                                }
+
+                                                "whatsapp" -> {
+                                                    abrir_whattsapp(context, i.valor)
+                                                }
+
+                                                "tiktok" -> {
+                                                    openTiktok(
+                                                        context, i.valor
+                                                    )
+                                                }
+
+                                                "facebook" -> {
+                                                    openFacebook(
+                                                        context, i.valor
+                                                    )
+                                                }
+
+                                                "instagram" -> {
+                                                    openInstagram(
+                                                        context, i.valor
+                                                    )
+                                                }
+
+                                                "Web" -> {
+                                                    openWebLink(
+                                                        context, i.valor
+                                                    )
+                                                }
+
+                                            }
+                                        },
+                                        click_crear_ruta = { lat, log ->
+                                            lat_tienda = lat
+                                            long_tienda = log
+                                            dialog_Crear_ruta = true
+                                        })
+                                }
                             }
                         }
                     }
                 }
             }
+
+
+
+            Log.d("obtemos_cordenads", "${datos.latitud}, ${datos.longitud}")
+
         }
-
-
-
-        Log.d("obtemos_cordenads", "${datos.latitud}, ${datos.longitud}")
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
     }
     if (dialog_Crear_ruta) {
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->

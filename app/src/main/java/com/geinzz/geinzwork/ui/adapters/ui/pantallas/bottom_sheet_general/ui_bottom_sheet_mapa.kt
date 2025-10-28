@@ -97,7 +97,7 @@ fun bottom_sheet_mapa(
                                         direccion = id.direccion,
                                         referencia = id.referencia,
                                         horario_tienda = id.horario_dia,
-                                        contacto_tienda = id.contacto_tienda
+                                        contacto_tienda = id.contacto_tienda, metodos_pago_tienda = id.metodos_pago_tienda
                                     )
                                 )
                             }
@@ -120,17 +120,20 @@ fun bottom_sheet_mapa(
                                 selecionado_id(id.id_tienda)
                                 datos_selecionado_retornar(
                                     dataclass_map(
-                                        id.logo_tienda,
-                                        id.nombre_tienda,
-                                        id.lista_subcategoiras,
-                                        lat_user,
-                                        log_user,
-                                        id.latitud,
-                                        id.longitud,
-                                        id.id_tienda,
-                                        "",
-                                        id.direccion,
-                                        id.referencia, id.horario_dia,id.contacto_tienda
+                                        img = id.logo_tienda,
+                                        nombre = id.nombre_tienda,
+                                        tag = id.lista_subcategoiras,
+                                        my_latitud = lat_user,
+                                        my_longitud = log_user,
+                                        latitud = id.latitud,
+                                        longitud = id.longitud,
+                                        id = id.id_tienda,
+                                        categoria = "",
+                                        direccion = id.direccion,
+                                        referencia = id.referencia,
+                                        horario_tienda = id.horario_dia,
+                                        contacto_tienda = id.contacto_tienda,
+                                        metodos_pago_tienda = id.metodos_pago_tienda
                                     )
                                 )
                             }
