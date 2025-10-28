@@ -97,6 +97,7 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_distancia_map_km_m
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
@@ -257,9 +258,10 @@ fun MyGoogle_maps(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     var numero_llamada by remember { mutableStateOf("") }
-
-
     var isLocationEnabled by remember { mutableStateOf(false) }
+
+    var primeravez by remember { mutableStateOf(true) }
+
 
 
 
@@ -277,6 +279,7 @@ fun MyGoogle_maps(
     LaunchedEffect(Unit) {
         while (true) {
             isLocationEnabled = isLocationEnabled(context)
+
             delay(5000L)
         }
     }
@@ -290,10 +293,9 @@ fun MyGoogle_maps(
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 val location = locationResult.lastLocation ?: return
-                val latLng = LatLng(location.latitude, location.longitude)
                 lat_user = location.latitude
                 log_user = location.longitude
-//                Log.d("ubiaion_teimpo_real", "$latLng  ")
+                viewmodelMapa.actualizar_ubicacion(location.latitude, location.longitude)
 
             }
         }
@@ -982,8 +984,19 @@ fun dialogo_lugar_tienda(
         }
     }
     val estadoKM by viewmodelMapa.estadoLocation.collectAsState(initial = false)
-    LaunchedEffect(estadoKM) {
-        Log.d("activo_desctivo_km", estadoKM.toString())
+    val esta_cerca_tienda by viewmodelMapa.estaCercaTienda.collectAsState(initial = false)
+
+    LaunchedEffect(esta_cerca_tienda) {
+        if (esta_cerca_tienda) {
+            Toast.makeText(context, "esta cerca de la tienda", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(dataclass_map.id,estadoKM) {
+        if(estadoKM){
+            viewmodelMapa.limpiarCoordenadas()
+            viewmodelMapa.setTienda_selecionada(dataclass_map.latitud,dataclass_map.longitud)
+        }
     }
 
 
@@ -1053,6 +1066,7 @@ fun dialogo_lugar_tienda(
     var totalDx by remember { mutableStateOf(0f) }
     var totalDY by remember { mutableStateOf(0f) }
     var validad_horario by remember { mutableStateOf(false) }
+    var dialogo_distancia by remember { mutableStateOf(false) }
 
     val lista_redes_tiendas = listOf(
         data_redes_tiendas(
@@ -1092,7 +1106,6 @@ fun dialogo_lugar_tienda(
             valor = dataclass_map.contacto_tienda.sitio_web.url
         )
     )
-    Log.d("campos_enviados", lista_redes_tiendas.toString())
 
 
     Column(
@@ -1179,13 +1192,15 @@ fun dialogo_lugar_tienda(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color.Black.copy(alpha = 0.85f))
+                            .clickable{
+                                dialogo_distancia=true
+                            }
                     ) {
                         Row(
                             modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-
                             texto_generico_one_line(
                                 "A $distancia",
                                 MaterialTheme.typography.bodyMedium,
@@ -1543,6 +1558,9 @@ fun dialogo_lugar_tienda(
             ) { color ->
                 estadoColor = color
             }
+        }
+        if(dialogo_distancia){
+            dialog_distancia_map_km_m("",{dialogo_distancia=false})
         }
     }
 
