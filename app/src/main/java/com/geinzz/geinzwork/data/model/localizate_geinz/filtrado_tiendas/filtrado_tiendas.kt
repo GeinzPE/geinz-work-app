@@ -76,6 +76,18 @@ data class lugares_cercanos(
     val metodos_pago_tienda: modelo_pagos_tienda
 ): Parcelable
 
+
+@Parcelize
+data class TiendasCercanasFiltrada(
+    val categoriaFiltrada: String = "",
+    val radioFiltrado: Double = 0.0,
+    val listaCategorias: List<String> = emptyList(),
+    val listaCompleta: List<lugares_cercanos> = emptyList(),
+) : Parcelable
+
+
+
+
 data class tiendas_cecanas_km(
     val img_tienda: String="",
     val nombre_tienda: String="",

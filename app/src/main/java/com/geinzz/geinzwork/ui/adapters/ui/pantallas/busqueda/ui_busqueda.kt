@@ -125,7 +125,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_salud_seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cabiar_rango_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork

@@ -186,9 +186,18 @@ fun MyGoogle_maps(
     )
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
 
-    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos
-        .listaTiendasGuardadas
-        .collectAsState()
+    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos.listaTiendasGuardadas.collectAsState()
+    val estado by viewmodel_lugares_turisticos.estadoFiltrado.collectAsState()
+
+    LaunchedEffect(estado) {
+        Log.d("FILTRADO_DEBUG", """
+        Categoría: ${estado.categoriaFiltrada}
+        Radio: ${estado.radioFiltrado}
+        Categorías disponibles: ${estado.listaCategorias.joinToString()}
+        Tiendas totales: ${estado.listaCompleta.size}
+    """.trimIndent())
+    }
+
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
     var currentIndex =
@@ -636,6 +645,7 @@ fun MyGoogle_maps(
 
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
+                estado,
                 seleccionadoId = seleccionadoId ?: "",
                 lat_user = lat_user,
                 log_user = log_user,

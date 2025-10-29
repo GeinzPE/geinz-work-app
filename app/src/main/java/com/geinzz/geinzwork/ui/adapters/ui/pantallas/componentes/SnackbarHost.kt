@@ -23,7 +23,7 @@ fun SnackbarHost(SnackbarHostState: SnackbarHostState,modifier: Modifier){
         Snackbar(
             snackbarData = data,
             // 1. Define la forma redondeada
-            shape = RoundedCornerShape(50), // Puedes ajustar el radio (ej. 4.dp, 12.dp)
+            shape = RoundedCornerShape(50.dp), // Puedes ajustar el radio (ej. 4.dp, 12.dp)
             // 2. Opcional: Dale un fondo diferente
             containerColor = Color.White,
             // 3. Opcional: Ajusta el color del texto del mensaje

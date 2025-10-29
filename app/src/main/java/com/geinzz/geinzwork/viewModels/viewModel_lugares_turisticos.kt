@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.firebase.geofire.GeoFireUtils
 import com.firebase.geofire.GeoLocation
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.TiendasCercanasFiltrada
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
@@ -18,7 +19,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.collections.emptyList
 
@@ -38,6 +41,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
         MutableStateFlow<carga_tienda_cercanos>(carga_tienda_cercanos.loading)
     val state_carga_tiendas_cercanas: StateFlow<carga_tienda_cercanos> =
         _state_carga_tiendas_cercanas
+
 
     var lugares_turisticos = mutableListOf<lugares_turisticos>()
         private set
@@ -68,12 +72,56 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     var lista_filtrada_turistica: StateFlow<List<lugares_cercanos>> = _lista_filtrada_turistica
 
     private val _listaTiendasGuardadasFlow = MutableSharedFlow<List<lugares_cercanos>>(replay = 1)
+    private val _listaTiendascompeltaFlow = MutableSharedFlow<List<lugares_cercanos>>(replay = 1)
+
+    private val _catFiltrada = MutableStateFlow<String?>(null)
+    val catFiltrada: StateFlow<String?> = _catFiltrada
+
+    // Lista de categorías disponibles (chips mostrados en UI)
+    private val _listaCatFiltrado = MutableStateFlow<List<String>>(emptyList())
+    val listaCatFiltrado: StateFlow<List<String>> = _listaCatFiltrado
+
+    // Radio de búsqueda en metros o km (según tu implementación)
+    private val _radioFiltrado = MutableStateFlow<Double>(1000.0) // por defecto 1 km
+    val radioFiltrado: StateFlow<Double> = _radioFiltrado
+
+
+    private val _estadoFiltrado = MutableStateFlow(TiendasCercanasFiltrada())
+    val estadoFiltrado = _estadoFiltrado.asStateFlow()
+
+
+    fun actualizarCategoria(nuevaCategoria: String) {
+        _estadoFiltrado.update { it.copy(categoriaFiltrada = nuevaCategoria) }
+    }
+
+    fun actualizarRadio(nuevoRadio: Double) {
+Log.d("estamos",nuevoRadio.toString())
+        val radioFinal = if (nuevoRadio == 0.0) 1.0 else nuevoRadio
+        _estadoFiltrado.update { it.copy(radioFiltrado = radioFinal) }
+    }
+
+
+    fun actualizarCategorias(lista: List<String>) {
+        _estadoFiltrado.update { it.copy(listaCategorias = lista) }
+    }
+
+    fun actualizarListaCompleta(lista: List<lugares_cercanos>) {
+        _estadoFiltrado.update { it.copy(listaCompleta = lista) }
+    }
     val listaTiendasGuardadas = _listaTiendasGuardadasFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
+
+    val listaTiendasGuardadas_completa = _listaTiendascompeltaFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
+        )
+
 
     init {
         viewModelScope.launch {
@@ -82,6 +130,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
                     val tiendasPagadas = estado.lista_lugares
                     Log.d("tiendasPagadas", "${tiendasPagadas.size}")
                     _listaTiendasGuardadasFlow.emit(tiendasPagadas)
+                    _listaTiendascompeltaFlow.emit(estado.lista_completa_lugares)
                 }
             }
         }
@@ -130,6 +179,9 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
         Log.d("filtrar_por_subcategoria", "📍 Subcategoria: $subcategoria | Radio: ${radioKm}km")
         viewModelScope.launch {
             val lista_base = lista_general_completa.value
+
+            Log.d("filtrar_por_subcategoria", lista_base.size.toString())
+            val radioFinal = if (radioKm == 0f) 1.0 else radioKm
             _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
             try {
                 // --- Filtramos primero por categoría ---
@@ -147,7 +199,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
                         GeoLocation(latUser, lonUser),
                         GeoLocation(tienda.latitud, tienda.longitud)
                     ) / 1000.0  // Convertimos a km
-                    distanciaKm <= radioKm.toDouble()
+                    distanciaKm <= radioFinal.toDouble()
                 }
 
 
@@ -159,7 +211,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 
                 if (listaFiltradaFinal.isNotEmpty()) {
                     _state_carga_tiendas_cercanas.value =
-                        carga_tienda_cercanos.succes(listaFiltradaFinal, lista_subcategorias)
+                        carga_tienda_cercanos.succes(listaFiltradaFinal, lista_subcategorias,lista_base)
                     _lista_filtrada_turistica.value=listaFiltradaFinal
                 } else {
                     _state_carga_tiendas_cercanas.value =
@@ -199,7 +251,8 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 
                     if (listaFiltrada.isNotEmpty()) {
                         _state_carga_tiendas_cercanas.value =
-                            carga_tienda_cercanos.succes(listaFiltrada, lista_base_categorias)
+                            carga_tienda_cercanos.succes(listaFiltrada, lista_base_categorias, lista_general_completa.value)
+
                     } else {
                         _state_carga_tiendas_cercanas.value =
                             carga_tienda_cercanos.empty("No se encontraron negocios dentro de 1 km")
@@ -216,30 +269,30 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     }
 
 
-    fun filtrar_por_cat_radio(radio: Double, categoria: String) {
-        val lista_base = lista_general_completa.value
-        val lista_base_categorias = lista_categoiras_encontrada.value
-        viewModelScope.launch {
-            try {
-                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
-                if (lista_base.isNotEmpty() && lista_base_categorias.isNotEmpty()) {
-                    val result = if (categoria == "Todos") {
-                        lista_base
-                    } else {
-                        lista_base.filter { i ->
-                            i.categoria.lowercase().contains(categoria.lowercase())
-                        }
-                    }
-                    carga_tienda_cercanos.succes(result, lista_base_categorias)
-                } else {
-                    carga_tienda_cercanos.empty("No se encontraron negocios cerca")
-                }
-            } catch (e: Exception) {
-
-            }
-        }
-
-    }
+//    fun filtrar_por_cat_radio(radio: Double, categoria: String) {
+//        val lista_base = lista_general_completa.value
+//        val lista_base_categorias = lista_categoiras_encontrada.value
+//        viewModelScope.launch {
+//            try {
+//                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
+//                if (lista_base.isNotEmpty() && lista_base_categorias.isNotEmpty()) {
+//                    val result = if (categoria == "Todos") {
+//                        lista_base
+//                    } else {
+//                        lista_base.filter { i ->
+//                            i.categoria.lowercase().contains(categoria.lowercase())
+//                        }
+//                    }
+//                    carga_tienda_cercanos.succes(result, lista_base_categorias)
+//                } else {
+//                    carga_tienda_cercanos.empty("No se encontraron negocios cerca")
+//                }
+//            } catch (e: Exception) {
+//
+//            }
+//        }
+//
+//    }
 
 
     fun lugares_turisticos(localidad: String) {
@@ -321,7 +374,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     sealed class carga_tienda_cercanos {
         data class succes(
             val lista_lugares: List<lugares_cercanos>,
-            val lista_categorias: List<String>
+            val lista_categorias: List<String>,val lista_completa_lugares: List<lugares_cercanos>
         ) : carga_tienda_cercanos()
 
         object loading : carga_tienda_cercanos()

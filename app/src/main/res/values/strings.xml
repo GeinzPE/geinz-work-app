@@ -552,4 +552,19 @@
     <string name="APIKEY_ALGOLIA_FIRESTORE" translatable="false">f6c3e7ab203d80bb6bbe130c3b2da386</string>
     <string name="IDEX_NAME_ALGOLIA" translatable="false">lugares</string>
 
+
+    <string name="MAPA_HEADER_TXT_TIENDAS">Selecciona tu lugar favorito</string>
+    <string name="MAPA_HEADER_TXT_TURISMO">Explora los lugares cercanos</string>
+
+
+    <string name="MAPA_DESC_TXT_TIENDAS">
+Explora todos los locales de la categoría seleccionada. Descubre sus servicios, horarios y encuentra el que mejor se adapte a lo que buscas.
+</string>
+
+
+    <string name="MAPA_DESC_TXT_TURISMO">
+Observa los lugares y servicios más cercanos al punto seleccionado. Si lo deseas, puedes ajustar los filtros para explorar nuevas opciones en los alrededores.
+</string>
+
+
 </resources>

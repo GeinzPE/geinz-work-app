@@ -103,9 +103,9 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
     val lista_turismo_bottom_sheet = listOf(
-        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place),
-        botom_shet_turismobtn("ver en mapa", Icons.Filled.Map),
-        botom_shet_turismobtn("compartir", Icons.Filled.Share)
+        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place,true),
+        botom_shet_turismobtn("ver en mapa", Icons.Filled.Map,false),
+        botom_shet_turismobtn("compartir", Icons.Filled.Share,false)
     )
     val cat_sub_seguirar_salud = listOf("seguridad", "salud")
     val categorias_defaul = listOf(
