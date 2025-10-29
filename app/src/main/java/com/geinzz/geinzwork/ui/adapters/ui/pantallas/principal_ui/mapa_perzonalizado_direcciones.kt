@@ -283,8 +283,31 @@ fun MyGoogle_maps(
             delay(5000L)
         }
     }
-    LaunchedEffect(Unit) {
-
+//    LaunchedEffect(Unit) {
+//
+//        val locationRequest = LocationRequest.Builder(
+//            Priority.PRIORITY_HIGH_ACCURACY,
+//            5000L
+//        ).build()
+//
+//        val locationCallback = object : LocationCallback() {
+//            override fun onLocationResult(locationResult: LocationResult) {
+//                val location = locationResult.lastLocation ?: return
+//                lat_user = location.latitude
+//                log_user = location.longitude
+//                viewmodelMapa.actualizar_ubicacion(location.latitude, location.longitude)
+//
+//            }
+//        }
+//
+//        fusedLocationClient.requestLocationUpdates(
+//            locationRequest,
+//            locationCallback,
+//            Looper.getMainLooper()
+//        )
+//
+//    }
+    DisposableEffect(Unit) {
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
             5000L
@@ -306,7 +329,12 @@ fun MyGoogle_maps(
             Looper.getMainLooper()
         )
 
+        onDispose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+            Log.d("MapaScreen", "Se detuvieron las actualizaciones de ubicación")
+        }
     }
+
 
     if (isLocationEnabled) {
         viewmodelMapa.actualziar_estado(true)
@@ -1560,7 +1588,7 @@ fun dialogo_lugar_tienda(
             }
         }
         if(dialogo_distancia){
-            dialog_distancia_map_km_m("",{dialogo_distancia=false})
+            dialog_distancia_map_km_m(distancia,{dialogo_distancia=false})
         }
     }
 

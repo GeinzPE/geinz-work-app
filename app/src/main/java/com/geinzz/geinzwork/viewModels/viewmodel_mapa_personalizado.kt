@@ -55,6 +55,7 @@ class viewmodel_mapa_personalizado : ViewModel() {
 
 
     fun actualizar_ubicacion(lat_user: Double,lon_user: Double){
+        Log.d("llamos_a","fucnion")
         val distacia_cambio=calcularDistancia(lat_user,lon_user,ultima_lat_user,ultima_lon_user)
         if(distacia_cambio<2)return
         ultima_lat_user = lat_user

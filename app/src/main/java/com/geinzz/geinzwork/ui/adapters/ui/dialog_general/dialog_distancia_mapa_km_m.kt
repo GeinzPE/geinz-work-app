@@ -27,11 +27,11 @@ fun dialog_distancia_map_km_m(distancia: String, ondimis: () -> Unit) {
         },
         text = {
             Column {
-                texto_generico_one_line("Horario en tiempo real",)
+                texto_generico_one_line("Horario en tiempo real",MaterialTheme.typography.bodyLarge)
                 spacer_vertical(5.dp)
                 texto_generico_multilinea("El valor mostrado (${distancia}) es una estimación calculada en línea recta y se actualiza al instante con tu GPS. La distancia final puede variar ligeramente debido a las rutas de las calles", style = MaterialTheme.typography.bodyMedium)
                 spacer_vertical(10.dp)
-                texto_generico_one_line("Horaro en tiempo real",)
+                texto_generico_one_line("Horaro en tiempo real",MaterialTheme.typography.bodyLarge)
                 spacer_vertical(5.dp)
                 texto_generico_multilinea("La disponibilidad  se muestra en el momento exacto. ¡Siempre sabrás si la tienda está lista para recibirte!", style = MaterialTheme.typography.bodyMedium)
 
