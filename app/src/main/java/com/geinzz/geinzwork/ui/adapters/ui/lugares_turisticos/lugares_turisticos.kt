@@ -70,6 +70,8 @@ fun pantalla_lugares_turisticos(
     localidad_selecionada: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     abrir_mapa: (String) -> Unit,
+    crear_cuenta: () -> Unit,
+    iniciar_seccion:()-> Unit
 ) {
     val _lugares_turisticos by viewmodel_lugares_turisticos._lugares_turisticos.observeAsState(
         emptyList()
@@ -244,7 +246,7 @@ fun pantalla_lugares_turisticos(
                             item,
                             { tipo ->
                                 abrir_mapa(tipo)
-                            })
+                            },{crear_cuenta()},{iniciar_seccion()})
                     }
                 }
             }
@@ -550,7 +552,9 @@ fun carta_turismo(
     index: Int,
     img: String,
     lugar: lugares_turisticos,
-    abrir_mapa: (String) -> Unit
+    abrir_mapa: (String) -> Unit,
+    crear_cuenta:()-> Unit,
+    iniciar_seccion:()-> Unit
 ) {
     val bottomSheetVisible by viewmodelMap.estadoBottomSheet.collectAsState()
     val lugarSeleccionado by viewmodelMap.objetoSeleccionado.collectAsState()
@@ -591,11 +595,10 @@ fun carta_turismo(
         }
     }
 
-    // ✅ Mostrar solo si este es el lugar seleccionado
     if (bottomSheetVisible && lugarSeleccionado == lugar) {
         bottom_sheet_lugares_turisticos(
-            viewmodelMap,
-            viewmodel_lugares_turisticos,
+            viewmodelMap = viewmodelMap,
+            viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
             datos = lugar,
             visible = true,
             onClose = {
@@ -603,7 +606,7 @@ fun carta_turismo(
             },
             ver_mapa = {
                 abrir_mapa("turismo")
-            }
+            }, iniciar_seccion = {iniciar_seccion()}, crear_cuenta = {crear_cuenta()}
         )
     }
 }

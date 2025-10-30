@@ -158,26 +158,71 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 
 
 
-    fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
+//    fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
+//        viewModelScope.launch {
+//            delay(250)
+//            try {
+//                repo_lugares.obtenerTiendasCercanas(
+//                    lat,
+//                    long,
+//                    10.0,
+//                    localida
+//                ) { it, lista_categoria ->
+//                    lista_general_completa.value = it
+//                    lista_categoiras_encontrada.value = lista_categoria
+//                    _lista_filtrada_turistica.value=it
+//                }
+//            } catch (e: Exception) {
+////                _state_carga_tiendas_cercanas.value =
+////                    carga_tienda_cercanos.empty("Error al encontrar negocios")
+//            }
+//        }
+//    }
+    fun obtener_tiendas_cercanas(
+        lat: Double,
+        long: Double,
+        radio: Double, // radio actual del usuario (1km, 3km, etc.)
+        localidad: String
+    ) {
         viewModelScope.launch {
             delay(250)
             try {
                 repo_lugares.obtenerTiendasCercanas(
                     lat,
                     long,
-                    10.0,
-                    localida
-                ) { it, lista_categoria ->
-                    lista_general_completa.value = it
-                    lista_categoiras_encontrada.value = lista_categoria
-                    _lista_filtrada_turistica.value=it
+                    10.0, // 🔹 Siempre obtenemos todo hasta 10 km
+                    localidad
+                ) { tiendas_10km, lista_categoria ->
+                    // Guardamos toda la data base completa
+                    lista_general_completa.value = tiendas_10km
+
+                    // 🔹 Filtrar las tiendas dentro del radio actual
+                    val tiendas_en_radio = tiendas_10km.filter { tienda ->
+                        val distanciaKm = GeoFireUtils.getDistanceBetween(
+                            GeoLocation(lat, long),
+                            GeoLocation(tienda.latitud, tienda.longitud)
+                        ) / 1000.0
+                        distanciaKm <= radio
+                    }
+
+                    // 🔹 Subcategorías disponibles dentro del radio actual
+                    val subcategorias_en_radio = tiendas_en_radio.map { it.categoria }.distinct()
+
+                    // 🔹 Actualizamos estados visibles
+                    lista_categoiras_encontrada.value = subcategorias_en_radio
+                    _lista_filtrada_turistica.value = tiendas_en_radio
+
+                    Log.d("obtener_tiendas_cercanas", "✅ ${tiendas_en_radio.size} tiendas dentro de ${radio}km")
+                    Log.d("obtener_tiendas_cercanas", "📂 Subcategorías visibles: $subcategorias_en_radio")
                 }
             } catch (e: Exception) {
-//                _state_carga_tiendas_cercanas.value =
-//                    carga_tienda_cercanos.empty("Error al encontrar negocios")
+                Log.e("obtener_tiendas_cercanas", "❌ Error: ${e.message}")
+//            _state_carga_tiendas_cercanas.value =
+//                carga_tienda_cercanos.empty("Error al encontrar negocios")
             }
         }
     }
+
 
 
 
@@ -186,6 +231,64 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
         lista_general_completa.value = emptyList()
         lista_categoiras_encontrada.value = emptyList()
     }
+
+//    fun filtrar_por_subcategoria(
+//        lista_subcategorias: List<String>,
+//        subcategoria: String,
+//        latUser: Double,
+//        lonUser: Double,
+//        radioKm: Float
+//    ) {
+//        Log.d("filtrar_por_subcategoria", "📍 Subcategoria: $subcategoria | Radio: ${radioKm}km")
+//        viewModelScope.launch {
+//            val lista_base = lista_general_completa.value
+//
+//            Log.d("filtrar_por_subcategoria", lista_base.size.toString())
+//            val radioFinal = if (radioKm == 0f) 1.0 else radioKm
+//            _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
+//            try {
+//                // --- Filtramos primero por categoría ---
+//                val listaFiltradaCategoria = if (subcategoria == "Todos") {
+//                    lista_base
+//                } else {
+//                    lista_base.filter { tienda ->
+//                        tienda.categoria.lowercase().contains(subcategoria.lowercase())
+//                    }
+//                }
+//
+//                // --- Luego filtramos por radio ---
+//                val listaFiltradaFinal = listaFiltradaCategoria.filter { tienda ->
+//                    val distanciaKm = GeoFireUtils.getDistanceBetween(
+//                        GeoLocation(latUser, lonUser),
+//                        GeoLocation(tienda.latitud, tienda.longitud)
+//                    ) / 1000.0  // Convertimos a km
+//                    distanciaKm <= radioFinal.toDouble()
+//                }
+//
+//
+//
+//                Log.d(
+//                    "filtrar_por_subcategoria",
+//                    "✅ Resultados finales: ${listaFiltradaFinal.size}"
+//                )
+//
+//                if (listaFiltradaFinal.isNotEmpty()) {
+//                    _state_carga_tiendas_cercanas.value =
+//                        carga_tienda_cercanos.succes(listaFiltradaFinal, lista_categoiras_encontrada.value,lista_base)
+//                    _lista_filtrada_turistica.value=listaFiltradaFinal
+//                } else {
+//                    _state_carga_tiendas_cercanas.value =
+//                        carga_tienda_cercanos.empty("No se encontraron negocios cerca con esos filtros")
+//                }
+//
+//            } catch (e: Exception) {
+//                Log.e("filtrar_por_subcategoria", "❌ Error: ${e.message}", e)
+//                _state_carga_tiendas_cercanas.value =
+//                    carga_tienda_cercanos.error("Error al obtener los resultados")
+//            }
+//        }
+//    }
+
 
     fun filtrar_por_subcategoria(
         lista_subcategorias: List<String>,
@@ -198,42 +301,44 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
         viewModelScope.launch {
             val lista_base = lista_general_completa.value
 
-            Log.d("filtrar_por_subcategoria", lista_base.size.toString())
-            val radioFinal = if (radioKm == 0f) 1.0 else radioKm
+            val radioFinal = if (radioKm == 0f) 1.0 else radioKm.toDouble()
             _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
-            try {
-                // --- Filtramos primero por categoría ---
-                val listaFiltradaCategoria = if (subcategoria == "Todos") {
-                    lista_base
-                } else {
-                    lista_base.filter { tienda ->
-                        tienda.categoria.lowercase().contains(subcategoria.lowercase())
-                    }
-                }
 
-                // --- Luego filtramos por radio ---
-                val listaFiltradaFinal = listaFiltradaCategoria.filter { tienda ->
+            try {
+                // --- 1️⃣ Filtrar todas las tiendas por radio ---
+                val tiendas_en_radio = lista_base.filter { tienda ->
                     val distanciaKm = GeoFireUtils.getDistanceBetween(
                         GeoLocation(latUser, lonUser),
                         GeoLocation(tienda.latitud, tienda.longitud)
-                    ) / 1000.0  // Convertimos a km
-                    distanciaKm <= radioFinal.toDouble()
+                    ) / 1000.0
+                    distanciaKm <= radioFinal
                 }
 
+                // --- 2️⃣ Obtener subcategorías válidas en este radio ---
+                val subcategorias_en_radio = tiendas_en_radio.map { it.categoria }.distinct()
 
-
-                Log.d(
-                    "filtrar_por_subcategoria",
-                    "✅ Resultados finales: ${listaFiltradaFinal.size}"
-                )
-
-                if (listaFiltradaFinal.isNotEmpty()) {
-                    _state_carga_tiendas_cercanas.value =
-                        carga_tienda_cercanos.succes(listaFiltradaFinal, lista_subcategorias,lista_base)
-                    _lista_filtrada_turistica.value=listaFiltradaFinal
+                // --- 3️⃣ Filtrar por subcategoría seleccionada ---
+                val listaFiltradaFinal = if (subcategoria == "Todos") {
+                    tiendas_en_radio
                 } else {
-                    _state_carga_tiendas_cercanas.value =
-                        carga_tienda_cercanos.empty("No se encontraron negocios cerca con esos filtros")
+                    tiendas_en_radio.filter { tienda ->
+                        tienda.categoria.equals(subcategoria, ignoreCase = true)
+                    }
+                }
+
+                // --- 4️⃣ Mostrar resultados ---
+                if (listaFiltradaFinal.isNotEmpty()) {
+                    _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.succes(
+                        listaFiltradaFinal,
+                        subcategorias_en_radio,
+                        lista_base
+                    )
+                    _lista_filtrada_turistica.value = listaFiltradaFinal
+                } else {
+                    // Si no hay ninguna tienda de esa subcategoría dentro del radio
+                    _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.empty(
+                        "No hay tiendas de la categoría '$subcategoria' en este radio"
+                    )
                 }
 
             } catch (e: Exception) {
@@ -243,6 +348,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
             }
         }
     }
+
 
 
     fun mostrar_listas_completas(

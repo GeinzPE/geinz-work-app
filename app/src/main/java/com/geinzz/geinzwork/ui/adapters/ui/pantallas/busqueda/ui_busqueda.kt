@@ -125,6 +125,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_salud_seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cabiar_rango_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -147,6 +148,8 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -158,12 +161,17 @@ import java.util.Locale
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ui_pantalla_busqueda(
+    viewmodelMap: viewmodel_mapa_personalizado,
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     localida_defauld: datos_principales_user,
     focusRequester: FocusRequester,
     ocultar: () -> Unit,
     estado_mostar: Boolean,
     iniciar_seccion_normal: () -> Unit,
-    crear_cuenta_geinz: () -> Unit
+    crear_cuenta_geinz: () -> Unit,
+    abrir_mapa: (String) -> Unit,
+    iniciar_seccion: () -> Unit,
+    crear_cuenta: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     var mostrar_dialog_cambiar_radio by remember { mutableStateOf(false) }
@@ -475,7 +483,8 @@ fun ui_pantalla_busqueda(
             )
         }
     }
-    val ultima_cordenada_actualziada by data_store_localidad.obtener_hashing_user(context).collectAsState(initial = null)
+    val ultima_cordenada_actualziada by data_store_localidad.obtener_hashing_user(context)
+        .collectAsState(initial = null)
     LaunchedEffect(ultima_cordenada_actualziada, cerca_de_ti_enable) {
         if (ultima_cordenada_actualziada != null && cerca_de_ti_enable) {
             Log.d("cambiamos_hasuser", "📍 Nueva coordenada: $ultima_cordenada_actualziada")
@@ -491,7 +500,6 @@ fun ui_pantalla_busqueda(
             Log.d("cambiamos_hasuser", "⚠️ No hay coordenada o cerca_de_ti_enable = false")
         }
     }
-
 
 
 //    LaunchedEffect(lista_encontrada_items) {
@@ -883,13 +891,19 @@ fun ui_pantalla_busqueda(
             }
         }
 
-//        if (bottom_sheet_turismo) {
-//            bottom_sheet_lugares_turisticos(
-//                viewmodel_lugares_turisticos
-//                datos_lugares_turisticos,
-//                bottom_sheet_turismo,
-//                { bottom_sheet_turismo = false },{})
-//        }
+        if (bottom_sheet_turismo) {
+            bottom_sheet_lugares_turisticos(
+                viewmodelMap = viewmodelMap,
+                viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
+                datos = datos_lugares_turisticos,
+                visible = bottom_sheet_turismo,
+                onClose = { bottom_sheet_turismo = false },
+                ver_mapa = { lista_lugares_cecanos ->
+                    abrir_mapa("turismo")
+                },
+                iniciar_seccion = { iniciar_seccion() },
+                crear_cuenta = { crear_cuenta() })
+        }
 
         if (mostrar_dialog_cambiar_radio) {
             dialogo_cabiar_rango_busqueda(

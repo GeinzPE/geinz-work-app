@@ -115,6 +115,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.verificar_hora_abierta_ykm
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.calcularDistanciaKm
@@ -145,7 +146,9 @@ fun bottom_sheet_lugares_turisticos(
     datos: lugares_turisticos,
     visible: Boolean,
     onClose: () -> Unit,
-    ver_mapa: (List<lugares_cercanos>) -> Unit
+    ver_mapa: (List<lugares_cercanos>) -> Unit,
+    iniciar_seccion: () -> Unit,
+    crear_cuenta: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -159,13 +162,13 @@ fun bottom_sheet_lugares_turisticos(
     val state_tiendas_cercanas by viewmodel_turismo.state_carga_tiendas_cercanas.collectAsState()
     val tick by viewmodel_filtrado.tick.collectAsState()
     val lista_general_completa by viewmodel_turismo._lista_general_completa.collectAsState()
-    val lista_lugares_cercanos by viewmodel_turismo.lista_filtrada_turistica.collectAsState()
 
     var nueva_busqueda by remember { mutableFloatStateOf(0f) }
     var buscar_nuevamente by remember { mutableStateOf(false) }
     var radioAnterior by remember { mutableStateOf(1.0) }
     var lista_subacteogorias by remember { mutableStateOf(emptyList<String>()) }
     var subcategoriatienda_select by remember { mutableStateOf("Todos") }
+    var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(mostrar_bottom_datos) {
@@ -235,10 +238,14 @@ fun bottom_sheet_lugares_turisticos(
                         tick = tick,
                         lista_items = state_tiendas_cercanas,
                         clik_card = { id, localidad, color ->
-                            mostrar_bottom_datos = true
-                            id_tienda = id
-                            localida_tienda = localidad
-                            color_estado_tienda = color
+                            if (firebaseAuth.currentUser != null) {
+                                mostrar_bottom_datos = true
+                                id_tienda = id
+                                localida_tienda = localidad
+                                color_estado_tienda = color
+                            } else {
+                                bottom_sheet_iniciar_seccion = true
+                            }
                         },
                         buscar_nuevas_tiendas = { radio ->
                             if (radio != radioAnterior) {
@@ -265,7 +272,7 @@ fun bottom_sheet_lugares_turisticos(
                             Log.d("Rangonuevo", nueva_busqueda.toString())
                         }, ver_mapa = { lugares_cercanos ->
                             ver_mapa(lugares_cercanos)
-                        })
+                        }, { bottom_sheet_iniciar_seccion = true })
                 }
             }
         }
@@ -274,6 +281,22 @@ fun bottom_sheet_lugares_turisticos(
     }
 
 
+    if (bottom_sheet_iniciar_seccion) {
+        bottom_sheet_registrate(
+            ondimis = {
+                bottom_sheet_iniciar_seccion = false
+            },
+            iniciar_seccion_normal = {
+                iniciar_seccion()
+                bottom_sheet_iniciar_seccion = false
+            },
+            crear_cuenta_geinz = {
+                crear_cuenta()
+                bottom_sheet_iniciar_seccion = false
+            },
+            texto_bottom_Sheet = "Regístrate para ver los detalles completos y las funciones exclusivas"
+        )
+    }
 
     if (mostrar_bottom_datos) {
         bottom_sheet_tiendas_filtradas(
@@ -301,7 +324,8 @@ fun card_img_container(
     lista_base: (List<lugares_cercanos>, List<String>) -> Unit,
     subcategoria_seleciondafun: (String) -> Unit,
     nuevo_rango_km: (Float) -> Unit,
-    ver_mapa: (List<lugares_cercanos>) -> Unit
+    ver_mapa: (List<lugares_cercanos>) -> Unit,
+    mostrar_login_seccion_bottom_sheet: () -> Unit
 ) {
 
     val listState = rememberLazyListState()
@@ -429,10 +453,14 @@ fun card_img_container(
                                 ) == PackageManager.PERMISSION_GRANTED
                             ) {
                                 if (lugares_turisticos_filtrados.isNotEmpty()) {
-                                    ver_mapa(lugares_turisticos_filtrados)
-                                    viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
-                                    viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
-                                    viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
+                                    if (firebaseAuth.currentUser != null) {
+                                        ver_mapa(lugares_turisticos_filtrados)
+                                        viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
+                                        viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
+                                        viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
+                                    } else {
+                                        mostrar_login_seccion_bottom_sheet()
+                                    }
                                 } else {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(

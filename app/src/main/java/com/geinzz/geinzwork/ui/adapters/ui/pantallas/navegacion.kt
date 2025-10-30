@@ -285,6 +285,8 @@ fun nativationWrapper(
 
                 composable("buscar") {
                     ui_pantalla_busqueda(
+                        viewmodelMapa,
+                        viewModelLugares,
                         localida_defauld = datos_principales_user,
                         focusRequester = focusRequester,
                         ocultar = {
@@ -293,8 +295,14 @@ fun nativationWrapper(
                             navController.navigate("login_principal")
                         }, crear_cuenta_geinz = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }
-                    )
+                        },    abrir_mapa = { tipo ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        },  crear_cuenta = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
+                        },iniciar_seccion = {
+                            navController.navigate("login_principal")
+                        })
+
 
 
                 }
@@ -344,10 +352,13 @@ fun nativationWrapper(
                         viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
-                    ) { tipo ->
-
-                        navController.navigate(map_perzonalizado(tipo, "barranca"))
-                    }
+                        abrir_mapa = { tipo ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        },  crear_cuenta = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
+                        },iniciar_seccion = {
+                            navController.navigate("login_principal")
+                        })
                 }
 
                 composable<map_perzonalizado> { navback ->
