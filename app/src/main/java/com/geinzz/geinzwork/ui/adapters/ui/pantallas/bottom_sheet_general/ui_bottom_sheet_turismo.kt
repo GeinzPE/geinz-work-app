@@ -130,6 +130,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -139,6 +140,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
+    viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     datos: lugares_turisticos,
     visible: Boolean,
@@ -182,6 +184,7 @@ fun bottom_sheet_lugares_turisticos(
     LaunchedEffect(Unit) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
         viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
+        viewmodelMap.setObjetoSeleccionado(datos)
     }
 
     LaunchedEffect(lista_general_completa) {
@@ -260,7 +263,7 @@ fun bottom_sheet_lugares_turisticos(
                                 datos.longitud, rango
                             )
                             Log.d("Rangonuevo", nueva_busqueda.toString())
-                        }, ver_mapa = { lugares_cercanos->
+                        }, ver_mapa = { lugares_cercanos ->
                             ver_mapa(lugares_cercanos)
                         })
                 }
@@ -310,12 +313,14 @@ fun card_img_container(
     var long_tienda by remember { mutableStateOf(0.0) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
-    var nueva_busqueda by remember { mutableStateOf(1.0f) }
     var mostrar_slider by remember { mutableStateOf(false) }
     var mostar_filtrado_categorias by remember { mutableStateOf(false) }
     var expandedItemId by remember { mutableStateOf<String?>(null) }
+    var nueva_busqueda by remember { mutableStateOf(1.0f) }
     var sub_categoria_selecionada by remember { mutableStateOf("Todos") }
-
+//    val nueva_busqueda by viewmodel_turismo.estado_categoria_filtrada.collectAsState()
+//    val sub_categoria_selecionada by viewmodel_turismo.estado_radio_filtrada.collectAsState()
+//
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
 
     var lugares_turisticos_filtrados by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
@@ -323,7 +328,7 @@ fun card_img_container(
     var scope = rememberCoroutineScope()
 
     LaunchedEffect(sub_categoria_selecionada) {
-       viewmodel_turismo.actualizarCategoria(sub_categoria_selecionada)
+        viewmodel_turismo.actualizarCategoria(sub_categoria_selecionada)
     }
 
     // Launcher para pedir permiso
@@ -426,7 +431,8 @@ fun card_img_container(
                                 if (lugares_turisticos_filtrados.isNotEmpty()) {
                                     ver_mapa(lugares_turisticos_filtrados)
                                     viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
-
+                                    viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
+                                    viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
                                 } else {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
@@ -578,7 +584,6 @@ fun card_img_container(
                                     false,
                                     clik_card = {
                                         coroutineScope.launch {
-
                                             if (!selecionado) {
                                                 if (i == "Todos") {
                                                     sub_categoria_selecionada = "Todos"

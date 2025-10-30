@@ -75,29 +75,38 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     private val _listaTiendascompeltaFlow = MutableSharedFlow<List<lugares_cercanos>>(replay = 1)
 
     private val _catFiltrada = MutableStateFlow<String?>(null)
-    val catFiltrada: StateFlow<String?> = _catFiltrada
 
     // Lista de categorías disponibles (chips mostrados en UI)
     private val _listaCatFiltrado = MutableStateFlow<List<String>>(emptyList())
-    val listaCatFiltrado: StateFlow<List<String>> = _listaCatFiltrado
 
     // Radio de búsqueda en metros o km (según tu implementación)
     private val _radioFiltrado = MutableStateFlow<Double>(1000.0) // por defecto 1 km
-    val radioFiltrado: StateFlow<Double> = _radioFiltrado
+
+
+    private val _lat_lugar = MutableStateFlow<Double>(0.0) // por defecto 1 km
+    private val _lng_lugar = MutableStateFlow<Double>(0.0) // por defecto 1 km
 
 
     private val _estadoFiltrado = MutableStateFlow(TiendasCercanasFiltrada())
     val estadoFiltrado = _estadoFiltrado.asStateFlow()
 
 
+    private val _estado_categoria_filtrada = MutableStateFlow("Todos")
+    val estado_categoria_filtrada = _estado_categoria_filtrada.asStateFlow()
+
+    private val _estado_radio_filtrada = MutableStateFlow(1.0)
+    val estado_radio_filtrada = _estado_radio_filtrada.asStateFlow()
+
+
     fun actualizarCategoria(nuevaCategoria: String) {
         _estadoFiltrado.update { it.copy(categoriaFiltrada = nuevaCategoria) }
+        _estado_categoria_filtrada.value=nuevaCategoria
     }
 
     fun actualizarRadio(nuevoRadio: Double) {
-Log.d("estamos",nuevoRadio.toString())
         val radioFinal = if (nuevoRadio == 0.0) 1.0 else nuevoRadio
         _estadoFiltrado.update { it.copy(radioFiltrado = radioFinal) }
+        _estado_radio_filtrada.value=nuevoRadio
     }
 
 
@@ -107,6 +116,15 @@ Log.d("estamos",nuevoRadio.toString())
 
     fun actualizarListaCompleta(lista: List<lugares_cercanos>) {
         _estadoFiltrado.update { it.copy(listaCompleta = lista) }
+    }
+
+    fun actualizar_lat_lugar(lat:Double){
+        _estadoFiltrado.update { it.copy(lugar_lat=lat) }
+    }
+
+
+    fun actualizar_lng_lugar(lng:Double){
+        _estadoFiltrado.update { it.copy(lugar_lng =lng) }
     }
     val listaTiendasGuardadas = _listaTiendasGuardadasFlow
         .stateIn(

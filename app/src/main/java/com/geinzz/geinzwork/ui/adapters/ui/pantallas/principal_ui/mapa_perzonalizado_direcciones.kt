@@ -147,6 +147,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun pantalla_mapa_perzonalizado(
+    viewmodelMapa:viewmodel_mapa_personalizado,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
@@ -155,6 +156,7 @@ fun pantalla_mapa_perzonalizado(
 ) {
     Box() {
         MyGoogle_maps(
+            viewmodelMapa,
             tipo,
             viewmodel_lugares_turisticos,
             viewModel_filtrado_tiendas,
@@ -168,6 +170,7 @@ fun pantalla_mapa_perzonalizado(
 @SuppressLint("MissingPermission")
 @Composable
 fun MyGoogle_maps(
+    viewmodelMapa: viewmodel_mapa_personalizado,
     tipo: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
@@ -184,7 +187,6 @@ fun MyGoogle_maps(
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
         emptyList()
     )
-    val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
 
     val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos.listaTiendasGuardadas.collectAsState()
     val estado by viewmodel_lugares_turisticos.estadoFiltrado.collectAsState()
@@ -645,6 +647,7 @@ fun MyGoogle_maps(
 
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
+                viewmodel_lugares_turisticos,
                 estado,
                 seleccionadoId = seleccionadoId ?: "",
                 lat_user = lat_user,

@@ -27,10 +27,12 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +58,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
+import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
@@ -65,6 +68,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_mapa(
+    viewmodelMapa: viewModel_lugares_turisticos,
     estado: TiendasCercanasFiltrada,
     seleccionadoId: String,
     lat_user: Double,
@@ -77,6 +81,20 @@ fun bottom_sheet_mapa(
     selecionado_id: (String?) -> Unit,
     datos_selecionado_retornar: (dataclass_map) -> Unit
 ) {
+
+    var estadoFiltro by rememberSaveable {
+        mutableStateOf(
+            TiendasCercanasFiltrada(
+                estado.categoriaFiltrada,
+                estado.radioFiltrado,
+                estado.listaCategorias,
+                estado.listaCompleta,
+                estado.lugar_lat,
+                estado.lugar_lng
+            )
+        )
+    }
+
 
     ModalBottomSheet(
         onDismissRequest = { onclose() },
@@ -92,10 +110,11 @@ fun bottom_sheet_mapa(
                 when (tipo) {
                     "turismo" -> {
                         listado_items(
-                            estado,
-                            "turismo",
-                            seleccionadoId,
-                            cameraPositionState,
+                            viewmodelMapa = viewmodelMapa,
+                            teindas_cercanas_fitrada = estadoFiltro,
+                            tipo = "turismo",
+                            seleccionadoId = seleccionadoId,
+                            cameraPositionState = cameraPositionState,
                             lista = lista_filtrada_turismo,
                             getId = { it.id_tienda },
                             getLat = { it.latitud },
@@ -123,6 +142,11 @@ fun bottom_sheet_mapa(
                                         metodos_pago_tienda = id.metodos_pago_tienda
                                     )
                                 )
+                            }, estados_guardado = { categoria, radio ->
+                                estadoFiltro = estadoFiltro.copy(
+                                    categoriaFiltrada = categoria,
+                                    radioFiltrado = radio
+                                )
                             }
                         )
 
@@ -130,10 +154,11 @@ fun bottom_sheet_mapa(
 
                     "tiendas" -> {
                         listado_items(
-                            TiendasCercanasFiltrada(),
-                            "tiendas",
-                            seleccionadoId,
-                            cameraPositionState,
+                            viewmodelMapa = viewmodelMapa,
+                            teindas_cercanas_fitrada = TiendasCercanasFiltrada(),
+                            tipo = "tiendas",
+                            seleccionadoId = seleccionadoId,
+                            cameraPositionState = cameraPositionState,
                             lista = lista,
                             getId = { it.id_tienda },
                             getLat = { it.latitud },
@@ -141,7 +166,7 @@ fun bottom_sheet_mapa(
                             getLogo = { it.logo_tienda },
                             getNombre = { it.nombre_tienda },
                             getDescripcion = { it.descripcion },
-                            selecionado = { id ->
+                            selecionado ={ id ->
                                 selecionado_id(id.id_tienda)
                                 datos_selecionado_retornar(
                                     dataclass_map(
@@ -161,7 +186,7 @@ fun bottom_sheet_mapa(
                                         metodos_pago_tienda = id.metodos_pago_tienda
                                     )
                                 )
-                            }
+                            },{_,_->}
                         )
                     }
 
@@ -180,6 +205,7 @@ fun bottom_sheet_mapa(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> listado_items(
+    viewmodelMapa: viewModel_lugares_turisticos,
     teindas_cercanas_fitrada: TiendasCercanasFiltrada,
     tipo: String,
     seleccionadoId: String,
@@ -191,11 +217,29 @@ fun <T> listado_items(
     getLogo: (T) -> String,
     getNombre: (T) -> String,
     getDescripcion: (T) -> String,
-    selecionado: (T) -> Unit // ← ahora retorna el objeto completo
+    selecionado: (T) -> Unit,
+    estados_guardado: (categoira: String, filtrado: Double) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    var sub_categoria_selecionada by remember { mutableStateOf("") }
-    var mostrar_filtrado by remember { mutableStateOf(false) }
+    var sub_categoria_selecionada by rememberSaveable {
+        mutableStateOf(teindas_cercanas_fitrada.categoriaFiltrada)
+    }
+    var mostrar_filtrado by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var nuevo_rango_busqueda by rememberSaveable {
+        mutableStateOf(teindas_cercanas_fitrada.radioFiltrado.toFloat())
+    }
+    LaunchedEffect(sub_categoria_selecionada) {
+        viewmodelMapa.filtrar_por_subcategoria(
+            teindas_cercanas_fitrada.listaCategorias,
+            sub_categoria_selecionada,
+            teindas_cercanas_fitrada.lugar_lat, teindas_cercanas_fitrada.lugar_lng,
+            nuevo_rango_busqueda
+        )
+        estados_guardado(sub_categoria_selecionada, nuevo_rango_busqueda.toDouble())
+        viewmodelMapa.actualizarCategoria(sub_categoria_selecionada)
+    }
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
@@ -235,7 +279,7 @@ fun <T> listado_items(
                                 color = MaterialTheme.colorScheme.primary,
                                 textDecoration = TextDecoration.Underline,
 
-                            )
+                                )
                         ) {
                             append("ajustar los filtros")
                         }
@@ -255,7 +299,7 @@ fun <T> listado_items(
                             annotatedText.getStringAnnotations("filtros", offset, offset)
                                 .firstOrNull()?.let { annotation ->
                                     if (annotation.item == "abrir_filtros") {
-                                        mostrar_filtrado=!mostrar_filtrado
+                                        mostrar_filtrado = !mostrar_filtrado
                                         Log.d("Mapa", "Abrir filtros clickeado")
                                         // aquí puedes poner abrirBottomSheetFiltros()
                                     }
@@ -274,14 +318,24 @@ fun <T> listado_items(
                     if (teindas_cercanas_fitrada != TiendasCercanasFiltrada()) {
                         Column {
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                val listaConTodos = if ("Todos" in teindas_cercanas_fitrada.listaCategorias) teindas_cercanas_fitrada.listaCategorias else listOf("Todos") + teindas_cercanas_fitrada.listaCategorias
+                                val listaConTodos =
+                                    if ("Todos" in teindas_cercanas_fitrada.listaCategorias) teindas_cercanas_fitrada.listaCategorias else listOf(
+                                        "Todos"
+                                    ) + teindas_cercanas_fitrada.listaCategorias
                                 items(listaConTodos) { i ->
-                                    val selecionado = teindas_cercanas_fitrada.categoriaFiltrada == i
+                                    val selecionado = sub_categoria_selecionada == i
                                     chisp_filtrado_busqueda(
                                         selecionado,
                                         simplificarCategoria(i),
                                         false,
                                         clik_card = {
+                                            if (!selecionado) {
+                                                if (i == "Todos") {
+                                                    sub_categoria_selecionada = "Todos"
+                                                } else {
+                                                    sub_categoria_selecionada = i
+                                                }
+                                            }
                                         },
                                         onClick_delete = {},
                                         true,
@@ -293,16 +347,21 @@ fun <T> listado_items(
 
                             spacer_vertical(10.dp)
                             Slider(
-                                value = teindas_cercanas_fitrada.radioFiltrado.toFloat(),
+                                value = nuevo_rango_busqueda,
                                 onValueChange = {
-//                            teindas_cercanas_fitrada.radioFiltrado = it.roundToInt().toFloat()
+                                    nuevo_rango_busqueda = it.roundToInt().toFloat()
                                 },
                                 valueRange = 1f..10f,
                                 steps = 8,
                                 onValueChangeFinished = {
-//                            buscar_nuevas_tiendas(nueva_busqueda.toDouble())
-//                            nuevo_rango_km(nueva_busqueda)
-//                            viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
+                                    viewmodelMapa.filtrar_por_subcategoria(
+                                        teindas_cercanas_fitrada.listaCategorias,
+                                        sub_categoria_selecionada,
+                                        teindas_cercanas_fitrada.lugar_lat,
+                                        teindas_cercanas_fitrada.lugar_lng,
+                                        nuevo_rango_busqueda
+                                    )
+                                    viewmodelMapa.actualizarRadio(nuevo_rango_busqueda.toDouble())
                                 },
                                 colors = SliderDefaults.colors(
                                     thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
@@ -323,7 +382,8 @@ fun <T> listado_items(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         texto_generico_one_line(
-                                            teindas_cercanas_fitrada.radioFiltrado.toInt().toString(),
+                                            nuevo_rango_busqueda.toInt()
+                                                .toString(),
                                             color = Color.Black,
                                             style = MaterialTheme.typography.bodyMedium
                                         )

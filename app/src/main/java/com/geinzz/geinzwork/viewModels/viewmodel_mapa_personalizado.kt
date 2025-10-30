@@ -32,9 +32,22 @@ class viewmodel_mapa_personalizado : ViewModel() {
     private val _listaFiltrada = MutableStateFlow<List<lugares_turisticos>>(emptyList())
     val listaFiltrada: StateFlow<List<lugares_turisticos>> = _listaFiltrada
 
+    private val _estadoBottomSheet = MutableStateFlow(false)
+    val estadoBottomSheet = _estadoBottomSheet.asStateFlow()
+
+    private val _objetoSeleccionado=MutableStateFlow(lugares_turisticos())
+    val objetoSeleccionado = _objetoSeleccionado.asStateFlow()
+
 
     private val _estaCercaTienda = MutableStateFlow(false)
     val estaCercaTienda = _estaCercaTienda.asStateFlow()
+
+    fun setBottomSheetVisible(visible: Boolean) {
+        _estadoBottomSheet.value = visible
+    }
+    fun setObjetoSeleccionado(objeto: lugares_turisticos) {
+        _objetoSeleccionado.value = objeto
+    }
 
     private var ultima_lat_user=0.0
     private var ultima_lon_user=0.0

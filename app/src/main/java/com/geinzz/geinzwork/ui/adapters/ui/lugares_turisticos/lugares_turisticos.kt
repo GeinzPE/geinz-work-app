@@ -1,31 +1,21 @@
 package com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.util.Log
-import android.widget.Button
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -34,13 +24,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,45 +42,31 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.mascara_img
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
-import androidx.core.content.ContextCompat
-import com.algolia.search.dsl.ranking.DSLRanking
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Estados_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.LazyRowConSombras
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
-import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
-import kotlinx.coroutines.delay
-import java.nio.file.WatchEvent
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 
 
 @Composable
 fun pantalla_lugares_turisticos(
+    viewmodelMapa: viewmodel_mapa_personalizado,
     localidad_selecionada: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     abrir_mapa: (String) -> Unit,
@@ -169,7 +139,9 @@ fun pantalla_lugares_turisticos(
     ) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize().padding(10.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalItemSpacing = 10.dp
         ) {
@@ -264,9 +236,15 @@ fun pantalla_lugares_turisticos(
                     mostar_error = false
                     lista_categoria = listOf("Todos") + state.lista_categoria
                     itemsIndexed(state.lista_lugares) { index, item ->
-                        carta_turismo(viewmodel_lugares_turisticos,index,item.img_principal,item,{tipo->
-                            abrir_mapa(tipo)
-                        })
+                        carta_turismo(
+                            viewmodelMapa,
+                            viewmodel_lugares_turisticos,
+                            index,
+                            item.img_principal,
+                            item,
+                            { tipo ->
+                                abrir_mapa(tipo)
+                            })
                     }
                 }
             }
@@ -538,7 +516,12 @@ fun pantalla_lugares_turisticos(
 
         // 🟦 Fade inferior
 
-        AnimatedVisibility(!mostra_pantalla_carga, modifier = Modifier .align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
+        AnimatedVisibility(
+            !mostra_pantalla_carga,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -559,12 +542,22 @@ fun pantalla_lugares_turisticos(
 
     }
 }
+
 @Composable
-fun carta_turismo(viewmodel_lugares_turisticos: viewModel_lugares_turisticos, index: Int, img:String, lugar: lugares_turisticos, abrir_mapa:(String)-> Unit){
-    var mostrar_dialog by remember { mutableStateOf(false) }
+fun carta_turismo(
+    viewmodelMap: viewmodel_mapa_personalizado,
+    viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
+    index: Int,
+    img: String,
+    lugar: lugares_turisticos,
+    abrir_mapa: (String) -> Unit
+) {
+    val bottomSheetVisible by viewmodelMap.estadoBottomSheet.collectAsState()
+    val lugarSeleccionado by viewmodelMap.objetoSeleccionado.collectAsState()
 
     val heightOptions = listOf(200.dp, 250.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -588,26 +581,33 @@ fun carta_turismo(viewmodel_lugares_turisticos: viewModel_lugares_turisticos, in
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            mostrar_dialog = true
+                            // Solo abre el sheet de este lugar
+                            viewmodelMap.setObjetoSeleccionado(lugar)
+                            viewmodelMap.setBottomSheetVisible(true)
                         },
-
                     contentScale = ContentScale.Crop
                 )
-
             }
         }
     }
-    if (mostrar_dialog) {
+
+    // ✅ Mostrar solo si este es el lugar seleccionado
+    if (bottomSheetVisible && lugarSeleccionado == lugar) {
         bottom_sheet_lugares_turisticos(
+            viewmodelMap,
             viewmodel_lugares_turisticos,
             datos = lugar,
-            visible = mostrar_dialog,
-            onClose = { mostrar_dialog = false },
+            visible = true,
+            onClose = {
+                viewmodelMap.setBottomSheetVisible(false)
+            },
             ver_mapa = {
                 abrir_mapa("turismo")
-            })
+            }
+        )
     }
 }
+
 
 //@Composable
 //fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos) {

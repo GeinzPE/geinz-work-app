@@ -81,6 +81,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -101,6 +102,7 @@ fun nativationWrapper(
     val viewModel_login_user: viewModel_login_user = viewModel()
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
+    val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -349,6 +351,7 @@ fun nativationWrapper(
                 composable<lugares_turisticos> { navback ->
                     val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
+                        viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
                     ) { tipo ->
@@ -360,6 +363,7 @@ fun nativationWrapper(
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
+                        viewmodelMapa,
                         viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
                         viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
                         viewmodel_lugares_turisticos = viewModelLugares,
