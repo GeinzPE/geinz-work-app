@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -50,14 +52,13 @@ fun dialog_sin_ubicacion_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            Button(
-                onClick = {
-                    abrir_configuracion()
-                },
-                shape = RoundedCornerShape(15)
-            ) { Text(text = "Activar Ubicación", color = Color.White) }
+            btn_aceptar_etc_dialog_general("Activar Ubicación") {
+                abrir_configuracion()
+            }
         },
-        dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
+        dismissButton = {  btn_cerra_etc_dialog_general {
+            onDismis()
+        } },
         title = {
             Text(
                 text = "Ubicación desactivada",
@@ -108,14 +109,13 @@ fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion:
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            Button(
-                onClick = {
-                    abrir_configuracion()
-                },
-                shape = RoundedCornerShape(15)
-            ) { Text(text = "Activar Ubicación", color = Color.White) }
+            btn_aceptar_etc_dialog_general("Activar Ubicación") {
+                abrir_configuracion()
+            }
         },
-        dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
+        dismissButton = {  btn_cerra_etc_dialog_general {
+            onDismis()
+        } },
         title = {
             Text(
                 text = "Ubicación desactivada",
@@ -232,12 +232,16 @@ fun dialog_sin_ubi_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            Button(
-                onClick = { abrir_maps() },
-                shape = RoundedCornerShape(15)
-            ) { Text(text = "Abrir con Google Maps", color = Color.White) }
+            btn_aceptar_etc_dialog_general ( "Abrir con Google Maps"){
+                abrir_maps()
+            }
+
         },
-        dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
+        dismissButton = {
+            btn_cerra_etc_dialog_general {
+                onDismis()
+            }
+        },
 
         title = {
             Text(

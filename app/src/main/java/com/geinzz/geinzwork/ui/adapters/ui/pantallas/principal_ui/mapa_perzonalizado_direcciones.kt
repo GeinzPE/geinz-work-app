@@ -1,13 +1,17 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -50,6 +54,8 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -64,6 +70,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -90,6 +97,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
@@ -105,6 +113,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.campos_de_pago
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
@@ -114,12 +123,15 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isLocationEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarDistanciaFormateada
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
@@ -135,6 +147,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
@@ -144,6 +157,9 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun pantalla_mapa_perzonalizado(
@@ -183,7 +199,7 @@ fun MyGoogle_maps(
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
     var long_luga_seg by remember { mutableStateOf(0.0) }
-//    val lista_filtrada_turismo by viewmodel_lugares_turisticos.listaFiltrada.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
         emptyList()
     )
@@ -273,7 +289,8 @@ fun MyGoogle_maps(
 
     var primeravez by remember { mutableStateOf(true) }
 
-
+    val seguirUbicacion = remember { mutableStateOf(false) }
+    val animatingMap = remember { mutableStateOf(false) }
 
 
     LaunchedEffect(id_lugar_tienda_select) {
@@ -318,6 +335,21 @@ fun MyGoogle_maps(
 //        )
 //
 //    }
+
+    LaunchedEffect(seguirUbicacion.value) {
+        val mensaje = if (seguirUbicacion.value) {
+            "Seguimiento automático activado"
+        } else {
+            "Seguimiento automático desactivado"
+        }
+
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = mensaje,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
     DisposableEffect(Unit) {
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
@@ -330,9 +362,22 @@ fun MyGoogle_maps(
                 lat_user = location.latitude
                 log_user = location.longitude
                 viewmodelMapa.actualizar_ubicacion(location.latitude, location.longitude)
-
+                if (seguirUbicacion.value) {
+                    scope.launch {
+                        animatingMap.value = true
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(lat_user, log_user),
+                                16f
+                            ),
+                            1000
+                        )
+                        animatingMap.value = false
+                    }
+                }
             }
         }
+
 
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
@@ -343,6 +388,18 @@ fun MyGoogle_maps(
         onDispose {
             fusedLocationClient.removeLocationUpdates(locationCallback)
             Log.d("MapaScreen", "Se detuvieron las actualizaciones de ubicación")
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
         }
     }
 
@@ -385,10 +442,13 @@ fun MyGoogle_maps(
             { validacion_mostrar_dialog_ubi_off = false },
             {
                 validacion_mostrar_dialog_ubi_off = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                verificarGPS(context, launcher)
                 show_dialog_datos_lugares = false
             })
     }
+
+
+
 
     Box() {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -402,7 +462,8 @@ fun MyGoogle_maps(
                 uiSettings = MapUiSettings(
                     myLocationButtonEnabled = false,
                     zoomControlsEnabled = false
-                )
+                ),
+
             ) {
 
                 when (tipo) {
@@ -505,8 +566,29 @@ fun MyGoogle_maps(
 
         }
 
+
+
+
+        LaunchedEffect(cameraPositionState) {
+            snapshotFlow { cameraPositionState.isMoving }
+                .collect { isMoving ->
+                    if (isMoving && !animatingMap.value) {
+                        seguirUbicacion.value = false
+                        animatingMap.value=false
+                        Log.d("movemos_mapa","deedmoes")
+                    }
+                }
+        }
+        val fabColor by animateColorAsState(
+            targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(0xFF9C7BFF),
+            animationSpec = tween(
+                durationMillis = 300 // 0.3 segundos, suave pero rápido
+            )
+        )
+
         FloatingActionButton(
-            containerColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(10.dp),
+            containerColor = fabColor,
             contentColor = Color.White,
             onClick = {
                 if (verificarUbiActiva(context)) {
@@ -515,12 +597,16 @@ fun MyGoogle_maps(
                             val userLatLng = LatLng(it.latitude, it.longitude)
                             log_user = it.longitude
                             lat_user = it.latitude
-                            Log.d("obtenoemos_la_tog", " userprimario = ${log_user} ${lat_user}")
                             scope.launch {
+                                animatingMap.value = true
+                                // Espera a que termine la animación
                                 cameraPositionState.animate(
                                     CameraUpdateFactory.newLatLngZoom(userLatLng, 16f),
                                     1000
                                 )
+                                animatingMap.value = false
+                                seguirUbicacion.value = true
+                                Log.d("movemos_mapa","auto")
                             }
                         }
                     }
@@ -528,17 +614,10 @@ fun MyGoogle_maps(
                     validacion_mostrar_dialog_ubi_off = true
                 }
                 mostar_bottom_sheet = true
-            },
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
+            }
         ) {
-            Icon(
-                imageVector = Icons.Default.MyLocation,
-                contentDescription = "Mi ubicación"
-            )
+            Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación")
         }
-        Log.d("(!show_botoom_sheet && !boxVisible)", "${!show_botoom_sheet} ${!boxVisible}")
         AnimatedVisibility(
             visible = (!show_botoom_sheet && !boxVisible) && show_dialog_datos_lugares,
             enter = fadeIn(),
@@ -961,6 +1040,7 @@ fun MyGoogle_maps(
                 )
             }
         }
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
     }
     if (call_dialog_permise) {
         permisos_llamadas(aceptar_permisos = {

@@ -30,12 +30,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHandle): ViewModel() {
+class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
 
-    private val instancia_repo_lugar_turistico= repo_lugares_turisticos()
+
+    private val _categoria_filtrado = MutableStateFlow("Todos")
+    val subcategoriaFiltrado: StateFlow<String> get() = _categoria_filtrado
+
+    private val _txt_nombre_filtrado = MutableStateFlow("")
+    val txtNombreFiltrado: StateFlow<String> get() = _txt_nombre_filtrado
+
+
+    private val instancia_repo_lugar_turistico = repo_lugares_turisticos()
 
     private val _instance_lugar_turistico = MutableStateFlow(lugares_turisticos())
     val instance_lugar_turistico: StateFlow<lugares_turisticos> = _instance_lugar_turistico
@@ -61,7 +69,8 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
     val _datos_tienda: LiveData<List<modelo_tienda>> get() = datos_tienda
 
 
-    private val datos_tiendas_sin_pago = MutableLiveData<carga_tiendas_sin_pago>(carga_tiendas_sin_pago.loading_tiendas_free)
+    private val datos_tiendas_sin_pago =
+        MutableLiveData<carga_tiendas_sin_pago>(carga_tiendas_sin_pago.loading_tiendas_free)
     val _datos_tienda_sin_pago: LiveData<carga_tiendas_sin_pago> get() = datos_tiendas_sin_pago
 
 
@@ -90,6 +99,7 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
             }
         }
     }
+
     init {
         viewModelScope.launch {
             while (true) {
@@ -122,11 +132,65 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
     val _datos__tiendas: LiveData<List<tiendas_por_categoria>> get() = datos_tiendas
 
 
-    private val subcategoria_lis=MutableStateFlow<List<String>>(emptyList())
+    private val subcategoria_lis = MutableStateFlow<List<String>>(emptyList())
     val _subcategoria_lis: StateFlow<List<String>> = subcategoria_lis
 
     var toda_las_tiendas = mutableListOf<tiendas_por_categoria>()
         private set
+
+
+    val _lista_base_seguridad = MutableStateFlow<List<tiendas_por_categoria>>(emptyList())
+    fun actualizarsubcategoria_filtrado(nuevaCategoria: String) {
+        _categoria_filtrado.value = nuevaCategoria
+    }
+
+    fun actualizarNombre(nuevoNombre: String) {
+        _txt_nombre_filtrado.value = nuevoNombre
+    }
+
+    fun limpiarFiltros() {
+        _categoria_filtrado.value = "Todos"
+        _txt_nombre_filtrado.value = ""
+    }
+
+    fun aplicarFiltrosAlRegresar() {
+        Log.d("FiltroRegreso", "➡️ Detectamos regreso desde el mapa")
+
+        val categoria = _categoria_filtrado.value
+        val texto = _txt_nombre_filtrado.value
+        val listaBase = _lista_base_seguridad.value
+
+        Log.w("FiltroRegreso", "Tamaño de lista base: ${listaBase.size}")
+
+        if (listaBase.isEmpty()) {
+            Log.w("FiltroRegreso", "⚠️ No hay tiendas cargadas aún, no se aplican filtros.")
+            return
+        }
+
+        when {
+            texto.isNotEmpty() && categoria != "Todos" -> {
+                Log.d("FiltroRegreso", "Filtrando por nombre '$texto' y categoría '$categoria'")
+                obtener_filtrado_nombre(texto, categoria, listaBase)
+            }
+
+            texto.isNotEmpty() -> {
+                Log.d("FiltroRegreso", "Filtrando solo por nombre: '$texto'")
+                obtener_filtrado_nombre(texto, categoria, listaBase)
+            }
+
+            categoria != "Todos" -> {
+                Log.d("FiltroRegreso", "Filtrando solo por categoría: '$categoria'")
+                filtrar_por_subcategoria(categoria, listaBase)
+            }
+
+            else -> {
+                Log.d("FiltroRegreso", "Sin filtros activos, mostrando lista completa.")
+                state_Tiendas_filtradas_por_categoria.value = carga_tiendas.succes(listaBase)
+            }
+        }
+    }
+
+
 
     fun obtener_categorias() {
         viewModelScope.launch {
@@ -140,7 +204,6 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
             }
         }
     }
-
 
 
     fun obtener_cat_lugares() {
@@ -173,41 +236,23 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
     }
 
 
-    fun get_subcategorias_sola(cat: String){
+    fun get_subcategorias_sola(cat: String) {
         viewModelScope.launch {
             try {
-                subcategoria_lis.value=repo_filtrado.obtenerSubcategorias(cat)
-                Log.d("categoriacategoria",   subcategoria_lis.value.toString())
-            }catch (e: Exception){
-                subcategoria_lis.value=emptyList()
+                subcategoria_lis.value = repo_filtrado.obtenerSubcategorias(cat)
+                Log.d("categoriacategoria", subcategoria_lis.value.toString())
+            } catch (e: Exception) {
+                subcategoria_lis.value = emptyList()
             }
         }
     }
-
 
 
     fun tiendas_iniciales(lista: List<tiendas_por_categoria>) {
+
         toda_las_tiendas.clear()
         toda_las_tiendas.addAll(lista)
-        Log.d("Tiendas_inicalaes","${lista.size}")
     }
-
-    fun obtener_subcategorias(categoria_selecionada: String) {
-        viewModelScope.launch {
-            try {
-                val data = repo_filtrado.obtener_subcategorias_tiendas(categoria_selecionada)
-                subcategorias.value = data
-                Log.d(
-                    "obtenemos_datos",
-                    " $categoria_selecionada ${subcategorias.value.toString()}"
-                )
-
-            } catch (e: Exception) {
-                subcategorias.value = emptyList()
-            }
-        }
-    }
-
 
     fun obtener_tiendas_filtradas(localida: String, categoria: String) {
         Log.d("tiendas_eobtenidas", "${localida} $categoria")
@@ -217,6 +262,7 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
                 val data = repo_filtrado.obtenerTiendasFiltradas(localida, categoria)
                 if (data.isNotEmpty()) {
                     datos_tiendas.value = data
+                    _lista_base_seguridad.value = data
                     state_Tiendas_filtradas_por_categoria.value = carga_tiendas.succes(data)
                 } else {
                     datos_tiendas.value = emptyList()
@@ -231,14 +277,14 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
         }
     }
 
-    fun filtrar_por_subcategoria(subcategoria: String,lista: List<tiendas_por_categoria>) {
-        Log.d("filtrado_sub", "Filtrando por: $subcategoria")
+    fun filtrar_por_subcategoria(subcategoria: String, lista: List<tiendas_por_categoria>) {
+        Log.d("131231312313123", "$subcategoria")
 
         viewModelScope.launch {
             state_Tiendas_filtradas_por_categoria.value = carga_tiendas.loading
-            val listaBase =lista
+            val listaBase = lista
 
-            val resultado=listaBase.filter { tienda ->
+            val resultado = listaBase.filter { tienda ->
                 tienda.lista_subcategoiras.any { it.equals(subcategoria, ignoreCase = true) }
             }
 
@@ -250,10 +296,10 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
         }
     }
 
-    fun lista_completa_inicial(subcategoria: String){
+    fun lista_completa_inicial(subcategoria: String) {
         viewModelScope.launch {
-            if(subcategoria=="Todos" && toda_las_tiendas.isNotEmpty()){
-                Log.d("toda_las_tiendas","${toda_las_tiendas.size}")
+            if (subcategoria == "Todos" && toda_las_tiendas.isNotEmpty()) {
+                Log.d("toda_las_tiendas", "${toda_las_tiendas.size}")
                 state_Tiendas_filtradas_por_categoria.value = carga_tiendas.succes(toda_las_tiendas)
                 return@launch
             }
@@ -265,6 +311,7 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
         categoria: String,
         lista: List<tiendas_por_categoria>
     ) {
+        Log.d("131231312313123", "$texto $categoria ${lista.size}")
         viewModelScope.launch {
             try {
                 state_Tiendas_filtradas_por_categoria.value = carga_tiendas.loading
@@ -373,12 +420,13 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
         }
     }
 
-    fun obtener_datos_lugares_turisticos(id: String,localida: String){
+    fun obtener_datos_lugares_turisticos(id: String, localida: String) {
         viewModelScope.launch {
             try {
-                _instance_lugar_turistico.value=instancia_repo_lugar_turistico.get_lugar_turistico(localida,id)
-            }catch (e: Exception){
-                _instance_lugar_turistico.value=lugares_turisticos()
+                _instance_lugar_turistico.value =
+                    instancia_repo_lugar_turistico.get_lugar_turistico(localida, id)
+            } catch (e: Exception) {
+                _instance_lugar_turistico.value = lugares_turisticos()
             }
         }
 
@@ -387,8 +435,9 @@ class viewModel_filtado_tiendas (   private val savedStateHandle: SavedStateHand
     sealed class carga_tiendas_sin_pago {
         object loading_tiendas_free : carga_tiendas_sin_pago()
         object empty_tiendas_free : carga_tiendas_sin_pago()
-        data class succes_tiendas_free(val item: datos_tienda_free): carga_tiendas_sin_pago()
-        data class error_tiendas_free(val texto: String = "Error al cargar los datos"): carga_tiendas_sin_pago()
+        data class succes_tiendas_free(val item: datos_tienda_free) : carga_tiendas_sin_pago()
+        data class error_tiendas_free(val texto: String = "Error al cargar los datos") :
+            carga_tiendas_sin_pago()
     }
 
     sealed class carga_subcategorias {

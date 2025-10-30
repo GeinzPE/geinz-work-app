@@ -3,7 +3,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -32,7 +31,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,7 +57,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos.iu_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.iniciar_seccion_normal
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPress
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
@@ -69,12 +66,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_se
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servicio_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
-import com.geinzz.geinzwork.utils.constantes.constantes.constantes.agregar_horario_tiendas
-import com.geinzz.geinzwork.utils.constantes.constantes.constantes.listaDeTiendas
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.agregar_lugares_turisticos
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_cordenadas
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.subir_cordenas_algolioa
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -84,7 +75,6 @@ import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -372,31 +362,38 @@ fun nativationWrapper(
                     )
                 }
 
-                composable<screen_filtrado> { navback ->
-                    val categoria_localidad = navback.toRoute<screen_filtrado>()
+                composable<screen_filtrado> { navBackStackEntry ->
+                    val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
+
+
                     Pantalla_filtrado_tiendas(
-                        viewModel_filtrado_tiendas,
-                        categoria_localidad.categoria,
-                        categoria_localidad.localidad,
-                        categoria_localidad.nombre_user,
-                        navigation_regresar = { navController.popBackStack() },
+                        viewModelFiltros = viewModel_filtrado_tiendas,
+                        categoria = categoria_localidad.categoria,
+                        localida = categoria_localidad.localidad,
+                        nombre_user = categoria_localidad.nombre_user,
+                        navigation_regresar = {
+                            viewModel_filtrado_tiendas.limpiarFiltros()
+                            navController.popBackStack()
+                        },
                         abrir_mapa = { tipo, localidad ->
                             if (firebaseAuth.currentUser != null) {
-                                bottom_sheet_iniciar_seccion = false
                                 navController.navigate(map_perzonalizado(tipo, localidad))
                             } else {
                                 bottom_sheet_iniciar_seccion = true
-
                             }
-                        }, iniciar_normal = {
+                        },
+                        iniciar_normal = {
                             navController.navigate("login_principal")
-                        }, con_google = {
+                        },
+                        con_google = {
                             navController.navigate("login_principal")
-                        }, crear_cuenta = {
+                        },
+                        crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }
+                        },navController
                     )
                 }
+
 
 
 
@@ -471,11 +468,14 @@ fun nativationWrapper(
                 iniciar_seccion_normal = {
                     navController.navigate("login_principal")
                     bottom_sheet_iniciar_seccion = false
+                    viewModel_filtrado_tiendas.limpiarFiltros()
                 },
                 crear_cuenta_geinz = {
                     bottom_sheet_iniciar_seccion = false
                     navController.navigate(crear_cuenta_geinz("crear"))
+                    viewModel_filtrado_tiendas.limpiarFiltros()
                 }, "Desbloquea el mapa completo y explora lo que te rodea"
+
             )
         }
     }

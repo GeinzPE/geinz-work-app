@@ -6,6 +6,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -81,6 +82,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -136,8 +139,11 @@ fun Pantalla_filtrado_tiendas(
     iniciar_normal: () -> Unit,
     con_google: () -> Unit,
     crear_cuenta: () -> Unit,
+    navController: NavHostController,
 ) {
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
@@ -153,20 +159,11 @@ fun Pantalla_filtrado_tiendas(
     var visible_texfiel by rememberSaveable { mutableStateOf(false) }
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var existe by remember { mutableStateOf(false) }
-    var texto_filtrado by rememberSaveable { mutableStateOf("") }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
-
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var dataclass_datos_tienda_free by remember { mutableStateOf(datos_tienda_free()) }
-
     var lista_subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
-    var subCategoriaSeleccionada by rememberSaveable { mutableStateOf("Todos") }
-
-    var btn_mostrar_mapa by rememberSaveable { mutableStateOf(false) }
-
-    val listState = rememberLazyListState()
-
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     var bottom_shet_tienda by remember { mutableStateOf(false) }
     var dialog_tienda_no_pagada by remember { mutableStateOf(false) }
@@ -175,63 +172,93 @@ fun Pantalla_filtrado_tiendas(
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
-
     var lista_base_seguridad by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
-
     val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
     var mostrandoCarga_free by remember { mutableStateOf(false) }
-
     var yaInicializado by remember { mutableStateOf(false) }
+    val subCategoriaSeleccionada by viewModelFiltros.subcategoriaFiltrado.collectAsState()
+    val texto_filtrado by viewModelFiltros.txtNombreFiltrado.collectAsState()
+    val btn_mostrar_mapa by remember(subCategoriaSeleccionada, state_filtrado_tiendas) {
+        derivedStateOf {
+            val hayTiendas = state_filtrado_tiendas is carga_tiendas.succes &&
+                    (state_filtrado_tiendas as carga_tiendas.succes).items.isNotEmpty()
+
+            subCategoriaSeleccionada != "Todos" && hayTiendas
+        }
+    }
+    var primeraVez by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        subCategoriaSeleccionada = "Todos"
         mostrandoCargaGlobal = true
-        viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
+
+        // Si NO hay filtros activos → cargamos toda la lista desde cero
+        if (subCategoriaSeleccionada == "Todos" && texto_filtrado.isEmpty()) {
+            viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
+        } else {
+            // Si hay filtros → aplicamos filtrado
+            viewModelFiltros.aplicarFiltrosAlRegresar()
+        }
+
+        // Siempre actualizamos las subcategorías
         viewModelFiltros.get_subcategorias_sola(categoria)
-
     }
 
+    BackHandler {
+        navigation_regresar()
+    }
     LaunchedEffect(texto_filtrado) {
-        viewModelFiltros.obtener_filtrado_nombre(
-            texto_filtrado,
-            subCategoriaSeleccionada,
-            lista_base_seguridad
-        )
+
+
+        if (texto_filtrado.isNotEmpty()) {
+            Log.d("texto_filtrado", texto_filtrado)
+            // Solo filtrar si hay texto
+            viewModelFiltros.obtener_filtrado_nombre(
+                texto_filtrado,
+                subCategoriaSeleccionada,
+                viewModelFiltros._lista_base_seguridad.value
+            )
+        } else {
+            // Si se borró el texto, volver al estado anterior
+            viewModelFiltros.aplicarFiltrosAlRegresar()
+        }
+
+        viewModelFiltros.actualizarNombre(texto_filtrado)
     }
+
     LaunchedEffect(categoria_filtrado.value) {
-        Log.d("categoriacategoria123", categoria_filtrado.value.toString())
         if (categoria_filtrado.value.isNotEmpty()) {
             lista_subcategorias = categoria_filtrado.value
         }
     }
     LaunchedEffect(lista_datos_tiendas) {
+        Log.w("ingresadmo", "saldieo de mapa")
+
         if (!yaInicializado && lista_datos_tiendas.isNotEmpty()) {
             yaInicializado = true
             lista_base_seguridad = lista_datos_tiendas
             viewModelFiltros.tiendas_iniciales(lista_datos_tiendas)
         }
     }
-
-
     LaunchedEffect(datosTienda) {
         if (datosTienda.isNotEmpty()) {
             dataclass_tienda_seleccionada = datosTienda.first()
         }
     }
-
-
     LaunchedEffect(subCategoriaSeleccionada) {
-        texto_filtrado = ""
+        if (primeraVez) {
+            primeraVez = false
+            return@LaunchedEffect
+        }
+        viewModelFiltros.actualizarNombre("")
+
         if (yaInicializado && lista_datos_tiendas.isNotEmpty() && subCategoriaSeleccionada != "Todos") {
             viewModelFiltros.filtrar_por_subcategoria(subCategoriaSeleccionada, lista_datos_tiendas)
-            btn_mostrar_mapa = true
+            viewModelFiltros.actualizarsubcategoria_filtrado(subCategoriaSeleccionada)
         } else {
             viewModelFiltros.lista_completa_inicial(subCategoriaSeleccionada)
-            btn_mostrar_mapa = false
+
         }
     }
-
-
     LaunchedEffect(estadoTiendaFree) {
         val estado = estadoTiendaFree  // ✅ Smart cast habilitado
         when (estado) {
@@ -264,6 +291,14 @@ fun Pantalla_filtrado_tiendas(
         }
     }
 
+//    LaunchedEffect(subCategoriaSeleccionada, texto_filtrado) {
+//        // Solo filtramos si hay datos distintos de los valores por defecto
+//        if (subCategoriaSeleccionada != "Todos" || texto_filtrado.isNotEmpty()) {
+//            Log.d("Filtro", "Detectamos filtros persistentes → aplicamos")
+//            viewModelFiltros.aplicarFiltrosAlRegresar()
+//        }
+//    }
+
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -290,10 +325,12 @@ fun Pantalla_filtrado_tiendas(
                         },
                         { categoria_selecionada ->
                             categoria_seleccionda = categoria_selecionada
-                            subCategoriaSeleccionada = categoria_seleccionda
+//                            subCategoriaSeleccionada = categoria_seleccionda
+                            viewModelFiltros.actualizarsubcategoria_filtrado(categoria_seleccionda)
                         })
                     Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
-                        texto_filtrado = it
+                        viewModelFiltros.actualizarNombre(it)
+//                        texto_filtrado = it
                     }
                 }
             }
@@ -333,6 +370,7 @@ fun Pantalla_filtrado_tiendas(
                         isLoading = false
                         error_empity = false
                     }
+
 
                     val listaOrdenada = lista.sortedWith(
                         compareByDescending<tiendas_por_categoria> { it.pagado }
@@ -698,37 +736,6 @@ fun chips_filtrado(
         )
     }
 
-//            FilterChip(
-//                colors = FilterChipDefaults.filterChipColors(
-//                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    selectedLabelColor = Color.White,
-//                    labelColor = Color.White
-//                ),
-//                modifier = Modifier.padding(horizontal = 4.dp),
-//                selected = selecionado,
-//                border = if (selecionado) null else BorderStroke(
-//                    1.dp,
-//                    MaterialTheme.colorScheme.onBackground
-//                ),
-//                onClick = {
-//                    if (!selecionado) {
-//                        expandir_carta(true)
-//                        if (subcategorias == "Todos") {
-//                            expandir_carta(false)
-//                            selecionado("Todos")
-//                        } else {
-//                            selecionado(subcategorias)
-//                        }
-//                    }
-//                },
-//                label = {
-//                    Text(
-//                        text = subcategorias,
-//                        color = if (selecionado) Color.White else MaterialTheme.colorScheme.onBackground
-//                    )
-//                },
-//                shape = RoundedCornerShape(40)
-//            )
 }
 
 @Composable
@@ -740,6 +747,13 @@ fun Text_fiel_filtrado(
 ) {
     var icono_busqeuda by remember { mutableStateOf(R.drawable.buscar_icon) }
 
+    LaunchedEffect(texto_filtrado_txt) {
+        icono_busqeuda = if (texto_filtrado_txt.isNotBlank()) {
+            R.drawable.vector_eliminar_texto_texfiel
+        } else {
+            R.drawable.buscar_icon
+        }
+    }
     AnimatedVisibility(
         visible = visible_texfiel,
         enter = expandVertically() + fadeIn(),
@@ -750,10 +764,10 @@ fun Text_fiel_filtrado(
                 value = texto_filtrado_txt,
                 onValueChange = {
                     texto_filtrado(it)
-                    if (it.isNotBlank()) {
-                        icono_busqeuda = R.drawable.vector_eliminar_texto_texfiel
+                    icono_busqeuda = if (it.isNotBlank()) {
+                        R.drawable.vector_eliminar_texto_texfiel
                     } else {
-                        icono_busqeuda = R.drawable.buscar_icon
+                        R.drawable.buscar_icon
                     }
                 },
                 labelText = "Ingresa el nombre de la tienda",
@@ -809,7 +823,8 @@ fun item_tiendas(
             item_tiendas.latitud, item_tiendas.longitud
         )
     }
-    val targetHeight = if (!detalles_tienda && item_tiendas.metodos_pago_tienda!=modelo_pagos_tienda()) 90.dp else 110.dp
+    val targetHeight =
+        if (!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) 90.dp else 110.dp
 
     val altoImgAnimado by animateDpAsState(
         targetValue = targetHeight
@@ -877,15 +892,15 @@ fun item_tiendas(
                             .clip(RoundedCornerShape(15))
                     )
                     spacer_vertical(5.dp)
-                    AnimatedVisibility(!detalles_tienda && item_tiendas.metodos_pago_tienda!=modelo_pagos_tienda()) {
+                    AnimatedVisibility(!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) {
                         Box(
                             modifier = Modifier
                                 .width(80.dp)
                                 .height(25.dp),
                             contentAlignment = Alignment.Center
-                        ){
+                        ) {
 
-                            campos_de_pago(listState,item_tiendas.metodos_pago_tienda)
+                            campos_de_pago(listState, item_tiendas.metodos_pago_tienda)
                             // 👈 izquierda
                             Box(
                                 modifier = Modifier
@@ -906,8 +921,10 @@ fun item_tiendas(
                                     .align(Alignment.CenterEnd)
                                     .zIndex(1f)
                                     .alpha(alphaRight)
-                                    .background( Brush.horizontalGradient(colors = end_subcategoria_shadow)
-                                    ))
+                                    .background(
+                                        Brush.horizontalGradient(colors = end_subcategoria_shadow)
+                                    )
+                            )
                         }
                     }
 
@@ -1121,26 +1138,37 @@ fun Btn_Expandir_card(expandir_carta: (Boolean) -> Unit) {
 }
 
 @Composable
-fun campos_de_pago(listState: LazyListState, metodosPagoTienda: modelo_pagos_tienda,width_complete: Boolean=false,modifier: Modifier= Modifier) {
-    LazyRow(state = listState,horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = modifier.then(
-        if (width_complete) Modifier.fillMaxWidth()
-        else Modifier.width(80.dp)
-    )) {
-        var lista_metodos_pagos= mostrar_iconos_pagos(metodosPagoTienda)
-        items(lista_metodos_pagos,key = { it.nombre_metodo }){i->
+fun campos_de_pago(
+    listState: LazyListState,
+    metodosPagoTienda: modelo_pagos_tienda,
+    width_complete: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    LazyRow(
+        state = listState,
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+        modifier = modifier.then(
+            if (width_complete) Modifier.fillMaxWidth()
+            else Modifier.width(80.dp)
+        )
+    ) {
+        var lista_metodos_pagos = mostrar_iconos_pagos(metodosPagoTienda)
+        items(lista_metodos_pagos, key = { it.nombre_metodo }) { i ->
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(i.img)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
-                modifier = Modifier.size(22.dp).clip(CircleShape),
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
 
         }
-        item{
-            if(metodosPagoTienda.efectivo.enable){
+        item {
+            if (metodosPagoTienda.efectivo.enable) {
                 Box(
                     modifier = Modifier
                         .size(22.dp)
