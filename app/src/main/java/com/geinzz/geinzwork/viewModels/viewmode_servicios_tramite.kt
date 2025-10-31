@@ -10,7 +10,6 @@ import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_servicios_tramites
 import com.geinzz.geinzwork.ui.adapters.adapterCategorias
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.carta_servicio_tramites
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,7 +73,7 @@ class viewmode_servicios_tramite : ViewModel() {
     }
 
     fun filtrar_por_categoria(context: Context, categorias: String) {
-        Log.d("filtraoms",categorias)
+        Log.d("filtraoms", categorias)
         viewModelScope.launch {
 //            if (categorias == "Todos" && todo_lugares.isNotEmpty()) {
 //                state_servicios.value = carga_servicios.succes(todo_lugares)
@@ -93,7 +92,7 @@ class viewmode_servicios_tramite : ViewModel() {
 //                val resultado = if (categorias == "Todos") {
 //                    todo_lugares
 //                } else {
-                val resultado= todo_lugares.filter {
+                val resultado = todo_lugares.filter {
                     it.categoria.toString().lowercase().contains(categorias.lowercase())
                 }
 //                }
@@ -101,11 +100,11 @@ class viewmode_servicios_tramite : ViewModel() {
                 if (resultado.isNotEmpty()) {
                     state_servicios.value = carga_servicios.succes(resultado)
                 } else {
-                    if (categorias == "Todos"){
+                    if (categorias == "Todos") {
                         mostar_lista_completa(categorias)
-                    }else{
-                    state_servicios.value =
-                        carga_servicios.emoty("No hay datos en la categoría $categorias 123")
+                    } else {
+                        state_servicios.value =
+                            carga_servicios.emoty("No hay datos en la categoría $categorias")
                     }
 
                 }
@@ -117,7 +116,7 @@ class viewmode_servicios_tramite : ViewModel() {
         }
     }
 
-    fun mostar_lista_completa(categorias: String){
+    fun mostar_lista_completa(categorias: String) {
         viewModelScope.launch {
             if (categorias == "Todos" && todo_lugares.isNotEmpty()) {
                 state_servicios.value = carga_servicios.succes(todo_lugares)
@@ -133,33 +132,44 @@ class viewmode_servicios_tramite : ViewModel() {
         categoria: String,
         lista: List<dataclass_lugares_db>
     ) {
-        Log.d("bucamos_por","${nombre} $categoria $lista")
-
         viewModelScope.launch {
             try {
-                // 🔹 Si hay búsqueda válida, mostramos el "loading"
                 state_servicios.value = carga_servicios.loading
 
-                val resultado = lista.filter { item ->
-                    val coincideTexto = item.lugar_nombre.contains(nombre, ignoreCase = true)
-                    val coincideCategoria =
-                        categoria == "Todos" || item.categoria.any {
-                            it.contains(categoria, ignoreCase = true)
-                        }
-                    coincideTexto && coincideCategoria
+                val resultado = if (categoria == "Todos") {
+                    // 🔹 Si la categoría es "Todos", busca por nombre o por categoría
+                    lista.filter { item ->
+                        val coincideNombre = item.lugar_nombre.contains(nombre, ignoreCase = true)
+                        val coincideCategoria = item.categoria.any { it.contains(nombre, ignoreCase = true) }
+                        coincideNombre || coincideCategoria
+                    }
+                } else {
+                    // 🔹 Si hay una categoría específica, primero filtra por esa categoría
+                    val listaFiltradaPorCategoria = lista.filter { item ->
+                        item.categoria.any { it.contains(categoria, ignoreCase = true) }
+                    }
+
+                    // 🔹 Luego busca por nombre dentro de esa categoría filtrada
+                    listaFiltradaPorCategoria.filter { item ->
+                        item.lugar_nombre.contains(nombre, ignoreCase = true)
+                    }
                 }
 
-                if (resultado.isNotEmpty()) {
-                    state_servicios.value = carga_servicios.succes(resultado)
+                Log.d("buscamos_por", "Resultado filtrado: $resultado")
+
+                state_servicios.value = if (resultado.isNotEmpty()) {
+                    carga_servicios.succes(resultado)
                 } else {
-                    state_servicios.value = carga_servicios.emoty("No se encontraron resultados")
+                    carga_servicios.emoty("No se encontraron resultados")
                 }
 
             } catch (e: Exception) {
+                Log.e("buscamos_por", "Error al filtrar datos", e)
                 state_servicios.value = carga_servicios.error("Error al filtrar datos")
             }
         }
     }
+
 
 
     sealed class carga_servicios {

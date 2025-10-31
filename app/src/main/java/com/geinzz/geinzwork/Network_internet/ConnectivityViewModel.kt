@@ -10,9 +10,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class ConnectivityViewModel(app: Application) : AndroidViewModel(app) {
-    private val observer = (app as App).connectivityObserver
+    private val observer = (app as App).connectivityObserver as DefaultConnectivityObserver
+
+    // ✅ Detecta el estado real al iniciar la app
+    private val initial = observer.initialNetworkState()
 
     val isConnected = observer.observe()
         .map { it == ConnectivityObserver.Status.Available }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initial)
 }

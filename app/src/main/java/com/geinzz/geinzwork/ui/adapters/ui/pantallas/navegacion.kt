@@ -105,14 +105,14 @@ fun nativationWrapper(
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
 
     var datos_principales_user by remember {
-        mutableStateOf(datos_principales_user("Usuario", "", "barranca"))
+        mutableStateOf(datos_principales_user("", "", "barranca"))
     }
     LaunchedEffect(firebaseAuth.currentUser) {
         val current = firebaseAuth.currentUser
         if (current != null) {
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
         } else {
-            datos_principales_user = datos_principales_user("Usuario", "", "barranca")
+            datos_principales_user = datos_principales_user("", "", "barranca")
         }
     }
 
@@ -169,7 +169,7 @@ fun nativationWrapper(
             isvisble_buttomvar = true
         }
     }
-    val isConnected by connectivityViewModel.isConnected.collectAsState()
+        val isConnected by connectivityViewModel.isConnected.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(

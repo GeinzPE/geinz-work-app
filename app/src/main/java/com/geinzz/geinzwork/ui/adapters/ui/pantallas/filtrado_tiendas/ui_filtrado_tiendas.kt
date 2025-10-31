@@ -156,7 +156,7 @@ fun Pantalla_filtrado_tiendas(
     var mostrandoCargaGlobal by remember { mutableStateOf(false) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
-    var visible_texfiel by rememberSaveable { mutableStateOf(false) }
+
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var existe by remember { mutableStateOf(false) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
@@ -179,6 +179,15 @@ fun Pantalla_filtrado_tiendas(
     val subCategoriaSeleccionada by viewModelFiltros.subcategoriaFiltrado.collectAsState()
     val texto_filtrado by viewModelFiltros.txtNombreFiltrado.collectAsState()
     val btn_mostrar_mapa by remember(subCategoriaSeleccionada, state_filtrado_tiendas) {
+        derivedStateOf {
+            val hayTiendas = state_filtrado_tiendas is carga_tiendas.succes &&
+                    (state_filtrado_tiendas as carga_tiendas.succes).items.isNotEmpty()
+
+            subCategoriaSeleccionada != "Todos" && hayTiendas
+        }
+    }
+
+    val visible_texfiel by remember(subCategoriaSeleccionada, state_filtrado_tiendas) {
         derivedStateOf {
             val hayTiendas = state_filtrado_tiendas is carga_tiendas.succes &&
                     (state_filtrado_tiendas as carga_tiendas.succes).items.isNotEmpty()
@@ -321,7 +330,7 @@ fun Pantalla_filtrado_tiendas(
                         subCategoriaSeleccionada,
                         lista_subcategorias,
                         { expandir ->
-                            visible_texfiel = expandir
+//                            visible_texfiel = expandir
                         },
                         { categoria_selecionada ->
                             categoria_seleccionda = categoria_selecionada

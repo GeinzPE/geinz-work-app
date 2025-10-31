@@ -48,7 +48,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -96,6 +98,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -111,6 +114,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_pago_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
@@ -150,6 +154,7 @@ fun bottom_sheet_tiendas_filtradas(
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
     var expander_horario by rememberSaveable { mutableStateOf(false) }
     var expander_qr_tienda by rememberSaveable { mutableStateOf(false) }
+    var expander_metodos_pagos by rememberSaveable { mutableStateOf(false) }
 
     val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
@@ -287,6 +292,16 @@ fun bottom_sheet_tiendas_filtradas(
                         }
 
                         item {
+                            item_metodos_de_pago(
+                                modifier = Modifier.padding(horizontal = 10.dp),
+                                tiendas_filtradas,
+                                expander_metodos_pagos,
+                                { expander_metodos_pagos = !expander_metodos_pagos }
+                            )
+                            spacer_vertical(10.dp)
+                        }
+
+                        item {
                             Expandible_qr_tienda(
                                 modifier = Modifier.padding(horizontal = 10.dp),
                                 tiendas_filtradas.id_tienda,
@@ -295,6 +310,7 @@ fun bottom_sheet_tiendas_filtradas(
                             ) { expander_qr_tienda = !expander_qr_tienda }
                             spacer_vertical(10.dp)
                         }
+
                     }
                 }
             }
@@ -465,7 +481,7 @@ fun perfil_cabezero(
 ) {
     val color_casi_cerrando = Color(0xFFFF5722)
     val poco_tiempo_cerra = Color(0xFFFFC107)
-    var cerrado_motivo=Color(0xFFF4C524)
+    var cerrado_motivo = Color(0xFFF4C524)
     var texto = ""
     if (estadoColor == Color.Red) {
         texto = "Cerrado"
@@ -475,11 +491,11 @@ fun perfil_cabezero(
         texto = "Por cerrar"
     } else if (estadoColor == color_casi_cerrando) {
         texto = "Últimos minutos"
-    }else if(estadoColor == cerrado_motivo){
+    } else if (estadoColor == cerrado_motivo) {
         texto = "Cerrado"
     }
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = nombre_tienda.uppercase(),
                 style = MaterialTheme.typography.titleLarge,
@@ -487,9 +503,9 @@ fun perfil_cabezero(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
 
-            )
+                )
             spacer_vertical(5.dp)
-            Box( modifier = Modifier.weight(2f)){
+            Box(modifier = Modifier.weight(2f)) {
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 5.dp)
@@ -671,8 +687,6 @@ fun Expandible_Metodo_contacto(
                                 call_dialog_permise = true
                                 numero_llamada = metodos_contactos.llamada.numero
                             })
-//                            call_dialog_permise = true
-//                            numero_llamada = metodos_contactos.llamada.numero
                         }
                     }
                     if (metodos_contactos.tiktok.estado) {
@@ -731,12 +745,6 @@ fun Expandible_qr_tienda(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-//    val generador_qr = remember(latitud, longitud) {
-//        generar_qr_cordenadas_tienda.codificarCoordenadas(
-//            latitud, longitud
-//        )
-//    }
-
     val generar_qr_tienda_id = remember(id_tienda, latitud, longitud) {
         retornar_id_Tienda_lugar(id_tienda, latitud, longitud)
     }
@@ -764,6 +772,169 @@ fun Expandible_qr_tienda(
                     generar_qr_tienda_id
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun item_metodos_de_pago(
+    modifier: Modifier = Modifier, metodos_pago: modelo_tienda, expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
+    var mostrar_dialog_pagos by remember { mutableStateOf(false) }
+    var metodoPagoSeleccionado by remember { mutableStateOf(item_metodos_pago()) }
+
+    Cartas_expandibles(modifier = modifier) {
+        Column {
+            expandibles_wrapp(
+                "Metodos de pago",
+                iconRes = null,
+                Icons.Default.Payment,
+                expandido,
+                onClickExpand
+            )
+        }
+        AnimatedVisibility(visible = expandido) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 20.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (metodos_pago.metodos_pago_tienda.yape.enable) {
+                    item {
+                        car_metodos_de_pago(
+                            img = R.drawable.yape_logo,
+                            nombre = "Yape"
+                        ) {
+                            mostrar_dialog_pagos = true
+                            metodoPagoSeleccionado = item_metodos_pago(
+                                metodos_pago.metodos_pago_tienda.yape.qr,
+                                metodos_pago.metodos_pago_tienda.yape.numero,
+                                R.drawable.yape_logo,
+                                "Yape",
+                                metodos_pago.metodos_pago_tienda.yape.nombre,
+
+                            )
+                        }
+                    }
+                }
+
+                if (metodos_pago.metodos_pago_tienda.plin.enable) {
+                    item {
+                        car_metodos_de_pago(
+                            img = R.drawable.logo_plin,
+                            nombre = "Plin"
+                        ) {
+                            mostrar_dialog_pagos = true
+                            metodoPagoSeleccionado = item_metodos_pago(
+                                metodos_pago.metodos_pago_tienda.plin.qr,
+                                metodos_pago.metodos_pago_tienda.plin.numero,
+                                R.drawable.logo_plin,
+                                "Plin",
+                                metodos_pago.metodos_pago_tienda.plin.nombre,
+
+                            )
+                        }
+                    }
+                }
+
+                if (metodos_pago.metodos_pago_tienda.agora.enable) {
+                    item {
+                        car_metodos_de_pago(
+                            img = R.drawable.logo_agora,
+                            nombre = "Agora"
+                        ) { }
+                    }
+                }
+
+                if (metodos_pago.metodos_pago_tienda.efectivo.enable) {
+                    item {
+                        car_metodos_de_pago(
+                            img = 0,
+                            nombre = "Efectivo"
+                        ) { }
+                    }
+                }
+
+                if (metodos_pago.metodos_pago_tienda.visa_mastercard.enable) {
+                    item {
+                        car_metodos_de_pago(
+                            img = R.drawable.visa_logo,
+                            nombre = "Visa"
+                        ) { }
+                    }
+
+                    item {
+                        car_metodos_de_pago(
+                            img = R.drawable.master_car_logo,
+                            nombre = "Mastercard"
+                        ) { }
+                    }
+                }
+
+
+            }
+        }
+
+    }
+    if (mostrar_dialog_pagos) {
+        dialog_qr_pago_tienda(metodoPagoSeleccionado,
+            { mostrar_dialog_pagos = !mostrar_dialog_pagos })
+    }
+}
+
+@Composable
+fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+
+            .padding(10.dp)
+            .clickable ( indication = null,
+                interactionSource = remember { MutableInteractionSource() }){
+                listener()
+            }
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+
+        ) {
+            if (img == 0) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF4CAF50)) // Verde tipo "dinero"
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AttachMoney,
+                        contentDescription = "Efectivo",
+                        tint = Color.White, // Ícono blanco
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(img)
+                        .placeholder(R.drawable.cargando_img_categorias)
+                        .error(R.drawable.cargando_img_categorias)
+                        .build(), contentDescription = "Imagen",
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(14.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            texto_generico_one_line(nombre, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

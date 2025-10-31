@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
@@ -52,14 +54,22 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 
@@ -71,7 +81,7 @@ fun pantalla_lugares_turisticos(
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     abrir_mapa: (String) -> Unit,
     crear_cuenta: () -> Unit,
-    iniciar_seccion:()-> Unit
+    iniciar_seccion: () -> Unit
 ) {
     val _lugares_turisticos by viewmodel_lugares_turisticos._lugares_turisticos.observeAsState(
         emptyList()
@@ -143,7 +153,7 @@ fun pantalla_lugares_turisticos(
             columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp),
+                .padding(5.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalItemSpacing = 10.dp
         ) {
@@ -212,6 +222,7 @@ fun pantalla_lugares_turisticos(
                             )
                         }
                     }
+                    spacer_vertical(10.dp)
                 }
             }
 
@@ -246,7 +257,7 @@ fun pantalla_lugares_turisticos(
                             item,
                             { tipo ->
                                 abrir_mapa(tipo)
-                            },{crear_cuenta()},{iniciar_seccion()})
+                            }, { crear_cuenta() }, { iniciar_seccion() })
                     }
                 }
             }
@@ -256,10 +267,10 @@ fun pantalla_lugares_turisticos(
         }
         if (mostar_error) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                texto_generico_multilinea(
-                    texto = mostrar_texto_error, // mensaje desde tu state
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(    text = mostrar_texto_error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 10.dp))
+
             }
         }
 
@@ -553,13 +564,13 @@ fun carta_turismo(
     img: String,
     lugar: lugares_turisticos,
     abrir_mapa: (String) -> Unit,
-    crear_cuenta:()-> Unit,
-    iniciar_seccion:()-> Unit
+    crear_cuenta: () -> Unit,
+    iniciar_seccion: () -> Unit
 ) {
     val bottomSheetVisible by viewmodelMap.estadoBottomSheet.collectAsState()
     val lugarSeleccionado by viewmodelMap.objetoSeleccionado.collectAsState()
 
-    val heightOptions = listOf(200.dp, 250.dp)
+    val heightOptions = listOf(250.dp, 280.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
 
     Box(
@@ -591,6 +602,32 @@ fun carta_turismo(
                         },
                     contentScale = ContentScale.Crop
                 )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp) // Alto del degradado
+                        .align(Alignment.BottomCenter) // Posiciona abajo
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color(0xFF262626)
+                                )
+                            )
+                        )
+                )
+            }
+            Column (Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)){
+                texto_generico_one_line(lugar.titulo.capitalizeFirst())
+                spacer_vertical(10.dp)
+                tags_subcateogiras(
+                    lugar.subcategoria_filtrado,
+                    brush_start = Brush.horizontalGradient(colors = strat_subcategoria_shadow),
+                    brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow),
+                    modifier = Modifier.padding(end = 10.dp)
+                )
+                spacer_vertical(10.dp)
+
             }
         }
     }
@@ -606,7 +643,7 @@ fun carta_turismo(
             },
             ver_mapa = {
                 abrir_mapa("turismo")
-            }, iniciar_seccion = {iniciar_seccion()}, crear_cuenta = {crear_cuenta()}
+            }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() }
         )
     }
 }

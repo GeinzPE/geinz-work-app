@@ -23,28 +23,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 
 @Composable
 fun permisos_llamadas(aceptar_permisos: () -> Unit, ondimis: () -> Unit) {
     AlertDialog(
-        onDismissRequest = {},
+        onDismissRequest = {ondimis()},
         confirmButton = {
-            Button(onClick = {
-                aceptar_permisos()
-                ondimis()
-            }) {
-                texto_generico_one_line("Aceptar")
-            }
+          btn_aceptar_etc_dialog_general {
+              aceptar_permisos()
+              ondimis()
+          }
         },
         dismissButton = {
-            TextButton(onClick = { ondimis() }) {
-                texto_generico_one_line(
-                    "cerrar",
-                    MaterialTheme.typography.bodyMedium
-                )
-            }
+            btn_cerra_etc_dialog_general{ ondimis()}
         },
         title = { texto_generico_one_line("Permisos de llamada") },
         text = {

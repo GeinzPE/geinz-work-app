@@ -100,4 +100,10 @@ class DefaultConnectivityObserver (private val context: Context) : ConnectivityO
             return@withContext false
         }
     }
+
+    fun initialNetworkState(): Boolean {
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
 }

@@ -1430,7 +1430,8 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { listener_servicios() }
+                        ) {
+                            listener_servicios() }
                         .align(Alignment.Start), // evita que se estire horizontalmente
                     contentAlignment = Alignment.Center
                 ) {

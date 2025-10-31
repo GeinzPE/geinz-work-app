@@ -66,6 +66,7 @@ data class modelo_pagos_tienda(
 data class modelo_metodo_individual(
     val numero: String="",
     val qr:String="",
+    val nombre:String="",
     val enable: Boolean=false
 ): Parcelable
 

@@ -367,7 +367,7 @@ object constantes_lista_localidades {
     )
 
     val lista_fitlrado_servicios_basicos = listOf(
-        "Todos", "agua", "Gas", "internet", "cable", "luz", "telefonia movil", "tramites"
+        "Todos", "agua", "gas", "luz", "cable", "agua de mesa","internet", "telefonia movil", "tramites"
     )
 
     val lista_color_degradado_bottom = listOf(
@@ -520,7 +520,7 @@ object constantes_lista_localidades {
             else -> "Hola, buenas noches" to "🌙"
         }
 
-        return "$saludo, $nombre $emojiExtra"
+        return "$saludo $nombre $emojiExtra"
     }
 
 
@@ -2034,6 +2034,7 @@ object constantes_lista_localidades {
                 numero = metodo["numero"] as? String ?: "",
                 qr = metodo["qr"] as? String ?: "",
                 enable = metodo["enable"] as? Boolean ?: false,
+                nombre = metodo["nombre"] as? String?:""
             )
         }
         return modelo_pagos_tienda(

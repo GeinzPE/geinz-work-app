@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -69,11 +70,15 @@ import com.algolia.search.dsl.attributes.DSLSearchableAttributes
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_servicios_tramite
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.filtrado_texfiel
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -82,21 +87,37 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 
 @Composable
 fun ui_servicio_tramite(localida: String) {
+    val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
     val lista_servicios = constantes_lista_localidades.lista_fitlrado_servicios_basicos
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var dialog_servicos_tramite by remember { mutableStateOf(false) }
     var seleccionado by remember { mutableStateOf(dataclass_lugares_db()) }
+    var id_tienda_select by remember { mutableStateOf("") }
+    var localidad_tienda by remember { mutableStateOf("") }
+    var pagado_tienda by remember { mutableStateOf(false) }
+    var mostrar_diaogo_general by remember { mutableStateOf(false) }
+    var motrar_dialog_tienda_Select by remember { mutableStateOf(false) }
+    var mostrar_dialog_tienda_no_pagada by remember { mutableStateOf(false) }
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    var dataclass_datos_tienda_free by remember { mutableStateOf(datos_tienda_free()) }
+    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
+    var mostrandoCarga_free by remember { mutableStateOf(false) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_lugares_db>()) }
-    val state_servicios = viewmode_servicios_tramite._state_servicios.collectAsState(carga_servicios.loading).value
+    val state_servicios =
+        viewmode_servicios_tramite._state_servicios.collectAsState(carga_servicios.loading).value
+    val estadoTiendaFree by viewmodel_filtrado._datos_tienda_sin_pago.observeAsState(
+        viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
+    )
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var listState = rememberLazyListState()
     val showLeftShadow by remember {
@@ -120,13 +141,19 @@ fun ui_servicio_tramite(localida: String) {
 
     var yaInicializado by remember { mutableStateOf(false) }
 
-//    LaunchedEffect(lugares) {
-//        if (!yaInicializado && lugares.isNotEmpty()) {
-//            yaInicializado = true
-//            viewmode_servicios_tramite.todos(lugares)
-//            lista_base_seguridad = lugares
-//        }
-//    }
+    LaunchedEffect(datosTienda) {
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada = datosTienda!!.first()
+        }
+    }
+
+    LaunchedEffect(motrar_dialog_tienda_Select) {
+        if (motrar_dialog_tienda_Select) {
+            viewmodel_filtrado.obtener_campos_tiendas_por_id(
+                localida ?: "barranca", id_tienda_select
+            )
+        }
+    }
     LaunchedEffect(lugares) {
         if (!yaInicializado && lugares.isNotEmpty()) {
             yaInicializado = true
@@ -134,12 +161,32 @@ fun ui_servicio_tramite(localida: String) {
             viewmode_servicios_tramite.todos(lugares)
         }
     }
+    LaunchedEffect(estadoTiendaFree) {
+        val estado = estadoTiendaFree  // ✅ Smart cast habilitado
+        when (estado) {
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free -> {
+                mostrandoCarga_free = true // 🌀 Empieza a cargar
+            }
+
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.succes_tiendas_free -> {
+                mostrandoCarga_free = false // ✅ Deja de cargar
+                dataclass_datos_tienda_free = estado.item
+                mostrar_dialog_tienda_no_pagada = true // 👉 Abre el diálogo
+            }
+
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.error_tiendas_free -> {
+                mostrandoCarga_free = false // ❌ Error, deja de cargar
+            }
+
+            else -> Unit
+        }
+    }
 
 
-    val context=LocalContext.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewmode_servicios_tramite.obtener_lugares(context,localida)
+        viewmode_servicios_tramite.obtener_lugares(context, localida)
 
     }
     LaunchedEffect(valor_filtrado) {
@@ -150,25 +197,30 @@ fun ui_servicio_tramite(localida: String) {
                     subCategoriaSeleccionada,
                     lista_base_seguridad
                 )
-                Log.d("actuliazmos_lugares","${ lista_base_seguridad}")
+                Log.d("actuliazmos_lugares", "${lista_base_seguridad}")
             } else {
                 viewmode_servicios_tramite.filtrar_por_categoria(context, subCategoriaSeleccionada)
             }
         }
     }
 
+    LaunchedEffect(mostrar_dialog_tienda_no_pagada) {
+        if (mostrar_dialog_tienda_no_pagada) {
+            viewmodel_filtrado.obtener_tienda_no_pagada(localida, id_tienda_select)
+        }
+    }
+
     LaunchedEffect(subCategoriaSeleccionada) {
-        valor_filtrado=""
+        valor_filtrado = ""
     }
 
     LaunchedEffect(lugares, subCategoriaSeleccionada) {
         if (yaInicializado && lugares.isNotEmpty() && subCategoriaSeleccionada != "Todos") {
             viewmode_servicios_tramite.filtrar_por_categoria(context, subCategoriaSeleccionada)
-        }else{
+        } else {
             viewmode_servicios_tramite.mostar_lista_completa(subCategoriaSeleccionada)
         }
     }
-
 
 
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
@@ -250,49 +302,58 @@ fun ui_servicio_tramite(localida: String) {
             // 🔹 Contenido según el estado del ViewModel
             when (state_servicios) {
                 is viewmode_servicios_tramite.carga_servicios.loading -> {
-                    Log.d("entramos","cargando")
+                    Log.d("entramos", "cargando")
                     item(span = StaggeredGridItemSpan.FullLine) {
-                        progress_bar=true
-                        sin_resultados=false
+                        progress_bar = true
+                        sin_resultados = false
 
                     }
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.succes -> {
-                    Log.d("entramos","succes")
-                    progress_bar=false
-                    sin_resultados=false
+                    Log.d("entramos", "succes")
+                    progress_bar = false
+                    sin_resultados = false
                     val lista =
                         (state_servicios as viewmode_servicios_tramite.carga_servicios.succes).items
                     itemsIndexed(lista, key = { _, item -> item.id }) { index, lugar ->
                         carta_servicio_tramites(
-                            lugar,
-                            index,
-                            false
-                        ) {
-                            seleccionado = lugar
-                            dialog_servicos_tramite = true
-                        }
+                            dataclass_lugares_db = lugar,
+                            index = index,
+                            isExpanded = false, click_card = {
+                                seleccionado = lugar
+                                dialog_servicos_tramite = true
+                            }, click_car_gas_agua = { id, localidad, pagado ->
+                                id_tienda_select = id
+                                mostrar_diaogo_general = true
+                                localidad_tienda = localidad
+                                pagado_tienda = pagado
+                                if (pagado) {
+                                    motrar_dialog_tienda_Select = true
+                                } else {
+                                    mostrar_dialog_tienda_no_pagada = true
+                                }
+                            })
                     }
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.emoty -> {
-                    Log.d("entramos","vacio")
-                    progress_bar=false
-                    sin_resultados=true
+                    Log.d("entramos", "vacio")
+                    progress_bar = false
+                    sin_resultados = true
                     val texto =
                         (state_servicios as viewmode_servicios_tramite.carga_servicios.emoty).texto
-                    texto_error_empity=texto
+                    texto_error_empity = texto
 
                 }
 
                 is viewmode_servicios_tramite.carga_servicios.error -> {
-                    Log.d("entramos","error")
-                    progress_bar=false
-                    sin_resultados=true
+                    Log.d("entramos", "error")
+                    progress_bar = false
+                    sin_resultados = true
                     val texto =
                         (state_servicios as viewmode_servicios_tramite.carga_servicios.error).texto
-                    texto_error_empity=texto
+                    texto_error_empity = texto
 
                 }
             }
@@ -318,10 +379,30 @@ fun ui_servicio_tramite(localida: String) {
                         color = Color.Gray,
                         modifier = Modifier.padding(16.dp)
                     )
+
                     "none" -> {}
                 }
             }
         }
+
+        if (motrar_dialog_tienda_Select) {
+            bottom_sheet_tiendas_filtradas(
+                Color.Red,
+                viewmodel_filtrado,
+                dataclass_tienda_seleccionada,
+                motrar_dialog_tienda_Select
+            ) {
+                motrar_dialog_tienda_Select = false
+            }
+        }
+
+        if (mostrar_dialog_tienda_no_pagada) {
+            dialog_sin_pago_tiendas(
+                mostrandoCarga_free,
+                dataclass_datos_tienda_free,
+                ondimis = { mostrar_dialog_tienda_no_pagada = false })
+        }
+
 
         // 🔹 Diálogo de detalle
         if (dialog_servicos_tramite && seleccionado != null) {
@@ -353,7 +434,7 @@ fun ui_servicio_tramite(localida: String) {
 @Composable
 fun centrado_hori_vertical(
     content: @Composable () -> Unit
-){
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -372,26 +453,31 @@ fun carta_servicio_tramites(
     dataclass_lugares_db: dataclass_lugares_db,
     index: Int,
     isExpanded: Boolean,
-    click_card: () -> Unit
+    click_card: () -> Unit,
+    click_car_gas_agua: (id: String, localida: String, pagado: Boolean) -> Unit
 ) {
     val heightOptions = listOf(200.dp, 210.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
-
-    val gradient = remember {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color.Transparent,
-                Color.Black.copy(alpha = 0.95f),
-            )
-        )
-    }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(boxHeight)
             .clip(RoundedCornerShape(20.dp))
-            .clickable { click_card() }
+            .clickable {
+                val categoriasProhibidas = listOf("gas", "agua de mesa")
+                if (!dataclass_lugares_db.categoria.any { it in categoriasProhibidas }) {
+                    click_card()
+                } else {
+                    click_car_gas_agua(
+                        dataclass_lugares_db.id,
+                        dataclass_lugares_db.lugar_nombre,
+                        dataclass_lugares_db.pagado
+                    )
+                }
+
+
+            }
     ) {
         // 🖼 Imagen principal
         SubcomposeAsyncImage(

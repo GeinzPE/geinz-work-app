@@ -344,6 +344,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
 
     fun obtener_campos_tiendas_por_id(localida: String, id_tienda: String) {
+        Log.d("tienda:","$localida $id_tienda")
         viewModelScope.launch {
             try {
                 val data = repo_filtrado.obtenner_campos_tiendas_espesifica(localida, id_tienda)

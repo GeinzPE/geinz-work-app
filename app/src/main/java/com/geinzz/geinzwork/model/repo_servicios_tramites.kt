@@ -42,7 +42,8 @@ class repo_servicios_tramites {
                 direccion = datos_direcion,
                 id = data["id"] as? String ?: "",
                 lugar_nombre = data["lugar_nombre"] as? String ?: "",
-                logo_img = data["img_logo"] as? String ?: "", contacto = datos_contacto
+                logo_img = data["img_logo"] as? String ?: "", contacto = datos_contacto,
+                pagado = data["pagado"] as? Boolean ?:false
             )
         }
     }

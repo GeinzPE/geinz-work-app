@@ -54,7 +54,7 @@ class repo_agregar_datos(context: Context) {
                     horario_atencion = emptyMap(),
                     id = id,
                     lugar_nombre = nombre_lugar,
-                    logo_img = img
+                    logo_img = img, pagado = data["pagado"] as? Boolean ?:false
                 )
                 datos_compeltos.add(lugar)
             }

@@ -33,9 +33,12 @@ data class tiendas_filtradas(
 
 )
 
-data class EstadoFiltrosUi(
-    val subcategorias: List<filtrado_tiendas_cat_sub> = emptyList(),
-    val tiendasFiltradas: List<tiendas_por_categoria> = emptyList(),
+data class item_metodos_pago(
+   val codigo_qr:String="",
+    val numero_String:String="",
+    val icono_metodo_pago: Int=0,
+    val nombre_metodo_pago:String="",
+    val titular: String=""
 )
 
 @Parcelize

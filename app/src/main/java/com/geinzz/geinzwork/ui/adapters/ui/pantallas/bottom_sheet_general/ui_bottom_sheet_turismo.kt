@@ -328,6 +328,7 @@ fun card_img_container(
     mostrar_login_seccion_bottom_sheet: () -> Unit
 ) {
 
+    val firebaseAuth= FirebaseAuth.getInstance()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -688,6 +689,7 @@ fun card_img_container(
                             ) {
                                 items(listaOrdenada, key = { it.id_tienda }) { item ->
                                     item_cercanos(
+                                        firebaseAuth,
                                         expanded = expandedItemId == item.id_tienda,
                                         tick,
                                         datos = datos,
@@ -743,6 +745,8 @@ fun card_img_container(
                                             lat_tienda = lat
                                             long_tienda = log
                                             dialog_Crear_ruta = true
+                                        }, mostrar_dialog_registro = {
+                                            mostrar_login_seccion_bottom_sheet()
                                         })
                                 }
                             }
@@ -792,6 +796,7 @@ fun card_img_container(
 
 @Composable
 fun item_cercanos(
+    firebaseAuth: FirebaseAuth,
     expanded: Boolean,
     tick: Long,
     datos: lugares_turisticos,
@@ -799,6 +804,7 @@ fun item_cercanos(
     onExpand: (String) -> Unit,
     clik_card: (String, String, Color) -> Unit,
     clik_icono: (data_redes_tiendas) -> Unit,
+    mostrar_dialog_registro: () -> Unit,
     click_crear_ruta: (lat: Double, long: Double) -> Unit
 ) {
 
@@ -990,7 +996,11 @@ fun item_cercanos(
                                         .clip(CircleShape)
 
                                         .clickable {
-                                            clik_icono(i)
+                                            if (firebaseAuth.currentUser != null) {
+                                                clik_icono(i)
+                                            } else {
+                                                mostrar_dialog_registro()
+                                            }
                                         })
                             }
                         }
