@@ -96,6 +96,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
@@ -127,6 +128,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.shimmer_carga_general.shimmer
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -333,7 +335,14 @@ fun FloatingBubble(
     val screenHeight12 = LocalConfiguration.current.screenHeightDp.dp
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-
+    val context = LocalContext.current
+    val viewmodel_floating_filtrado: viewmodel_floating_filtrado = viewModel()
+    val scate_carga_cordenadas_nuevas by viewmodel_floating_filtrado.carga_cordenadas_nuevas.collectAsState()
+    val estadoGPS by viewmodel_floating_filtrado.gpsActivo.collectAsState()
+    val radioGuardado by data_store_localidad.get_radio_user(context).collectAsState(initial = 1f)
+    var radioActual by remember { mutableStateOf(1f) }
+    var mostra_dialog_salud_Seguridad_cerano by remember { mutableStateOf(false) }
+    var enable_cerca by remember { mutableStateOf(false) }
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -1247,49 +1256,23 @@ fun FloatingBubble(
                     }
 
                     item {
-                        val context = LocalContext.current
-                        val scope = rememberCoroutineScope()
-
-                        val radioGuardado by data_store_localidad.get_radio_user(context)
-                            .collectAsState(initial = 1f)
-
-                        var radioActual by remember { mutableStateOf(1f) }
 
                         LaunchedEffect(radioGuardado) {
                             radioActual = radioGuardado
                         }
-                        var mostra_dialog_salud_Seguridad_cerano by remember { mutableStateOf(false) }
 
-                        val ultima_cordenada_actualziada by data_store_localidad.get_hora_hashin_user(
-                            context
-                        ).collectAsState(initial = null)
+                        LaunchedEffect(estadoGPS) {
+                            if (!estadoGPS && cerca_de_ti_enable) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "El GPS está apagado",
 
-                        var ultima_hora_actualziada by remember { mutableStateOf("") }
-
-                        LaunchedEffect(ultima_cordenada_actualziada) {
-                            ultima_hora_actualziada = ultima_cordenada_actualziada ?: ""
-                        }
-
-                        var localidadEncontrada by remember { mutableStateOf("Fuera de zona") }
-
-
-                        LaunchedEffect(cerca_de_ti_enable) {
-                            if (cerca_de_ti_enable) {
-                                Log.d("cambismos_hola", "hoaa")
-                                val (latUser, lonUser) = data_store_localidad.obtenerLatLonUsuario(
-                                    context
-                                )
-
-                                localidadEncontrada = if (latUser != null && lonUser != null) {
-                                    obtenerZonaActual(latUser, lonUser)
-                                } else {
-                                    "Fuera de zona"
+                                        duration = SnackbarDuration.Short
+                                    )
                                 }
                             }
                         }
 
-                        var enable_cerca by remember { mutableStateOf(false) }
-                        var cargandoUbicacion by remember { mutableStateOf(false) }
 
                         enable_cerca =
                             categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
@@ -1329,24 +1312,30 @@ fun FloatingBubble(
                                     )
                                 }
 
-
-
                                 texto_generico_multilinea(
                                     "Explora lugares, tiendas y servicios que estén cerca de tu ubicación (distancias aproximadas). Encuentra lo que necesites sin perder tiempo.",
                                     MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
 
+                                var gpsIniciado by remember { mutableStateOf(false) }
+
                                 spacer_vertical(17.dp)
                                 if (cerca_de_ti_enable) {
+                                    LaunchedEffect(Unit) {
+                                        if (!gpsIniciado) {
+                                            gpsIniciado = true
+                                            viewmodel_floating_filtrado.iniciarVerificacionGPS(context)
+                                            viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
+                                        }
+                                    }
+
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .wrapContentHeight(),
                                         contentAlignment = Alignment.Center
                                     ) {
-
-
                                         AnimatedContent(
                                             targetState = enable_cerca, transitionSpec = {
                                                 fadeIn(tween(400)) togetherWith fadeOut(tween(300))
@@ -1354,110 +1343,75 @@ fun FloatingBubble(
                                         ) { habilitado ->
                                             if (habilitado) {
                                                 Column {
-
-                                                    this@Column.AnimatedVisibility(cargandoUbicacion) {
-                                                        Box(
-                                                            modifier = Modifier.fillMaxWidth(),
-                                                            contentAlignment = Alignment.Center
-                                                        ) {
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier
-                                                                    .size(25.dp)
-                                                                    .padding(start = 6.dp),
-                                                                strokeWidth = 2.dp,
-                                                                color = MaterialTheme.colorScheme.primary
+                                                    when (scate_carga_cordenadas_nuevas) {
+                                                        is viewmodel_floating_filtrado.carga_cordenadas.error ->{
+                                                            val error = (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
+                                                            texto_generico_one_line(
+                                                                error,
+                                                                MaterialTheme.typography.bodyMedium
                                                             )
                                                         }
-                                                    }
 
-                                                    this@Column.AnimatedVisibility(!cargandoUbicacion) {
-                                                        Column {
+                                                        is viewmodel_floating_filtrado.carga_cordenadas.loading -> {
+                                                                Box(
+                                                                    modifier = Modifier.fillMaxWidth(),
+                                                                    contentAlignment = Alignment.Center
+                                                                ) {
+                                                                    CircularProgressIndicator(
+                                                                        modifier = Modifier
+                                                                            .size(25.dp)
+                                                                            .padding(start = 6.dp),
+                                                                        strokeWidth = 2.dp,
+                                                                        color = MaterialTheme.colorScheme.primary
+                                                                    )
+                                                                }
+                                                        }
+                                                        is viewmodel_floating_filtrado.carga_cordenadas.succes -> {
+                                                            Log.d("qewqeqeqeeqewq","succes")
+                                                            val localidad = (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).localidad
+                                                            val hora = (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hora
                                                             Row(
                                                                 verticalAlignment = Alignment.CenterVertically,
                                                                 horizontalArrangement = Arrangement.Center
                                                             ) {
-                                                                texto_generico_one_line(
-                                                                    "Ubicación actualizada  ",
-                                                                    MaterialTheme.typography.bodyMedium
-                                                                )
-                                                                TextoSubrayado(
-                                                                    "$ultima_hora_actualziada",
-                                                                    MaterialTheme.typography.bodyMedium,
-                                                                    modifier = Modifier.clickable {
-                                                                        cargandoUbicacion = true
-                                                                        obtenerUbicacionReal(context) { lat, lng ->
+                                                            texto_generico_one_line(
+                                                                "Ubicación actualizada  ",
+                                                                MaterialTheme.typography.bodyMedium
+                                                            )
+                                                            TextoSubrayado(
+                                                                hora,
+                                                                MaterialTheme.typography.bodyMedium,
+                                                                modifier = Modifier.clickable {
+                                                                    viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
+                                                                },
+                                                                color_subrallado = MaterialTheme.colorScheme.primary
+                                                            )
 
-                                                                            val nuevoGeohash =
-                                                                                geohashing(lat, lng)
-                                                                            Log.d(
-                                                                                "nuevoGeohashnuevoGeohash",
-                                                                                "$nuevoGeohash de $lat $lng"
-                                                                            )
-                                                                            val hora =
-                                                                                SimpleDateFormat(
-                                                                                    "hh:mm a",
-                                                                                    Locale.getDefault()
-                                                                                ).format(Date())
-                                                                            Toast.makeText(
-                                                                                context,
-                                                                                "$lat $lng",
-                                                                                Toast.LENGTH_SHORT
-                                                                            ).show()
-                                                                            scope.launch {
-                                                                                data_store_localidad.guardar_hasgin_lat_lon_user(
-                                                                                    context,
-                                                                                    nuevoGeohash
-                                                                                        ?: "",
-                                                                                    hora
-                                                                                )
-                                                                                data_store_localidad.guardar_lat_log_user(
-                                                                                    context,
-                                                                                    lat,
-                                                                                    lng
-                                                                                )
-                                                                                fun_nuevo_geohasing_actualizado(
-                                                                                    nuevoGeohash
-                                                                                )
-                                                                                cargandoUbicacion =
-                                                                                    false
-
-                                                                                localidadEncontrada =
-                                                                                    obtenerZonaActual(
-                                                                                        lat,
-                                                                                        lng
-                                                                                    )
-
-                                                                            }
-                                                                        }
-                                                                    },
-                                                                    color_subrallado = MaterialTheme.colorScheme.primary
-                                                                )
                                                             }
-
-                                                            Log.d("localidadEncontrada",localidadEncontrada)
-                                                            if (localidadEncontrada != "Fuera de zona" && localidadEncontrada.isNotBlank()) {
-                                                                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(top = 17.dp)) {
+                                                            if (localidad != "Fuera de zona" && localidad.isNotBlank()) {
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    modifier = Modifier.padding(top = 17.dp)
+                                                                ) {
                                                                     texto_generico_one_line(
                                                                         "¿Quieres filtrar por tu ubicación actual?  ",
                                                                         MaterialTheme.typography.bodyMedium,
                                                                     )
                                                                     TextoSubrayado(
-                                                                        localidadEncontrada,
+                                                                        localidad,
                                                                         MaterialTheme.typography.bodyMedium,
                                                                         modifier = Modifier.clickable {
-                                                                            if (localidad_selecionada.lowercase() == localidadEncontrada.lowercase()) {
+                                                                            if (localidad_selecionada.lowercase() == localidad.lowercase()) {
                                                                                 scope.launch {
-                                                                                    // Llama al SnackbarHostState para mostrar el mensaje
                                                                                     snackbarHostState.showSnackbar(
-                                                                                        message = "${localidadEncontrada.capitalizeFirst()} se encuentra seleccionado",
+                                                                                        message = "${localidad.capitalizeFirst()} se encuentra seleccionado",
 
                                                                                         duration = SnackbarDuration.Short
                                                                                     )
                                                                                 }
                                                                             } else {
-
                                                                                 localidad_filtrado(
-                                                                                    localidadEncontrada.lowercase()
+                                                                                    localidad.lowercase()
                                                                                 )
                                                                             }
                                                                         },
@@ -1467,6 +1421,7 @@ fun FloatingBubble(
                                                             }
                                                         }
 
+                                                        else -> {}
                                                     }
 
                                                     spacer_vertical(17.dp)
@@ -1540,6 +1495,9 @@ fun FloatingBubble(
                                         }
 
                                     }
+                                }else{
+                                    gpsIniciado = false
+                                    viewmodel_floating_filtrado.detenerVerificacionGPS()
                                 }
 
                             }
@@ -1551,7 +1509,7 @@ fun FloatingBubble(
                         }
                     }
                 }
-                SnackbarHost(snackbarHostState, Modifier  .align(Alignment.BottomCenter))
+                SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
             }
         }
 }

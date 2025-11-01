@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.ui.platform.LocalConfiguration
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -82,6 +84,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -1335,29 +1338,34 @@ fun ImagenConInclinacion(
     desplazamientoX: Dp = 0.dp,
     desplazamientoY: Dp = 0.dp
 ) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    // 🔹 Calcula un tamaño proporcional al ancho, pero con límite
+    val tamaño = (screenWidth * 0.35f).coerceIn(100.dp, 160.dp)
+    // -> en celulares será ~130dp, en tablets nunca pasa de 160dp
+
     Box(
         modifier = Modifier
-            .fillMaxWidth(0.38f) // 👈 45% del ancho de pantalla
-            .aspectRatio(1f)     // 👈 cuadrada (1:1)
+            .size(tamaño) // 👈 controla el tamaño real
             .offset(x = desplazamientoX, y = desplazamientoY)
             .rotate(anguloRotacion)
             .clip(RoundedCornerShape(12.dp))
     ) {
-
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(drawableResId) // acepta drawable, uri o url
+                .data(drawableResId)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
-                .crossfade(false) // desactiva animación innecesaria en locales
+                .crossfade(false)
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-
     }
 }
+
 
 @Composable
 fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifier) {

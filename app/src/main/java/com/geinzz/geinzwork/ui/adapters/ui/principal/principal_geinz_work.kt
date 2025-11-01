@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -275,11 +276,15 @@ fun pantalla_principal(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .padding(start = 12.dp, end = 12.dp, top = 10.dp)
+            .background(Color.Black),
+                contentAlignment = Alignment.TopCenter
     ) {
         LazyColumn(
             state = listState,
+            modifier = Modifier
+                .widthIn(max = 700.dp) // 🔥 este controla el ancho real
+                .fillMaxHeight()
+                .padding(start = 12.dp, end = 12.dp, top = 10.dp)
         ) {
             item {
                 nombre_texto_img_perfil(
@@ -704,6 +709,10 @@ fun filtrado_localidades(
     var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp > 600
+
 //    var index by remember { mutableStateOf(0) }
     LaunchedEffect(ultimaLocalidad) {
         ultimaLocalidad.let { seleccionada ->
@@ -749,8 +758,8 @@ fun filtrado_localidades(
             val randomImg = remember(item.lista_img) { item.lista_img.randomOrNull() }
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
+                    .fillMaxWidth() // 👈 más pequeño en tablets
+                    .aspectRatio(1f)  // 👈 menos alto en tablets
                     .maskClip(RoundedCornerShape(20.dp))
                     .clickable {
                         scope.launch {
@@ -773,6 +782,8 @@ fun filtrado_localidades(
                         ImageRequest.Builder(LocalContext.current)
                             .data(randomImg)
                             .crossfade(true)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .diskCachePolicy(CachePolicy.ENABLED)
                             .placeholder(R.drawable.cargando_img_categorias)
                             .error(R.drawable.cargando_img_categorias)
                             .build(),
