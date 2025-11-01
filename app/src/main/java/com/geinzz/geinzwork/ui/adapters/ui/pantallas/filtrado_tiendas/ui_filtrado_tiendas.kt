@@ -187,14 +187,36 @@ fun Pantalla_filtrado_tiendas(
         }
     }
 
-    val visible_texfiel by remember(subCategoriaSeleccionada, state_filtrado_tiendas) {
-        derivedStateOf {
-            val hayTiendas = state_filtrado_tiendas is carga_tiendas.succes &&
-                    (state_filtrado_tiendas as carga_tiendas.succes).items.isNotEmpty()
 
-            subCategoriaSeleccionada != "Todos" && hayTiendas
-        }
+    var visibleTextField by remember { mutableStateOf(false) }
+    var habiaTiendasAntes by remember { mutableStateOf(false) }
+
+    LaunchedEffect(subCategoriaSeleccionada, state_filtrado_tiendas) {
+        val tiendasActuales = if (state_filtrado_tiendas is carga_tiendas.succes)
+            (state_filtrado_tiendas as carga_tiendas.succes).items
+        else
+            emptyList()
+
+        val hayTiendas = tiendasActuales.isNotEmpty()
+
+        // Esperamos un poco para evitar parpadeos por estados intermedios
+        delay(150)
+
+        // 🧠 Lógica corregida:
+        // - Si hay tiendas → se muestra.
+        // - Si no hay tiendas pero antes sí → se mantiene visible.
+        // - Si nunca hubo → se oculta.
+        visibleTextField = subCategoriaSeleccionada != "Todos" && (hayTiendas || habiaTiendasAntes)
+
+        // 🔁 Actualizamos el flag para el siguiente ciclo
+        habiaTiendasAntes = hayTiendas || habiaTiendasAntes
     }
+
+
+
+
+
+
     var primeraVez by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -216,8 +238,6 @@ fun Pantalla_filtrado_tiendas(
         navigation_regresar()
     }
     LaunchedEffect(texto_filtrado) {
-
-
         if (texto_filtrado.isNotEmpty()) {
             Log.d("texto_filtrado", texto_filtrado)
             // Solo filtrar si hay texto
@@ -300,14 +320,6 @@ fun Pantalla_filtrado_tiendas(
         }
     }
 
-//    LaunchedEffect(subCategoriaSeleccionada, texto_filtrado) {
-//        // Solo filtramos si hay datos distintos de los valores por defecto
-//        if (subCategoriaSeleccionada != "Todos" || texto_filtrado.isNotEmpty()) {
-//            Log.d("Filtro", "Detectamos filtros persistentes → aplicamos")
-//            viewModelFiltros.aplicarFiltrosAlRegresar()
-//        }
-//    }
-
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -337,7 +349,7 @@ fun Pantalla_filtrado_tiendas(
 //                            subCategoriaSeleccionada = categoria_seleccionda
                             viewModelFiltros.actualizarsubcategoria_filtrado(categoria_seleccionda)
                         })
-                    Text_fiel_filtrado(existe, visible_texfiel, texto_filtrado) {
+                    Text_fiel_filtrado(existe, visibleTextField, texto_filtrado) {
                         viewModelFiltros.actualizarNombre(it)
 //                        texto_filtrado = it
                     }
@@ -988,88 +1000,7 @@ fun item_tiendas(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     spacer_vertical(10.dp)
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-//                    ) {
-//                        Text(
-//                            text = "Formas de pago :",
-//                            style = MaterialTheme.typography.bodySmall,
-//                            maxLines = 4,
-//                            overflow = TextOverflow.Ellipsis,
-//                            color = MaterialTheme.colorScheme.onBackground
-//                        )
-//                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-//                            item {
-//                                Image(
-//                                    painter = painterResource(R.drawable.yape_logo),
-//                                    contentDescription = "",
-//                                    modifier = Modifier
-//                                        .size(30.dp)
-//                                        .clip(CircleShape),
-//                                    contentScale = ContentScale.Crop,
-//                                )
-//                            }
-//                            item {
-//                                Image(
-//                                    painter = painterResource(R.drawable.logo_plin),
-//                                    contentDescription = "",
-//                                    modifier = Modifier
-//                                        .size(30.dp)
-//                                        .clip(CircleShape),
-//                                    contentScale = ContentScale.Crop
-//                                )
-//                            }
-//                            item {
-//                                Image(
-//                                    painter = painterResource(R.drawable.visa_logo),
-//                                    contentDescription = "",
-//                                    modifier = Modifier
-//                                        .size(30.dp)
-//                                        .clip(CircleShape),
-//                                    contentScale = ContentScale.Crop,
-//                                )
-//                            }
-//                            item {
-//                                Image(
-//                                    painter = painterResource(R.drawable.master_car_logo),
-//                                    contentDescription = "",
-//                                    modifier = Modifier
-//                                        .size(30.dp)
-//                                        .clip(CircleShape),
-//                                    contentScale = ContentScale.Crop,
-//                                )
-//                            }
-//
-//                            item {
-//                                Image(
-//                                    painter = painterResource(R.drawable.logo_agora),
-//                                    contentDescription = "",
-//                                    modifier = Modifier
-//                                        .size(30.dp)
-//                                        .clip(CircleShape),
-//                                    contentScale = ContentScale.Crop,
-//                                )
-//                            }
-//                            item {
-//                                Box(
-//                                    modifier = Modifier
-//                                        .size(30.dp)
-//                                        .clip(CircleShape)
-//                                        .background(Color(0xFF4CAF50)) // Verde tipo "dinero"
-//                                        .padding(6.dp),
-//                                    contentAlignment = Alignment.Center
-//                                ) {
-//                                    Icon(
-//                                        imageVector = Icons.Default.AttachMoney,
-//                                        contentDescription = "Efectivo",
-//                                        tint = Color.White, // Ícono blanco
-//                                        modifier = Modifier.size(24.dp)
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
+
                 }
             }
         }

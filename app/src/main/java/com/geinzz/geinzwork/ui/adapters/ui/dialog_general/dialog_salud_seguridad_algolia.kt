@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
@@ -96,6 +97,8 @@ fun dialog_salud_seguridad_algolia(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(item.img)
                             .size(40, 40)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .diskCachePolicy(CachePolicy.ENABLED)
                             .crossfade(true)
                             .placeholder(R.drawable.cargando_img_categorias)
                             .error(R.drawable.cargando_img_categorias)

@@ -328,7 +328,7 @@ fun card_img_container(
     mostrar_login_seccion_bottom_sheet: () -> Unit
 ) {
 
-    val firebaseAuth= FirebaseAuth.getInstance()
+    val firebaseAuth = FirebaseAuth.getInstance()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -376,27 +376,22 @@ fun card_img_container(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(5.dp)) {
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
         ) {
             spacer_vertical(10.dp)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            ) {
-                Text(text = datos.titulo, fontFamily = baners_geinz_work, fontSize = 30.sp)
-                spacer_horizonta(10.dp)
-                abierto_flag("Abierto las 24h")
-            }
-
+            Text(text = datos.titulo, fontFamily = baners_geinz_work, fontSize = 30.sp, modifier = Modifier.padding(horizontal = 10.dp))
             texto_generico_multilinea(
                 datos.descripcion,
                 MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(10.dp)
             )
+            abierto_flag("Abierto las 24h")
             spacer_vertical(10.dp)
             CollageGoogleMapsStyle(aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
             spacer_vertical(10.dp)
@@ -473,7 +468,6 @@ fun card_img_container(
                             } else {
                                 permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                             }
-
 
                         }
                     )
@@ -1119,8 +1113,11 @@ fun chips_filtrado(list: List<botom_shet_turismobtn>, item_clikeado: (String) ->
 fun abierto_flag(texto: String) {
     Box(
         modifier = Modifier
+            .padding(horizontal = 10.dp)
             .clip(CircleShape)
-            .background(Color(0xFF43A047)) // Verde intermedio, más natural
+
+            .background(Color(0xFF43A047))
+            // Verde intermedio, más natural
     ) {
         texto_generico_one_line(
             texto.capitalizeFirst(),

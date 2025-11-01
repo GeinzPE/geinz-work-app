@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
@@ -454,6 +455,8 @@ fun carta_salud_cuidad(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(i.img_ref)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
                 .size(300, 100).placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
                 .build(),

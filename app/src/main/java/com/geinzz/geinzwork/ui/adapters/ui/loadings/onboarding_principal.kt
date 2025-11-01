@@ -74,6 +74,7 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.geinzz.geinzwork.R
@@ -793,6 +794,8 @@ fun carta_img_preview(
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(img.img)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
                     .crossfade(true) // Transición más suave y rápida
                     .size(120) // optimiza caché interna
                     .build(),

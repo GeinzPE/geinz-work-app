@@ -124,6 +124,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
+import coil3.request.CachePolicy
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
@@ -359,14 +360,14 @@ fun pantalla_principal(
 
                 spacer_vertical(20.dp)
             }
-            item {
-                rutas_turismo(
-                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
-                    "ver eventos",
-                    "Mira los eventos proximos de ${localidad_defaul}"
-                ) { ver_lugares(localidad_defaul) }
-                spacer_vertical(20.dp)
-            }
+//            item {
+//                rutas_turismo(
+//                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
+//                    "ver eventos",
+//                    "Mira los eventos proximos de ${localidad_defaul}"
+//                ) { ver_lugares(localidad_defaul) }
+//                spacer_vertical(20.dp)
+//            }
         }
         Box(
             modifier = Modifier
@@ -388,105 +389,6 @@ fun pantalla_principal(
 
 }
 
-
-//@Composable
-//fun TopGradientBlurred(
-//    modifier: Modifier = Modifier,
-//
-//) {
-//    Box(
-//        modifier = modifier
-//
-//            .blur(30.dp) // Mantiene un desenfoque medio para que se note
-//            .background(
-//                Brush.verticalGradient(
-//                    colors = listOf(
-//                        // Los colores se basan en tu color principal, pero con más opacidad y profundidad.
-//                        Color(0xFF8700F3).copy(alpha = 0.8f), // Tu color base, más visible
-//                        Color(0xFF5C00E6).copy(alpha = 0.6f),  // Un púrpura más oscuro
-//                        Color(0xFF140428).copy(alpha = 0.5f)  // Un tono muy oscuro para el fondo
-//                    )
-//                )
-//            )
-//    ) {
-//        // La capa negra superpuesta ayuda a oscurecer y suavizar el efecto.
-//        Box(
-//            Modifier
-//                .matchParentSize()
-//                .background(Color.Black.copy(alpha = 0.2f))
-//        )
-//    }
-//}
-//
-//@Composable
-//fun solicitar_permiso_notifi() {
-//    val context = LocalContext.current
-//    val launcher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.RequestPermission()
-//    ) { isGranted: Boolean ->
-//        if (isGranted) {
-//            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
-//        } else {
-//            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-//}
-//
-//@Composable
-//fun SolicitarPermisoNotificacionLauncher(firebaseAuth: FirebaseAuth, permiso_notifi: Boolean) {
-//    val context = LocalContext.current
-//
-//    // Launcher para pedir permiso de notificación
-//    val launcher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.RequestPermission()
-//    ) { isGranted ->
-//        if (isGranted) {
-//            // Aquí ya se concedió el permiso
-//            Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
-//        } else {
-//            // Permiso denegado
-//            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-//
-//    // Lanzar el permiso automáticamente cuando hay usuario registrado
-//    LaunchedEffect(firebaseAuth.currentUser) {
-//        if (firebaseAuth.currentUser != null && permiso_notifi) {
-//            // ✅ Aquí se lanza el permiso dentro del launcher
-//            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-//        }
-//    }
-//}
-//
-//@Composable
-//fun AlbumBackgroundBlurOptimized(albumRes: Int, heightDp: Dp = 300.dp) {
-//    val context = LocalContext.current
-//    val paletteCache = remember { mutableMapOf<Int, List<Color>>() }
-//    var colors by remember { mutableStateOf(listOf(Color.Black, Color.DarkGray)) }
-//
-//    // Solo calculamos si no está en cache
-//    LaunchedEffect(albumRes) {
-//        paletteCache[albumRes]?.let {
-//            colors = it
-//        } ?: run {
-//            val bitmap = getScaledBitmap(context, albumRes)
-//            extractPaletteColors(bitmap) { extracted ->
-//                colors = extracted.map { Color(it) } // <- convertimos Int a Color
-//                paletteCache[albumRes] = colors
-//            }
-//        }
-//    }
-//
-//    // Fondo con gradiente + blur
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(heightDp)
-//            .background(Brush.verticalGradient(colors))
-//            .blur(80.dp)
-//    )
-//}
-//
 
 @Composable
 fun apartado_explora_cat(
@@ -569,7 +471,8 @@ fun cartas_filtrado(
                     .width(anchoAnimado)
                     .height(alturaFija)
                     .clip(RoundedCornerShape(15.dp))
-                    .clickable {
+                    .clickable (    interactionSource = remember { MutableInteractionSource() },
+                        indication = null){
                         cartaSeleccionada = if (seleccionada) null else i.nombre
                     }
             ) {
@@ -580,6 +483,8 @@ fun cartas_filtrado(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(i.lista_img)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .diskCachePolicy(CachePolicy.ENABLED)
                             .placeholder(R.drawable.cargando_img_categorias)
                             .error(R.drawable.cargando_img_categorias)
                             .build(),
@@ -997,6 +902,8 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 .data(img_url)
                 .size(40)
                 .crossfade(true)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.logo_geinz_500x500)
                 .build(),

@@ -60,7 +60,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -109,6 +108,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cerca_de_ti_desable
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
@@ -1433,13 +1433,13 @@ fun FloatingBubble(
                                                                     color_subrallado = MaterialTheme.colorScheme.primary
                                                                 )
                                                             }
-                                                            spacer_vertical(17.dp)
+
                                                             Log.d("localidadEncontrada",localidadEncontrada)
                                                             if (localidadEncontrada != "Fuera de zona" && localidadEncontrada.isNotBlank()) {
-                                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                                Row(verticalAlignment = Alignment.CenterVertically,modifier = Modifier.padding(top = 17.dp)) {
                                                                     texto_generico_one_line(
                                                                         "¿Quieres filtrar por tu ubicación actual?  ",
-                                                                        MaterialTheme.typography.bodyMedium
+                                                                        MaterialTheme.typography.bodyMedium,
                                                                     )
                                                                     TextoSubrayado(
                                                                         localidadEncontrada,

@@ -1,10 +1,13 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
@@ -92,6 +95,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
@@ -133,6 +137,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
@@ -335,6 +340,18 @@ fun cabezero_tiendas(
     lista_img: List<String>,
     lista_tags: List<String>
 ) {
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
+        }
+    }
     val context = LocalContext.current
     val mostrarDialogo = rememberSaveable { mutableStateOf(false) }
     val mostrarDialog_sin_google_maps = rememberSaveable { mutableStateOf(false) }
@@ -357,7 +374,7 @@ fun cabezero_tiendas(
             },
             abrir_configuracion = {
                 mostrarDialogo.value = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                verificarGPS(context, launcher)
             },
             dialog_sin_maps = {
                 mostrarDialogo.value = false
@@ -440,6 +457,8 @@ fun perfil_img_zooom(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(img_tienda_perfil)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = "Imagen de la tienda",

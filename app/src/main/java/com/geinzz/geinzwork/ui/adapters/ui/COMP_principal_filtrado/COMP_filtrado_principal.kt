@@ -122,6 +122,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
@@ -159,7 +160,7 @@ fun custom_texFiel(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(50),
         label = { retornar_pleaceholder_label(labelText) },
         placeholder = { retornar_pleaceholder_label(placeholderText) },
         trailingIcon = trailingIcon,
@@ -170,7 +171,7 @@ fun custom_texFiel(
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedBorderColor = Color(0xFF75707A),
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             focusedLabelColor = MaterialTheme.colorScheme.primary
         )
@@ -659,6 +660,8 @@ fun rutas_turismo(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(img_baner)
                 .crossfade(true)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
                 .build(),
@@ -715,6 +718,8 @@ fun seguridad(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(drawable)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
                 .crossfade(true)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
@@ -1341,13 +1346,16 @@ fun ImagenConInclinacion(
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(drawableResId)
-                .crossfade(true)
+                .data(drawableResId) // acepta drawable, uri o url
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias)
+                .crossfade(false) // desactiva animación innecesaria en locales
                 .build(),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
         )
+
     }
 }
 
@@ -1453,8 +1461,11 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
                         .data(R.drawable.servicios_basicos)
                         .build(),
+
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -1500,4 +1511,3 @@ fun shadow_bottom_pantallas_generales(modifier: Modifier) {
             .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
     )
 }
-

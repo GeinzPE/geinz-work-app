@@ -169,7 +169,7 @@ fun nativationWrapper(
             isvisble_buttomvar = true
         }
     }
-        val isConnected by connectivityViewModel.isConnected.collectAsState()
+    val isConnected by connectivityViewModel.isConnected.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -226,13 +226,13 @@ fun nativationWrapper(
 //                                return@pantalla_principal
                                 navController.navigate(lugares_turisticos(localidad))
                             }else{
-                            navController.navigate(
-                                screen_filtrado(
-                                    categoria,
-                                    localidad,
-                                    nombre_user,
+                                navController.navigate(
+                                    screen_filtrado(
+                                        categoria,
+                                        localidad,
+                                        nombre_user,
+                                    )
                                 )
-                            )
                             }
 
                         },
