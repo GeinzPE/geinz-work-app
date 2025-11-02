@@ -465,6 +465,7 @@ fun nativationWrapper(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
+            Log.d("mostramos_carga","$mostrarCarga")
             Box(
                 modifier = Modifier
                     .fillMaxSize()

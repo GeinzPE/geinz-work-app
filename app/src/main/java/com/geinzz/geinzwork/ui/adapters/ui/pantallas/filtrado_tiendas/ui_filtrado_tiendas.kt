@@ -408,10 +408,21 @@ fun Pantalla_filtrado_tiendas(
                             tienda,
                             tienda.horario_dia, tienda.estaAbierto,
                             { id_tienda, listener, estado_color, pagado ->
-                                tienda_pagada = pagado
-                                estadoColor = estado_color
-                                showBottomSheet = listener
-                                id_tienda_selecionada = id_tienda
+                                if(firebaseAuth.currentUser!=null){
+                                    estadoColor = estado_color
+                                    id_tienda_selecionada = id_tienda
+                                    if(pagado){
+                                        bottom_shet_tienda=true
+                                        showBottomSheet = listener
+                                    }else{
+                                        dialog_tienda_no_pagada=true
+                                    }
+                                }else{
+                                    bottom_sheet_iniciar_seccion=true
+                                }
+//                                tienda_pagada = pagado
+
+
                             })
                     }
                 }
@@ -538,18 +549,18 @@ fun Pantalla_filtrado_tiendas(
     }
 
 
-    if (showBottomSheet && firebaseAuth.currentUser != null) {
-        if (tienda_pagada) {
-            bottom_shet_tienda = true
-        } else {
-            dialog_tienda_no_pagada = true
-            bottom_shet_tienda = false
-        }
-        bottom_sheet_iniciar_seccion = false
-    } else if (showBottomSheet && firebaseAuth.currentUser == null) {
-        bottom_shet_tienda = false
-        bottom_sheet_iniciar_seccion = true
-    }
+//    if (showBottomSheet && firebaseAuth.currentUser != null) {
+//        if (tienda_pagada) {
+//            bottom_shet_tienda = true
+//        } else {
+//            dialog_tienda_no_pagada = true
+//            bottom_shet_tienda = false
+//        }
+//        bottom_sheet_iniciar_seccion = false
+//    } else if (showBottomSheet && firebaseAuth.currentUser == null) {
+//        bottom_shet_tienda = false
+//        bottom_sheet_iniciar_seccion = true
+//    }
 
     if (dialog_tienda_no_pagada) {
         bottom_shet_tienda = false

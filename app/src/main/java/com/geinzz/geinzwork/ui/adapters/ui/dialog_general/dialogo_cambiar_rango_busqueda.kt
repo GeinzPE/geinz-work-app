@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +49,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
+import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -57,13 +59,15 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun dialogo_cabiar_rango_busqueda(
+    viewmodel_floating_filtrado: viewmodel_floating_filtrado,
     geohashin: String?,
     context: Context,
     ondimis: () -> Unit,
     ondimis_aceptar: (Float, String) -> Unit,
     cancelar_dialog_filtrado_cerncano: () -> Unit,
-    localidad_busqueda_general:String,
-    listner_localidad_busqueda:()-> Unit
+    localidad_busqueda_general: String,
+    listner_localidad_busqueda: () -> Unit,
+    nuevo_hashin:(String)-> Unit
 ) {
     val scope = rememberCoroutineScope()
     val radioGuardado by data_store_localidad.get_radio_user(context)
@@ -77,8 +81,11 @@ fun dialogo_cabiar_rango_busqueda(
     ).collectAsState(initial = null)
 
     var ultima_hora_actualziada by remember { mutableStateOf("") }
+    val scate_carga_cordenadas_nuevas by viewmodel_floating_filtrado.carga_cordenadas_nuevas.collectAsState()
+
 
     LaunchedEffect(ultima_cordenada_actualziada) {
+        Log.d("ultima_hora_actualziada", ultima_cordenada_actualziada.toString())
         ultima_hora_actualziada = ultima_cordenada_actualziada ?: ""
     }
     AlertDialog(
@@ -138,65 +145,71 @@ fun dialogo_cabiar_rango_busqueda(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        texto_generico_one_line(
-                            "Ubicación actualizada  ",
-                            MaterialTheme.typography.bodyMedium
-                        )
-                        TextoSubrayado(
-                            "$ultima_hora_actualziada",
-                            MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.clickable {
-//                                cargandoUbicacion = true
-                                obtenerUbicacionReal(context) { lat, lng ->
-                                    Log.d(
-                                        "guardar_hashing123",
-                                        "$lat $lng"
+                        when (scate_carga_cordenadas_nuevas) {
+                            is viewmodel_floating_filtrado.carga_cordenadas.error -> {
+                                val error =
+                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
+                                texto_generico_one_line(
+                                    error,
+                                    MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
+                            is viewmodel_floating_filtrado.carga_cordenadas.inicial -> {
+                                // 🔹 Mostrar la última hora guardada sin actualizar nada
+                                texto_generico_one_line(
+                                    "Ubicación actualizada",
+                                    MaterialTheme.typography.bodyMedium
+                                )
+                                TextoSubrayado(
+                                    "$ultima_hora_actualziada",
+                                    MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.clickable {
+                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
+                                    },
+                                    color_subrallado = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            is viewmodel_floating_filtrado.carga_cordenadas.loading -> {
+                                // 🔸 Mientras se actualiza: ocultamos textos y mostramos loader
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(25.dp)
+                                            .padding(start = 6.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
-                                    val nuevoGeohash =
-                                        geohashing(lat, lng)
-                                    val hora =
-                                        SimpleDateFormat(
-                                            "hh:mm a",
-                                            Locale.getDefault()
-                                        ).format(Date())
-                                    Toast.makeText(
-                                        context,
-                                        "$lat $lng",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    scope.launch {
-                                        data_store_localidad.guardar_hasgin_lat_lon_user(
-                                            context,
-                                            nuevoGeohash
-                                                ?: "",
-                                            hora
-                                        )
-                                        data_store_localidad.guardar_lat_log_user(
-                                            context,
-                                            lat,
-                                            lng
-                                        )
-//                                        fun_nuevo_geohasing_actualizado(
-//                                            nuevoGeohash
-//                                        )
-//                                        cargandoUbicacion =
-//                                            false
-//
-//                                        localidadEncontrada =
-//                                            obtenerZonaActual(
-//                                                lat,
-//                                                lng
-//                                            )
-
-                                    }
                                 }
-                            },
-                            color_subrallado = MaterialTheme.colorScheme.primary
-                        )
+                            }
+
+                            is viewmodel_floating_filtrado.carga_cordenadas.succes -> {
+                                val geohasing_variable =
+                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hashin_user
+                                nuevo_hashin(geohasing_variable)
+
+                                // 🔹 Mostrar texto y hora actualizada después del éxito
+                                texto_generico_one_line(
+                                    "Ubicación actualizada  ",
+                                    MaterialTheme.typography.bodyMedium
+                                )
+                                TextoSubrayado(
+                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hora,
+                                    MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.clickable {
+                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
+                                    },
+                                    color_subrallado = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
-
-
                 }
+
                 spacer_vertical(15.dp)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -209,8 +222,10 @@ fun dialogo_cabiar_rango_busqueda(
                     TextoSubrayado(
                         "${localidad_busqueda_general.capitalizeFirst()}",
                         MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clickable {listner_localidad_busqueda()
-                            ondimis()},
+                        modifier = Modifier.clickable {
+                            listner_localidad_busqueda()
+                            ondimis()
+                        },
                         color_subrallado = MaterialTheme.colorScheme.primary
                     )
                 }

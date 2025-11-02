@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -65,7 +66,7 @@ fun componentes_crear_cuenta(
 ) {
     val context = LocalContext.current
     val registrado = viewmodel_login.registrado_boolean.observeAsState()
-    val loginState_principal by viewmodel_login.loginStateCamposInicial.observeAsState()
+    val loginState_principal by viewmodel_login.loginStateCamposInicial.collectAsState()
     val registrado_google = viewmodel_login.registrado_google.observeAsState()
     val correo_exsit = viewmodel_login._correo_exist.observeAsState()
     val usernameExiste by viewmodel_login._nombre_userexists.observeAsState(false)

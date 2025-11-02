@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -54,7 +55,7 @@ val firebaseAuth = FirebaseAuth.getInstance()
 
 @Composable
 fun cuenta_user(viewModel_login_user: viewModel_login_user, navController: NavController) {
-    val loginState_principal by viewModel_login_user.loginStateCamposInicial.observeAsState()
+    val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
 
     LaunchedEffect(loginState_principal) {
         when (loginState_principal) {

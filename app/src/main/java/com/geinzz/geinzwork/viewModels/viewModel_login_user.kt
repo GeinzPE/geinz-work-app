@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.LiveData
@@ -17,6 +18,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -30,8 +33,9 @@ class viewModel_login_user : ViewModel() {
     private val _loginState = MutableLiveData<LoginState?>()
     val loginState: LiveData<LoginState?> = _loginState
 
-    private val _loginStateCamposInicial = MutableLiveData<LoginState_inicio?>()
-    val loginStateCamposInicial: LiveData<LoginState_inicio?> = _loginStateCamposInicial
+    private val _loginStateCamposInicial = MutableStateFlow<LoginState_inicio?>(null)
+    val loginStateCamposInicial: StateFlow<LoginState_inicio?> = _loginStateCamposInicial
+
 
     private val auth: FirebaseAuth = Firebase.auth
 
@@ -55,6 +59,13 @@ class viewModel_login_user : ViewModel() {
     private val _recupera_contra = MutableLiveData(false)
     val recuperar_contra: LiveData<Boolean> get() = _recupera_contra
 
+    val _lista_errores = MutableStateFlow<List<String>>(emptyList())
+
+    val errores = _lista_errores.value
+
+    fun registrarError(error: String) {
+        _lista_errores.value = _lista_errores.value + error
+    }
 
 
     fun recuperar_password(correo: String) {
@@ -94,6 +105,7 @@ class viewModel_login_user : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
+                registrarError(e.toString())
                 _registrado.value = false
                 _mostrarCarga.value = false
                 _loginStateCamposInicial.value = LoginState_inicio.error("", "")
@@ -120,6 +132,7 @@ class viewModel_login_user : ViewModel() {
                 }
             }
         } catch (e: Exception) {
+            registrarError(e.toString())
             _registrado_google.value = false
             _mostrarCarga.value = false
             _loginStateCamposInicial.value = LoginState_inicio.error("", "")
@@ -161,6 +174,7 @@ class viewModel_login_user : ViewModel() {
                 }
 
             } catch (e: Exception) {
+                registrarError(e.toString())
                 _loginStateCamposInicial.value = LoginState_inicio.error("", e.message.toString())
             } finally {
                 _mostrarCarga.value = false
@@ -169,11 +183,8 @@ class viewModel_login_user : ViewModel() {
     }
 
 
-    fun logear_user(navController: NavController, correo: String, password: String) {
+    fun verificar_campos( correo: String, password: String){
         viewModelScope.launch {
-            _mostrarCarga.value = true
-
-            // 🔹 Validaciones iniciales
             when {
                 correo.isBlank() && password.isBlank() -> {
                     _loginStateCamposInicial.value =
@@ -205,14 +216,49 @@ class viewModel_login_user : ViewModel() {
                     return@launch
                 }
             }
+        }
+    }
 
-            _loginStateCamposInicial.value = LoginState_inicio.Loading
+    fun logear_user(navController: NavController, correo: String, password: String) {
+        viewModelScope.launch {
 
             try {
+                Log.d("entramos123","campos llenos emvepaz<mos")
                 // 🔹 Llamada suspend del repositorio
                 val (registrado, texto_registrado) = repo_agregar_user.logear_user(correo, password)
+                when (texto_registrado) {
+                    "correo_no_existe" -> {
+                        Log.d("entramos123","correo_no_existe")
+                        _loginStateCamposInicial.value = LoginState_inicio.error(
+                            texto_registrado,
+                            "El correo no está registrado, primero crea una cuenta"
+                        )
+                        return@launch // o simplemente return si estás fuera de launch
+                    }
+
+                    "pass_incorrecta" -> {
+                        Log.d("entramos123","pass_incorrecta")
+                        _loginStateCamposInicial.value = LoginState_inicio.error(
+                            texto_registrado,
+                            "La contraseña es incorrecta"
+                        )
+                        return@launch
+                    }
+
+                    "error_desconocido" -> {
+                        Log.d("entramos123","error_desconocido")
+                        _loginStateCamposInicial.value = LoginState_inicio.error(
+                            texto_registrado,
+                            "Error desconocido"
+                        )
+                        return@launch
+                    }
+                }
 
                 if (registrado) {
+                    _loginStateCamposInicial.value = LoginState_inicio.Loading
+                    Log.d("entramos123","$registrado")
+                    _mostrarCarga.value = true
                     val user = auth.currentUser
                     delay(2000)
                     _loginStateCamposInicial.value = LoginState_inicio.Succes(
@@ -227,26 +273,13 @@ class viewModel_login_user : ViewModel() {
                     delay(2000)
 
                 } else {
-
-                    when (texto_registrado) {
-                        "correo_no_existe" -> _loginStateCamposInicial.value =
-                            LoginState_inicio.error(
-                                texto_registrado,
-                                "El correo no está registrado, primero crea una cuenta"
-                            )
-
-                        "pass_incorrecta" -> _loginStateCamposInicial.value =
-                            LoginState_inicio.error(
-                                texto_registrado,
-                                "La contraseña es incorrecta"
-                            )
-
-                        else -> _loginStateCamposInicial.value =
-                            LoginState_inicio.error("", "Error desconocido")
-                    }
-
+                    _loginStateCamposInicial.value = LoginState_inicio.error(
+                        "",
+                        "Error desconocido"
+                    )
                 }
             } catch (e: Exception) {
+                registrarError(e.toString())
                 _loginStateCamposInicial.value =
                     LoginState_inicio.error("", "Error desconocido")
             } finally {

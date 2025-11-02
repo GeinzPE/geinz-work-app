@@ -87,7 +87,7 @@ fun MyOutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 5.dp),
-            shape = RoundedCornerShape(30),
+            shape = RoundedCornerShape(50),
             label = { Text(text = labelText) },
             placeholder = { Text(text = placeholderText) },
             trailingIcon = {
@@ -541,7 +541,7 @@ fun input_password(
             maxLines = 1,
             isError = isError,
             textStyle = MaterialTheme.typography.bodyMedium,
-            shape = RoundedCornerShape(30),
+            shape = RoundedCornerShape(50),
             label = { Text("Ingresa tu contraseña") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if (contra_oculta) PasswordVisualTransformation() else VisualTransformation.None,

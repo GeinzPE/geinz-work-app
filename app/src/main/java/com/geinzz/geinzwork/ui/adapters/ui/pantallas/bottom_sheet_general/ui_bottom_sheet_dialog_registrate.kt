@@ -37,10 +37,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.btn_continuar_con_google
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.btn_principal_iniciar_seccion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.crear_cuenta_geinz
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.iniciar_seccion_normal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.google.android.gms.auth.api.signin.GoogleSignIn

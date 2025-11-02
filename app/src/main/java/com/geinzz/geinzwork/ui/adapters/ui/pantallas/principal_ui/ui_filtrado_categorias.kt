@@ -479,7 +479,12 @@ fun cartas_categorias(
                         clik_img(item.categoria, Localidad_selecionada, nombre_user)
                     },
                     loading = {
-                        // Opcional: shimmer o progress mientras carga real
+                        Image(
+                            painter = painterResource(R.drawable.cargando_img_categorias),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize() // 👈 ocupa todo el contenedor
+                        )
                     },
                     error = {
                         Image(

@@ -2,6 +2,10 @@ package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data_store.data_store_localidad
@@ -24,11 +28,23 @@ import java.util.Locale
 class viewmodel_floating_filtrado : ViewModel() {
 
     private val _carga_cordenadas_nuevas =
-        MutableStateFlow<carga_cordenadas>(carga_cordenadas.loading)
+        MutableStateFlow<carga_cordenadas>(carga_cordenadas.inicial)
     val carga_cordenadas_nuevas = _carga_cordenadas_nuevas.asStateFlow()
 
     private val _gpsActivo = MutableStateFlow(false)
     val gpsActivo = _gpsActivo.asStateFlow()
+
+    private val _cerca_de_ti_enable =MutableStateFlow(false)
+    val cerca_de_ti_enable=_cerca_de_ti_enable.asStateFlow()
+
+
+    fun save_cerca_de_ti (valor: Boolean){
+        _cerca_de_ti_enable.value=valor
+    }
+
+    fun limpiar_valor_save_cerca_de_ti(){
+        _cerca_de_ti_enable.value=false
+    }
 
 
     private var jobVerificacionGPS: Job? = null
@@ -43,6 +59,12 @@ class viewmodel_floating_filtrado : ViewModel() {
             }
         }
     }
+
+    fun reiniciarEstadoCoordenadas() {
+        _carga_cordenadas_nuevas.value = carga_cordenadas.inicial
+    }
+
+
 
     fun detenerVerificacionGPS() {
         jobVerificacionGPS?.cancel()
@@ -61,12 +83,13 @@ class viewmodel_floating_filtrado : ViewModel() {
                 obtenerUbicacionReal(context = context) { lat, lng ->
                     val geohasing = geohashing(lat, lng)
                     val hora = obtener_hora_actual_formato_12h()
-                    launch {
+                    viewModelScope.launch  {
                         guardar_hasgin_lat_lon_user(context, geohasing, hora)
                         guardar_lat_log_user(context, lat, lng)
                     }
                     val zona_actual = obtenerZonaActual(lat, lng)
-                    _carga_cordenadas_nuevas.value = carga_cordenadas.succes(zona_actual, hora)
+                    _carga_cordenadas_nuevas.value = carga_cordenadas.succes(zona_actual, hora,geohasing)
+
                 }
             } catch (e: Exception) {
                 _carga_cordenadas_nuevas.value = carga_cordenadas.error("Error al obtener coordenadas: ${e.message}")
@@ -84,10 +107,11 @@ class viewmodel_floating_filtrado : ViewModel() {
     }
 
     sealed class carga_cordenadas() {
-        data class succes(val localidad: String, val hora: String) :
+        data class succes(val localidad: String, val hora: String,val hashin_user: String) :
             carga_cordenadas()
 
         object loading : carga_cordenadas()
         data class error(val txt: String) : carga_cordenadas()
+        object inicial : carga_cordenadas()
     }
 }

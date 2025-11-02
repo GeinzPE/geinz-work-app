@@ -66,6 +66,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -141,6 +142,8 @@ import kotlin.math.roundToInt
 @SuppressLint("UnusedBoxWithConstraintsScope", "MissingPermission")
 @Composable
 fun FloatingBubble(
+    primeraVezCercaDeTi: Boolean,
+    viewmodel_floating_filtrado: viewmodel_floating_filtrado,
     cerca_de_ti_enable: Boolean,
     geohashin: String?,
     color_categoria: Boolean,
@@ -175,7 +178,8 @@ fun FloatingBubble(
     filtrado_cerca_de_ti: (Float, String) -> Unit,
     fun_cerca_de_ti_enable: (Boolean) -> Unit,
     fun_nuevo_geohasing_actualizado: (String) -> Unit,
-    fun_abrir_dialog_filtrado_radio: () -> Unit
+    fun_abrir_dialog_filtrado_radio: () -> Unit,
+    fun_primeraVezCercaDeTi: (Boolean) -> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
     val density = LocalDensity.current
@@ -336,7 +340,6 @@ fun FloatingBubble(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val context = LocalContext.current
-    val viewmodel_floating_filtrado: viewmodel_floating_filtrado = viewModel()
     val scate_carga_cordenadas_nuevas by viewmodel_floating_filtrado.carga_cordenadas_nuevas.collectAsState()
     val estadoGPS by viewmodel_floating_filtrado.gpsActivo.collectAsState()
     val radioGuardado by data_store_localidad.get_radio_user(context).collectAsState(initial = 1f)
@@ -1318,15 +1321,42 @@ fun FloatingBubble(
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
 
-                                var gpsIniciado by remember { mutableStateOf(false) }
+                                var gpsIniciado by rememberSaveable { mutableStateOf(false) }
+                                var varibalehasin by rememberSaveable {mutableStateOf("")}
 
                                 spacer_vertical(17.dp)
                                 if (cerca_de_ti_enable) {
-                                    LaunchedEffect(Unit) {
+                                    Log.d("guadado", "enable")
+                                    DisposableEffect(Unit) {
                                         if (!gpsIniciado) {
                                             gpsIniciado = true
-                                            viewmodel_floating_filtrado.iniciarVerificacionGPS(context)
-                                            viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
+                                            viewmodel_floating_filtrado.iniciarVerificacionGPS(
+                                                context
+                                            )
+
+                                            if (primeraVezCercaDeTi) {
+                                                fun_primeraVezCercaDeTi(false)
+//                                                primeraVezCercaDeTi = false
+                                                viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                    context
+                                                )
+                                                Log.d(
+                                                    "guadado",
+                                                    "✅ Primera llamada a obtener_nuevas_cordenadas()"
+                                                )
+
+                                            } else {
+                                                Log.d(
+                                                    "guadado",
+                                                    "⏩ Ya fue llamada antes, no se vuelve a ejecutar"
+                                                )
+                                            }
+                                        }
+
+                                        onDispose {
+                                            gpsIniciado = false
+                                            viewmodel_floating_filtrado.detenerVerificacionGPS()
+                                            Log.d("guadado", "detener GPS (dispose)")
                                         }
                                     }
 
@@ -1344,8 +1374,10 @@ fun FloatingBubble(
                                             if (habilitado) {
                                                 Column {
                                                     when (scate_carga_cordenadas_nuevas) {
-                                                        is viewmodel_floating_filtrado.carga_cordenadas.error ->{
-                                                            val error = (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
+                                                        is viewmodel_floating_filtrado.carga_cordenadas.error -> {
+                                                            Log.d("qewqeqeqeeqewq", "error")
+                                                            val error =
+                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
                                                             texto_generico_one_line(
                                                                 error,
                                                                 MaterialTheme.typography.bodyMedium
@@ -1353,39 +1385,60 @@ fun FloatingBubble(
                                                         }
 
                                                         is viewmodel_floating_filtrado.carga_cordenadas.loading -> {
-                                                                Box(
-                                                                    modifier = Modifier.fillMaxWidth(),
-                                                                    contentAlignment = Alignment.Center
-                                                                ) {
-                                                                    CircularProgressIndicator(
-                                                                        modifier = Modifier
-                                                                            .size(25.dp)
-                                                                            .padding(start = 6.dp),
-                                                                        strokeWidth = 2.dp,
-                                                                        color = MaterialTheme.colorScheme.primary
-                                                                    )
-                                                                }
+                                                            Log.d("qewqeqeqeeqewq", "loading")
+                                                            Box(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                CircularProgressIndicator(
+                                                                    modifier = Modifier
+                                                                        .size(25.dp)
+                                                                        .padding(start = 6.dp),
+                                                                    strokeWidth = 2.dp,
+                                                                    color = MaterialTheme.colorScheme.primary
+                                                                )
+                                                            }
                                                         }
+
                                                         is viewmodel_floating_filtrado.carga_cordenadas.succes -> {
-                                                            Log.d("qewqeqeqeeqewq","succes")
-                                                            val localidad = (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).localidad
-                                                            val hora = (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hora
+                                                            Log.d("qewqeqeqeeqewq", "succes")
+                                                            val localidad =
+                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).localidad
+                                                            val hora =
+                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hora
+                                                            val geohasing_variable =
+                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hashin_user
+                                                            fun_nuevo_geohasing_actualizado(
+                                                                geohasing_variable
+                                                            )
+                                                            LaunchedEffect(geohasing_variable) {
+                                                                Log.d("CambioGeohash", "Nuevo valor: $geohasing_variable")
+                                                                filtrado_cerca_de_ti(
+                                                                    radioActual, geohasing_variable
+                                                                )
+                                                            }
+
                                                             Row(
                                                                 verticalAlignment = Alignment.CenterVertically,
                                                                 horizontalArrangement = Arrangement.Center
                                                             ) {
-                                                            texto_generico_one_line(
-                                                                "Ubicación actualizada  ",
-                                                                MaterialTheme.typography.bodyMedium
-                                                            )
-                                                            TextoSubrayado(
-                                                                hora,
-                                                                MaterialTheme.typography.bodyMedium,
-                                                                modifier = Modifier.clickable {
-                                                                    viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
-                                                                },
-                                                                color_subrallado = MaterialTheme.colorScheme.primary
-                                                            )
+                                                                texto_generico_one_line(
+                                                                    "Ubicación actualizada  ",
+                                                                    MaterialTheme.typography.bodyMedium
+                                                                )
+                                                                TextoSubrayado(
+                                                                    hora,
+                                                                    MaterialTheme.typography.bodyMedium,
+                                                                    modifier = Modifier.clickable {
+                                                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                                            context
+                                                                        )
+                                                                        filtrado_cerca_de_ti(
+                                                                            radioActual, geohasing_variable
+                                                                        )
+                                                                    },
+                                                                    color_subrallado = MaterialTheme.colorScheme.primary
+                                                                )
 
                                                             }
                                                             if (localidad != "Fuera de zona" && localidad.isNotBlank()) {
@@ -1425,7 +1478,8 @@ fun FloatingBubble(
                                                     }
 
                                                     spacer_vertical(17.dp)
-                                                    texto_generico_one_line(
+//
+                                                      texto_generico_one_line(
                                                         "Rango aproximado de búsqueda: ${radioActual} km",
                                                         MaterialTheme.typography.bodyMedium
                                                     )
@@ -1444,16 +1498,14 @@ fun FloatingBubble(
                                                                     context, radioActual
                                                                 )
                                                             }
-                                                            if (geohashin != null) {
-                                                                filtrado_cerca_de_ti(
-                                                                    radioActual, geohashin!!
-                                                                )
-                                                            } else {
-                                                                Log.d(
-                                                                    "Ubicacion",
-                                                                    "❌ Aún no se ha obtenido la ubicación"
-                                                                )
-                                                            }
+                                                         if(geohashin !=null){
+                                                            filtrado_cerca_de_ti(
+                                                                radioActual, geohashin
+                                                            )
+                                                         }else{
+                                                             println("No se econtro geohasing")
+                                                         }
+
                                                         },
                                                         colors = SliderDefaults.colors(
                                                             thumbColor = MaterialTheme.colorScheme.primary,
@@ -1495,9 +1547,14 @@ fun FloatingBubble(
                                         }
 
                                     }
-                                }else{
+                                } else {
+                                    fun_primeraVezCercaDeTi(true)
+//                                    primeraVezCercaDeTi = true
+                                    Log.d("guadado", "desable")
                                     gpsIniciado = false
                                     viewmodel_floating_filtrado.detenerVerificacionGPS()
+                                    viewmodel_floating_filtrado.reiniciarEstadoCoordenadas()
+
                                 }
 
                             }

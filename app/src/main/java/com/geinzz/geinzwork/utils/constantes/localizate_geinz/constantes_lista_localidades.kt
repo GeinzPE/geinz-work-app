@@ -114,7 +114,9 @@ object constantes_lista_localidades {
         "hospedaje y entretenimiento nocturno",
         "salud y farmacias",
         "transporte y terminales",
-        "deporte y bienestar"
+        "deporte y bienestar",
+        "bancos y servicios financieros",
+        "hogar y ferreteria","belleza","minimarkets y bodegas"
     )
 
     val dias_sema =
@@ -178,6 +180,7 @@ object constantes_lista_localidades {
             "supermercados y tiendas grandes" -> "🏬"
             "tecnologia y electronica" -> "💻"
             "transporte y terminales" -> "🚌"
+            "hogar"->"🏨"
             else -> "🏷️" // genérico
         }
     }
@@ -1171,7 +1174,7 @@ object constantes_lista_localidades {
             "educacion y librerias" -> "Educación"
             "entretenimiento y recreacion" -> "Entretenimiento"
             "grifos y estaciones" -> "Grifos"
-            "hogar y ferreteria" -> "Hogar"
+            "hogar y ferreteria" -> "Hogar y decoración"
             "hospedaje y entretenimiento nocturno" -> "Hospedaje"
             "jardineria y plantas" -> "Jardinería"
             "lavanderias y tintorerias" -> "Lavandería"

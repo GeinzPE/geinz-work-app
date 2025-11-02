@@ -149,6 +149,7 @@ import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
+import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -174,9 +175,13 @@ fun ui_pantalla_busqueda(
     crear_cuenta: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
+    var primeraVezCercaDeTi by rememberSaveable { mutableStateOf(true) }
     var mostrar_dialog_cambiar_radio by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
+    val viewmodel_floating_filtrado: viewmodel_floating_filtrado = viewModel()
+    val cerca_de_ti_enable =viewmodel_floating_filtrado.cerca_de_ti_enable.collectAsState(initial = false)
+
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -266,7 +271,7 @@ fun ui_pantalla_busqueda(
     var lat_user by remember { mutableStateOf<Double?>(null) }
     var log_user by remember { mutableStateOf<Double?>(null) }
     var hash_user by remember { mutableStateOf<String?>(null) }
-    var cerca_de_ti_enable by remember { mutableStateOf(false) }
+
     val radioGuardado by data_store_localidad.get_radio_user(context)
         .collectAsState(initial = 1f)
     // 👇 este estado se actualiza automáticamente cuando cambia el valor guardado
@@ -293,10 +298,12 @@ fun ui_pantalla_busqueda(
                     data_store_localidad.guardar_lat_log_user(context, lat, lng)
                 }
             }
-            cerca_de_ti_enable = true
+//            cerca_de_ti_enable = true
+            viewmodel_floating_filtrado.save_cerca_de_ti(true)
         } else {
             Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
-            cerca_de_ti_enable = false
+//            cerca_de_ti_enable = false
+            viewmodel_floating_filtrado.save_cerca_de_ti(false)
         }
     }
     LaunchedEffect(radio_cambiado) {
@@ -308,12 +315,12 @@ fun ui_pantalla_busqueda(
 //            searchText = TextFieldValue("")
 //        }
 //    }
-    LaunchedEffect(cerca_de_ti_enable) {
+    LaunchedEffect(cerca_de_ti_enable.value) {
         Log.d("FiltroRadioEffect", "🚀 LaunchedEffect disparado")
         Log.d("FiltroRadioEffect", "cerca_de_ti_enable = $cerca_de_ti_enable")
         Log.d("FiltroRadioEffect", "categoria_filtrad = $categoria_filtrad")
         Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
-        if (cerca_de_ti_enable) {
+        if (cerca_de_ti_enable.value) {
             Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
             obtenerUbicacionEnTiempoReal(context) { lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
@@ -334,7 +341,7 @@ fun ui_pantalla_busqueda(
                     context,
                     categoria_filtrad,
                     subcategira_filtrado,
-                    cerca_de_ti_enable,
+                    cerca_de_ti_enable.value,
                     hash_user
                 )
             } else {
@@ -408,7 +415,8 @@ fun ui_pantalla_busqueda(
 //            viewModel.clearResults()
 //            salud_seguirdad = ""
 //            Log.d("_cabiamos_localida", "$salud_seguirdad,$categoria_filtrad,$subcategira_filtrado")
-            cerca_de_ti_enable = false
+//            cerca_de_ti_enable = false
+            viewmodel_floating_filtrado.save_cerca_de_ti(false)
         }
         if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty())) {
 //            Log.d(
@@ -461,7 +469,7 @@ fun ui_pantalla_busqueda(
                 radioActual,
                 context,
                 hash_user,
-                cerca_de_ti_enable,
+                cerca_de_ti_enable.value,
                 tiendaLocalidadSeleccionada ?: "barranca",
                 categoriaFinal,
                 subcategira_filtrado
@@ -485,15 +493,15 @@ fun ui_pantalla_busqueda(
     }
     val ultima_cordenada_actualziada by data_store_localidad.obtener_hashing_user(context)
         .collectAsState(initial = null)
-    LaunchedEffect(ultima_cordenada_actualziada, cerca_de_ti_enable) {
-        if (ultima_cordenada_actualziada != null && cerca_de_ti_enable) {
+    LaunchedEffect(ultima_cordenada_actualziada, cerca_de_ti_enable.value) {
+        if (ultima_cordenada_actualziada != null && cerca_de_ti_enable.value) {
             Log.d("cambiamos_hasuser", "📍 Nueva coordenada: $ultima_cordenada_actualziada")
             viewModel.filtrar_por_radio(
                 radioActual,
                 context,
                 categoria_filtrad,
                 subcategira_filtrado,
-                cerca_de_ti_enable,
+                cerca_de_ti_enable.value,
                 ultima_cordenada_actualziada
             )
         } else {
@@ -581,7 +589,7 @@ fun ui_pantalla_busqueda(
                                     viewModel.buscarItems(
                                         radioActual,
                                         context,
-                                        cerca_de_ti_enable,
+                                        cerca_de_ti_enable.value,
                                         hash_user,
                                         false,
                                         tiendaLocalidadSeleccionada ?: "barranca",
@@ -595,7 +603,7 @@ fun ui_pantalla_busqueda(
                                     viewModel.buscarItems(
                                         radioActual,
                                         context,
-                                        cerca_de_ti_enable,
+                                        cerca_de_ti_enable.value,
                                         hash_user,
                                         true,
                                         tiendaLocalidadSeleccionada ?: "barranca",
@@ -613,7 +621,7 @@ fun ui_pantalla_busqueda(
                                     viewModel.buscarItems(
                                         radioActual,
                                         context,
-                                        cerca_de_ti_enable,
+                                        cerca_de_ti_enable.value,
                                         hash_user,
                                         true,
                                         tiendaLocalidadSeleccionada ?: "barranca",
@@ -648,7 +656,7 @@ fun ui_pantalla_busqueda(
                     spacer_vertical(5.dp)
 
                     filtrado_chips(
-                        viewModel,
+                        viewModel = viewModel,
                         searchText = searchText.text,
                         lista_filtrado = categorias,
                         salud_seguirdad = salud_seguirdad,
@@ -790,11 +798,7 @@ fun ui_pantalla_busqueda(
                                     )
                                     .firstOrNull()
                                     ?.let {
-                                        Toast.makeText(
-                                            context,
-                                            "cambiamos texto realiazdo",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+
                                         mostrar_dialog_cambiar_radio = true
                                     }
                             }
@@ -907,6 +911,7 @@ fun ui_pantalla_busqueda(
 
         if (mostrar_dialog_cambiar_radio) {
             dialogo_cabiar_rango_busqueda(
+                viewmodel_floating_filtrado,
                 geohashin = hash_user,
                 context = context,
                 ondimis = { mostrar_dialog_cambiar_radio = !mostrar_dialog_cambiar_radio },
@@ -917,16 +922,17 @@ fun ui_pantalla_busqueda(
                         context,
                         categoria_filtrad,
                         subcategira_filtrado,
-                        cerca_de_ti_enable,
+                        cerca_de_ti_enable.value,
                         hasing_user
                     )
+//                    hash_user=hasing_user
                     radio_cambiado = radio
                 },
                 cancelar_dialog_filtrado_cerncano = {
-                    cerca_de_ti_enable = !cerca_de_ti_enable
+                    viewmodel_floating_filtrado.save_cerca_de_ti(!cerca_de_ti_enable.value)
+//                    cerca_de_ti_enable = !cerca_de_ti_enable.value
                 },
-                localidad_busqueda_general = tiendaLocalidadSeleccionada
-                    ?: localida_defauld.localida,
+                localidad_busqueda_general = tiendaLocalidadSeleccionada ?: localida_defauld.localida,
                 listner_localidad_busqueda = {
                     scope.launch {
                         if (!estado_mostar) {
@@ -941,6 +947,8 @@ fun ui_pantalla_busqueda(
                     color_categoria = false
                     color_subcategoria = false
                     color_salud_seguirdad = false
+                },{hasing->
+                    hash_user=hasing
                 })
         }
         Box(
@@ -960,7 +968,9 @@ fun ui_pantalla_busqueda(
         )
 
         FloatingBubble(
-            cerca_de_ti_enable = cerca_de_ti_enable,
+            primeraVezCercaDeTi = primeraVezCercaDeTi,
+            viewmodel_floating_filtrado = viewmodel_floating_filtrado,
+            cerca_de_ti_enable = cerca_de_ti_enable.value,
             geohashin = hash_user,
             color_categoria = color_categoria,
             color_localidad = color_localidad,
@@ -994,13 +1004,13 @@ fun ui_pantalla_busqueda(
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
             },
-            categoria_filtrad,
+            categoria_filtrad = categoria_filtrad,
             categoria_Selecionada = { categoria ->
                 Log.d("catgoria", "se cambio categoria")
                 categoria_filtrad = categoria
                 viewModel.clearResults()
             },
-            subcategira_filtrado,
+            subcategira_filtrado = subcategira_filtrado,
             subcategoria_selecionada = { subcategoria_select ->
                 subcategira_filtrado = subcategoria_select
             },
@@ -1056,13 +1066,13 @@ fun ui_pantalla_busqueda(
                 color_salud_seguirdad = false
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
-                Log.d("logemos", "${radio}")
+                Log.d("logemo13131232s", "${radio} $hasing_user")
                 viewModel.filtrar_por_radio(
                     radio,
                     context,
                     categoria_filtrad,
                     subcategira_filtrado,
-                    cerca_de_ti_enable,
+                    cerca_de_ti_enable.value,
                     hasing_user
                 )
                 radio_cambiado = radio
@@ -1075,7 +1085,8 @@ fun ui_pantalla_busqueda(
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
                         if (isGPSEnabled(context)) {
-                            cerca_de_ti_enable = it
+                            viewmodel_floating_filtrado.save_cerca_de_ti(it)
+            //                            cerca_de_ti_enable = it
                         } else {
                             verificarGPS(context, launcher)
                         }
@@ -1091,9 +1102,12 @@ fun ui_pantalla_busqueda(
                 }
 
             }, fun_nuevo_geohasing_actualizado = { it ->
+                Log.d("nuevohasgin",it)
                 hash_user = it
-            }, {
+            }, fun_abrir_dialog_filtrado_radio = {
                 mostrar_dialog_cambiar_radio = true
+            }, fun_primeraVezCercaDeTi = { it->
+                primeraVezCercaDeTi=it
             })
     }
 }

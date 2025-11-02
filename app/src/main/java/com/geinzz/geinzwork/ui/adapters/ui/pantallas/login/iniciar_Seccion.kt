@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.login
 import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -40,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +71,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ui_bottom_sheet_errores
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -91,7 +94,6 @@ fun IniciarSeccion(
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val loginState_principal by viewModel_login_user.loginStateCamposInicial.observeAsState()
     val listaImg = constantes_lista_localidades.lista_img_local
     var show_bottom_sheet by remember { mutableStateOf(false) }
 
@@ -99,6 +101,7 @@ fun IniciarSeccion(
         .requestIdToken(context.getString(R.string.default_web_client_id))
         .requestEmail()
         .build()
+    var mostar_errores_bottom_sheet by remember { mutableStateOf(false) }
 
     val googleSignInClient = GoogleSignIn.getClient(context, gso)
     val launcher = rememberLauncherForActivityResult(
@@ -112,6 +115,7 @@ fun IniciarSeccion(
                 listener_Crear_cuenta(correo)
             }
         } catch (e: Exception) {
+            viewModel_login_user.registrarError(e.toString())
             Log.e("LOGIN_GOOGLE", "Excepción: ${e.message}", e)
         }
     }
@@ -199,7 +203,9 @@ fun IniciarSeccion(
                         Image(
                             painter = painterResource(R.drawable.logo_geinz_blanco),
                             contentDescription = "",
-                            modifier = Modifier.size(70.dp)
+                            modifier = Modifier.size(70.dp).clickable{
+                                mostar_errores_bottom_sheet=true
+                            }
                         )
                     }
                     spacer_vertical(5.dp)
@@ -240,10 +246,13 @@ fun IniciarSeccion(
                 viewModel_login_user,
                 show_bottom_sheet,
                 { show_bottom_sheet = false },
-                loginState_principal, { correo, contra ->
+                 { correo, contra ->
                     viewModel_login_user.logear_user(navController, correo, contra)
                     keyboardController?.hide()
                 })
+        }
+        if(mostar_errores_bottom_sheet){
+            ui_bottom_sheet_errores(viewModel_login_user,{mostar_errores_bottom_sheet=false})
         }
     }
 }
@@ -294,11 +303,11 @@ fun bottom_sheet_login(
     viewModel_login_user: viewModel_login_user,
     show: Boolean,
     onClose: () -> Unit,
-    loginState_principal: LoginState_inicio?,
     listener_iniciar_seccion_geinz: (correo: String, contra: String) -> Unit,
 ) {
     val context = LocalContext.current
     val cambio_password by viewModel_login_user.recuperar_contra.observeAsState()
+    val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
 
     var correo by remember(show) { mutableStateOf("") }
     var password by remember(show) { mutableStateOf("") }
@@ -308,6 +317,7 @@ fun bottom_sheet_login(
     var texto_error_contra by remember(show) { mutableStateOf("") }
     var cambiar_contra by remember(show) { mutableStateOf(true) }
     var contra_oculta by rememberSaveable(show) { mutableStateOf(true) }
+    var mostara_carga_progres by remember { mutableStateOf(false) }
 
 
     Log.d("error_correo", error_correo.toString())
@@ -336,31 +346,45 @@ fun bottom_sheet_login(
         }
     }
     LaunchedEffect(loginState_principal) {
+        Log.d("entramos1234","entramossssss")
         when (val state = loginState_principal) {
             is LoginState_inicio.error -> {
+                delay(700)
                 when (state.tipo) {
                     "correo_no_existe" -> {
+                        Log.d("entramos1234","correo_no_existe")
+
                         error_correo = true
                         texto_error_correo = state.msje
                         error_pass = false
                         texto_error_contra = ""
+                        mostara_carga_progres=false
                     }
 
                     "pass_incorrecta" -> {
+
+                        Log.d("entramos1234","pass_incorrecta")
                         error_pass = true
                         texto_error_contra = state.msje
                         error_correo = false
                         texto_error_correo = ""
+                        mostara_carga_progres=false
                     }
 
                     else -> {
+
                         error_correo = false
                         texto_error_correo = ""
                         error_pass = false
                         texto_error_contra = ""
+                        mostara_carga_progres=false
+
                     }
                 }
+//                delay(200)
+//                viewModel_login_user.resetLoginState()
             }
+
 
             is LoginState_inicio.Succes -> {
                 error_correo = false
@@ -370,11 +394,22 @@ fun bottom_sheet_login(
                 onClose()
             }
 
+            LoginState_inicio.Loading ->{
+                onClose()
+                mostara_carga_progres=true
+
+            }
+            LoginState_inicio.LoggedOut -> {
+
+            }
+
             else -> {
                 error_correo = false
                 texto_error_correo = ""
                 error_pass = false
                 texto_error_contra = ""
+
+
             }
         }
     }
@@ -387,6 +422,7 @@ fun bottom_sheet_login(
             texto_error_correo = ""
             password = ""
             onClose()
+            viewModel_login_user.resetLoginState()
         },
         modifier = Modifier.fillMaxWidth(),
         dragHandle = null,
@@ -489,11 +525,22 @@ fun bottom_sheet_login(
 
             spacer_vertical(20.dp)
             iniciar_seccion_normal(
-                if (cambiar_contra) {
+                mostrarCarga = mostara_carga_progres,
+                textoBtn = if (cambiar_contra) {
                     "Iniciar seccion"
                 } else {
                     "Recuperar contraseña"
-                }, cambiar_contra, { listener_iniciar_seccion_geinz(correo, password) }, {
+                }, esLogin = cambiar_contra, onLogin = {
+                    if (correo.isEmpty() || password.isEmpty()) {
+                        viewModel_login_user.verificar_campos(correo, password)
+                        mostara_carga_progres=true
+                    } else {
+                        viewModel_login_user.resetLoginState()
+                        listener_iniciar_seccion_geinz(correo, password)
+                        mostara_carga_progres=true
+
+                    }
+                }, onRecuperar = {
                     if (correo.isBlank()) {
                         error_correo = true
                         texto_error_correo = "El campo es obligatorio"
@@ -553,6 +600,7 @@ fun crear_cuenta(listner_crear_cuenta: () -> Unit) {
 
 @Composable
 fun iniciar_seccion_normal(
+    mostrarCarga: Boolean,
     textoBtn: String,
     esLogin: Boolean = true,
     onLogin: () -> Unit,
@@ -571,11 +619,27 @@ fun iniciar_seccion_normal(
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        texto_generico_one_line(
-            textoBtn,
-            MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(vertical = 17.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            texto_generico_one_line(
+                textoBtn,
+                MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(vertical = 17.dp)
+            )
+
+            if (mostrarCarga) {
+                spacer_horizonta(8.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(18.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            }
+        }
+
     }
 }
 
