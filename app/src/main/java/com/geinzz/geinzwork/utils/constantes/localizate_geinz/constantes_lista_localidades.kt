@@ -458,6 +458,20 @@ object constantes_lista_localidades {
 
 
     )
+    @Composable
+    fun FuenteControladaApp_bottom_sheet_dialog(content: @Composable () -> Unit) {
+        val currentDensity = LocalDensity.current
+
+        CompositionLocalProvider(
+            LocalDensity provides Density(
+                currentDensity.density,
+                fontScale = 1f // 👈 Bloquea el cambio del tamaño de texto
+            )
+        ) {
+            content()
+        }
+    }
+
 
     @Composable
     fun FuenteControladaApp(content: @Composable () -> Unit) {

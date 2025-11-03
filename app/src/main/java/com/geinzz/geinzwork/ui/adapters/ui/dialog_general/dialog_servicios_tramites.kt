@@ -64,6 +64,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
@@ -91,6 +92,8 @@ fun dialog_servicios_tramite(
         onDismissRequest = { ondimis() },
         confirmButton = {},
         text = {
+            FuenteControladaApp{
+
             Column {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     btn_close_gris(
@@ -305,6 +308,7 @@ fun dialog_servicios_tramite(
                     referencia = referencia,
                     onDismis = { mostrarDialog_sin_google_maps = false },
                     abrir_maps = { constantes.abrirGoogleMaps(contex, direccion) })
+            }
             }
         }
     )

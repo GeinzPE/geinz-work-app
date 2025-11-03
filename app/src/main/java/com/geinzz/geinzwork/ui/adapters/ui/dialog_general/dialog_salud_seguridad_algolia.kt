@@ -46,6 +46,7 @@ import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salu
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general.copiarTexto_portapapeles_compouse
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import kotlinx.coroutines.delay
@@ -91,6 +92,7 @@ fun dialog_salud_seguridad_algolia(
         dismissButton = {},
         title = {},
         text = {
+            FuenteControladaApp{
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
@@ -233,6 +235,7 @@ fun dialog_salud_seguridad_algolia(
                 }
 
 
+            }
             }
         }
     )

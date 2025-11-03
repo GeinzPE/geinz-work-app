@@ -38,6 +38,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general.copiarTexto_portapapeles_compouse
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import java.net.URLEncoder
 
 
@@ -52,8 +53,12 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
         onDismissRequest = { ondimiss() },
         confirmButton = {},
         dismissButton = {},
-        title = { texto_generico_one_line("Números de emergencia") },
+        title = {
+            FuenteControladaApp{
+            texto_generico_one_line("Números de emergencia") }
+            },
         text = {
+            FuenteControladaApp{
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 texto_generico_multilinea(
                     "En caso de emergencia, comunícate de inmediato con los servicios de seguridad y salud.Puedes llamar o ir a whatsApp directamente tocando el ícono de teléfono o copiar el número que necesites.",
@@ -101,6 +106,7 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
 
                 }
             }
+            }
         },
         shape = RoundedCornerShape(20.dp),
         icon = {
@@ -127,6 +133,7 @@ fun box_llamada_whatsap(
     click_icon: () -> Unit,
     click_copiar: () -> Unit
 ) {
+    FuenteControladaApp{
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
         texto_generico_one_line(
             numero,
@@ -156,6 +163,7 @@ fun box_llamada_whatsap(
                 colorFilter = ColorFilter.tint(Color.White)
             )
         }
+    }
     }
 
 }

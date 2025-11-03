@@ -37,6 +37,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tiend
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.icon_geinz_mas_fondo_violeta
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 
 @Composable
@@ -54,6 +55,7 @@ fun dialog_sin_pago_tiendas(
         dismissButton = {},
 
         text = {
+            FuenteControladaApp{
                 Crossfade(targetState = mostrandoCarga_free, label = "anim_carga") { cargando ->
                     if (cargando) {
                         Box(
@@ -149,6 +151,7 @@ fun dialog_sin_pago_tiendas(
                         }
                     }
                 }
+            }
         },
         icon = {
 //            icon_geinz_mas_fondo_violeta()

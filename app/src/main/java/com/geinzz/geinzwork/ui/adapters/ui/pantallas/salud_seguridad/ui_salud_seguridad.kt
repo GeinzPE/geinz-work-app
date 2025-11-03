@@ -111,7 +111,8 @@ fun ui_salud_seguirdad(
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var chip_selecionado by rememberSaveable { mutableStateOf("Todos") }
-    val state_seguridad = viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
+    val state_seguridad =
+        viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
     val mostrar_carga_salud_seguridad by viewmode_segurirdad_Salud.mostrar_carga_salud_seguridad.collectAsState()
 
     var isLoading by remember { mutableStateOf(false) }
@@ -136,7 +137,7 @@ fun ui_salud_seguirdad(
 
     // Llama servicios iniciales
     LaunchedEffect(Unit) {
-        viewmode_segurirdad_Salud.obtener_servicios(localida,context)
+        viewmode_segurirdad_Salud.obtener_servicios(localida, context)
     }
 
     LaunchedEffect(lista_seguridad_salud) {
@@ -192,9 +193,13 @@ fun ui_salud_seguirdad(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp)
+
     ) {
-        LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(10.dp)
+        ) {
             item {
                 texto_generico_multilinea(
                     "Salud y Seguridad Pública",
@@ -227,11 +232,17 @@ fun ui_salud_seguirdad(
                     ) {
                         filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
                         spacer_vertical(10.dp)
-                        chips_filtrado(tienePermisoLlamada,context, chip_selecionado, lista_filtrado, { i ->
-                            chip_selecionado = i
-                        }, {
-                            bottom_sheet_llamda = true
-                        })
+                        chips_filtrado(
+                            tienePermisoLlamada,
+                            context,
+                            chip_selecionado,
+                            lista_filtrado,
+                            { i ->
+                                chip_selecionado = i
+                            },
+                            {
+                                bottom_sheet_llamda = true
+                            })
                     }
                 }
             }
@@ -310,6 +321,7 @@ fun ui_salud_seguirdad(
                         "loading" -> {
 //                            CircularProgressIndicator()
                         }
+
                         "empty" -> texto_generico_one_line(
                             texto_error_empity,
                             color = Color.Gray,
@@ -558,12 +570,12 @@ fun carta_salud_cuidad(
                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             },
             dialog_sin_maps = {
-                dialog_sin_lat_log=true
+                dialog_sin_lat_log = true
                 dialogo_activar_ubicacion = false
             }
         )
     }
-    if(dialog_sin_lat_log){
+    if (dialog_sin_lat_log) {
         dialog_sin_ubi_activa(
             direccion = i.direccion,
             referencia = i.referencia,

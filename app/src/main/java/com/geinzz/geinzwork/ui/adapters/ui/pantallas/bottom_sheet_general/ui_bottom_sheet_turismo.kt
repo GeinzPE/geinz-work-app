@@ -120,6 +120,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_c
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.calcularDistanciaKm
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp_bottom_sheet_dialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
@@ -214,6 +216,7 @@ fun bottom_sheet_lugares_turisticos(
         dragHandle = {},
         containerColor = MaterialTheme.colorScheme.background
     ) {
+        FuenteControladaApp {
         if (cargando) {
             Box(
                 modifier = Modifier
@@ -278,6 +281,7 @@ fun bottom_sheet_lugares_turisticos(
         }
 
 
+    }
     }
 
 

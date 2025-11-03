@@ -26,6 +26,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.icon_geinz_mas_fondo_violeta
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,7 @@ fun dialog_cerca_de_ti_desable(ondimis: () -> Unit) {
         },
         title = {},
         text = {
+            FuenteControladaApp{
             Column {
                 Box(contentAlignment = Alignment.Center) {
                     Box(
@@ -57,6 +59,7 @@ fun dialog_cerca_de_ti_desable(ondimis: () -> Unit) {
                 spacer_vertical(7.dp)
                 texto_generico_multilinea("El filtro 'Cerca de ti' está desactivado para las categorías de Salud o Seguridad, ya que en una emergencia lo importante es mostrarte toda la ayuda disponible, sin importar la distancia.", style = MaterialTheme.typography.bodyMedium)
                 spacer_vertical(10.dp)
+            }
             }
         }
     )

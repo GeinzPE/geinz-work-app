@@ -27,6 +27,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_e
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 @Composable
 fun permisos_llamadas(aceptar_permisos: () -> Unit, ondimis: () -> Unit) {
@@ -41,12 +42,18 @@ fun permisos_llamadas(aceptar_permisos: () -> Unit, ondimis: () -> Unit) {
         dismissButton = {
             btn_cerra_etc_dialog_general{ ondimis()}
         },
-        title = { texto_generico_one_line("Permisos de llamada") },
+        title = {
+            FuenteControladaApp{
+            texto_generico_one_line("Permisos de llamada") }
+            },
         text = {
+            FuenteControladaApp{
+
             texto_generico_multilinea(
                 "Geinz necesita permiso para realizar llamadas. Por favor, activa el permiso.",
                 MaterialTheme.typography.bodyMedium
             )
+            }
         },
         icon = {
             Icon(
@@ -83,12 +90,17 @@ fun permiso_primario_notifi(clik_si:()-> Unit, clik_no:()-> Unit, ondimis: () ->
                 )
             }
         },
-        title = { texto_generico_one_line("Mantente informado") },
+        title = {
+            FuenteControladaApp{
+            texto_generico_one_line("Mantente informado") }
+            },
         text = {
+            FuenteControladaApp{
             texto_generico_multilinea(
                 "Entérate de lo que pasa en tu localidad: eventos, novedades y la llegada de nuevos lugares.",
                 MaterialTheme.typography.bodyMedium
             )
+            }
         },
 
         icon = {

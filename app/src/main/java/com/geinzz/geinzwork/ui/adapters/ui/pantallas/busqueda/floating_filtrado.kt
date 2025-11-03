@@ -112,6 +112,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cerca_de_ti_des
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
@@ -465,670 +466,632 @@ fun FloatingBubble(
             dragHandle = {},
             containerColor = MaterialTheme.colorScheme.background
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+            FuenteControladaApp {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.8f)
                 ) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 150.dp)
-                                .clip(RoundedCornerShape(30.dp))
-                                .background(MaterialTheme.colorScheme.surface)
-                                .padding(15.dp)
-                                .pointerInput(Unit) {
-                                    detectDragGestures { change, dragAmount ->
-                                        val (_, dy) = dragAmount
-                                        if (dy > 0) {
-                                            expanded_fun()
-                                        }
-                                    }
-                                }) {
-                            Column {
-                                texto_generico_one_line(
-                                    "Filtra tu búsqueda", MaterialTheme.typography.headlineSmall
-                                )
-                                spacer_vertical(10.dp)
-                                texto_generico_multilinea(
-                                    "Elige una categoría y explora desde playas y museos hasta tiendas y restaurantes locales.",
-                                    MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                                spacer_vertical(15.dp)
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    // Localidad
-                                    if (filtros.localidad.isNotEmpty()) {
-                                        item {
-                                            AnimatedVisibility(
-                                                visible = true, enter = fadeIn(), exit = fadeOut()
-                                            ) {
-                                                chisp_filtrado_busqueda(
-                                                    color_localidad,
-                                                    filtros.localidad,
-                                                    false,
-                                                    clik_card = {
-                                                        click_carta_localidad()
-                                                    },
-                                                    onClick_delete = {
-                                                        click_carta_localidad_delete()
-                                                        filtros = filtros.copy(localidad = "")
-                                                    })
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 150.dp)
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(15.dp)
+                                    .pointerInput(Unit) {
+                                        detectDragGestures { change, dragAmount ->
+                                            val (_, dy) = dragAmount
+                                            if (dy > 0) {
+                                                expanded_fun()
                                             }
                                         }
-                                    }
+                                    }) {
+                                Column {
+                                    texto_generico_one_line(
+                                        "Filtra tu búsqueda", MaterialTheme.typography.headlineSmall
+                                    )
+                                    spacer_vertical(10.dp)
+                                    texto_generico_multilinea(
+                                        "Elige una categoría y explora desde playas y museos hasta tiendas y restaurantes locales.",
+                                        MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                    spacer_vertical(15.dp)
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        // Localidad
+                                        if (filtros.localidad.isNotEmpty()) {
+                                            item {
+                                                AnimatedVisibility(
+                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                ) {
+                                                    chisp_filtrado_busqueda(
+                                                        color_localidad,
+                                                        filtros.localidad,
+                                                        false,
+                                                        clik_card = {
+                                                            click_carta_localidad()
+                                                        },
+                                                        onClick_delete = {
+                                                            click_carta_localidad_delete()
+                                                            filtros = filtros.copy(localidad = "")
+                                                        })
+                                                }
+                                            }
+                                        }
 
 // Categoria
-                                    if (mostrarChipCategoria.value) {
-                                        item {
-                                            AnimatedVisibility(
-                                                visible = true, enter = fadeIn(), exit = fadeOut()
-                                            ) {
-                                                chisp_filtrado_busqueda(
-                                                    color_categoria,
-                                                    categoria_filtrad.ifEmpty { filtros.categoria },
-                                                    clik_card = {
-                                                        click_carta_categoria()
+                                        if (mostrarChipCategoria.value) {
+                                            item {
+                                                AnimatedVisibility(
+                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                ) {
+                                                    chisp_filtrado_busqueda(
+                                                        color_categoria,
+                                                        categoria_filtrad.ifEmpty { filtros.categoria },
+                                                        clik_card = {
+                                                            click_carta_categoria()
 
-                                                    },
-                                                    onClick_delete = {
-                                                        click_carta_categoria_delete()
-                                                        categoria_Selecionada("")
-                                                        subcategoria_selecionada("")
-                                                        mostrarChipCategoria.value = false
-                                                        mostrarChipsubcategoria.value = false
-                                                        viewModel.clearResults()
-                                                    })
+                                                        },
+                                                        onClick_delete = {
+                                                            click_carta_categoria_delete()
+                                                            categoria_Selecionada("")
+                                                            subcategoria_selecionada("")
+                                                            mostrarChipCategoria.value = false
+                                                            mostrarChipsubcategoria.value = false
+                                                            viewModel.clearResults()
+                                                        })
+                                                }
                                             }
                                         }
-                                    }
 
 // Subcategoria
-                                    if (mostrarChipsubcategoria.value) {
-                                        item {
-                                            AnimatedVisibility(
-                                                visible = true, enter = fadeIn(), exit = fadeOut()
-                                            ) {
-                                                chisp_filtrado_busqueda(
-                                                    color_subcategoria,
-                                                    subcategira_filtrado.ifEmpty { filtros.subcategoria },
-                                                    clik_card = {
-                                                        click_carta_subcategoria()
-
-                                                    },
-                                                    onClick_delete = {
-                                                        click_carta_subcategoria_delete()
-                                                        subcategoria_selecionada("")
-                                                        mostrarChipsubcategoria.value = false
-                                                    })
-                                            }
-                                        }
-                                    }
-
-
-                                    if (mostrar_chip_salud_seguridad.value) {
-                                        item {
-                                            AnimatedVisibility(
-                                                visible = true, enter = fadeIn(), exit = fadeOut()
-                                            ) {
-                                                chisp_filtrado_busqueda(
-                                                    color_salud_seguridad,
-                                                    seguidad_salud.ifEmpty { filtros.salud_seguridad },
-                                                    clik_card = {
-                                                        click_carta_seguridad()
-                                                    },
-                                                    onClick_delete = {
-                                                        Log.d("elimoasno_valo", "dealte")
-                                                        seguridad_salud_selec("")
-                                                        categoria_Selecionada("")
-                                                        subcategoria_selecionada("")
-                                                        click_carta_seguridad_delete()
-                                                        mostrarChipsubcategoria.value = false
-                                                        mostrarChipCategoria.value = false
-                                                        mostrar_chip_salud_seguridad.value = false
-                                                    })
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-                            btn_close_gris(
-                                modifier = Modifier.align(Alignment.TopEnd),
-                                Icons.Default.Close,
-                                onClick = {
-                                    expanded_fun()
-                                })
-                        }
-                        spacer_vertical(10.dp)
-                    }
-
-                    item {
-                        val childScrollState = rememberLazyListState()
-                        val nestedScrollConnection = remember {
-                            object : NestedScrollConnection {
-                                override fun onPreScroll(
-                                    available: Offset, source: NestedScrollSource
-                                ): Offset {
-                                    // Devuelve cero vertical si el hijo puede moverse en esa dirección
-                                    return when {
-                                        available.y < 0 && childScrollState.firstVisibleItemIndex + childScrollState.firstVisibleItemScrollOffset < childScrollState.layoutInfo.totalItemsCount -> Offset(
-                                            0f, available.y
-                                        )
-
-                                        available.y > 0 && (childScrollState.firstVisibleItemIndex > 0 || childScrollState.firstVisibleItemScrollOffset > 0) -> Offset(
-                                            0f, available.y
-                                        )
-
-                                        else -> Offset.Zero
-                                    }
-                                }
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(screenHeight12 * 0.80f) // 80% de la pantalla
-                        ) {
-
-                            Row(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier.weight(.50f)   // ocupa 50% del ancho
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(30.dp))
-                                            .background(backgroundColor_categorias)
-                                            .padding(8.dp)
-                                            .weight(.4f)
-                                    ) {
-                                        val listState = rememberLazyListState()
-                                        val showTopShadow by remember {
-                                            derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
-                                        }
-                                        val showBottomShadow by remember {
-                                            derivedStateOf {
-                                                val lastVisible =
-                                                    listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                                val totalItems =
-                                                    listState.layoutInfo.totalItemsCount
-                                                lastVisible != null && lastVisible < totalItems - 1
-                                            }
-                                        }
-                                        val selectedCategoria = categoria_filtrad
-
-                                        this@Row.AnimatedVisibility(true) {
-                                            Crossfade(
-                                                targetState = categorias_filtrado_res.isNotEmpty(),
-                                                label = ""
-                                            ) { tieneCategorias ->
-                                                if (tieneCategorias) {
-                                                    LazyColumn(
-                                                        state = listState,
-                                                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                        contentPadding = PaddingValues(
-                                                            horizontal = 16.dp, vertical = 8.dp
-                                                        ),
-
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .nestedScroll(nestedScrollConnection)
-                                                    ) {
-                                                        item {
-                                                            texto_generico_one_line(
-                                                                "Categoria",
-                                                                MaterialTheme.typography.titleMedium
-                                                            )
-                                                            spacer_vertical(5.dp)
-                                                        }
-
-                                                        items(categorias_filtrado_res) { i ->
-                                                            val isSelected =
-                                                                selectedCategoria.equals(
-                                                                    i.nombre_cat, ignoreCase = true
-                                                                )
-
-                                                            AnimatedFabItem(
-                                                                text = simplificarCategoria(i.nombre_cat),
-                                                                color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
-                                                                visible = expanded
-                                                            ) {
-                                                                if (i.nombre_cat != categoria_filtrad) {
-                                                                    categoria_Selecionada(i.nombre_cat)
-                                                                    subcategoria_selecionada("")
-                                                                    seguridad_salud_selec("")
-                                                                    mostrar_chip_salud_seguridad.value =
-                                                                        false
-                                                                    mostrarChipCategoria.value =
-                                                                        true
-                                                                    mostrarChipsubcategoria.value =
-                                                                        false
-                                                                    mostar_carga_subcategorias =
-                                                                        true
-                                                                    tiene_categorias()
-
-                                                                    filtros =
-                                                                        filtros.copy(categoria = i.nombre_cat)
-                                                                } else {
-                                                                    scope.launch {
-                                                                        // Llama al SnackbarHostState para mostrar el mensaje
-                                                                        snackbarHostState.showSnackbar(
-                                                                            message = "${i.nombre_cat.capitalizeFirst()} se encuentra seleccionado",
-
-                                                                            duration = SnackbarDuration.Short
-                                                                        )
-                                                                    }
-                                                                }
-
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    Box(
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Column(
-                                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                                            verticalArrangement = Arrangement.Center
-                                                        ) {
-                                                            Text(
-                                                                text = "Cargando categorías",
-                                                                textAlign = TextAlign.Center,
-                                                                style = MaterialTheme.typography.titleMedium,
-                                                                color = MaterialTheme.colorScheme.onBackground
-                                                            )
-                                                            spacer_vertical(15.dp)
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier.size(35.dp)
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        this@Row.AnimatedVisibility(
-                                            showTopShadow,
-                                            enter = fadeIn(),
-                                            exit = fadeOut(),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.TopCenter)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                startTopColor_categorias,
-                                                                endTopColor_categorias
-                                                            ),
-
-                                                            )
-                                                    )
-                                            )
-                                        }
-                                        this@Row.AnimatedVisibility(
-                                            showBottomShadow,
-                                            enter = fadeIn(),
-                                            exit = fadeOut(),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.BottomCenter)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                startBottomColor_categorias,
-                                                                endBottomColor_categorias
-                                                            ),
-
-                                                            )
-                                                    )
-                                            )
-                                        }
-                                    }
-                                    spacer_vertical(10.dp)
-                                    var expandedIndex by remember { mutableStateOf(-1) }
-                                    val weigh_lugares_inters by animateFloatAsState(
-                                        targetValue = when (expandedIndex) {
-                                            0 -> 0.20f
-                                            1 -> 0.25f
-                                            else -> 0.13f
-                                        }, animationSpec = tween(300, easing = FastOutSlowInEasing)
-                                    )
-                                    apartado_lugares_interes(
-                                        color_salud_seguridad,
-                                        expandedIndex = expandedIndex,
-                                        texto = "Seguridad y salud",
-                                        lista_subcategoria = cat_sub_seguirar_salud,
-                                        enColumna = true,
-                                        modifier = Modifier
-                                            .weight(weigh_lugares_inters)
-                                            .clip(RoundedCornerShape(30.dp))
-                                            .background(backgrpound_salud_seguridad),
-                                        expandir_clik = {
-                                            expandedIndex = if (expandedIndex == 0) -1 else 0
-                                        },
-                                        cat_sub_selection = seguidad_salud,
-                                        cat_sub_clik = { i ->
-                                            if (i != seguidad_salud) {
-
-                                                seguridad_salud_selec(i)
-                                                filtros = filtros.copy(salud_seguridad = i)
-                                                mostrar_chip_salud_seguridad.value = true
-                                                mostrarChipsubcategoria.value = false
-                                                mostrarChipCategoria.value = false
-                                                click_salud_general()
-                                                categoria_Selecionada("")
-                                                subcategoria_selecionada("")
-                                            } else {
-                                                scope.launch {
-                                                    // Llama al SnackbarHostState para mostrar el mensaje
-                                                    snackbarHostState.showSnackbar(
-                                                        message = "${i.capitalizeFirst()} se encuentra seleccionado",
-
-                                                        duration = SnackbarDuration.Short
-                                                    )
-                                                }
-                                            }
-                                        })
-                                }
-
-
-                                // Columna derecha: dos cuadros apilados verticalmente
-                                Column(
-                                    modifier = Modifier
-                                        .weight(.5f) // ocupa 50% del ancho
-                                        .fillMaxHeight(),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    // ------- LOCALIDAD -------
-                                    val listStateLocalidad = rememberLazyListState()
-                                    val showTopShadowLocalidad by remember {
-                                        derivedStateOf { listStateLocalidad.firstVisibleItemScrollOffset > 0 }
-                                    }
-                                    val showBottomShadowLocalidad by remember {
-                                        derivedStateOf {
-                                            val lastVisible =
-                                                listStateLocalidad.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                            val totalItems =
-                                                listStateLocalidad.layoutInfo.totalItemsCount
-                                            lastVisible != null && lastVisible < totalItems - 1
-                                        }
-                                    }
-                                    val backgroundColor_localidad by animateColorAsState(
-                                        targetValue = if (!color_localidad) MaterialTheme.colorScheme.surface
-                                        else MaterialTheme.colorScheme.surfaceVariant,
-                                        animationSpec = tween(
-                                            durationMillis = 500, // velocidad (medio segundo)
-                                            easing = LinearOutSlowInEasing
-                                        ),
-                                        label = ""
-                                    )
-                                    val startTopColor_localidad by animateColorAsState(
-                                        targetValue = if (!color_localidad) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val endTopColor_localidad by animateColorAsState(
-                                        targetValue = if (!color_localidad) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val startBottomColor_localidad by animateColorAsState(
-                                        targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val endBottomColor_localidad by animateColorAsState(
-                                        targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-
-                                    BoxWithConstraints(
-                                        modifier = Modifier
-                                            .weight(weightBox1)
-                                            .clip(RoundedCornerShape(30.dp))
-                                            .background(backgroundColor_localidad)
-                                            .padding(8.dp)
-                                    ) {
-                                        LazyColumn(
-                                            state = listStateLocalidad,
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            contentPadding = PaddingValues(
-                                                horizontal = 16.dp, vertical = 8.dp
-                                            ),
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .nestedScroll(nestedScrollConnection)
-                                        ) {
+                                        if (mostrarChipsubcategoria.value) {
                                             item {
-                                                texto_generico_one_line(
-                                                    "Localidad",
-                                                    MaterialTheme.typography.titleMedium
-                                                )
-                                                spacer_vertical(5.dp)
-                                            }
-
-                                            items(lista_localidades) { i ->
-                                                val colorSeleccionado =
-                                                    if (localidad_selecionada.equals(
-                                                            i, ignoreCase = true
-                                                        )
-                                                    ) Color.Black
-                                                    else MaterialTheme.colorScheme.primary
-
-                                                AnimatedFabItem(
-                                                    text = i.capitalizeFirst(),
-                                                    color = colorSeleccionado,
-                                                    visible = expanded
+                                                AnimatedVisibility(
+                                                    visible = true, enter = fadeIn(), exit = fadeOut()
                                                 ) {
-                                                    if (i.lowercase() != localidad_selecionada.lowercase()) {
+                                                    chisp_filtrado_busqueda(
+                                                        color_subcategoria,
+                                                        subcategira_filtrado.ifEmpty { filtros.subcategoria },
+                                                        clik_card = {
+                                                            click_carta_subcategoria()
 
-                                                        localidad_filtrado(i)
-                                                        filtros = filtros.copy(localidad = i)
-
-                                                    } else {
-                                                        scope.launch {
-                                                            // Llama al SnackbarHostState para mostrar el mensaje
-                                                            snackbarHostState.showSnackbar(
-                                                                message = "${i.capitalizeFirst()} se encuentra seleccionado",
-
-                                                                duration = SnackbarDuration.Short
-                                                            )
-                                                        }
-                                                    }
+                                                        },
+                                                        onClick_delete = {
+                                                            click_carta_subcategoria_delete()
+                                                            subcategoria_selecionada("")
+                                                            mostrarChipsubcategoria.value = false
+                                                        })
                                                 }
-                                                filtros =
-                                                    filtros.copy(localidad = localidad_selecionada)
-
                                             }
                                         }
 
-                                        this@Row.AnimatedVisibility(
-                                            showTopShadowLocalidad,
-                                            enter = fadeIn(),
-                                            exit = fadeOut(),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.TopCenter)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                startTopColor_localidad,
-                                                                endTopColor_localidad
-                                                            ),
-                                                        )
-                                                    )
+
+                                        if (mostrar_chip_salud_seguridad.value) {
+                                            item {
+                                                AnimatedVisibility(
+                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                ) {
+                                                    chisp_filtrado_busqueda(
+                                                        color_salud_seguridad,
+                                                        seguidad_salud.ifEmpty { filtros.salud_seguridad },
+                                                        clik_card = {
+                                                            click_carta_seguridad()
+                                                        },
+                                                        onClick_delete = {
+                                                            Log.d("elimoasno_valo", "dealte")
+                                                            seguridad_salud_selec("")
+                                                            categoria_Selecionada("")
+                                                            subcategoria_selecionada("")
+                                                            click_carta_seguridad_delete()
+                                                            mostrarChipsubcategoria.value = false
+                                                            mostrarChipCategoria.value = false
+                                                            mostrar_chip_salud_seguridad.value = false
+                                                        })
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                }
+                                btn_close_gris(
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                    Icons.Default.Close,
+                                    onClick = {
+                                        expanded_fun()
+                                    })
+                            }
+                            spacer_vertical(10.dp)
+                        }
+
+                        item {
+                            val childScrollState = rememberLazyListState()
+                            val nestedScrollConnection = remember {
+                                object : NestedScrollConnection {
+                                    override fun onPreScroll(
+                                        available: Offset, source: NestedScrollSource
+                                    ): Offset {
+                                        // Devuelve cero vertical si el hijo puede moverse en esa dirección
+                                        return when {
+                                            available.y < 0 && childScrollState.firstVisibleItemIndex + childScrollState.firstVisibleItemScrollOffset < childScrollState.layoutInfo.totalItemsCount -> Offset(
+                                                0f, available.y
                                             )
-                                        }
 
-                                        this@Row.AnimatedVisibility(
-                                            showBottomShadowLocalidad,
-                                            enter = fadeIn(),
-                                            exit = fadeOut(),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.BottomCenter)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                startBottomColor_localidad,
-                                                                endBottomColor_localidad
-                                                            ),
-
-                                                            )
-                                                    )
+                                            available.y > 0 && (childScrollState.firstVisibleItemIndex > 0 || childScrollState.firstVisibleItemScrollOffset > 0) -> Offset(
+                                                0f, available.y
                                             )
-                                        }
 
-                                        btn_close_gris(
-                                            modifier = Modifier.align(Alignment.TopEnd),
-                                            icono_expandido,
-                                            onClick = {
-                                                expandedIndex = if (expandedIndex == 0) -1 else 0
-                                            })
-                                    }
-
-                                    // ------- SUBCATEGORÍAS -------
-                                    val listStateSub = rememberLazyListState()
-                                    val showTopShadowSub by remember {
-                                        derivedStateOf { listStateSub.firstVisibleItemScrollOffset > 0 }
-                                    }
-                                    val showBottomShadowSub by remember {
-                                        derivedStateOf {
-                                            val lastVisible =
-                                                listStateSub.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                            val totalItems = listStateSub.layoutInfo.totalItemsCount
-                                            lastVisible != null && lastVisible < totalItems - 1
+                                            else -> Offset.Zero
                                         }
                                     }
-                                    val backgroundColor by animateColorAsState(
-                                        targetValue = if (!color_subcategoria) MaterialTheme.colorScheme.surface
-                                        else MaterialTheme.colorScheme.surfaceVariant,
-                                        animationSpec = tween(
-                                            durationMillis = 500, // velocidad (medio segundo)
-                                            easing = LinearOutSlowInEasing
-                                        ),
-                                        label = ""
-                                    )
-                                    val startTopColor by animateColorAsState(
-                                        targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val endTopColor by animateColorAsState(
-                                        targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val startBottomColor by animateColorAsState(
-                                        targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val endBottomColor by animateColorAsState(
-                                        targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
-                                        animationSpec = tween(500),
-                                        label = ""
-                                    )
-                                    val subcategoria_select = subcategira_filtrado
+                                }
+                            }
 
-                                    BoxWithConstraints(
-                                        modifier = Modifier
-                                            .weight(weightBox2)
-                                            .clip(RoundedCornerShape(30.dp))
-                                            .background(backgroundColor)
-                                            .padding(8.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(screenHeight12 * 0.80f) // 80% de la pantalla
+                            ) {
+
+                                Row(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(.50f)   // ocupa 50% del ancho
                                     ) {
-                                        this@Row.AnimatedVisibility(true) {
-                                            Crossfade(
-                                                targetState = subcategoira_filtrado_res.isNotEmpty(),
-                                                animationSpec = tween(
-                                                    durationMillis = 500,
-                                                    easing = FastOutSlowInEasing
-                                                ),
-                                                label = ""
-                                            ) { tiene_categria ->
-                                                when (state_subcategoria) {
-                                                    is viewModel_filtado_tiendas.carga_subcategorias.Loading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(30.dp))
+                                                .background(backgroundColor_categorias)
+                                                .padding(8.dp)
+                                                .weight(.4f)
+                                        ) {
+                                            val listState = rememberLazyListState()
+                                            val showTopShadow by remember {
+                                                derivedStateOf { listState.firstVisibleItemScrollOffset > 0 }
+                                            }
+                                            val showBottomShadow by remember {
+                                                derivedStateOf {
+                                                    val lastVisible =
+                                                        listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                                    val totalItems =
+                                                        listState.layoutInfo.totalItemsCount
+                                                    lastVisible != null && lastVisible < totalItems - 1
+                                                }
+                                            }
+                                            val selectedCategoria = categoria_filtrad
+
+                                            this@Row.AnimatedVisibility(true) {
+                                                Crossfade(
+                                                    targetState = categorias_filtrado_res.isNotEmpty(),
+                                                    label = ""
+                                                ) { tieneCategorias ->
+                                                    if (tieneCategorias) {
                                                         LazyColumn(
+                                                            state = listState,
+                                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                            contentPadding = PaddingValues(
+                                                                horizontal = 16.dp, vertical = 8.dp
+                                                            ),
+
                                                             modifier = Modifier
                                                                 .fillMaxSize()
-                                                                .padding(16.dp),
-                                                            verticalArrangement = Arrangement.spacedBy(
-                                                                12.dp
-                                                            )
+                                                                .nestedScroll(nestedScrollConnection)
                                                         ) {
                                                             item {
                                                                 texto_generico_one_line(
-                                                                    "Subcategoría",
+                                                                    "Categoria",
                                                                     MaterialTheme.typography.titleMedium
                                                                 )
                                                                 spacer_vertical(5.dp)
                                                             }
-                                                            items(10) {
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .fillMaxWidth()
-                                                                        .clip(CircleShape)
-                                                                        .height(40.dp)
-                                                                        .shimmer(shimmer())
-                                                                        .background(
-                                                                            MaterialTheme.colorScheme.surfaceVariant
-                                                                        )
+
+                                                            items(categorias_filtrado_res) { i ->
+                                                                val isSelected =
+                                                                    selectedCategoria.equals(
+                                                                        i.nombre_cat, ignoreCase = true
+                                                                    )
+
+                                                                AnimatedFabItem(
+                                                                    text = simplificarCategoria(i.nombre_cat),
+                                                                    color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
+                                                                    visible = expanded
+                                                                ) {
+                                                                    if (i.nombre_cat != categoria_filtrad) {
+                                                                        categoria_Selecionada(i.nombre_cat)
+                                                                        subcategoria_selecionada("")
+                                                                        seguridad_salud_selec("")
+                                                                        mostrar_chip_salud_seguridad.value =
+                                                                            false
+                                                                        mostrarChipCategoria.value =
+                                                                            true
+                                                                        mostrarChipsubcategoria.value =
+                                                                            false
+                                                                        mostar_carga_subcategorias =
+                                                                            true
+                                                                        tiene_categorias()
+
+                                                                        filtros =
+                                                                            filtros.copy(categoria = i.nombre_cat)
+                                                                    } else {
+                                                                        scope.launch {
+                                                                            // Llama al SnackbarHostState para mostrar el mensaje
+                                                                            snackbarHostState.showSnackbar(
+                                                                                message = "${i.nombre_cat.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                                duration = SnackbarDuration.Short
+                                                                            )
+                                                                        }
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Box(
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Column(
+                                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                                verticalArrangement = Arrangement.Center
+                                                            ) {
+                                                                Text(
+                                                                    text = "Cargando categorías",
+                                                                    textAlign = TextAlign.Center,
+                                                                    style = MaterialTheme.typography.titleMedium,
+                                                                    color = MaterialTheme.colorScheme.onBackground
+                                                                )
+                                                                spacer_vertical(15.dp)
+                                                                CircularProgressIndicator(
+                                                                    modifier = Modifier.size(35.dp)
                                                                 )
                                                             }
                                                         }
                                                     }
+                                                }
+                                            }
 
-                                                    is viewModel_filtado_tiendas.carga_subcategorias.loaded -> {
-                                                        if (tiene_categria) {
+                                            this@Row.AnimatedVisibility(
+                                                showTopShadow,
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(80.dp)
+                                                    .align(Alignment.TopCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            brush = Brush.verticalGradient(
+                                                                colors = listOf(
+                                                                    startTopColor_categorias,
+                                                                    endTopColor_categorias
+                                                                ),
+
+                                                                )
+                                                        )
+                                                )
+                                            }
+                                            this@Row.AnimatedVisibility(
+                                                showBottomShadow,
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(80.dp)
+                                                    .align(Alignment.BottomCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            brush = Brush.verticalGradient(
+                                                                colors = listOf(
+                                                                    startBottomColor_categorias,
+                                                                    endBottomColor_categorias
+                                                                ),
+
+                                                                )
+                                                        )
+                                                )
+                                            }
+                                        }
+                                        spacer_vertical(10.dp)
+                                        var expandedIndex by remember { mutableStateOf(-1) }
+                                        val weigh_lugares_inters by animateFloatAsState(
+                                            targetValue = when (expandedIndex) {
+                                                0 -> 0.20f
+                                                1 -> 0.25f
+                                                else -> 0.13f
+                                            }, animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                        )
+                                        apartado_lugares_interes(
+                                            color_salud_seguridad,
+                                            expandedIndex = expandedIndex,
+                                            texto = "Seguridad y salud",
+                                            lista_subcategoria = cat_sub_seguirar_salud,
+                                            enColumna = true,
+                                            modifier = Modifier
+                                                .weight(weigh_lugares_inters)
+                                                .clip(RoundedCornerShape(30.dp))
+                                                .background(backgrpound_salud_seguridad),
+                                            expandir_clik = {
+                                                expandedIndex = if (expandedIndex == 0) -1 else 0
+                                            },
+                                            cat_sub_selection = seguidad_salud,
+                                            cat_sub_clik = { i ->
+                                                if (i != seguidad_salud) {
+
+                                                    seguridad_salud_selec(i)
+                                                    filtros = filtros.copy(salud_seguridad = i)
+                                                    mostrar_chip_salud_seguridad.value = true
+                                                    mostrarChipsubcategoria.value = false
+                                                    mostrarChipCategoria.value = false
+                                                    click_salud_general()
+                                                    categoria_Selecionada("")
+                                                    subcategoria_selecionada("")
+                                                } else {
+                                                    scope.launch {
+                                                        // Llama al SnackbarHostState para mostrar el mensaje
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "${i.capitalizeFirst()} se encuentra seleccionado",
+
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                }
+                                            })
+                                    }
+
+
+                                    // Columna derecha: dos cuadros apilados verticalmente
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(.5f) // ocupa 50% del ancho
+                                            .fillMaxHeight(),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        // ------- LOCALIDAD -------
+                                        val listStateLocalidad = rememberLazyListState()
+                                        val showTopShadowLocalidad by remember {
+                                            derivedStateOf { listStateLocalidad.firstVisibleItemScrollOffset > 0 }
+                                        }
+                                        val showBottomShadowLocalidad by remember {
+                                            derivedStateOf {
+                                                val lastVisible =
+                                                    listStateLocalidad.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                                val totalItems =
+                                                    listStateLocalidad.layoutInfo.totalItemsCount
+                                                lastVisible != null && lastVisible < totalItems - 1
+                                            }
+                                        }
+                                        val backgroundColor_localidad by animateColorAsState(
+                                            targetValue = if (!color_localidad) MaterialTheme.colorScheme.surface
+                                            else MaterialTheme.colorScheme.surfaceVariant,
+                                            animationSpec = tween(
+                                                durationMillis = 500, // velocidad (medio segundo)
+                                                easing = LinearOutSlowInEasing
+                                            ),
+                                            label = ""
+                                        )
+                                        val startTopColor_localidad by animateColorAsState(
+                                            targetValue = if (!color_localidad) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val endTopColor_localidad by animateColorAsState(
+                                            targetValue = if (!color_localidad) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val startBottomColor_localidad by animateColorAsState(
+                                            targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val endBottomColor_localidad by animateColorAsState(
+                                            targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+
+                                        BoxWithConstraints(
+                                            modifier = Modifier
+                                                .weight(weightBox1)
+                                                .clip(RoundedCornerShape(30.dp))
+                                                .background(backgroundColor_localidad)
+                                                .padding(8.dp)
+                                        ) {
+                                            LazyColumn(
+                                                state = listStateLocalidad,
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                contentPadding = PaddingValues(
+                                                    horizontal = 16.dp, vertical = 8.dp
+                                                ),
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .nestedScroll(nestedScrollConnection)
+                                            ) {
+                                                item {
+                                                    texto_generico_one_line(
+                                                        "Localidad",
+                                                        MaterialTheme.typography.titleMedium
+                                                    )
+                                                    spacer_vertical(5.dp)
+                                                }
+
+                                                items(lista_localidades) { i ->
+                                                    val colorSeleccionado =
+                                                        if (localidad_selecionada.equals(
+                                                                i, ignoreCase = true
+                                                            )
+                                                        ) Color.Black
+                                                        else MaterialTheme.colorScheme.primary
+
+                                                    AnimatedFabItem(
+                                                        text = i.capitalizeFirst(),
+                                                        color = colorSeleccionado,
+                                                        visible = expanded
+                                                    ) {
+                                                        if (i.lowercase() != localidad_selecionada.lowercase()) {
+
+                                                            localidad_filtrado(i)
+                                                            filtros = filtros.copy(localidad = i)
+
+                                                        } else {
+                                                            scope.launch {
+                                                                // Llama al SnackbarHostState para mostrar el mensaje
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "${i.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                    filtros =
+                                                        filtros.copy(localidad = localidad_selecionada)
+
+                                                }
+                                            }
+
+                                            this@Row.AnimatedVisibility(
+                                                showTopShadowLocalidad,
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(80.dp)
+                                                    .align(Alignment.TopCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            brush = Brush.verticalGradient(
+                                                                colors = listOf(
+                                                                    startTopColor_localidad,
+                                                                    endTopColor_localidad
+                                                                ),
+                                                            )
+                                                        )
+                                                )
+                                            }
+
+                                            this@Row.AnimatedVisibility(
+                                                showBottomShadowLocalidad,
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(80.dp)
+                                                    .align(Alignment.BottomCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            brush = Brush.verticalGradient(
+                                                                colors = listOf(
+                                                                    startBottomColor_localidad,
+                                                                    endBottomColor_localidad
+                                                                ),
+
+                                                                )
+                                                        )
+                                                )
+                                            }
+
+                                            btn_close_gris(
+                                                modifier = Modifier.align(Alignment.TopEnd),
+                                                icono_expandido,
+                                                onClick = {
+                                                    expandedIndex = if (expandedIndex == 0) -1 else 0
+                                                })
+                                        }
+
+                                        // ------- SUBCATEGORÍAS -------
+                                        val listStateSub = rememberLazyListState()
+                                        val showTopShadowSub by remember {
+                                            derivedStateOf { listStateSub.firstVisibleItemScrollOffset > 0 }
+                                        }
+                                        val showBottomShadowSub by remember {
+                                            derivedStateOf {
+                                                val lastVisible =
+                                                    listStateSub.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                                val totalItems = listStateSub.layoutInfo.totalItemsCount
+                                                lastVisible != null && lastVisible < totalItems - 1
+                                            }
+                                        }
+                                        val backgroundColor by animateColorAsState(
+                                            targetValue = if (!color_subcategoria) MaterialTheme.colorScheme.surface
+                                            else MaterialTheme.colorScheme.surfaceVariant,
+                                            animationSpec = tween(
+                                                durationMillis = 500, // velocidad (medio segundo)
+                                                easing = LinearOutSlowInEasing
+                                            ),
+                                            label = ""
+                                        )
+                                        val startTopColor by animateColorAsState(
+                                            targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[0] else shadow_top_filtrado_v2[0],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val endTopColor by animateColorAsState(
+                                            targetValue = if (!color_subcategoria) shadow_top_filtrado_v1[1] else shadow_top_filtrado_v2[1],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val startBottomColor by animateColorAsState(
+                                            targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[0] else shadow_botonm_filtrado_v2[0],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val endBottomColor by animateColorAsState(
+                                            targetValue = if (!color_subcategoria) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+                                        val subcategoria_select = subcategira_filtrado
+
+                                        BoxWithConstraints(
+                                            modifier = Modifier
+                                                .weight(weightBox2)
+                                                .clip(RoundedCornerShape(30.dp))
+                                                .background(backgroundColor)
+                                                .padding(8.dp)
+                                        ) {
+                                            this@Row.AnimatedVisibility(true) {
+                                                Crossfade(
+                                                    targetState = subcategoira_filtrado_res.isNotEmpty(),
+                                                    animationSpec = tween(
+                                                        durationMillis = 500,
+                                                        easing = FastOutSlowInEasing
+                                                    ),
+                                                    label = ""
+                                                ) { tiene_categria ->
+                                                    when (state_subcategoria) {
+                                                        is viewModel_filtado_tiendas.carga_subcategorias.Loading -> {
                                                             LazyColumn(
-                                                                state = listStateSub,
-                                                                verticalArrangement = Arrangement.spacedBy(
-                                                                    8.dp
-                                                                ),
-                                                                contentPadding = PaddingValues(
-                                                                    horizontal = 16.dp,
-                                                                    vertical = 8.dp
-                                                                ),
                                                                 modifier = Modifier
                                                                     .fillMaxSize()
-                                                                    .nestedScroll(
-                                                                        nestedScrollConnection
-                                                                    )
+                                                                    .padding(16.dp),
+                                                                verticalArrangement = Arrangement.spacedBy(
+                                                                    12.dp
+                                                                )
                                                             ) {
                                                                 item {
                                                                     texto_generico_one_line(
@@ -1137,436 +1100,477 @@ fun FloatingBubble(
                                                                     )
                                                                     spacer_vertical(5.dp)
                                                                 }
-                                                                items(subcategoira_filtrado_res) { sub ->
-                                                                    val isSelected =
-                                                                        subcategoria_select.equals(
-                                                                            sub, ignoreCase = true
+                                                                items(10) {
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .fillMaxWidth()
+                                                                            .clip(CircleShape)
+                                                                            .height(40.dp)
+                                                                            .shimmer(shimmer())
+                                                                            .background(
+                                                                                MaterialTheme.colorScheme.surfaceVariant
+                                                                            )
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+
+                                                        is viewModel_filtado_tiendas.carga_subcategorias.loaded -> {
+                                                            if (tiene_categria) {
+                                                                LazyColumn(
+                                                                    state = listStateSub,
+                                                                    verticalArrangement = Arrangement.spacedBy(
+                                                                        8.dp
+                                                                    ),
+                                                                    contentPadding = PaddingValues(
+                                                                        horizontal = 16.dp,
+                                                                        vertical = 8.dp
+                                                                    ),
+                                                                    modifier = Modifier
+                                                                        .fillMaxSize()
+                                                                        .nestedScroll(
+                                                                            nestedScrollConnection
                                                                         )
-
-                                                                    AnimatedFabItem(
-                                                                        text = sub.replaceFirstChar { it.uppercase() },
-                                                                        color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
-                                                                        visible = expanded
-                                                                    ) {
-                                                                        if (subcategira_filtrado != sub) {
-
-                                                                            subcategoria_selecionada(
-                                                                                sub
+                                                                ) {
+                                                                    item {
+                                                                        texto_generico_one_line(
+                                                                            "Subcategoría",
+                                                                            MaterialTheme.typography.titleMedium
+                                                                        )
+                                                                        spacer_vertical(5.dp)
+                                                                    }
+                                                                    items(subcategoira_filtrado_res) { sub ->
+                                                                        val isSelected =
+                                                                            subcategoria_select.equals(
+                                                                                sub, ignoreCase = true
                                                                             )
-                                                                            filtros = filtros.copy(
-                                                                                subcategoria = sub
-                                                                            )
-                                                                            mostrarChipsubcategoria.value =
-                                                                                true
-                                                                        } else {
-                                                                            scope.launch {
-                                                                                // Llama al SnackbarHostState para mostrar el mensaje
-                                                                                snackbarHostState.showSnackbar(
-                                                                                    message = "${subcategira_filtrado.capitalizeFirst()} se encuentra seleccionado",
 
-                                                                                    duration = SnackbarDuration.Short
+                                                                        AnimatedFabItem(
+                                                                            text = sub.replaceFirstChar { it.uppercase() },
+                                                                            color = if (isSelected) Color.Black else MaterialTheme.colorScheme.primary,
+                                                                            visible = expanded
+                                                                        ) {
+                                                                            if (subcategira_filtrado != sub) {
+
+                                                                                subcategoria_selecionada(
+                                                                                    sub
                                                                                 )
+                                                                                filtros = filtros.copy(
+                                                                                    subcategoria = sub
+                                                                                )
+                                                                                mostrarChipsubcategoria.value =
+                                                                                    true
+                                                                            } else {
+                                                                                scope.launch {
+                                                                                    // Llama al SnackbarHostState para mostrar el mensaje
+                                                                                    snackbarHostState.showSnackbar(
+                                                                                        message = "${subcategira_filtrado.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                                        duration = SnackbarDuration.Short
+                                                                                    )
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
                                                                 }
                                                             }
                                                         }
-                                                    }
 
-                                                    is viewModel_filtado_tiendas.carga_subcategorias.Empty -> {
-                                                        this@Column.AnimatedVisibility(
-                                                            visible = true,
-                                                            enter = fadeIn(),
-                                                            exit = fadeOut()
-                                                        ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .fillMaxSize()
-                                                                    .padding(horizontal = 10.dp),
-                                                                contentAlignment = Alignment.Center
+                                                        is viewModel_filtado_tiendas.carga_subcategorias.Empty -> {
+                                                            this@Column.AnimatedVisibility(
+                                                                visible = true,
+                                                                enter = fadeIn(),
+                                                                exit = fadeOut()
                                                             ) {
-                                                                Text(
-                                                                    text = "Selecciona una categoría",
-                                                                    textAlign = TextAlign.Center,
-                                                                    style = MaterialTheme.typography.titleMedium,
-                                                                    color = MaterialTheme.colorScheme.onBackground
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        this@Row.AnimatedVisibility(
-                                            showTopShadowSub,
-                                            enter = fadeIn(),
-                                            exit = fadeOut(),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.TopCenter)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                startTopColor, endTopColor
-                                                            ),
-
-                                                            )
-                                                    )
-                                            )
-                                        }
-
-                                        this@Row.AnimatedVisibility(
-                                            showBottomShadowSub,
-                                            enter = fadeIn(),
-                                            exit = fadeOut(),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.BottomCenter)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(
-                                                        brush = Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                startBottomColor, endBottomColor
-                                                            ),
-
-                                                            )
-                                                    )
-                                            )
-                                        }
-                                        btn_close_gris(
-                                            modifier = Modifier.align(Alignment.TopEnd),
-                                            icono_expandido2,
-                                            onClick = {
-                                                expandedIndex = if (expandedIndex == 1) -1 else 1
-                                            })
-                                    }
-
-                                }
-                            }
-                        }
-                        spacer_vertical(10.dp)
-                    }
-
-                    item {
-
-                        LaunchedEffect(radioGuardado) {
-                            radioActual = radioGuardado
-                        }
-
-                        LaunchedEffect(estadoGPS) {
-                            if (!estadoGPS && cerca_de_ti_enable) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "El GPS está apagado",
-
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            }
-                        }
-
-
-                        enable_cerca =
-                            categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
-
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .clip(RoundedCornerShape(30.dp))
-                                .background(MaterialTheme.colorScheme.surface)
-                                .padding(15.dp)
-                        ) {
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    texto_generico_one_line(
-                                        "Cerca de ti",
-                                        MaterialTheme.typography.headlineSmall,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Switch(
-                                        modifier = Modifier
-                                            .scale(0.8f)
-                                            .padding(end = 20.dp),
-                                        checked = cerca_de_ti_enable,
-                                        onCheckedChange = {
-                                            if (seguidad_salud.isEmpty()) {
-                                                fun_cerca_de_ti_enable(it)
-                                            } else {
-                                                mostra_dialog_salud_Seguridad_cerano = true
-                                            }
-                                        },
-                                        colors = SwitchDefaults.colors(
-                                            checkedThumbColor = Color.White,
-                                            checkedTrackColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    )
-                                }
-
-                                texto_generico_multilinea(
-                                    "Explora lugares, tiendas y servicios que estén cerca de tu ubicación (distancias aproximadas). Encuentra lo que necesites sin perder tiempo.",
-                                    MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-
-                                var gpsIniciado by rememberSaveable { mutableStateOf(false) }
-                                var varibalehasin by rememberSaveable {mutableStateOf("")}
-
-                                spacer_vertical(17.dp)
-                                if (cerca_de_ti_enable) {
-                                    Log.d("guadado", "enable")
-                                    DisposableEffect(Unit) {
-                                        if (!gpsIniciado) {
-                                            gpsIniciado = true
-                                            viewmodel_floating_filtrado.iniciarVerificacionGPS(
-                                                context
-                                            )
-
-                                            if (primeraVezCercaDeTi) {
-                                                fun_primeraVezCercaDeTi(false)
-//                                                primeraVezCercaDeTi = false
-                                                viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
-                                                    context
-                                                )
-                                                Log.d(
-                                                    "guadado",
-                                                    "✅ Primera llamada a obtener_nuevas_cordenadas()"
-                                                )
-
-                                            } else {
-                                                Log.d(
-                                                    "guadado",
-                                                    "⏩ Ya fue llamada antes, no se vuelve a ejecutar"
-                                                )
-                                            }
-                                        }
-
-                                        onDispose {
-                                            gpsIniciado = false
-                                            viewmodel_floating_filtrado.detenerVerificacionGPS()
-                                            Log.d("guadado", "detener GPS (dispose)")
-                                        }
-                                    }
-
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AnimatedContent(
-                                            targetState = enable_cerca, transitionSpec = {
-                                                fadeIn(tween(400)) togetherWith fadeOut(tween(300))
-                                            }, label = "animacion_cerca"
-                                        ) { habilitado ->
-                                            if (habilitado) {
-                                                Column {
-                                                    when (scate_carga_cordenadas_nuevas) {
-                                                        is viewmodel_floating_filtrado.carga_cordenadas.error -> {
-                                                            Log.d("qewqeqeqeeqewq", "error")
-                                                            val error =
-                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
-                                                            texto_generico_one_line(
-                                                                error,
-                                                                MaterialTheme.typography.bodyMedium
-                                                            )
-                                                        }
-
-                                                        is viewmodel_floating_filtrado.carga_cordenadas.loading -> {
-                                                            Log.d("qewqeqeqeeqewq", "loading")
-                                                            Box(
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
-                                                                CircularProgressIndicator(
+                                                                Box(
                                                                     modifier = Modifier
-                                                                        .size(25.dp)
-                                                                        .padding(start = 6.dp),
-                                                                    strokeWidth = 2.dp,
-                                                                    color = MaterialTheme.colorScheme.primary
-                                                                )
-                                                            }
-                                                        }
-
-                                                        is viewmodel_floating_filtrado.carga_cordenadas.succes -> {
-                                                            Log.d("qewqeqeqeeqewq", "succes")
-                                                            val localidad =
-                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).localidad
-                                                            val hora =
-                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hora
-                                                            val geohasing_variable =
-                                                                (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hashin_user
-                                                            fun_nuevo_geohasing_actualizado(
-                                                                geohasing_variable
-                                                            )
-                                                            LaunchedEffect(geohasing_variable) {
-                                                                Log.d("CambioGeohash", "Nuevo valor: $geohasing_variable")
-                                                                filtrado_cerca_de_ti(
-                                                                    radioActual, geohasing_variable
-                                                                )
-                                                            }
-
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                                horizontalArrangement = Arrangement.Center
-                                                            ) {
-                                                                texto_generico_one_line(
-                                                                    "Ubicación actualizada  ",
-                                                                    MaterialTheme.typography.bodyMedium
-                                                                )
-                                                                TextoSubrayado(
-                                                                    hora,
-                                                                    MaterialTheme.typography.bodyMedium,
-                                                                    modifier = Modifier.clickable {
-                                                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
-                                                                            context
-                                                                        )
-                                                                        filtrado_cerca_de_ti(
-                                                                            radioActual, geohasing_variable
-                                                                        )
-                                                                    },
-                                                                    color_subrallado = MaterialTheme.colorScheme.primary
-                                                                )
-
-                                                            }
-                                                            if (localidad != "Fuera de zona" && localidad.isNotBlank()) {
-                                                                Row(
-                                                                    verticalAlignment = Alignment.CenterVertically,
-                                                                    modifier = Modifier.padding(top = 17.dp)
+                                                                        .fillMaxSize()
+                                                                        .padding(horizontal = 10.dp),
+                                                                    contentAlignment = Alignment.Center
                                                                 ) {
-                                                                    texto_generico_one_line(
-                                                                        "¿Quieres filtrar por tu ubicación actual?  ",
-                                                                        MaterialTheme.typography.bodyMedium,
-                                                                    )
-                                                                    TextoSubrayado(
-                                                                        localidad,
-                                                                        MaterialTheme.typography.bodyMedium,
-                                                                        modifier = Modifier.clickable {
-                                                                            if (localidad_selecionada.lowercase() == localidad.lowercase()) {
-                                                                                scope.launch {
-                                                                                    snackbarHostState.showSnackbar(
-                                                                                        message = "${localidad.capitalizeFirst()} se encuentra seleccionado",
-
-                                                                                        duration = SnackbarDuration.Short
-                                                                                    )
-                                                                                }
-                                                                            } else {
-                                                                                localidad_filtrado(
-                                                                                    localidad.lowercase()
-                                                                                )
-                                                                            }
-                                                                        },
-                                                                        color_subrallado = MaterialTheme.colorScheme.primary
+                                                                    Text(
+                                                                        text = "Selecciona una categoría",
+                                                                        textAlign = TextAlign.Center,
+                                                                        style = MaterialTheme.typography.titleMedium,
+                                                                        color = MaterialTheme.colorScheme.onBackground
                                                                     )
                                                                 }
                                                             }
                                                         }
-
-                                                        else -> {}
                                                     }
-
-                                                    spacer_vertical(17.dp)
-//
-                                                      texto_generico_one_line(
-                                                        "Rango aproximado de búsqueda: ${radioActual} km",
-                                                        MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_vertical(17.dp)
-                                                    Slider(
-                                                        enabled = enable_cerca,
-                                                        value = radioActual,
-                                                        onValueChange = {
-                                                            radioActual = it.roundToInt().toFloat()
-                                                        },
-                                                        valueRange = 1f..10f,
-                                                        steps = 8,
-                                                        onValueChangeFinished = {
-                                                            scope.launch {
-                                                                data_store_localidad.guardar_radio_user(
-                                                                    context, radioActual
-                                                                )
-                                                            }
-                                                         if(geohashin !=null){
-                                                            filtrado_cerca_de_ti(
-                                                                radioActual, geohashin
-                                                            )
-                                                         }else{
-                                                             println("No se econtro geohasing")
-                                                         }
-
-                                                        },
-                                                        colors = SliderDefaults.colors(
-                                                            thumbColor = MaterialTheme.colorScheme.primary,
-                                                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                                                            inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                                alpha = 0.2f
-                                                            ),
-                                                            activeTickColor = MaterialTheme.colorScheme.primary,
-                                                            inactiveTickColor = Color.Gray
-                                                        ),
-                                                        thumb = {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .size(25.dp)
-                                                                    .clip(CircleShape)
-                                                                    .background(Color.White),
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
-                                                                texto_generico_one_line(
-                                                                    radioActual.toInt().toString(),
-                                                                    color = Color.Black,
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-                                                            }
-                                                        },
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .height(40.dp)
-                                                    )
-                                                    spacer_vertical(10.dp)
                                                 }
+                                            }
 
-                                            } else {
-                                                texto_generico_one_line(
-                                                    "Selecciona una categoría",
-                                                    style = MaterialTheme.typography.bodyMedium
+                                            this@Row.AnimatedVisibility(
+                                                showTopShadowSub,
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(80.dp)
+                                                    .align(Alignment.TopCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            brush = Brush.verticalGradient(
+                                                                colors = listOf(
+                                                                    startTopColor, endTopColor
+                                                                ),
+
+                                                                )
+                                                        )
                                                 )
                                             }
+
+                                            this@Row.AnimatedVisibility(
+                                                showBottomShadowSub,
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(80.dp)
+                                                    .align(Alignment.BottomCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            brush = Brush.verticalGradient(
+                                                                colors = listOf(
+                                                                    startBottomColor, endBottomColor
+                                                                ),
+
+                                                                )
+                                                        )
+                                                )
+                                            }
+                                            btn_close_gris(
+                                                modifier = Modifier.align(Alignment.TopEnd),
+                                                icono_expandido2,
+                                                onClick = {
+                                                    expandedIndex = if (expandedIndex == 1) -1 else 1
+                                                })
                                         }
 
                                     }
-                                } else {
-                                    fun_primeraVezCercaDeTi(true)
+                                }
+                            }
+                            spacer_vertical(10.dp)
+                        }
+
+                        item {
+
+                            LaunchedEffect(radioGuardado) {
+                                radioActual = radioGuardado
+                            }
+
+                            LaunchedEffect(estadoGPS) {
+                                if (!estadoGPS && cerca_de_ti_enable) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "El GPS está apagado",
+
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            }
+
+
+                            enable_cerca =
+                                categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()
+
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(15.dp)
+                            ) {
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        texto_generico_one_line(
+                                            "Cerca de ti",
+                                            MaterialTheme.typography.headlineSmall,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Switch(
+                                            modifier = Modifier
+                                                .scale(0.8f)
+                                                .padding(end = 20.dp),
+                                            checked = cerca_de_ti_enable,
+                                            onCheckedChange = {
+                                                if (seguidad_salud.isEmpty()) {
+                                                    fun_cerca_de_ti_enable(it)
+                                                } else {
+                                                    mostra_dialog_salud_Seguridad_cerano = true
+                                                }
+                                            },
+                                            colors = SwitchDefaults.colors(
+                                                checkedThumbColor = Color.White,
+                                                checkedTrackColor = MaterialTheme.colorScheme.primary
+                                            )
+                                        )
+                                    }
+
+                                    texto_generico_multilinea(
+                                        "Explora lugares, tiendas y servicios que estén cerca de tu ubicación (distancias aproximadas). Encuentra lo que necesites sin perder tiempo.",
+                                        MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+
+                                    var gpsIniciado by rememberSaveable { mutableStateOf(false) }
+                                    var varibalehasin by rememberSaveable {mutableStateOf("")}
+
+                                    spacer_vertical(17.dp)
+                                    if (cerca_de_ti_enable) {
+                                        Log.d("guadado", "enable")
+                                        DisposableEffect(Unit) {
+                                            if (!gpsIniciado) {
+                                                gpsIniciado = true
+                                                viewmodel_floating_filtrado.iniciarVerificacionGPS(
+                                                    context
+                                                )
+
+                                                if (primeraVezCercaDeTi) {
+                                                    fun_primeraVezCercaDeTi(false)
+//                                                primeraVezCercaDeTi = false
+                                                    viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                        context
+                                                    )
+                                                    Log.d(
+                                                        "guadado",
+                                                        "✅ Primera llamada a obtener_nuevas_cordenadas()"
+                                                    )
+
+                                                } else {
+                                                    Log.d(
+                                                        "guadado",
+                                                        "⏩ Ya fue llamada antes, no se vuelve a ejecutar"
+                                                    )
+                                                }
+                                            }
+
+                                            onDispose {
+                                                gpsIniciado = false
+                                                viewmodel_floating_filtrado.detenerVerificacionGPS()
+                                                Log.d("guadado", "detener GPS (dispose)")
+                                            }
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentHeight(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AnimatedContent(
+                                                targetState = enable_cerca, transitionSpec = {
+                                                    fadeIn(tween(400)) togetherWith fadeOut(tween(300))
+                                                }, label = "animacion_cerca"
+                                            ) { habilitado ->
+                                                if (habilitado) {
+                                                    Column {
+                                                        when (scate_carga_cordenadas_nuevas) {
+                                                            is viewmodel_floating_filtrado.carga_cordenadas.error -> {
+                                                                Log.d("qewqeqeqeeqewq", "error")
+                                                                val error =
+                                                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
+                                                                texto_generico_one_line(
+                                                                    error,
+                                                                    MaterialTheme.typography.bodyMedium
+                                                                )
+                                                            }
+
+                                                            is viewmodel_floating_filtrado.carga_cordenadas.loading -> {
+                                                                Log.d("qewqeqeqeeqewq", "loading")
+                                                                Box(
+                                                                    modifier = Modifier.fillMaxWidth(),
+                                                                    contentAlignment = Alignment.Center
+                                                                ) {
+                                                                    CircularProgressIndicator(
+                                                                        modifier = Modifier
+                                                                            .size(25.dp)
+                                                                            .padding(start = 6.dp),
+                                                                        strokeWidth = 2.dp,
+                                                                        color = MaterialTheme.colorScheme.primary
+                                                                    )
+                                                                }
+                                                            }
+
+                                                            is viewmodel_floating_filtrado.carga_cordenadas.succes -> {
+                                                                Log.d("qewqeqeqeeqewq", "succes")
+                                                                val localidad =
+                                                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).localidad
+                                                                val hora =
+                                                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hora
+                                                                val geohasing_variable =
+                                                                    (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.succes).hashin_user
+                                                                fun_nuevo_geohasing_actualizado(
+                                                                    geohasing_variable
+                                                                )
+                                                                LaunchedEffect(geohasing_variable) {
+                                                                    Log.d("CambioGeohash", "Nuevo valor: $geohasing_variable")
+                                                                    filtrado_cerca_de_ti(
+                                                                        radioActual, geohasing_variable
+                                                                    )
+                                                                }
+
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    horizontalArrangement = Arrangement.Center
+                                                                ) {
+                                                                    texto_generico_one_line(
+                                                                        "Ubicación actualizada  ",
+                                                                        MaterialTheme.typography.bodyMedium
+                                                                    )
+                                                                    TextoSubrayado(
+                                                                        hora,
+                                                                        MaterialTheme.typography.bodyMedium,
+                                                                        modifier = Modifier.clickable {
+                                                                            viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                                                context
+                                                                            )
+                                                                            filtrado_cerca_de_ti(
+                                                                                radioActual, geohasing_variable
+                                                                            )
+                                                                        },
+                                                                        color_subrallado = MaterialTheme.colorScheme.primary
+                                                                    )
+
+                                                                }
+                                                                if (localidad != "Fuera de zona" && localidad.isNotBlank()) {
+                                                                    Row(
+                                                                        verticalAlignment = Alignment.CenterVertically,
+                                                                        modifier = Modifier.padding(top = 17.dp)
+                                                                    ) {
+                                                                        texto_generico_one_line(
+                                                                            "¿Quieres filtrar por tu ubicación actual?  ",
+                                                                            MaterialTheme.typography.bodyMedium,
+                                                                        )
+                                                                        TextoSubrayado(
+                                                                            localidad,
+                                                                            MaterialTheme.typography.bodyMedium,
+                                                                            modifier = Modifier.clickable {
+                                                                                if (localidad_selecionada.lowercase() == localidad.lowercase()) {
+                                                                                    scope.launch {
+                                                                                        snackbarHostState.showSnackbar(
+                                                                                            message = "${localidad.capitalizeFirst()} se encuentra seleccionado",
+
+                                                                                            duration = SnackbarDuration.Short
+                                                                                        )
+                                                                                    }
+                                                                                } else {
+                                                                                    localidad_filtrado(
+                                                                                        localidad.lowercase()
+                                                                                    )
+                                                                                }
+                                                                            },
+                                                                            color_subrallado = MaterialTheme.colorScheme.primary
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            else -> {}
+                                                        }
+
+                                                        spacer_vertical(17.dp)
+//
+                                                        texto_generico_one_line(
+                                                            "Rango aproximado de búsqueda: ${radioActual} km",
+                                                            MaterialTheme.typography.bodyMedium
+                                                        )
+                                                        spacer_vertical(17.dp)
+                                                        Slider(
+                                                            enabled = enable_cerca,
+                                                            value = radioActual,
+                                                            onValueChange = {
+                                                                radioActual = it.roundToInt().toFloat()
+                                                            },
+                                                            valueRange = 1f..10f,
+                                                            steps = 8,
+                                                            onValueChangeFinished = {
+                                                                scope.launch {
+                                                                    data_store_localidad.guardar_radio_user(
+                                                                        context, radioActual
+                                                                    )
+                                                                }
+                                                                if(geohashin !=null){
+                                                                    filtrado_cerca_de_ti(
+                                                                        radioActual, geohashin
+                                                                    )
+                                                                }else{
+                                                                    println("No se econtro geohasing")
+                                                                }
+
+                                                            },
+                                                            colors = SliderDefaults.colors(
+                                                                thumbColor = MaterialTheme.colorScheme.primary,
+                                                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                                                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                                    alpha = 0.2f
+                                                                ),
+                                                                activeTickColor = MaterialTheme.colorScheme.primary,
+                                                                inactiveTickColor = Color.Gray
+                                                            ),
+                                                            thumb = {
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .size(25.dp)
+                                                                        .clip(CircleShape)
+                                                                        .background(Color.White),
+                                                                    contentAlignment = Alignment.Center
+                                                                ) {
+                                                                    texto_generico_one_line(
+                                                                        radioActual.toInt().toString(),
+                                                                        color = Color.Black,
+                                                                        style = MaterialTheme.typography.bodyMedium
+                                                                    )
+                                                                }
+                                                            },
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .height(40.dp)
+                                                        )
+                                                        spacer_vertical(10.dp)
+                                                    }
+
+                                                } else {
+                                                    texto_generico_one_line(
+                                                        "Selecciona una categoría",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+                                            }
+
+                                        }
+                                    } else {
+                                        fun_primeraVezCercaDeTi(true)
 //                                    primeraVezCercaDeTi = true
-                                    Log.d("guadado", "desable")
-                                    gpsIniciado = false
-                                    viewmodel_floating_filtrado.detenerVerificacionGPS()
-                                    viewmodel_floating_filtrado.reiniciarEstadoCoordenadas()
+                                        Log.d("guadado", "desable")
+                                        gpsIniciado = false
+                                        viewmodel_floating_filtrado.detenerVerificacionGPS()
+                                        viewmodel_floating_filtrado.reiniciarEstadoCoordenadas()
+
+                                    }
 
                                 }
-
                             }
-                        }
-                        if (mostra_dialog_salud_Seguridad_cerano) {
-                            dialog_cerca_de_ti_desable {
-                                mostra_dialog_salud_Seguridad_cerano = false
+                            if (mostra_dialog_salud_Seguridad_cerano) {
+                                dialog_cerca_de_ti_desable {
+                                    mostra_dialog_salud_Seguridad_cerano = false
+                                }
                             }
                         }
                     }
+                    SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                 }
-                SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
             }
+
         }
 }

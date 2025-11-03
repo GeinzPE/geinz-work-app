@@ -45,6 +45,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_e
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
@@ -110,6 +111,7 @@ fun dialogo_cabiar_rango_busqueda(
             btn_cerra_etc_dialog_general { ondimis() }
         },
         text = {
+            FuenteControladaApp{
             Column() {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -275,6 +277,7 @@ fun dialogo_cabiar_rango_busqueda(
                         .fillMaxWidth()
                         .height(40.dp)
                 )
+            }
             }
         },
     )

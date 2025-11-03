@@ -38,6 +38,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.texto_tiempo_restante
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 @Composable
 fun dialog_distancia_map_km_m(
@@ -72,6 +73,7 @@ fun dialog_distancia_map_km_m(
             }
         },
         text = {
+            FuenteControladaApp{
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
@@ -125,6 +127,7 @@ fun dialog_distancia_map_km_m(
                 spacer_vertical(5.dp)
                 texto_generico_one_line(horario_restante,MaterialTheme.typography.bodyMedium, color = estadoColor)
 
+            }
             }
         }
     )

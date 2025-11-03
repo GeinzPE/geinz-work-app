@@ -41,6 +41,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import java.nio.file.WatchEvent
 
 @Composable
@@ -60,14 +61,19 @@ fun dialog_sin_ubicacion_activa(
             onDismis()
         } },
         title = {
+            FuenteControladaApp{
+
             Text(
                 text = "Ubicación desactivada",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )
+            }
         },
         text = {
             Column {
+                FuenteControladaApp{
+
                 Text(
                     "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
                     color = MaterialTheme.colorScheme.onBackground,
@@ -84,6 +90,7 @@ fun dialog_sin_ubicacion_activa(
                         .clickable { dialog_sin_maps() }
                         .padding(top = 8.dp)
                 )
+                }
             }
         },
         shape = RoundedCornerShape(10),
@@ -117,13 +124,16 @@ fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion:
             onDismis()
         } },
         title = {
+            FuenteControladaApp{
             Text(
                 text = "Ubicación desactivada",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )
+            }
         },
         text = {
+            FuenteControladaApp{
             Column {
                 Text(
                     texto,
@@ -131,6 +141,7 @@ fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion:
                     style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(10.dp)
+            }
             }
         },
         shape = RoundedCornerShape(10),
@@ -172,15 +183,19 @@ fun dialog_crear_ruta_lugares(onDismis: () -> Unit, crear_ruta: (Boolean) -> Uni
             )
         },
         title = {
+            FuenteControladaApp{
             texto_generico_one_line("Crear ruta", MaterialTheme.typography.titleLarge)
             spacer_vertical(10.dp)
+            }
         },
 
         text = {
+            FuenteControladaApp{
             texto_generico_multilinea(
                 "Estás a punto de generar una ruta desde tu ubicación actual hasta este destino en el mapa. La ruta te mostrará el recorrido paso a paso para que puedas llegar de manera sencilla. Recuerda que necesitas tener tu ubicación activada para que el sistema pueda calcular el camino correctamente.",
                 MaterialTheme.typography.bodyMedium
             )
+            }
         },
     )
 }
@@ -207,19 +222,24 @@ fun dialog_qr_tienda(qr: String, nombre_tienda: String, onDismis: () -> Unit) {
             )
         },
         title = {
+            FuenteControladaApp{
+
             Text(
                 text = "Direccion de la tienda",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )
             spacer_vertical(10.dp)
+            }
         },
 
         text = {
+            FuenteControladaApp{
             generar_qr_ubi_tinda(
                 "Escanea el QR de la tienda para llegar a $nombre_tienda rápidamente. Recomendamos que actives tu ubicación antes de escanear.",
                 qr
             )
+            }
         },
     )
 }
@@ -246,13 +266,17 @@ fun dialog_sin_ubi_activa(
         },
 
         title = {
+            FuenteControladaApp{
+
             Text(
                 text = "Dirección y referencia",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )
+            }
         },
         text = {
+            FuenteControladaApp{
             Column {
                 Text(
                     "Usa esta información de manera responsable. El mal uso será reportado.",
@@ -264,6 +288,7 @@ fun dialog_sin_ubi_activa(
                 spacer_vertical(10.dp)
                 Calle_referencia("Referencia : ", referencia)
                 spacer_vertical(10.dp)
+            }
             }
         },
         shape = RoundedCornerShape(10),
@@ -290,6 +315,7 @@ fun Calle_referencia(texto1: String, texto2: String) {
     val context = LocalContext.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            FuenteControladaApp{
             Text(text = texto1, color = MaterialTheme.colorScheme.onBackground)
             Text(
                 text = texto2,
@@ -298,6 +324,7 @@ fun Calle_referencia(texto1: String, texto2: String) {
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyMedium
             )
+            }
 
         }
         spacer_horizonta(5.dp)

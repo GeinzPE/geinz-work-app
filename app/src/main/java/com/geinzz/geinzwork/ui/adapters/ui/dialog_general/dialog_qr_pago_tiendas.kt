@@ -33,6 +33,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 @Composable
 fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> Unit) {
@@ -43,6 +44,8 @@ fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> U
         confirmButton = {},
         dismissButton = {},
         text = {
+            FuenteControladaApp{
+
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
@@ -130,6 +133,7 @@ fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> U
                 }
 
 
+            }
             }
         }
     )

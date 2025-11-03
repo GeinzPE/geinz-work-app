@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,8 +51,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -79,9 +83,7 @@ val firebaseAuth = FirebaseAuth.getInstance()
 fun cuenta_user(
     viewModel_login_user: viewModel_login_user,
 
-    correo_registrado:String,
-    navController: NavController,
-    terminar_configurar: (String) -> Unit
+    correo_registrado: String, navController: NavController, terminar_configurar: (String) -> Unit
 ) {
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
     val registrado_google = viewModel_login_user.registrado_google.observeAsState()
@@ -120,9 +122,11 @@ fun cuenta_user(
         protada_perfil_user(
             mostrar_btn_termianr_configurar,
             mostrar_fondo,
-            { mostrar_fondo = false },{
+            { mostrar_fondo = false },
+            {
                 viewModel_login_user.logout()
-            },{
+            },
+            {
                 terminar_configurar(correo_registrado)
             })
 
@@ -133,9 +137,7 @@ fun cuenta_user(
 
 @Composable
 fun img_fondo_user(
-    ocultar_contenido_Boolean: Boolean,
-    img_fondo: Int,
-    ocultar_contenido: () -> Unit
+    ocultar_contenido_Boolean: Boolean, img_fondo: Int, ocultar_contenido: () -> Unit
 ) {
     val alphaCentro by animateFloatAsState(
         targetValue = if (ocultar_contenido_Boolean) 0.85f else 0f,
@@ -148,11 +150,9 @@ fun img_fondo_user(
     )
     Box(modifier = Modifier.fillMaxSize()) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(img_fondo)
+            model = ImageRequest.Builder(LocalContext.current).data(img_fondo)
                 .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias)
-                .build(),
+                .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -184,24 +184,21 @@ fun protada_perfil_user(
     terminar_configurar_btn: Boolean,
     ocultar_contenido_Boolean: Boolean,
     ocultar_contenido: () -> Unit,
-    cerrar_seccion:()-> Unit,
-    terminar_configurar:()-> Unit
+    cerrar_seccion: () -> Unit,
+    terminar_configurar: () -> Unit
 ) {
-    val contex=LocalContext.current
+    val contex = LocalContext.current
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     AnimatedVisibility(
-        visible = ocultar_contenido_Boolean,
-        enter = fadeIn(
+        visible = ocultar_contenido_Boolean, enter = fadeIn(
             animationSpec = tween(
                 durationMillis = 300, // duración más larga = más suave
                 easing = LinearOutSlowInEasing // entra suavemente
             )
-        ),
-        exit = fadeOut(
+        ), exit = fadeOut(
             animationSpec = tween(
-                durationMillis = 300,
-                easing = FastOutLinearInEasing // sale suavemente
+                durationMillis = 300, easing = FastOutLinearInEasing // sale suavemente
             )
         )
     ) {
@@ -212,110 +209,136 @@ fun protada_perfil_user(
                 .height(screenHeight * 0.6f)
                 .padding(horizontal = 20.dp)
                 .clip(RoundedCornerShape(30.dp))
-                .clickable {
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
                     ocultar_contenido()
                 },
         ) {
 
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 20.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(R.drawable.logo_geinz_500x500)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(),
-                        contentDescription = "",
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(R.drawable.logo_geinz_500x500)
+                                .placeholder(R.drawable.cargando_img_categorias)
+                                .error(R.drawable.cargando_img_categorias).build(),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        spacer_horizonta(10.dp)
+                        texto_generico_one_line("Geinz")
+                    }
+                    spacer_vertical(10.dp)
+                }
+                item {
+
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        texto_generico_one_line(
+                            "¡Gracias por ser parte de Geinz!", MaterialTheme.typography.titleLarge
+                        )
+                    }
+
+                    spacer_vertical(10.dp)
+                    texto_generico_multilinea(
+                        "Tu apoyo nos impulsa a seguir creciendo y mejorando cada día. Este apartado aún está en desarrollo, pero muy pronto descubrirás nuevas funciones pensadas especialmente para ti y para toda nuestra comunidad.",
+                        MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_vertical(5.dp)
+                    texto_generico_multilinea(
+                        "Desde el equipo de desarrollo trabajamos con dedicación y mucho cariño para que cada detalle de la app te haga sentir cómodo, acompañado y orgulloso de pertenecer a este proyecto local que crece junto a ti.",
+                        MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_vertical(5.dp)
+                    texto_generico_multilinea(
+                        "Queremos que Geinz no sea solo una aplicación, sino un espacio que conecte personas, tiendas, servicios y sueños.",
+                        MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_vertical(5.dp)
+                    texto_generico_multilinea(
+                        "Gracias por tu paciencia, por tu confianza y por ayudarnos a construir algo grande desde nuestra tierra. Porque Geinz no solo crece… Geinz crece contigo.",
+                        MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_vertical(10.dp)
+                }
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.White
+                                )
+                            ) {
+                                append("Whatsapp oficial de Geinz  ")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textDecoration = TextDecoration.Underline,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            ) {
+                                append(" +51 937 659 216")
+                            }
+                        },
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.clickable {
+                                abrir_whattsapp(contex, "937 659 216")
+                            })
+                    }
+                    spacer_vertical(20.dp)
+
+                }
+
+                item {
+
+                    Box(
                         modifier = Modifier
-                            .size(35.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    spacer_horizonta(10.dp)
-                    texto_generico_one_line("Geinz")
+                            .fillMaxWidth()
+                            .padding(horizontal = 30.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .clickable {
+                                cerrar_seccion()
+                            }, contentAlignment = Alignment.Center) {
+                        texto_generico_one_line(
+                            "cerrar sesión",
+                            MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                        )
+                    }
+                    spacer_vertical(10.dp)
                 }
-                spacer_vertical(10.dp)
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    texto_generico_one_line(
-                        "¡Gracias por ser parte de Geinz!",
-                        MaterialTheme.typography.titleLarge
-                    )
-                }
 
-                spacer_vertical(10.dp)
-                texto_generico_multilinea(
-                    "Tu apoyo nos impulsa a seguir creciendo y mejorando cada día. Este apartado aún está en desarrollo, pero muy pronto descubrirás nuevas funciones pensadas especialmente para ti y para toda nuestra comunidad.",
-                    MaterialTheme.typography.bodyMedium
-                )
-                spacer_vertical(5.dp)
-                texto_generico_multilinea(
-                    "Desde el equipo de desarrollo trabajamos con dedicación y mucho cariño para que cada detalle de la app te haga sentir cómodo, acompañado y orgulloso de pertenecer a este proyecto local que crece junto a ti.",
-                    MaterialTheme.typography.bodyMedium
-                )
-                spacer_vertical(5.dp)
-                texto_generico_multilinea(
-                    "Queremos que Geinz no sea solo una aplicación, sino un espacio que conecte personas, tiendas, servicios y sueños.",
-                    MaterialTheme.typography.bodyMedium
-                )
-                spacer_vertical(5.dp)
-                texto_generico_multilinea(
-                    "Gracias por tu paciencia, por tu confianza y por ayudarnos a construir algo grande desde nuestra tierra. Porque Geinz no solo crece… Geinz crece contigo.",
-                    MaterialTheme.typography.bodyMedium
-                )
-                spacer_vertical(10.dp)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    texto_generico_one_line("Whatsapp oficial de Geinz")
+                item {
 
-                   spacer_horizonta(10.dp)
-
-                    Text(
-                        text = "+51 937 659 216",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        modifier = Modifier.clickable {
-                            abrir_whattsapp(contex, "937 659 216")
-
+                    if (!terminar_configurar_btn) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 30.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    terminar_configurar()
+                                }, contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line(
+                                "Terminar de configurar cuenta",
+                                MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                            )
                         }
-                    )
-                }
-
-                spacer_vertical(20.dp)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary).clickable{
-                            cerrar_seccion()
-                        }
-
-                    , contentAlignment = Alignment.Center
-                ) {
-                    texto_generico_one_line("cerrar sesión", MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp))
-                }
-                spacer_vertical(10.dp)
-
-
-                if(!terminar_configurar_btn){
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary).clickable{
-                            terminar_configurar()
-                        }, contentAlignment = Alignment.Center
-                ) {
-                    texto_generico_one_line("Terminar de configurar cuenta", MaterialTheme.typography.bodyMedium,modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp))
-                }
+                    }
                 }
             }
 

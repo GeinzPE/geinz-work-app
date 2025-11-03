@@ -43,6 +43,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.texto_tiempo_restante
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 @Composable
 fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
@@ -86,6 +87,7 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
         },
         title = {},
         text = {
+            FuenteControladaApp{
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
@@ -129,6 +131,7 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
                     "Un lugar perfecto para disfrutar y descubrir lo mejor de la zona.",
                     style = MaterialTheme.typography.bodyMedium
                 )
+            }
             }
         },
     )
