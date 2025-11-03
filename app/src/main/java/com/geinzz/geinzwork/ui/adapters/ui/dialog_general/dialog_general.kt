@@ -52,9 +52,7 @@ fun dialog_sin_pago_tiendas(
         },
         confirmButton = {},
         dismissButton = {},
-        title = {
-            texto_generico_one_line(datos_tienda_free.nombre_)
-        },
+
         text = {
                 Crossfade(targetState = mostrandoCarga_free, label = "anim_carga") { cargando ->
                     if (cargando) {
@@ -68,8 +66,13 @@ fun dialog_sin_pago_tiendas(
                         }
                     } else {
                         Column(
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
+
                         ) {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
+                            texto_generico_one_line(datos_tienda_free.nombre_)
+                            }
+                            spacer_vertical(15.dp)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -148,6 +151,6 @@ fun dialog_sin_pago_tiendas(
                 }
         },
         icon = {
-            icon_geinz_mas_fondo_violeta()
+//            icon_geinz_mas_fondo_violeta()
         })
 }

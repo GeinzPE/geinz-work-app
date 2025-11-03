@@ -74,6 +74,10 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val _datos_tienda_sin_pago: LiveData<carga_tiendas_sin_pago> get() = datos_tiendas_sin_pago
 
 
+    fun resetear_estado_sin_pago(){
+        datos_tiendas_sin_pago.value=carga_tiendas_sin_pago.empty_tiendas_free
+    }
+
     private val _listaTiendasGuardadas =
         MutableLiveData<List<tiendas_por_categoria>>(
             savedStateHandle["lista_tiendas_guardadas"] ?: emptyList()

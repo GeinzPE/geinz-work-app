@@ -155,12 +155,14 @@ fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion:
 fun dialog_crear_ruta_lugares(onDismis: () -> Unit, crear_ruta: (Boolean) -> Unit) {
     AlertDialog(
         confirmButton = {
-            Button(
-                onClick = { crear_ruta(true) },
-                shape = RoundedCornerShape(15)
-            ) { Text(text = "Crear ruta", color = Color.White) }
+            btn_aceptar_etc_dialog_general ("Crear ruta"){
+                crear_ruta(true)
+                onDismis()
+            }
         },
-        dismissButton = { TextButton(onClick = { onDismis() }) { Text(text = "Cerrar") } },
+        dismissButton = {
+            btn_cerra_etc_dialog_general{ onDismis()}
+         },
         onDismissRequest = { onDismis() },
         icon = {
             Icon(

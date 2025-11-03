@@ -274,7 +274,7 @@ class repo_login_user {
                 .collection("users")
                 .whereEqualTo("correo", correo)
                 .get()
-                .await()  // 🔹 necesita 'kotlinx-coroutines-play-services'
+                .await()
             !task.isEmpty
         } catch (e: Exception) {
             false

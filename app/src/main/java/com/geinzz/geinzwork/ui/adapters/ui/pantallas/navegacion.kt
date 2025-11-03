@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -75,6 +76,7 @@ import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -107,6 +109,7 @@ fun nativationWrapper(
     var datos_principales_user by remember {
         mutableStateOf(datos_principales_user("", "", "barranca"))
     }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(firebaseAuth.currentUser) {
         val current = firebaseAuth.currentUser
         if (current != null) {
@@ -167,6 +170,28 @@ fun nativationWrapper(
             isvisble_buttomvar = false
         } else if (currentRoute != "buscar" && !isvisble_buttomvar) {
             isvisble_buttomvar = true
+        }
+    }
+    var correo_registrado by remember { mutableStateOf("") }
+    var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
+
+    LaunchedEffect(mostrar_btn_termianr_configurar) {
+        scope.launch {
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                val email = user.email
+                val uid = user.uid
+                correo_registrado = email ?: ""
+                mostrar_btn_termianr_configurar =
+                    viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
+                Log.d(
+                    "correo_registrado",
+                    "Correo actual: $email — UID: $uid falta_confurar =$mostrar_btn_termianr_configurar"
+                )
+
+            } else {
+                Log.d("correo_registrado", "No hay usuario logueado")
+            }
         }
     }
     val isConnected by connectivityViewModel.isConnected.collectAsState()
@@ -272,7 +297,9 @@ fun nativationWrapper(
                 // Login
                 composable("login_principal") {
                     if (firebaseAuth.currentUser != null) {
-                        cuenta_user(viewModel_login_user, navController)
+                        cuenta_user(viewModel_login_user,mostrar_btn_termianr_configurar, correo_registrado,navController,{correo_google->
+                            navController.navigate(crear_cuenta_geinz(correo_google))
+                        })
                     } else {
                         IniciarSeccion(
                             viewModel_login_user, navController,

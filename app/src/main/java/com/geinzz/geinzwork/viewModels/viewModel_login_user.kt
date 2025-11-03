@@ -61,6 +61,9 @@ class viewModel_login_user : ViewModel() {
 
     val _lista_errores = MutableStateFlow<List<String>>(emptyList())
 
+    private val _mostrar_bn_terminar_configurar = MutableStateFlow<Boolean> (false)
+    val mostrar_btn_terminar_configurar : StateFlow<Boolean> = _mostrar_bn_terminar_configurar
+
     val errores = _lista_errores.value
 
     fun registrarError(error: String) {

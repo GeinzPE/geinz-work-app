@@ -304,6 +304,10 @@ fun Pantalla_filtrado_tiendas(
             is viewModel_filtado_tiendas.carga_tiendas_sin_pago.error_tiendas_free -> {
                 mostrandoCarga_free = false // ❌ Error, deja de cargar
             }
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.empty_tiendas_free->{
+                dialog_tienda_no_pagada = false
+            }
+
 
             else -> Unit
         }
@@ -568,7 +572,8 @@ fun Pantalla_filtrado_tiendas(
         dialog_sin_pago_tiendas(
             mostrandoCarga_free,
             dataclass_datos_tienda_free,
-            ondimis = { dialog_tienda_no_pagada = false })
+            ondimis = { dialog_tienda_no_pagada = false
+            viewModelFiltros.resetear_estado_sin_pago()})
     }
 
     if (bottom_shet_tienda) {

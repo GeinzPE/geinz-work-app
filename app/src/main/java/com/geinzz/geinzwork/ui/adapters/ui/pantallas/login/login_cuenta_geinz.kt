@@ -70,6 +70,7 @@ fun componentes_crear_cuenta(
     val registrado_google = viewmodel_login.registrado_google.observeAsState()
     val correo_exsit = viewmodel_login._correo_exist.observeAsState()
     val usernameExiste by viewmodel_login._nombre_userexists.observeAsState(false)
+    Log.d("tipo_cuenta1313312" ,tipo_cuenta)
 
     var correo by rememberSaveable(tipo_cuenta) {
         mutableStateOf(

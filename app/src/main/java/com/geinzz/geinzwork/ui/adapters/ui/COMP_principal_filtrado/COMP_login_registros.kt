@@ -140,7 +140,7 @@ fun input_email_user_name(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 5.dp),
-            shape = RoundedCornerShape(30),
+            shape = RoundedCornerShape(50),
             label = { Text(text = labelText) },
             placeholder = { Text(text = placeholderText) },
             trailingIcon = trailingIconContent,
@@ -471,7 +471,7 @@ fun DateButton(error_fecha: Boolean, campo_error: String, fecha: (String) -> Uni
             ),
             isError = error_fecha,
 
-            shape = RoundedCornerShape(30)
+            shape = RoundedCornerShape(50)
         )
         AnimatedVisibility(error_fecha) {
             Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
