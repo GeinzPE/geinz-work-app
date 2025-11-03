@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,10 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.carta_salud_cuidad
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class viewmode_seguridad_salud : ViewModel() {
@@ -28,23 +31,35 @@ class viewmode_seguridad_salud : ViewModel() {
 
     val coordenadasSeleccionadas: LiveData<Pair<Double, Double>?> = _coordenadasSeleccionadas
 
+    private val _mostrar_carga_salud_seguridad = MutableStateFlow(false)
+    val mostrar_carga_salud_seguridad = _mostrar_carga_salud_seguridad.asStateFlow()
 
     var todos_lugares = mutableListOf<dataclass_seguridad>()
         private set
 
-    fun obtener_servicios(localidad: String) {
+    fun obtener_servicios(localidad: String,context: Context) {
         viewModelScope.launch {
+            _mostrar_carga_salud_seguridad.value=true
             _state_lista_filtrada.value= carga_seguidad.loading
+            delay(2000)
             try {
+                if (!isInternetAvailable(context)) {
+                    _mostrar_carga_salud_seguridad.value=false
+                    _state_lista_filtrada.value = carga_seguidad.error("Sin conexión a internet 😕")
+                    return@launch
+                }
                 val respuesta=instancia.obtener_servicios_salud(localidad)
                 datos_lugares.value = respuesta
                 if(respuesta.isNotEmpty()){
+                    _mostrar_carga_salud_seguridad.value=false
                     _state_lista_filtrada.value=carga_seguidad.succes(respuesta)
                 }else{
                     delay(300)
+                    _mostrar_carga_salud_seguridad.value=false
                     _state_lista_filtrada.value=carga_seguidad.empity("No se encontraron resultados en $localidad")
                 }
             } catch (e: Exception) {
+                _mostrar_carga_salud_seguridad.value=false
                 datos_lugares.value = emptyList()
                 _state_lista_filtrada.value=carga_seguidad.error("Error al cargar los datos")
 
@@ -65,32 +80,6 @@ class viewmode_seguridad_salud : ViewModel() {
         return instancia.atencion_24h(nombre)
     }
 
-//    fun mostar_lugar_por_nombre(
-//        nombre: String,
-//        lista: List<dataclass_seguridad>
-//    ): List<dataclass_seguridad> {
-//        return lista.filter { it.nombre_.contains(nombre, ignoreCase = true) }
-//    }
-//
-//    fun filtar_por_categorias(categoria: String,lista: List<dataclass_seguridad>): List<dataclass_seguridad>{
-//        return lista.filter { it.categoria.contains(categoria, ignoreCase = true) }
-//    }
-
-
-    //    fun filtrar_lugares(
-//        nombre: String,
-//        categoria: String,
-//        lista: List<dataclass_seguridad>
-//    ): List<dataclass_seguridad> {
-//
-//
-//        return lista.filter { item ->
-//            val coincideTexto = nombre.isBlank() || item.nombre_.contains(nombre, ignoreCase = true)
-//            val coincideCategoria =
-//                categoria == "Todos" || item.categoria.contains(categoria, ignoreCase = true)
-//            coincideTexto && coincideCategoria
-//        }
-//    }
     fun filtrar_lugares(
         categoria: String,
     ){

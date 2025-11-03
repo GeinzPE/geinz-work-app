@@ -14,6 +14,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class viewmode_servicios_tramite : ViewModel() {
@@ -32,6 +33,10 @@ class viewmode_servicios_tramite : ViewModel() {
     private val state_servicios = MutableStateFlow<carga_servicios>(carga_servicios.loading)
     val _state_servicios: StateFlow<carga_servicios> = state_servicios
 
+
+    private val _mostrar_carga_turistico = MutableStateFlow(false)
+    val mostrar_carga_turistico = _mostrar_carga_turistico.asStateFlow()
+
     init {
         viewModelScope.launch {
             state_servicios.value = carga_servicios.loading
@@ -41,24 +46,29 @@ class viewmode_servicios_tramite : ViewModel() {
     fun obtener_lugares(context: Context, localida: String) {
         viewModelScope.launch {
             try {
-
+                _mostrar_carga_turistico.value=true
+                delay(2000)
                 state_servicios.value = carga_servicios.loading
                 if (!isInternetAvailable(context)) {
+                    _mostrar_carga_turistico.value=false
                     state_servicios.value = carga_servicios.error("Sin conexión a internet 😕")
                     return@launch
                 }
                 val res = isnta.obtenerServiciosTramites(localida)
                 _lugares.value = res
                 if (res.isNotEmpty()) {
+                    _mostrar_carga_turistico.value=false
                     state_servicios.value = carga_servicios.succes(res)
                 } else {
                     // Espera un poco antes de mostrar el "vacío"
+                    _mostrar_carga_turistico.value=false
                     delay(300)
                     state_servicios.value =
                         carga_servicios.emoty("No hay datos registrados de $localida")
                 }
 
             } catch (e: Exception) {
+                _mostrar_carga_turistico.value=false
                 _lugares.value = emptyList()
                 state_servicios.value =
                     carga_servicios.error("Ocurrió un error al cargar los datos")

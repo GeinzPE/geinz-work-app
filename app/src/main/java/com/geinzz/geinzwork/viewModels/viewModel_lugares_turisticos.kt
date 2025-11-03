@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,7 +14,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas.carga_tiendas
+import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -397,12 +400,17 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     }
 
 
-    fun lugares_turisticos(localidad: String) {
+    fun lugares_turisticos(localidad: String,context: Context) {
         viewModelScope.launch {
             _mostrar_carga_turistico.value=true
             _stata_lugares_turisticos.value = carga_lugares_turisticos.loading
             delay(2000)
             try {
+                if (!isInternetAvailable(context)) {
+                    _mostrar_carga_turistico.value=false
+                    _stata_lugares_turisticos.value = carga_lugares_turisticos.error("Sin conexión a internet 😕")
+                    return@launch
+                }
                 val lugares_turisticos = repo_lugares.obtener_lugares_turisticos(localidad)
                 val categoria_filtrado = repo_lugares.obtener_filtrado_lugares()
                 if (lugares_turisticos.isNotEmpty() && categoria_filtrado.isNotEmpty()) {

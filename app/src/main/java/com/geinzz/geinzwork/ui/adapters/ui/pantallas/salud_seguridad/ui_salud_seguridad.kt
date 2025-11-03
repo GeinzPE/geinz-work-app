@@ -7,10 +7,13 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -79,6 +83,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_a
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_alerta_llamada
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -106,8 +111,9 @@ fun ui_salud_seguirdad(
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
     var chip_selecionado by rememberSaveable { mutableStateOf("Todos") }
-    val state_seguridad =
-        viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
+    val state_seguridad = viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
+    val mostrar_carga_salud_seguridad by viewmode_segurirdad_Salud.mostrar_carga_salud_seguridad.collectAsState()
+
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
@@ -130,7 +136,7 @@ fun ui_salud_seguirdad(
 
     // Llama servicios iniciales
     LaunchedEffect(Unit) {
-        viewmode_segurirdad_Salud.obtener_servicios(localida)
+        viewmode_segurirdad_Salud.obtener_servicios(localida,context)
     }
 
     LaunchedEffect(lista_seguridad_salud) {
@@ -272,6 +278,18 @@ fun ui_salud_seguirdad(
             }
         }
 
+        if (mostrar_carga_salud_seguridad) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .zIndex(5f),
+                contentAlignment = Alignment.Center
+            ) {
+                pantalla_carga_login(false)
+            }
+        }
+
         AnimatedContent(
             targetState = when {
                 isLoading -> "loading"
@@ -289,7 +307,9 @@ fun ui_salud_seguirdad(
             ) {
                 centrado_hori_vertical {
                     when (estado) {
-                        "loading" -> CircularProgressIndicator()
+                        "loading" -> {
+//                            CircularProgressIndicator()
+                        }
                         "empty" -> texto_generico_one_line(
                             texto_error_empity,
                             color = Color.Gray,
@@ -306,21 +326,27 @@ fun ui_salud_seguirdad(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .align(Alignment.BottomCenter)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black
+        AnimatedVisibility(
+            !mostrar_carga_salud_seguridad,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black
+                            )
                         )
                     )
-                )
-                .graphicsLayer { alpha = alphaAnim }
-        )
+                    .graphicsLayer { alpha = alphaAnim }
+            )
+        }
 
         if (bottom_sheet_llamda) {
             bottom_sheet_alerta_llamada(

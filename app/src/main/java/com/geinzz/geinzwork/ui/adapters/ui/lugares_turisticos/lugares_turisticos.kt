@@ -92,6 +92,7 @@ fun pantalla_lugares_turisticos(
     var buttom_mapa by remember { mutableStateOf(false) }
     var Box_mostrar_vacio by remember { mutableStateOf(false) }
     var texto_vacio_error by remember { mutableStateOf("") }
+    val context=LocalContext.current
 
     BackHandler {
         navigation_regresar()
@@ -103,7 +104,7 @@ LaunchedEffect(mostra_pantalla_carga) {
 
     LaunchedEffect(Unit) {
         viewmodel_lugares_turisticos.resetearEstado()
-        viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada)
+        viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada,context)
     }
 
     LaunchedEffect(subCategoriaSeleccionada) {

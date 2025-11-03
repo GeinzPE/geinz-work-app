@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -78,6 +80,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_servicios_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.filtrado_texfiel
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
@@ -96,6 +99,7 @@ fun ui_servicio_tramite(localida: String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
+    val carga_pantalla_completa by viewmode_servicios_tramite.mostrar_carga_turistico.collectAsState()
     val lista_servicios = constantes_lista_localidades.lista_fitlrado_servicios_basicos
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var dialog_servicos_tramite by remember { mutableStateOf(false) }
@@ -373,7 +377,7 @@ fun ui_servicio_tramite(localida: String) {
             ) { estado ->
             centrado_hori_vertical {
                 when (estado) {
-                    "loading" -> CircularProgressIndicator()
+                    "loading" -> {}
                     "empty" -> Text(
                         texto_error_empity,
                         color = Color.Gray,
@@ -414,19 +418,51 @@ fun ui_servicio_tramite(localida: String) {
             )
         }
 
-        // 🔹 Sombra inferior
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .align(Alignment.BottomCenter)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black)
+        if (carga_pantalla_completa) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .zIndex(5f),
+                contentAlignment = Alignment.Center
+            ) {
+                pantalla_carga_login(false)
+            }
+        }
+        AnimatedVisibility(
+            !carga_pantalla_completa,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black
+                            )
+                        )
                     )
-                )
-                .graphicsLayer { alpha = 0.4f }
-        )
+                    .graphicsLayer { alpha = alphaAnim }
+            )
+        }
+        // 🔹 Sombra inferior
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(40.dp)
+//                .align(Alignment.BottomCenter)
+//                .background(
+//                    Brush.verticalGradient(
+//                        colors = listOf(Color.Transparent, Color.Black)
+//                    )
+//                )
+//                .graphicsLayer { alpha = 0.4f }
+//        )
 
     }
 
