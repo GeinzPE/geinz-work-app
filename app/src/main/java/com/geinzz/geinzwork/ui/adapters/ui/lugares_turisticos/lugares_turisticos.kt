@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -62,13 +64,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
@@ -81,6 +79,7 @@ fun pantalla_lugares_turisticos(
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     abrir_mapa: (String) -> Unit,
     crear_cuenta: () -> Unit,
+    navigation_regresar:()-> Unit,
     iniciar_seccion: () -> Unit
 ) {
     val _lugares_turisticos by viewmodel_lugares_turisticos._lugares_turisticos.observeAsState(
@@ -88,13 +87,22 @@ fun pantalla_lugares_turisticos(
     )
     val _lista_completa_lugares_turisticos by viewmodel_lugares_turisticos._lista_completa_lugares_turisticos.collectAsState()
     val state_lugares_turisticos by viewmodel_lugares_turisticos.stata_lugares_turisticos.collectAsState()
+    val mostra_pantalla_carga by viewmodel_lugares_turisticos.mostrar_carga_turistico.collectAsState()
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var buttom_mapa by remember { mutableStateOf(false) }
     var Box_mostrar_vacio by remember { mutableStateOf(false) }
     var texto_vacio_error by remember { mutableStateOf("") }
 
+    BackHandler {
+        navigation_regresar()
+    }
+
+LaunchedEffect(mostra_pantalla_carga) {
+    Log.d("mostra_pantalla_carga" ,"${mostra_pantalla_carga.toString()}")
+}
 
     LaunchedEffect(Unit) {
+        viewmodel_lugares_turisticos.resetearEstado()
         viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada)
     }
 
@@ -139,7 +147,6 @@ fun pantalla_lugares_turisticos(
 
     var lista_categoria by remember { mutableStateOf(listOf<String>()) }
 
-    var mostra_pantalla_carga by remember { mutableStateOf(false) }
     var mostar_error by remember { mutableStateOf(false) }
     var mostrar_texto_error by remember { mutableStateOf("") }
 
@@ -228,28 +235,32 @@ fun pantalla_lugares_turisticos(
 
             when (state) {
                 viewModel_lugares_turisticos.carga_lugares_turisticos.loading -> {
-                    mostra_pantalla_carga = true
+                    Log.d("adadasda123123","loading")
+
                     mostar_error = false
                 }
 
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.empty -> {
-                    mostra_pantalla_carga = false
+                    Log.d("adadasda123123","empty")
                     mostar_error = true
                     mostrar_texto_error = state.txt
                 }
 
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.error -> {
-                    mostra_pantalla_carga = false
+                    Log.d("adadasda123123","error")
+
                     mostar_error = true
                     mostrar_texto_error = state.txt
                 }
 
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.succes -> {
-                    mostra_pantalla_carga = false
+                    Log.d("adadasda123123","succes")
+
                     mostar_error = false
                     lista_categoria = listOf("Todos") + state.lista_categoria
                     itemsIndexed(state.lista_lugares) { index, item ->
                         carta_turismo(
+                            mostra_pantalla_carga,
                             viewmodelMapa,
                             viewmodel_lugares_turisticos,
                             index,
@@ -260,274 +271,31 @@ fun pantalla_lugares_turisticos(
                             }, { crear_cuenta() }, { iniciar_seccion() })
                     }
                 }
+
+                viewModel_lugares_turisticos.carga_lugares_turisticos.idle -> {
+                    Log.d("adadasda123123","idle")
+                }
             }
         }
         if (mostra_pantalla_carga) {
-            pantalla_carga_login(false)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .zIndex(5f),
+                contentAlignment = Alignment.Center
+            ) {
+                pantalla_carga_login(false)
+            }
         }
         if (mostar_error) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(    text = mostrar_texto_error,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 10.dp))
+                    color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 30.dp))
 
             }
         }
-
-//            when (state) {
-//            is viewModel_lugares_turisticos.carga_lugares_turisticos.loading -> {
-//                pantalla_carga_login(true)
-//            }
-//
-//            is viewModel_lugares_turisticos.carga_lugares_turisticos.succes -> {
-//                lista_categoria= listOf("Todos") + state.lista_categoria
-//                val lista_original = state.lista_lugares
-//
-////                val lista_filtrada = remember(subCategoriaSeleccionada, lista_original) {
-////                    if (subCategoriaSeleccionada == "Todos") lista_original
-////                    else lista_original.filter { lugar ->
-////                        lugar.subcategoria_filtrado.any {
-////                            it.equals(subCategoriaSeleccionada, ignoreCase = true)
-////                        }
-////                    }
-////                }
-//
-//
-////                LazyVerticalStaggeredGrid(
-////                    columns = StaggeredGridCells.Fixed(2),
-////                    modifier = Modifier.fillMaxSize(),
-////                    contentPadding = PaddingValues(16.dp),
-////                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-////                    verticalItemSpacing = 10.dp
-////                ) {
-////                    item(span = StaggeredGridItemSpan.FullLine) {
-////                        Column {
-////                            texto_generico_multilinea(
-////                                "Lugares en ${localidad_selecionada.capitalizeFirst()}",
-////                                style = MaterialTheme.typography.banerGeinzWork,
-////                                modifier = Modifier.padding(end = 20.dp)
-////                            )
-////                            spacer_vertical(10.dp)
-////                            texto_generico_multilinea(
-////                                "Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
-////                                MaterialTheme.typography.bodyMedium
-////                            )
-////                            spacer_vertical(10.dp)
-////                            Box(
-////                                modifier = Modifier
-////                                    .height(45.dp)
-////                                    .fillMaxWidth()
-////                            ) {
-////                                LazyRow(
-////                                    state = listState,
-////                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-////                                ) {
-////                                    items(lista_con_todos) { subcategoria ->
-////                                        val seleccionado = subCategoriaSeleccionada == subcategoria
-////                                        chisp_filtrado_busqueda(
-////                                            carta_selecionada = seleccionado,
-////                                            filtrado = subcategoria.capitalizeFirst(),
-////                                            btn_visible = false,
-////                                            clik_card = {
-////                                                if (!seleccionado) {
-////                                                    subCategoriaSeleccionada = subcategoria
-////                                                    buttom_mapa = subcategoria != "Todos"
-////                                                }
-////                                            },
-////                                            onClick_delete = {}
-////                                        )
-////                                    }
-////                                }
-////
-////                                // Sombras laterales
-////                                Box(
-////                                    modifier = Modifier
-////                                        .fillMaxWidth()
-////                                        .height(45.dp)
-////                                ) {
-////                                    Box(
-////                                        modifier = Modifier
-////                                            .fillMaxHeight()
-////                                            .width(40.dp)
-////                                            .align(Alignment.CenterStart)
-////                                            .zIndex(1f)
-////                                            .alpha(alphaLeft)
-////                                            .background(Brush.horizontalGradient(colors = shadow_left))
-////                                    )
-////                                    Box(
-////                                        modifier = Modifier
-////                                            .fillMaxHeight()
-////                                            .width(40.dp)
-////                                            .align(Alignment.CenterEnd)
-////                                            .zIndex(1f)
-////                                            .alpha(alphaRight)
-////                                            .background(Brush.horizontalGradient(colors = shadow_right))
-////                                    )
-////                                }
-////                            }
-////                        }
-////                    }
-//
-////                    if (lista_filtrada.isNotEmpty()) {
-//
-////                    } else {
-////                        item(span = StaggeredGridItemSpan.FullLine) {
-////                            Box(
-////                                modifier = Modifier
-////                                    .fillMaxSize(),
-////                                contentAlignment = Alignment.Center
-////                            ) {
-////                                texto_generico_multilinea(
-////                                    "No hay lugares disponibles en esta categoría 😕",
-////                                    style = MaterialTheme.typography.bodyMedium,
-////                                    Color = Color.Gray
-////                                )
-////                            }
-////                        }
-////                    }
-//
-//                }
-////                LazyColumn(
-////                    modifier = Modifier
-////                        .fillMaxSize(),
-////                    verticalArrangement = Arrangement.spacedBy(10.dp),
-////                    contentPadding = PaddingValues(bottom = 80.dp)
-////                ) {
-////
-////                    item {
-////                        texto_generico_multilinea(
-////                            "Lugares en ${localidad_selecionada.capitalizeFirst()}",
-////                            style = MaterialTheme.typography.banerGeinzWork,
-////                            modifier = Modifier.padding(end = 20.dp)
-////                        )
-////                    }
-////
-////                    item {
-////                        texto_generico_multilinea(
-////                            "Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
-////                            MaterialTheme.typography.bodyMedium
-////                        )
-////                    }
-////
-////                    // Chips de categorías
-////                    item {
-////                        Box(
-////                            modifier = Modifier
-////                                .height(45.dp)
-////                                .fillMaxWidth()
-////                        ) {
-////                            LazyRow(
-////                                state = listState,
-////                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-////                            ) {
-////                                items(lista_con_todos) { subcategoria ->
-////                                    val seleccionado = subCategoriaSeleccionada == subcategoria
-////                                    chisp_filtrado_busqueda(
-////                                        carta_selecionada = seleccionado,
-////                                        filtrado = subcategoria.capitalizeFirst(),
-////                                        btn_visible = false,
-////                                        clik_card = {
-////                                            if (!seleccionado) {
-////                                                subCategoriaSeleccionada = subcategoria
-////                                                buttom_mapa = subcategoria != "Todos"
-////                                            }
-////                                        },
-////                                        onClick_delete = {}
-////                                    )
-////                                }
-////                            }
-////
-////                            // Sombras laterales
-////                            Box(
-////                                modifier = Modifier
-////                                    .fillMaxWidth()
-////                                    .height(45.dp)
-////                            ) {
-////                                Box(
-////                                    modifier = Modifier
-////                                        .fillMaxHeight()
-////                                        .width(40.dp)
-////                                        .align(Alignment.CenterStart)
-////                                        .zIndex(1f)
-////                                        .alpha(alphaLeft)
-////                                        .background(Brush.horizontalGradient(colors = shadow_left))
-////                                )
-////                                Box(
-////                                    modifier = Modifier
-////                                        .fillMaxHeight()
-////                                        .width(40.dp)
-////                                        .align(Alignment.CenterEnd)
-////                                        .zIndex(1f)
-////                                        .alpha(alphaRight)
-////                                        .background(Brush.horizontalGradient(colors = shadow_right))
-////                                )
-////                            }
-////                        }
-////                    }
-////
-////                    if (lista_filtrada.isNotEmpty()) {
-////                        // 🟩 Mostrar lugares
-////                        items(lista_filtrada) { lugar ->
-////                            carta_lugares_turisticosa(
-////                                alto = 200.dp,
-////                                rounder = 10,
-////                                lugar = lugar
-////                            )
-////                        }
-////                    } else {
-////                        // 🟥 Mostrar mensaje vacío centrado pero sin tapar los chips
-////                        item {
-////                            Box(
-////                                modifier = Modifier
-////                                    .fillParentMaxHeight(0.8f) // ocupa el espacio restante visible
-////                                    .fillMaxWidth(),
-////                                contentAlignment = Alignment.Center
-////                            ) {
-////                                texto_generico_multilinea(
-////                                    "No hay lugares disponibles en esta categoría 😕",
-////                                    style = MaterialTheme.typography.bodyMedium,
-////                                    Color = Color.Gray
-////                                )
-////                            }
-////                        }
-////                    }
-////                }
-//            }
-//
-//
-//            is viewModel_lugares_turisticos.carga_lugares_turisticos.error -> {
-//                texto_generico_multilinea(
-//                    "Error al cargar lugares turísticos.",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.align(Alignment.Center)
-//                )
-//                texto_vacio_error = state.txt
-//                Box_mostrar_vacio = true
-//            }
-//
-//            is viewModel_lugares_turisticos.carga_lugares_turisticos.empty -> {
-//                texto_vacio_error = state.txt
-//                Box_mostrar_vacio = true
-//                texto_generico_multilinea(
-//                    "No se encontraron lugares turísticos en esta zona.",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.align(Alignment.Center)
-//                )
-//            }
-
-
-        // 🟦 Botón mapa flotante
-//        AnimatedVisibility(buttom_mapa) {
-//            open_map_perzonlizado(
-//                modifier = Modifier
-//                    .align(Alignment.BottomCenter)
-//                    .padding(bottom = 16.dp),
-//                "turismo",
-//                abrir_mapa
-//            )
-//        }
-
-        // 🟦 Fade inferior
 
         AnimatedVisibility(
             !mostra_pantalla_carga,
@@ -549,7 +317,6 @@ fun pantalla_lugares_turisticos(
                     )
                     .graphicsLayer { alpha = alphaAnim }
             )
-
         }
 
 
@@ -558,6 +325,7 @@ fun pantalla_lugares_turisticos(
 
 @Composable
 fun carta_turismo(
+    mostra_pantalla_carga: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     index: Int,
@@ -632,7 +400,7 @@ fun carta_turismo(
         }
     }
 
-    if (bottomSheetVisible && lugarSeleccionado == lugar) {
+    if ((bottomSheetVisible && lugarSeleccionado == lugar) && !mostra_pantalla_carga) {
         bottom_sheet_lugares_turisticos(
             viewmodelMap = viewmodelMap,
             viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
@@ -649,42 +417,3 @@ fun carta_turismo(
 }
 
 
-//@Composable
-//fun carta_lugares_turisticosa(alto: Dp, rounder: Int, lugar: lugares_turisticos) {
-//    var mostrar_dialog by remember { mutableStateOf(false) }
-//    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-//    Box(
-//        modifier = Modifier
-//            .width(screenWidth)
-//            .height(alto)
-//    ) {
-//        AsyncImage(
-//            model = ImageRequest.Builder(LocalContext.current)
-//                .data(lugar.img_principal)
-//                .size(screenWidth.value.toInt(), alto.value.toInt())
-//                .placeholder(R.drawable.cargando_img_categorias)
-//                .error(R.drawable.cargando_img_categorias)
-//                .build(),
-//            contentDescription = null,
-//            modifier = Modifier
-//                .width(screenWidth)
-//                .height(alto)
-//                .clip(RoundedCornerShape(rounder))
-//                .clickable {
-//                    mostrar_dialog = true
-//                },
-//
-//            contentScale = ContentScale.Crop
-//        )
-//        mascara_img(rounder, alto, screenWidth)
-//        texto_generico_one_line(
-//            lugar.titulo, MaterialTheme.typography.titleLarge,
-//            modifier = Modifier
-//                .align(Alignment.BottomStart)
-//                .padding(10.dp)
-//        )
-//    }
-//    if (mostrar_dialog) {
-//        bottom_sheet_lugares_turisticos(lugar, mostrar_dialog, { mostrar_dialog = false })
-//    }
-//}

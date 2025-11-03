@@ -377,7 +377,8 @@ fun ui_servicio_tramite(localida: String) {
                     "empty" -> Text(
                         texto_error_empity,
                         color = Color.Gray,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
                     )
 
                     "none" -> {}

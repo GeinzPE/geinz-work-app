@@ -174,10 +174,9 @@ fun nativationWrapper(
     }
     var correo_registrado by remember { mutableStateOf("") }
     var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
-
-    LaunchedEffect(mostrar_btn_termianr_configurar) {
+    val user = FirebaseAuth.getInstance().currentUser
+    LaunchedEffect(user,mostrar_btn_termianr_configurar) {
         scope.launch {
-            val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
                 val email = user.email
                 val uid = user.uid
@@ -188,6 +187,7 @@ fun nativationWrapper(
                     "correo_registrado",
                     "Correo actual: $email — UID: $uid falta_confurar =$mostrar_btn_termianr_configurar"
                 )
+                viewModel_login_user.setear_mostrar_btn_configurar(mostrar_btn_termianr_configurar)
 
             } else {
                 Log.d("correo_registrado", "No hay usuario logueado")
@@ -297,7 +297,7 @@ fun nativationWrapper(
                 // Login
                 composable("login_principal") {
                     if (firebaseAuth.currentUser != null) {
-                        cuenta_user(viewModel_login_user,mostrar_btn_termianr_configurar, correo_registrado,navController,{correo_google->
+                        cuenta_user(viewModel_login_user, correo_registrado,navController,{correo_google->
                             navController.navigate(crear_cuenta_geinz(correo_google))
                         })
                     } else {
@@ -376,14 +376,16 @@ fun nativationWrapper(
                 composable<lugares_turisticos> { navback ->
                     val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
-                        viewmodelMapa,
+                        viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
                         abrir_mapa = { tipo ->
                             navController.navigate(map_perzonalizado(tipo, "barranca"))
-                        },  crear_cuenta = {
+                        }, crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        },iniciar_seccion = {
+                        }, navigation_regresar = {
+                            navController.popBackStack()
+                        }, iniciar_seccion = {
                             navController.navigate("login_principal")
                         })
                 }

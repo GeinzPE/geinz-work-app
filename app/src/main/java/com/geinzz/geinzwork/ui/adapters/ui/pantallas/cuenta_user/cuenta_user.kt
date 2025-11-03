@@ -78,43 +78,21 @@ val firebaseAuth = FirebaseAuth.getInstance()
 @Composable
 fun cuenta_user(
     viewModel_login_user: viewModel_login_user,
-    mostrar_btn_termianr_configurar: Boolean,
+
     correo_registrado:String,
     navController: NavController,
     terminar_configurar: (String) -> Unit
 ) {
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
     val registrado_google = viewModel_login_user.registrado_google.observeAsState()
+    val mostrar_btn_termianr_configurar by viewModel_login_user.mostrar_btn_terminar_configurar.collectAsState()
 //    var falta_termianr_configurar_google by remember { mutableStateOf(false) }
 //    var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
     var mostrar_fondo by remember { mutableStateOf(true) }
 //    var correo_registrado by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
-//    LaunchedEffect(registrado_google.value) {
-//        if (registrado_google.value == true) {
-//            falta_termianr_configurar_google = true
-//        }
-//    }
-//    LaunchedEffect(Unit) {
-//        scope.launch {
-//            val user = FirebaseAuth.getInstance().currentUser
-//            if (user != null) {
-//                val email = user.email
-//                val uid = user.uid
-//                correo_registrado = email ?: ""
-//                mostrar_btn_termianr_configurar =
-//                    viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
-//                Log.d(
-//                    "correo_registrado",
-//                    "Correo actual: $email — UID: $uid falta_confurar =$mostrar_btn_termianr_configurar"
-//                )
-//
-//            } else {
-//                Log.d("correo_registrado", "No hay usuario logueado")
-//            }
-//        }
-//    }
+
     LaunchedEffect(loginState_principal) {
         when (loginState_principal) {
             is LoginState_inicio.LoggedOut -> {
@@ -127,9 +105,16 @@ fun cuenta_user(
             else -> Unit
         }
     }
+    LaunchedEffect(mostrar_btn_termianr_configurar) {
+        if (mostrar_btn_termianr_configurar) {
+            println("El botón se ocultó")
+        } else {
+            println("El botón se mostró")
+        }
+    }
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
 
-        img_fondo_user(mostrar_fondo, R.drawable.f7, {
+        img_fondo_user(mostrar_fondo, R.drawable.logo_geinz_500x500, {
             mostrar_fondo = true
         })
         protada_perfil_user(
@@ -165,7 +150,6 @@ fun img_fondo_user(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(img_fondo)
-                .crossfade(true)
                 .placeholder(R.drawable.cargando_img_categorias)
                 .error(R.drawable.cargando_img_categorias)
                 .build(),
@@ -199,7 +183,6 @@ fun img_fondo_user(
 fun protada_perfil_user(
     terminar_configurar_btn: Boolean,
     ocultar_contenido_Boolean: Boolean,
-
     ocultar_contenido: () -> Unit,
     cerrar_seccion:()-> Unit,
     terminar_configurar:()-> Unit
@@ -319,6 +302,8 @@ fun protada_perfil_user(
                     texto_generico_one_line("cerrar sesión", MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp))
                 }
                 spacer_vertical(10.dp)
+
+
                 if(!terminar_configurar_btn){
                 Box(
                     modifier = Modifier

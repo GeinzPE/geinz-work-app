@@ -587,7 +587,7 @@ fun componentes_crear_cuenta(
 
                     }
                 }) {
-                    texto_generico_one_line("terminar de configurar")
+                    texto_generico_one_line("Terminar de configurar")
                 }
 
             }

@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 import kotlin.collections.emptyList
 
 class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandle) : ViewModel() {
@@ -350,6 +351,9 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     }
 
 
+    private val _mostrar_carga_turistico = MutableStateFlow(false)
+    val mostrar_carga_turistico = _mostrar_carga_turistico.asStateFlow()
+
 
     fun mostrar_listas_completas(
         lat_lugar: Double,
@@ -393,57 +397,43 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     }
 
 
-//    fun filtrar_por_cat_radio(radio: Double, categoria: String) {
-//        val lista_base = lista_general_completa.value
-//        val lista_base_categorias = lista_categoiras_encontrada.value
-//        viewModelScope.launch {
-//            try {
-//                _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
-//                if (lista_base.isNotEmpty() && lista_base_categorias.isNotEmpty()) {
-//                    val result = if (categoria == "Todos") {
-//                        lista_base
-//                    } else {
-//                        lista_base.filter { i ->
-//                            i.categoria.lowercase().contains(categoria.lowercase())
-//                        }
-//                    }
-//                    carga_tienda_cercanos.succes(result, lista_base_categorias)
-//                } else {
-//                    carga_tienda_cercanos.empty("No se encontraron negocios cerca")
-//                }
-//            } catch (e: Exception) {
-//
-//            }
-//        }
-//
-//    }
-
-
     fun lugares_turisticos(localidad: String) {
         viewModelScope.launch {
+            _mostrar_carga_turistico.value=true
             _stata_lugares_turisticos.value = carga_lugares_turisticos.loading
-            delay(4000)
+            delay(2000)
             try {
                 val lugares_turisticos = repo_lugares.obtener_lugares_turisticos(localidad)
                 val categoria_filtrado = repo_lugares.obtener_filtrado_lugares()
                 if (lugares_turisticos.isNotEmpty() && categoria_filtrado.isNotEmpty()) {
+                    _mostrar_carga_turistico.value=false
                     _stata_lugares_turisticos.value =
                         carga_lugares_turisticos.succes(categoria_filtrado, lugares_turisticos)
                     lista_completa_lugares_turisticos.value = lugares_turisticos
                     lista_completa_categorias_fitlrado.value = categoria_filtrado
                 } else {
+                    _mostrar_carga_turistico.value=false
                     _stata_lugares_turisticos.value =
                         carga_lugares_turisticos.empty("No se encontraron lugares en $localidad")
                 }
             } catch (e: Exception) {
+                _mostrar_carga_turistico.value=false
                 _stata_lugares_turisticos.value =
-                    carga_lugares_turisticos.error("Error al cargar los lugares de $localidad")
+                    carga_lugares_turisticos.error("Ocurrió un error inesperado al cargar los lugares de $localidad.")
+            }catch (e: IOException){
+                _stata_lugares_turisticos.value =
+                    carga_lugares_turisticos.error("No se pudo conectar. Verifica tu conexión a internet.")
             }
         }
     }
 
+    fun resetearEstado() {
+        _stata_lugares_turisticos.value = carga_lugares_turisticos.loading
+    }
+
     fun filtrar_lugares_turisticos(categoria: String) {
         viewModelScope.launch {
+
             _stata_lugares_turisticos.value = carga_lugares_turisticos.loading
             try {
                 val lista_original = lista_completa_lugares_turisticos.value
@@ -458,6 +448,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
                 }
 
                 if (lista_filtrada.isNotEmpty()) {
+
                     _stata_lugares_turisticos.value =
                         carga_lugares_turisticos.succes(
                             lista_completa_categorias_fitlrado.value,
@@ -484,6 +475,7 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 
     /** ---------- SEALED CLASS PARA LUGARES TURISTICOS ---------- */
     sealed class carga_lugares_turisticos {
+        object idle : carga_lugares_turisticos()
         data class succes(
             val lista_categoria: List<String>,
             val lista_lugares: List<lugares_turisticos>

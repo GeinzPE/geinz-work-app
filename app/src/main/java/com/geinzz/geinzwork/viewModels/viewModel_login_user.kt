@@ -70,6 +70,10 @@ class viewModel_login_user : ViewModel() {
         _lista_errores.value = _lista_errores.value + error
     }
 
+    fun setear_mostrar_btn_configurar(valor: Boolean){
+        _mostrar_bn_terminar_configurar.value= valor
+    }
+
 
     fun recuperar_password(correo: String) {
         viewModelScope.launch {
@@ -125,9 +129,11 @@ class viewModel_login_user : ViewModel() {
                     if (cuenta_creada) {
                         delay(5000)
                         _loginStateCamposInicial.value = LoginState_inicio.Succes("", "", "", "")
+                        setear_mostrar_btn_configurar(true)
                         delay(5000)
                         _registrado_google.value = true
                     } else {
+                        setear_mostrar_btn_configurar(false)
                         _registrado_google.value = false
                         _loginStateCamposInicial.value = LoginState_inicio.error("", "")
                     }
