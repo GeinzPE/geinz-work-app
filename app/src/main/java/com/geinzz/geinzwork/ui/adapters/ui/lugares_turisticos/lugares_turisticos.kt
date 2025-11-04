@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -63,6 +64,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -167,17 +169,19 @@ LaunchedEffect(mostra_pantalla_carga) {
         ) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 Column {
-                    texto_generico_multilinea(
-                        "Lugares en ${localidad_selecionada.capitalizeFirst()}",
-                        style = MaterialTheme.typography.banerGeinzWork,
-                        modifier = Modifier.padding(end = 20.dp)
-                    )
+//                    texto_generico_multilinea(
+//                        "Lugares en ${localidad_selecionada.capitalizeFirst()}",
+//                        style = MaterialTheme.typography.banerGeinzWork,
+//                        modifier = Modifier.padding(end = 20.dp)
+//                    )
+                    Text(text =   "Lugares en ${localidad_selecionada.capitalizeFirst()}", fontFamily = baners_geinz_work, fontSize = 30.sp)
+
                     spacer_vertical(10.dp)
                     texto_generico_multilinea(
                         "Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
                         MaterialTheme.typography.bodyMedium
                     )
-                    spacer_vertical(10.dp)
+                    spacer_vertical(13.dp)
                     Box(
                         modifier = Modifier
                             .height(45.dp)

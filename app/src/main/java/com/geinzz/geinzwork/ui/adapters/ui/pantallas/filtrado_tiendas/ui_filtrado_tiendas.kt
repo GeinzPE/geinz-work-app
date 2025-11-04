@@ -87,6 +87,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
@@ -573,7 +575,7 @@ fun Pantalla_filtrado_tiendas(
             mostrandoCarga_free,
             dataclass_datos_tienda_free,
             ondimis = { dialog_tienda_no_pagada = false
-            viewModelFiltros.resetear_estado_sin_pago()})
+                viewModelFiltros.resetear_estado_sin_pago()})
     }
 
     if (bottom_shet_tienda) {
@@ -920,7 +922,12 @@ fun item_tiendas(
 
                 Column {
                     AsyncImage(
-                        model = item_tiendas.logo_tienda,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(item_tiendas.logo_tienda)
+
+                            .placeholder(R.drawable.cargando_img_categorias)
+                            .error(R.drawable.cargando_img_categorias)
+                            .build(),
                         contentDescription = "Imagen local",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier

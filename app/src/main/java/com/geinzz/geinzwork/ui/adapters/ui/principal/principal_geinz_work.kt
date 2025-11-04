@@ -277,7 +277,7 @@ fun pantalla_principal(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black),
-                contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.TopCenter
     ) {
         LazyColumn(
             state = listState,

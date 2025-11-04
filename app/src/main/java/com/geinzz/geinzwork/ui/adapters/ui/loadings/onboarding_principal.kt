@@ -794,8 +794,6 @@ fun carta_img_preview(
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(img.img)
-                    .memoryCachePolicy(CachePolicy.ENABLED)
-                    .diskCachePolicy(CachePolicy.ENABLED)
                     .crossfade(true) // Transición más suave y rápida
                     .size(120) // optimiza caché interna
                     .build(),
@@ -829,6 +827,5 @@ fun carta_img_preview(
         )
     }
 }
-
 
 

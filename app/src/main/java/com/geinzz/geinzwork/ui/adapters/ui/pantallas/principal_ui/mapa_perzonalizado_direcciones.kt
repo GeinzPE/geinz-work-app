@@ -455,7 +455,7 @@ fun MyGoogle_maps(
                     zoomControlsEnabled = false
                 ),
 
-            ) {
+                ) {
 
                 when (tipo) {
                     "turismo" -> {
@@ -1043,6 +1043,25 @@ fun MyGoogle_maps(
 
 }
 
+//@Composable
+//fun MarkerIcon(
+//    context: Context,
+//    seleccionado: Boolean
+//): BitmapDescriptor {
+//    val drawableId = if (seleccionado) {
+//        R.drawable.pin_select_webp
+//    } else {
+//        R.drawable.pin_deselect_webp
+//    }
+//
+//    val size = if (seleccionado) 120 else 100
+//
+//    return bitmapDescriptorFromDrawable(context, drawableId, size, size)
+//}
+fun dpToPx(context: Context, dp: Int): Int {
+    return (dp * context.resources.displayMetrics.density).toInt()
+}
+
 @Composable
 fun MarkerIcon(
     context: Context,
@@ -1054,10 +1073,15 @@ fun MarkerIcon(
         R.drawable.pin_deselect_webp
     }
 
-    val size = if (seleccionado) 120 else 100
+    // Define tamaños en dp, no en px
+    val sizeDp = if (seleccionado) 40 else 32
 
-    return bitmapDescriptorFromDrawable(context, drawableId, size, size)
+    // Convierte dp a píxeles según la densidad de la pantalla
+    val sizePx = dpToPx(context, sizeDp)
+
+    return bitmapDescriptorFromDrawable(context, drawableId, sizePx, sizePx)
 }
+
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
