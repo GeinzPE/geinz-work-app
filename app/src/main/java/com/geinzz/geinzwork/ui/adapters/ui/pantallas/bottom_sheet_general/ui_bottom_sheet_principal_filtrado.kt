@@ -787,7 +787,7 @@ fun Expandible_qr_tienda(
                     )
             ) {
                 generar_qr_ubi_tinda(
-                    "Escanea el código QR desde Geinz work para obtener la ruta hacia esta tienda. Google maps te guiará con indicaciones paso a paso para que llegues fácilmente",
+                    "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia en esta tienda Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
                     generar_qr_tienda_id
                 )
             }

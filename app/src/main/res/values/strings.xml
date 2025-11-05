@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GeinzWork</string>
+    <string name="app_name">Geinz</string>
 
     <string name="campo_nombre">El campo nombre esta vacio</string>
     <string name="campo_apellido">El campo apellido esta vacio</string>

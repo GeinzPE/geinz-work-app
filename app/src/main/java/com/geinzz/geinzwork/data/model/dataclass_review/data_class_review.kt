@@ -6,7 +6,8 @@ data class data_class_resultado_tienda_lugar(
     val id: String = "",
     val nombre: String = "",
     val imagen: String = "",
-    val localidad: String = ""
+    val localidad: String = "",
+
 )
 
 data class datos_review(
@@ -20,3 +21,9 @@ data class datos_review(
     val fecha: String="",
     )
 
+
+data class datos_review_existenet(
+    val calificacion: Number=0,
+    val descripcion:String="",
+    val fecha_realizada:String=""
+)

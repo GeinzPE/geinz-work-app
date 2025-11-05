@@ -4,6 +4,7 @@ import android.util.Log
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_resultado_tienda_lugar
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
+import com.geinzz.geinzwork.data.model.dataclass_review.datos_review_existenet
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
@@ -47,7 +48,7 @@ class repo_review {
     suspend fun verificar_review_exsitente(
         id_user: String,
         data_class_review: data_class_review
-    ): Pair<Int, String>? {
+    ): datos_review_existenet? {
         return try {
             val ref = db.collection("Tiendas")
                 .document(data_class_review.localida_lugar)
@@ -60,16 +61,25 @@ class repo_review {
 
             if (ref.exists()) {
                 val data = ref.data
-                val calificacion = data?.get("calificacion") as? Number ?: 0
+                val calificacion = (data?.get("calificacion") as? Number)?.toInt() ?: 0
                 val descripcion = data?.get("descripcion") as? String ?: ""
-                Pair(calificacion.toInt(), descripcion)
+                val fechaRealizada = data?.get("fecha_realizada") as? String ?: ""
+
+                // Retorna el objeto con los datos
+                datos_review_existenet(
+                    calificacion = calificacion,
+                    descripcion = descripcion,
+                    fecha_realizada = fechaRealizada
+                )
             } else {
-                null
+                datos_review_existenet()
             }
         } catch (e: Exception) {
-            null
+            e.printStackTrace()
+            datos_review_existenet()
         }
     }
+
 
 
 

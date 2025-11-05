@@ -57,7 +57,7 @@ fun dialog_distancia_map_km_m(
         dataclass_map.horario_tienda.motivo,
         tick
     ) { txt ->
-        horario_restante=txt
+        horario_restante = txt
     }
 
     AlertDialog(
@@ -73,61 +73,68 @@ fun dialog_distancia_map_km_m(
             }
         },
         text = {
-            FuenteControladaApp{
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(dataclass_map.img)
-                            .size(40, 40)
-                            .crossfade(true)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(), contentDescription = "Imagen",
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(40.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    spacer_horizonta(10.dp)
+            FuenteControladaApp {
+                Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        texto_generico_one_line(dataclass_map.nombre)
-                        spacer_horizonta(5.dp)
-                        Box(
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(dataclass_map.img)
+                                .size(40, 40)
+                                .crossfade(true)
+                                .placeholder(R.drawable.cargando_img_categorias)
+                                .error(R.drawable.cargando_img_categorias)
+                                .build(), contentDescription = "Imagen",
                             modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(estadoColor)
+                                .width(40.dp)
+                                .height(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
+                        spacer_horizonta(10.dp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            texto_generico_one_line(dataclass_map.nombre)
+                            spacer_horizonta(5.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(estadoColor)
+                            )
+                        }
                     }
+                    spacer_vertical(10.dp)
+                    texto_generico_one_line("Distancia en tiempo real")
+                    spacer_vertical(5.dp)
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(color = Color.White)) {
+                                append("El valor mostrado ")
+                            }
+                            withStyle(style = SpanStyle(color = estadoColor)) {
+                                append("(${distancia})")
+                            }
+                            withStyle(style = SpanStyle(color = Color.White)) {
+                                append(" es una estimación calculada en línea recta y se actualiza al instante con tu GPS. La distancia final puede variar ligeramente debido a las rutas de las calles")
+                            }
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    spacer_vertical(10.dp)
+                    texto_generico_one_line("Horaro en tiempo real")
+                    spacer_vertical(5.dp)
+                    texto_generico_multilinea(
+                        "La disponibilidad  se muestra en el momento exacto. ¡Siempre sabrás si la tienda está lista para recibirte!",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_vertical(5.dp)
+                    texto_generico_one_line(
+                        horario_restante,
+                        MaterialTheme.typography.bodyMedium,
+                        color = estadoColor
+                    )
+
                 }
-                spacer_vertical(10.dp)
-                texto_generico_one_line("Distancia en tiempo real")
-                spacer_vertical(5.dp)
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color.White)) {
-                            append("El valor mostrado ")
-                        }
-                        withStyle(style = SpanStyle(color = estadoColor)) {
-                            append("(${distancia})")
-                        }
-                        withStyle(style = SpanStyle(color = Color.White)) {
-                            append(" es una estimación calculada en línea recta y se actualiza al instante con tu GPS. La distancia final puede variar ligeramente debido a las rutas de las calles")
-                        }
-                    },
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                spacer_vertical(10.dp)
-                texto_generico_one_line("Horaro en tiempo real")
-                spacer_vertical(5.dp)
-                texto_generico_multilinea("La disponibilidad  se muestra en el momento exacto. ¡Siempre sabrás si la tienda está lista para recibirte!", style = MaterialTheme.typography.bodyMedium)
-                spacer_vertical(5.dp)
-                texto_generico_one_line(horario_restante,MaterialTheme.typography.bodyMedium, color = estadoColor)
-
-            }
             }
         }
     )

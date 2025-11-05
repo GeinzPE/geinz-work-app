@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_resultado_tienda_lugar
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
+import com.geinzz.geinzwork.data.model.dataclass_review.datos_review_existenet
 import com.geinzz.geinzwork.model.repo_review
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,8 +24,8 @@ class viewmodel_review : ViewModel() {
     private val review_send = MutableLiveData<Boolean>()
     val _review_send: LiveData<Boolean> get() = review_send
 
-    private val Verificar_exist = MutableLiveData<Pair<Int, String>?>()
-    val _verificar_review_exsit: MutableLiveData<Pair<Int, String>?> get() = Verificar_exist
+    private val Verificar_exist = MutableLiveData<datos_review_existenet>()
+    val _verificar_review_exsit: MutableLiveData<datos_review_existenet> get() = Verificar_exist
 
     fun set_datos_TL_review(data_class_review: data_class_review) {
         viewModelScope.launch {

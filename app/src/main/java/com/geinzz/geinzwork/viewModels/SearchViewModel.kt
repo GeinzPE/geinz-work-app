@@ -214,6 +214,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         subcategoria: String?
     ) {
         Log.d("isntqa_fun", "filtrarSubCat")
+        Log.d("isntqa_fun1231313", "$cercaDeTiEnable")
 
         filterJob?.cancel()
         filterJob = viewModelScope.launch {

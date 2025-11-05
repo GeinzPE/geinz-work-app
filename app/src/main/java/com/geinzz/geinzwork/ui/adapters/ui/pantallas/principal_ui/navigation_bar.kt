@@ -2,10 +2,9 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -13,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.AlertDialog
@@ -22,9 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -32,12 +29,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,13 +58,19 @@ import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_Sheet_seguro
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_review
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaDentroDeTienda
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewmodel_review
@@ -73,12 +79,16 @@ import com.google.firebase.auth.FirebaseAuth
 
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.launch
 
 private lateinit var firebaseAuth: FirebaseAuth
 
 @SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
-fun bottom_navigation(datos_principales_user: datos_principales_user, navController: NavController) {
+fun bottom_navigation(
+    datos_principales_user: datos_principales_user,
+    navController: NavController,  crear_cuenta:()-> Unit,iniciar_seccion:()-> Unit
+) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val items = listOf(
@@ -112,6 +122,10 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
     var segun_user_tienda by remember { mutableStateOf(false) }
 
     var datos_review by remember { mutableStateOf(datos_review()) }
+    var esta_o_no_lugar by remember { mutableStateOf(false) }
+
+    var mostar_snackvar_reivew by remember { mutableStateOf(false) }
+    var scope = rememberCoroutineScope()
 
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
@@ -199,6 +213,17 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
 
     }
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
+        }
+    }
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -224,6 +249,7 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
                     if (verificarUbiActiva(context)) {
                         dialog_estas_tienda = false
                         bottom_sheet_review_privado = true
+                        esta_o_no_lugar=false
                         segun_user_tienda = true
                     } else {
                         dialogo_ubi_activa = true
@@ -237,12 +263,14 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
                 dialog_estas_tienda = false
                 bottom_sheet_review_privado = true
                 segun_user_tienda = false
+                esta_o_no_lugar=true
 
             })
     }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     if (bottom_sheet_review_privado) {
-        bottom_Sheet_seguro(viewmodel, id_tienda_review, ondimis = {
+        bottom_Sheet_seguro(esta_o_no_lugar,datos_principales_user,viewmodel, id_tienda_review, ondimis = {
             bottom_sheet_review_privado = !bottom_sheet_review_privado
         }, clik_envio = { ratingValue, texto, location ->
             if (segun_user_tienda) {
@@ -271,11 +299,11 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
 
                 viewmodel.agregar_review(
                     crearReview(
-                        rango_estrellas,
-                        descripcion,
-                        estado_presencial_tienda_lugar,
-                        id_tienda_review.id_tienda_lugar,
-                        id_tienda_review.localida_lugar
+                        ratingValue = rango_estrellas,
+                        texto = descripcion,
+                        presencial = estado_presencial_tienda_lugar,
+                        id_tienda_lugar = id_tienda_review.id_tienda_lugar,
+                        localida_lugar = id_tienda_review.localida_lugar
                     )
                 )
                 Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
@@ -292,13 +320,13 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
                 )
             }
 
-        })
+        }, crear_cuenta = {crear_cuenta()}, iniciar_seccion ={iniciar_seccion()})
     }
 
 
     if (bottom_sheet) {
         bottom_sheet_review(
-            datos_principales_user,
+            datos_principales_user = datos_principales_user,
             viewmodel = viewmodel,
             data_class_review = id_tienda_review,
             ondimis = {
@@ -314,7 +342,22 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
                         id_tienda_review.localida_lugar
                     )
                 )
-            })
+            }, crear_cuenta = crear_cuenta, iniciar_seccion = iniciar_seccion,{mostar_snackvar_reivew=true}
+        )
+    }
+    if(mostar_snackvar_reivew){
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = "Tu reseña no fue enviada.",
+                actionLabel = "Reanudar",
+                duration = SnackbarDuration.Long
+            )
+            mostar_snackvar_reivew = false
+
+            if (result == SnackbarResult.ActionPerformed) {
+                bottom_sheet = true // vuelve a abrir el BottomSheet
+            }
+        }
     }
 
     if (dialogo_ubi_activa) {
@@ -323,7 +366,7 @@ fun bottom_navigation(datos_principales_user: datos_principales_user, navControl
             onDismis = { dialogo_ubi_activa = false },
             abrir_configuracion = {
                 dialogo_ubi_activa = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                verificarGPS(context, launcher)
 
             }
         )
@@ -342,7 +385,7 @@ private fun handleScanResult(
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
         return
     }
-    Log.d("conteinod_escamedo",contenidoEscaneado)
+    Log.d("conteinod_escamedo", contenidoEscaneado)
     try {
         if (contenidoEscaneado.startsWith("Tienda|")) {
             val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")
@@ -378,18 +421,38 @@ private fun handleScanResult(
 fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa_no: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onClose() }, confirmButton = {
-            Button(onClick = { rpa_si() }) { texto_generico_one_line("Si") }
+            btn_aceptar_etc_dialog_general("Si") {
+                rpa_si()
+            }
+
         },
-        dismissButton = { TextButton(onClick = { rpa_no() }) { texto_generico_one_line("no") } },
-        title = { texto_generico_one_line("Verifica tu reseña") },
+        dismissButton = {  btn_cerra_etc_dialog_general ("no"){
+            rpa_no()
+        } },
+        title = {
+            FuenteControladaApp {
+                texto_generico_one_line("Verifica tu reseña")
+            }
+
+        },
         text = {
-            texto_generico_multilinea(
-                "Para dejar una reseña en este establecimiento, Geinz necesita verificar que te encuentras físicamente en el lugar. Si confirmas tu ubicación, tu reseña será verificada. De lo contrario, la reseña se registrará como no verificada.",
-                MaterialTheme.typography.bodyMedium
-            )
+            FuenteControladaApp {
+                Column {
+                texto_generico_multilinea(
+                    "Para dejar una reseña en este establecimiento, Geinz necesita verificar que te encuentras físicamente en el lugar. Si confirmas tu ubicación, tu reseña será verificada. De lo contrario, la reseña se registrará como no verificada.",
+                    MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(5.dp)
+                texto_generico_one_line("Te encuentras en el lugar?")
+                }
+            }
         },
         icon = {
-            Image(painter = painterResource(R.drawable.pin_3d_webp), contentDescription = "marker3d"  ,modifier = Modifier.size(40.dp))
+            Image(
+                painter = painterResource(R.drawable.pin_3d_webp),
+                contentDescription = "marker3d",
+                modifier = Modifier.size(40.dp)
+            )
         }, properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true
@@ -411,8 +474,8 @@ fun crearReview(
     verificado_presencial = presencial,
     id_tienda_lugar = id_tienda_lugar,
     localidad_tienda = localida_lugar,
-    hora = "",
-    fecha = ""
+    hora = mostrarFechaDialog_horaDialog.obtenerHoraActual(),
+    fecha = mostrarFechaDialog_horaDialog.obtenerFechaActual()
 )
 
 

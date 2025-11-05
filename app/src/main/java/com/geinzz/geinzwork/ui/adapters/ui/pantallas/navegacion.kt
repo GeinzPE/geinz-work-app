@@ -175,7 +175,7 @@ fun nativationWrapper(
     var correo_registrado by remember { mutableStateOf("") }
     var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
     val user = FirebaseAuth.getInstance().currentUser
-    LaunchedEffect(user,mostrar_btn_termianr_configurar) {
+    LaunchedEffect(user, mostrar_btn_termianr_configurar) {
         scope.launch {
             if (user != null) {
                 val email = user.email
@@ -217,7 +217,11 @@ fun nativationWrapper(
                     )
                 ) {
 
-                    bottom_navigation(datos_principales_user, navController)
+                    bottom_navigation(
+                        datos_principales_user = datos_principales_user,
+                        navController = navController,
+                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                        iniciar_seccion = { navController.navigate("login_principal") })
 
                 }
             },
@@ -241,7 +245,7 @@ fun nativationWrapper(
                             )
                         },
                         clikear_cartas = { categoria, localidad, nombre_user ->
-                            Log.d("categoriass","$categoria $nombre_user $localidad")
+                            Log.d("categoriass", "$categoria $nombre_user $localidad")
                             if (categoria.equals("turismo")) {
 //                                Toast.makeText(
 //                                    context,
@@ -250,7 +254,7 @@ fun nativationWrapper(
 //                                ).show()
 //                                return@pantalla_principal
                                 navController.navigate(lugares_turisticos(localidad))
-                            }else{
+                            } else {
                                 navController.navigate(
                                     screen_filtrado(
                                         categoria,
@@ -297,9 +301,13 @@ fun nativationWrapper(
                 // Login
                 composable("login_principal") {
                     if (firebaseAuth.currentUser != null) {
-                        cuenta_user(viewModel_login_user, correo_registrado,navController,{correo_google->
-                            navController.navigate(crear_cuenta_geinz(correo_google))
-                        })
+                        cuenta_user(
+                            viewModel_login_user,
+                            correo_registrado,
+                            navController,
+                            { correo_google ->
+                                navController.navigate(crear_cuenta_geinz(correo_google))
+                            })
                     } else {
                         IniciarSeccion(
                             viewModel_login_user, navController,
@@ -322,14 +330,13 @@ fun nativationWrapper(
                             navController.navigate("login_principal")
                         }, crear_cuenta_geinz = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        },    abrir_mapa = { tipo ->
+                        }, abrir_mapa = { tipo ->
                             navController.navigate(map_perzonalizado(tipo, "barranca"))
-                        },  crear_cuenta = {
+                        }, crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        },iniciar_seccion = {
+                        }, iniciar_seccion = {
                             navController.navigate("login_principal")
                         })
-
 
 
                 }
@@ -356,7 +363,7 @@ fun nativationWrapper(
 //                                return@PantallaExplorarTiendas
                                 navController.navigate(lugares_turisticos(localidada))
                                 return@PantallaExplorarTiendas
-                            }else{
+                            } else {
                                 Log.d("clikeamos_img", "$categoria")
 
                                 navController.navigate(
@@ -367,7 +374,6 @@ fun nativationWrapper(
                                     )
                                 )
                             }
-
 
 
                         }
@@ -430,7 +436,7 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        },navController
+                        }, navController
                     )
                 }
 
@@ -494,7 +500,7 @@ fun nativationWrapper(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            Log.d("mostramos_carga","$mostrarCarga")
+            Log.d("mostramos_carga", "$mostrarCarga")
             Box(
                 modifier = Modifier
                     .fillMaxSize()

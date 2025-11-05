@@ -404,7 +404,7 @@ fun ui_pantalla_busqueda(
         subcategira_filtrado,
         salud_seguirdad
     ) {
-
+Log.d("seguridad_cabiada","$salud_seguirdad")
         val localidadActual = tiendaLocalidadSeleccionada
 
         if (salud_seguirdad.isNotEmpty()) {
@@ -506,6 +506,7 @@ fun ui_pantalla_busqueda(
             )
         } else {
             Log.d("cambiamos_hasuser", "⚠️ No hay coordenada o cerca_de_ti_enable = false")
+//         viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
         }
     }
 
@@ -1015,6 +1016,7 @@ fun ui_pantalla_busqueda(
                 subcategira_filtrado = subcategoria_select
             },
             seguridad_salud_selec = { select ->
+                viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
                 salud_seguirdad = select
                 Log.d("salid_se", select)
                 viewModel.clearResults()
@@ -1042,6 +1044,7 @@ fun ui_pantalla_busqueda(
                 color_salud_seguirdad = !color_salud_seguirdad
                 color_localidad = false
                 color_categoria = false
+
             },
             click_carta_seguridad_delete = {
                 color_salud_seguirdad = false
