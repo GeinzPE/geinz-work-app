@@ -1,14 +1,19 @@
 package com.geinzz.geinzwork.data.model.dataclass_review
 
-data class data_class_review(val id_tienda_lugar: String = "", val localida_lugar: String = "")
+import android.os.Parcelable
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import kotlinx.android.parcel.Parcelize
 
+data class data_class_review(val id_tienda_lugar: String = "", val localida_lugar: String = "")
+@Parcelize
 data class data_class_resultado_tienda_lugar(
     val id: String = "",
     val nombre: String = "",
     val imagen: String = "",
     val localidad: String = "",
-
-)
+    val esta_Abierto: Boolean,
+    val datos_horario_actual : horario_tienda
+): Parcelable
 
 data class datos_review(
     val id_usuario: String="",

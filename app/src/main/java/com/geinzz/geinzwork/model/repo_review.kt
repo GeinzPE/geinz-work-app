@@ -5,9 +5,13 @@ import com.geinzz.geinzwork.data.model.dataclass_review.data_class_resultado_tie
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review_existenet
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 
 class repo_review {
     val db = FirebaseFirestore.getInstance()
@@ -30,12 +34,34 @@ class repo_review {
                 val nombre_tienda_lugar = data?.get("nombre_tienda") as? String ?: ""
                 val img_nombre_lugar = data?.get("img_tienda") as? Map<String, Any> ?: emptyMap()
                 val img_LT = img_nombre_lugar.get("logo_tienda") as? String ?: ""
-
+                val horario = data?.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
+                val dias =
+                    listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+                val calendar = Calendar.getInstance()
+                val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+                val horarioDia = horario[diaActual] as? Map<String, Any> ?: emptyMap()
+                val cerrado = horarioDia["cerrado"] as? Boolean ?: false
+                val hApertura = horarioDia["h_apertura"] as? String ?: ""
+                val hCierre = horarioDia["h_cierre"] as? String ?: ""
+                val motivo = horarioDia["motivo"] as? String ?: ""
+                var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
+                val estaAbierto =
+                    if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
+                if (!estaAbierto) {
+                    val proximo = obtenerProximoDiaAbierto(horario, diaActual)
+                    if (proximo != null) {
+                        val (diaProx, horarioProx) = proximo
+                        datos_horario_actual = datos_horario_actual.copy(
+                            dia_prox_apertura = diaProx,
+                            hora_prox_apertura = horarioProx["h_apertura"] as? String ?: ""
+                        )
+                    }
+                }
                 data_class_resultado_tienda_lugar(
                     id = data_class_review.id_tienda_lugar,
                     nombre = nombre_tienda_lugar,
                     imagen = img_LT,
-                    localidad = data_class_review.localida_lugar
+                    localidad = data_class_review.localida_lugar,estaAbierto,datos_horario_actual
                 )
             } else {
                 null

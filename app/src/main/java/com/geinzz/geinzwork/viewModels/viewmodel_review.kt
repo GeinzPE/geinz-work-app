@@ -12,10 +12,17 @@ import com.geinzz.geinzwork.data.model.dataclass_review.datos_review_existenet
 import com.geinzz.geinzwork.model.repo_review
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class viewmodel_review : ViewModel() {
     val instacia_repo = repo_review()
+
+
+    private val _datos_tienda_review_flow = MutableStateFlow<datos_tienda_review>(datos_tienda_review.laoding)
+    val datos_tienda_review_flow: StateFlow<datos_tienda_review> = _datos_tienda_review_flow
 
 
     private val datos_TL_review = MutableLiveData<data_class_resultado_tienda_lugar>()
@@ -28,11 +35,23 @@ class viewmodel_review : ViewModel() {
     val _verificar_review_exsit: MutableLiveData<datos_review_existenet> get() = Verificar_exist
 
     fun set_datos_TL_review(data_class_review: data_class_review) {
+
+
         viewModelScope.launch {
+            _datos_tienda_review_flow.value=datos_tienda_review.laoding
+            delay(2000)
             try {
-                datos_TL_review.value = instacia_repo.obtener_datos_tienda(data_class_review)
+                val datos_tienda_review_res= instacia_repo.obtener_datos_tienda(data_class_review)
+                if(datos_tienda_review_res!=null){
+                    _datos_tienda_review_flow.value=datos_tienda_review.succes(datos_tienda_review_res)
+                }else{
+                    _datos_tienda_review_flow.value=datos_tienda_review.error("No se encontraron datos intentalo nuevmaente ")
+                }
+//                    datos_TL_review.value = instacia_repo.obtener_datos_tienda(data_class_review)
+
             } catch (e: Exception) {
-                datos_TL_review.value = data_class_resultado_tienda_lugar()
+                _datos_tienda_review_flow.value=datos_tienda_review.error("No se encontraron datos intentalo nuevmaente ")
+//                datos_TL_review.value = data_class_resultado_tienda_lugar()
             }
         }
     }
@@ -51,6 +70,9 @@ class viewmodel_review : ViewModel() {
         review_send.value = false
     }
 
+    fun limpiar_estado(){
+        _datos_tienda_review_flow.value=datos_tienda_review.clear
+    }
 
     fun verificar_review_existente(id_user: String, data_class_review: data_class_review) {
         viewModelScope.launch {
@@ -58,9 +80,21 @@ class viewmodel_review : ViewModel() {
                 Verificar_exist.value =
                     instacia_repo.verificar_review_exsitente(id_user, data_class_review)
             } catch (e: Exception) {
-                Verificar_exist.value = null
+                Verificar_exist.value = datos_review_existenet()
             }
         }
+    }
+
+    sealed class datos_tienda_review {
+        data class succes(val item: data_class_resultado_tienda_lugar) : datos_tienda_review()
+        object laoding : datos_tienda_review()
+        data class error(val txt: String) : datos_tienda_review()
+        object clear: datos_tienda_review()
+    }
+
+    sealed class review_carga_review {
+        object empty : review_carga_review()
+        data class succes(val items: datos_review_existenet) : review_carga_review()
     }
 
 }

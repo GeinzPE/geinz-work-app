@@ -66,6 +66,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_Sheet_seguro
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_review
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
@@ -126,7 +127,7 @@ fun bottom_navigation(
 
     var mostar_snackvar_reivew by remember { mutableStateOf(false) }
     var scope = rememberCoroutineScope()
-
+    val snackbarHostState = remember { SnackbarHostState() }
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
         onResult = { result ->
@@ -210,6 +211,7 @@ fun bottom_navigation(
                 modifier = Modifier.size(35.dp)
             )
         }
+        SnackbarHost(snackbarHostState,Modifier.align(Alignment.BottomCenter))
 
     }
 
@@ -267,12 +269,13 @@ fun bottom_navigation(
 
             })
     }
-    val snackbarHostState = remember { SnackbarHostState() }
+
 
     if (bottom_sheet_review_privado) {
         bottom_Sheet_seguro(esta_o_no_lugar,datos_principales_user,viewmodel, id_tienda_review, ondimis = {
             bottom_sheet_review_privado = !bottom_sheet_review_privado
         }, clik_envio = { ratingValue, texto, location ->
+
             if (segun_user_tienda) {
                 rango_estrellas = ratingValue
                 descripcion = texto
@@ -319,7 +322,12 @@ fun bottom_navigation(
                     )
                 )
             }
-
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "¡Gracias por compartir tu experiencia con nosotros!",
+                    duration = SnackbarDuration.Short
+                )
+            }
         }, crear_cuenta = {crear_cuenta()}, iniciar_seccion ={iniciar_seccion()})
     }
 
@@ -342,23 +350,16 @@ fun bottom_navigation(
                         id_tienda_review.localida_lugar
                     )
                 )
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "¡Gracias por compartir tu experiencia con nosotros!",
+                        duration = SnackbarDuration.Short
+                    )
+                }
             }, crear_cuenta = crear_cuenta, iniciar_seccion = iniciar_seccion,{mostar_snackvar_reivew=true}
         )
     }
-    if(mostar_snackvar_reivew){
-        scope.launch {
-            val result = snackbarHostState.showSnackbar(
-                message = "Tu reseña no fue enviada.",
-                actionLabel = "Reanudar",
-                duration = SnackbarDuration.Long
-            )
-            mostar_snackvar_reivew = false
 
-            if (result == SnackbarResult.ActionPerformed) {
-                bottom_sheet = true // vuelve a abrir el BottomSheet
-            }
-        }
-    }
 
     if (dialogo_ubi_activa) {
         dialog_sin_ubi__rutas(

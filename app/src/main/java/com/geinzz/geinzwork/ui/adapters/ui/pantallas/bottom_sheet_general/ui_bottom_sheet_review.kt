@@ -4,12 +4,16 @@ import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -38,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -61,6 +68,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
@@ -71,12 +79,20 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_normas_de_verificacion
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_verificacion_proceso
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_verificada_automatico
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
+import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -99,7 +115,9 @@ fun bottom_sheet_review(
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val _datos_TL_review = viewmodel._datos_TL_review.observeAsState()
+//    val _datos_TL_review = viewmodel._datos_TL_review.observeAsState()
+    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
+    val datos_tienda_review_state = viewmodel.datos_tienda_review_flow.collectAsState()
     val _verificar_review_exsit = viewmodel._verificar_review_exsit.observeAsState()
     val _review_send = viewmodel._review_send.observeAsState(initial = false)
     var texto by remember { mutableStateOf("") }
@@ -108,6 +126,7 @@ fun bottom_sheet_review(
     var clicked by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (clicked) 1.05f else 1f)
     var five_estrellas by remember { mutableStateOf(false) }
+    var dialog_verificaca_automatico by remember { mutableStateOf(false) }
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.confetii))
     var showAnimation by remember { mutableStateOf(five_estrellas) }
     val caracteresMinimos = 60
@@ -115,12 +134,30 @@ fun bottom_sheet_review(
     val tieneError = texto.length in 1 until caracteresMinimos
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var show_bottom_sheeet by remember { mutableStateOf(false) }
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+    val tick by viewModelFiltros.tick.collectAsState()
 
+var color by remember { mutableStateOf(Color.Gray) }
     // cargar datos de la tienda
-    LaunchedEffect(data_class_review) {
+    LaunchedEffect(Unit) {
         viewmodel.set_datos_TL_review(data_class_review)
     }
-
+    LaunchedEffect(datosTienda) {
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada =
+                datosTienda!!.first()
+        }
+    }
+    LaunchedEffect(show_bottom_sheeet) {
+        if (show_bottom_sheeet) {
+            viewModelFiltros.obtener_campos_tiendas_por_id(
+                data_class_review.localida_lugar,
+                data_class_review.id_tienda_lugar
+            )
+        }
+    }
     // cerrar bottomsheet al enviar review
     LaunchedEffect(_review_send.value) {
         if (_review_send.value) {
@@ -158,7 +195,8 @@ fun bottom_sheet_review(
     if (firebaseAuth.currentUser != null) {
         ModalBottomSheet(
             onDismissRequest = {
-                ondimis() // Solo cierra si no hay nada escrito
+                ondimis()
+                viewmodel.limpiar_estado()
             },
             sheetState = sheetState,
             modifier = Modifier
@@ -170,260 +208,325 @@ fun bottom_sheet_review(
                 modifier = Modifier
                     .wrapContentSize()
             ) {
-                FuenteControladaApp {
-                    Column(
-                        modifier = Modifier
-                            .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 30.dp)
-                            .verticalScroll(rememberScrollState())
-                            .imePadding()
-
-                    ) {
-                        Text(
-                            text = "Cuéntanos tu experiencia",
-                            fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
-                            modifier = Modifier.padding(end = 20.dp)
-                        )
-                        spacer_vertical(10.dp)
-                        val annotatedText = buildAnnotatedString {
-                            append("Hola ${datos_principales_user.nombre}, tu opinión nos ayuda a mejorar. Deja tu reseña sobre ")
-                            withStyle(
-                                style = SpanStyle(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append(_datos_TL_review.value?.nombre.toString())
-                            }
-
-                            append(". Será ")
-
-                            // Parte clickeable y subrayada
-                            pushStringAnnotation(tag = "VERIFICADA", annotation = "verificada")
-                            withStyle(
-                                style = SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                    textDecoration = TextDecoration.Underline
-                                )
-                            ) {
-                                append("verificada automáticamente")
-                            }
-                            pop()
-
-                            append(". ¡Gracias por confiar en Geinz!")
-                        }
-
-                        ClickableText(
-                            text = annotatedText,
-                            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                            onClick = { offset ->
-                                annotatedText.getStringAnnotations(
-                                    tag = "VERIFICADA",
-                                    start = offset,
-                                    end = offset
-                                )
-                                    .firstOrNull()?.let {
-
-                                        Log.d("ClickableText", "Texto clickeado: ${it.item}")
-
-                                    }
-                            }
-                        )
-
-                        if (fecha_registrada != "") {
-                            texto_generico_one_line(
-                                "Fecha de reseña publicada : ${fecha_registrada}",
-                                modifier = Modifier.padding(top = 10.dp, end = 7.dp),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        spacer_vertical(20.dp)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                        ) {
-                            // Imagen
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(
-                                        _datos_TL_review.value?.imagen
-                                            ?: R.drawable.cargando_img_categorias
-                                    )
-                                    .placeholder(R.drawable.cargando_img_categorias)
-                                    .error(R.drawable.cargando_img_categorias)
-                                    .build(),
-                                contentDescription = "Imagen de la tienda",
-                                contentScale = ContentScale.Crop,
+                Crossfade(
+                    targetState = datos_tienda_review_state.value,
+                    animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                ) { state ->
+                    when (state) {
+                        is viewmodel_review.datos_tienda_review.laoding -> {
+                            Box(
                                 modifier = Modifier
-                                    .graphicsLayer {
-                                        scaleX = scale
-                                        scaleY = scale
-                                    }
-                                    .shadow(
-                                        elevation = 24.dp,
-                                        ambientColor = Color.White.copy(alpha = 0.8f),
-                                        spotColor = Color.White.copy(alpha = 0.6f)
-                                    )
-                                    .clip(RoundedCornerShape(16.dp))
-
                                     .fillMaxWidth()
-                                    .height(180.dp)
-                            )
-
-                            this@Column.AnimatedVisibility(
-                                showAnimation,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier
-                                    .matchParentSize()
+                                    .height(LocalConfiguration.current.screenHeightDp.dp * 0.3f), // 30% de la altura de pantalla
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .matchParentSize()
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color.Black.copy(alpha = 0.70f))
-                                )
+                                CircularProgressIndicator()
                             }
-                            this@Column.AnimatedVisibility(
-                                showAnimation,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                            ) {
-                                LottieAnimation(
-                                    composition,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .align(Alignment.TopCenter)
-                                )
-                            }
-                            this@Column.AnimatedVisibility(
-                                showAnimation,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(
-                                            _datos_TL_review.value?.imagen
-                                                ?: R.drawable.cargando_img_categorias
-                                        )
-                                        .placeholder(R.drawable.cargando_img_categorias)
-                                        .error(R.drawable.cargando_img_categorias)
-                                        .build(),
-                                    contentDescription = "Imagen de la tienda",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .width(100.dp)
-                                        .height(100.dp)
-                                )
-                            }
-
-
                         }
 
-                        spacer_vertical(15.dp)
+                        is viewmodel_review.datos_tienda_review.succes -> {
+                            val datos = state.item
+                            retornar_color_estado_tienda(
+                                datos.datos_horario_actual,
+                                datos.datos_horario_actual.h_cierre,
+                                datos.datos_horario_actual.cerrado,
+                                datos.datos_horario_actual.motivo,
+                                tick
+                            ) { color_res ->
+                                color = color_res
+                            }
 
-                        FullStarRating(
-                            starSize = 30.dp,
-                            onRatingChanged = { newRating ->
-                                five_estrellas = newRating == 5
-                                ratingValue = newRating
-                            },
-                            initialRating = ratingValue,
-                        )
-                        spacer_vertical(20.dp)
+                            FuenteControladaApp {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 10.dp,
+                                            top = 20.dp,
+                                            bottom = 30.dp
+                                        )
+                                        .verticalScroll(rememberScrollState())
+                                        .imePadding()
 
+                                ) {
+                                    Text(
+                                        text = "Cuéntanos tu experiencia",
+                                        fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                    spacer_vertical(10.dp)
+                                    val annotatedText = buildAnnotatedString {
+                                        append("Hola ${datos_principales_user.nombre}, tu opinión nos ayuda a mejorar. Deja tu reseña sobre ")
+                                        withStyle(
+                                            style = SpanStyle(
+                                                color = Color.White,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        ) {
+                                            append(datos.nombre.toString())
+                                        }
 
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            OutlinedTextField(
-                                value = texto,
-                                onValueChange = {
-                                    if (it.length <= caracteresMaximos) {
-                                        texto = it
+                                        append(". Será ")
+
+                                        // Parte clickeable y subrayada
+                                        pushStringAnnotation(
+                                            tag = "VERIFICADA",
+                                            annotation = "verificada"
+                                        )
+                                        withStyle(
+                                            style = SpanStyle(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold,
+                                                textDecoration = TextDecoration.Underline
+                                            )
+                                        ) {
+                                            append("verificada automáticamente")
+                                        }
+                                        pop()
+
+                                        append(". ¡Gracias por confiar en Geinz!")
                                     }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(20.dp),
-                                label = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                                placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                                textStyle = MaterialTheme.typography.bodyMedium,
-                                singleLine = false,
-                                maxLines = 10,
-                                minLines = 4,
-                                isError = tieneError,
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+
+                                    ClickableText(
+                                        text = annotatedText,
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                        onClick = { offset ->
+                                            annotatedText.getStringAnnotations(
+                                                tag = "VERIFICADA",
+                                                start = offset,
+                                                end = offset
+                                            )
+                                                .firstOrNull()?.let {
+                                                    dialog_verificaca_automatico = true
+//                                        Log.d("ClickableText", "Texto clickeado: ${it.item}")
+
+                                                }
+                                        }
+                                    )
+
+                                    if (fecha_registrada != "") {
+                                        texto_generico_one_line(
+                                            "Fecha de reseña publicada : ${fecha_registrada}",
+                                            modifier = Modifier.padding(top = 10.dp, end = 7.dp),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+
+                                    spacer_vertical(20.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
                                     ) {
-                                        if (tieneError) {
-                                            Text(
-                                                text = "Debe tener al menos $caracteresMinimos caracteres",
-                                                color = MaterialTheme.colorScheme.error,
-                                                style = MaterialTheme.typography.bodySmall
+                                        // Imagen
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(
+                                                    datos.imagen
+                                                        ?: R.drawable.cargando_img_categorias
+                                                )
+                                                .placeholder(R.drawable.cargando_img_categorias)
+                                                .error(R.drawable.cargando_img_categorias)
+                                                .build(),
+                                            contentDescription = "Imagen de la tienda",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .graphicsLayer {
+                                                    scaleX = scale
+                                                    scaleY = scale
+                                                }
+                                                .shadow(
+                                                    elevation = 24.dp,
+                                                    ambientColor = Color.White.copy(alpha = 0.8f),
+                                                    spotColor = Color.White.copy(alpha = 0.6f)
+                                                )
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .clickable(
+                                                    indication = null,
+                                                    interactionSource = remember { MutableInteractionSource() }) {
+                                                    show_bottom_sheeet = true
+                                                }
+                                                .fillMaxWidth()
+                                                .height(180.dp)
+                                        )
+
+                                        this@Column.AnimatedVisibility(
+                                            showAnimation,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .matchParentSize()
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .background(Color.Black.copy(alpha = 0.70f))
                                             )
-                                        } else {
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
+                                        this@Column.AnimatedVisibility(
+                                            showAnimation,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                        ) {
+                                            LottieAnimation(
+                                                composition,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .align(Alignment.TopCenter)
+                                            )
+                                        }
+                                        this@Column.AnimatedVisibility(
+                                            showAnimation,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                            modifier = Modifier.align(Alignment.Center)
+                                        ) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(LocalContext.current)
+                                                    .data(
+                                                        datos.imagen
+                                                            ?: R.drawable.cargando_img_categorias
+                                                    )
+                                                    .placeholder(R.drawable.cargando_img_categorias)
+                                                    .error(R.drawable.cargando_img_categorias)
+                                                    .build(),
+                                                contentDescription = "Imagen de la tienda",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .clip(CircleShape)
+                                                    .width(100.dp)
+                                                    .height(100.dp)
+                                            )
                                         }
 
-                                        Text(
-                                            text = "${texto.length}/$caracteresMaximos",
-                                            color = if (texto.length > caracteresMaximos - 50)
-                                                MaterialTheme.colorScheme.error
-                                            else
-                                                MaterialTheme.colorScheme.onSurfaceVariant,
-                                            style = MaterialTheme.typography.bodySmall
+
+                                    }
+
+                                    spacer_vertical(15.dp)
+
+                                    FullStarRating(
+                                        starSize = 30.dp,
+                                        onRatingChanged = { newRating ->
+                                            five_estrellas = newRating == 5
+                                            ratingValue = newRating
+                                        },
+                                        initialRating = ratingValue,
+                                    )
+                                    spacer_vertical(20.dp)
+
+
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        OutlinedTextField(
+                                            value = texto,
+                                            onValueChange = {
+                                                if (it.length <= caracteresMaximos) {
+                                                    texto = it
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(20.dp),
+                                            label = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                                            placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                                            textStyle = MaterialTheme.typography.bodyMedium,
+                                            singleLine = false,
+                                            maxLines = 10,
+                                            minLines = 4,
+                                            isError = tieneError,
+                                            supportingText = {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    if (tieneError) {
+                                                        Text(
+                                                            text = "Debe tener al menos $caracteresMinimos caracteres",
+                                                            color = MaterialTheme.colorScheme.error,
+                                                            style = MaterialTheme.typography.bodySmall
+                                                        )
+                                                    } else {
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                    }
+
+                                                    Text(
+                                                        text = "${texto.length}/$caracteresMaximos",
+                                                        color = if (texto.length > caracteresMaximos - 50)
+                                                            MaterialTheme.colorScheme.error
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
+                                            }
                                         )
                                     }
-                                }
-                            )
-                        }
 
-                        spacer_vertical(15.dp)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(CircleShape)
-                                .background(
-                                    MaterialTheme.colorScheme.primary
-                                )
-                                .clickable {
-                                    if (ratingValue == 0 || texto.isEmpty()) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Ups, parece que faltan algunos campos por completar.",
-                                                duration = SnackbarDuration.Short
+                                    spacer_vertical(15.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(CircleShape)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary
                                             )
-                                        }
-                                    } else if (tieneError) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Por favor, escribe una reseña más completa (mínimo 60 caracteres)",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
+                                            .clickable {
+                                                if (ratingValue == 0 || texto.isEmpty()) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "Ups, parece que faltan algunos campos por completar.",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                } else if (tieneError) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "Por favor, escribe una reseña más completa (mínimo 60 caracteres)",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
 
-                                    } else {
-                                        clik_envio(ratingValue, texto)
+                                                } else {
+                                                    ondimis()
+                                                    clik_envio(ratingValue, texto)
+                                                    viewmodel.limpiar_estado()
+                                                }
+                                            }, contentAlignment = Alignment.Center
+                                    ) {
+                                        texto_generico_one_line(
+                                            "Enviar reseña",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.padding(vertical = 15.dp)
+                                        )
                                     }
-                                }, contentAlignment = Alignment.Center
-                        ) {
-                            texto_generico_one_line(
-                                "Enviar reseña",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 15.dp)
-                            )
+
+
+                                }
+                            }
                         }
 
+                        is viewmodel_review.datos_tienda_review.error -> {
+                            val mensaje =
+                                (datos_tienda_review_state.value as viewmodel_review.datos_tienda_review.error).txt
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                FuenteControladaApp {
+                                    Text(
+                                        text = mensaje,
+                                        color = Color.Gray,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
 
+                        else -> {}
                     }
                 }
+
                 SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
             }
 
@@ -444,7 +547,19 @@ fun bottom_sheet_review(
             texto_bottom_Sheet = "Inicia sesión para compartir tu experiencia"
         )
     }
+    if (show_bottom_sheeet) {
+        bottom_sheet_tiendas_filtradas(
+            color,
+            viewModelFiltros,
+            dataclass_tienda_seleccionada, show_bottom_sheeet
+        ) {
+            show_bottom_sheeet = false
+        }
+    }
 
+    if (dialog_verificaca_automatico) {
+        dialog_verificada_automatico { dialog_verificaca_automatico = false }
+    }
 
 }
 
@@ -467,7 +582,8 @@ fun bottom_Sheet_seguro(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var ubicacionPrevia by remember { mutableStateOf<Location?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val _datos_TL_review = viewmodel._datos_TL_review.observeAsState()
+    val datos_tienda_review_state = viewmodel.datos_tienda_review_flow.collectAsState()
+    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val _verificar_review_exsit = viewmodel._verificar_review_exsit.observeAsState()
     val _review_send = viewmodel._review_send.observeAsState(initial = false)
     var texto by remember { mutableStateOf("") }
@@ -480,6 +596,13 @@ fun bottom_Sheet_seguro(
     val caracteresMaximos = 1500
     val tieneError = texto.length in 1 until caracteresMinimos
     val snackbarHostState = remember { SnackbarHostState() }
+    var dialog_proceso_verificacion by remember { mutableStateOf(false) }
+    var dialog_normas_de_verificaion by remember { mutableStateOf(false) }
+    var show_bottom_sheeet by remember { mutableStateOf(false) }
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+    val tick by viewModelFiltros.tick.collectAsState()
+    var color by remember { mutableStateOf(Color.Gray) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -487,7 +610,20 @@ fun bottom_Sheet_seguro(
             Log.d("ReviewUbicacion", "Ubicación prefetch -> $location")
         }
     }
-    // cargar datos de la tienda
+    LaunchedEffect(datosTienda) {
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada =
+                datosTienda!!.first()
+        }
+    }
+    LaunchedEffect(show_bottom_sheeet) {
+        if (show_bottom_sheeet) {
+            viewModelFiltros.obtener_campos_tiendas_por_id(
+                data_class_review.localida_lugar,
+                data_class_review.id_tienda_lugar
+            )
+        }
+    }
     LaunchedEffect(data_class_review) {
         viewmodel.set_datos_TL_review(data_class_review)
     }
@@ -526,284 +662,360 @@ fun bottom_Sheet_seguro(
     if (firebaseAuth.currentUser != null) {
 
         ModalBottomSheet(
-            onDismissRequest = { ondimis() },
+            onDismissRequest = {
+                ondimis()
+                viewmodel.limpiar_estado()
+            },
             sheetState = sheetState,
             modifier = Modifier
                 .fillMaxWidth()
                 .imePadding(),
             containerColor = MaterialTheme.colorScheme.background
         ) {
+
             FuenteControladaApp {
                 Box(
                     modifier = Modifier
                         .wrapContentSize()
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 30.dp)
-                            .verticalScroll(rememberScrollState())
-                            .imePadding()
-                    ) {
-                        Text(
-                            text = "Cuéntanos tu experiencia",
-                            fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
-                            modifier = Modifier.padding(end = 20.dp)
-                        )
-                        spacer_vertical(10.dp)
-                        if (!esta_o_no_lugar) {
-                            val annotatedText = buildAnnotatedString {
-                                append("Hola ${datos_principales_user.nombre}, tu opinión es muy valiosa para nosotros. Deja tu reseña sobre ")
-
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                    Crossfade(
+                        targetState = datos_tienda_review_state.value,
+                        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                    ) { state ->
+                        when (state) {
+                            is viewmodel_review.datos_tienda_review.error -> {
+                                val mensaje =
+                                    (datos_tienda_review_state.value as viewmodel_review.datos_tienda_review.error).txt
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    append(_datos_TL_review.value?.nombre.toString())
+                                    FuenteControladaApp {
+                                        Text(
+                                            text = mensaje,
+                                            color = Color.Gray,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
                                 }
-
-                                append(". Tu reseña pasará por un proceso de ")
-
-                                pushStringAnnotation(tag = "VERIFICADA", annotation = "verificada")
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold,
-                                        textDecoration = TextDecoration.Underline
-                                    )
-                                ) {
-                                    append("verificación")
-                                }
-                                pop()
-
-                                append(" para confirmar que cumple con las ")
-
-                                pushStringAnnotation(tag = "NORMAS", annotation = "normas")
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold,
-                                        textDecoration = TextDecoration.Underline
-                                    )
-                                ) {
-                                    append("normas")
-                                }
-                                pop()
-
-                                append(" de reseñas de Geinz. Tu reseña se publicará una vez que completes este proceso. ¡Gracias por compartir tu experiencia con Geinz!")
                             }
 
-                            ClickableText(
-                                text = annotatedText,
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                onClick = { offset ->
-                                    annotatedText.getStringAnnotations(start = offset, end = offset)
-                                        .firstOrNull()?.let { annotation ->
-                                            when (annotation.tag) {
-                                                "VERIFICADA" -> Log.d(
-                                                    "ClickableText",
-                                                    "Click en verificación"
-                                                )
-
-                                                "NORMAS" -> Log.d(
-                                                    "ClickableText",
-                                                    "Click en normas"
-                                                )
-                                            }
-                                        }
-                                }
-                            )
-                        } else {
-                            val annotatedText = buildAnnotatedString {
-                                append("Hola ${datos_principales_user.nombre}, tu opinión nos ayuda a mejorar. Deja tu reseña sobre ")
-
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                ) {
-                                    append(_datos_TL_review.value?.nombre.toString())
-                                }
-                            }
-                            Text("$annotatedText. ¡Gracias por confiar en Geinz!", style =MaterialTheme.typography.bodyMedium )
-                        }
-
-                        if (fecha_registrada != "") {
-                            texto_generico_one_line(
-                                "Fecha de reseña publicada : ${fecha_registrada}",
-                                modifier = Modifier.padding(top = 10.dp, end = 7.dp),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        spacer_vertical(20.dp)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                        ) {
-                            // Imagen
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(
-                                        _datos_TL_review.value?.imagen
-                                            ?: R.drawable.cargando_img_categorias
-                                    )
-                                    .placeholder(R.drawable.cargando_img_categorias)
-                                    .error(R.drawable.cargando_img_categorias)
-                                    .build(),
-                                contentDescription = "Imagen de la tienda",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .fillMaxWidth()
-                                    .height(180.dp)
-                            )
-
-                            this@Column.AnimatedVisibility(
-                                showAnimation,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier
-                                    .matchParentSize()
-                            ) {
+                            is viewmodel_review.datos_tienda_review.laoding -> {
                                 Box(
                                     modifier = Modifier
-                                        .matchParentSize()
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color.Black.copy(alpha = 0.70f))
-                                )
-                            }
-                            this@Column.AnimatedVisibility(
-                                showAnimation,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                            ) {
-                                LottieAnimation(
-                                    composition,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .align(Alignment.TopCenter)
-                                )
-                            }
-                            this@Column.AnimatedVisibility(
-                                showAnimation,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(
-                                            _datos_TL_review.value?.imagen
-                                                ?: R.drawable.cargando_img_categorias
-                                        )
-                                        .placeholder(R.drawable.cargando_img_categorias)
-                                        .error(R.drawable.cargando_img_categorias)
-                                        .build(),
-                                    contentDescription = "Imagen de la tienda",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .width(100.dp)
-                                        .height(100.dp)
-                                )
+                                        .fillMaxWidth()
+                                        .height(LocalConfiguration.current.screenHeightDp.dp * 0.3f), // 30% de la altura de pantalla
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
 
-                        }
-                        spacer_vertical(15.dp)
-                        FullStarRating(
-                            starSize = 30.dp,
-                            onRatingChanged = { newRating ->
-                                five_estrellas = newRating == 5
-                                ratingValue = newRating
-                            },
-                            initialRating = ratingValue,
-                        )
-                        spacer_vertical(20.dp)
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            OutlinedTextField(
-                                value = texto,
-                                onValueChange = {
-                                    if (it.length <= caracteresMaximos) {
-                                        texto = it
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(20.dp),
-                                label = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                                placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
-                                textStyle = MaterialTheme.typography.bodyMedium,
-                                singleLine = false,
-                                maxLines = 10,
-                                minLines = 4,
-                                isError = tieneError,
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        if (tieneError) {
-                                            Text(
-                                                text = "Debe tener al menos $caracteresMinimos caracteres",
-                                                color = MaterialTheme.colorScheme.error,
-                                                style = MaterialTheme.typography.bodySmall
+                            is viewmodel_review.datos_tienda_review.succes -> {
+                                val datos = state.item
+                                retornar_color_estado_tienda(
+                                    datos.datos_horario_actual,
+                                    datos.datos_horario_actual.h_cierre,
+                                    datos.datos_horario_actual.cerrado,
+                                    datos.datos_horario_actual.motivo,
+                                    tick
+                                ) { color_res ->
+                                    color = color_res
+                                }
+                                Column(
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 10.dp,
+                                            top = 20.dp,
+                                            bottom = 30.dp
+                                        )
+                                        .verticalScroll(rememberScrollState())
+                                        .imePadding()
+                                ) {
+                                    Text(
+                                        text = "Cuéntanos tu experiencia",
+                                        fontFamily = textos_titulos_geinz_wokr, fontSize = 30.sp,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                    spacer_vertical(10.dp)
+                                    if (!esta_o_no_lugar) {
+                                        val annotatedText = buildAnnotatedString {
+                                            append("Hola ${datos_principales_user.nombre}, tu opinión es muy valiosa para nosotros. Deja tu reseña sobre ")
+
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            ) {
+                                                append(datos.nombre.toString())
+                                            }
+
+                                            append(". Tu reseña pasará por un ")
+
+                                            pushStringAnnotation(
+                                                tag = "VERIFICADA",
+                                                annotation = "verificada"
                                             )
-                                        } else {
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Bold,
+                                                    textDecoration = TextDecoration.Underline
+                                                )
+                                            ) {
+                                                append("proceso de verificación")
+                                            }
+                                            pop()
+
+                                            append(" para confirmar que cumple con las ")
+
+                                            pushStringAnnotation(
+                                                tag = "NORMAS",
+                                                annotation = "normas"
+                                            )
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Bold,
+                                                    textDecoration = TextDecoration.Underline
+                                                )
+                                            ) {
+                                                append("normas")
+                                            }
+                                            pop()
+
+                                            append(" de reseñas de Geinz. Tu reseña se publicará una vez que completes este proceso. ¡Gracias por compartir tu experiencia con Geinz!")
                                         }
 
+                                        ClickableText(
+                                            text = annotatedText,
+                                            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                            onClick = { offset ->
+                                                annotatedText.getStringAnnotations(
+                                                    start = offset,
+                                                    end = offset
+                                                )
+                                                    .firstOrNull()?.let { annotation ->
+                                                        when (annotation.tag) {
+                                                            "VERIFICADA" -> {
+                                                                dialog_proceso_verificacion = true
+                                                            }
+
+                                                            "NORMAS" -> {
+                                                                dialog_normas_de_verificaion = true
+                                                            }
+                                                        }
+                                                    }
+                                            }
+                                        )
+                                    } else {
+                                        val annotatedText = buildAnnotatedString {
+                                            append("Hola ${datos_principales_user.nombre}, tu opinión nos ayuda a mejorar. Deja tu reseña sobre ")
+
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            ) {
+                                                append(datos.nombre.toString())
+                                            }
+                                        }
                                         Text(
-                                            text = "${texto.length}/$caracteresMaximos",
-                                            color = if (texto.length > caracteresMaximos - 50)
-                                                MaterialTheme.colorScheme.error
-                                            else
-                                                MaterialTheme.colorScheme.onSurfaceVariant,
-                                            style = MaterialTheme.typography.bodySmall
+                                            "$annotatedText. ¡Gracias por confiar en Geinz!",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+
+                                    if (fecha_registrada != "") {
+                                        texto_generico_one_line(
+                                            "Fecha de reseña publicada : ${fecha_registrada}",
+                                            modifier = Modifier.padding(top = 10.dp, end = 7.dp),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                    spacer_vertical(20.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        // Imagen
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(
+                                                    datos.imagen
+                                                        ?: R.drawable.cargando_img_categorias
+                                                )
+                                                .placeholder(R.drawable.cargando_img_categorias)
+                                                .error(R.drawable.cargando_img_categorias)
+                                                .build(),
+                                            contentDescription = "Imagen de la tienda",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .fillMaxWidth()
+                                                .height(180.dp)
+                                                .clickable(
+                                                    indication = null,
+                                                    interactionSource = remember { MutableInteractionSource() }) {
+                                                    show_bottom_sheeet = true
+                                                }
+                                        )
+
+                                        this@Column.AnimatedVisibility(
+                                            showAnimation,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .matchParentSize()
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .background(Color.Black.copy(alpha = 0.70f))
+                                            )
+                                        }
+                                        this@Column.AnimatedVisibility(
+                                            showAnimation,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                        ) {
+                                            LottieAnimation(
+                                                composition,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .align(Alignment.TopCenter)
+                                            )
+                                        }
+                                        this@Column.AnimatedVisibility(
+                                            showAnimation,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                            modifier = Modifier.align(Alignment.Center)
+                                        ) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(LocalContext.current)
+                                                    .data(
+                                                        datos.imagen
+                                                            ?: R.drawable.cargando_img_categorias
+                                                    )
+                                                    .placeholder(R.drawable.cargando_img_categorias)
+                                                    .error(R.drawable.cargando_img_categorias)
+                                                    .build(),
+                                                contentDescription = "Imagen de la tienda",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .clip(CircleShape)
+                                                    .width(100.dp)
+                                                    .height(100.dp)
+                                            )
+                                        }
+
+                                    }
+                                    spacer_vertical(15.dp)
+                                    FullStarRating(
+                                        starSize = 30.dp,
+                                        onRatingChanged = { newRating ->
+                                            five_estrellas = newRating == 5
+                                            ratingValue = newRating
+                                        },
+                                        initialRating = ratingValue,
+                                    )
+                                    spacer_vertical(20.dp)
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        OutlinedTextField(
+                                            value = texto,
+                                            onValueChange = {
+                                                if (it.length <= caracteresMaximos) {
+                                                    texto = it
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(20.dp),
+                                            label = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                                            placeholder = { retornar_pleaceholder_label("Déjanos tu opinión") },
+                                            textStyle = MaterialTheme.typography.bodyMedium,
+                                            singleLine = false,
+                                            maxLines = 10,
+                                            minLines = 4,
+                                            isError = tieneError,
+                                            supportingText = {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    if (tieneError) {
+                                                        Text(
+                                                            text = "Debe tener al menos $caracteresMinimos caracteres",
+                                                            color = MaterialTheme.colorScheme.error,
+                                                            style = MaterialTheme.typography.bodySmall
+                                                        )
+                                                    } else {
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                    }
+
+                                                    Text(
+                                                        text = "${texto.length}/$caracteresMaximos",
+                                                        color = if (texto.length > caracteresMaximos - 50)
+                                                            MaterialTheme.colorScheme.error
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+
+                                    spacer_vertical(15.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(CircleShape)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary
+                                            )
+                                            .clickable {
+                                                if (ratingValue == 0 || texto.isEmpty()) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "Ups, parece que faltan algunos campos por completar.",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                } else if (tieneError) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "Por favor, escribe una reseña más completa (mínimo 60 caracteres)",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                } else {
+                                                    ondimis()
+                                                    clik_envio(ratingValue, texto, ubicacionPrevia)
+                                                    viewmodel.limpiar_estado()
+                                                }
+                                            }, contentAlignment = Alignment.Center
+                                    ) {
+                                        texto_generico_one_line(
+                                            "Enviar reseña",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.padding(vertical = 15.dp)
                                         )
                                     }
                                 }
-                            )
-                        }
+                            }
 
-                        spacer_vertical(15.dp)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(CircleShape)
-                                .background(
-                                    MaterialTheme.colorScheme.primary
-                                )
-                                .clickable {
-                                    if (ratingValue == 0 || texto.isEmpty()) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Ups, parece que faltan algunos campos por completar.",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
-                                    } else if (tieneError) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Por favor, escribe una reseña más completa (mínimo 60 caracteres)",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
-                                    } else {
-                                        clik_envio(ratingValue, texto, ubicacionPrevia)
-                                    }
-                                }, contentAlignment = Alignment.Center
-                        ) {
-                            texto_generico_one_line(
-                                "Enviar reseña",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 15.dp)
-                            )
+                            else -> {}
                         }
                     }
+
                     SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                 }
             }
@@ -823,6 +1035,23 @@ fun bottom_Sheet_seguro(
             },
             texto_bottom_Sheet = "Inicia sesión para compartir tu experiencia"
         )
+    }
+
+    if (dialog_normas_de_verificaion) {
+        dialog_normas_de_verificacion { dialog_normas_de_verificaion = false }
+    }
+    if (dialog_proceso_verificacion) {
+        dialog_verificacion_proceso { dialog_proceso_verificacion = false }
+    }
+
+    if (show_bottom_sheeet) {
+        bottom_sheet_tiendas_filtradas(
+            color,
+            viewModelFiltros,
+            dataclass_tienda_seleccionada, show_bottom_sheeet
+        ) {
+            show_bottom_sheeet = false
+        }
     }
 
 }
