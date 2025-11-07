@@ -51,8 +51,6 @@ fun bottom_sheet_registrate(
     crear_cuenta_geinz: () -> Unit,
     texto_bottom_Sheet: String
 ) {
-
-
     ModalBottomSheet(
         onDismissRequest = { ondimis() },
         containerColor = MaterialTheme.colorScheme.background

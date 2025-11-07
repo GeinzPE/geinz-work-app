@@ -154,6 +154,7 @@ fun bottom_sheet_tiendas_filtradas(
     visible: Boolean,
     onClose: () -> Unit
 ) {
+
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
@@ -1037,12 +1038,12 @@ fun Expandible_horario_atencion(
 
     var cargado by remember { mutableStateOf(false) }
 
-    LaunchedEffect(expandido) {
-        if (expandido && !cargado) {
-            viewModelFiltros.obtenerHorarioPorTienda(localidad_tienda!!, id_tienda)
-            cargado = true
-        }
-    }
+//    LaunchedEffect(expandido) {
+//        if (expandido && !cargado) {
+//            viewModelFiltros.obtenerHorarioPorTienda(localidad_tienda!!, id_tienda)
+//            cargado = true
+//        }
+//    }
     Cartas_expandibles(modifier = modifier) {
         Column() {
             expandibles_wrapp(

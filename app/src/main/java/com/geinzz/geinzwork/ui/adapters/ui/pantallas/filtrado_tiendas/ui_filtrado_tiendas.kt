@@ -95,6 +95,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
@@ -145,6 +146,7 @@ fun Pantalla_filtrado_tiendas(
 ) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val context=LocalContext.current
 
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
@@ -188,7 +190,17 @@ fun Pantalla_filtrado_tiendas(
             subCategoriaSeleccionada != "Todos" && hayTiendas
         }
     }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
 
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        }else{
+            id_respado_user=""
+        }
+    }
 
     var visibleTextField by remember { mutableStateOf(false) }
     var habiaTiendasAntes by remember { mutableStateOf(false) }
@@ -414,7 +426,7 @@ fun Pantalla_filtrado_tiendas(
                             tienda,
                             tienda.horario_dia, tienda.estaAbierto,
                             { id_tienda, listener, estado_color, pagado ->
-                                if(firebaseAuth.currentUser!=null){
+                                if(firebaseAuth.currentUser!=null || id_respado_user.isNotEmpty()){
                                     estadoColor = estado_color
                                     id_tienda_selecionada = id_tienda
                                     if(pagado){
@@ -663,7 +675,6 @@ fun texto_tiempo_restante(
     tick: Long,
     txt: (String) -> Unit
 ) {
-
     Log.d("horario_total", horario_total.toString())
     val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
         derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }

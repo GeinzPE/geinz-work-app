@@ -316,7 +316,14 @@ fun <T> listado_items(
                 spacer_vertical(10.dp)
                 AnimatedVisibility(mostrar_filtrado) {
                     if (teindas_cercanas_fitrada != TiendasCercanasFiltrada()) {
+
                         Column {
+                            texto_generico_multilinea(
+                                "Rango aproximado de búsqueda: ${nuevo_rango_busqueda} km",
+                                MaterialTheme.typography.bodyMedium
+                            )
+                            spacer_vertical(10.dp)
+
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                                 val listaConTodos =
                                     if ("Todos" in teindas_cercanas_fitrada.listaCategorias) teindas_cercanas_fitrada.listaCategorias else listOf(
@@ -393,6 +400,8 @@ fun <T> listado_items(
                                     .fillMaxWidth()
                                     .height(40.dp)
                             )
+
+
                         }
 
 

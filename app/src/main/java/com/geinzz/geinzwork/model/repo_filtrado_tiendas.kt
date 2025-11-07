@@ -46,6 +46,25 @@ class repo_filtrado_tiendas {
     }
 
 
+    fun obtener_estado_horario_tienda( horarioAtencion: HorarioAtencion):horario_tienda{
+        val dias =
+            listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+        val calendar = Calendar.getInstance()
+        val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+
+        val horarioDia = when (diaActual) {
+            "lunes" -> horarioAtencion.lunes
+            "martes" -> horarioAtencion.martes
+            "miércoles" -> horarioAtencion.miercoles
+            "jueves" -> horarioAtencion.jueves
+            "viernes" -> horarioAtencion.viernes
+            "sábado" -> horarioAtencion.sabado
+            "domingo" -> horarioAtencion.domingo
+            else -> HorarioDia()
+        }
+        return horario_tienda(horarioDia.h_apertura, horarioDia.h_cierre, horarioDia.cerrado, horarioDia.motivo)
+    }
+
     suspend fun obtenerSubcategorias(categoria: String): List<String> {
         Log.d("categoriacategoria", categoria)
         return try {

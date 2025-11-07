@@ -131,11 +131,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.categorias_defaul
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGPSEnabled
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
@@ -180,7 +180,8 @@ fun ui_pantalla_busqueda(
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewmodel_floating_filtrado: viewmodel_floating_filtrado = viewModel()
-    val cerca_de_ti_enable =viewmodel_floating_filtrado.cerca_de_ti_enable.collectAsState(initial = false)
+    val cerca_de_ti_enable =
+        viewmodel_floating_filtrado.cerca_de_ti_enable.collectAsState(initial = false)
 
     val viewModel: SearchViewModel = viewModel()
     val context = LocalContext.current
@@ -214,7 +215,7 @@ fun ui_pantalla_busqueda(
 
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
-
+    val tick by viewModelFiltros.tick.collectAsState()
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
         .collectAsState(initial = null)
@@ -231,7 +232,8 @@ fun ui_pantalla_busqueda(
     var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
     var categoria_filtrad by remember { mutableStateOf("") }
     Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
-    var estadoColor by remember { mutableStateOf(Color.Gray) }
+    val estadoColor by viewModelFiltros.color_estado_tienda_flow.collectAsState()
+//    var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
@@ -374,18 +376,6 @@ fun ui_pantalla_busqueda(
         Log.d("FiltroRadioEffect", "✅ LaunchedEffect finalizado")
     }
 
-//    LaunchedEffect(tiendaLocalidadSeleccionada) {
-//        if (tiendaLocalidadSeleccionada != previousLocalidad) {
-//            Log.d("clearResults","cambio de localidad")
-//            viewModel.clearResults()
-//            mostrar_centrado_visible = true
-//            previousLocalidad = tiendaLocalidadSeleccionada
-//            searchText = TextFieldValue("")
-//            categoria_filtrad = ""
-//            subcategira_filtrado = ""
-//            salud_seguirdad = ""
-//        }
-//    }
 
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -404,7 +394,7 @@ fun ui_pantalla_busqueda(
         subcategira_filtrado,
         salud_seguirdad
     ) {
-Log.d("seguridad_cabiada","$salud_seguirdad")
+        Log.d("seguridad_cabiada", "$salud_seguirdad")
         val localidadActual = tiendaLocalidadSeleccionada
 
         if (salud_seguirdad.isNotEmpty()) {
@@ -526,8 +516,7 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
             viewModelFiltros.obtener_campos_tiendas_por_id(
                 localidad_tienda_seklecioanda,
                 id_tienda_selecionada
-            )
-        }
+            ) }
     }
 
     LaunchedEffect(bottom_sheet_turismo) {
@@ -545,8 +534,8 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
     }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
+            dataclass_tienda_seleccionada = datosTienda!!.first()
+            viewModelFiltros.cast_horario_atencion_horario_tienda(datosTienda!!.first().horario_atencion)
         }
     }
     LaunchedEffect(cat_sub_seleciondo) {
@@ -697,16 +686,21 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
             }
             itemsIndexed(items) { index, item ->
                 ramdoBox(
-                    aler_dialog_contacto,
+                    estadoColor,
+                    viewModelFiltros,
+                    tick,
+                    aler_dialog_contacto = aler_dialog_contacto,
                     firebaseAuth = firebaseAuth,
                     estado_tienda = horario_por_tienda,
                     i = item,
                     index = index,
                     listener_carta = { id, localidad, color ->
-                        estadoColor = color
+                        Log.d("coorrr1213213132","$color")
+//                        estadoColor = color
                         localidad_tienda_seklecioanda = localidad
                         id_tienda_selecionada = id
-                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
+
+//                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
                         show_bottom_sheeet = true
                     }, listner_carta_turismo = { id, localidad ->
                         id_lugar_turistico_select = id
@@ -933,7 +927,7 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
                     viewmodel_floating_filtrado.save_cerca_de_ti(!cerca_de_ti_enable.value)
 //                    cerca_de_ti_enable = !cerca_de_ti_enable.value
                 },
-                localidad_busqueda_general = tiendaLocalidadSeleccionada ?: localida_defauld.localida,
+                localidad_busqueda_general = tiendaLocalidadSeleccionada ?: "barranca",
                 listner_localidad_busqueda = {
                     scope.launch {
                         if (!estado_mostar) {
@@ -948,8 +942,8 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
                     color_categoria = false
                     color_subcategoria = false
                     color_salud_seguirdad = false
-                },{hasing->
-                    hash_user=hasing
+                }, { hasing ->
+                    hash_user = hasing
                 })
         }
         Box(
@@ -1016,7 +1010,9 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
                 subcategira_filtrado = subcategoria_select
             },
             seguridad_salud_selec = { select ->
+                if(select=="seguridad" || select=="salud"){
                 viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
+                }
                 salud_seguirdad = select
                 Log.d("salid_se", select)
                 viewModel.clearResults()
@@ -1089,7 +1085,7 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
                     ) {
                         if (isGPSEnabled(context)) {
                             viewmodel_floating_filtrado.save_cerca_de_ti(it)
-            //                            cerca_de_ti_enable = it
+                            //                            cerca_de_ti_enable = it
                         } else {
                             verificarGPS(context, launcher)
                         }
@@ -1105,12 +1101,12 @@ Log.d("seguridad_cabiada","$salud_seguirdad")
                 }
 
             }, fun_nuevo_geohasing_actualizado = { it ->
-                Log.d("nuevohasgin",it)
+                Log.d("nuevohasgin", it)
                 hash_user = it
             }, fun_abrir_dialog_filtrado_radio = {
                 mostrar_dialog_cambiar_radio = true
-            }, fun_primeraVezCercaDeTi = { it->
-                primeraVezCercaDeTi=it
+            }, fun_primeraVezCercaDeTi = { it ->
+                primeraVezCercaDeTi = it
             })
     }
 }
@@ -1491,6 +1487,9 @@ fun TexfielFiltrado(
 
 @Composable
 fun ramdoBox(
+    estadoColor1: Color,
+    viewModelFiltros: viewModel_filtado_tiendas,
+    tick: Long,
     aler_dialog_contacto: Boolean,
     firebaseAuth: FirebaseAuth,
     estado_tienda: Map<String, Boolean>?,
@@ -1503,15 +1502,31 @@ fun ramdoBox(
     crear_cuenta_geinz: () -> Unit,
     aler_dialog_contacto_fun: (lugar: String, nombre: String, img: String, id: String) -> Unit
 ) {
+    val color_princial=MaterialTheme.colorScheme.surface
     val heightOptions = listOf(300.dp, 350.dp)
-    val estado_tienda_filter = estado_tienda?.get(i.id_tienda) == true
-    Log.d("estado_tienda", estado_tienda_filter.toString())
-    var Estado_color = if (estado_tienda_filter) Color.Green else Color.Red
+    val color_estado_tienda by viewModelFiltros.color_estado_tienda.collectAsState()
+    var estadoColor by remember { mutableStateOf(color_princial) }
+    val resultado by remember(color_estado_tienda, color_estado_tienda.h_cierre, color_estado_tienda.cerrado, color_estado_tienda.motivo, tick) {
+        derivedStateOf { calcularTiempoRestante(color_estado_tienda,  color_estado_tienda.h_cierre,  color_estado_tienda.cerrado,  color_estado_tienda.motivo) }
+    }
+    viewModelFiltros.setear_color(resultado.color)
+
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val iconCategoria = constantes_lista_localidades.getCategoriaIcon(i.categoria)
     var mostra_dialog_login by remember { mutableStateOf(false) }
     var texto_bottom_sheet_dialog_login by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
+
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        }else{
+            id_respado_user=""
+        }
+    }
 //    var aler_dialog_contacto by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -1542,7 +1557,7 @@ fun ramdoBox(
                                     aler_dialog_contacto_fun(i.lugar, i.nombre, i.img, i.id_tienda)
                                 }
 
-                                firebaseAuth.currentUser != null -> {
+                                firebaseAuth.currentUser != null || id_respado_user.isNotEmpty() -> {
                                     // Caso 2: usuario registrado
                                     when (i.categoria) {
                                         "turismo" -> {
@@ -1550,7 +1565,7 @@ fun ramdoBox(
                                         }
 
                                         else -> {
-                                            listener_carta(i.id_tienda, i.lugar, Estado_color)
+                                            listener_carta(i.id_tienda, i.lugar, estadoColor)
                                         }
                                     }
                                 }

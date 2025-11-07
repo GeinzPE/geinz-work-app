@@ -118,9 +118,15 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
                 }
                 spacer_vertical(10.dp)
 
-                texto_generico_multilinea(
-                    "A solo ${item.kl} de ${item.nombre_lugar}, encontrarás ${item.nombre_tienda}.",
-                    style = MaterialTheme.typography.bodyMedium
+                val texto = buildAnnotatedString {
+                    append("A solo ")
+                    withStyle(style = SpanStyle(color =item.color)) {
+                        append(item.kl)
+                    }
+                    append(" de ${item.nombre_lugar}, encontrarás ${item.nombre_tienda}.")
+                }
+                Text(
+                    texto, style = MaterialTheme.typography.bodyMedium,
                 )
                 spacer_vertical(5.dp)
                 Text(

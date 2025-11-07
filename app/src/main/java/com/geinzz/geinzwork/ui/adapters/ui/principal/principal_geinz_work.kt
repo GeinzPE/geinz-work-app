@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -17,6 +18,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -861,6 +863,7 @@ fun filtrado_localidades(
 
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
     val fraces = constantes_lista_localidades.lista_fraces_inicio
@@ -895,10 +898,19 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                         .padding(bottom = 3.dp)
                 )
                 spacer_horizonta(5.dp)
-                texto_generico_one_line(
-                    texto = constantes_lista_localidades.saludo_user_principal(nombre_user),
-                    MaterialTheme.typography.bodyMedium
-                )
+                AnimatedContent(
+                    targetState = nombre_user,
+                    transitionSpec = {
+                        fadeIn() with fadeOut()
+                    }
+                ) { nombre ->
+                    texto_generico_one_line(
+                        texto = constantes_lista_localidades.saludo_user_principal(nombre),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier,
+
+                    )
+                }
             }
             spacer_vertical(15.dp)
             Crossfade(targetState = fraces[index], label = "fraces") { txt ->

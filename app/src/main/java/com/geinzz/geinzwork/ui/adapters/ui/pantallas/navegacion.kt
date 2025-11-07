@@ -49,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
@@ -77,6 +78,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import java.io.File
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -105,16 +107,20 @@ fun nativationWrapper(
     var isvisble_buttomvar by rememberSaveable { mutableStateOf(true) }
     val datos_user by viewmodel_usuario_registrado.userData.observeAsState()
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    val email_respald_user by data_store_localidad.get_email_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
+    var email_respaldo_user by remember { mutableStateOf("") }
+    var datos_principales_user by remember { mutableStateOf(datos_principales_user("", "", "barranca")) }
 
-    var datos_principales_user by remember {
-        mutableStateOf(datos_principales_user("", "", "barranca"))
-    }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(firebaseAuth.currentUser) {
         val current = firebaseAuth.currentUser
         if (current != null) {
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
-        } else {
+        } else if(uid_respald_user.isNotEmpty()){
+            viewmodel_usuario_registrado.obtener_datos_user_registrado(uid_respald_user)
+
+        }else{
             datos_principales_user = datos_principales_user("", "", "barranca")
         }
     }
@@ -175,25 +181,61 @@ fun nativationWrapper(
     var correo_registrado by remember { mutableStateOf("") }
     var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
     val user = FirebaseAuth.getInstance().currentUser
-    LaunchedEffect(user, mostrar_btn_termianr_configurar) {
-        scope.launch {
-            if (user != null) {
-                val email = user.email
-                val uid = user.uid
-                correo_registrado = email ?: ""
-                mostrar_btn_termianr_configurar =
-                    viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
-                Log.d(
-                    "correo_registrado",
-                    "Correo actual: $email — UID: $uid falta_confurar =$mostrar_btn_termianr_configurar"
-                )
-                viewModel_login_user.setear_mostrar_btn_configurar(mostrar_btn_termianr_configurar)
 
-            } else {
-                Log.d("correo_registrado", "No hay usuario logueado")
-            }
+
+    LaunchedEffect(email_respald_user) {
+        if (email_respald_user.isNotEmpty()) {
+            email_respaldo_user = email_respald_user
+            Log.d(
+                "UID_DataStore",
+                "✅ Recuperado email válido desde DataStore: $email_respaldo_user"
+            )
+        }else{
+            email_respaldo_user=""
+            Log.d(
+                "UID_DataStore",
+                "vacio"
+            )
         }
     }
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        }else{
+            id_respado_user=""
+            Log.d(
+                "UID_DataStore",
+                "vacio"
+            )
+        }
+    }
+    LaunchedEffect(user, mostrar_btn_termianr_configurar, uid_respald_user) {
+        if (user != null) {
+            val email = user.email
+            val uid = user.uid
+            correo_registrado = email ?: ""
+            mostrar_btn_termianr_configurar =
+                viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
+            Log.d(
+                "correo_registrado",
+                "Correo actual: $email — UID: $uid falta_confurar =$mostrar_btn_termianr_configurar"
+            )
+            viewModel_login_user.setear_mostrar_btn_configurar(mostrar_btn_termianr_configurar)
+
+            data_store_localidad.guardar_datos_user(context, uid, email ?: "")
+
+        } else if (id_respado_user.isNotEmpty() && !email_respaldo_user.isNullOrEmpty()) {
+            val email = email_respaldo_user
+            mostrar_btn_termianr_configurar = viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
+            viewModel_login_user.setear_mostrar_btn_configurar(mostrar_btn_termianr_configurar)
+            Log.d("correo_registrado", "de data store quedo el $id_respado_user")
+        } else{
+            Log.d("correo_registrado", "No hay usuario logueado ni respaldo local")
+
+        }
+    }
+
     val isConnected by connectivityViewModel.isConnected.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -300,7 +342,7 @@ fun nativationWrapper(
                 }
                 // Login
                 composable("login_principal") {
-                    if (firebaseAuth.currentUser != null) {
+                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                         cuenta_user(
                             viewModel_login_user,
                             correo_registrado,
@@ -422,7 +464,7 @@ fun nativationWrapper(
                             navController.popBackStack()
                         },
                         abrir_mapa = { tipo, localidad ->
-                            if (firebaseAuth.currentUser != null) {
+                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty() ) {
                                 navController.navigate(map_perzonalizado(tipo, localidad))
                             } else {
                                 bottom_sheet_iniciar_seccion = true

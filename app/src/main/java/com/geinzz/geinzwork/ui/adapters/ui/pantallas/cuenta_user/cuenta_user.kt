@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -65,6 +66,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -188,7 +190,7 @@ fun protada_perfil_user(
     terminar_configurar: () -> Unit
 ) {
     val contex = LocalContext.current
-
+    val scope = rememberCoroutineScope()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     AnimatedVisibility(
         visible = ocultar_contenido_Boolean, enter = fadeIn(
@@ -273,23 +275,23 @@ fun protada_perfil_user(
                     ) {
                         Text(
                             buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = Color.White
-                                )
-                            ) {
-                                append("Whatsapp oficial de Geinz  ")
-                            }
-                            withStyle(
-                                style = SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    textDecoration = TextDecoration.Underline,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            ) {
-                                append(" +51 937 659 216")
-                            }
-                        },
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = Color.White
+                                    )
+                                ) {
+                                    append("Whatsapp oficial de Geinz  ")
+                                }
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textDecoration = TextDecoration.Underline,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                ) {
+                                    append(" +51 937 659 216")
+                                }
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.clickable {
                                 abrir_whattsapp(contex, "937 659 216")
@@ -309,7 +311,12 @@ fun protada_perfil_user(
                             .background(MaterialTheme.colorScheme.primary)
                             .clickable {
                                 cerrar_seccion()
-                            }, contentAlignment = Alignment.Center) {
+                                scope.launch {
+                                    data_store_localidad.limpiar_datos_autenticacion(contex)
+                                }
+
+                            }, contentAlignment = Alignment.Center
+                    ) {
                         texto_generico_one_line(
                             "cerrar sesión",
                             MaterialTheme.typography.bodyMedium,

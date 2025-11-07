@@ -32,7 +32,39 @@ object data_store_localidad {
     private val LATITUD_USER_KEY = doublePreferencesKey("latitud")
     private val LONGITUD_USER_KEY = doublePreferencesKey("longitud")
     private val HORA_HASHING_USER_KEY = stringPreferencesKey("hora_hashing_user")
+
+    private val UID_USER_REGISTER = stringPreferencesKey("uid_user_register")
+    private val EMAIL_USER_REGISTER = stringPreferencesKey("email_user_register")
     private val _radioUserFlow = MutableStateFlow(1f)
+
+
+
+    suspend fun guardar_datos_user(context: Context, uid: String, email: String) {
+        context.dataStore.edit { preferences ->
+            preferences[UID_USER_REGISTER] = uid
+            preferences[EMAIL_USER_REGISTER] = email
+        }
+    }
+
+    fun get_uid_user(context: Context): Flow<String> {
+        return context.dataStore.data.map { preferences ->
+            preferences[UID_USER_REGISTER] ?: ""
+        }
+    }
+
+    fun get_email_user(context: Context): Flow<String> {
+        return context.dataStore.data.map { preferences ->
+            preferences[EMAIL_USER_REGISTER] ?: ""
+        }
+    }
+    suspend fun limpiar_datos_autenticacion(context: Context) {
+        context.dataStore.edit { preferences ->
+            preferences.remove(UID_USER_REGISTER)
+            preferences.remove(EMAIL_USER_REGISTER)
+        }
+        Log.d("DataStore", "UID y email eliminados")
+    }
+
 
     suspend fun guardar_localida(context: Context, nombre: String) {
         context.dataStore.edit { preferences ->
@@ -85,7 +117,7 @@ object data_store_localidad {
     }
 
     suspend fun guardar_hasgin_lat_lon_user(context: Context, hashin: String, hora: String) {
-        Log.d("hasing_user_guardo","$hashin $hora")
+        Log.d("hasing_user_guardo", "$hashin $hora")
         context.dataStore.edit { preferences ->
             preferences[HASHING_USER_KEY] = hashin
             preferences[HORA_HASHING_USER_KEY] = hora
@@ -101,7 +133,7 @@ object data_store_localidad {
     }
 
 
-    suspend fun guardar_lat_log_user(context: Context, lat: Double, long: Double){
+    suspend fun guardar_lat_log_user(context: Context, lat: Double, long: Double) {
         context.dataStore.edit { preferences ->
             preferences[LATITUD_USER_KEY] = lat
             preferences[LONGITUD_USER_KEY] = long

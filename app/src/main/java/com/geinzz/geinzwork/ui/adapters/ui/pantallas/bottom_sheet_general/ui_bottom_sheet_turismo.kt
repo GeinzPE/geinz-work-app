@@ -97,6 +97,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_cecanas_km
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
@@ -153,6 +154,7 @@ fun bottom_sheet_lugares_turisticos(
     crear_cuenta: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
+    val context=LocalContext.current
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmodel_turismo = viewmodel_lugares_turisticos
     var id_tienda by remember { mutableStateOf("") }
@@ -171,7 +173,17 @@ fun bottom_sheet_lugares_turisticos(
     var lista_subacteogorias by remember { mutableStateOf(emptyList<String>()) }
     var subcategoriatienda_select by remember { mutableStateOf("Todos") }
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
 
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        }else{
+            id_respado_user=""
+        }
+    }
 
     LaunchedEffect(mostrar_bottom_datos) {
         if (mostrar_bottom_datos) {
@@ -241,7 +253,7 @@ fun bottom_sheet_lugares_turisticos(
                         tick = tick,
                         lista_items = state_tiendas_cercanas,
                         clik_card = { id, localidad, color ->
-                            if (firebaseAuth.currentUser != null) {
+                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                                 mostrar_bottom_datos = true
                                 id_tienda = id
                                 localida_tienda = localidad

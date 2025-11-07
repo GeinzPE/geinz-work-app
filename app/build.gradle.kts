@@ -21,8 +21,8 @@ android {
         applicationId = "com.geinzz.geinzwork"
         minSdk = 24
         targetSdk = 35
-        versionCode = 36
-        versionName = "1.22.1"
+        versionCode = 38
+        versionName = "1.24.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

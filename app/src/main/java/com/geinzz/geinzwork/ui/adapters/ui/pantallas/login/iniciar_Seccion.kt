@@ -538,7 +538,6 @@ fun bottom_sheet_login(
                         viewModel_login_user.resetLoginState()
                         listener_iniciar_seccion_geinz(correo, password)
                         mostara_carga_progres=true
-
                     }
                 }, onRecuperar = {
                     if (correo.isBlank()) {

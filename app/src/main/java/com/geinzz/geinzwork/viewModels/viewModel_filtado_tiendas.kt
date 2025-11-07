@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,10 +9,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
@@ -23,12 +27,15 @@ import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
 import com.geinzz.geinzwork.model.repo_seguridad_salud
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) : ViewModel() {
 
@@ -89,6 +96,18 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
     private val _tick = MutableStateFlow(System.currentTimeMillis())
     val tick: StateFlow<Long> = _tick
+
+
+    private val _color_estado_tienda = MutableStateFlow(horario_tienda())
+    val color_estado_tienda: StateFlow<horario_tienda> = _color_estado_tienda
+
+
+    private val _color_estado_tienda_flow = MutableStateFlow(Color.Gray)
+    val color_estado_tienda_flow: StateFlow<Color> = _color_estado_tienda_flow
+
+    fun setear_color(color: Color){
+        _color_estado_tienda_flow.value=color
+    }
 
 
     init {
@@ -380,25 +399,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun obtenerHorarioPorTienda_activa(localidad: String, idTienda: String) {
-        Log.d("id_registrado", idTienda)
-        viewModelScope.launch {
-            try {
-                val data = repo_filtrado.obtenerHorarioPorTienda(idTienda, localidad)
-                data?.let { horarioTienda ->
-//                    Log.d("datos_obtnidos", data.toString())
-//                    val estaAbierto =
-//                        constantes_lista_localidades.verificarSiEstaAbiertoHoy(horarioTienda)
-//                    val nuevoMapa = _estadoTiendas.value.orEmpty().toMutableMap()
-//                    nuevoMapa[idTienda] = estaAbierto
-//                    _estadoTiendas.postValue(nuevoMapa)
-                }
-                Log.d("obtenos_dataios_teindas", _estadoTiendas.value.toString())
-            } catch (e: Exception) {
-                Log.d("obtenos_dataios_teindas", "no se econtroa datos")
-            }
-        }
-    }
 
     fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
         viewModelScope.launch {
@@ -434,8 +434,23 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
                 _instance_lugar_turistico.value = lugares_turisticos()
             }
         }
-
     }
+
+
+    fun cast_horario_atencion_horario_tienda(horarioAtencion: HorarioAtencion){
+        Log.d("cast_horario_atencion_horario_tienda",horarioAtencion.toString())
+        viewModelScope.launch {
+            try {
+                _color_estado_tienda.value= repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
+            }catch (e:Exception){
+                _color_estado_tienda.value= horario_tienda()
+            }
+        }
+    }
+
+
+
+
 
     sealed class carga_tiendas_sin_pago {
         object loading_tiendas_free : carga_tiendas_sin_pago()

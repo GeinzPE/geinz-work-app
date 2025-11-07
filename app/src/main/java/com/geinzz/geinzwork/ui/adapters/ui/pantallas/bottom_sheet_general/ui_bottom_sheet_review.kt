@@ -80,6 +80,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_normas_de_verificacion
@@ -113,6 +114,8 @@ fun bottom_sheet_review(
     crear_cuenta: () -> Unit, iniciar_seccion: () -> Unit,
     mostar_snacbar: () -> Unit
 ) {
+
+    val context = LocalContext.current
     firebaseAuth = FirebaseAuth.getInstance()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 //    val _datos_TL_review = viewmodel._datos_TL_review.observeAsState()
@@ -138,9 +141,18 @@ fun bottom_sheet_review(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val tick by viewModelFiltros.tick.collectAsState()
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
 
-var color by remember { mutableStateOf(Color.Gray) }
-    // cargar datos de la tienda
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        }else{
+            id_respado_user=""
+        }
+    }
+    var color by remember { mutableStateOf(Color.Gray) }
     LaunchedEffect(Unit) {
         viewmodel.set_datos_TL_review(data_class_review)
     }
@@ -192,7 +204,7 @@ var color by remember { mutableStateOf(Color.Gray) }
     }
 
 
-    if (firebaseAuth.currentUser != null) {
+    if (firebaseAuth.currentUser != null ||id_respado_user.isNotEmpty()) {
         ModalBottomSheet(
             onDismissRequest = {
                 ondimis()
@@ -604,6 +616,17 @@ fun bottom_Sheet_seguro(
     val tick by viewModelFiltros.tick.collectAsState()
     var color by remember { mutableStateOf(Color.Gray) }
     val scope = rememberCoroutineScope()
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
+
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        }else{
+            id_respado_user=""
+        }
+    }
     LaunchedEffect(Unit) {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             ubicacionPrevia = location
@@ -659,7 +682,7 @@ fun bottom_Sheet_seguro(
             showAnimation = false
         }
     }
-    if (firebaseAuth.currentUser != null) {
+    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
 
         ModalBottomSheet(
             onDismissRequest = {
