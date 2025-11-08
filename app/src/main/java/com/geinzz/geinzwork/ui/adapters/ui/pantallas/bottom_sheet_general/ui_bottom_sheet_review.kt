@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -561,7 +562,6 @@ fun bottom_sheet_review(
     }
     if (show_bottom_sheeet) {
         bottom_sheet_tiendas_filtradas(
-            color,
             viewModelFiltros,
             dataclass_tienda_seleccionada, show_bottom_sheeet
         ) {
@@ -1069,7 +1069,6 @@ fun bottom_Sheet_seguro(
 
     if (show_bottom_sheeet) {
         bottom_sheet_tiendas_filtradas(
-            color,
             viewModelFiltros,
             dataclass_tienda_seleccionada, show_bottom_sheeet
         ) {
@@ -1087,7 +1086,6 @@ fun FullStarRating(
     initialRating: Int = 0,
     onRatingChanged: (Int) -> Unit
 ) {
-
     var rating by remember { mutableStateOf(initialRating) }
 
     LaunchedEffect(initialRating) {
@@ -1103,16 +1101,17 @@ fun FullStarRating(
         else -> ""
     }
 
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp)
+        , verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
         Row(
             modifier = modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .height(starSize) // Limita la altura del Row a la altura de las estrellas
                 .pointerInput(Unit) {
                     detectDragGestures { change, _ ->
                         val x = change.position.x
@@ -1122,27 +1121,26 @@ fun FullStarRating(
                         onRatingChanged(rating)
                     }
                 }
-                .height(starSize)
         ) {
+            // Generar las estrellas
             for (i in 1..maxStars) {
                 Box(
                     modifier = Modifier
-                        .size(starSize)
+                        .fillMaxHeight() // Asegura que la estrella ocupe toda la altura del Row
+                        .weight(1f)  // Las estrellas ocuparán el mismo espacio
                         .background(
                             color = if (i <= rating) Color.White else Color.Gray.copy(alpha = 0.4f),
                             shape = CircleShape
                         )
                         .padding(4.dp)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(4.dp)) // Espacio entre las estrellas
             }
-
         }
 
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+        // Box para mostrar el texto debajo de las estrellas
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             texto_generico_one_line(ratingText(rating))
         }
     }
-
 }
-

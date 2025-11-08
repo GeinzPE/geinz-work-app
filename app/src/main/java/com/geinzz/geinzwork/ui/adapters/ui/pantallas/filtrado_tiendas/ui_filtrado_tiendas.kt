@@ -592,7 +592,6 @@ fun Pantalla_filtrado_tiendas(
 
     if (bottom_shet_tienda) {
         bottom_sheet_tiendas_filtradas(
-            estadoColor,
             viewModelFiltros,
             dataclass_tienda_seleccionada, bottom_shet_tienda
         ) {

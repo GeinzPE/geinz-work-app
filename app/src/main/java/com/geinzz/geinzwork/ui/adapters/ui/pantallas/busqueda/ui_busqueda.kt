@@ -216,9 +216,7 @@ fun ui_pantalla_busqueda(
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     val tick by viewModelFiltros.tick.collectAsState()
-    val ultimaLocalidad by data_store_localidad
-        .obtener_localidad(context)
-        .collectAsState(initial = null)
+    val ultimaLocalidad by data_store_localidad.obtener_localidad(context).collectAsState(initial = null)
 
     var tiendaLocalidadSeleccionada by remember { mutableStateOf<String?>(null) }
 
@@ -233,7 +231,6 @@ fun ui_pantalla_busqueda(
     var categoria_filtrad by remember { mutableStateOf("") }
     Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
     val estadoColor by viewModelFiltros.color_estado_tienda_flow.collectAsState()
-//    var estadoColor by remember { mutableStateOf(Color.Gray) }
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
@@ -394,9 +391,9 @@ fun ui_pantalla_busqueda(
         subcategira_filtrado,
         salud_seguirdad
     ) {
-        Log.d("seguridad_cabiada", "$salud_seguirdad")
         val localidadActual = tiendaLocalidadSeleccionada
-
+        Log.d("categoria_filtrad", "$categoria_filtrad $subcategira_filtrado" )
+        Log.d("localidadActual","$localidadActual")
         if (salud_seguirdad.isNotEmpty()) {
 //            Log.d(
 //                "clearResults",
@@ -425,6 +422,13 @@ fun ui_pantalla_busqueda(
             subcategira_filtrado = ""
             salud_seguirdad = ""
             return@LaunchedEffect
+        }
+
+        if(localidadActual!=previousLocalidad){
+            searchText = TextFieldValue("")
+            categoria_filtrad = ""
+            subcategira_filtrado = ""
+            salud_seguirdad = ""
         }
         if (firstLaunch) {
             firstLaunch = false
@@ -686,7 +690,6 @@ fun ui_pantalla_busqueda(
             }
             itemsIndexed(items) { index, item ->
                 ramdoBox(
-                    estadoColor,
                     viewModelFiltros,
                     tick,
                     aler_dialog_contacto = aler_dialog_contacto,
@@ -696,7 +699,6 @@ fun ui_pantalla_busqueda(
                     index = index,
                     listener_carta = { id, localidad, color ->
                         Log.d("coorrr1213213132","$color")
-//                        estadoColor = color
                         localidad_tienda_seklecioanda = localidad
                         id_tienda_selecionada = id
 
@@ -882,7 +884,6 @@ fun ui_pantalla_busqueda(
 
         if (show_bottom_sheeet) {
             bottom_sheet_tiendas_filtradas(
-                estadoColor,
                 viewModelFiltros,
                 dataclass_tienda_seleccionada, show_bottom_sheeet
             ) {
@@ -1011,7 +1012,7 @@ fun ui_pantalla_busqueda(
             },
             seguridad_salud_selec = { select ->
                 if(select=="seguridad" || select=="salud"){
-                viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
+                    viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
                 }
                 salud_seguirdad = select
                 Log.d("salid_se", select)
@@ -1487,7 +1488,6 @@ fun TexfielFiltrado(
 
 @Composable
 fun ramdoBox(
-    estadoColor1: Color,
     viewModelFiltros: viewModel_filtado_tiendas,
     tick: Long,
     aler_dialog_contacto: Boolean,

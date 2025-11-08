@@ -19,6 +19,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.widget.Toast
 import androidx.palette.graphics.Palette
 import androidx.compose.foundation.Image
@@ -85,6 +86,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.google.android.gms.common.api.ResolvableApiException
@@ -93,6 +96,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.launch
 
 
 object constantes_lista_localidades {
@@ -454,7 +458,7 @@ object constantes_lista_localidades {
     val fracespantalla11 = dataclass_pantalla1(
         "Tu camino más fácil",
         "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
-        R.drawable.p1_1
+        R.drawable.f4
 
 
     )
@@ -2233,10 +2237,12 @@ object constantes_lista_localidades {
     @SuppressLint("MissingPermission")
     fun obtenerUbicacionReal(
         context: Context,
-        onLocation: (Double, Double) -> Unit
+        onLocation: (Double, Double) -> Unit,
+        onTimeout: (() -> Unit)? = null // callback opcional si pasa el tiempo
     ) {
-        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+        Log.d("OBTENER_UBICACION", "Iniciando obtenerUbicacionReal()...")
 
+        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
         val request = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
             2000L
@@ -2244,18 +2250,46 @@ object constantes_lista_localidades {
             .setMinUpdateDistanceMeters(1f)
             .build()
 
+        var locationRecibida = false
+
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
+                Log.d("OBTENER_UBICACION", "onLocationResult() llamado")
                 val location = result.lastLocation
-                if (location != null && System.currentTimeMillis() - location.time < 3000) {
-                    onLocation(location.latitude, location.longitude)
-                    fusedClient.removeLocationUpdates(this)
+
+                if (location != null) {
+                    val diff = System.currentTimeMillis() - location.time
+                    Log.d("OBTENER_UBICACION", "Coordenadas → lat=${location.latitude}, lng=${location.longitude}, diff=$diff")
+
+                    if (diff < 3000 && !locationRecibida) {
+                        locationRecibida = true
+                        Log.d("OBTENER_UBICACION", "✅ Ubicación válida, devolviendo resultado.")
+                        onLocation(location.latitude, location.longitude)
+                        fusedClient.removeLocationUpdates(this)
+                        Log.d("OBTENER_UBICACION", "🚫 Se detuvo la escucha de actualizaciones.")
+                    } else {
+                        Log.w("OBTENER_UBICACION", "⚠️ Ubicación descartada o ya recibida.")
+                    }
+                } else {
+                    Log.e("OBTENER_UBICACION", "❌ result.lastLocation == null (sin datos)")
                 }
             }
         }
 
+        // Inicia el listener
+        Log.d("OBTENER_UBICACION", "Solicitando actualizaciones de ubicación...")
         fusedClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+
+        // ⏱️ Timeout de 15 segundos
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (!locationRecibida) {
+                Log.e("OBTENER_UBICACION", "⏰ Tiempo de espera agotado (15s). Cancelando solicitud.")
+                fusedClient.removeLocationUpdates(callback)
+                onTimeout?.invoke()
+            }
+        }, 15000L)
     }
+
 
 
     fun isGPSEnabled(context: Context): Boolean {
@@ -2384,6 +2418,9 @@ object constantes_lista_localidades {
         return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
+
+
+
 
 
 }

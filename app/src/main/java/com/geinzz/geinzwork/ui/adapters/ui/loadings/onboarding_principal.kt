@@ -157,13 +157,16 @@ fun pantalla1(
             label = "fade"
         ) { index ->
 
-            // Aquí sí se puede usar painterResource porque estamos dentro de @Composable
-            Image(
-                painter = painterResource(id = imagePainters[index]),
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imagePainters[index])
+                    .crossfade(true) // Transición más suave y rápida
+                    .build(),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
+
         }
 
         // Fondo degradado (no debe reanimarse)
@@ -364,11 +367,13 @@ fun pantalla3(
 ) {
     val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
     Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = rememberAsyncImagePainter(fracespantalla11.img),
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(fracespantalla11.img)
+                .build(),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
         fondo_osucro(lista_colocares = lista_colores_degradado_top)
@@ -400,9 +405,9 @@ fun pantalla3(
                         )
                     }
 
-                    spacer_vertical(15.dp)
+                    spacer_vertical(10.dp)
                     texto_generico_multilinea(
-                        fracespantalla11.texto.uppercase(),
+                        fracespantalla11.texto,
                         MaterialTheme.typography.bodyMedium, Color = Color.White
                     )
                 }
@@ -439,13 +444,15 @@ fun pantalla4(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        Image(
-            painter = rememberAsyncImagePainter(fracespantalla11.img),
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(fracespantalla11.img)
+                .build(),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
         fondo_osucro(lista_colocares = lista_colores_degradado_top)
         Box(
             modifier = Modifier
@@ -475,9 +482,9 @@ fun pantalla4(
                         )
                     }
 
-                    spacer_vertical(15.dp)
+                    spacer_vertical(10.dp)
                     texto_generico_multilinea(
-                        fracespantalla11.texto.uppercase(),
+                        fracespantalla11.texto,
                         MaterialTheme.typography.bodyMedium, Color = Color.White
                     )
 
@@ -515,13 +522,15 @@ fun pantalla5(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        Image(
-            painter = rememberAsyncImagePainter(fracespantalla11.img),
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(fracespantalla11.img)
+                .build(),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
         fondo_osucro(lista_colocares = lista_colores_degradado_top)
         Box(
             modifier = Modifier
@@ -551,9 +560,9 @@ fun pantalla5(
                         )
                     }
 
-                    spacer_vertical(15.dp)
+                    spacer_vertical(10.dp)
                     texto_generico_multilinea(
-                        fracespantalla11.texto.uppercase(),
+                        fracespantalla11.texto,
                         MaterialTheme.typography.bodyMedium, Color = Color.White
                     )
 
@@ -684,13 +693,7 @@ fun pantalla6(
             }
         }
 
-//        CelularAnimacion(
-//            modifier = Modifier.align(
-//                Alignment.BottomCenter
-//            ), {
-//                onNext()
-//            }, orientation = Orientation.Horizontal
-//        )
+
 
     }
 

@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -403,7 +404,6 @@ fun MyGoogle_maps(
 
     if (show_bottom_sheet_datos_tienda_lugares) {
         bottom_sheet_tiendas_filtradas(
-            color_referencia,
             viewModel_filtrado_tiendas,
             dataclass_tienda_seleccionada, show_bottom_sheet_datos_tienda_lugares
         ) {

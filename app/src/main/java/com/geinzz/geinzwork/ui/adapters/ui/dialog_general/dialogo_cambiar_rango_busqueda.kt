@@ -48,7 +48,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
 import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import kotlinx.coroutines.launch

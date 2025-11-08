@@ -425,14 +425,14 @@ fun texto_generico_one_line(
     color: Color = MaterialTheme.colorScheme.onBackground
 ) {
     FuenteControladaApp{
-    Text(
-        text = texto,
-        modifier = modifier,
-        style = style,
-        color = color,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
+        Text(
+            text = texto,
+            modifier = modifier,
+            style = style,
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.ln
 
 class viewmodel_floating_filtrado : ViewModel() {
 
@@ -80,7 +81,8 @@ class viewmodel_floating_filtrado : ViewModel() {
         _carga_cordenadas_nuevas.value = carga_cordenadas.loading
         viewModelScope.launch {
             try {
-                obtenerUbicacionReal(context = context) { lat, lng ->
+                obtenerUbicacionReal(context = context, { lat, lng ->
+                    Log.d("asdasFSGIDNSHGUIB","$lat ${lng}")
                     val geohasing = geohashing(lat, lng)
                     val hora = obtener_hora_actual_formato_12h()
                     viewModelScope.launch  {
@@ -90,7 +92,10 @@ class viewmodel_floating_filtrado : ViewModel() {
                     val zona_actual = obtenerZonaActual(lat, lng)
                     _carga_cordenadas_nuevas.value = carga_cordenadas.succes(zona_actual, hora,geohasing)
 
-                }
+                }  ,  onTimeout = {
+                    _carga_cordenadas_nuevas.value =
+                        carga_cordenadas.error("No se pudo obtener la ubicación. Intenta nuevamente.")
+                })
             } catch (e: Exception) {
                 _carga_cordenadas_nuevas.value = carga_cordenadas.error("Error al obtener coordenadas: ${e.message}")
             }

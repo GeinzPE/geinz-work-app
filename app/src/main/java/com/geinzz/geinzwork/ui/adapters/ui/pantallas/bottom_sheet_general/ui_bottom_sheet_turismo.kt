@@ -316,7 +316,6 @@ fun bottom_sheet_lugares_turisticos(
 
     if (mostrar_bottom_datos) {
         bottom_sheet_tiendas_filtradas(
-            color_estado_tienda,
             viewmodel_filtrado,
             dataclass_tienda_seleccionada,
             mostrar_bottom_datos

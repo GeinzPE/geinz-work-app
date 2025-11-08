@@ -392,7 +392,6 @@ fun ui_servicio_tramite(localida: String) {
 
         if (motrar_dialog_tienda_Select) {
             bottom_sheet_tiendas_filtradas(
-                Color.Red,
                 viewmodel_filtrado,
                 dataclass_tienda_seleccionada,
                 motrar_dialog_tienda_Select

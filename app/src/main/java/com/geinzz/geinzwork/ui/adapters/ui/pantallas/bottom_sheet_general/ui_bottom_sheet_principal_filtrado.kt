@@ -63,6 +63,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,6 +126,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
@@ -148,13 +150,13 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
-    estadoColor: Color,
     viewModelFiltros: viewModel_filtado_tiendas,
     tiendas_filtradas: modelo_tienda,
     visible: Boolean,
     onClose: () -> Unit
 ) {
 
+    viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
@@ -166,17 +168,54 @@ fun bottom_sheet_tiendas_filtradas(
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
-
+    val color_Estado_flow by viewModelFiltros.color_estado_tienda_flow.collectAsState()
 
     var cargando by remember { mutableStateOf(true) }
 
-    LaunchedEffect(visible) {
+//    LaunchedEffect(tiendas_filtradas) {
+//        if(tiendas_filtradas != tiendas_filtradas()){
+//            Log.d("data_","completa")
+//        }else{
+//            Log.d("data_","se esta cargadno")
+//        }
+//    }
+//
+//    LaunchedEffect(visible) {
+//        if (visible) {
+//            cargando = true
+//            delay(2000)
+//            cargando = false
+//        }
+//    }
+    LaunchedEffect(visible, tiendas_filtradas) {
         if (visible) {
             cargando = true
-            delay(2000)
+            val tiempoMinimo = 2000L   // mínimo 2 segundos
+            val tiempoMaximo = 3000L   // máximo 3 segundos
+            val startTime = System.currentTimeMillis()
+
+            while (cargando) {
+                val datosCargados = tiendas_filtradas.id_tienda.isNotBlank() ||
+                        tiendas_filtradas.ubicacion.isNotEmpty()
+
+                val tiempoPasado = System.currentTimeMillis() - startTime
+
+                // 🔸 Solo puede cerrarse si pasaron al menos 2 s
+                // y además los datos ya están cargados o pasó el máximo
+                if (tiempoPasado >= tiempoMinimo && (datosCargados || tiempoPasado >= tiempoMaximo)) {
+                    cargando = false
+                    break
+                }
+
+                delay(100)
+            }
+        } else {
             cargando = false
         }
     }
+
+
+
 
     if (!visible) return
 
@@ -197,7 +236,7 @@ fun bottom_sheet_tiendas_filtradas(
                     CircularProgressIndicator()
                 }
             } else {
-                AnimatedVisibility(visible = true) { // Aquí sí animamos solo el contenido
+                AnimatedVisibility(visible = true) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -227,8 +266,9 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                viewModelFiltros,
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                estadoColor,
+                                color_Estado_flow,
                                 direccion,
                                 referencia,
                                 tiendas_filtradas.categoria_tienda,
@@ -280,7 +320,7 @@ fun bottom_sheet_tiendas_filtradas(
                             Expandible_horario_atencion(
                                 modifier = Modifier.padding(horizontal = 10.dp),
                                 tiendas_filtradas.horario_atencion,
-                                estadoColor,
+                                color_Estado_flow,
                                 tiendas_filtradas.localidad,
                                 tiendas_filtradas.id_tienda,
                                 expander_horario,
@@ -329,6 +369,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    viewModel_filtado_tiendas:viewModel_filtado_tiendas,
     modifier: Modifier = Modifier,
     estadoColor: Color,
     direccion: String,
@@ -436,7 +477,7 @@ fun cabezero_tiendas(
 
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                perfil_cabezero(nombre_tienda, estadoColor, categoritienda, lista_tags)
+                perfil_cabezero(viewModel_filtado_tiendas,nombre_tienda, estadoColor, categoritienda, lista_tags)
             }
             spacer_horizonta(15.dp)
             abrir_google_maps(context, latitud, longitud) { dialog_ ->
@@ -494,57 +535,41 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
+    viewModelFiltros: viewModel_filtado_tiendas,
     nombre_tienda: String,
     estadoColor: Color,
     categoritienda: String,
     lista_tags: List<String>
 ) {
-    val color_casi_cerrando = Color(0xFFFF5722)
-    val poco_tiempo_cerra = Color(0xFFFFC107)
-    var cerrado_motivo = Color(0xFFF4C524)
-    var texto = ""
-    if (estadoColor == Color.Red) {
-        texto = "Cerrado"
-    } else if (estadoColor == Color.Green) {
-        texto = "Abierto"
-    } else if (estadoColor == poco_tiempo_cerra) {
-        texto = "Por cerrar"
-    } else if (estadoColor == color_casi_cerrando) {
-        texto = "Últimos minutos"
-    } else if (estadoColor == cerrado_motivo) {
-        texto = "Cerrado"
-    }
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = nombre_tienda.uppercase(),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+    val horario_tiempo_real by viewModelFiltros.color_estado_tienda.collectAsState()
+    val tick by viewModelFiltros.tick.collectAsState()
 
-                )
-            spacer_vertical(5.dp)
-            Box(modifier = Modifier.weight(2f)) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 5.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(estadoColor)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = texto,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
+    Column {
+
+        Text(
+            text = nombre_tienda.uppercase(),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+
+            )
         spacer_vertical(5.dp)
+
+            TiempoRestanteCierre(
+                horario_total = horario_tiempo_real,
+                hCierre = horario_tiempo_real.h_cierre,
+                cerrado = horario_tiempo_real.cerrado,
+                motivo = horario_tiempo_real.motivo,
+                pagado = true,
+                max_line = 1, tick = tick
+            ) { color ->
+                viewModelFiltros.setear_color(color)
+            }
+
+        spacer_vertical(5.dp)
+
+
         text_expandible_wrapp(
             texto = "Categoria : $categoritienda",
             style = MaterialTheme.typography.bodyMedium
@@ -556,6 +581,8 @@ fun perfil_cabezero(
             brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default),
             modifier = Modifier.padding(end = 40.dp)
         )
+
+
     }
 }
 
@@ -836,7 +863,7 @@ fun item_metodos_de_pago(
                                 "Yape",
                                 metodos_pago.metodos_pago_tienda.yape.nombre,
 
-                            )
+                                )
                         }
                     }
                 }
@@ -855,7 +882,7 @@ fun item_metodos_de_pago(
                                 "Plin",
                                 metodos_pago.metodos_pago_tienda.plin.nombre,
 
-                            )
+                                )
                         }
                     }
                 }
@@ -900,7 +927,8 @@ fun item_metodos_de_pago(
 
     }
     if (mostrar_dialog_pagos) {
-        dialog_qr_pago_tienda(metodoPagoSeleccionado,
+        dialog_qr_pago_tienda(
+            metodoPagoSeleccionado,
             { mostrar_dialog_pagos = !mostrar_dialog_pagos })
     }
 }
@@ -913,8 +941,9 @@ fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
             .clip(RoundedCornerShape(12.dp))
 
             .padding(10.dp)
-            .clickable ( indication = null,
-                interactionSource = remember { MutableInteractionSource() }){
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
                 listener()
             }
     ) {
@@ -1247,6 +1276,5 @@ fun tienda_cercana() {
         )
     }
 }
-
 
 

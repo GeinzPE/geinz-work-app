@@ -47,6 +47,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
@@ -94,7 +95,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -1377,14 +1382,66 @@ fun FloatingBubble(
                                                     Column {
                                                         when (scate_carga_cordenadas_nuevas) {
                                                             is viewmodel_floating_filtrado.carga_cordenadas.error -> {
-                                                                Log.d("qewqeqeqeeqewq", "error")
                                                                 val error =
                                                                     (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
-                                                                texto_generico_one_line(
-                                                                    error,
-                                                                    MaterialTheme.typography.bodyMedium
+
+                                                                // Construimos el texto anotado
+                                                                val annotatedText = buildAnnotatedString {
+                                                                    val keyword = "Intenta nuevamente."
+                                                                    val startIndex = error.indexOf(keyword)
+
+                                                                    if (startIndex != -1) {
+                                                                        // Parte antes del texto clickeable (en blanco)
+                                                                        withStyle(style = SpanStyle(
+                                                                            color = Color.White
+                                                                        )
+                                                                        ) {
+                                                                            append(error.substring(0, startIndex))
+                                                                        }
+
+                                                                        // Parte clickeable subrayada
+                                                                        pushStringAnnotation(tag = "REINTENTAR", annotation = keyword)
+                                                                        withStyle(
+                                                                            style = SpanStyle(
+                                                                                color = MaterialTheme.colorScheme.primary,
+                                                                                textDecoration = TextDecoration.Underline
+                                                                            )
+                                                                        ) {
+                                                                            append(keyword)
+                                                                        }
+                                                                        pop()
+
+                                                                        // Parte después del texto clickeable (también blanca)
+                                                                        if (startIndex + keyword.length < error.length) {
+                                                                            withStyle(style = SpanStyle(color = Color.White)) {
+                                                                                append(error.substring(startIndex + keyword.length))
+                                                                            }
+                                                                        }
+                                                                    } else {
+                                                                        // Todo el texto en blanco si no contiene la palabra clave
+                                                                        withStyle(style = SpanStyle(color = Color.White)) {
+                                                                            append(error)
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                // Texto clickeable
+                                                                ClickableText(
+                                                                    text = annotatedText,
+                                                                    style = MaterialTheme.typography.bodyMedium,
+                                                                    onClick = { offset ->
+                                                                        annotatedText.getStringAnnotations(
+                                                                            tag = "REINTENTAR",
+                                                                            start = offset,
+                                                                            end = offset
+                                                                        ).firstOrNull()?.let {
+                                                                            // 👇 Vuelve a intentar obtener coordenadas
+                                                                            viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
+                                                                        }
+                                                                    }
                                                                 )
                                                             }
+
 
                                                             is viewmodel_floating_filtrado.carga_cordenadas.loading -> {
                                                                 Log.d("qewqeqeqeeqewq", "loading")
