@@ -26,6 +26,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         indexName = application.getString(R.string.IDEX_NAME_ALGOLIA)
     )
 
+
     private var searchJob: Job? = null
     private var filterJob: Job? = null
 
@@ -46,35 +47,48 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     /** ---------- LISTA COMPLETA ORIGINAL ---------- */
     private var listaOriginalCompleta: List<Item> = emptyList()
 
-    /** ---------- LISTA COMPLETA BUSQUEDA SOLO TEXTO ---------- */
-
-    private var lista_completa_busqueda: List<Item> = emptyList()
+    /** ---------- LISTA COMPLETA PARA RECORDAR AL CAMBIAR DE PANTALLA ---------- */
+    private var lista_original_sin_borrar_ni_editar = MutableStateFlow<List<Item>>(emptyList())
+    private var lista_filtrada_sin_borrar_ni_edita = MutableStateFlow<List<Item>>(emptyList())
 
     /** ---------- FALG YA CARGADO DESDE ALGOLIA ---------- */
     private var algoliaCargado = false
-//
-//    init {
-//        logSizeListasPeriodicamente() // se ejecuta automáticamente al crear el ViewModel
-//    }
-
-//
-//    fun logSizeListasPeriodicamente() {
-//        viewModelScope.launch {
-//            while (true) {
-//                Log.d("SizeLists","lista_completa_busqueda: ${lista_completa_busqueda.size}")
-//                Log.d("SizeLists","listaOriginalCompleta: ${listaOriginalCompleta.size}")
-//                Log.d("SizeLists", "lista_filtrada_geohasing: ${lista_filtrada_geohasing.value.size}")
-//                Log.d("SizeLists", "lista_filtrada_subcategoria: ${lista_filtrada_subcategoria.value.size}")
-//                Log.d("SizeLists", "lista_original_algolia1: ${lista_original_algolia1.value.size}")
-//                Log.d("SizeLists", "_listaEncontrada: ${_listaEncontrada.value.size}")
-//
-//                delay(1000L) // 1 segundo
-//            }
-//        }
-//    }
 
 
+    /** ---------- DATA CLASS PARA RECORDAR LOS CAMBIOS DE PANTALLA ---------- */
+    data class cambio_pantalla(
+        val cat: String,
+        val sub: String,
+        val localidad: String,
+        val txt_filtrado: String,
+    )
 
+    /** ---------- DATOS DE RETORNO VARIABLES ---------- */
+    private val _categoria_retorno = MutableStateFlow<String>  ("")
+    val categoria_retorno : StateFlow<String> =_categoria_retorno
+
+    private val _subcategoria = MutableStateFlow<String>  ("")
+    val subcategoria : StateFlow<String> =_subcategoria
+
+
+    private val _txt_filtrado_guardado =MutableStateFlow<String> ("")
+    val txt_filtrado_guardado: StateFlow<String> =_txt_filtrado_guardado
+
+    private val _localidad_fitlrado_guardado =MutableStateFlow<String>("")
+    val localida_filtrado_guardado : StateFlow<String> = _localidad_fitlrado_guardado
+
+    /** ---------- FUNCION PARA GUARDAR LOS DATOS ANTES DE CAMBIAR DE PANTALLA ---------- */
+    fun guardar_datos_cambi_pantalla(i: cambio_pantalla) {
+        Log.d("los_datos_al_cambiar_pantlla", "$i  lista completa= ${lista_original_sin_borrar_ni_editar.value.size} lista filtrada=${lista_filtrada_sin_borrar_ni_edita.value.size}")
+        _categoria_retorno.value=i.cat
+        _subcategoria.value=i.sub
+        _txt_filtrado_guardado.value=i.txt_filtrado
+        _localidad_fitlrado_guardado.value=i.localidad
+    }
+
+    fun guardar_localidad_select_viewmodel(localidad: String){
+        _localidad_fitlrado_guardado.value=localidad
+    }
 
     /** ---------- FILTRO PRINCIPAL (BÚSQUEDA + CATEGORÍA + SUBCATEGORÍA + GEOHASH) ---------- */
     fun buscarItems(
@@ -103,7 +117,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     if (geohashEnable && !hashUser.isNullOrBlank()) {
 
                         if (!subcategoria.isNullOrBlank()) {
-                            Log.d("lista",lista_filtrada_geohasing.value.size.toString())
+                            Log.d("lista", lista_filtrada_geohasing.value.size.toString())
                             Log.d("asd123", "Geohash activado - filtrando por subcategoría")
                             val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
                                 lista_filtrada_geohasing.value,
@@ -153,6 +167,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             } else {
                                 ListItemsResult.Success(categorias, listaFiltrada)
                             }
+                            if(listaFiltrada.isNotEmpty()){
+                                lista_filtrada_sin_borrar_ni_edita.value=listaFiltrada
+                            }
                         } else if (!categoria.isNullOrBlank()) {
                             Log.d("asd123", "buscamos en texto por categoria")
                             val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
@@ -167,6 +184,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             } else {
                                 ListItemsResult.Success(categorias, listaFiltrada)
                             }
+                            if(listaFiltrada.isNotEmpty()){
+                                lista_filtrada_sin_borrar_ni_edita.value=listaFiltrada
+                            }
                         }
                     }
 
@@ -175,7 +195,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     // 🔹 2️⃣ Sin categoría/subcategoría → Buscar directamente en Algolia
                     // -----------------------------
 
-                    if(search.length<3) {
+                    if (search.length < 3) {
                         clearResults()
                         _state.value = ListItemsResult.Empty("")
                         return@launch
@@ -229,6 +249,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                         subcategoria
                     )
                     lista_original_algolia1.value = resAlgoliaGeneral
+                    lista_original_sin_borrar_ni_editar.value=resAlgoliaGeneral
                     listaOriginalCompleta = resAlgoliaGeneral
                     algoliaCargado = true
                 }
@@ -250,8 +271,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     Log.d("isntqa_fun", "Aplicando filtro geohash interno")
                     listaFiltrada = filtrarPorRadioInterno(radio, context, hashUser, listaFiltrada)
                     lista_filtrada_geohasing.value = listaFiltrada
-                }
-                else {
+                } else {
                     Log.d(
                         "isntqa_fun",
                         "❌ Filtro 'Cerca de ti' desactivado — mostrando lista original filtrada solo por categoría/subcategoría"
@@ -270,17 +290,21 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                 // 🔹 4️⃣ Actualizar los estados reactivos
                 lista_filtrada_subcategoria.value = listaFiltrada
-                _listaEncontrada.value=listaFiltrada
+                _listaEncontrada.value = listaFiltrada
 
                 _state.value = if (listaFiltrada.isEmpty()) {
-                    if(cercaDeTiEnable){
+                    if (cercaDeTiEnable) {
                         ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km ")
-                    }else{
+                    } else {
                         ListItemsResult.Empty("No se encontraron resultados ")
                     }
                 } else {
                     val categoriasActuales = listaFiltrada.map { it.categoria }.distinct()
                     ListItemsResult.Success(categoriasActuales, listaFiltrada)
+                }
+
+                if (listaFiltrada.isNotEmpty()) {
+                    lista_filtrada_sin_borrar_ni_edita.value = listaFiltrada
                 }
 
             } catch (e: CancellationException) {
@@ -362,7 +386,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
 
                 _listaEncontrada.value = listaFiltrable
-                lista_filtrada_geohasing.value=listaFiltrable
+                lista_filtrada_geohasing.value = listaFiltrable
 
                 val categorias = listaFiltrable.map { it.categoria }.distinct()
                 _state.value = if (listaFiltrable.isEmpty()) {
@@ -387,20 +411,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         algoliaCargado = false
     }
 
-
-    fun limpiar_lista_datos_original_sub(){
-        Log.d("llamaos", "datos_original_sub")
-        lista_filtrada_subcategoria.value = emptyList()
-    }
-
-    fun limpiar_lista_datos_original_cat(){
-        Log.d("llamaos", "cat_original_sub")
-        lista_original_algolia1.value = emptyList()
-        listaOriginalCompleta = emptyList()
-        _listaEncontrada.value=emptyList()
-        lista_filtrada_subcategoria.value = emptyList()
-
-    }
 
     fun restaurarListaOriginal(categoria: String, subcategoria: String) {
         Log.d("isntqa_fun", "🔄 Restaurando lista original...")
@@ -450,6 +460,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         data class Empty(
             val mensaje: String,
         ) : ListItemsResult()
+
         object Cleared : ListItemsResult()
         data class Error(val mensaje: String) : ListItemsResult()
     }

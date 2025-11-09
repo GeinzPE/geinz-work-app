@@ -216,21 +216,27 @@ fun ui_pantalla_busqueda(
     var subir_btn by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     val tick by viewModelFiltros.tick.collectAsState()
-    val ultimaLocalidad by data_store_localidad.obtener_localidad(context).collectAsState(initial = null)
+    val ultimaLocalidad by data_store_localidad.obtener_localidad(context)
+        .collectAsState(initial = null)
 
     var tiendaLocalidadSeleccionada by remember { mutableStateOf<String?>(null) }
-
+    val localida_filtrado_guardado by viewModel.localida_filtrado_guardado.collectAsState()
     LaunchedEffect(ultimaLocalidad) {
         if (ultimaLocalidad != null) {
-            tiendaLocalidadSeleccionada = ultimaLocalidad
-
+            // Si la localidad del DataStore es diferente a la del ViewModel
+            if (ultimaLocalidad != localida_filtrado_guardado && localida_filtrado_guardado.isNotEmpty()) {
+                Log.d("user", "Cambio viene del ViewModel (no limpiar filtros)")
+                tiendaLocalidadSeleccionada = localida_filtrado_guardado
+            } else {
+                Log.d("user", "Cambio viene del usuario o sigue igual (actualizar sin limpiar)")
+                tiendaLocalidadSeleccionada = ultimaLocalidad
+            }
         }
     }
 
     var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
     var categoria_filtrad by remember { mutableStateOf("") }
     Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
-    val estadoColor by viewModelFiltros.color_estado_tienda_flow.collectAsState()
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var firstLaunch by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
@@ -277,6 +283,37 @@ fun ui_pantalla_busqueda(
     var radioActual by remember { mutableStateOf(1f) }
     var radio_cambiado by remember { mutableStateOf(1f) }
 
+
+    val categoria_retorno_viewmodel by viewModel.categoria_retorno.collectAsState()
+    val subcategoria_retorno_viewmodel by viewModel.subcategoria.collectAsState()
+    val txt_filtrado_guardado by viewModel.txt_filtrado_guardado.collectAsState()
+
+
+    var cambioDesdeViewModel by remember { mutableStateOf(false) }
+
+    LaunchedEffect(localida_filtrado_guardado) {
+        if (localida_filtrado_guardado.isNotEmpty()) {
+            cambioDesdeViewModel = true
+            tiendaLocalidadSeleccionada = localida_filtrado_guardado
+            Log.d("sync", "Localidad forzada desde ViewModel: $localida_filtrado_guardado")
+        }
+    }
+
+    LaunchedEffect(
+        categoria_retorno_viewmodel,
+        subcategoria_retorno_viewmodel,
+        txt_filtrado_guardado, localida_filtrado_guardado
+    ) {
+        if (categoria_retorno_viewmodel.isNotEmpty() || subcategoria_retorno_viewmodel.isNotEmpty() || txt_filtrado_guardado.isNotEmpty()) {
+            categoria_filtrad = categoria_retorno_viewmodel
+            subcategira_filtrado = subcategoria_retorno_viewmodel
+            searchText = TextFieldValue(txt_filtrado_guardado)
+//            tiendaLocalidadSeleccionada=localida_filtrado_guardado
+            Log.d("valorr", txt_filtrado_guardado)
+            Log.d("valorr", "${searchText.text}")
+        }
+    }
+
     // Cuando el valor de DataStore cambia, actualizamos el radioActual (solo si el usuario no está moviendo el slider)
     LaunchedEffect(radioGuardado) {
         radioActual = radioGuardado
@@ -288,7 +325,7 @@ fun ui_pantalla_busqueda(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Log.d("GPS", "✅ El usuario activó el GPS")
-            obtenerUbicacionEnTiempoReal(estadoGPS,context,{ lat, lng ->
+            obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
                 hash_user = geohashing(lat, lng)
                 val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
@@ -296,7 +333,7 @@ fun ui_pantalla_busqueda(
                     data_store_localidad.guardar_hasgin_lat_lon_user(context, hash_user ?: "", hora)
                     data_store_localidad.guardar_lat_log_user(context, lat, lng)
                 }
-            },{})
+            }, {})
 //            cerca_de_ti_enable = true
             viewmodel_floating_filtrado.save_cerca_de_ti(true)
         } else {
@@ -306,14 +343,12 @@ fun ui_pantalla_busqueda(
         }
     }
     LaunchedEffect(radio_cambiado) {
+
         searchText = TextFieldValue("")
+
     }
 
-//    LaunchedEffect(cerca_de_ti_enable) {
-//        if(categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()){
-//            searchText = TextFieldValue("")
-//        }
-//    }
+
     LaunchedEffect(cerca_de_ti_enable.value) {
         Log.d("FiltroRadioEffect", "🚀 LaunchedEffect disparado")
         Log.d("FiltroRadioEffect", "cerca_de_ti_enable = $cerca_de_ti_enable")
@@ -321,7 +356,7 @@ fun ui_pantalla_busqueda(
         Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
         if (cerca_de_ti_enable.value) {
             Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
-            obtenerUbicacionEnTiempoReal(estadoGPS,context,{ lat, lng ->
+            obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
                 hash_user = geohashing(lat, lng)
                 val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
@@ -329,7 +364,7 @@ fun ui_pantalla_busqueda(
                     data_store_localidad.guardar_hasgin_lat_lon_user(context, hash_user ?: "", hora)
                     data_store_localidad.guardar_lat_log_user(context, lat, lng)
                 }
-            },{})
+            }, {})
             if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
                 Log.d(
                     "FiltroRadioEffect",
@@ -392,8 +427,21 @@ fun ui_pantalla_busqueda(
         salud_seguirdad
     ) {
         val localidadActual = tiendaLocalidadSeleccionada
-        Log.d("categoria_filtrad", "$categoria_filtrad $subcategira_filtrado" )
-        Log.d("localidadActual","$localidadActual")
+
+        val tieneDatosGuardados = localida_filtrado_guardado.isNotEmpty() ||
+                categoria_retorno_viewmodel.isNotEmpty() ||
+                subcategoria_retorno_viewmodel.isNotEmpty() ||
+                txt_filtrado_guardado.isNotEmpty()
+
+        Log.d("categoria_filtrad", "$categoria_filtrad $subcategira_filtrado")
+        Log.d("localidadActual", "$localidadActual")
+
+        if (cambioDesdeViewModel) {
+            Log.d("sync", "Ignorando limpieza porque el cambio vino del ViewModel")
+            previousLocalidad = localidadActual
+            cambioDesdeViewModel = false
+            return@LaunchedEffect
+        }
         if (salud_seguirdad.isNotEmpty()) {
 //            Log.d(
 //                "clearResults",
@@ -406,10 +454,6 @@ fun ui_pantalla_busqueda(
             viewmodel_floating_filtrado.save_cerca_de_ti(false)
         }
         if (localidadActual != previousLocalidad && (categoria_filtrad.isEmpty() || subcategira_filtrado.isEmpty())) {
-//            Log.d(
-//                "_cambio_localidad",
-//                "Cambiamos de ${previousLocalidad ?: "ninguna"} a $localidadActual"
-//            )
             Log.d(
                 "clearResults",
                 "si cateogira esta vacia y sub igual"
@@ -417,26 +461,31 @@ fun ui_pantalla_busqueda(
             viewModel.clearResults()
             mostrar_centrado_visible = true
             previousLocalidad = localidadActual
-            searchText = TextFieldValue("")
-            categoria_filtrad = ""
-            subcategira_filtrado = ""
-            salud_seguirdad = ""
+
+                searchText = TextFieldValue("")
+                categoria_filtrad = ""
+                subcategira_filtrado = ""
+                salud_seguirdad = ""
+
             return@LaunchedEffect
         }
 
-        if(localidadActual!=previousLocalidad){
+        if (localidadActual != previousLocalidad ) {
             searchText = TextFieldValue("")
             categoria_filtrad = ""
             subcategira_filtrado = ""
             salud_seguirdad = ""
         }
+
         if (firstLaunch) {
             firstLaunch = false
             return@LaunchedEffect
         }
 
-        // 🔹 Reset del search
-        searchText = TextFieldValue("")
+
+            searchText = TextFieldValue("")
+
+
 
         // 🔹 Placeholder dinámico
         placeholder = if (
@@ -505,12 +554,6 @@ fun ui_pantalla_busqueda(
     }
 
 
-//    LaunchedEffect(lista_encontrada_items) {
-//        if (lista_encontrada_items.isNotEmpty()) {
-//            Log.d("valor_encontrado", "${lista_encontrada_items.toString()}")
-//        }
-//    }
-
     LaunchedEffect(categoria_filtrad) {
         subcategorias = viewModelFiltros.obtener_lista_sub(categoria_filtrad)
     }
@@ -520,7 +563,8 @@ fun ui_pantalla_busqueda(
             viewModelFiltros.obtener_campos_tiendas_por_id(
                 localidad_tienda_seklecioanda,
                 id_tienda_selecionada
-            ) }
+            )
+        }
     }
 
     LaunchedEffect(bottom_sheet_turismo) {
@@ -698,7 +742,7 @@ fun ui_pantalla_busqueda(
                     i = item,
                     index = index,
                     listener_carta = { id, localidad, color ->
-                        Log.d("coorrr1213213132","$color")
+                        Log.d("coorrr1213213132", "$color")
                         localidad_tienda_seklecioanda = localidad
                         id_tienda_selecionada = id
 
@@ -900,6 +944,13 @@ fun ui_pantalla_busqueda(
                 onClose = { bottom_sheet_turismo = false },
                 ver_mapa = { lista_lugares_cecanos ->
                     abrir_mapa("turismo")
+                    val datos_cambio_pantalla = SearchViewModel.cambio_pantalla(
+                        categoria_filtrad,
+                        subcategira_filtrado,
+                        tiendaLocalidadSeleccionada ?: "barranca",
+                        searchText.text,
+                    )
+                    viewModel.guardar_datos_cambi_pantalla(datos_cambio_pantalla)
                 },
                 iniciar_seccion = { iniciar_seccion() },
                 crear_cuenta = { crear_cuenta() })
@@ -999,6 +1050,7 @@ fun ui_pantalla_busqueda(
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
                 tiendaLocalidadSeleccionada = localidad
+
             },
             categoria_filtrad = categoria_filtrad,
             categoria_Selecionada = { categoria ->
@@ -1011,7 +1063,7 @@ fun ui_pantalla_busqueda(
                 subcategira_filtrado = subcategoria_select
             },
             seguridad_salud_selec = { select ->
-                if(select=="seguridad" || select=="salud"){
+                if (select == "seguridad" || select == "salud") {
                     viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
                 }
                 salud_seguirdad = select
@@ -1502,12 +1554,25 @@ fun ramdoBox(
     crear_cuenta_geinz: () -> Unit,
     aler_dialog_contacto_fun: (lugar: String, nombre: String, img: String, id: String) -> Unit
 ) {
-    val color_princial=MaterialTheme.colorScheme.surface
+    val color_princial = MaterialTheme.colorScheme.surface
     val heightOptions = listOf(300.dp, 350.dp)
     val color_estado_tienda by viewModelFiltros.color_estado_tienda.collectAsState()
     var estadoColor by remember { mutableStateOf(color_princial) }
-    val resultado by remember(color_estado_tienda, color_estado_tienda.h_cierre, color_estado_tienda.cerrado, color_estado_tienda.motivo, tick) {
-        derivedStateOf { calcularTiempoRestante(color_estado_tienda,  color_estado_tienda.h_cierre,  color_estado_tienda.cerrado,  color_estado_tienda.motivo) }
+    val resultado by remember(
+        color_estado_tienda,
+        color_estado_tienda.h_cierre,
+        color_estado_tienda.cerrado,
+        color_estado_tienda.motivo,
+        tick
+    ) {
+        derivedStateOf {
+            calcularTiempoRestante(
+                color_estado_tienda,
+                color_estado_tienda.h_cierre,
+                color_estado_tienda.cerrado,
+                color_estado_tienda.motivo
+            )
+        }
     }
     viewModelFiltros.setear_color(resultado.color)
 
@@ -1523,8 +1588,8 @@ fun ramdoBox(
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
             Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
-        }else{
-            id_respado_user=""
+        } else {
+            id_respado_user = ""
         }
     }
 //    var aler_dialog_contacto by remember { mutableStateOf(false) }
