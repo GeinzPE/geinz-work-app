@@ -552,7 +552,7 @@ fun ui_pantalla_busqueda(
 
         }
     }
-    Log.d("categoria_filtradcategoria_filtrad", categoria_filtrad)
+
     Box() {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
